@@ -32,6 +32,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
+    await user.click(screen.getByRole('tab', { name: /多巴胺/ }))
     await user.click(screen.getByRole('button', { name: '轻多巴胺年轻感' }))
 
     const selectedTheme = screen.getByRole('button', { name: '轻多巴胺年轻感' })
@@ -43,10 +44,13 @@ describe('App', () => {
     })
   })
 
-  it('offers multiple selectable dopamine color palettes', async () => {
+  it('offers multiple selectable dopamine color palettes through the theme tabs', async () => {
     const user = userEvent.setup()
     render(<App />)
 
+    expect(screen.queryByRole('button', { name: '多巴胺薄荷绿' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: /多巴胺/ }))
     await user.click(screen.getByRole('button', { name: '多巴胺薄荷绿' }))
 
     expect(screen.getByText('当前主题：多巴胺薄荷绿')).toBeInTheDocument()
@@ -56,19 +60,30 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: '多巴胺组合色' })).toBeInTheDocument()
   })
 
-  it('groups expanded theme choices by aesthetic families', () => {
+  it('groups expanded theme choices behind aesthetic tabs', async () => {
+    const user = userEvent.setup()
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: '极简' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '多巴胺' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '水墨' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '夜间' })).toBeInTheDocument()
-    expect(screen.getByText('5 款')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /极简/ })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: /多巴胺/ })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /水墨/ })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /夜间/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '极简高级感' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '水墨雨青' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: /水墨/ }))
+
+    expect(screen.getByRole('tab', { name: /水墨/ })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getAllByText('3 款').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: '水墨雨青' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '极简高级感' })).not.toBeInTheDocument()
   })
 
-  it('shows theme color swatches before selecting a palette', () => {
+  it('shows theme color swatches before selecting a palette', async () => {
+    const user = userEvent.setup()
     render(<App />)
+
+    await user.click(screen.getByRole('tab', { name: /多巴胺/ }))
 
     const dopamineGreen = screen.getByRole('button', { name: '多巴胺薄荷绿' })
     const swatches = dopamineGreen.querySelectorAll('.theme-swatch')
@@ -83,6 +98,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
+    await user.click(screen.getByRole('tab', { name: /水墨/ }))
     await user.click(screen.getByRole('button', { name: '水墨留白' }))
 
     const growthCard = screen.getByRole('heading', { name: 'Lv. 18' }).closest('section')
@@ -95,6 +111,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
+    await user.click(screen.getByRole('tab', { name: /多巴胺/ }))
     await user.click(screen.getByRole('button', { name: '轻多巴胺年轻感' }))
     await user.click(screen.getByRole('button', { name: /职场办公/ }))
 
@@ -120,6 +137,7 @@ describe('App', () => {
     render(<App />)
 
     await user.click(screen.getByRole('button', { name: /职场办公/ }))
+    await user.click(screen.getByRole('tab', { name: /多巴胺/ }))
     await user.click(screen.getByRole('button', { name: '轻多巴胺年轻感' }))
     await user.click(screen.getByRole('button', { name: '恢复场景推荐主题' }))
 

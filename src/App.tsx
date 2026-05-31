@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -108,6 +108,8 @@ export default function App() {
     context: `${activePersona.name}：${activePersona.painPoint}`
   })
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
+  const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeAesthetic>(() => activeTheme.aesthetic)
+  const selectedThemeFamily = themeFamilies.find((family) => family.aesthetic === activeThemeFamily) ?? themeFamilies[0]
 
   useEffect(() => {
     applyTheme(workspaceState.preferences.themeId)
@@ -115,6 +117,8 @@ export default function App() {
   }, [workspaceState])
 
   const switchTheme = (themeId: ThemeId) => {
+    const nextTheme = getThemeById(themeId)
+    setActiveThemeFamily(nextTheme.aesthetic)
     setWorkspaceState((current) => ({
       ...current,
       preferences: { ...current.preferences, themeId, themeMode: 'manual' }
@@ -141,6 +145,8 @@ export default function App() {
   const restorePersonaTheme = () => {
     setWorkspaceState((current) => {
       const persona = getPersonaById(current.preferences.activePersona)
+      const theme = getThemeById(persona.recommendedThemeId)
+      setActiveThemeFamily(theme.aesthetic)
 
       return {
         ...current,
@@ -342,33 +348,49 @@ export default function App() {
           <button className="theme-recommend-button" onClick={restorePersonaTheme} type="button">
             恢复场景推荐主题
           </button>
-          <div className="theme-family-list">
+          <div className="theme-family-tabs" role="tablist" aria-label="主题风格分类">
             {themeFamilies.map((family) => (
-              <section className="theme-family" key={family.aesthetic}>
-                <div className="theme-family-heading">
-                  <h3>{family.label}</h3>
-                  <span>{family.themes.length} 款</span>
-                </div>
-                <div className="theme-options">
-                  {family.themes.map((theme) => (
-                    <button
-                      className={theme.id === activeTheme.id ? 'theme-option selected' : 'theme-option'}
-                      key={theme.id}
-                      onClick={() => switchTheme(theme.id)}
-                      style={{
-                        background: theme.tokens.colors.surfaceStrong,
-                        borderColor: theme.tokens.colors.border,
-                        color: theme.tokens.colors.primary
-                      }}
-                      type="button"
-                    >
-                      {theme.name}
-                    </button>
-                  ))}
-                </div>
-              </section>
+              <button
+                aria-selected={family.aesthetic === selectedThemeFamily.aesthetic}
+                className={family.aesthetic === selectedThemeFamily.aesthetic ? 'theme-family-tab active' : 'theme-family-tab'}
+                key={family.aesthetic}
+                onClick={() => setActiveThemeFamily(family.aesthetic)}
+                role="tab"
+                type="button"
+              >
+                <span>{family.label}</span>
+                <small>{family.themes.length} 款</small>
+              </button>
             ))}
           </div>
+          <section className="theme-family" role="tabpanel" aria-label={`${selectedThemeFamily.label}主题`}>
+            <div className="theme-family-heading">
+              <h3>{selectedThemeFamily.label}</h3>
+              <span>{selectedThemeFamily.themes.length} 款</span>
+            </div>
+            <div className="theme-options">
+              {selectedThemeFamily.themes.map((theme) => (
+                <button
+                  className={theme.id === activeTheme.id ? 'theme-option selected' : 'theme-option'}
+                  key={theme.id}
+                  onClick={() => switchTheme(theme.id)}
+                  style={{
+                    background: theme.tokens.colors.surfaceStrong,
+                    borderColor: theme.tokens.colors.border,
+                    color: theme.tokens.colors.primary
+                  }}
+                  type="button"
+                >
+                  <span className="theme-option-name">{theme.name}</span>
+                  <span className="theme-swatch-row" aria-hidden="true">
+                    <span className="theme-swatch" style={{ background: theme.tokens.colors.primary }} />
+                    <span className="theme-swatch" style={{ background: theme.tokens.colors.secondary }} />
+                    <span className="theme-swatch" style={{ background: theme.tokens.colors.accent }} />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
         </section>
       </aside>
     </main>
