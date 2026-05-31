@@ -700,34 +700,34 @@ export const themeRegistry: StudyTheme[] = [
     category: 'built-in',
     aesthetic: 'night',
     defaultCandidate: false,
-    visualComfort: '非纯黑背景、低眩光、适合深夜学习和写作',
+    visualComfort: '更深的非纯黑背景、低眩光、适合深夜学习和写作',
     recommendedFor: ['夜间学习', '写作', '低光环境', '深度专注'],
-    accessibilityNotes: ['避免纯黑纯白强反差', '浅蓝和薄荷绿小面积提示', '深色卡片保留边界'],
-    wallpaperSupport: { overlay: 'rgba(15, 23, 42, 0.72)', blur: '16px', brightness: '0.62', saturation: '0.74' },
+    accessibilityNotes: ['避免纯黑纯白强反差', '蓝灰与薄荷绿降低亮度后小面积提示', '深色卡片保留边界'],
+    wallpaperSupport: { overlay: 'rgba(8, 13, 24, 0.82)', blur: '16px', brightness: '0.48', saturation: '0.66' },
     design: {
       tone: '夜间专注、低眩光、沉浸写作',
       scene: '适合夜间学习、深度办公、长时间写作和安静复盘',
-      principle: '采用深蓝灰而非纯黑，正文使用柔和浅灰，浅蓝与薄荷绿只作为路径提示，减少视觉疲劳。',
+      principle: '采用更深的蓝黑底色而非纯黑，正文使用柔和浅灰，蓝灰与低亮薄荷绿只作为路径提示，减少视觉疲劳。',
       aiVoice: '安静陪伴型，简短、克制、专注下一步行动。'
     },
     tokens: {
       colors: {
-        background: 'radial-gradient(circle at 18% 12%, rgba(96, 165, 250, 0.20), transparent 26%), radial-gradient(circle at 88% 18%, rgba(45, 212, 191, 0.16), transparent 24%), linear-gradient(135deg, #111827 0%, #1e293b 54%, #172033 100%)',
-        surface: 'rgba(255, 255, 255, 0.09)',
-        surfaceStrong: 'rgba(255, 255, 255, 0.13)',
-        primary: '#93c5fd',
-        secondary: '#5eead4',
-        accent: '#c4b5fd',
-        text: '#f1f5f9',
-        muted: '#cbd5e1',
-        border: 'rgba(255, 255, 255, 0.13)'
+        background: 'radial-gradient(circle at 18% 12%, rgba(59, 130, 246, 0.11), transparent 28%), radial-gradient(circle at 88% 18%, rgba(20, 184, 166, 0.09), transparent 26%), linear-gradient(135deg, #070b14 0%, #0d1626 54%, #090f1b 100%)',
+        surface: 'rgba(10, 18, 32, 0.72)',
+        surfaceStrong: 'rgba(12, 22, 38, 0.88)',
+        primary: '#6fa4d8',
+        secondary: '#3fb9aa',
+        accent: '#9d8ee7',
+        text: '#d7e0ea',
+        muted: '#8fa1b5',
+        border: 'rgba(148, 163, 184, 0.16)'
       },
       gradients: {
-        hero: 'linear-gradient(135deg, #93c5fd 0%, #5eead4 52%, #c4b5fd 100%)',
-        card: 'linear-gradient(135deg, rgba(30, 41, 59, 0.84), rgba(15, 23, 42, 0.72))'
+        hero: 'linear-gradient(135deg, #6fa4d8 0%, #3fb9aa 52%, #9d8ee7 100%)',
+        card: 'linear-gradient(135deg, rgba(13, 22, 38, 0.90), rgba(7, 11, 20, 0.82))'
       },
-      charts: { plan: '#93c5fd', focus: '#5eead4', review: '#c4b5fd' },
-      effects: { radius: '24px', shadow: '0 28px 80px rgba(0, 0, 0, 0.32)', glass: 'blur(16px) saturate(1.08)' }
+      charts: { plan: '#6fa4d8', focus: '#3fb9aa', review: '#9d8ee7' },
+      effects: { radius: '24px', shadow: '0 28px 80px rgba(0, 0, 0, 0.44)', glass: 'blur(16px) saturate(0.92)' }
     }
   },
   {
@@ -736,34 +736,34 @@ export const themeRegistry: StudyTheme[] = [
     category: 'built-in',
     aesthetic: 'night',
     defaultCandidate: false,
-    visualComfort: '深蓝夜色、低亮极光、适合夜间但更有氛围',
+    visualComfort: '更深的蓝黑夜色、低亮极光、适合夜间但更有氛围',
     recommendedFor: ['夜间学习', '写作', '沉浸专注', '低光环境'],
-    accessibilityNotes: ['极光只做背景氛围', '正文保持浅灰', '避免纯黑纯白强反差'],
-    wallpaperSupport: { overlay: 'rgba(12, 19, 34, 0.72)', blur: '18px', brightness: '0.60', saturation: '0.78' },
+    accessibilityNotes: ['极光只做低亮背景氛围', '正文保持柔和浅灰', '避免纯黑纯白强反差'],
+    wallpaperSupport: { overlay: 'rgba(5, 10, 20, 0.84)', blur: '18px', brightness: '0.46', saturation: '0.68' },
     design: {
       tone: '夜间极光、沉浸专注、低眩光氛围',
       scene: '适合夜间学习、深度办公、写作和沉浸复盘',
-      principle: '用低亮青绿和蓝紫表现极光，主体仍保持深蓝灰和高可读信息层级。',
+      principle: '用更低亮的青绿和蓝紫表现极光，主体保持深蓝黑和高可读信息层级。',
       aiVoice: '沉浸陪伴型，简短、克制、专注下一步行动。'
     },
     tokens: {
       colors: {
-        background: 'radial-gradient(circle at 18% 14%, rgba(94, 234, 212, 0.18), transparent 28%), radial-gradient(circle at 84% 12%, rgba(167, 139, 250, 0.18), transparent 26%), linear-gradient(135deg, #0c1322 0%, #16213a 54%, #101827 100%)',
-        surface: 'rgba(255, 255, 255, 0.09)',
-        surfaceStrong: 'rgba(255, 255, 255, 0.13)',
-        primary: '#5eead4',
-        secondary: '#93c5fd',
-        accent: '#c4b5fd',
-        text: '#f1f5f9',
-        muted: '#cbd5e1',
-        border: 'rgba(255, 255, 255, 0.13)'
+        background: 'radial-gradient(circle at 18% 14%, rgba(45, 212, 191, 0.10), transparent 30%), radial-gradient(circle at 84% 12%, rgba(139, 92, 246, 0.10), transparent 28%), linear-gradient(135deg, #050a14 0%, #0a1325 54%, #070d19 100%)',
+        surface: 'rgba(8, 16, 30, 0.74)',
+        surfaceStrong: 'rgba(10, 20, 36, 0.88)',
+        primary: '#42b9aa',
+        secondary: '#6f9fd4',
+        accent: '#9f91df',
+        text: '#d9e2ec',
+        muted: '#91a2b6',
+        border: 'rgba(148, 163, 184, 0.16)'
       },
       gradients: {
-        hero: '#5eead4',
-        card: 'linear-gradient(135deg, rgba(22, 33, 58, 0.84), rgba(12, 19, 34, 0.72))'
+        hero: '#42b9aa',
+        card: 'linear-gradient(135deg, rgba(10, 19, 37, 0.90), rgba(5, 10, 20, 0.82))'
       },
-      charts: { plan: '#5eead4', focus: '#93c5fd', review: '#c4b5fd' },
-      effects: { radius: '24px', shadow: '0 28px 80px rgba(0, 0, 0, 0.32)', glass: 'blur(18px) saturate(1.08)' }
+      charts: { plan: '#42b9aa', focus: '#6f9fd4', review: '#9f91df' },
+      effects: { radius: '24px', shadow: '0 28px 80px rgba(0, 0, 0, 0.46)', glass: 'blur(18px) saturate(0.92)' }
     }
   }
 ]

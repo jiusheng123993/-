@@ -102,6 +102,25 @@ describe('themeRegistry', () => {
     expect(dopamineCombo.tokens.gradients.hero).toContain('#ef6f9f')
   })
 
+  it('keeps night palettes dim enough for low-light use without pure black contrast', () => {
+    const nightFocus = getThemeById('night-focus')
+    const nightAurora = getThemeById('night-aurora')
+
+    expect(nightFocus.visualComfort).toContain('更深')
+    expect(nightFocus.wallpaperSupport.brightness).toBe('0.48')
+    expect(nightFocus.tokens.colors.background).toContain('#070b14')
+    expect(nightFocus.tokens.colors.surface).toBe('rgba(10, 18, 32, 0.72)')
+    expect(nightFocus.tokens.colors.primary).toBe('#6fa4d8')
+    expect(nightFocus.tokens.effects.glass).toContain('saturate(0.92)')
+
+    expect(nightAurora.visualComfort).toContain('更深')
+    expect(nightAurora.wallpaperSupport.brightness).toBe('0.46')
+    expect(nightAurora.tokens.colors.background).toContain('#050a14')
+    expect(nightAurora.tokens.colors.surface).toBe('rgba(8, 16, 30, 0.74)')
+    expect(nightAurora.tokens.colors.primary).toBe('#42b9aa')
+    expect(nightAurora.tokens.effects.glass).toContain('saturate(0.92)')
+  })
+
   it('maps legacy theme ids to the nearest new official theme', () => {
     expect(getThemeById('campus-premium').id).toBe('minimal-premium')
     expect(getThemeById('business-focus').id).toBe('business-bluegray')

@@ -23,7 +23,7 @@ import {
 import { getPersonaById, personaRegistry, type PersonaId } from './personas/personaRegistry'
 import { getPersonaTemplateById } from './personas/personaTemplates'
 import { getDefaultMiniProgramModules, miniProgramBlueprint } from './platforms/miniProgramBlueprint'
-import { getThemeById, themeRegistry, type ThemeAesthetic, type ThemeId } from './themes/themeRegistry'
+import { getThemeById, themeRegistry, type ThemeAesthetic, type ThemeId, type StudyTheme } from './themes/themeRegistry'
 
 const navigationItems = [
   { label: '首页仪表盘', icon: LineChart },
@@ -67,6 +67,35 @@ const themeFamilies = themeFamilyOrder.map((aesthetic) => ({
   themes: themeRegistry.filter((theme) => theme.aesthetic === aesthetic)
 }))
 
+const ThemeOptionButton = ({
+  activeThemeId,
+  onSelect,
+  theme
+}: {
+  activeThemeId: ThemeId
+  onSelect: (themeId: ThemeId) => void
+  theme: StudyTheme
+}) => (
+  <button
+    className={theme.id === activeThemeId ? 'theme-option selected' : 'theme-option'}
+    key={theme.id}
+    onClick={() => onSelect(theme.id)}
+    style={{
+      background: theme.tokens.colors.surfaceStrong,
+      borderColor: theme.tokens.colors.border,
+      color: theme.tokens.colors.primary
+    }}
+    type="button"
+  >
+    <span className="theme-option-name">{theme.name}</span>
+    <span className="theme-swatch-row" aria-hidden="true">
+      <span className="theme-swatch" style={{ background: theme.tokens.colors.primary }} />
+      <span className="theme-swatch" style={{ background: theme.tokens.colors.secondary }} />
+      <span className="theme-swatch" style={{ background: theme.tokens.colors.accent }} />
+    </span>
+  </button>
+)
+
 const applyTheme = (themeId: ThemeId) => {
   const theme = getThemeById(themeId)
   const root = document.documentElement
@@ -108,21 +137,55 @@ export default function App() {
     context: `${activePersona.name}：${activePersona.painPoint}`
   })
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
-  const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeAesthetic>(() => activeTheme.aesthetic)
-  const selectedThemeFamily = themeFamilies.find((family) => family.aesthetic === activeThemeFamily) ?? themeFamilies[0]
+  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
+  const [themeSearchQuery, setThemeSearchQuery] = useState('')
+  const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
+  const filteredThemes = themeRegistry.filter((theme) => {
+    const searchableText = [
+      theme.name,
+      themeFamilyLabels[theme.aesthetic],
+      theme.visualComfort,
+      theme.accessibilityNotes,
+      theme.design.tone,
+      theme.design.scene,
+      theme.design.principle,
+      ...theme.recommendedFor
+    ].join(' ').toLowerCase()
+
+    return normalizedThemeSearch.length === 0 || searchableText.includes(normalizedThemeSearch)
+  })
 
   useEffect(() => {
     applyTheme(workspaceState.preferences.themeId)
     store?.save(workspaceState)
   }, [workspaceState])
 
+  useEffect(() => {
+    if (!isThemePickerOpen) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsThemePickerOpen(false)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [isThemePickerOpen])
+
+  const openThemePicker = () => {
+    setThemeSearchQuery('')
+    setIsThemePickerOpen(true)
+  }
+
+  const closeThemePicker = () => {
+    setIsThemePickerOpen(false)
+  }
+
   const switchTheme = (themeId: ThemeId) => {
-    const nextTheme = getThemeById(themeId)
-    setActiveThemeFamily(nextTheme.aesthetic)
     setWorkspaceState((current) => ({
       ...current,
       preferences: { ...current.preferences, themeId, themeMode: 'manual' }
     }))
+    setIsThemePickerOpen(false)
   }
 
   const switchPersona = (personaId: PersonaId) => {
@@ -145,8 +208,6 @@ export default function App() {
   const restorePersonaTheme = () => {
     setWorkspaceState((current) => {
       const persona = getPersonaById(current.preferences.activePersona)
-      const theme = getThemeById(persona.recommendedThemeId)
-      setActiveThemeFamily(theme.aesthetic)
 
       return {
         ...current,
@@ -348,51 +409,63 @@ export default function App() {
           <button className="theme-recommend-button" onClick={restorePersonaTheme} type="button">
             恢复场景推荐主题
           </button>
-          <div className="theme-family-tabs" role="tablist" aria-label="主题风格分类">
-            {themeFamilies.map((family) => (
-              <button
-                aria-selected={family.aesthetic === selectedThemeFamily.aesthetic}
-                className={family.aesthetic === selectedThemeFamily.aesthetic ? 'theme-family-tab active' : 'theme-family-tab'}
-                key={family.aesthetic}
-                onClick={() => setActiveThemeFamily(family.aesthetic)}
-                role="tab"
-                type="button"
-              >
-                <span>{family.label}</span>
-                <small>{family.themes.length} 款</small>
-              </button>
-            ))}
+          <button className="theme-picker-button" onClick={openThemePicker} type="button">
+            <span>打开主题库</span>
+            <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
+          </button>
+          <div className="active-theme-preview" aria-label="当前主题预览">
+            <strong>{activeTheme.name}</strong>
+            <span className="theme-swatch-row" aria-hidden="true">
+              <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
+              <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
+              <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
+            </span>
           </div>
-          <section className="theme-family" role="tabpanel" aria-label={`${selectedThemeFamily.label}主题`}>
-            <div className="theme-family-heading">
-              <h3>{selectedThemeFamily.label}</h3>
-              <span>{selectedThemeFamily.themes.length} 款</span>
-            </div>
-            <div className="theme-options">
-              {selectedThemeFamily.themes.map((theme) => (
-                <button
-                  className={theme.id === activeTheme.id ? 'theme-option selected' : 'theme-option'}
-                  key={theme.id}
-                  onClick={() => switchTheme(theme.id)}
-                  style={{
-                    background: theme.tokens.colors.surfaceStrong,
-                    borderColor: theme.tokens.colors.border,
-                    color: theme.tokens.colors.primary
-                  }}
-                  type="button"
-                >
-                  <span className="theme-option-name">{theme.name}</span>
-                  <span className="theme-swatch-row" aria-hidden="true">
-                    <span className="theme-swatch" style={{ background: theme.tokens.colors.primary }} />
-                    <span className="theme-swatch" style={{ background: theme.tokens.colors.secondary }} />
-                    <span className="theme-swatch" style={{ background: theme.tokens.colors.accent }} />
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
         </section>
       </aside>
+
+      {isThemePickerOpen && (
+        <div className="theme-modal-backdrop" onClick={closeThemePicker} role="presentation">
+          <section aria-modal="true" className="theme-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-label="主题库">
+            <div className="theme-modal-header">
+              <div>
+                <p className="eyebrow">Theme Library</p>
+                <h2>主题库</h2>
+                <small>上下滑动浏览全部主题，输入关键词可快速定位。</small>
+              </div>
+              <button className="theme-modal-close" onClick={closeThemePicker} type="button" aria-label="关闭主题库">
+                ×
+              </button>
+            </div>
+            <label className="theme-search">
+              <span>搜索主题</span>
+              <input
+                aria-label="搜索主题"
+                onChange={(event) => setThemeSearchQuery(event.target.value)}
+                placeholder="搜索多巴胺、薄荷、水墨、夜间..."
+                type="search"
+                value={themeSearchQuery}
+              />
+            </label>
+            <div className="theme-family-summary" aria-label="主题分类概览">
+              {themeFamilies.map((family) => (
+                <span key={family.aesthetic}>{family.label} {family.themes.length}</span>
+              ))}
+            </div>
+            <div className="theme-modal-list" aria-label="主题列表">
+              {filteredThemes.map((theme) => (
+                <ThemeOptionButton activeThemeId={activeTheme.id} key={theme.id} onSelect={switchTheme} theme={theme} />
+              ))}
+              {filteredThemes.length === 0 && (
+                <div className="theme-empty-state">
+                  <strong>没有找到匹配主题</strong>
+                  <small>换个关键词试试，例如：多巴胺、水墨、商务、夜间。</small>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
