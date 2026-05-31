@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="panel">
+    <text class="eyebrow">Module Center</text>
+    <text class="title">模块中心</text>
+    <text class="description">完整但模块化，复杂能力按需开启。</text>
+  </view>
+  <view class="card-grid">
+    <view class="module-card" wx:for="{{modules}}" wx:key="id">
+      <text class="module-title">{{item.title}}</text>
+      <text class="module-meta">{{item.description}}</text>
+    </view>
+  </view>
+</view>

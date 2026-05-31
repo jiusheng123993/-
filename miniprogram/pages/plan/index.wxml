@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="panel">
+    <text class="eyebrow">Plan</text>
+    <text class="title">{{title}}</text>
+    <text class="description">{{description}}</text>
+  </view>
+  <view class="card-grid">
+    <view class="module-card" wx:for="{{actions}}" wx:key="*this">
+      <text class="module-title">{{item}}</text>
+      <text class="module-meta">第一版入口</text>
+    </view>
+  </view>
+</view>

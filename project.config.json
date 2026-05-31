@@ -1,0 +1,13 @@
+{
+  "description": "GrowthOS native WeChat Mini Program",
+  "projectname": "personal-study-planner-miniprogram",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true,
+    "enhance": true
+  }
+}

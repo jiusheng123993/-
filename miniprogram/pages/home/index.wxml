@@ -1,0 +1,18 @@
+<view class="container home-page">
+  <view class="panel hero-panel">
+    <text class="eyebrow">{{blueprint.positioning}}</text>
+    <text class="title">今天</text>
+    <text class="description">{{blueprint.mobileBoundary}}</text>
+    <view class="priority-card">
+      <text class="module-title">{{primaryAction}}</text>
+      <text class="module-meta">计划 · 专注 · 记录 · 复盘</text>
+    </view>
+  </view>
+
+  <view class="card-grid">
+    <view class="module-card" wx:for="{{modules}}" wx:key="id">
+      <text class="module-title">{{item.title}}</text>
+      <text class="module-meta">{{item.privacyLevel}}</text>
+    </view>
+  </view>
+</view>

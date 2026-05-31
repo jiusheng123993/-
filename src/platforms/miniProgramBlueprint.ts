@@ -1,0 +1,126 @@
+import type { ThemeId } from '../themes/themeRegistry'
+
+export type MiniProgramNavigationId = 'home' | 'plan' | 'quick-add' | 'modules' | 'profile'
+
+export type MiniProgramModuleId =
+  | 'mobile-workbench'
+  | 'planner'
+  | 'quick-capture'
+  | 'focus-checkin'
+  | 'review-stats'
+  | 'module-center'
+  | 'theme-center'
+  | 'privacy-sync'
+
+export type MiniProgramNavigationItem = {
+  id: MiniProgramNavigationId
+  label: string
+  purpose: string
+}
+
+export type MiniProgramModule = {
+  id: MiniProgramModuleId
+  title: string
+  description: string
+  privacyLevel: 'normal' | 'private' | 'sensitive'
+  defaultEnabled: boolean
+}
+
+export type MiniProgramImplementationRoute = {
+  platform: 'wechat-miniprogram'
+  framework: 'native'
+  projectRoot: 'miniprogram'
+  reason: string
+}
+
+export type MiniProgramBlueprint = {
+  positioning: string
+  desktopBoundary: string
+  mobileBoundary: string
+  recommendedThemeId: ThemeId
+  implementationRoute: MiniProgramImplementationRoute
+  navigation: MiniProgramNavigationItem[]
+  modules: MiniProgramModule[]
+  syncStrategy: string
+}
+
+export const miniProgramBlueprint: MiniProgramBlueprint = {
+  positioning: '可独立使用的完整移动版应用',
+  desktopBoundary: '深度规划、长文复盘、模块配置和长期数据管理',
+  mobileBoundary: '计划执行、快速记录、专注打卡、状态查看、轻量复盘和模块入口',
+  recommendedThemeId: 'cream-dopamine',
+  implementationRoute: {
+    platform: 'wechat-miniprogram',
+    framework: 'native',
+    projectRoot: 'miniprogram',
+    reason: '优先保证微信生态体验、低依赖和后续审核兼容性'
+  },
+  navigation: [
+    { id: 'home', label: '首页', purpose: '展示今日最重要事项、打卡、状态提醒和快捷入口' },
+    { id: 'plan', label: '计划', purpose: '管理任务、日程、目标、优先级和复盘' },
+    { id: 'quick-add', label: '+', purpose: '快速新增任务、灵感、症状、笔记和错题' },
+    { id: 'modules', label: '模块', purpose: '管理学习、办公、创作、健康、财务和生活模块' },
+    { id: 'profile', label: '我的', purpose: '管理主题、隐私、同步、导出和设置' }
+  ],
+  modules: [
+    {
+      id: 'mobile-workbench',
+      title: '移动首页工作台',
+      description: '今日任务、优先级、打卡、能量状态和快捷入口',
+      privacyLevel: 'normal',
+      defaultEnabled: true
+    },
+    {
+      id: 'planner',
+      title: '计划 / 任务 / 日程',
+      description: '支持学习、办公和生活目标，包含优先级、截止时间和轻量复盘',
+      privacyLevel: 'normal',
+      defaultEnabled: true
+    },
+    {
+      id: 'quick-capture',
+      title: '快速新增',
+      description: '支持任务、灵感、症状、笔记、错题和临时想法的快速记录',
+      privacyLevel: 'private',
+      defaultEnabled: true
+    },
+    {
+      id: 'focus-checkin',
+      title: '专注与打卡',
+      description: '支持番茄专注、习惯打卡、连续记录和低压力恢复',
+      privacyLevel: 'normal',
+      defaultEnabled: true
+    },
+    {
+      id: 'review-stats',
+      title: '统计复盘',
+      description: '提供今日完成、专注时长、打卡趋势和模块关键指标',
+      privacyLevel: 'normal',
+      defaultEnabled: true
+    },
+    {
+      id: 'module-center',
+      title: '模块中心',
+      description: '学生、职场、创作、女性周期、健身、财务等模块按需开启',
+      privacyLevel: 'private',
+      defaultEnabled: true
+    },
+    {
+      id: 'theme-center',
+      title: '主题中心',
+      description: '复用 Theme Profile，但移动端减少复杂动效和大面积装饰',
+      privacyLevel: 'normal',
+      defaultEnabled: true
+    },
+    {
+      id: 'privacy-sync',
+      title: '隐私与同步预留',
+      description: '高敏感数据默认本地优先，同步、导出和删除必须单独授权',
+      privacyLevel: 'sensitive',
+      defaultEnabled: true
+    }
+  ],
+  syncStrategy: '第一版只做统一数据契约和 Provider 接口预留，不强制上线真实云同步'
+}
+
+export const getDefaultMiniProgramModules = () => miniProgramBlueprint.modules.filter((module) => module.defaultEnabled)

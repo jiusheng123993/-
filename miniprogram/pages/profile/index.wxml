@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="panel">
+    <text class="eyebrow">Profile</text>
+    <text class="title">{{title}}</text>
+    <text class="description">当前主题：{{theme}}</text>
+    <text class="description">{{syncStrategy}}</text>
+  </view>
+  <view class="setting-list">
+    <view class="setting-item" wx:for="{{settings}}" wx:key="*this">
+      <text>{{item}}</text>
+    </view>
+  </view>
+</view>

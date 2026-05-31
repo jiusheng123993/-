@@ -1,0 +1,13 @@
+.capture-list {
+  display: grid;
+  gap: 18rpx;
+  margin-top: 24rpx;
+}
+
+.capture-button {
+  border: 0;
+  border-radius: 28rpx;
+  color: #ffffff;
+  background: #ff7a90;
+  font-weight: 800;
+}

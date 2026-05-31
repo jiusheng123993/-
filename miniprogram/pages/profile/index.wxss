@@ -1,0 +1,13 @@
+.setting-list {
+  display: grid;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.setting-item {
+  border-radius: 24rpx;
+  padding: 24rpx;
+  background: #fffdf8;
+  color: #2b2833;
+  font-weight: 800;
+}

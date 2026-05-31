@@ -1,0 +1,10 @@
+<view class="container">
+  <view class="panel">
+    <text class="eyebrow">Quick Capture</text>
+    <text class="title">{{title}}</text>
+    <text class="description">{{description}}</text>
+  </view>
+  <view class="capture-list">
+    <button class="capture-button" wx:for="{{captures}}" wx:key="*this">{{item}}</button>
+  </view>
+</view>
