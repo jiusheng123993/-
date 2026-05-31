@@ -67,6 +67,18 @@ describe('App', () => {
     expect(screen.getAllByText('3 款').length).toBeGreaterThan(0)
   })
 
+  it('shows theme color swatches before selecting a palette', () => {
+    render(<App />)
+
+    const dopamineGreen = screen.getByRole('button', { name: '多巴胺薄荷绿' })
+    const swatches = dopamineGreen.querySelectorAll('.theme-swatch')
+
+    expect(swatches).toHaveLength(3)
+    expect(swatches[0]).toHaveStyle({ background: '#28a774' })
+    expect(swatches[1]).toHaveStyle({ background: '#f0b73c' })
+    expect(swatches[2]).toHaveStyle({ background: '#ee7aa7' })
+  })
+
   it('uses the active theme on the growth level card instead of a fixed dark block', async () => {
     const user = userEvent.setup()
     render(<App />)
