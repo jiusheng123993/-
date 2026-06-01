@@ -51,6 +51,9 @@ import type { Product } from './entitlement/productTypes'
 import type { Order } from './entitlement/orderTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
+import { createBrowserMemoryStore } from './memory/memoryStore'
+import { createMemoryObserver } from './memory/memoryObserver'
+import type { MemoryScope } from './memory/memoryTypes'
 import styles from './components/membership/MembershipPage.module.css'
 
 const navigationItems = [
@@ -75,6 +78,7 @@ const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
 }
 
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()
+const memoryStore = typeof window === 'undefined' ? undefined : createBrowserMemoryStore()
 
 const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
@@ -275,6 +279,14 @@ export default function App() {
     return { level: 'free', label: '免费用户', color: '#94a3b8' }
   }
   const currentTier = getCurrentTier()
+  const memoryScope = useMemo<MemoryScope>(() => ({
+    userId,
+    projectId: 'growth-workbench'
+  }), [userId])
+  const memoryObserver = useMemo(
+    () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null,
+    [memoryScope]
+  )
   
   const switchDevAuthRole = () => {
     setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
@@ -502,6 +514,9 @@ export default function App() {
           completedAt: new Date().toISOString()
         }
 
+        memoryObserver?.onFocusSessionCompleted(session)
+        memoryObserver?.onTaskCompleted(target)
+
         return {
           ...state,
           tasks: state.tasks.map((task) =>
@@ -526,7 +541,7 @@ export default function App() {
 
     const handle = window.setTimeout(finish, 0)
     return () => window.clearTimeout(handle)
-  }, [focusEndsAt, remainingMsFromEnds, focusTaskId])
+  }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver])
 
   const openThemePicker = () => {
     setThemeSearchQuery('')

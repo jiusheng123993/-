@@ -343,6 +343,10 @@ describe('App', () => {
     const historyCard = screen.getByRole('region', { name: '最近专注会话' })
     expect(within(historyCard).getByText('完成高数极限专题 20 题')).toBeInTheDocument()
     expect(within(historyCard).getByText(/60 分钟 · 60 XP/)).toBeInTheDocument()
+
+    const storedMemory = window.localStorage.getItem('growth-workbench-memory-state')
+    expect(storedMemory).not.toBeNull()
+    expect(JSON.parse(storedMemory!).events[0].content).toContain('完成 60 分钟专注：完成高数极限专题 20 题')
   })
 
   it('lets the user adjust focus duration before starting and shows stable countdown', async () => {
