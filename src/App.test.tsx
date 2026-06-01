@@ -52,8 +52,9 @@ describe('App', () => {
     const dialog = await openThemeLibrary(user)
 
     expect(within(dialog).getByRole('searchbox', { name: '搜索主题' })).toBeInTheDocument()
-    expect(within(dialog).getByText('上下滑动浏览全部主题，输入关键词可快速定位。')).toBeInTheDocument()
-    expect(dialog.querySelector('.theme-modal-list')).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: '挑一个今天的氛围' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tablist', { name: '主题分类' })).toBeInTheDocument()
+    expect(dialog.querySelector('.theme-modal-grid')).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: '极简高级感' })).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: '多巴胺薄荷绿' })).toBeInTheDocument()
   })
@@ -180,6 +181,55 @@ describe('App', () => {
     expect(screen.getByText('75 分钟')).toBeInTheDocument()
     expect(screen.getByText('45:00')).toBeInTheDocument()
     expect(screen.getAllByText('补齐项目首页结构说明').length).toBeGreaterThan(0)
+  })
+
+  it('lets the user switch focus brief visual style and persists it', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const trigger = screen.getByRole('button', { name: /切换专注概览样式/ })
+    await user.click(trigger)
+
+    const menu = await screen.findByRole('menu', { name: '专注概览样式' })
+    expect(menu).toBeInTheDocument()
+
+    const arcOption = within(menu).getByRole('menuitemradio', { name: /极简刻度环/ })
+    const barOption = within(menu).getByRole('menuitemradio', { name: /水平进度条/ })
+    const gaugeOption = within(menu).getByRole('menuitemradio', { name: /半圆仪表盘/ })
+
+    expect(arcOption).toHaveAttribute('aria-checked', 'true')
+    expect(barOption).toHaveAttribute('aria-checked', 'false')
+    expect(gaugeOption).toHaveAttribute('aria-checked', 'false')
+
+    await user.click(barOption)
+
+    expect(screen.queryByRole('menu', { name: '专注概览样式' })).not.toBeInTheDocument()
+    const focusCard = screen.getByRole('region', { name: '桌面专注概览' })
+    expect(focusCard).toHaveAttribute('data-style', 'stat-bar')
+
+    const stored = window.localStorage.getItem('growth-workbench-state')
+    expect(stored).not.toBeNull()
+    expect(JSON.parse(stored!).preferences.focusBriefStyle).toBe('stat-bar')
+
+    await user.click(screen.getByRole('button', { name: /切换专注概览样式/ }))
+    await user.click(
+      within(screen.getByRole('menu', { name: '专注概览样式' }))
+        .getByRole('menuitemradio', { name: /半圆仪表盘/ })
+    )
+    expect(screen.getByRole('region', { name: '桌面专注概览' })).toHaveAttribute(
+      'data-style',
+      'half-gauge'
+    )
+  })
+
+  it('reflects the active theme aesthetic and material on the focus brief card', () => {
+    render(<App />)
+
+    const focusCard = screen.getByRole('region', { name: '桌面专注概览' })
+    expect(focusCard).toHaveAttribute('data-aesthetic')
+    expect(focusCard).toHaveAttribute('data-material')
+    expect(focusCard.getAttribute('data-aesthetic')).not.toBe('')
+    expect(focusCard.getAttribute('data-material')).not.toBe('')
   })
 
   it('keeps the manually selected theme when switching persona workflows', async () => {

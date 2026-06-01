@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+﻿﻿﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -94,6 +94,7 @@ const ThemeOptionButton = ({
   const isActive = theme.id === activeThemeId
   return (
     <button
+      aria-label={theme.name}
       aria-pressed={isActive}
       className={isActive ? 'theme-option selected' : 'theme-option'}
       data-material={theme.material}
@@ -337,6 +338,16 @@ export default function App() {
     setIsThemePickerOpen(false)
   }
 
+  const focusBriefStyleId: FocusBriefStyleId =
+    workspaceState.preferences.focusBriefStyle ?? 'minimal-arc'
+  const FocusBriefStyleComponent = getFocusBriefStyleById(focusBriefStyleId).Component
+  const switchFocusBriefStyle = (nextStyleId: FocusBriefStyleId) => {
+    setWorkspaceState((current) => ({
+      ...current,
+      preferences: { ...current.preferences, focusBriefStyle: nextStyleId }
+    }))
+  }
+
   const switchPersona = (personaId: PersonaId) => {
     setWorkspaceState((current) => {
       const nextPersona = getPersonaById(personaId)
@@ -539,13 +550,36 @@ export default function App() {
             <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} XP</strong>
           </section>
 
-          <section className="card focus-brief-card" aria-label="桌面专注概览">
-            <div className="card-heading compact"><h2>桌面专注概览</h2><Clock3 size={20} /></div>
-            <div className="focus-brief-ring" style={{ '--focus-progress': `${weeklyProgress}%` } as CSSProperties}>
-              <strong>{weeklyProgress}%</strong>
-              <span>完成率</span>
+          <section
+            className="card focus-brief-card"
+            aria-label="桌面专注概览"
+            data-style={focusBriefStyleId}
+            data-aesthetic={activeTheme.aesthetic}
+            data-material={activeTheme.material}
+          >
+            <div className="card-heading compact">
+              <h2>桌面专注概览</h2>
+              <div className="focus-brief-heading-actions">
+                <Clock3 size={20} />
+                <FocusBriefStylePicker
+                  currentStyleId={focusBriefStyleId}
+                  onStyleChange={switchFocusBriefStyle}
+                />
+              </div>
             </div>
-            <div className="focus-brief-meta">
+            <FocusBriefStyleComponent
+              data={{
+                progress: weeklyProgress,
+                todoCount: todoTasks.length,
+                totalMinutes: totalFocusMinutes,
+                completedCount: completedTasks.length
+              }}
+              context={{
+                aesthetic: activeTheme.aesthetic,
+                material: activeTheme.material
+              }}
+            />
+            <div className="focus-brief-legacy-meta" aria-hidden="true">
               <span>{todoTasks.length} 个待办</span>
               <span>{totalFocusMinutes} 分钟</span>
               <span>{completedTasks.length} 个已完成</span>
