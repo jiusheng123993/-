@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -87,26 +87,59 @@ const ThemeOptionButton = ({
   activeThemeId: ThemeId
   onSelect: (themeId: ThemeId) => void
   theme: StudyTheme
-}) => (
-  <button
-    className={theme.id === activeThemeId ? 'theme-option selected' : 'theme-option'}
-    key={theme.id}
-    onClick={() => onSelect(theme.id)}
-    style={{
-      background: theme.tokens.colors.surfaceStrong,
-      borderColor: theme.tokens.colors.border,
-      color: theme.tokens.colors.primary
-    }}
-    type="button"
-  >
-    <span className="theme-option-name">{theme.name}</span>
-    <span className="theme-swatch-row" aria-hidden="true">
-      <span className="theme-swatch" style={{ background: theme.tokens.colors.primary }} />
-      <span className="theme-swatch" style={{ background: theme.tokens.colors.secondary }} />
-      <span className="theme-swatch" style={{ background: theme.tokens.colors.accent }} />
-    </span>
-  </button>
-)
+}) => {
+  const isActive = theme.id === activeThemeId
+  return (
+    <button
+      aria-pressed={isActive}
+      className={isActive ? 'theme-option selected' : 'theme-option'}
+      data-material={theme.material}
+      key={theme.id}
+      onClick={() => onSelect(theme.id)}
+      type="button"
+    >
+      <span
+        className="theme-option-preview"
+        style={{
+          background: theme.tokens.colors.background,
+          borderColor: theme.tokens.colors.border
+        }}
+        aria-hidden="true"
+      >
+        <span
+          className="theme-option-preview-card"
+          style={{
+            background: theme.tokens.gradients.card,
+            color: theme.tokens.colors.primary,
+            boxShadow: theme.tokens.effects.shadow
+          }}
+        >
+          <span className="theme-option-preview-bar" style={{ background: theme.tokens.gradients.hero }} />
+          <span className="theme-option-preview-line" style={{ background: theme.tokens.colors.border }} />
+          <span
+            className="theme-option-preview-line short"
+            style={{ background: theme.tokens.colors.border }}
+          />
+        </span>
+      </span>
+      <span className="theme-option-meta">
+        <span className="theme-option-headline">
+          <span className="theme-option-name">{theme.name}</span>
+          <span className="theme-option-material-tag" data-material={theme.material}>
+            {materialLabels[theme.material]}
+          </span>
+        </span>
+        <span className="theme-option-tone">{theme.design.tone}</span>
+        <span className="theme-swatch-row" aria-hidden="true">
+          <span className="theme-swatch" style={{ background: theme.tokens.colors.primary }} />
+          <span className="theme-swatch" style={{ background: theme.tokens.colors.secondary }} />
+          <span className="theme-swatch" style={{ background: theme.tokens.colors.accent }} />
+        </span>
+      </span>
+      {isActive && <span className="theme-option-active-mark" aria-hidden="true">●</span>}
+    </button>
+  )
+}
 
 const applyTheme = (themeId: ThemeId) => {
   const theme = getThemeById(themeId)
@@ -158,6 +191,7 @@ export default function App() {
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
   const [themeSearchQuery, setThemeSearchQuery] = useState('')
+  const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeFamilyId | 'all'>('all')
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null)
   const [focusEndsAt, setFocusEndsAt] = useState<number | null>(null)
   const [focusPausedRemainingMs, setFocusPausedRemainingMs] = useState<number | null>(null)
@@ -183,7 +217,10 @@ export default function App() {
       ...theme.recommendedFor
     ].join(' ').toLowerCase()
 
-    return normalizedThemeSearch.length === 0 || searchableText.includes(normalizedThemeSearch)
+    const matchesSearch = normalizedThemeSearch.length === 0 || searchableText.includes(normalizedThemeSearch)
+    const matchesFamily = activeThemeFamily === 'all' || themeFamilyMeta.find((f) => f.id === activeThemeFamily)?.includes.includes(theme.aesthetic)
+
+    return matchesSearch && matchesFamily
   })
 
   useEffect(() => {
