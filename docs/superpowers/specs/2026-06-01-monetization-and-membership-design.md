@@ -511,3 +511,232 @@ interface Order {
 - ✅ 安全合规：密钥、凭证、价格、学生证件按全局安全规则处理
 - ✅ 跨端一致：与小程序蓝图、桌面端共享数据契约
 - ✅ 测试可绑定：每个 Provider 都是独立模块，便于单元测试与契约测试
+
+---
+
+## 十四、Agent 会员体系扩展（增量追加，2026-06-01）
+
+> 本节为兼容扩展，与上述章节 100% 兼容，新增 Agent / Agent PLUS 两档付费等级，配合 [`2026-06-01-memory-and-self-evolving-agent-design.md`](./2026-06-01-memory-and-self-evolving-agent-design.md) 中定义的记忆系统、自我进化机制、角色建模子系统使用。
+
+### 14.1 新增 EntitlementCode
+
+在原有 `EntitlementCode` 联合类型上扩展（保持向后兼容）：
+
+```ts
+type EntitlementCode =
+  | 'pro' | 'space' | 'ai_quota' | 'ai_quota_pro' | 'ai_quota_free'
+  | 'theme_<id>' | 'template_<id>' | 'org'
+  // 以下为 Agent 体系新增
+  | 'agent'                  // Agent 会员基础权益
+  | 'agent_plus'             // Agent PLUS 会员基础权益
+  | 'avatar_rpm'             // Ready Player Me 捏脸权限
+  | 'avatar_ai_gen'          // AI 3D 角色生成配额（计次型）
+  | 'memory_sync'            // 记忆云同步
+  | 'evolution_ritual'       // 自我进化仪式
+  | 'evolution_realtime'     // 实时反思（PLUS 专属）
+  | 'avatar_evolution'       // 角色同步进化
+  | 'agent_tool_call'        // Agent 工具调用（自动建模块/排计划）
+```
+
+### 14.2 新增 Product 配置
+
+```ts
+const agentProducts: Product[] = [
+  {
+    id: 'agent_monthly',
+    name: 'Agent 会员·月付',
+    type: 'subscription',
+    period: 'month',
+    price: 6400,
+    originalPrice: 6400,
+    grants: [
+      { code: 'agent', durationDays: 30 },
+      { code: 'pro', durationDays: 30 },
+      { code: 'avatar_rpm', durationDays: 30 },
+      { code: 'memory_sync', durationDays: 30 },
+      { code: 'evolution_ritual', durationDays: 30 },
+      { code: 'avatar_evolution', durationDays: 30 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  },
+  {
+    id: 'agent_monthly_early',
+    name: 'Agent 会员·首发月付',
+    type: 'subscription',
+    period: 'month',
+    price: 4800,
+    originalPrice: 6400,
+    grants: [
+      { code: 'agent', durationDays: 30 },
+      { code: 'pro', durationDays: 30 },
+      { code: 'avatar_rpm', durationDays: 30 },
+      { code: 'memory_sync', durationDays: 30 },
+      { code: 'evolution_ritual', durationDays: 30 },
+      { code: 'avatar_evolution', durationDays: 30 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true,
+    visibleTo: '2026-09-30'
+  },
+  {
+    id: 'agent_yearly',
+    name: 'Agent 会员·年付',
+    type: 'subscription',
+    period: 'year',
+    price: 32800,
+    originalPrice: 76800,
+    grants: [
+      { code: 'agent', durationDays: 365 },
+      { code: 'pro', durationDays: 365 },
+      { code: 'avatar_rpm', durationDays: 365 },
+      { code: 'memory_sync', durationDays: 365 },
+      { code: 'evolution_ritual', durationDays: 365 },
+      { code: 'avatar_evolution', durationDays: 365 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  },
+  {
+    id: 'agent_plus_monthly',
+    name: 'Agent PLUS·月付',
+    type: 'subscription',
+    period: 'month',
+    price: 12800,
+    originalPrice: 12800,
+    grants: [
+      { code: 'agent_plus', durationDays: 30 },
+      { code: 'agent', durationDays: 30 },
+      { code: 'pro', durationDays: 30 },
+      { code: 'avatar_rpm', durationDays: 30 },
+      { code: 'avatar_ai_gen', quantity: 10 },
+      { code: 'memory_sync', durationDays: 30 },
+      { code: 'evolution_ritual', durationDays: 30 },
+      { code: 'evolution_realtime', durationDays: 30 },
+      { code: 'avatar_evolution', durationDays: 30 },
+      { code: 'agent_tool_call', durationDays: 30 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  },
+  {
+    id: 'agent_plus_monthly_early',
+    name: 'Agent PLUS·首发月付',
+    type: 'subscription',
+    period: 'month',
+    price: 9800,
+    originalPrice: 12800,
+    grants: [
+      { code: 'agent_plus', durationDays: 30 },
+      { code: 'agent', durationDays: 30 },
+      { code: 'pro', durationDays: 30 },
+      { code: 'avatar_rpm', durationDays: 30 },
+      { code: 'avatar_ai_gen', quantity: 10 },
+      { code: 'memory_sync', durationDays: 30 },
+      { code: 'evolution_ritual', durationDays: 30 },
+      { code: 'evolution_realtime', durationDays: 30 },
+      { code: 'avatar_evolution', durationDays: 30 },
+      { code: 'agent_tool_call', durationDays: 30 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true,
+    visibleTo: '2026-09-30'
+  },
+  {
+    id: 'agent_plus_yearly',
+    name: 'Agent PLUS·年付',
+    type: 'subscription',
+    period: 'year',
+    price: 69800,
+    originalPrice: 153600,
+    grants: [
+      { code: 'agent_plus', durationDays: 365 },
+      { code: 'agent', durationDays: 365 },
+      { code: 'pro', durationDays: 365 },
+      { code: 'avatar_rpm', durationDays: 365 },
+      { code: 'avatar_ai_gen', quantity: 120 },
+      { code: 'memory_sync', durationDays: 365 },
+      { code: 'evolution_ritual', durationDays: 365 },
+      { code: 'evolution_realtime', durationDays: 365 },
+      { code: 'avatar_evolution', durationDays: 365 },
+      { code: 'agent_tool_call', durationDays: 365 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  },
+  {
+    id: 'avatar_ai_gen_pack_10',
+    name: 'AI 3D 角色生成额度包·10次',
+    type: 'pack',
+    price: 3000,
+    grants: [{ code: 'avatar_ai_gen', quantity: 10 }],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  },
+  {
+    id: 'memory_sync_storage_1gb',
+    name: '记忆云同步加量包·1GB / 年',
+    type: 'pack',
+    price: 1000,
+    grants: [{ code: 'memory_sync', durationDays: 365 }],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  }
+]
+```
+
+### 14.3 新增 Provider
+
+| Provider | 路径 | 职责 |
+|---|---|---|
+| `AgentTierProvider` | `src/agent/agentTierProvider.ts` | 解析 `agent` / `agent_plus` 权益，提供 `getTier(userId)` |
+| `AvatarAiGenQuotaProvider` | `src/avatar/avatarAiGenQuotaProvider.ts` | 管理 `avatar_ai_gen` 计次型权益消耗 |
+| `MemorySyncProvider` | `src/memory/memorySyncProvider.ts` | 校验 `memory_sync` 权益，控制云同步开关 |
+
+### 14.4 兼容层 Adapter
+
+为不破坏现有业务代码（已使用 `isPro` 布尔判断的地方），新增 tier 概念时提供兼容层：
+
+```ts
+type UserTier = 'free' | 'study' | 'agent' | 'agent_plus'
+
+function resolveUserTier(entitlementService: EntitlementService, userId: string): UserTier {
+  if (entitlementService.has(userId, 'agent_plus')) return 'agent_plus'
+  if (entitlementService.has(userId, 'agent')) return 'agent'
+  if (entitlementService.has(userId, 'pro')) return 'study'
+  return 'free'
+}
+
+function isPro(entitlementService: EntitlementService, userId: string): boolean {
+  return entitlementService.has(userId, 'pro')
+    || entitlementService.has(userId, 'agent')
+    || entitlementService.has(userId, 'agent_plus')
+}
+```
+
+### 14.5 现有用户迁移策略
+
+| 旧档位 | 新档位映射 | 处理 |
+|---|---|---|
+| 现有 Pro 月付/季付/年付/终身 | → 学习会员(Pro) | 权益不缩水，价格不变 |
+| 现有 Pro 用户 | → 赠送 30 天 Agent 试用 | 通过 `source: 'trial'` + `code: 'agent'` 发放 |
+| 内测种子终身 Pro | → 升级为终身 Agent | 额外赠送 `agent` 权益，`expireAt: null` |
+
+### 14.6 新增模块（与原 M1-M13 不冲突）
+
+| 模块 | 职责 | 优先级 |
+|---|---|---|
+| M14 Agent Tier Provider | 解析 Agent / Agent PLUS 权益 | P0 |
+| M15 Avatar AI Gen Quota Provider | AI 3D 生成额度管理 | P1 |
+| M16 Memory Sync Provider | 记忆云同步权益控制 | P1 |
+| M17 Agent Membership UI | Agent 会员升级页 + 价目表 | P0 |
+| M18 Tier Migration Service | 旧用户迁移与试用赠送 | P0 |
+
+### 14.7 风险与对策
+
+| 风险 | 等级 | 对策 |
+|---|---|---|
+| 现有 Pro 用户感到被"降级" | 高 | 权益不缩水 + 赠送 Agent 试用 + 明确文案沟通 |
+| Agent 会员定价过高劝退 | 中 | 首发限时折扣（¥48 vs ¥64）+ 7天免费试用 |
+| 增值消费拉低毛利感知 | 低 | 透明展示成本（如生成 3D 角色的 API 费用） |
+| 与原有 Entitlement 模型冲突 | 低 | 严格走兼容层 Adapter，不修改 EntitlementService 接口 |
