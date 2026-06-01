@@ -6,3 +6,10 @@ dist-electron
 .superpowers/
 .codegraph/
 npm-debug.log*
+
+# 支付配置（包含敏感密钥）
+config/payment/
+*.pem
+*.key
+*.p12
+*.cer
