@@ -63,7 +63,7 @@ src/
 - Create: `src/server/types.ts`
 - Test: `src/server/services/orderService.test.ts`
 
-- [ ] **Step 1: 创建订单服务类型定义**
+- [x] **Step 1: 创建订单服务类型定义**
 
 ```typescript
 // src/server/types.ts
@@ -101,7 +101,7 @@ export interface PaymentParams {
 export interface OrderDetailResponse extends Order {}
 ```
 
-- [ ] **Step 2: 创建订单业务服务**
+- [x] **Step 2: 创建订单业务服务**
 
 ```typescript
 // src/server/services/orderService.ts
@@ -165,7 +165,7 @@ async function generatePaymentParams(
 }
 ```
 
-- [ ] **Step 3: 创建订单路由**
+- [x] **Step 3: 创建订单路由**
 
 ```typescript
 // src/server/routes/orders.ts
@@ -196,7 +196,7 @@ router.get('/user/:userId', async (req, res) => {
 export default router
 ```
 
-- [ ] **Step 4: 编写订单服务测试**
+- [x] **Step 4: 编写订单服务测试**
 
 ```typescript
 // src/server/services/orderService.test.ts
@@ -224,7 +224,7 @@ describe('OrderService', () => {
 })
 ```
 
-- [ ] **Step 5: 运行测试验证**
+- [x] **Step 5: 运行测试验证**
 
 Run: `npm run test -- src/server/services/orderService.test.ts`
 Expected: PASS
@@ -238,7 +238,7 @@ Expected: PASS
 - Create: `src/server/services/paymentCallbackService.ts`
 - Modify: `src/server/services/entitlementService.ts` (添加发放权益方法)
 
-- [ ] **Step 1: 创建支付回调服务**
+- [x] **Step 1: 创建支付回调服务**
 
 ```typescript
 // src/server/services/paymentCallbackService.ts
@@ -298,7 +298,7 @@ export async function handleAppleVerify(
 }
 ```
 
-- [ ] **Step 2: 创建权益发放服务**
+- [x] **Step 2: 创建权益发放服务**
 
 ```typescript
 // src/server/services/entitlementService.ts
@@ -342,7 +342,7 @@ export function grantEntitlements(userId: string, productId: string): Entitlemen
 }
 ```
 
-- [ ] **Step 3: 创建支付回调路由**
+- [x] **Step 3: 创建支付回调路由**
 
 ```typescript
 // src/server/routes/payment.ts
@@ -429,7 +429,7 @@ export default router
 - Create: `src/server/websocket/index.ts`
 - Modify: `src/server/index.ts` (集成 WebSocket)
 
-- [ ] **Step 1: 创建 WebSocket 服务**
+- [x] **Step 1: 创建 WebSocket 服务**
 
 ```typescript
 // src/server/websocket/index.ts
@@ -481,7 +481,7 @@ export function broadcastToUser(userId: string, message: PaymentStatusMessage) {
 }
 ```
 
-- [ ] **Step 2: 集成到服务入口**
+- [x] **Step 2: 集成到服务入口**
 
 ```typescript
 // src/server/index.ts
@@ -511,7 +511,7 @@ createPaymentWebSocketServer(server)
 - Create: `src/services/websocket.ts`
 - Test: `src/services/websocket.test.ts`
 
-- [ ] **Step 1: 创建 WebSocket 服务**
+- [x] **Step 1: 创建 WebSocket 服务**
 
 ```typescript
 // src/services/websocket.ts
@@ -582,7 +582,7 @@ class PaymentWebSocket {
 export const paymentWebSocket = new PaymentWebSocket()
 ```
 
-- [ ] **Step 2: 编写测试**
+- [x] **Step 2: 编写测试**
 
 ```typescript
 // src/services/websocket.test.ts
@@ -624,7 +624,7 @@ describe('PaymentWebSocket', () => {
 - Create: `src/api/payment.ts`
 - Test: `src/services/paymentService.test.ts`
 
-- [ ] **Step 1: 创建支付 API 客户端**
+- [x] **Step 1: 创建支付 API 客户端**
 
 ```typescript
 // src/api/payment.ts
@@ -664,7 +664,7 @@ export async function getUserOrders(userId: string) {
 }
 ```
 
-- [ ] **Step 2: 创建支付服务**
+- [x] **Step 2: 创建支付服务**
 
 ```typescript
 // src/services/paymentService.ts
@@ -733,7 +733,7 @@ export async function pollPaymentStatus(orderId: string, interval = 3000, maxAtt
 }
 ```
 
-- [ ] **Step 3: 编写支付服务测试**
+- [x] **Step 3: 编写支付服务测试**
 
 ```typescript
 // src/services/paymentService.test.ts
@@ -769,7 +769,7 @@ describe('PaymentService', () => {
 - Create: `src/hooks/usePayment.ts`
 - Create: `src/hooks/usePaymentStatus.ts`
 
-- [ ] **Step 1: 创建 usePayment Hook**
+- [x] **Step 1: 创建 usePayment Hook**
 
 ```typescript
 // src/hooks/usePayment.ts
@@ -873,7 +873,7 @@ async function invokeApplePay(params: any) {
 }
 ```
 
-- [ ] **Step 2: 创建 usePaymentStatus Hook**
+- [x] **Step 2: 创建 usePaymentStatus Hook**
 
 ```typescript
 // src/hooks/usePaymentStatus.ts
