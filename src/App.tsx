@@ -1917,6 +1917,86 @@ export default function App() {
                 })()}
               </section>
 
+              <section className="membership-badge-section">
+                <h3>会员等级</h3>
+                <div className="membership-badge-display">
+                  <div className="membership-badge-card">
+                    <div className="badge-icon">
+                      {entitlementService.has(userId, 'agent_plus') ? '👑' : entitlementService.has(userId, 'agent') ? '⭐' : entitlementService.has(userId, 'study') ? '🌟' : '🎯'}
+                    </div>
+                    <div className="badge-info">
+                      <span className="badge-level">
+                        {entitlementService.has(userId, 'agent_plus') ? 'Agent PLUS' : entitlementService.has(userId, 'agent') ? 'Agent 会员' : entitlementService.has(userId, 'study') ? '学习会员' : '免费用户'}
+                      </span>
+                      <span className="badge-desc">
+                        {entitlementService.has(userId, 'agent_plus') ? '尊享全部功能' : entitlementService.has(userId, 'agent') ? '解锁AI搭子' : entitlementService.has(userId, 'study') ? '基础会员' : '体验基础功能'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="membership-badge-progress">
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: entitlementService.has(userId, 'agent_plus') ? '100%' : entitlementService.has(userId, 'agent') ? '66%' : entitlementService.has(userId, 'study') ? '33%' : '10%' }}></div>
+                    </div>
+                    <div className="progress-labels">
+                      <span>免费</span>
+                      <span>学习</span>
+                      <span>Agent</span>
+                      <span>PLUS</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="membership-activity-section">
+                <h3>会员专属活动</h3>
+                <div className="membership-activity-grid">
+                  <div className="membership-activity-card">
+                    <span className="activity-tag">限时</span>
+                    <span className="activity-title">新用户专享</span>
+                    <span className="activity-desc">首月订阅享5折优惠</span>
+                    <button className="activity-button">立即参与</button>
+                  </div>
+                  <div className="membership-activity-card">
+                    <span className="activity-tag">热卖</span>
+                    <span className="activity-title">年度套餐特惠</span>
+                    <span className="activity-desc">年付低至6折起</span>
+                    <button className="activity-button">查看详情</button>
+                  </div>
+                  <div className="membership-activity-card">
+                    <span className="activity-tag">新品</span>
+                    <span className="activity-title">邀请返利</span>
+                    <span className="activity-desc">邀请好友得30天会员</span>
+                    <button className="activity-button">邀请好友</button>
+                  </div>
+                </div>
+              </section>
+
+              <section className="membership-service-section">
+                <h3>会员客服</h3>
+                <div className="membership-service-grid">
+                  <button className="membership-service-item">
+                    <span className="service-icon">💬</span>
+                    <span className="service-label">在线客服</span>
+                    <span className="service-desc">工作日 9:00-18:00</span>
+                  </button>
+                  <button className="membership-service-item">
+                    <span className="service-icon">📧</span>
+                    <span className="service-label">邮件支持</span>
+                    <span className="service-desc">24小时内回复</span>
+                  </button>
+                  <button className="membership-service-item">
+                    <span className="service-icon">📱</span>
+                    <span className="service-label">微信客服</span>
+                    <span className="service-desc">添加微信咨询</span>
+                  </button>
+                  <button className="membership-service-item">
+                    <span className="service-icon">❓</span>
+                    <span className="service-label">常见问题</span>
+                    <span className="service-desc">快速解答</span>
+                  </button>
+                </div>
+              </section>
+
               <section className="membership-orders-section">
                 <h3>订单记录</h3>
                 {userOrders.length === 0 ? (

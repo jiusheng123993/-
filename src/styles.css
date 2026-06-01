@@ -3046,6 +3046,208 @@ small,
   transform: scale(0.98);
 }
 
+.membership-badge-section {
+  margin-bottom: 32px;
+}
+
+.membership-badge-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.membership-badge-display {
+  padding: 24px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 20px;
+  color: white;
+}
+
+.membership-badge-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.badge-icon {
+  font-size: 48px;
+}
+
+.badge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.badge-level {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.badge-desc {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.membership-badge-progress {
+  margin-top: 16px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: white;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.membership-activity-section {
+  margin-bottom: 32px;
+}
+
+.membership-activity-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.membership-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.membership-activity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.membership-activity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.activity-tag {
+  display: inline-block;
+  width: fit-content;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  background: #6366f1;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.membership-activity-card:nth-child(2) .activity-tag {
+  background: #f59e0b;
+}
+
+.membership-activity-card:nth-child(3) .activity-tag {
+  background: #10b981;
+}
+
+.activity-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.activity-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.activity-button {
+  margin-top: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6366f1;
+  background: transparent;
+  border: 1px solid #6366f1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activity-button:hover {
+  background: #6366f1;
+  color: white;
+}
+
+.membership-service-section {
+  margin-bottom: 32px;
+}
+
+.membership-service-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.membership-service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.membership-service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.membership-service-item:hover {
+  border-color: #6366f1;
+  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+}
+
+.service-icon {
+  font-size: 28px;
+}
+
+.service-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.service-desc {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 @media (max-width: 768px) {
   .membership-tier-grid {
     grid-template-columns: 1fr;
