@@ -5,6 +5,7 @@ import {
   Brain,
   Briefcase,
   Clock3,
+  Crown,
   Flame,
   LineChart,
   Minus,
@@ -13,7 +14,8 @@ import {
   Plus,
   Sparkles,
   Target,
-  Trophy
+  Trophy,
+  Zap
 } from 'lucide-react'
 import { ExpandableCard } from './components/expandable/ExpandableCard'
 import { createAiPromptDraft, getAiProviderById } from './ai/aiProvider'
@@ -40,6 +42,11 @@ import {
 import { getFocusBriefStyleById } from './components/focusBrief/focusBriefRegistry'
 import type { FocusBriefStyleId } from './components/focusBrief/types'
 import { FocusBriefStylePicker } from './components/focusBrief/FocusBriefStylePicker'
+import { createEntitlementService } from './entitlement/entitlementService'
+import { createAiQuotaProvider } from './entitlement/aiQuotaProvider'
+import { getActiveProducts } from './entitlement/productCatalog'
+import type { Product } from './entitlement/productTypes'
+import { AdminConsolePage } from './components/membership/AdminConsolePage'
 
 const navigationItems = [
   { label: '首页仪表盘', icon: LineChart },
@@ -50,7 +57,9 @@ const navigationItems = [
   { label: '知识笔记', icon: BookOpen },
   { label: '复盘提醒', icon: Brain },
   { label: '数据统计', icon: Trophy },
-  { label: '主题中心', icon: Palette }
+  { label: '主题中心', icon: Palette },
+  { label: '会员中心', icon: Crown },
+  { label: '管理后台', icon: Zap }
 ]
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -61,6 +70,9 @@ const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
 }
 
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()
+
+const entitlementService = createEntitlementService()
+const aiQuotaProvider = createAiQuotaProvider(entitlementService)
 
 const defaultMiniProgramModules = getDefaultMiniProgramModules()
 
@@ -210,6 +222,8 @@ export default function App() {
   const activeFocusTask =
     candidateFocusTask && candidateFocusTask.status === 'todo' ? candidateFocusTask : null
   const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
+  const [isMembershipOpen, setIsMembershipOpen] = useState(false)
+  const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false)
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -227,6 +241,35 @@ export default function App() {
 
     return matchesSearch && matchesFamily
   })
+
+  const userId = localStorage.getItem('user_id') || 'anonymous'
+  const quotaStatus = aiQuotaProvider.getQuotaStatus(userId)
+  const totalQuota = 
+    (quotaStatus.free?.remaining || 0) + 
+    (quotaStatus.study?.remaining || 0) + 
+    (quotaStatus.agent?.remaining || 0) + 
+    (quotaStatus.pack?.remaining || 0)
+  
+  const getCurrentTier = () => {
+    if (entitlementService.has(userId, 'agent_plus')) return { level: 'agent_plus', label: 'Agent PLUS', color: '#8b5cf6' }
+    if (entitlementService.has(userId, 'agent')) return { level: 'agent', label: 'Agent 会员', color: '#6366f1' }
+    if (entitlementService.has(userId, 'study')) return { level: 'study', label: '学习会员', color: '#10b981' }
+    return { level: 'free', label: '免费用户', color: '#94a3b8' }
+  }
+  const currentTier = getCurrentTier()
+  
+  const products = useMemo(() => getActiveProducts(), [])
+  
+  const getFirstProduct = (products: Product[], filter: (p: Product) => boolean) => {
+    const filtered = products.filter(filter)
+    return filtered.find(p => p.originalPrice) ?? filtered[0]
+  }
+  
+  const studyProduct = getFirstProduct(products, p => p.id.startsWith('study') && p.period === 'month')
+  const agentProduct = getFirstProduct(products, p => p.id.startsWith('agent') && !p.id.includes('plus') && p.period === 'month')
+  const agentPlusProduct = getFirstProduct(products, p => p.id.includes('plus') && p.period === 'month')
+  
+  const formatPrice = (cents: number) => `¥${(cents / 100).toFixed(0)}`
 
   useEffect(() => {
     applyTheme(workspaceState.preferences.themeId)
@@ -492,8 +535,18 @@ export default function App() {
         <nav className="nav-list" aria-label="主导航">
           {navigationItems.map((item, index) => {
             const Icon = item.icon
+            const isMembership = item.label === '会员中心'
+            const isAdmin = item.label === '管理后台'
             return (
-              <button className={index === 0 ? 'nav-item active' : 'nav-item'} key={item.label} type="button">
+              <button 
+                className={(isMembership && isMembershipOpen) || (isAdmin && isAdminConsoleOpen) ? 'nav-item active' : index === 0 ? 'nav-item active' : 'nav-item'} 
+                key={item.label} 
+                type="button"
+                onClick={() => {
+                  if (isMembership) setIsMembershipOpen(true)
+                  if (isAdmin) setIsAdminConsoleOpen(true)
+                }}
+              >
                 <Icon size={18} />
                 <span>{item.label}</span>
               </button>
@@ -510,6 +563,21 @@ export default function App() {
             <p className="hero-subtitle">{activePersona.hero}</p>
           </div>
           <div className="hero-actions">
+            <button 
+              className="pill membership-pill" 
+              style={{ background: currentTier.color }}
+              onClick={() => setIsMembershipOpen(true)}
+            >
+              <Crown size={14} />
+              <span>{currentTier.label}</span>
+            </button>
+            <button 
+              className="pill quota-pill"
+              onClick={() => setIsMembershipOpen(true)}
+            >
+              <Zap size={14} />
+              <span>AI {totalQuota}</span>
+            </button>
             <span className="pill">当前主题：{activeTheme.name}</span>
             <span className="pill">{workspaceState.preferences.themeMode === 'manual' ? '手动主题' : '场景推荐'}</span>
             <span className="pill warm">连续 {workspaceState.growth.streakDays} 天</span>
@@ -1285,6 +1353,226 @@ export default function App() {
                   <small>换个关键词或切换到「全部」分类再试一次。</small>
                 </div>
               )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isMembershipOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsMembershipOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="会员中心"
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Membership · 会员中心</p>
+                <h2>升级会员，解锁更多能力</h2>
+                <small>
+                  当前 <strong style={{ color: currentTier.color }}>{currentTier.label}</strong> · AI 额度 {totalQuota} 次
+                </small>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsMembershipOpen(false)} type="button" aria-label="关闭会员中心">
+                ×
+              </button>
+            </header>
+
+            <div className="membership-modal-content">
+              <section className="membership-quota-section">
+                <h3>AI 额度</h3>
+                <div className="membership-quota-grid">
+                  <div className="membership-quota-card">
+                    <span className="membership-quota-label">免费额度</span>
+                    <span className="membership-quota-value">{quotaStatus.free?.remaining ?? 0}</span>
+                  </div>
+                  <div className="membership-quota-card">
+                    <span className="membership-quota-label">会员额度</span>
+                    <span className="membership-quota-value">{(quotaStatus.study?.remaining ?? 0) + (quotaStatus.agent?.remaining ?? 0)}</span>
+                  </div>
+                  <div className="membership-quota-card">
+                    <span className="membership-quota-label">加油包</span>
+                    <span className="membership-quota-value">{quotaStatus.pack?.remaining ?? 0}</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="membership-tiers-section">
+                <h3>会员套餐</h3>
+                <div className="membership-tier-grid">
+                  {studyProduct && (
+                    <div className="membership-tier-card" key={studyProduct.id}>
+                      <div className="membership-tier-header">
+                        <span className="membership-tier-name">学习会员</span>
+                        <span className="membership-tier-badge" style={{ background: '#10b981' }}>基础</span>
+                      </div>
+                      <div className="membership-tier-price">
+                        {studyProduct.originalPrice && (
+                          <span className="original-price">{formatPrice(studyProduct.originalPrice)}</span>
+                        )}
+                        <span className="price">{formatPrice(studyProduct.price)}</span>
+                        <span className="period">/{studyProduct.period}</span>
+                      </div>
+                      <ul className="membership-tier-features">
+                        <li>高级主题全解锁</li>
+                        <li>云同步</li>
+                        <li>高级统计</li>
+                        <li>50次AI额度/月</li>
+                      </ul>
+                      <button className="membership-tier-button" style={{ background: '#10b981' }}>立即订阅</button>
+                    </div>
+                  )}
+
+                  {agentProduct && (
+                    <div className="membership-tier-card featured" key={agentProduct.id}>
+                      <div className="membership-tier-header">
+                        <span className="membership-tier-name">Agent 会员</span>
+                        <span className="membership-tier-badge" style={{ background: '#6366f1' }}>热门</span>
+                      </div>
+                      <div className="membership-tier-price">
+                        {agentProduct.originalPrice && (
+                          <span className="original-price">{formatPrice(agentProduct.originalPrice)}</span>
+                        )}
+                        <span className="price">{formatPrice(agentProduct.price)}</span>
+                        <span className="period">/{agentProduct.period}</span>
+                      </div>
+                      <ul className="membership-tier-features">
+                        <li>有记忆的AI搭子</li>
+                        <li>自我进化机制</li>
+                        <li>角色系统</li>
+                        <li>RPM捏脸</li>
+                        <li>200次AI额度/月</li>
+                      </ul>
+                      <button className="membership-tier-button" style={{ background: '#6366f1' }}>立即订阅</button>
+                    </div>
+                  )}
+
+                  {agentPlusProduct && (
+                    <div className="membership-tier-card" key={agentPlusProduct.id}>
+                      <div className="membership-tier-header">
+                        <span className="membership-tier-name">Agent PLUS</span>
+                        <span className="membership-tier-badge" style={{ background: '#8b5cf6' }}>旗舰</span>
+                      </div>
+                      <div className="membership-tier-price">
+                        {agentPlusProduct.originalPrice && (
+                          <span className="original-price">{formatPrice(agentPlusProduct.originalPrice)}</span>
+                        )}
+                        <span className="price">{formatPrice(agentPlusProduct.price)}</span>
+                        <span className="period">/{agentPlusProduct.period}</span>
+                      </div>
+                      <ul className="membership-tier-features">
+                        <li>AI 3D角色生成</li>
+                        <li>实时反思</li>
+                        <li>工具调用能力</li>
+                        <li>角色进化全解锁</li>
+                        <li>无限AI额度</li>
+                      </ul>
+                      <button className="membership-tier-button" style={{ background: '#8b5cf6' }}>立即订阅</button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="membership-benefits-section">
+                <h3>权益对比</h3>
+                <table className="membership-benefits-table">
+                  <thead>
+                    <tr>
+                      <th>权益项目</th>
+                      <th>免费</th>
+                      <th>学习会员</th>
+                      <th>Agent</th>
+                      <th>Agent PLUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>AI 额度</td>
+                      <td>5次/天</td>
+                      <td>50次/月</td>
+                      <td>200次/月</td>
+                      <td>无限</td>
+                    </tr>
+                    <tr>
+                      <td>主题</td>
+                      <td>3款</td>
+                      <td>全部</td>
+                      <td>全部</td>
+                      <td>全部</td>
+                    </tr>
+                    <tr>
+                      <td>云同步</td>
+                      <td>❌</td>
+                      <td>✅</td>
+                      <td>✅</td>
+                      <td>✅</td>
+                    </tr>
+                    <tr>
+                      <td>AI 角色</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>✅</td>
+                      <td>✅</td>
+                    </tr>
+                    <tr>
+                      <td>记忆系统</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>✅</td>
+                      <td>✅</td>
+                    </tr>
+                    <tr>
+                      <td>自我进化</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>✅</td>
+                      <td>✅</td>
+                    </tr>
+                    <tr>
+                      <td>3D角色生成</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>10次/月</td>
+                    </tr>
+                    <tr>
+                      <td>工具调用</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                      <td>✅</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isAdminConsoleOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsAdminConsoleOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="管理后台"
+            style={{ maxWidth: 900 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Admin Console · 管理后台</p>
+                <h2>商品配置与权益管理</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsAdminConsoleOpen(false)} type="button" aria-label="关闭管理后台">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <AdminConsolePage onClose={() => setIsAdminConsoleOpen(false)} />
             </div>
           </section>
         </div>
