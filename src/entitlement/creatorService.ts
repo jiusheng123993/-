@@ -112,6 +112,7 @@ export function createCreatorService(_entitlementService: EntitlementService): C
       const newAsset: CreatorAsset = {
         ...asset,
         id: generateAssetId(),
+        creatorId,
         salesCount: 0,
         rating: 0
       }

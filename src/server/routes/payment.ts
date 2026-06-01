@@ -1,4 +1,4 @@
-import type { Router } from 'express'
+import { Router } from 'express'
 import { handleWechatCallback, handleAlipayCallback, handleAppleVerify } from '../services/paymentCallbackService'
 import { grantEntitlements } from '../services/entitlementService'
 import { getOrderById } from '../services/orderService'

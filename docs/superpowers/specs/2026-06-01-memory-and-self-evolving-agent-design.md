@@ -110,6 +110,15 @@ interface MemoryProfile {
     targetExams?: string[]
     targetDate?: string
     careerDirection?: string
+
+    // ===== D 伏笔（实人搭子匹配，首版不实现 UI，仅预留字段）=====
+    partnerMatching?: {
+      interestedIn?: Array<'study_partner' | 'exam_partner' | 'fitness_partner' | 'early_bird_partner' | 'travel_partner'>
+      targetExam?: string
+      studyCity?: string
+      availability?: string  // 自由文本，如 "晚上 7-10 点"
+      lookingFor?: string    // 自由文本描述
+    }
   }
 
   preferences: {
@@ -223,6 +232,29 @@ interface MemoryStore {
 
   exportAll(): Promise<MemoryExportData>
   clearAll(): Promise<void>
+
+  // ===== 预留（首版返回 null/empty，二期上线 Persona 独家记忆）=====
+  getPersonaPrivateMemory?(personaId: string): Promise<PersonaPrivateMemory | null>
+  appendPersonaPrivateMemory?(personaId: string, event: MemoryEvent): Promise<void>
+}
+
+/**
+ * Persona 独家记忆（B 升级路径，首版不实现）
+ *
+ * 起步（A）：所有 Persona 共享 MemoryProfile + MemoryEvents，换 Persona 只换语气。
+ * 二期（B）：主画像仍共享，但每个 Persona 累积自己的私密对话/约定/小名/梗，
+ *           换到这个 Persona 时优先注入其独家记忆。
+ *
+ * 升级路径无痛：所有现存数据保留，新结构是"额外"叠加。
+ */
+interface PersonaPrivateMemory {
+  personaId: string
+  privateEvents: MemoryEvent[]      // 只属于这个 Persona 的对话/约定/记忆
+  relationshipDepth: number         // 关系深度值（互动次数 + 时长加权）
+  nicknameForUser?: string          // 这个 Persona 怎么称呼你（独家）
+  insideJokes?: string[]            // 你们之间的"梗"
+  lastInteractionAt?: string
+  createdAt: string
 }
 
 interface ProfileSnapshot {
@@ -732,19 +764,31 @@ type EntitlementCode =
   | 'avatar_evolution'   // 角色同步进化
 ```
 
-### 6.2 档位权益矩阵
+### 6.2 档位权益矩阵（2026-06-01 修订，与 monetization-and-membership-design §3 对齐）
 
-| 功能     | 免费     | 学习会员(Pro)  | Agent 会员 | Agent PLUS |
+> ⚠️ **重要变更**：本表已根据 Agent 能力 L0~L4 分层重新设计。AI 通用额度与 Agent 能力解耦。Persona 系统详见 `companion-persona-system-design.md`。
+
+| 功能     | 免费     | 学习会员(Study) | Agent 会员 | Agent PLUS |
 | ------ | ------ | ---------- | -------- | ---------- |
-| 基础功能   | ✅      | ✅          | ✅        | ✅          |
-| 高级主题   | 2-3套   | 全部         | 全部       | 全部         |
+| 基础功能（任务/计划/专注/打卡）  | ✅      | ✅          | ✅        | ✅          |
+| 高级主题   | 2-3 套   | 全部         | 全部       | 全部         |
 | 云同步    | ❌      | ✅          | ✅        | ✅          |
-| AI 功能  | 8次/月   | 50次/月      | 50次/月    | 50次/月      |
-| 角色     | 1个固定2D | 3-5内置2D/3D | +RPM捏脸   | +AI生成3D    |
-| 记忆     | ❌      | 仅手填画像      | 三者融合     | 三者融合+云同步   |
-| Agent  | ❌      | 仅静默建议      | 聊天+静默    | 聊天+静默+工具调用 |
-| 自我进化   | ❌      | ❌          | ✅每周反思+仪式 | ✅实时反思+角色进化 |
-| 3D生成配额 | ❌      | ❌          | ❌        | 10次/月      |
+| **AI 通用额度**（生成/对话/拍照识题）  | 8 次/月   | 40 次/月      | 100 次/月    | 不限量（软上限 5000/月）      |
+| **学习数据周报**（规则引擎） | ❌（7 天统计） | ✅ 完整周报+月报+热力图 | ✅ 同学习 | ✅ 同学习 |
+| **Agent 反思**（AI 解读） | **L1**（每月 1 次半切，钩子） | **L1**（每月 1 次半切，钩子） | **L2+L3**（完整周反思+月度进化仪式） | **L4**（不限次+实时反思） |
+| 角色     | 1 个固定 2D | 同免费       | 6 个内置 2D/3D Persona 可换   | + AI 生成 3D + IP 联名    |
+| 记忆     | ❌      | 仅手填画像（不接入 Agent）      | 三者融合（行为+对话+手填）     | 三者融合 + 云同步   |
+| Agent 对话  | ❌      | ❌      | 聊天+静默双模式    | 聊天+静默+工具代执行 |
+| 自我进化   | ❌      | ❌          | ✅ 每周反思+月度仪式 | ✅ 实时反思+角色进化 |
+| 3D 生成配额 | ❌      | ❌          | ❌        | 10 次/月      |
+| 主 Persona | 1 个默认 | 同免费 | 6 个预设可换 + 自定义×1 | 6 个 + 自定义×3 + 付费客串 + IP 联名 |
+| 临时客串 Persona | ❌ | ❌ | 自动触发（考试前/低谷/生日/里程碑） | 自动触发 + 付费解锁全部 |
+
+**关键修订说明**：
+1. 学习会员 **AI 通用额度从 50 改为 40**（与 monetization 文档对齐），Agent 会员 **从 50 改为 100**，PLUS **改为不限量**。
+2. 学习会员的"反思"路径改为 **L1 半切钩子**（与免费用户同），其学习数据周报由规则引擎承担，不消耗 AI。
+3. **不再用单一"AI 次数"刻画档位差异**——次数只承担"通用对话/生成"功能，Agent 反思/进化/静默全部不算次数。
+4. Persona 详细机制（预设/客串/自定义/合规）请阅读 `companion-persona-system-design.md`。
 
 ### 6.3 定价
 
@@ -763,16 +807,19 @@ type EntitlementCode =
 
 * 限定 IP 角色：¥18–¥68 / 永久解锁
 
-### 6.4 成本模型
+### 6.4 成本模型（2026-06-01 修订）
+
+> ⚠️ 旧表中"LLM Token"未区分"通用额度成本"与"Agent 反思/进化/静默成本"，本次拆开。
 
 | 成本项         | 学习会员/月   | Agent 会员/月 | PLUS/月    |
 | ----------- | -------- | ---------- | --------- |
-| LLM Token   | \~¥0.5   | \~¥6-8     | \~¥15-20  |
-| 3D 资产生成 API | ¥0       | ¥0         | \~¥10     |
+| LLM Token（通用额度） | ~¥0.5 | ~¥3 | ~¥8 |
+| Agent 反思/进化/静默（不算额度） | ¥0 | ~¥4 | ~¥8 |
+| 3D 资产生成 API | ¥0       | ¥0         | ~¥10     |
 | 云存储 + 同步    | ¥0       | ¥0.5       | ¥1        |
 | 支付通道+渠道分成   | ¥3       | ¥8         | ¥16       |
-| **合计成本**    | **\~¥4** | **\~¥15**  | **\~¥42** |
-| **毛利率**     | \~77%    | \~69%      | \~57%     |
+| **合计成本**    | **~¥4** | **~¥16**  | **~¥43** |
+| **毛利率**     | ~77%    | ~67%      | ~56%     |
 
 ### 6.5 与现有会员的兼容
 
@@ -790,17 +837,38 @@ type EntitlementCode =
 
 ## 七、AiTaskKind 扩展
 
-现有 `AiTaskKind` 需要扩展以支持记忆和 Agent 功能：
+现有 `AiTaskKind` 需要扩展以支持记忆、Agent、Persona 与反思分层：
 
 ```ts
 type AiTaskKind =
   | 'daily-plan' | 'task-breakdown' | 'meeting-actions'
   | 'daily-review' | 'weekly-report'
-  | 'memory-reflection'      // 事件→画像归纳
-  | 'agent-chat'             // Agent 聊天对话
-  | 'silent-suggestion'      // 静默建议生成
-  | 'avatar-evolution-check' // 角色进化检查
+  // ===== 记忆与进化 =====
+  | 'memory-reflection'      // 事件→画像归纳（用于月度进化仪式）
+  | 'agent-chat'             // Agent 聊天对话（消耗 ai_quota_*）
+  | 'silent-suggestion'      // 静默建议生成（不消耗额度）
+  | 'avatar-evolution-check' // 角色进化检查（不消耗额度）
+  // ===== 反思分层（新增）=====
+  | 'reflection-l1-teaser'   // L1 半切反思（免费/学习会员每月 1 次，用便宜模型）
+  | 'reflection-l2-weekly'   // L2 完整周反思（Agent 会员，中等模型）
+  | 'reflection-l4-realtime' // L4 实时反思（PLUS，顶级模型）
+  // ===== Persona 系统（详见 companion-persona-system-design）=====
+  | 'persona-customize-polish' // 自定义 Persona 的 system prompt 润色与安全扫描
+  | 'persona-cameo-greeting'   // 临时客串 Persona 的开场白生成
 ```
+
+**任务-模型映射策略**（成本控制核心）：
+
+| 任务 | 默认模型 | 是否消耗 ai_quota_* |
+|---|---|---|
+| `reflection-l1-teaser` | GPT-4o-mini 级别 | ❌（平台承担）|
+| `reflection-l2-weekly` | GPT-4o 级别 | ❌（Agent 会员权益本体）|
+| `reflection-l4-realtime` | GPT-4o / Claude Sonnet | ❌（PLUS 权益本体）|
+| `memory-reflection`（月度进化） | 顶级模型 | ❌（每月 1 次，成本可控）|
+| `silent-suggestion` | 规则引擎为主 + 小模型兜底 | ❌ |
+| `agent-chat` | 中等模型 | ✅ |
+| `persona-customize-polish` | 中等模型 + 安全扫描 | 创建时一次性，不消耗 |
+| `daily-plan` / `task-breakdown` / 其他通用 AI | 用户档位默认模型 | ✅ |
 
 ***
 

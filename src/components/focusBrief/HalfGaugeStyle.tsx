@@ -1,9 +1,9 @@
 import type { FocusBriefStyleProps } from './types'
-import { ListTodo, Timer, CheckCircle2 } from 'lucide-react'
+import { ListTodo, Timer, CheckCircle2, TrendingUp, Target, Flame, Zap } from 'lucide-react'
 
-const W = 220
-const H = 124
-const STROKE = 14
+const W = 260
+const H = 140
+const STROKE = 16
 const CX = W / 2
 const CY = H - 10
 const R = CX - STROKE - 4
@@ -19,11 +19,11 @@ function describeArc(startAngleDeg: number, endAngleDeg: number) {
 }
 
 function stateLabel(progress: number) {
-  if (progress >= 100) return '已达成 · 继续保持节奏'
-  if (progress >= 70) return '接近达成 · 临门一脚'
-  if (progress >= 40) return '稳步推进中'
-  if (progress > 0) return '起步阶段 · 持续累积'
-  return '尚未开启 · 选个任务开始'
+  if (progress >= 100) return '太棒了！全部完成 🎉'
+  if (progress >= 70) return '马上完成了，继续加油！'
+  if (progress >= 40) return '进度不错，保持节奏 💪'
+  if (progress > 0) return '起步了就很棒，动起来！'
+  return '选个任务开始吧'
 }
 
 export function HalfGaugeStyle({ data }: FocusBriefStyleProps) {
@@ -92,19 +92,49 @@ export function HalfGaugeStyle({ data }: FocusBriefStyleProps) {
           <span>{stateLabel(progress)}</span>
         </div>
       </div>
+      
+      <div className="minimal-arc-motivation">
+        <TrendingUp size={14} aria-hidden="true" />
+        <span>{stateLabel(progress)}</span>
+      </div>
+
+      <div className="minimal-arc-stats-grid">
+        <div className="minimal-arc-stat-item">
+          <div className="minimal-arc-stat-icon"><Target size={18} /></div>
+          <div className="minimal-arc-stat-content">
+            <strong>{data.todoCount + data.completedCount}</strong>
+            <span>总任务</span>
+          </div>
+        </div>
+        <div className="minimal-arc-stat-item">
+          <div className="minimal-arc-stat-icon"><Flame size={18} /></div>
+          <div className="minimal-arc-stat-content">
+            <strong>{data.completedCount}</strong>
+            <span>已完成</span>
+          </div>
+        </div>
+        <div className="minimal-arc-stat-item">
+          <div className="minimal-arc-stat-icon"><Zap size={18} /></div>
+          <div className="minimal-arc-stat-content">
+            <strong>{data.totalMinutes}</strong>
+            <span>分钟</span>
+          </div>
+        </div>
+      </div>
+
       <div className="focus-brief-stat-row tight">
         <div className="focus-brief-stat">
-          <ListTodo size={14} aria-hidden="true" />
+          <ListTodo size={16} aria-hidden="true" />
           <strong>{data.todoCount}</strong>
           <span>待办</span>
         </div>
         <div className="focus-brief-stat">
-          <Timer size={14} aria-hidden="true" />
+          <Timer size={16} aria-hidden="true" />
           <strong>{data.totalMinutes}</strong>
           <span>分钟</span>
         </div>
         <div className="focus-brief-stat">
-          <CheckCircle2 size={14} aria-hidden="true" />
+          <CheckCircle2 size={16} aria-hidden="true" />
           <strong>{data.completedCount}</strong>
           <span>已完成</span>
         </div>

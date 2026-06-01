@@ -11,24 +11,30 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "npx tsx src/server/index.ts",
+    "server:dev": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
+    "express": "^5.2.1",
+    "lucide-react": "^1.17.0",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "^1.17.0"
+    "typescript": "latest",
+    "vite": "latest",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@eslint/js": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
     "@testing-library/user-event": "latest",
+    "@types/express": "^5.0.6",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/ws": "^8.18.1",
     "concurrently": "latest",
     "electron": "latest",
     "eslint": "latest",
@@ -36,6 +42,7 @@
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
     "jsdom": "latest",
+    "tsx": "^4.19.0",
     "typescript-eslint": "latest",
     "vitest": "latest",
     "wait-on": "latest"

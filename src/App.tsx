@@ -48,7 +48,9 @@ import { getActiveProducts } from './entitlement/productCatalog'
 import { createOrderService } from './entitlement/orderService'
 import { paymentAdapters } from './entitlement/paymentAdapters'
 import type { Product } from './entitlement/productTypes'
+import type { Order } from './entitlement/orderTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
+import styles from './components/membership/MembershipPage.module.css'
 
 const navigationItems = [
   { label: '首页仪表盘', icon: LineChart },
@@ -229,6 +231,7 @@ export default function App() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
@@ -269,6 +272,25 @@ export default function App() {
   const handleSubscribe = (product: Product) => {
     setSelectedProduct(product)
     setIsPaymentOpen(true)
+  }
+  
+  const handleTrial = () => {
+    const userId = localStorage.getItem('user_id') || 'anonymous'
+    const trialDays = 7
+    entitlementService.grant(userId, {
+      code: 'study',
+      scope: 'trial',
+      source: 'trial',
+      expireAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
+    })
+    entitlementService.grant(userId, {
+      code: 'ai_quota_study',
+      source: 'trial',
+      expireAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString(),
+      remaining: trialDays * 10
+    })
+    alert(`试用已开通！\n\n有效期：${trialDays} 天\nAI 额度：${trialDays * 10} 次\n\n刷新页面后即可体验会员功能。`)
+    setIsMembershipOpen(false)
   }
   
   const handlePayment = async (channel: 'wechat' | 'alipay' | 'apple') => {
@@ -361,18 +383,66 @@ export default function App() {
     return map[status] || '#6b7280'
   }
   
-  const products = useMemo(() => getActiveProducts(), [])
-  
-  const getFirstProduct = (products: Product[], filter: (p: Product) => boolean) => {
-    const filtered = products.filter(filter)
-    return filtered.find(p => p.originalPrice) ?? filtered[0]
+  const handleRefundOrder = (orderId: string) => {
+    try {
+      orderService.markAsRefunded(orderId)
+      alert('退款申请已提交，请耐心等待处理')
+    } catch (e) {
+      alert(`退款失败: ${e instanceof Error ? e.message : '未知错误'}`)
+    }
   }
   
-  const studyProduct = getFirstProduct(products, p => p.id.startsWith('study') && p.period === 'month')
-  const agentProduct = getFirstProduct(products, p => p.id.startsWith('agent') && !p.id.includes('plus') && p.period === 'month')
-  const agentPlusProduct = getFirstProduct(products, p => p.id.includes('plus') && p.period === 'month')
+  const products = useMemo(() => getActiveProducts(), [])
+  
+  const getProductsByTier = (tier: 'study' | 'agent' | 'agent_plus') => {
+    const tierProducts = products.filter(p => {
+      if (tier === 'study') return p.id.startsWith('study')
+      if (tier === 'agent') return p.id.startsWith('agent') && !p.id.includes('plus')
+      if (tier === 'agent_plus') return p.id.includes('plus')
+      return false
+    })
+    
+    const periods = ['month', 'quarter', 'year'] as const
+    return periods.map(period => {
+      const filtered = tierProducts.filter(p => p.period === period)
+      return filtered.find(p => p.originalPrice) ?? filtered[0]
+    }).filter(Boolean) as Product[]
+  }
+  
+  const studyProducts = getProductsByTier('study')
+  const agentProducts = getProductsByTier('agent')
+  const agentPlusProducts = getProductsByTier('agent_plus')
   
   const formatPrice = (cents: number) => `¥${(cents / 100).toFixed(0)}`
+  
+  const getPeriodLabel = (period: string) => {
+    const map: Record<string, string> = { month: '月', quarter: '季', year: '年' }
+    return map[period] || period
+  }
+  
+  const getTierInfo = (tier: string) => {
+    const map: Record<string, { name: string; badge: string; color: string; features: string[] }> = {
+      study: { name: '学习会员', badge: '基础', color: '#10b981', features: ['高级主题全解锁', '云同步', '高级统计', '50次AI额度/月'] },
+      agent: { name: 'Agent 会员', badge: '热门', color: '#6366f1', features: ['有记忆的AI搭子', '自我进化机制', '角色系统', 'RPM捏脸', '200次AI额度/月'] },
+      agent_plus: { name: 'Agent PLUS', badge: '旗舰', color: '#8b5cf6', features: ['AI 3D角色生成', '实时反思', '工具调用能力', '角色进化全解锁', '无限AI额度'] }
+    }
+    return map[tier] || { name: tier, badge: '', color: '#6366f1', features: [] }
+  }
+  
+  const getGrantLabel = (code: string) => {
+    const map: Record<string, string> = {
+      study: '学习会员',
+      agent: 'Agent 会员',
+      agent_plus: 'Agent PLUS',
+      avatar_rpm: 'RPM捏脸',
+      memory_sync: '记忆同步',
+      evolution_ritual: '进化仪式',
+      avatar_evolution: '角色进化',
+      evolution_realtime: '实时反思',
+      agent_tool_call: '工具调用'
+    }
+    return map[code] || code
+  }
 
   useEffect(() => {
     applyTheme(workspaceState.preferences.themeId)
@@ -1502,80 +1572,65 @@ export default function App() {
                 </div>
               </section>
 
+              <section className="membership-trial-section">
+                <div className="membership-trial-card">
+                  <div className="membership-trial-content">
+                    <h4>首次开通试用</h4>
+                    <p>无需付费，立即体验 7 天会员权益</p>
+                    <ul className="membership-trial-features">
+                      <li>✅ 高级主题全解锁</li>
+                      <li>✅ 云同步功能</li>
+                      <li>✅ 70 次 AI 额度</li>
+                    </ul>
+                  </div>
+                  <button className="membership-trial-button" onClick={handleTrial}>立即试用</button>
+                </div>
+              </section>
+
               <section className="membership-tiers-section">
                 <h3>会员套餐</h3>
-                <div className="membership-tier-grid">
-                  {studyProduct && (
-                    <div className="membership-tier-card" key={studyProduct.id}>
-                      <div className="membership-tier-header">
-                        <span className="membership-tier-name">学习会员</span>
-                        <span className="membership-tier-badge" style={{ background: '#10b981' }}>基础</span>
+                
+                {['study', 'agent', 'agent_plus'].map((tier, _tierIdx) => {
+                  const tierProducts = tier === 'study' ? studyProducts : tier === 'agent' ? agentProducts : agentPlusProducts
+                  const tierInfo = getTierInfo(tier)
+                  return (
+                    <div className={`membership-tier-group ${tier === 'agent' ? 'featured' : ''}`} key={tier}>
+                      <div className="membership-tier-group-header">
+                        <span className="membership-tier-name">{tierInfo.name}</span>
+                        <span className="membership-tier-badge" style={{ background: tierInfo.color }}>{tierInfo.badge}</span>
                       </div>
-                      <div className="membership-tier-price">
-                        {studyProduct.originalPrice && (
-                          <span className="original-price">{formatPrice(studyProduct.originalPrice)}</span>
-                        )}
-                        <span className="price">{formatPrice(studyProduct.price)}</span>
-                        <span className="period">/{studyProduct.period}</span>
+                      <div className="membership-period-grid">
+                        {tierProducts.map((product) => (
+                          <div className="membership-period-card" key={product.id}>
+                            <div className="membership-period-header">
+                              <span className="membership-period-label">{getPeriodLabel(product.period)}付</span>
+                              {product.originalPrice && (
+                                <span className="membership-period-save">省{formatPrice(product.originalPrice - product.price)}</span>
+                              )}
+                            </div>
+                            <div className="membership-period-price">
+                              {product.originalPrice && (
+                                <span className="original-price">{formatPrice(product.originalPrice)}</span>
+                              )}
+                              <span className="price">{formatPrice(product.price)}</span>
+                            </div>
+                            <ul className="membership-period-grants">
+                              {product.grants.slice(0, 4).map((grant, idx) => (
+                                <li key={idx}>{getGrantLabel(grant.code)}</li>
+                              ))}
+                              {product.grants.length > 4 && (
+                                <li className="more">+{product.grants.length - 4} 更多</li>
+                              )}
+                            </ul>
+                            <button className="membership-period-button" style={{ background: tierInfo.color }} onClick={() => handleSubscribe(product)}>
+                              立即订阅
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                      <ul className="membership-tier-features">
-                        <li>高级主题全解锁</li>
-                        <li>云同步</li>
-                        <li>高级统计</li>
-                        <li>50次AI额度/月</li>
-                      </ul>
-                      <button className="membership-tier-button" style={{ background: '#10b981' }} onClick={() => studyProduct && handleSubscribe(studyProduct)}>立即订阅</button>
                     </div>
-                  )}
-
-                  {agentProduct && (
-                    <div className="membership-tier-card featured" key={agentProduct.id}>
-                      <div className="membership-tier-header">
-                        <span className="membership-tier-name">Agent 会员</span>
-                        <span className="membership-tier-badge" style={{ background: '#6366f1' }}>热门</span>
-                      </div>
-                      <div className="membership-tier-price">
-                        {agentProduct.originalPrice && (
-                          <span className="original-price">{formatPrice(agentProduct.originalPrice)}</span>
-                        )}
-                        <span className="price">{formatPrice(agentProduct.price)}</span>
-                        <span className="period">/{agentProduct.period}</span>
-                      </div>
-                      <ul className="membership-tier-features">
-                        <li>有记忆的AI搭子</li>
-                        <li>自我进化机制</li>
-                        <li>角色系统</li>
-                        <li>RPM捏脸</li>
-                        <li>200次AI额度/月</li>
-                      </ul>
-                      <button className="membership-tier-button" style={{ background: '#6366f1' }} onClick={() => agentProduct && handleSubscribe(agentProduct)}>立即订阅</button>
-                    </div>
-                  )}
-
-                  {agentPlusProduct && (
-                    <div className="membership-tier-card" key={agentPlusProduct.id}>
-                      <div className="membership-tier-header">
-                        <span className="membership-tier-name">Agent PLUS</span>
-                        <span className="membership-tier-badge" style={{ background: '#8b5cf6' }}>旗舰</span>
-                      </div>
-                      <div className="membership-tier-price">
-                        {agentPlusProduct.originalPrice && (
-                          <span className="original-price">{formatPrice(agentPlusProduct.originalPrice)}</span>
-                        )}
-                        <span className="price">{formatPrice(agentPlusProduct.price)}</span>
-                        <span className="period">/{agentPlusProduct.period}</span>
-                      </div>
-                      <ul className="membership-tier-features">
-                        <li>AI 3D角色生成</li>
-                        <li>实时反思</li>
-                        <li>工具调用能力</li>
-                        <li>角色进化全解锁</li>
-                        <li>无限AI额度</li>
-                      </ul>
-                      <button className="membership-tier-button" style={{ background: '#8b5cf6' }} onClick={() => agentPlusProduct && handleSubscribe(agentPlusProduct)}>立即订阅</button>
-                    </div>
-                  )}
-                </div>
+                  )
+                })}
               </section>
 
               <section className="membership-trial-section">
@@ -2004,7 +2059,12 @@ export default function App() {
                 ) : (
                   <div className="membership-orders-list">
                     {userOrders.map((order) => (
-                      <div className="membership-order-item" key={order.id}>
+                      <div 
+                        className="membership-order-item" 
+                        key={order.id}
+                        onClick={() => setSelectedOrder(order)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <div className="membership-order-info">
                           <span className="membership-order-product">{getProductName(order.productId)}</span>
                           <span className="membership-order-date">{new Date(order.createdAt).toLocaleDateString('zh-CN')}</span>
@@ -2085,6 +2145,88 @@ export default function App() {
             </header>
             <div className="membership-modal-content">
               <AdminConsolePage onClose={() => setIsAdminConsoleOpen(false)} />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {selectedOrder && (
+        <div className="membership-modal-backdrop" onClick={() => setSelectedOrder(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="订单详情"
+            style={{ maxWidth: 500 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Order Detail · 订单详情</p>
+                <h2>订单 #{selectedOrder.id.slice(0, 12)}...</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setSelectedOrder(null)} type="button">×</button>
+            </header>
+            <div className="membership-modal-content">
+              <div style={{ display: 'grid', gap: 16 }}>
+                <div>
+                  <strong>订单 ID</strong>
+                  <code style={{ display: 'block', marginTop: 4, fontSize: 12 }}>{selectedOrder.id}</code>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <strong>商品</strong>
+                    <p style={{ margin: '4px 0 0' }}>{getProductName(selectedOrder.productId)}</p>
+                  </div>
+                  <div>
+                    <strong>支付方式</strong>
+                    <p style={{ margin: '4px 0 0' }}>{getChannelLabel(selectedOrder.channel)}</p>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <strong>金额</strong>
+                    <p style={{ margin: '4px 0 0', color: '#10b981', fontWeight: 'bold' }}>
+                      {formatPrice(selectedOrder.amount)}
+                    </p>
+                  </div>
+                  <div>
+                    <strong>状态</strong>
+                    <p style={{ margin: '4px 0 0', color: getStatusColor(selectedOrder.status) }}>
+                      {getStatusLabel(selectedOrder.status)}
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <strong>创建时间</strong>
+                    <p style={{ margin: '4px 0 0', fontSize: 12 }}>
+                      {new Date(selectedOrder.createdAt).toLocaleString('zh-CN')}
+                    </p>
+                  </div>
+                  <div>
+                    <strong>支付时间</strong>
+                    <p style={{ margin: '4px 0 0', fontSize: 12 }}>
+                      {selectedOrder.paidAt ? new Date(selectedOrder.paidAt).toLocaleString('zh-CN') : '-'}
+                    </p>
+                  </div>
+                </div>
+                {selectedOrder.channelTradeNo && (
+                  <div>
+                    <strong>渠道订单号</strong>
+                    <p style={{ margin: '4px 0 0', fontSize: 12 }}>{selectedOrder.channelTradeNo}</p>
+                  </div>
+                )}
+                {selectedOrder.status === 'paid' && (
+                  <button
+                    className={styles.purchaseButton}
+                    onClick={() => handleRefundOrder(selectedOrder.id)}
+                    style={{ background: '#ef4444', marginTop: 8 }}
+                  >
+                    申请退款
+                  </button>
+                )}
+              </div>
             </div>
           </section>
         </div>

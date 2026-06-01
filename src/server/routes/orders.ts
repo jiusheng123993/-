@@ -1,5 +1,5 @@
-import type { Router } from 'express'
-import { createOrder, getOrderById, getOrdersByUser } from '../services/orderService'
+import { Router } from 'express'
+import { createOrder, getOrderById, getOrdersByUser, refundOrder } from '../services/orderService'
 import type { CreateOrderRequest } from '../types'
 
 export function createOrdersRouter(): Router {
@@ -33,6 +33,15 @@ export function createOrdersRouter(): Router {
       res.json(orders)
     } catch (error) {
       res.status(500).json({ error: (error as Error).message })
+    }
+  })
+
+  router.post('/:id/refund', (req, res) => {
+    try {
+      const order = refundOrder(req.params.id)
+      res.json(order)
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message })
     }
   })
 
