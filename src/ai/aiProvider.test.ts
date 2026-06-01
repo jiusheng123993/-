@@ -22,4 +22,17 @@ describe('aiProvider', () => {
     expect(draft.userPrompt).toContain('办公工作区')
     expect(draft.userPrompt).toContain('打包方案')
   })
+
+  it('supports memory reflection as a dedicated AI task kind', () => {
+    const draft = createAiPromptDraft('deepseek', {
+      kind: 'memory-reflection',
+      input: '根据最近 7 天事件提炼画像更新建议。',
+      context: '长期画像：用户偏好结构化反馈'
+    })
+
+    expect(draft.title).toBe('记忆反思与画像更新')
+    expect(draft.systemPrompt).toContain('记忆反思')
+    expect(draft.userPrompt).toContain('长期画像')
+    expect(draft.userPrompt).toContain('画像更新建议')
+  })
 })
