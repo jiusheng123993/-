@@ -1,5 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
 import { createOrder, getOrderById, getOrdersByUser, refundOrder, orderService } from '../services/orderService'
+import { requireAuth, canAccessUserResource, isAdmin } from '../auth/authMiddleware'
+import type { AuthenticatedRequest } from '../auth/authTypes'
 import type { CreateOrderRequest } from '../types'
 
 /**
@@ -7,50 +9,41 @@ import type { CreateOrderRequest } from '../types'
  *
  * 职责：
  * - POST /api/orders - 创建新订单
- * - GET /api/orders/:id - 查询订单详情（需调用方校验 userId 归属）
- * - GET /api/orders/user/:userId - 查询用户订单列表（需鉴权层注入 currentUserId）
- * - POST /api/orders/:id/pay - [仅开发环境] 模拟支付确认
- * - POST /api/orders/:id/refund - 申请退款（仅已支付订单可退款）
+ * - GET /api/orders/:id - 查询订单详情（订单所属用户或管理员）
+ * - GET /api/orders/user/:userId - 查询用户订单列表（本人或管理员）
+ * - POST /api/orders/:id/pay - [仅开发环境 + 管理员] 模拟支付确认
+ * - POST /api/orders/:id/refund - 申请退款（订单所属用户或管理员，且仅已支付订单可退款）
  *
  * 安全措施：
  * - 所有接口参数强校验（类型 + 长度 + 白名单）
+ * - requireAuth 注入统一身份上下文
+ * - canAccessUserResource 防横向越权
  * - 退款仅允许已支付状态的订单（防止状态机被破坏）
+ * - 模拟支付接口仅开发环境和管理员可用
  * - 错误信息脱敏（不向外暴露内部实现）
- * - 模拟支付接口默认仅开发环境可用
- * - 路径参数白名单校验（防注入）
  */
 
 const ORDER_ID_PATTERN = /^order-[a-z0-9-]{6,64}$/i
 const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
 const VALID_CHANNELS = ['wechat', 'alipay', 'apple'] as const
-const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production'
+}
 
-/**
- * 安全错误响应：返回脱敏后的错误信息
- */
 function safeError(res: Response, code: number, message: string): void {
   res.status(code).json({ error: message })
 }
 
-/**
- * 包装异步路由处理器，统一捕获异常
- */
 function asyncHandler(fn: (req: Request, res: Response) => void | Promise<void>) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res)).catch(next)
   }
 }
 
-/**
- * 校验订单 ID 格式
- */
 function validateOrderId(orderId: string): boolean {
   return typeof orderId === 'string' && ORDER_ID_PATTERN.test(orderId)
 }
 
-/**
- * 校验用户 ID 格式
- */
 function validateUserId(userId: string): boolean {
   return typeof userId === 'string' && USER_ID_PATTERN.test(userId)
 }
@@ -58,7 +51,7 @@ function validateUserId(userId: string): boolean {
 export function createOrdersRouter(): Router {
   const router = Router()
 
-  router.post('/', asyncHandler((req, res) => {
+  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
     const { userId, productId, channel } = req.body as CreateOrderRequest
     if (!validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
@@ -70,6 +63,10 @@ export function createOrdersRouter(): Router {
     }
     if (!channel || !VALID_CHANNELS.includes(channel)) {
       safeError(res, 400, `channel must be one of: ${VALID_CHANNELS.join(', ')}`)
+      return
+    }
+    if (!canAccessUserResource(req.auth, userId)) {
+      safeError(res, 403, 'Forbidden')
       return
     }
     try {
@@ -85,7 +82,20 @@ export function createOrdersRouter(): Router {
     }
   }))
 
-  router.get('/:id', asyncHandler((req, res) => {
+  router.get('/user/:userId', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+    if (!validateUserId(req.params.userId)) {
+      safeError(res, 400, 'Invalid userId format')
+      return
+    }
+    if (!canAccessUserResource(req.auth, req.params.userId)) {
+      safeError(res, 403, 'Forbidden')
+      return
+    }
+    const orders = getOrdersByUser(req.params.userId)
+    res.json(orders)
+  }))
+
+  router.get('/:id', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
     if (!validateOrderId(req.params.id)) {
       safeError(res, 400, 'Invalid order id format')
       return
@@ -95,19 +105,14 @@ export function createOrdersRouter(): Router {
       safeError(res, 404, 'Order not found')
       return
     }
+    if (!canAccessUserResource(req.auth, order.userId)) {
+      safeError(res, 403, 'Forbidden')
+      return
+    }
     res.json(order)
   }))
 
-  router.get('/user/:userId', asyncHandler((req, res) => {
-    if (!validateUserId(req.params.userId)) {
-      safeError(res, 400, 'Invalid userId format')
-      return
-    }
-    const orders = getOrdersByUser(req.params.userId)
-    res.json(orders)
-  }))
-
-  router.post('/:id/refund', asyncHandler((req, res) => {
+  router.post('/:id/refund', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
     if (!validateOrderId(req.params.id)) {
       safeError(res, 400, 'Invalid order id format')
       return
@@ -115,6 +120,10 @@ export function createOrdersRouter(): Router {
     const order = orderService.getOrderById(req.params.id)
     if (!order) {
       safeError(res, 404, 'Order not found')
+      return
+    }
+    if (!canAccessUserResource(req.auth, order.userId)) {
+      safeError(res, 403, 'Forbidden')
       return
     }
     if (order.status !== 'paid') {
@@ -129,9 +138,13 @@ export function createOrdersRouter(): Router {
     }
   }))
 
-  router.post('/:id/pay', asyncHandler((req, res) => {
-    if (IS_PRODUCTION) {
+  router.post('/:id/pay', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+    if (isProduction()) {
       safeError(res, 403, 'This endpoint is disabled in production')
+      return
+    }
+    if (!isAdmin(req.auth)) {
+      safeError(res, 403, 'Forbidden')
       return
     }
     if (!validateOrderId(req.params.id)) {
