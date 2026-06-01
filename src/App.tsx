@@ -45,6 +45,8 @@ import { FocusBriefStylePicker } from './components/focusBrief/FocusBriefStylePi
 import { createEntitlementService } from './entitlement/entitlementService'
 import { createAiQuotaProvider } from './entitlement/aiQuotaProvider'
 import { getActiveProducts } from './entitlement/productCatalog'
+import { createOrderService } from './entitlement/orderService'
+import { paymentAdapters } from './entitlement/paymentAdapters'
 import type { Product } from './entitlement/productTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 
@@ -73,6 +75,7 @@ const store = typeof window === 'undefined' ? undefined : createBrowserWorkspace
 
 const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
+const orderService = createOrderService()
 
 const defaultMiniProgramModules = getDefaultMiniProgramModules()
 
@@ -223,7 +226,10 @@ export default function App() {
     candidateFocusTask && candidateFocusTask.status === 'todo' ? candidateFocusTask : null
   const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
   const [isMembershipOpen, setIsMembershipOpen] = useState(false)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false)
+  const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -257,6 +263,81 @@ export default function App() {
     return { level: 'free', label: '免费用户', color: '#94a3b8' }
   }
   const currentTier = getCurrentTier()
+  
+  const handleSubscribe = (product: Product) => {
+    setSelectedProduct(product)
+    setIsPaymentOpen(true)
+  }
+  
+  const handlePayment = async (channel: 'wechat' | 'alipay' | 'apple') => {
+    if (!selectedProduct) return
+    
+    const userId = localStorage.getItem('user_id') || 'anonymous'
+    const order = orderService.createOrder({
+      userId,
+      productId: selectedProduct.id,
+      amount: selectedProduct.price,
+      channel
+    })
+    
+    const adapter = paymentAdapters[channel]
+    const result = await adapter.createPayment(order.id, order.amount)
+    
+    if (result.qrCode) {
+      window.open(result.qrCode, '_blank')
+    } else if (result.paymentUrl) {
+      window.open(result.paymentUrl, '_blank')
+    }
+    
+    setIsPaymentOpen(false)
+    setIsMembershipOpen(false)
+    alert(`订单已创建：${order.id}\n\n请在打开的页面中完成支付。\n\n支付完成后刷新页面查看会员状态。`)
+  }
+  
+  const userOrders = useMemo(() => {
+    const uid = localStorage.getItem('user_id') || 'anonymous'
+    return orderService.getOrdersByUser(uid).slice(0, 5)
+  }, [])
+  
+  const hasActiveTrial = (code: string) => {
+    return userTrials.some(t => t.code === code && !t.used)
+  }
+  
+  const handleStartTrial = (trialCode: string, durationDays: number) => {
+    const expireTime = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+    const newTrial = {
+      code: trialCode,
+      expireAt: expireTime,
+      used: false
+    }
+    setUserTrials(prev => [...prev, newTrial])
+    entitlementService.grant(userId, {
+      code: trialCode as 'study' | 'agent' | 'agent_plus',
+      source: 'trial',
+      expireAt: expireTime
+    })
+    alert(`试用已开启！您将享受 ${durationDays} 天的会员权益。`)
+  }
+  
+  const getProductName = (productId: string) => {
+    const product = products.find(p => p.id === productId)
+    return product?.name || productId
+  }
+  
+  const getChannelLabel = (channel: string) => {
+    const map: Record<string, string> = { wechat: '微信', alipay: '支付宝', apple: 'Apple Pay' }
+    return map[channel] || channel
+  }
+  
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, string> = { pending: '待支付', paid: '已支付', refunded: '已退款', failed: '失败' }
+    return map[status] || status
+  }
+  
+  const getStatusColor = (status: string) => {
+    const map: Record<string, string> = { pending: '#f59e0b', paid: '#10b981', refunded: '#6b7280', failed: '#ef4444' }
+    return map[status] || '#6b7280'
+  }
   
   const products = useMemo(() => getActiveProducts(), [])
   
@@ -1421,7 +1502,7 @@ export default function App() {
                         <li>高级统计</li>
                         <li>50次AI额度/月</li>
                       </ul>
-                      <button className="membership-tier-button" style={{ background: '#10b981' }}>立即订阅</button>
+                      <button className="membership-tier-button" style={{ background: '#10b981' }} onClick={() => studyProduct && handleSubscribe(studyProduct)}>立即订阅</button>
                     </div>
                   )}
 
@@ -1445,7 +1526,7 @@ export default function App() {
                         <li>RPM捏脸</li>
                         <li>200次AI额度/月</li>
                       </ul>
-                      <button className="membership-tier-button" style={{ background: '#6366f1' }}>立即订阅</button>
+                      <button className="membership-tier-button" style={{ background: '#6366f1' }} onClick={() => agentProduct && handleSubscribe(agentProduct)}>立即订阅</button>
                     </div>
                   )}
 
@@ -1469,7 +1550,67 @@ export default function App() {
                         <li>角色进化全解锁</li>
                         <li>无限AI额度</li>
                       </ul>
-                      <button className="membership-tier-button" style={{ background: '#8b5cf6' }}>立即订阅</button>
+                      <button className="membership-tier-button" style={{ background: '#8b5cf6' }} onClick={() => agentPlusProduct && handleSubscribe(agentPlusProduct)}>立即订阅</button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="membership-trial-section">
+                <h3>免费试用</h3>
+                <p className="membership-trial-desc">先体验再决定，开启会员试用</p>
+                <div className="membership-trial-grid">
+                  {!entitlementService.has(userId, 'study') && !hasActiveTrial('study') && (
+                    <div className="membership-trial-card">
+                      <div className="membership-trial-header">
+                        <span className="membership-trial-name">学习会员试用</span>
+                        <span className="membership-trial-badge">3天</span>
+                      </div>
+                      <ul className="membership-trial-features">
+                        <li>高级主题全解锁</li>
+                        <li>云同步功能</li>
+                        <li>50次AI额度</li>
+                      </ul>
+                      <button className="membership-trial-button" style={{ background: '#10b981' }} onClick={() => handleStartTrial('study', 3)}>立即试用</button>
+                    </div>
+                  )}
+                  {!entitlementService.has(userId, 'agent') && !hasActiveTrial('agent') && (
+                    <div className="membership-trial-card">
+                      <div className="membership-trial-header">
+                        <span className="membership-trial-name">Agent 会员试用</span>
+                        <span className="membership-trial-badge">7天</span>
+                      </div>
+                      <ul className="membership-trial-features">
+                        <li>有记忆的AI搭子</li>
+                        <li>自我进化机制</li>
+                        <li>200次AI额度</li>
+                      </ul>
+                      <button className="membership-trial-button" style={{ background: '#6366f1' }} onClick={() => handleStartTrial('agent', 7)}>立即试用</button>
+                    </div>
+                  )}
+                  {!entitlementService.has(userId, 'agent_plus') && !hasActiveTrial('agent_plus') && (
+                    <div className="membership-trial-card featured">
+                      <div className="membership-trial-header">
+                        <span className="membership-trial-name">Agent PLUS 试用</span>
+                        <span className="membership-trial-badge">5天</span>
+                      </div>
+                      <ul className="membership-trial-features">
+                        <li>AI 3D角色生成</li>
+                        <li>无限AI额度</li>
+                        <li>全部进阶功能</li>
+                      </ul>
+                      <button className="membership-trial-button" style={{ background: '#8b5cf6' }} onClick={() => handleStartTrial('agent_plus', 5)}>立即试用</button>
+                    </div>
+                  )}
+                  {userTrials.length > 0 && (
+                    <div className="membership-trial-status">
+                      <h4>您的试用</h4>
+                      {userTrials.filter(t => !t.used).map((trial, i) => (
+                        <div key={i} className="membership-trial-active">
+                          <span>{trial.code === 'study' ? '学习会员' : trial.code === 'agent' ? 'Agent 会员' : 'Agent PLUS'}</span>
+                          <span className="membership-trial-expire">有效期至 {new Date(trial.expireAt).toLocaleDateString('zh-CN')}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -1547,6 +1688,153 @@ export default function App() {
                   </tbody>
                 </table>
               </section>
+
+              <section className="membership-dynamic-benefits-section">
+                <h3>您的专属权益</h3>
+                <div className="membership-dynamic-benefits">
+                  {entitlementService.has(userId, 'study') || hasActiveTrial('study') ? (
+                    <div className="membership-dynamic-benefit unlocked">
+                      <span className="benefit-icon">✅</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">学习会员</span>
+                        <span className="benefit-desc">高级主题全解锁 · 云同步 · 50次AI额度/月</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="membership-dynamic-benefit locked">
+                      <span className="benefit-icon">🔒</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">学习会员</span>
+                        <span className="benefit-desc">开通后解锁高级主题、云同步、50次AI额度</span>
+                      </div>
+                    </div>
+                  )}
+                  {entitlementService.has(userId, 'agent') || hasActiveTrial('agent') ? (
+                    <div className="membership-dynamic-benefit unlocked">
+                      <span className="benefit-icon">✅</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">Agent 会员</span>
+                        <span className="benefit-desc">有记忆的AI搭子 · 自我进化 · 角色系统 · 200次AI额度</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="membership-dynamic-benefit locked">
+                      <span className="benefit-icon">🔒</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">Agent 会员</span>
+                        <span className="benefit-desc">开通后解锁AI搭子、记忆系统、自我进化</span>
+                      </div>
+                    </div>
+                  )}
+                  {entitlementService.has(userId, 'agent_plus') || hasActiveTrial('agent_plus') ? (
+                    <div className="membership-dynamic-benefit unlocked">
+                      <span className="benefit-icon">✅</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">Agent PLUS</span>
+                        <span className="benefit-desc">AI 3D角色生成 · 无限AI额度 · 工具调用能力</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="membership-dynamic-benefit locked">
+                      <span className="benefit-icon">🔒</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">Agent PLUS</span>
+                        <span className="benefit-desc">开通后解锁AI 3D角色、无限额度、工具调用</span>
+                      </div>
+                    </div>
+                  )}
+                  {entitlementService.has(userId, 'avatar_rpm') && (
+                    <div className="membership-dynamic-benefit unlocked">
+                      <span className="benefit-icon">🎭</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">RPM 捏脸</span>
+                        <span className="benefit-desc">Ready Player Me 3D角色定制</span>
+                      </div>
+                    </div>
+                  )}
+                  {entitlementService.has(userId, 'memory_sync') && (
+                    <div className="membership-dynamic-benefit unlocked">
+                      <span className="benefit-icon">☁️</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">记忆云同步</span>
+                        <span className="benefit-desc">多设备同步记忆画像</span>
+                      </div>
+                    </div>
+                  )}
+                  {entitlementService.has(userId, 'avatar_ai_gen') && (
+                    <div className="membership-dynamic-benefit unlocked">
+                      <span className="benefit-icon">🎨</span>
+                      <div className="benefit-content">
+                        <span className="benefit-title">AI 3D角色生成</span>
+                        <span className="benefit-desc">输入描述生成专属3D角色</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="membership-orders-section">
+                <h3>订单记录</h3>
+                {userOrders.length === 0 ? (
+                  <p className="membership-orders-empty">暂无订单记录</p>
+                ) : (
+                  <div className="membership-orders-list">
+                    {userOrders.map((order) => (
+                      <div className="membership-order-item" key={order.id}>
+                        <div className="membership-order-info">
+                          <span className="membership-order-product">{getProductName(order.productId)}</span>
+                          <span className="membership-order-date">{new Date(order.createdAt).toLocaleDateString('zh-CN')}</span>
+                        </div>
+                        <div className="membership-order-meta">
+                          <span className="membership-order-amount">{formatPrice(order.amount)}</span>
+                          <span className="membership-order-channel">{getChannelLabel(order.channel)}</span>
+                          <span className="membership-order-status" style={{ color: getStatusColor(order.status) }}>{getStatusLabel(order.status)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isPaymentOpen && selectedProduct && (
+        <div className="payment-modal-backdrop" onClick={() => setIsPaymentOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="payment-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="选择支付方式"
+          >
+            <header className="payment-modal-header">
+              <h3>选择支付方式</h3>
+              <button className="payment-modal-close" onClick={() => setIsPaymentOpen(false)} type="button">×</button>
+            </header>
+            <div className="payment-modal-content">
+              <div className="payment-product-summary">
+                <span className="payment-product-name">{selectedProduct.name}</span>
+                <span className="payment-product-price">{formatPrice(selectedProduct.price)}/{selectedProduct.period}</span>
+              </div>
+              
+              <div className="payment-channels">
+                <button className="payment-channel-button" onClick={() => handlePayment('wechat')}>
+                  <span className="payment-channel-icon">💬</span>
+                  <span>微信支付</span>
+                </button>
+                <button className="payment-channel-button" onClick={() => handlePayment('alipay')}>
+                  <span className="payment-channel-icon">💳</span>
+                  <span>支付宝</span>
+                </button>
+                <button className="payment-channel-button" onClick={() => handlePayment('apple')}>
+                  <span className="payment-channel-icon">🍎</span>
+                  <span>Apple Pay</span>
+                </button>
+              </div>
+              
+              <p className="payment-note">点击上方按钮将跳转到对应支付平台完成付款</p>
             </div>
           </section>
         </div>
