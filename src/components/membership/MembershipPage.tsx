@@ -16,6 +16,7 @@
 import { useState } from 'react'
 import { getActiveProducts } from '../../entitlement/productCatalog'
 import type { Product } from '../../entitlement/productTypes'
+import { PaymentModal } from '../payment/PaymentModal'
 import styles from './MembershipPage.module.css'
 
 interface MembershipPageProps {
@@ -23,9 +24,11 @@ interface MembershipPageProps {
   onPurchase?: (productId: string) => void
 }
 
-export function MembershipPage({ onPurchase }: MembershipPageProps) {
+export function MembershipPage({ userId, onPurchase }: MembershipPageProps) {
   const [products] = useState(() => getActiveProducts())
   const [currentTier] = useState<string | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
 
   const subscriptionProducts = products.filter((p) => p.type === 'subscription')
   const packProducts = products.filter((p) => p.type === 'pack')
@@ -40,8 +43,20 @@ export function MembershipPage({ onPurchase }: MembershipPageProps) {
     return '学习会员'
   }
 
-  const handlePurchase = (productId: string) => {
-    onPurchase?.(productId)
+  const handlePurchase = (product: Product) => {
+    setSelectedProduct(product)
+    setShowPaymentModal(true)
+    onPurchase?.(product.id)
+  }
+
+  const handlePaymentSuccess = () => {
+    setSelectedProduct(null)
+    setShowPaymentModal(false)
+  }
+
+  const handlePaymentClose = () => {
+    setSelectedProduct(null)
+    setShowPaymentModal(false)
   }
 
   return (
@@ -98,6 +113,18 @@ export function MembershipPage({ onPurchase }: MembershipPageProps) {
       </section>
 
       <QuotaDisplay />
+
+      {selectedProduct && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          productId={selectedProduct.id}
+          productName={selectedProduct.name}
+          amount={selectedProduct.price}
+          userId={userId}
+          onClose={handlePaymentClose}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   )
 }
@@ -105,7 +132,7 @@ export function MembershipPage({ onPurchase }: MembershipPageProps) {
 interface ProductCardProps {
   product: Product
   currentTier: string | null
-  onPurchase: (productId: string) => void
+  onPurchase: (product: Product) => void
   formatPrice: (cents: number) => string
   getTierLabel: (productId: string) => string
 }
@@ -136,7 +163,7 @@ function ProductCard({ product, currentTier, onPurchase, formatPrice, getTierLab
       </div>
       <button
         className={styles.purchaseButton}
-        onClick={() => onPurchase(product.id)}
+        onClick={() => onPurchase(product)}
         disabled={isCurrent}
       >
         {isCurrent ? '当前套餐' : product.period ? '立即订阅' : '购买'}
