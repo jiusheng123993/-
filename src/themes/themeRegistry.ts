@@ -18,6 +18,11 @@ export type ThemeId =
   | 'business-graphite'
   | 'night-focus'
   | 'night-aurora'
+  | 'clash-pop-orange-violet'
+  | 'clash-blue-orange'
+  | 'clash-neon-cyber'
+  | 'clash-juicy-gradient'
+  | 'clash-retro-sunset'
 
 export type ThemeAesthetic =
   | 'minimal'
@@ -28,6 +33,7 @@ export type ThemeAesthetic =
   | 'morandi'
   | 'business'
   | 'night'
+  | 'clash'
 
 export type WallpaperSupport = {
   overlay: string
@@ -764,6 +770,186 @@ export const themeRegistry: StudyTheme[] = [
       },
       charts: { plan: '#42b9aa', focus: '#6f9fd4', review: '#9f91df' },
       effects: { radius: '24px', shadow: '0 28px 80px rgba(0, 0, 0, 0.46)', glass: 'blur(18px) saturate(0.92)' }
+    }
+  },
+  {
+    id: 'clash-pop-orange-violet',
+    name: '波普橙紫撞色',
+    category: 'built-in',
+    aesthetic: 'clash',
+    defaultCandidate: false,
+    visualComfort: '橙紫互补撞色、奶白底承托、活泼但保留正文留白',
+    recommendedFor: ['年轻用户', '创意工作', '灵感激励', '社交分享'],
+    accessibilityNotes: ['撞色只用于装饰块和按钮', '正文保持深紫黑高对比', '大面积仍以奶白承托'],
+    wallpaperSupport: { overlay: 'rgba(252, 244, 232, 0.66)', blur: '18px', brightness: '1.02', saturation: '1.04' },
+    design: {
+      tone: '波普撞色、橙紫互补、活泼大胆',
+      scene: '适合喜欢张扬个性、创意激励、社交分享和灵感记录的用户',
+      principle: '以电光紫和活力橙作为互补撞色，奶白底承托正文，撞色块只出现在卡片标题、按钮和装饰图形，避免视觉疲劳。',
+      aiVoice: '活力派对型，鼓励大胆尝试，把任务变成一次冒险。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(circle at 10% 12%, rgba(255, 122, 41, 0.32), transparent 26%), radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.30), transparent 26%), linear-gradient(135deg, #fff5e8 0%, #fdf0f8 52%, #f1ecff 100%)',
+        surface: 'rgba(255, 252, 247, 0.82)',
+        surfaceStrong: 'rgba(255, 252, 247, 0.96)',
+        primary: '#7c3aed',
+        secondary: '#ff7a29',
+        accent: '#ffd23f',
+        text: '#1f1240',
+        muted: '#6b5a86',
+        border: 'rgba(124, 58, 237, 0.20)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #7c3aed 0%, #ff7a29 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 252, 247, 0.96), rgba(241, 236, 255, 0.88))'
+      },
+      charts: { plan: '#7c3aed', focus: '#ff7a29', review: '#ffd23f' },
+      effects: { radius: '26px', shadow: '0 26px 70px rgba(124, 58, 237, 0.20)', glass: 'blur(18px) saturate(1.18)' }
+    }
+  },
+  {
+    id: 'clash-blue-orange',
+    name: '蓝橙冷暖撞色',
+    category: 'built-in',
+    aesthetic: 'clash',
+    defaultCandidate: false,
+    visualComfort: '钴蓝主色、活力橙强调、冷暖撞色但层级清晰',
+    recommendedFor: ['品牌型用户', '运动打卡', '青年职场', '行动派'],
+    accessibilityNotes: ['钴蓝承担主操作', '活力橙只做强调和警示', '正文保持深蓝黑'],
+    wallpaperSupport: { overlay: 'rgba(238, 244, 255, 0.70)', blur: '16px', brightness: '1.00', saturation: '1.00' },
+    design: {
+      tone: '钴蓝活力橙、冷暖撞色、自信现代',
+      scene: '适合运动打卡、青年职场、行动派计划和品牌型用户',
+      principle: '用钴蓝建立秩序，活力橙只用于关键按钮、未完成标记和奖励反馈，制造经典冷暖撞色而不混乱。',
+      aiVoice: '直接行动派，给出明确截止、关键路径和下一步。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(circle at 12% 14%, rgba(37, 99, 235, 0.20), transparent 28%), radial-gradient(circle at 88% 12%, rgba(255, 122, 41, 0.22), transparent 26%), linear-gradient(135deg, #eef4ff 0%, #f7fbff 50%, #fff3e6 100%)',
+        surface: 'rgba(255, 255, 255, 0.84)',
+        surfaceStrong: 'rgba(255, 255, 255, 0.96)',
+        primary: '#1d4ed8',
+        secondary: '#ff7a29',
+        accent: '#f4b942',
+        text: '#0b1d3a',
+        muted: '#5b6a85',
+        border: 'rgba(29, 78, 216, 0.18)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #1d4ed8 0%, #ff7a29 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(238, 244, 255, 0.90))'
+      },
+      charts: { plan: '#1d4ed8', focus: '#ff7a29', review: '#f4b942' },
+      effects: { radius: '22px', shadow: '0 24px 64px rgba(29, 78, 216, 0.18)', glass: 'blur(16px) saturate(1.10)' }
+    }
+  },
+  {
+    id: 'clash-neon-cyber',
+    name: '霓虹赛博撞色',
+    category: 'built-in',
+    aesthetic: 'clash',
+    defaultCandidate: false,
+    visualComfort: '深夜紫底、霓虹粉绿撞色、赛博朋克氛围但保留可读性',
+    recommendedFor: ['极客用户', '夜猫子', '游戏化偏好', '潮流追逐者'],
+    accessibilityNotes: ['霓虹色仅做点缀与按钮发光', '正文使用柔和浅灰', '深紫黑底替代纯黑减少眩光'],
+    wallpaperSupport: { overlay: 'rgba(10, 6, 28, 0.82)', blur: '20px', brightness: '0.52', saturation: '1.15' },
+    design: {
+      tone: '霓虹赛博、粉绿撞色、未来夜色',
+      scene: '适合夜猫子、极客、游戏化偏好和追求潮流氛围的用户',
+      principle: '用深紫黑作底，让霓虹粉与霓虹青绿成为撞色主角，仅出现在按钮、进度条、徽章和图表，正文保持柔和高对比。',
+      aiVoice: '潮酷战友型，简短、犀利、带一点幽默地推你完成关键任务。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(circle at 14% 12%, rgba(236, 72, 153, 0.22), transparent 26%), radial-gradient(circle at 86% 14%, rgba(34, 211, 238, 0.20), transparent 28%), linear-gradient(135deg, #0a0620 0%, #140a32 52%, #0c0824 100%)',
+        surface: 'rgba(20, 12, 44, 0.72)',
+        surfaceStrong: 'rgba(24, 14, 52, 0.90)',
+        primary: '#ff2bd6',
+        secondary: '#22d3ee',
+        accent: '#facc15',
+        text: '#ecebff',
+        muted: '#9d96c7',
+        border: 'rgba(255, 43, 214, 0.28)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #ff2bd6 0%, #7c3aed 50%, #22d3ee 100%)',
+        card: 'linear-gradient(135deg, rgba(24, 14, 52, 0.92), rgba(10, 6, 32, 0.80))'
+      },
+      charts: { plan: '#ff2bd6', focus: '#22d3ee', review: '#facc15' },
+      effects: { radius: '24px', shadow: '0 28px 80px rgba(255, 43, 214, 0.28)', glass: 'blur(20px) saturate(1.25)' }
+    }
+  },
+  {
+    id: 'clash-juicy-gradient',
+    name: '果汁多色渐变',
+    category: 'built-in',
+    aesthetic: 'clash',
+    defaultCandidate: false,
+    visualComfort: '黄绿青蓝渐变、活力果汁感、装饰块大胆但正文保持高对比',
+    recommendedFor: ['活力青年', '社群运营', '校园用户', '兴趣社团'],
+    accessibilityNotes: ['多色渐变只用于背景、Banner 和图表', '按钮使用纯色高对比', '正文保持深绿黑'],
+    wallpaperSupport: { overlay: 'rgba(243, 255, 234, 0.66)', blur: '18px', brightness: '1.02', saturation: '1.08' },
+    design: {
+      tone: '果汁多色、青柠青蓝、夏日活力',
+      scene: '适合校园社团、社群运营、活力青年和兴趣小组日常',
+      principle: '用青柠绿、橙黄、青蓝构造果汁渐变，正文区使用奶白卡片承托，让撞色只在 Banner、徽章、进度条里释放能量。',
+      aiVoice: '阳光社群型，强调一起来、节奏感和当日小目标。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(circle at 10% 14%, rgba(250, 204, 21, 0.30), transparent 26%), radial-gradient(circle at 86% 14%, rgba(34, 211, 238, 0.28), transparent 26%), radial-gradient(circle at 80% 84%, rgba(132, 204, 22, 0.26), transparent 28%), linear-gradient(135deg, #f3ffea 0%, #effbff 50%, #fff8e1 100%)',
+        surface: 'rgba(255, 255, 250, 0.80)',
+        surfaceStrong: 'rgba(255, 255, 250, 0.95)',
+        primary: '#16a34a',
+        secondary: '#0ea5e9',
+        accent: '#f97316',
+        text: '#0f2a17',
+        muted: '#5b7363',
+        border: 'rgba(22, 163, 74, 0.20)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #facc15 0%, #84cc16 35%, #22d3ee 70%, #0ea5e9 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 255, 250, 0.96), rgba(243, 255, 234, 0.88), rgba(239, 251, 255, 0.82))'
+      },
+      charts: { plan: '#16a34a', focus: '#0ea5e9', review: '#f97316' },
+      effects: { radius: '30px', shadow: '0 28px 72px rgba(22, 163, 74, 0.18)', glass: 'blur(20px) saturate(1.20)' }
+    }
+  },
+  {
+    id: 'clash-retro-sunset',
+    name: '复古日落撞色',
+    category: 'built-in',
+    aesthetic: 'clash',
+    defaultCandidate: false,
+    visualComfort: '焦橙玫粉撞色、复古蓝点缀、70 年代 Disco 但克制装饰',
+    recommendedFor: ['复古爱好者', '生活记录', '情绪激励', '创作灵感'],
+    accessibilityNotes: ['焦橙作为主操作', '玫粉负责装饰和奖励', '复古蓝小面积出现，避免抢主角'],
+    wallpaperSupport: { overlay: 'rgba(253, 235, 222, 0.70)', blur: '18px', brightness: '0.98', saturation: '0.96' },
+    design: {
+      tone: '焦橙玫粉、复古蓝点缀、Disco 暖光',
+      scene: '适合复古审美、生活记录、情绪激励和创作灵感',
+      principle: '用焦橙作主色制造暖意，玫粉只做奖励和装饰，复古蓝小面积出现压住温度，整体像 70 年代 Disco 海报的暖光。',
+      aiVoice: '温暖鼓舞型，像老朋友递来一杯热饮，再轻推一下下一步。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(circle at 12% 12%, rgba(234, 88, 12, 0.26), transparent 26%), radial-gradient(circle at 86% 14%, rgba(236, 72, 153, 0.22), transparent 26%), linear-gradient(135deg, #fdebde 0%, #ffe1ea 50%, #efe6f7 100%)',
+        surface: 'rgba(255, 250, 244, 0.80)',
+        surfaceStrong: 'rgba(255, 250, 244, 0.95)',
+        primary: '#ea580c',
+        secondary: '#db2777',
+        accent: '#1e3a8a',
+        text: '#3a1d12',
+        muted: '#7a5a4e',
+        border: 'rgba(234, 88, 12, 0.20)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #ea580c 0%, #db2777 60%, #1e3a8a 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(255, 225, 234, 0.88))'
+      },
+      charts: { plan: '#ea580c', focus: '#db2777', review: '#1e3a8a' },
+      effects: { radius: '26px', shadow: '0 26px 70px rgba(234, 88, 12, 0.20)', glass: 'blur(18px) saturate(1.10)' }
     }
   }
 ]

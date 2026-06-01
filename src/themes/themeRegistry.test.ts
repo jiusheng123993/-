@@ -22,7 +22,12 @@ describe('themeRegistry', () => {
       'business-bluegray',
       'business-graphite',
       'night-focus',
-      'night-aurora'
+      'night-aurora',
+      'clash-pop-orange-violet',
+      'clash-blue-orange',
+      'clash-neon-cyber',
+      'clash-juicy-gradient',
+      'clash-retro-sunset'
     ])
   })
 
@@ -119,6 +124,48 @@ describe('themeRegistry', () => {
     expect(nightAurora.tokens.colors.surface).toBe('rgba(8, 16, 30, 0.74)')
     expect(nightAurora.tokens.colors.primary).toBe('#42b9aa')
     expect(nightAurora.tokens.effects.glass).toContain('saturate(0.92)')
+  })
+
+  it('offers bold clash palettes for lively users while protecting readability', () => {
+    const clashThemes = themeRegistry.filter((theme) => theme.aesthetic === 'clash')
+    expect(clashThemes.map((theme) => theme.id)).toEqual([
+      'clash-pop-orange-violet',
+      'clash-blue-orange',
+      'clash-neon-cyber',
+      'clash-juicy-gradient',
+      'clash-retro-sunset'
+    ])
+    clashThemes.forEach((theme) => {
+      expect(theme.aesthetic).toBe('clash')
+      expect(theme.category).toBe('built-in')
+      expect(theme.defaultCandidate).toBe(false)
+      expect(theme.design.tone).toBeTruthy()
+      expect(theme.accessibilityNotes.length).toBeGreaterThan(0)
+    })
+
+    const popClash = getThemeById('clash-pop-orange-violet')
+    expect(popClash.tokens.colors.primary).toBe('#7c3aed')
+    expect(popClash.tokens.colors.secondary).toBe('#ff7a29')
+    expect(popClash.tokens.gradients.hero).toContain('#7c3aed')
+    expect(popClash.tokens.gradients.hero).toContain('#ff7a29')
+
+    const blueOrange = getThemeById('clash-blue-orange')
+    expect(blueOrange.tokens.colors.primary).toBe('#1d4ed8')
+    expect(blueOrange.tokens.colors.secondary).toBe('#ff7a29')
+
+    const neonCyber = getThemeById('clash-neon-cyber')
+    expect(neonCyber.tokens.colors.primary).toBe('#ff2bd6')
+    expect(neonCyber.tokens.colors.secondary).toBe('#22d3ee')
+    expect(neonCyber.tokens.colors.background).toContain('#0a0620')
+    expect(neonCyber.wallpaperSupport.brightness).toBe('0.52')
+
+    const juicy = getThemeById('clash-juicy-gradient')
+    expect(juicy.tokens.gradients.hero).toContain('#facc15')
+    expect(juicy.tokens.gradients.hero).toContain('#0ea5e9')
+
+    const retro = getThemeById('clash-retro-sunset')
+    expect(retro.tokens.colors.primary).toBe('#ea580c')
+    expect(retro.tokens.colors.accent).toBe('#1e3a8a')
   })
 
   it('maps legacy theme ids to the nearest new official theme', () => {
