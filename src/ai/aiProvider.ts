@@ -1,6 +1,6 @@
 export type AiProviderId = 'deepseek' | 'openai' | 'tongyi' | 'doubao' | 'local'
 
-export type AiTaskKind = 'daily-plan' | 'task-breakdown' | 'meeting-actions' | 'daily-review' | 'weekly-report'
+export type AiTaskKind = 'daily-plan' | 'task-breakdown' | 'meeting-actions' | 'daily-review' | 'weekly-report' | 'memory-reflection'
 
 export type AiProvider = {
   id: AiProviderId
@@ -23,33 +23,35 @@ export type AiPromptDraft = {
   userPrompt: string
 }
 
+const cloudAiCapabilities: AiTaskKind[] = ['daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report', 'memory-reflection']
+
 export const aiProviderRegistry: AiProvider[] = [
   {
     id: 'deepseek',
     name: 'DeepSeek',
     deployment: 'cloud',
-    capabilities: ['daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report'],
+    capabilities: cloudAiCapabilities,
     requiresApiKey: true
   },
   {
     id: 'openai',
     name: 'OpenAI',
     deployment: 'cloud',
-    capabilities: ['daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report'],
+    capabilities: cloudAiCapabilities,
     requiresApiKey: true
   },
   {
     id: 'tongyi',
     name: '通义千问',
     deployment: 'cloud',
-    capabilities: ['daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report'],
+    capabilities: cloudAiCapabilities,
     requiresApiKey: true
   },
   {
     id: 'doubao',
     name: '豆包',
     deployment: 'cloud',
-    capabilities: ['daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report'],
+    capabilities: cloudAiCapabilities,
     requiresApiKey: true
   },
   {
@@ -71,13 +73,16 @@ export const createAiPromptDraft = (providerId: AiProviderId, request: AiPromptR
     'task-breakdown': '拆解复杂任务',
     'meeting-actions': '会议记录转行动项',
     'daily-review': '生成每日复盘',
-    'weekly-report': '生成周报素材'
+    'weekly-report': '生成周报素材',
+    'memory-reflection': '记忆反思与画像更新'
   }
 
   return {
     providerId: provider.id,
     title: titles[request.kind],
-    systemPrompt: '你是个人效率与成长工作台的 AI 行动教练，只输出可执行、可复盘、可确认后写入任务系统的建议。',
+    systemPrompt: request.kind === 'memory-reflection'
+      ? '你是个人效率与成长工作台的记忆反思引擎，只输出可审计、可解释、可由用户确认后写入长期画像的建议。'
+      : '你是个人效率与成长工作台的 AI 行动教练，只输出可执行、可复盘、可确认后写入任务系统的建议。',
     userPrompt: [request.context, request.input].filter(Boolean).join('\n\n')
   }
 }
