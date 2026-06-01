@@ -1,4 +1,5 @@
 export type ThemeId =
+  | 'minimal-cream'
   | 'minimal-premium'
   | 'minimal-sage'
   | 'cream-dopamine'

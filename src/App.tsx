@@ -1,4 +1,4 @@
-﻿﻿import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -51,7 +51,7 @@ import type { Product } from './entitlement/productTypes'
 import type { Order } from './entitlement/orderTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
-import { createBrowserMemoryStore, deriveMemoryProfile } from './memory/memoryStore'
+import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
 import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
 import styles from './components/membership/MembershipPage.module.css'
@@ -241,9 +241,6 @@ export default function App() {
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
-  const [memoryEvents, setMemoryEvents] = useState<MemoryEvent[]>(() =>
-    memoryStore ? memoryStore.listEvents({ userId: authSession.userId, projectId: 'growth-workbench' }) : []
-  )
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -286,19 +283,16 @@ export default function App() {
     userId,
     projectId: 'growth-workbench'
   }), [userId])
-  const memoryObserver = useMemo(
-    () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null,
-    [memoryScope]
+  const [, setMemoryEvents] = useState<MemoryEvent[]>(() =>
+    memoryStore ? memoryStore.listEvents(memoryScope) : []
+  )
+  const [memoryObserver] = useState(
+    () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null
   )
   const refreshMemoryEvents = () => {
     if (!memoryStore) return
     setMemoryEvents(memoryStore.listEvents(memoryScope))
   }
-  const memoryProfile = useMemo(
-    () => deriveMemoryProfile(memoryScope, memoryEvents, new Date().toISOString()),
-    [memoryEvents, memoryScope]
-  )
-  const memoryPreviewEvents = memoryEvents.slice(0, 4)
   
   const switchDevAuthRole = () => {
     setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
@@ -554,7 +548,7 @@ export default function App() {
 
     const handle = window.setTimeout(finish, 0)
     return () => window.clearTimeout(handle)
-  }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver])
+  }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents])
 
   const openThemePicker = () => {
     setThemeSearchQuery('')

@@ -14,6 +14,8 @@
 
 import type { Product, ProductType } from './productTypes'
 
+export type { Product, ProductType }
+
 export const productCatalog: Product[] = [
   {
     id: 'study_monthly',
