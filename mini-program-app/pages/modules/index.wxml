@@ -1,0 +1,31 @@
+<view class="container modules-page">
+  <view class="panel">
+    <text class="eyebrow">Module Center</text>
+    <text class="title">模块中心</text>
+    <text class="description">完整但模块化，复杂能力按需开启。</text>
+    <view class="module-summary">
+      <text>已开启模块</text>
+      <text>{{enabledCount}} / {{totalCount}}</text>
+    </view>
+  </view>
+
+  <view class="module-group" wx:for="{{moduleGroups}}" wx:key="title">
+    <view class="group-heading">
+      <text class="section-title">{{item.title}}</text>
+      <text class="module-meta">{{item.description}}</text>
+    </view>
+    <view class="module-list">
+      <view class="module-card module-row" wx:for="{{item.modules}}" wx:for-item="module" wx:key="id">
+        <view class="module-main">
+          <text class="module-title">{{module.title}}</text>
+          <text class="module-meta">{{module.description}}</text>
+          <view class="meta-row">
+            <text>隐私级别：{{module.privacyLabel}}</text>
+            <text>{{module.availabilityLabel}}</text>
+          </view>
+        </view>
+        <switch checked="{{module.defaultEnabled}}" disabled="{{!module.availableNow}}" color="#ff7a90" />
+      </view>
+    </view>
+  </view>
+</view>

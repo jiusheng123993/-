@@ -1,0 +1,14 @@
+{
+  "description": "GrowthOS native WeChat Mini Program (standalone, ready for WeChat DevTools import)",
+  "projectname": "growthos-miniprogram",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true,
+    "enhance": true,
+    "urlCheck": false
+  }
+}

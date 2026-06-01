@@ -1,0 +1,63 @@
+.card-grid {
+  grid-template-columns: 1fr;
+}
+
+.module-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24rpx;
+  border-radius: 24rpx;
+  padding: 20rpx;
+  color: #ff7a90;
+  background: rgba(255, 122, 144, 0.1);
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.module-group {
+  margin-top: 30rpx;
+}
+
+.group-heading {
+  display: grid;
+  gap: 8rpx;
+  margin-bottom: 18rpx;
+}
+
+.section-title {
+  color: #2b2833;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.module-list {
+  display: grid;
+  gap: 18rpx;
+}
+
+.module-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18rpx;
+  align-items: center;
+}
+
+.module-main {
+  flex: 1;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.meta-row text {
+  border-radius: 999rpx;
+  padding: 6rpx 12rpx;
+  color: #ff7a90;
+  background: rgba(255, 122, 144, 0.1);
+  font-size: 20rpx;
+  font-weight: 800;
+}

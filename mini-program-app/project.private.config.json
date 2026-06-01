@@ -1,0 +1,6 @@
+{
+  "description": "本地隐私配置，仅用于微信开发者工具，不会上传仓库默认值",
+  "setting": {
+    "compileHotReLoad": true
+  }
+}

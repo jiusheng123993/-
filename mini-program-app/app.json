@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/plan/index",
+    "pages/quick-add/index",
+    "pages/modules/index",
+    "pages/profile/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "GrowthOS",
+    "navigationBarBackgroundColor": "#fff7e6",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff7e6"
+  },
+  "tabBar": {
+    "color": "#7a7180",
+    "selectedColor": "#ff7a90",
+    "backgroundColor": "#fffdf8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/plan/index",
+        "text": "计划"
+      },
+      {
+        "pagePath": "pages/quick-add/index",
+        "text": "+"
+      },
+      {
+        "pagePath": "pages/modules/index",
+        "text": "模块"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的"
+      }
+    ]
+  }
+}
