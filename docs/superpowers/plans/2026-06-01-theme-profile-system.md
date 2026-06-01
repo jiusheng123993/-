@@ -336,7 +336,7 @@ Expected: pass.
 - Modify only if needed: `src/App.tsx`
 - Modify only if needed: `src/styles.css`
 
-- [ ] **Step 1: Run full tests**
+- [x] **Step 1: Run full tests**
 
 Run:
 
@@ -346,7 +346,7 @@ npm test
 
 Expected: pass. If it fails because default state references an old theme ID, update the default preference in the store in a later data migration task or add a compatibility fallback in the current theme lookup path.
 
-- [ ] **Step 2: Run lint**
+- [x] **Step 2: Run lint**
 
 Run:
 
@@ -356,7 +356,7 @@ npm run lint
 
 Expected: pass.
 
-- [ ] **Step 3: Run build**
+- [x] **Step 3: Run build**
 
 Run:
 
@@ -373,7 +373,7 @@ Expected: pass.
 **Files:**
 - No planned file changes.
 
-- [ ] **Step 1: Start the development server**
+- [x] **Step 1: Start the development server**
 
 Run:
 
@@ -383,7 +383,7 @@ npm run dev
 
 Expected: Vite serves the app on a local URL such as `http://localhost:5173/`.
 
-- [ ] **Step 2: Open the local page**
+- [x] **Step 2: Open the local page**
 
 Open the Vite URL in browser automation.
 

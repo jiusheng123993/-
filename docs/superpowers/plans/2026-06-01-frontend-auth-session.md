@@ -25,33 +25,27 @@
 
 ### Task 1: Dev Auth Session
 
-- [ ] Create `src/auth/devAuthSession.ts` with role/session/token/header/localStorage helpers.
-- [ ] Create `src/auth/devAuthSession.test.ts` covering user token, admin token, invalid id, storage fallback.
-- [ ] Run `npm run test -- src/auth/devAuthSession.test.ts`.
-- [ ] Commit `feat(auth): add frontend dev auth session`.
+- [x] Create `src/auth/devAuthSession.ts` with role/session/token/header/localStorage helpers.
+- [x] Create `src/auth/devAuthSession.test.ts` covering user token, admin token, invalid id, storage fallback.
+- [x] Run `npm run test -- src/auth/devAuthSession.test.ts`.
+- [x] Commit `feat(auth): add frontend dev auth session`.
 
-### Task 2: Payment API Authorization
+- [x] Modify `src/api/payment.ts` to accept `DevAuthSession` for create/get/list/refund APIs.
+- [x] Update `src/api/payment.test.ts` to assert Authorization headers.
+- [x] Run `npm run test -- src/api/payment.test.ts`.
+- [x] Commit `fix(api): attach auth headers to order requests`.
 
-- [ ] Modify `src/api/payment.ts` to accept `DevAuthSession` for create/get/list/refund APIs.
-- [ ] Update `src/api/payment.test.ts` to assert Authorization headers.
-- [ ] Run `npm run test -- src/api/payment.test.ts`.
-- [ ] Commit `fix(api): attach auth headers to order requests`.
+- [x] Modify `src/services/paymentService.ts` to accept session in `initiatePayment` and `pollPaymentStatus`.
+- [x] Modify `src/hooks/usePayment.ts` to accept `DevAuthSession | undefined` and pass it through.
+- [x] Update related tests.
+- [x] Run `npm run test -- src/services/paymentService.test.ts src/hooks/usePayment.test.ts src/components/payment/PaymentModal.test.tsx`.
+- [x] Commit `fix(payment): use auth session in payment flow`.
 
-### Task 3: Payment Service / Hook Integration
-
-- [ ] Modify `src/services/paymentService.ts` to accept session in `initiatePayment` and `pollPaymentStatus`.
-- [ ] Modify `src/hooks/usePayment.ts` to accept `DevAuthSession | undefined` and pass it through.
-- [ ] Update related tests.
-- [ ] Run `npm run test -- src/services/paymentService.test.ts src/hooks/usePayment.test.ts src/components/payment/PaymentModal.test.tsx`.
-- [ ] Commit `fix(payment): use auth session in payment flow`.
-
-### Task 4: Full Verification
-
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run test`.
-- [ ] Run `npm run build`.
-- [ ] Start server on a non-conflicting port if needed.
-- [ ] Smoke test authorized and unauthorized order creation.
+- [x] Run `npm run lint`.
+- [x] Run `npm run test`.
+- [x] Run `npm run build`.
+- [x] Start server on a non-conflicting port if needed.
+- [x] Smoke test authorized and unauthorized order creation.
 
 ## Self-Review
 

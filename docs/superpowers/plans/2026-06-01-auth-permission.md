@@ -30,7 +30,7 @@
 **Files:**
 - Create: `src/server/auth/authTypes.ts`
 
-- [ ] **Step 1: Create auth types file**
+- [x] **Step 1: Create auth types file**
 
 Create `src/server/auth/authTypes.ts`:
 
@@ -49,7 +49,7 @@ export interface AuthenticatedRequest extends Request {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/server/auth/authTypes.ts
@@ -63,7 +63,7 @@ git commit -m "feat(auth): add auth context types"
 **Files:**
 - Create: `src/server/auth/authMiddleware.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `src/server/auth/authMiddleware.test.ts`:
 
@@ -173,7 +173,7 @@ describe('authMiddleware', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 Run:
 
@@ -190,7 +190,7 @@ Expected: fail because `authMiddleware.ts` does not exist.
 **Files:**
 - Create: `src/server/auth/authMiddleware.ts`
 
-- [ ] **Step 1: Implement auth middleware**
+- [x] **Step 1: Implement auth middleware**
 
 Create `src/server/auth/authMiddleware.ts`:
 
@@ -237,7 +237,7 @@ export function canAccessUserResource(auth: AuthContext | undefined, targetUserI
 }
 ```
 
-- [ ] **Step 2: Run auth tests**
+- [x] **Step 2: Run auth tests**
 
 Run:
 
@@ -247,7 +247,7 @@ npm run test -- src/server/auth/authMiddleware.test.ts
 
 Expected: all auth middleware tests pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/server/auth/authMiddleware.ts src/server/auth/authMiddleware.test.ts
@@ -261,7 +261,7 @@ git commit -m "feat(auth): add dev bearer auth middleware"
 **Files:**
 - Modify: `src/server/routes/orders.test.ts`
 
-- [ ] **Step 1: Update route test helper to support headers**
+- [x] **Step 1: Update route test helper to support headers**
 
 Modify `MockReq` in `src/server/routes/orders.test.ts`:
 
@@ -273,7 +273,7 @@ interface MockReq {
 }
 ```
 
-- [ ] **Step 2: Add authorization tests**
+- [x] **Step 2: Add authorization tests**
 
 Add this describe block before `Route registration`:
 
@@ -362,7 +362,7 @@ Add this describe block before `Route registration`:
   })
 ```
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 Run:
 
@@ -379,7 +379,7 @@ Expected: fail because route handlers do not use `requireAuth` and authorization
 **Files:**
 - Modify: `src/server/routes/orders.ts`
 
-- [ ] **Step 1: Import auth helpers**
+- [x] **Step 1: Import auth helpers**
 
 Add imports:
 
@@ -388,7 +388,7 @@ import { requireAuth, canAccessUserResource, isAdmin } from '../auth/authMiddlew
 import type { AuthenticatedRequest } from '../auth/authTypes'
 ```
 
-- [ ] **Step 2: Apply requireAuth to all sensitive routes**
+- [x] **Step 2: Apply requireAuth to all sensitive routes**
 
 Change route registrations from:
 
@@ -411,7 +411,7 @@ router.post('/:id/refund', requireAuth, asyncHandler((req: AuthenticatedRequest,
 router.post('/:id/pay', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
 ```
 
-- [ ] **Step 3: Add create order user ownership check**
+- [x] **Step 3: Add create order user ownership check**
 
 After body validation and before `createOrder`:
 
@@ -422,7 +422,7 @@ After body validation and before `createOrder`:
     }
 ```
 
-- [ ] **Step 4: Add order detail ownership check**
+- [x] **Step 4: Add order detail ownership check**
 
 After order not found check:
 
@@ -433,7 +433,7 @@ After order not found check:
     }
 ```
 
-- [ ] **Step 5: Add user list ownership check**
+- [x] **Step 5: Add user list ownership check**
 
 Before reading orders:
 
@@ -444,7 +444,7 @@ Before reading orders:
     }
 ```
 
-- [ ] **Step 6: Add refund ownership check**
+- [x] **Step 6: Add refund ownership check**
 
 After order not found check and before status check:
 
@@ -455,7 +455,7 @@ After order not found check and before status check:
     }
 ```
 
-- [ ] **Step 7: Restrict dev pay endpoint to admin**
+- [x] **Step 7: Restrict dev pay endpoint to admin**
 
 After production check and before order id validation:
 
@@ -466,7 +466,7 @@ After production check and before order id validation:
     }
 ```
 
-- [ ] **Step 8: Run route tests**
+- [x] **Step 8: Run route tests**
 
 Run:
 
@@ -543,7 +543,7 @@ git commit -m "test(auth): update order route tests for auth"
 **Files:**
 - No direct file changes expected.
 
-- [ ] **Step 1: Run lint**
+- [x] **Step 1: Run lint**
 
 ```bash
 npm run lint
@@ -551,7 +551,7 @@ npm run lint
 
 Expected: exit code 0. Existing unrelated warning in `ExpandableCard.tsx` may remain.
 
-- [ ] **Step 2: Run all tests**
+- [x] **Step 2: Run all tests**
 
 ```bash
 npm run test
@@ -559,7 +559,7 @@ npm run test
 
 Expected: all tests pass.
 
-- [ ] **Step 3: Run build**
+- [x] **Step 3: Run build**
 
 ```bash
 npm run build

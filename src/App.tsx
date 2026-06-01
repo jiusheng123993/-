@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -225,6 +225,7 @@ export default function App() {
   const [focusNow, setFocusNow] = useState<number>(() => Date.now())
   const [focusDurationDraft, setFocusDurationDraft] = useState<Record<string, number>>({})
   const focusIntervalRef = useRef<number | null>(null)
+  const savedWorkspaceStateRef = useRef<WorkspaceState | null>(null)
   const isFocusRunning = focusEndsAt !== null
   const candidateFocusTask = focusTaskId
     ? workspaceState.tasks.find((task) => task.id === focusTaskId) ?? null
@@ -265,7 +266,7 @@ export default function App() {
   }, [authSession])
 
   const userId = authSession.userId
-  const quotaStatus = useMemo(() => aiQuotaProvider.getQuotaStatus(userId), [userId, aiQuotaProvider])
+  const quotaStatus = useMemo(() => aiQuotaProvider.getQuotaStatus(userId), [userId])
   const totalQuota = useMemo(() => 
     (quotaStatus.free?.remaining || 0) + 
     (quotaStatus.study?.remaining || 0) + 
@@ -278,7 +279,7 @@ export default function App() {
     if (entitlementService.has(userId, 'agent')) return { level: 'agent', label: 'Agent 会员', color: '#6366f1' }
     if (entitlementService.has(userId, 'study')) return { level: 'study', label: '学习会员', color: '#10b981' }
     return { level: 'free', label: '免费用户', color: '#94a3b8' }
-  }, [userId, entitlementService])
+  }, [userId])
   const memoryScope = useMemo<MemoryScope>(() => ({
     userId,
     projectId: 'growth-workbench'
@@ -292,7 +293,7 @@ export default function App() {
   const refreshMemoryEvents = useCallback(() => {
     if (!memoryStore) return
     setMemoryEvents(memoryStore.listEvents(memoryScope))
-  }, [memoryStore, memoryScope])
+  }, [memoryScope])
   
   const switchDevAuthRole = () => {
     setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
@@ -454,7 +455,13 @@ export default function App() {
 
   useEffect(() => {
     applyTheme(workspaceState.preferences.themeId)
-    store?.save(workspaceState)
+  }, [workspaceState.preferences.themeId])
+
+  useEffect(() => {
+    if (!store) return
+    if (savedWorkspaceStateRef.current === workspaceState) return
+    savedWorkspaceStateRef.current = workspaceState
+    store.save(workspaceState)
   }, [workspaceState])
 
   useEffect(() => {
