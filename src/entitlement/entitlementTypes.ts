@@ -52,6 +52,7 @@ export type EntitlementSource =
   | 'trial'
   | 'invite_reward'
   | 'early_bird_gift'
+  | 'purchase'
 
 /**
  * 单条权益记录
