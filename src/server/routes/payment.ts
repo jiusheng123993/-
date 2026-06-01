@@ -4,6 +4,19 @@ import { grantEntitlements } from '../services/entitlementService'
 import { getOrderById } from '../services/orderService'
 import { broadcastToUser } from '../websocket'
 
+/**
+ * Payment Router - 支付回调路由
+ *
+ * 职责：
+ * - POST /api/payment/wechat/callback - 微信支付回调
+ * - POST /api/payment/alipay/callback - 支付宝回调
+ * - POST /api/payment/apple/verify - Apple IAP 验证
+ *
+ * 安全措施：
+ * - 签名验证（微信、支付宝）
+ * - 状态校验（交易状态检查）
+ * - 幂等处理（重复回调不重复发放权益）
+ */
 export function createPaymentRouter(): Router {
   const router = Router()
 

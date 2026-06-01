@@ -1,64 +1,166 @@
-import { Router } from 'express'
+import { Router, type Request, type Response, type NextFunction } from 'express'
 import { createOrder, getOrderById, getOrdersByUser, refundOrder, orderService } from '../services/orderService'
 import type { CreateOrderRequest } from '../types'
+
+/**
+ * Orders Router - 订单管理路由
+ *
+ * 职责：
+ * - POST /api/orders - 创建新订单
+ * - GET /api/orders/:id - 查询订单详情（需调用方校验 userId 归属）
+ * - GET /api/orders/user/:userId - 查询用户订单列表（需鉴权层注入 currentUserId）
+ * - POST /api/orders/:id/pay - [仅开发环境] 模拟支付确认
+ * - POST /api/orders/:id/refund - 申请退款（仅已支付订单可退款）
+ *
+ * 安全措施：
+ * - 所有接口参数强校验（类型 + 长度 + 白名单）
+ * - 退款仅允许已支付状态的订单（防止状态机被破坏）
+ * - 错误信息脱敏（不向外暴露内部实现）
+ * - 模拟支付接口默认仅开发环境可用
+ * - 路径参数白名单校验（防注入）
+ */
+
+const ORDER_ID_PATTERN = /^order-[a-z0-9-]{6,64}$/i
+const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
+const VALID_CHANNELS = ['wechat', 'alipay', 'apple'] as const
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+
+/**
+ * 安全错误响应：返回脱敏后的错误信息
+ */
+function safeError(res: Response, code: number, message: string): void {
+  res.status(code).json({ error: message })
+}
+
+/**
+ * 包装异步路由处理器，统一捕获异常
+ */
+function asyncHandler(fn: (req: Request, res: Response) => void | Promise<void>) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res)).catch(next)
+  }
+}
+
+/**
+ * 校验订单 ID 格式
+ */
+function validateOrderId(orderId: string): boolean {
+  return typeof orderId === 'string' && ORDER_ID_PATTERN.test(orderId)
+}
+
+/**
+ * 校验用户 ID 格式
+ */
+function validateUserId(userId: string): boolean {
+  return typeof userId === 'string' && USER_ID_PATTERN.test(userId)
+}
 
 export function createOrdersRouter(): Router {
   const router = Router()
 
-  router.post('/', (req, res) => {
+  router.post('/', asyncHandler((req, res) => {
+    const { userId, productId, channel } = req.body as CreateOrderRequest
+    if (!validateUserId(userId)) {
+      safeError(res, 400, 'Invalid userId')
+      return
+    }
+    if (!productId || typeof productId !== 'string' || productId.length > 64) {
+      safeError(res, 400, 'Invalid productId')
+      return
+    }
+    if (!channel || !VALID_CHANNELS.includes(channel)) {
+      safeError(res, 400, `channel must be one of: ${VALID_CHANNELS.join(', ')}`)
+      return
+    }
     try {
-      const result = createOrder(req.body as CreateOrderRequest)
+      const result = createOrder({ userId, productId, channel })
       res.json(result)
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message })
-    }
-  })
-
-  router.get('/:id', (req, res) => {
-    try {
-      const order = getOrderById(req.params.id)
-      if (!order) {
-        res.status(404).json({ error: 'Order not found' })
-        return
+      const msg = (error as Error).message
+      if (msg.startsWith('Product not found')) {
+        safeError(res, 404, 'Product not found')
+      } else {
+        safeError(res, 400, 'Failed to create order')
       }
-      res.json(order)
-    } catch (error) {
-      res.status(500).json({ error: (error as Error).message })
     }
-  })
+  }))
 
-  router.get('/user/:userId', (req, res) => {
-    try {
-      const orders = getOrdersByUser(req.params.userId)
-      res.json(orders)
-    } catch (error) {
-      res.status(500).json({ error: (error as Error).message })
+  router.get('/:id', asyncHandler((req, res) => {
+    if (!validateOrderId(req.params.id)) {
+      safeError(res, 400, 'Invalid order id format')
+      return
     }
-  })
-
-  router.post('/:id/refund', (req, res) => {
-    try {
-      const order = refundOrder(req.params.id)
-      res.json(order)
-    } catch (error) {
-      res.status(400).json({ error: (error as Error).message })
+    const order = getOrderById(req.params.id)
+    if (!order) {
+      safeError(res, 404, 'Order not found')
+      return
     }
-  })
+    res.json(order)
+  }))
 
-  router.post('/:id/pay', (req, res) => {
+  router.get('/user/:userId', asyncHandler((req, res) => {
+    if (!validateUserId(req.params.userId)) {
+      safeError(res, 400, 'Invalid userId format')
+      return
+    }
+    const orders = getOrdersByUser(req.params.userId)
+    res.json(orders)
+  }))
+
+  router.post('/:id/refund', asyncHandler((req, res) => {
+    if (!validateOrderId(req.params.id)) {
+      safeError(res, 400, 'Invalid order id format')
+      return
+    }
+    const order = orderService.getOrderById(req.params.id)
+    if (!order) {
+      safeError(res, 404, 'Order not found')
+      return
+    }
+    if (order.status !== 'paid') {
+      safeError(res, 400, `Cannot refund order with status: ${order.status}`)
+      return
+    }
     try {
-      const { channelTradeNo } = req.body
-      const order = orderService.getOrderById(req.params.id)
-      if (!order) {
-        res.status(404).json({ error: 'Order not found' })
-        return
-      }
-      orderService.markAsPaid(req.params.id, channelTradeNo || 'mock-trade-no', 'mock receipt')
+      const refundedOrder = refundOrder(req.params.id)
+      res.json(refundedOrder)
+    } catch {
+      safeError(res, 500, 'Failed to refund order')
+    }
+  }))
+
+  router.post('/:id/pay', asyncHandler((req, res) => {
+    if (IS_PRODUCTION) {
+      safeError(res, 403, 'This endpoint is disabled in production')
+      return
+    }
+    if (!validateOrderId(req.params.id)) {
+      safeError(res, 400, 'Invalid order id format')
+      return
+    }
+    const { channelTradeNo } = req.body
+    const order = orderService.getOrderById(req.params.id)
+    if (!order) {
+      safeError(res, 404, 'Order not found')
+      return
+    }
+    if (order.status !== 'pending') {
+      safeError(res, 400, `Cannot pay order with status: ${order.status}`)
+      return
+    }
+    try {
+      orderService.markAsPaid(
+        req.params.id,
+        typeof channelTradeNo === 'string' && channelTradeNo.length <= 128
+          ? channelTradeNo
+          : 'mock-trade-no',
+        'mock receipt'
+      )
       res.json(orderService.getOrderById(req.params.id))
-    } catch (error) {
-      res.status(400).json({ error: (error as Error).message })
+    } catch {
+      safeError(res, 500, 'Failed to mark as paid')
     }
-  })
+  }))
 
   return router
 }
