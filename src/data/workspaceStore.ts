@@ -1,5 +1,6 @@
 import type { PersonaId } from '../personas/personaRegistry'
 import type { ThemeId } from '../themes/themeRegistry'
+import type { FocusBriefStyleId } from '../components/focusBrief/types'
 
 export type WorkspaceType = 'study' | 'work' | 'growth'
 
@@ -92,6 +93,7 @@ export type WorkspaceState = {
     themeMode: ThemeMode
     activeWorkspace: WorkspaceType
     activePersona: PersonaId
+    focusBriefStyle?: FocusBriefStyleId
   }
   integrations: {
     ai: AiSettings
@@ -299,7 +301,8 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
     themeId: 'minimal-premium',
     themeMode: 'persona-recommended',
     activeWorkspace: 'study',
-    activePersona: 'exam-student'
+    activePersona: 'exam-student',
+    focusBriefStyle: 'minimal-arc'
   },
   integrations: {
     ai: {
@@ -368,7 +371,8 @@ const normalizeWorkspaceState = (state: WorkspaceState): WorkspaceState => ({
   focusSessions: Array.isArray(state.focusSessions) ? state.focusSessions : [],
   preferences: {
     ...state.preferences,
-    themeMode: state.preferences.themeMode ?? 'manual'
+    themeMode: state.preferences.themeMode ?? 'manual',
+    focusBriefStyle: state.preferences.focusBriefStyle ?? 'minimal-arc'
   }
 })
 
