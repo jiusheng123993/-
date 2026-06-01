@@ -23,6 +23,14 @@ export type ThemeId =
   | 'clash-neon-cyber'
   | 'clash-juicy-gradient'
   | 'clash-retro-sunset'
+  | 'huawei-harmony-cosmos'
+  | 'huawei-pura-violet'
+  | 'huawei-mate-spruce'
+  | 'huawei-pearl-snow'
+  | 'liquid-glass-aurora'
+  | 'liquid-glass-pure'
+  | 'aqua-droplet'
+  | 'flow-silk'
 
 export type ThemeAesthetic =
   | 'minimal'
@@ -34,6 +42,98 @@ export type ThemeAesthetic =
   | 'business'
   | 'night'
   | 'clash'
+  | 'huawei'
+  | 'liquid'
+
+export type ThemeMaterial =
+  | 'flat'
+  | 'glass'
+  | 'liquid-glass'
+  | 'aqua'
+  | 'pearl'
+  | 'fabric'
+  | 'paper'
+  | 'metal'
+
+export type ThemeFamilyId =
+  | 'calm-foundation'
+  | 'lively-energy'
+  | 'healing-dream'
+  | 'cultural-craft'
+  | 'huawei-aesthetic'
+  | 'liquid-material'
+  | 'night-immersive'
+
+export type ThemeFamilyMeta = {
+  id: ThemeFamilyId
+  label: string
+  subtitle: string
+  description: string
+  includes: ThemeAesthetic[]
+}
+
+export const themeFamilyMeta: ThemeFamilyMeta[] = [
+  {
+    id: 'calm-foundation',
+    label: '静谧基础',
+    subtitle: '极简 · 商务',
+    description: '低噪音、长期耐看，适合学习办公和长时间使用',
+    includes: ['minimal', 'business']
+  },
+  {
+    id: 'lively-energy',
+    label: '活力派',
+    subtitle: '多巴胺 · 撞色',
+    description: '多巴胺、撞色和大胆配色，给打卡和成长加上正反馈',
+    includes: ['dopamine', 'clash']
+  },
+  {
+    id: 'healing-dream',
+    label: '治愈梦境',
+    subtitle: '莫兰迪 · 二次元',
+    description: '温柔、低刺激与陪伴感，适合恢复、复盘和创作灵感',
+    includes: ['morandi', 'anime']
+  },
+  {
+    id: 'cultural-craft',
+    label: '东方意蕴',
+    subtitle: '水墨 · 国风',
+    description: '水墨、宣纸、新中式，传递沉稳留白的东方审美',
+    includes: ['ink', 'chinese']
+  },
+  {
+    id: 'huawei-aesthetic',
+    label: '华为质感',
+    subtitle: 'HarmonyOS · Pura · Mate',
+    description: '取自鸿蒙宇宙和华为旗舰配色，融合中式自然与科技纯净',
+    includes: ['huawei']
+  },
+  {
+    id: 'liquid-material',
+    label: '液态玻璃',
+    subtitle: 'Liquid Glass · Aqua',
+    description: '半透明玻璃、流光水滴和丝绸般的动态材质',
+    includes: ['liquid']
+  },
+  {
+    id: 'night-immersive',
+    label: '夜间沉浸',
+    subtitle: '低眩光 · 极光',
+    description: '夜间深色与极光氛围，保护眼睛同时保留信息层级',
+    includes: ['night']
+  }
+]
+
+export const materialLabels: Record<ThemeMaterial, string> = {
+  flat: '扁平',
+  glass: '玻璃',
+  'liquid-glass': '液态玻璃',
+  aqua: '水滴',
+  pearl: '珠光',
+  fabric: '丝绒',
+  paper: '宣纸',
+  metal: '金属'
+}
 
 export type WallpaperSupport = {
   overlay: string
@@ -47,6 +147,7 @@ export type StudyTheme = {
   name: string
   category: 'built-in' | 'extension'
   aesthetic: ThemeAesthetic
+  material: ThemeMaterial
   defaultCandidate: boolean
   visualComfort: string
   recommendedFor: string[]
@@ -237,6 +338,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '多巴胺薄荷绿',
     category: 'built-in',
     aesthetic: 'dopamine',
+    material: 'flat',
     defaultCandidate: false,
     visualComfort: '薄荷绿为主、奶油底色、适合希望活力但不甜腻的用户',
     recommendedFor: ['习惯养成', '运动打卡', '清爽计划', '成长恢复'],
@@ -309,6 +411,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '多巴胺组合色',
     category: 'built-in',
     aesthetic: 'dopamine',
+    material: 'flat',
     defaultCandidate: false,
     visualComfort: '组合色只用于装饰和图表，按钮保持主色，避免杂乱',
     recommendedFor: ['奖励系统', '成就墙', '轻游戏化', '活力桌面'],
@@ -453,6 +556,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '新中式国风',
     category: 'built-in',
     aesthetic: 'chinese',
+    material: 'paper',
     defaultCandidate: false,
     visualComfort: '传统色小面积点缀、文化感强但不干扰信息层级',
     recommendedFor: ['传统文化偏好', '仪式感记录', '沉稳审美', '国风偏好'],
@@ -489,6 +593,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '二次元治愈',
     category: 'built-in',
     aesthetic: 'anime',
+    material: 'glass',
     defaultCandidate: false,
     visualComfort: '柔和渐变、陪伴感强、装饰不遮挡任务信息',
     recommendedFor: ['ACG 用户', '创作者', '自律恢复', '灵感管理'],
@@ -525,6 +630,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '二次元晴空蓝',
     category: 'built-in',
     aesthetic: 'anime',
+    material: 'glass',
     defaultCandidate: false,
     visualComfort: '晴空蓝主色、粉紫点缀、梦幻但更清爽',
     recommendedFor: ['ACG 用户', '创作者', '灵感管理', '轻复盘'],
@@ -561,6 +667,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '莫兰迪温柔',
     category: 'built-in',
     aesthetic: 'morandi',
+    material: 'fabric',
     defaultCandidate: false,
     visualComfort: '低饱和、低刺激、适合生活记录和温柔复盘',
     recommendedFor: ['生活管理', '女性成长', '自律恢复', '低刺激偏好'],
@@ -597,6 +704,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '莫兰迪烟粉',
     category: 'built-in',
     aesthetic: 'morandi',
+    material: 'fabric',
     defaultCandidate: false,
     visualComfort: '烟粉低饱和、灰米背景、适合温柔复盘和生活管理',
     recommendedFor: ['生活管理', '女性成长', '温柔复盘', '低刺激偏好'],
@@ -777,6 +885,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '波普橙紫撞色',
     category: 'built-in',
     aesthetic: 'clash',
+    material: 'flat',
     defaultCandidate: false,
     visualComfort: '橙紫互补撞色、奶白底承托、活泼但保留正文留白',
     recommendedFor: ['年轻用户', '创意工作', '灵感激励', '社交分享'],
@@ -813,6 +922,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '蓝橙冷暖撞色',
     category: 'built-in',
     aesthetic: 'clash',
+    material: 'flat',
     defaultCandidate: false,
     visualComfort: '钴蓝主色、活力橙强调、冷暖撞色但层级清晰',
     recommendedFor: ['品牌型用户', '运动打卡', '青年职场', '行动派'],
@@ -849,6 +959,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '霓虹赛博撞色',
     category: 'built-in',
     aesthetic: 'clash',
+    material: 'glass',
     defaultCandidate: false,
     visualComfort: '深夜紫底、霓虹粉绿撞色、赛博朋克氛围但保留可读性',
     recommendedFor: ['极客用户', '夜猫子', '游戏化偏好', '潮流追逐者'],
@@ -885,6 +996,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '果汁多色渐变',
     category: 'built-in',
     aesthetic: 'clash',
+    material: 'flat',
     defaultCandidate: false,
     visualComfort: '黄绿青蓝渐变、活力果汁感、装饰块大胆但正文保持高对比',
     recommendedFor: ['活力青年', '社群运营', '校园用户', '兴趣社团'],
@@ -921,6 +1033,7 @@ export const themeRegistry: StudyTheme[] = [
     name: '复古日落撞色',
     category: 'built-in',
     aesthetic: 'clash',
+    material: 'flat',
     defaultCandidate: false,
     visualComfort: '焦橙玫粉撞色、复古蓝点缀、70 年代 Disco 但克制装饰',
     recommendedFor: ['复古爱好者', '生活记录', '情绪激励', '创作灵感'],
@@ -950,6 +1063,302 @@ export const themeRegistry: StudyTheme[] = [
       },
       charts: { plan: '#ea580c', focus: '#db2777', review: '#1e3a8a' },
       effects: { radius: '26px', shadow: '0 26px 70px rgba(234, 88, 12, 0.20)', glass: 'blur(18px) saturate(1.10)' }
+    }
+  },
+  {
+    id: 'huawei-harmony-cosmos',
+    name: '鸿蒙宇宙蓝',
+    category: 'built-in',
+    aesthetic: 'huawei',
+    material: 'glass',
+    defaultCandidate: false,
+    visualComfort: '宇宙蓝主色、雪域灰背景、最小 3:1 对比度、长期耐看',
+    recommendedFor: ['鸿蒙生态用户', '科技审美', '深度学习', '长时间办公'],
+    accessibilityNotes: ['正文使用宇宙深蓝', '雪域灰承托卡片', '强调色仅用于关键操作'],
+    wallpaperSupport: { overlay: 'rgba(238, 244, 252, 0.74)', blur: '18px', brightness: '0.97', saturation: '0.86' },
+    design: {
+      tone: '宇宙蓝 × 雪域灰、回归本源、纯净和谐',
+      scene: '取自 HarmonyOS NEXT 鸿蒙宇宙观，适合深度学习、长时间办公与多端协同',
+      principle: '以宇宙蓝作为最高语义层级，雪域灰承担卡片背景，依据华为四件套色（primary、container、brand、background）建立最少噪音的层级关系。',
+      aiVoice: '鸿蒙顾问型，强调多端流转、节奏感与系统级一致体验。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(ellipse at 14% 12%, rgba(15, 42, 92, 0.18), transparent 28%), radial-gradient(ellipse at 86% 16%, rgba(120, 144, 178, 0.16), transparent 30%), linear-gradient(135deg, #eef3fb 0%, #e5ecf4 52%, #f4f6f9 100%)',
+        surface: 'rgba(255, 255, 255, 0.78)',
+        surfaceStrong: 'rgba(255, 255, 255, 0.94)',
+        primary: '#0f2a5c',
+        secondary: '#3a5a8a',
+        accent: '#3f8efc',
+        text: '#0c1a36',
+        muted: '#5a6a85',
+        border: 'rgba(15, 42, 92, 0.14)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #0f2a5c 0%, #3f8efc 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(229, 236, 244, 0.90))'
+      },
+      charts: { plan: '#0f2a5c', focus: '#3f8efc', review: '#7c8fa8' },
+      effects: { radius: '22px', shadow: '0 22px 60px rgba(15, 42, 92, 0.16)', glass: 'blur(18px) saturate(1.06)' }
+    }
+  },
+  {
+    id: 'huawei-pura-violet',
+    name: 'Pura 罗兰紫',
+    category: 'built-in',
+    aesthetic: 'huawei',
+    material: 'pearl',
+    defaultCandidate: false,
+    visualComfort: '罗兰紫珠光、光织格纹底纹、雅致但保留高对比正文',
+    recommendedFor: ['审美派', '创作记录', '夜间复盘', '生活仪式感'],
+    accessibilityNotes: ['紫色珠光只做装饰', '正文使用深紫黑', '强调色用于按钮和关键提醒'],
+    wallpaperSupport: { overlay: 'rgba(244, 238, 250, 0.72)', blur: '20px', brightness: '0.97', saturation: '0.92' },
+    design: {
+      tone: '罗兰紫 + 光织格纹、雅致科技、珠光质感',
+      scene: '取自 HUAWEI Pura 70 Pro 罗兰紫，适合审美派、创作记录与生活仪式感',
+      principle: '用罗兰紫做主色与珠光光晕，光织格纹作为低密度装饰底纹，正文与按钮保留高对比，避免被装饰干扰。',
+      aiVoice: '雅致陪伴型，把任务节奏说得像一段散文，鼓励慢而稳。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(ellipse at 12% 14%, rgba(120, 92, 178, 0.22), transparent 28%), radial-gradient(ellipse at 84% 14%, rgba(212, 200, 232, 0.30), transparent 28%), linear-gradient(135deg, #f4eef8 0%, #ece4f3 50%, #f9f3ff 100%)',
+        surface: 'rgba(255, 252, 255, 0.80)',
+        surfaceStrong: 'rgba(255, 252, 255, 0.96)',
+        primary: '#5b3aa6',
+        secondary: '#a98ed8',
+        accent: '#c8a16f',
+        text: '#241634',
+        muted: '#7a6c8d',
+        border: 'rgba(91, 58, 166, 0.18)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #5b3aa6 0%, #a98ed8 55%, #c8a16f 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 252, 255, 0.96), rgba(236, 228, 243, 0.90))'
+      },
+      charts: { plan: '#5b3aa6', focus: '#a98ed8', review: '#c8a16f' },
+      effects: { radius: '24px', shadow: '0 26px 68px rgba(91, 58, 166, 0.18)', glass: 'blur(20px) saturate(1.14)' }
+    }
+  },
+  {
+    id: 'huawei-mate-spruce',
+    name: 'Mate 云杉绿',
+    category: 'built-in',
+    aesthetic: 'huawei',
+    material: 'metal',
+    defaultCandidate: false,
+    visualComfort: '云杉墨绿主色、金丝银锦点缀、沉稳但具科技份量感',
+    recommendedFor: ['商务旗舰', '项目主理人', '管理者', '高端审美'],
+    accessibilityNotes: ['深绿承担主色与正文', '金丝色仅用于关键交付和奖励', '银锦底纹保持低存在感'],
+    wallpaperSupport: { overlay: 'rgba(232, 240, 234, 0.72)', blur: '16px', brightness: '0.95', saturation: '0.82' },
+    design: {
+      tone: '云杉墨绿 + 金丝银锦、自然山水、旗舰沉稳',
+      scene: '取自 HUAWEI Mate 70 系列云杉绿与金丝银锦，适合商务旗舰用户与项目主理人',
+      principle: '云杉墨绿作为主操作色，金丝色仅在关键交付与奖励处出现，营造旗舰金属质感而不显浮夸。',
+      aiVoice: '旗舰策士型，强调取舍、关键路径与负责人节奏。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(ellipse at 14% 12%, rgba(35, 70, 58, 0.20), transparent 26%), radial-gradient(ellipse at 86% 14%, rgba(196, 168, 110, 0.22), transparent 26%), linear-gradient(135deg, #e8f0ea 0%, #dde8df 50%, #f3ecdc 100%)',
+        surface: 'rgba(252, 253, 250, 0.82)',
+        surfaceStrong: 'rgba(252, 253, 250, 0.96)',
+        primary: '#23463a',
+        secondary: '#4a6f5d',
+        accent: '#b8923a',
+        text: '#0e2018',
+        muted: '#5d6f64',
+        border: 'rgba(35, 70, 58, 0.18)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #23463a 0%, #4a6f5d 55%, #b8923a 100%)',
+        card: 'linear-gradient(135deg, rgba(252, 253, 250, 0.96), rgba(221, 232, 223, 0.90))'
+      },
+      charts: { plan: '#23463a', focus: '#4a6f5d', review: '#b8923a' },
+      effects: { radius: '20px', shadow: '0 24px 62px rgba(35, 70, 58, 0.18)', glass: 'blur(16px) saturate(1.04)' }
+    }
+  },
+  {
+    id: 'huawei-pearl-snow',
+    name: '雪域白珠光',
+    category: 'built-in',
+    aesthetic: 'huawei',
+    material: 'pearl',
+    defaultCandidate: false,
+    visualComfort: '雪域白珠光底色、低饱和蓝灰阴影、纯净轻盈但层次清晰',
+    recommendedFor: ['极简旗舰', '设计师', '阅读复盘', '日常记录'],
+    accessibilityNotes: ['正文使用深蓝灰', '珠光仅做光晕装饰', '强调色限于按钮和图表'],
+    wallpaperSupport: { overlay: 'rgba(247, 250, 254, 0.74)', blur: '20px', brightness: '0.99', saturation: '0.82' },
+    design: {
+      tone: '雪域白 + 微珠光、高原雪山、纯净轻盈',
+      scene: '取自 HUAWEI Pura 70 雪域白，适合极简旗舰、设计师与日常阅读复盘',
+      principle: '以雪域白作为底色并加入极淡蓝灰阴影呈现珠光质感，让界面像高原雪山一样在不同光线下产生微妙渐变。',
+      aiVoice: '清澈助手型，简洁、不打扰、把今天的关键三件事拎出来。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(ellipse at 14% 12%, rgba(196, 218, 240, 0.30), transparent 26%), radial-gradient(ellipse at 84% 18%, rgba(230, 224, 248, 0.26), transparent 28%), linear-gradient(135deg, #f7fafe 0%, #eef3fb 50%, #f5f1fb 100%)',
+        surface: 'rgba(255, 255, 255, 0.86)',
+        surfaceStrong: 'rgba(255, 255, 255, 0.96)',
+        primary: '#1d3458',
+        secondary: '#6f86a8',
+        accent: '#9a86d0',
+        text: '#0d1c33',
+        muted: '#5d6b85',
+        border: 'rgba(29, 52, 88, 0.12)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #1d3458 0%, #9a86d0 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(238, 243, 251, 0.92))'
+      },
+      charts: { plan: '#1d3458', focus: '#6f86a8', review: '#9a86d0' },
+      effects: { radius: '24px', shadow: '0 22px 58px rgba(29, 52, 88, 0.10)', glass: 'blur(20px) saturate(1.06)' }
+    }
+  },
+  {
+    id: 'liquid-glass-aurora',
+    name: '液态玻璃极光',
+    category: 'built-in',
+    aesthetic: 'liquid',
+    material: 'liquid-glass',
+    defaultCandidate: false,
+    visualComfort: '深紫蓝底 + 极光折射、玻璃叠层、动态光感但保留高可读正文',
+    recommendedFor: ['潮流审美', 'Vision 风格爱好者', '创意工作', '夜间使用'],
+    accessibilityNotes: ['极光只做背景氛围', '正文使用近白浅蓝', '卡片采用液态玻璃叠层保持层级'],
+    wallpaperSupport: { overlay: 'rgba(8, 14, 32, 0.78)', blur: '24px', brightness: '0.58', saturation: '1.18' },
+    design: {
+      tone: '液态玻璃 + 极光折射、Vision 风、动态光泽',
+      scene: '取自 Apple Liquid Glass 设计语言，适合追求 Vision 风格、潮流审美和夜间沉浸使用',
+      principle: '以深紫蓝作底，让蓝绿与粉紫极光在背景中流动，卡片使用半透明玻璃叠层，强调层级与光的折射。',
+      aiVoice: '未来感对话型，简短克制，把任务说得像一段空间提示。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(ellipse at 14% 14%, rgba(125, 211, 252, 0.22), transparent 28%), radial-gradient(ellipse at 88% 18%, rgba(196, 132, 252, 0.20), transparent 30%), radial-gradient(ellipse at 60% 80%, rgba(45, 212, 191, 0.16), transparent 30%), linear-gradient(135deg, #080e20 0%, #101a36 52%, #0a1024 100%)',
+        surface: 'rgba(20, 28, 52, 0.62)',
+        surfaceStrong: 'rgba(28, 38, 68, 0.84)',
+        primary: '#7dd3fc',
+        secondary: '#c084fc',
+        accent: '#2dd4bf',
+        text: '#e6ecf8',
+        muted: '#9aa6c2',
+        border: 'rgba(196, 196, 220, 0.22)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #7dd3fc 0%, #c084fc 50%, #2dd4bf 100%)',
+        card: 'linear-gradient(135deg, rgba(28, 38, 68, 0.86), rgba(8, 14, 32, 0.70))'
+      },
+      charts: { plan: '#7dd3fc', focus: '#c084fc', review: '#2dd4bf' },
+      effects: { radius: '28px', shadow: '0 32px 90px rgba(8, 14, 32, 0.55)', glass: 'blur(28px) saturate(1.22)' }
+    }
+  },
+  {
+    id: 'liquid-glass-pure',
+    name: '纯净液态玻璃',
+    category: 'built-in',
+    aesthetic: 'liquid',
+    material: 'liquid-glass',
+    defaultCandidate: true,
+    visualComfort: '近白底 + 半透明玻璃、轻折射、长时间使用不疲劳',
+    recommendedFor: ['首次启动候选', '通用日常', 'Vision 风格爱好者', '设计师'],
+    accessibilityNotes: ['玻璃叠层保持 3:1 以上对比', '正文使用深灰蓝', '装饰光斑控制在 20% 区域以内'],
+    wallpaperSupport: { overlay: 'rgba(246, 250, 255, 0.74)', blur: '24px', brightness: '1.00', saturation: '0.92' },
+    design: {
+      tone: '纯净液态玻璃 + 浅蓝光斑、苹果质感、轻盈层级',
+      scene: '仿 iOS 26 Liquid Glass 浅色模式，适合作为通用日常的高级候选主题',
+      principle: '近白色底，让玻璃叠层和淡蓝粉光斑承担层级，按钮与卡片采用 24px 模糊与 1.06 饱和，营造干净的折射感。',
+      aiVoice: '通用助手型，把界面、流程、节奏都说得像一块清晰的玻璃。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(ellipse at 14% 12%, rgba(125, 211, 252, 0.22), transparent 26%), radial-gradient(ellipse at 86% 16%, rgba(244, 200, 233, 0.22), transparent 26%), linear-gradient(135deg, #f6fbff 0%, #fdfaff 50%, #f1f6ff 100%)',
+        surface: 'rgba(255, 255, 255, 0.66)',
+        surfaceStrong: 'rgba(255, 255, 255, 0.88)',
+        primary: '#1f4a7a',
+        secondary: '#8ea3c5',
+        accent: '#ef6fb0',
+        text: '#10243f',
+        muted: '#5a6c87',
+        border: 'rgba(31, 74, 122, 0.16)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #1f4a7a 0%, #8ea3c5 50%, #ef6fb0 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(241, 246, 255, 0.78))'
+      },
+      charts: { plan: '#1f4a7a', focus: '#8ea3c5', review: '#ef6fb0' },
+      effects: { radius: '28px', shadow: '0 28px 72px rgba(31, 74, 122, 0.16)', glass: 'blur(24px) saturate(1.18)' }
+    }
+  },
+  {
+    id: 'aqua-droplet',
+    name: '夏日水滴',
+    category: 'built-in',
+    aesthetic: 'liquid',
+    material: 'aqua',
+    defaultCandidate: false,
+    visualComfort: '青蓝水滴、薄荷光斑、清凉湿润但保持文字高对比',
+    recommendedFor: ['夏日清爽', '运动恢复', '专注饮水提醒', '年轻活力'],
+    accessibilityNotes: ['水滴光斑只做背景', '正文使用深海蓝', '强调色限于按钮和饮水/休息提示'],
+    wallpaperSupport: { overlay: 'rgba(232, 248, 252, 0.72)', blur: '22px', brightness: '1.00', saturation: '0.96' },
+    design: {
+      tone: '水滴透明 + 薄荷光、清凉夏日、湿润折光',
+      scene: '适合夏日清爽、运动恢复、饮水提醒和年轻活力场景',
+      principle: '用青蓝水滴和薄荷光斑营造水面感，光斑随机分布像清晨的水珠，按钮和卡片采用透亮玻璃质感。',
+      aiVoice: '清爽教练型，鼓励喝水、休息、动一动，并把节奏拆得像水滴一样轻。'
+    },
+    tokens: {
+      colors: {
+        background: 'radial-gradient(circle at 12% 12%, rgba(125, 211, 252, 0.32), transparent 22%), radial-gradient(circle at 86% 16%, rgba(94, 234, 212, 0.28), transparent 22%), radial-gradient(circle at 70% 80%, rgba(165, 243, 252, 0.30), transparent 24%), linear-gradient(135deg, #e8f8fc 0%, #effefb 50%, #f3fbff 100%)',
+        surface: 'rgba(255, 255, 255, 0.72)',
+        surfaceStrong: 'rgba(255, 255, 255, 0.90)',
+        primary: '#0e7490',
+        secondary: '#14b8a6',
+        accent: '#38bdf8',
+        text: '#06283a',
+        muted: '#4f6f7b',
+        border: 'rgba(14, 116, 144, 0.18)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #0e7490 0%, #14b8a6 55%, #38bdf8 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(232, 248, 252, 0.80))'
+      },
+      charts: { plan: '#0e7490', focus: '#14b8a6', review: '#38bdf8' },
+      effects: { radius: '28px', shadow: '0 26px 70px rgba(14, 116, 144, 0.18)', glass: 'blur(22px) saturate(1.18)' }
+    }
+  },
+  {
+    id: 'flow-silk',
+    name: '流光丝绸',
+    category: 'built-in',
+    aesthetic: 'liquid',
+    material: 'fabric',
+    defaultCandidate: false,
+    visualComfort: '丝绸般流光渐变、香槟金米色、雅致温润但层级清晰',
+    recommendedFor: ['雅致风格', '生活仪式感', '香薰瑜伽场景', '精品收藏'],
+    accessibilityNotes: ['丝绸渐变只用于背景', '按钮使用深棕红高对比', '装饰光纹控制在小面积区域'],
+    wallpaperSupport: { overlay: 'rgba(250, 244, 234, 0.72)', blur: '20px', brightness: '0.98', saturation: '0.92' },
+    design: {
+      tone: '流光丝绸 + 香槟金、雅致温润、织物折光',
+      scene: '适合雅致风格、生活仪式感、香薰瑜伽与精品收藏的体验',
+      principle: '用米色丝绸渐变作为基底，让香槟金和玫瑰红丝光在斜向流动，卡片采用织物质感的低对比叠层。',
+      aiVoice: '温润管家型，把每件事说得像一次安心的仪式。'
+    },
+    tokens: {
+      colors: {
+        background: 'linear-gradient(135deg, #faf4ea 0%, #f6ead7 30%, #f3e0d4 60%, #ede1ea 100%)',
+        surface: 'rgba(255, 252, 246, 0.80)',
+        surfaceStrong: 'rgba(255, 252, 246, 0.96)',
+        primary: '#8c4a4a',
+        secondary: '#c89b6b',
+        accent: '#a87f5e',
+        text: '#3a2418',
+        muted: '#7a6557',
+        border: 'rgba(140, 74, 74, 0.18)'
+      },
+      gradients: {
+        hero: 'linear-gradient(135deg, #8c4a4a 0%, #c89b6b 50%, #a87f5e 100%)',
+        card: 'linear-gradient(135deg, rgba(255, 252, 246, 0.96), rgba(246, 234, 215, 0.88))'
+      },
+      charts: { plan: '#8c4a4a', focus: '#c89b6b', review: '#a87f5e' },
+      effects: { radius: '26px', shadow: '0 24px 64px rgba(140, 74, 74, 0.16)', glass: 'blur(20px) saturate(1.10)' }
     }
   }
 ]
