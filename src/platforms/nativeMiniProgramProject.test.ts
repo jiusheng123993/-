@@ -46,7 +46,7 @@ describe('native WeChat Mini Program project', () => {
       'pages/profile/index'
     ])
     expect(appConfig.tabBar.list.map((item) => item.text)).toEqual(miniProgramBlueprint.navigation.map((item) => item.label))
-    expect(appConfig.window.navigationBarTitleText).toBe('GrowthOS')
+    expect(appConfig.window.navigationBarTitleText).toBe('星寰海')
   })
 
   it('keeps a native mini program page file set for every navigation entry', () => {
@@ -168,7 +168,7 @@ describe('native WeChat Mini Program project', () => {
 
     const projectConfig = readJson<MiniProgramProjectConfig>('mini-program-app/project.config.json')
 
-    expect(projectConfig.projectname).toBe('growthos-miniprogram')
+    expect(projectConfig.projectname).toBe('xinghuanhai-miniprogram')
     expect(projectConfig.miniprogramRoot).toBe('./')
     expect(projectConfig.setting.es6).toBe(true)
     expect(projectConfig.setting.minified).toBe(true)

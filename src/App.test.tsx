@@ -27,7 +27,7 @@ describe('App', () => {
   it('renders the exam student persona dashboard', () => {
     render(<App />)
 
-    expect(screen.getByText('GrowthOS')).toBeInTheDocument()
+    expect(screen.getByText('星寰海')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '学生备考' })).toBeInTheDocument()
     expect(screen.getByText('考试冲刺计划')).toBeInTheDocument()
     expect(screen.getByText('错题闭环率')).toBeInTheDocument()
@@ -347,6 +347,11 @@ describe('App', () => {
     const storedMemory = window.localStorage.getItem('growth-workbench-memory-state')
     expect(storedMemory).not.toBeNull()
     expect(JSON.parse(storedMemory!).events[0].content).toContain('完成 60 分钟专注：完成高数极限专题 20 题')
+
+    const memoryPanel = await screen.findByRole('region', { name: '记忆洞察' })
+    expect(within(memoryPanel).getByText('近期上下文')).toBeInTheDocument()
+    expect(within(memoryPanel).getByText(/完成 60 分钟专注：完成高数极限专题 20 题/)).toBeInTheDocument()
+    expect(within(memoryPanel).getByRole('button', { name: /忘记/ })).toBeInTheDocument()
   })
 
   it('lets the user adjust focus duration before starting and shows stable countdown', async () => {

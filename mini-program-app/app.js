@@ -1,5 +1,5 @@
 App({
   globalData: {
-    appName: 'GrowthOS'
+    appName: '星寰海'
   }
 })

@@ -51,9 +51,9 @@ import type { Product } from './entitlement/productTypes'
 import type { Order } from './entitlement/orderTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
-import { createBrowserMemoryStore } from './memory/memoryStore'
+import { createBrowserMemoryStore, deriveMemoryProfile } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
-import type { MemoryScope } from './memory/memoryTypes'
+import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
 import styles from './components/membership/MembershipPage.module.css'
 
 const navigationItems = [
@@ -241,6 +241,9 @@ export default function App() {
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
+  const [memoryEvents, setMemoryEvents] = useState<MemoryEvent[]>(() =>
+    memoryStore ? memoryStore.listEvents({ userId: authSession.userId, projectId: 'growth-workbench' }) : []
+  )
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -287,6 +290,15 @@ export default function App() {
     () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null,
     [memoryScope]
   )
+  const refreshMemoryEvents = () => {
+    if (!memoryStore) return
+    setMemoryEvents(memoryStore.listEvents(memoryScope))
+  }
+  const memoryProfile = useMemo(
+    () => deriveMemoryProfile(memoryScope, memoryEvents, new Date().toISOString()),
+    [memoryEvents, memoryScope]
+  )
+  const memoryPreviewEvents = memoryEvents.slice(0, 4)
   
   const switchDevAuthRole = () => {
     setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
@@ -516,6 +528,7 @@ export default function App() {
 
         memoryObserver?.onFocusSessionCompleted(session)
         memoryObserver?.onTaskCompleted(target)
+        refreshMemoryEvents()
 
         return {
           ...state,
@@ -706,8 +719,8 @@ export default function App() {
         <div className="brand">
           <span className="brand-mark">G</span>
           <div>
-            <strong>GrowthOS</strong>
-            <small>个人效率与成长工作台</small>
+            <strong>星寰海</strong>
+            <small>AI 个人空间</small>
           </div>
         </div>
         <nav className="nav-list" aria-label="主导航">
