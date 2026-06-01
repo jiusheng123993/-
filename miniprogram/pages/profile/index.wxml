@@ -1,13 +1,46 @@
-<view class="container">
+<view class="container profile-page">
   <view class="panel">
     <text class="eyebrow">Profile</text>
     <text class="title">{{title}}</text>
     <text class="description">当前主题：{{theme}}</text>
-    <text class="description">{{syncStrategy}}</text>
+    <text class="description">{{syncStatus}}</text>
+    <view class="notice-card">
+      <text>{{sensitiveDataNotice}}</text>
+    </view>
   </view>
-  <view class="setting-list">
-    <view class="setting-item" wx:for="{{settings}}" wx:key="*this">
-      <text>{{item}}</text>
+
+  <view class="section-block">
+    <text class="section-title">隐私控制</text>
+    <view class="setting-list">
+      <view class="setting-item privacy-item" wx:for="{{privacyControls}}" wx:key="title">
+        <view>
+          <text class="setting-title">{{item.title}}</text>
+          <text class="module-meta">{{item.description}}</text>
+        </view>
+        <text class="setting-status">{{item.status}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <text class="section-title">数据与同步</text>
+    <view class="setting-list">
+      <view class="setting-item data-action" wx:for="{{dataActions}}" wx:key="title">
+        <view>
+          <text class="setting-title">{{item.title}}</text>
+          <text class="module-meta">{{item.description}}</text>
+        </view>
+        <text class="risk-pill">{{item.risk}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <text class="section-title">设置入口</text>
+    <view class="setting-list compact-list">
+      <view class="setting-item" wx:for="{{settings}}" wx:key="*this">
+        <text>{{item}}</text>
+      </view>
     </view>
   </view>
 </view>

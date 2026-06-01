@@ -1,10 +1,22 @@
-<view class="container">
+<view class="container quick-add-page">
   <view class="panel">
     <text class="eyebrow">Quick Capture</text>
     <text class="title">{{title}}</text>
     <text class="description">{{description}}</text>
   </view>
+
+  <view class="privacy-card">
+    <text class="privacy-title">隐私提示</text>
+    <text class="module-meta">{{privacyHint}}</text>
+  </view>
+
   <view class="capture-list">
-    <button class="capture-button" wx:for="{{captures}}" wx:key="*this">{{item}}</button>
+    <button class="capture-button" wx:for="{{captureTypes}}" wx:key="title">
+      <view>
+        <text class="capture-title">{{item.title}}</text>
+        <text class="capture-description">{{item.description}}</text>
+      </view>
+      <text class="capture-privacy">{{item.privacyLevel}}</text>
+    </button>
   </view>
 </view>

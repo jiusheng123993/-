@@ -1,13 +1,49 @@
-<view class="container">
+<view class="container plan-page">
   <view class="panel">
     <text class="eyebrow">Plan</text>
     <text class="title">{{title}}</text>
     <text class="description">{{description}}</text>
   </view>
-  <view class="card-grid">
-    <view class="module-card" wx:for="{{actions}}" wx:key="*this">
-      <text class="module-title">{{item}}</text>
-      <text class="module-meta">第一版入口</text>
+
+  <view class="section-block">
+    <text class="section-title">今日任务</text>
+    <view class="task-list">
+      <view class="task-item" wx:for="{{tasks}}" wx:key="title">
+        <view>
+          <text class="module-title">{{item.title}}</text>
+          <text class="module-meta">{{item.meta}}</text>
+        </view>
+        <text class="status-pill">{{item.status}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <text class="section-title">目标进度</text>
+    <view class="card-grid">
+      <view class="module-card" wx:for="{{goals}}" wx:key="title">
+        <text class="module-title">{{item.title}}</text>
+        <text class="module-meta">{{item.meta}}</text>
+        <view class="progress-track"><view style="width: {{item.progress}}%;"></view></view>
+        <text class="module-meta">{{item.progress}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <text class="section-title">日程时间盒</text>
+    <view class="schedule-list">
+      <view class="schedule-item" wx:for="{{schedule}}" wx:key="time">
+        <text>{{item.time}}</text>
+        <text>{{item.title}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-block">
+    <text class="section-title">轻量复盘</text>
+    <view class="review-card">
+      <text class="module-meta" wx:for="{{reviewPrompts}}" wx:key="*this">{{item}}</text>
     </view>
   </view>
 </view>

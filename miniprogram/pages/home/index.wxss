@@ -12,3 +12,49 @@
   padding: 24rpx;
   background: linear-gradient(135deg, #fef3c7, #fbcfe8);
 }
+
+.section-block {
+  margin-top: 28rpx;
+}
+
+.section-title {
+  display: block;
+  color: #2b2833;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.priority-list {
+  display: grid;
+  gap: 18rpx;
+  margin-top: 18rpx;
+}
+
+.priority-item {
+  display: flex;
+  gap: 18rpx;
+  align-items: flex-start;
+  border: 1rpx solid rgba(255, 122, 144, 0.16);
+  border-radius: 28rpx;
+  padding: 22rpx;
+  background: #fffdf8;
+}
+
+.priority-tag {
+  min-width: 72rpx;
+  border-radius: 999rpx;
+  padding: 8rpx 12rpx;
+  color: #ff7a90;
+  background: rgba(255, 122, 144, 0.12);
+  font-size: 22rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.compact-grid {
+  margin-top: 18rpx;
+}
+
+.support-card {
+  min-height: 150rpx;
+}
