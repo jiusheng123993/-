@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getThemeById, themeRegistry } from './themeRegistry'
+import { getThemeById, themeFamilyMeta, themeRegistry } from './themeRegistry'
 
 describe('themeRegistry', () => {
   it('provides official user-centered theme profiles with multiple color choices', () => {
@@ -27,7 +27,15 @@ describe('themeRegistry', () => {
       'clash-blue-orange',
       'clash-neon-cyber',
       'clash-juicy-gradient',
-      'clash-retro-sunset'
+      'clash-retro-sunset',
+      'huawei-harmony-cosmos',
+      'huawei-pura-violet',
+      'huawei-mate-spruce',
+      'huawei-pearl-snow',
+      'liquid-glass-aurora',
+      'liquid-glass-pure',
+      'aqua-droplet',
+      'flow-silk'
     ])
   })
 
@@ -166,6 +174,42 @@ describe('themeRegistry', () => {
     const retro = getThemeById('clash-retro-sunset')
     expect(retro.tokens.colors.primary).toBe('#ea580c')
     expect(retro.tokens.colors.accent).toBe('#1e3a8a')
+  })
+
+  it('exposes Huawei flagship palettes and liquid material themes with required material tags', () => {
+    const huaweiThemes = themeRegistry.filter((theme) => theme.aesthetic === 'huawei')
+    expect(huaweiThemes.map((t) => t.id)).toEqual([
+      'huawei-harmony-cosmos',
+      'huawei-pura-violet',
+      'huawei-mate-spruce',
+      'huawei-pearl-snow'
+    ])
+    huaweiThemes.forEach((t) => expect(['glass', 'pearl', 'metal']).toContain(t.material))
+
+    const liquidThemes = themeRegistry.filter((theme) => theme.aesthetic === 'liquid')
+    expect(liquidThemes.map((t) => t.id)).toEqual([
+      'liquid-glass-aurora',
+      'liquid-glass-pure',
+      'aqua-droplet',
+      'flow-silk'
+    ])
+    expect(getThemeById('liquid-glass-pure').material).toBe('liquid-glass')
+    expect(getThemeById('liquid-glass-pure').defaultCandidate).toBe(true)
+    expect(getThemeById('liquid-glass-aurora').tokens.effects.glass).toContain('blur(28px)')
+    expect(getThemeById('aqua-droplet').material).toBe('aqua')
+    expect(getThemeById('flow-silk').material).toBe('fabric')
+    expect(getThemeById('huawei-harmony-cosmos').tokens.colors.primary).toBe('#0f2a5c')
+    expect(getThemeById('huawei-mate-spruce').material).toBe('metal')
+    expect(getThemeById('huawei-pearl-snow').material).toBe('pearl')
+  })
+
+  it('groups themes into a curated set of family meta entries that cover every aesthetic', () => {
+    const aestheticsFromFamilies = themeFamilyMeta.flatMap((f) => f.includes)
+    const allAesthetics = Array.from(new Set(themeRegistry.map((t) => t.aesthetic)))
+    allAesthetics.forEach((a) => expect(aestheticsFromFamilies).toContain(a))
+    expect(themeFamilyMeta.length).toBeGreaterThanOrEqual(6)
+    expect(themeFamilyMeta.map((f) => f.id)).toContain('huawei-aesthetic')
+    expect(themeFamilyMeta.map((f) => f.id)).toContain('liquid-material')
   })
 
   it('maps legacy theme ids to the nearest new official theme', () => {
