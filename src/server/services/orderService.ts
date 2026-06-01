@@ -3,7 +3,7 @@ import { getProductById } from '../../entitlement/productCatalog'
 import type { OrderPaymentChannel } from '../../entitlement/orderTypes'
 import type { CreateOrderRequest, CreateOrderResponse, PaymentParams } from '../types'
 
-const orderService = createOrderService()
+export const orderService = createOrderService()
 
 export function createOrder(req: CreateOrderRequest): CreateOrderResponse {
   const product = getProductById(req.productId)

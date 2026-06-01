@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createOrder, getOrderById, getOrdersByUser, refundOrder } from '../services/orderService'
+import { createOrder, getOrderById, getOrdersByUser, refundOrder, orderService } from '../services/orderService'
 import type { CreateOrderRequest } from '../types'
 
 export function createOrdersRouter(): Router {
@@ -40,6 +40,21 @@ export function createOrdersRouter(): Router {
     try {
       const order = refundOrder(req.params.id)
       res.json(order)
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message })
+    }
+  })
+
+  router.post('/:id/pay', (req, res) => {
+    try {
+      const { channelTradeNo } = req.body
+      const order = orderService.getOrderById(req.params.id)
+      if (!order) {
+        res.status(404).json({ error: 'Order not found' })
+        return
+      }
+      orderService.markAsPaid(req.params.id, channelTradeNo || 'mock-trade-no', 'mock receipt')
+      res.json(orderService.getOrderById(req.params.id))
     } catch (error) {
       res.status(400).json({ error: (error as Error).message })
     }
