@@ -1,4 +1,4 @@
-﻿﻿﻿import { useEffect, useMemo, useRef, useState } from 'react'
+﻿﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -15,6 +15,7 @@ import {
   Target,
   Trophy
 } from 'lucide-react'
+import { ExpandableCard } from './components/expandable/ExpandableCard'
 import { createAiPromptDraft, getAiProviderById } from './ai/aiProvider'
 import {
   createBrowserWorkspaceStore,
@@ -464,6 +465,22 @@ export default function App() {
 
   return (
     <main className="app-shell">
+      <svg className="liquid-glass-svg-defs" aria-hidden="true" focusable="false" width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
+        <defs>
+          <filter id="liquid-glass-distortion" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="7" result="noise">
+              <animate attributeName="baseFrequency" dur="18s" values="0.008 0.012;0.014 0.018;0.008 0.012" repeatCount="indefinite" />
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="noise" xChannelSelector="R" yChannelSelector="G">
+              <animate attributeName="scale" dur="10s" values="6;14;6" repeatCount="indefinite" />
+            </feDisplacementMap>
+          </filter>
+          <filter id="liquid-glass-soft" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="1" seed="3" result="n" />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
       <aside className="sidebar panel">
         <div className="brand">
           <span className="brand-mark">G</span>
@@ -514,112 +531,332 @@ export default function App() {
         </section>
 
         <div className="dashboard-grid">
-          <section className="plan-card card large-card">
-            <div className="card-heading">
-              <div>
-                <p className="eyebrow">Persona Template</p>
-                <h2>{activePersona.mainModuleTitle}</h2>
+          <ExpandableCard
+            expandedTitle={activePersona.mainModuleTitle}
+            expandedContent={
+              <>
+                <div className="card-heading">
+                  <div>
+                    <p className="eyebrow">Persona Template · 完整视图</p>
+                    <strong style={{ fontSize: 22, color: 'var(--primary)' }}>{activeTemplate.title}</strong>
+                  </div>
+                  <strong style={{ color: 'var(--primary)', fontSize: 32 }}>{weeklyProgress}%</strong>
+                </div>
+                <div className="progress-track"><span style={{ width: `${weeklyProgress}%` }} /></div>
+                <div className="template-summary">
+                  <strong>{activeTemplate.title}</strong>
+                  <small>{activeTemplate.operatingRhythm}</small>
+                </div>
+                <div className="template-section-grid">
+                  {activeTemplate.sections.map((section) => (
+                    <article className="template-section" key={section.title}>
+                      <strong>{section.title}</strong>
+                      {section.items.map((item) => (
+                        <div className="template-item" key={item.title}>
+                          <span>{item.status}</span>
+                          <div><b>{item.title}</b><small>{item.meta}</small></div>
+                        </div>
+                      ))}
+                    </article>
+                  ))}
+                </div>
+                <div className="persona-brief">
+                  <strong>默认行动建议</strong>
+                  <em>{activeTemplate.defaultAction}</em>
+                  <small>复盘问题：{activeTemplate.reviewQuestion}</small>
+                </div>
+              </>
+            }
+          >
+            <section className="plan-card card large-card">
+              <div className="card-heading">
+                <div>
+                  <p className="eyebrow">Persona Template</p>
+                  <h2>{activePersona.mainModuleTitle}</h2>
+                </div>
+                <strong>{weeklyProgress}%</strong>
               </div>
-              <strong>{weeklyProgress}%</strong>
-            </div>
-            <div className="progress-track" aria-label={`${activePersona.mainModuleTitle}进度`}><span style={{ width: `${weeklyProgress}%` }} /></div>
-            <div className="template-summary">
-              <strong>{activeTemplate.title}</strong>
-              <small>{activeTemplate.operatingRhythm}</small>
-            </div>
-            <div className="template-section-grid">
-              {activeTemplate.sections.map((section) => (
-                <article className="template-section" key={section.title}>
-                  <strong>{section.title}</strong>
-                  {section.items.map((item) => (
-                    <div className="template-item" key={item.title}>
-                      <span>{item.status}</span>
-                      <div><b>{item.title}</b><small>{item.meta}</small></div>
+              <div className="progress-track" aria-label={`${activePersona.mainModuleTitle}进度`}><span style={{ width: `${weeklyProgress}%` }} /></div>
+              <div className="template-summary">
+                <strong>{activeTemplate.title}</strong>
+                <small>{activeTemplate.operatingRhythm}</small>
+              </div>
+              <div className="template-section-grid">
+                {activeTemplate.sections.map((section) => (
+                  <article className="template-section" key={section.title}>
+                    <strong>{section.title}</strong>
+                    {section.items.map((item) => (
+                      <div className="template-item" key={item.title}>
+                        <span>{item.status}</span>
+                        <div><b>{item.title}</b><small>{item.meta}</small></div>
+                      </div>
+                    ))}
+                  </article>
+                ))}
+              </div>
+            </section>
+          </ExpandableCard>
+
+          <ExpandableCard
+            expandedTitle={`Lv. ${workspaceState.growth.level} · 成长档案`}
+            expandedContent={
+              <div className="growth-detail">
+                <div className="growth-detail-level">
+                  <strong>Lv. {workspaceState.growth.level}</strong>
+                  <span>持续 {workspaceState.growth.streakDays} 天 · 累计 {workspaceState.growth.experience} XP</span>
+                </div>
+                <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
+                  在学习、办公、复盘等场景完成行动后，会自动沉淀经验值。坚持每日打卡可以激活连续奖励。
+                </p>
+                <div className="growth-detail-stats">
+                  <article className="growth-detail-stat">
+                    <strong>{workspaceState.growth.achievements}</strong>
+                    <span>解锁成就</span>
+                  </article>
+                  <article className="growth-detail-stat">
+                    <strong>{workspaceState.growth.experience}</strong>
+                    <span>累计 XP</span>
+                  </article>
+                  <article className="growth-detail-stat">
+                    <strong>{workspaceState.growth.streakDays}</strong>
+                    <span>连续打卡</span>
+                  </article>
+                </div>
+                <strong style={{ marginTop: 8 }}>近期里程碑</strong>
+                <div className="growth-milestones">
+                  {[
+                    { name: '首次完成番茄专注', meta: '触发解锁条件', xp: 50, locked: false },
+                    { name: '连续 7 天打卡', meta: '当前 ' + workspaceState.growth.streakDays + ' 天', xp: 120, locked: workspaceState.growth.streakDays < 7 },
+                    { name: '完成 10 个学习目标', meta: '已完成 ' + completedTasks.length + ' 个', xp: 200, locked: completedTasks.length < 10 },
+                    { name: '达到 Lv. 5', meta: '当前 Lv. ' + workspaceState.growth.level, xp: 500, locked: workspaceState.growth.level < 5 }
+                  ].map((m) => (
+                    <div className="growth-milestone" key={m.name}>
+                      <span className={`growth-milestone-dot${m.locked ? ' locked' : ''}`} />
+                      <div>
+                        <strong>{m.name}</strong>
+                        <span style={{ display: 'block' }}>{m.meta}</span>
+                      </div>
+                      <span className="growth-milestone-xp">+{m.xp} XP</span>
                     </div>
                   ))}
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="growth-card card" style={{ background: activeTheme.tokens.gradients.card }}>
-            <p className="eyebrow">Growth RPG</p>
-            <h2>Lv. {workspaceState.growth.level}</h2>
-            <p>完成学习、办公和成长行动都会沉淀经验。</p>
-            <div className="xp-track"><span /></div>
-            <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} XP</strong>
-          </section>
-
-          <section
-            className="card focus-brief-card"
-            aria-label="桌面专注概览"
-            data-style={focusBriefStyleId}
-            data-aesthetic={activeTheme.aesthetic}
-            data-material={activeTheme.material}
-          >
-            <div className="card-heading compact">
-              <h2>桌面专注概览</h2>
-              <div className="focus-brief-heading-actions">
-                <Clock3 size={20} />
-                <FocusBriefStylePicker
-                  currentStyleId={focusBriefStyleId}
-                  onStyleChange={switchFocusBriefStyle}
-                />
+                </div>
               </div>
-            </div>
-            <FocusBriefStyleComponent
-              data={{
-                progress: weeklyProgress,
-                todoCount: todoTasks.length,
-                totalMinutes: totalFocusMinutes,
-                completedCount: completedTasks.length
-              }}
-              context={{
-                aesthetic: activeTheme.aesthetic,
-                material: activeTheme.material
-              }}
-            />
-            <div className="focus-brief-legacy-meta" aria-hidden="true">
-              <span>{todoTasks.length} 个待办</span>
-              <span>{totalFocusMinutes} 分钟</span>
-              <span>{completedTasks.length} 个已完成</span>
-            </div>
-          </section>
+            }
+          >
+            <section className="growth-card card" style={{ background: activeTheme.tokens.gradients.card }}>
+              <p className="eyebrow">Growth RPG</p>
+              <h2>Lv. {workspaceState.growth.level}</h2>
+              <p>完成学习、办公和成长行动都会沉淀经验。</p>
+              <div className="xp-track"><span /></div>
+              <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} XP</strong>
+            </section>
+          </ExpandableCard>
 
-          <section className="card">
-            <div className="card-heading compact"><h2>用户痛点</h2><BookOpen size={20} /></div>
-            <div className="persona-brief">
-              <strong>{activePersona.targetUser}</strong>
-              <p>{activePersona.painPoint}</p>
-              <small>{activePersona.primaryFlow}</small>
-              <em>{activeTemplate.defaultAction}</em>
-              <small>{activeTemplate.reviewQuestion}</small>
-            </div>
-          </section>
+          <ExpandableCard
+            expandedTitle="桌面专注概览"
+            expandedContent={
+              <>
+                <FocusBriefStyleComponent
+                  data={{
+                    progress: weeklyProgress,
+                    todoCount: todoTasks.length,
+                    totalMinutes: totalFocusMinutes,
+                    completedCount: completedTasks.length
+                  }}
+                  context={{
+                    aesthetic: activeTheme.aesthetic,
+                    material: activeTheme.material
+                  }}
+                />
+                <div className="metric-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                  <article>
+                    <strong>{weeklyProgress}%</strong>
+                    <span>本周进度</span>
+                  </article>
+                  <article>
+                    <strong>{todoTasks.length}</strong>
+                    <span>待办任务</span>
+                  </article>
+                  <article>
+                    <strong>{totalFocusMinutes}</strong>
+                    <span>计划分钟</span>
+                  </article>
+                  <article>
+                    <strong>{completedTasks.length}</strong>
+                    <span>已完成</span>
+                  </article>
+                </div>
+                <strong style={{ marginTop: 8 }}>切换概览风格</strong>
+                <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                  你可以在主卡片右上角的图标切换不同的可视化风格：极简弧、统计条、半盘表，每种风格都会自动适配主题。
+                </p>
+              </>
+            }
+          >
+            <section
+              className="card focus-brief-card"
+              aria-label="桌面专注概览"
+              data-style={focusBriefStyleId}
+              data-aesthetic={activeTheme.aesthetic}
+              data-material={activeTheme.material}
+            >
+              <div className="card-heading compact">
+                <h2>桌面专注概览</h2>
+                <div
+                  className="focus-brief-heading-actions"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <Clock3 size={20} />
+                  <FocusBriefStylePicker
+                    currentStyleId={focusBriefStyleId}
+                    onStyleChange={switchFocusBriefStyle}
+                  />
+                </div>
+              </div>
+              <FocusBriefStyleComponent
+                data={{
+                  progress: weeklyProgress,
+                  todoCount: todoTasks.length,
+                  totalMinutes: totalFocusMinutes,
+                  completedCount: completedTasks.length
+                }}
+                context={{
+                  aesthetic: activeTheme.aesthetic,
+                  material: activeTheme.material
+                }}
+              />
+              <div className="focus-brief-legacy-meta" aria-hidden="true">
+                <span>{todoTasks.length} 个待办</span>
+                <span>{totalFocusMinutes} 分钟</span>
+                <span>{completedTasks.length} 个已完成</span>
+              </div>
+            </section>
+          </ExpandableCard>
 
-          <section className="card">
-            <div className="card-heading compact"><h2>关键指标</h2><Brain size={20} /></div>
-            <div className="metric-grid">
-              {activePersona.keyMetrics.map((metric, index) => (
-                <article key={metric}>
-                  <strong>{metric}</strong>
-                  <span>{index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}</span>
-                </article>
-              ))}
-            </div>
-          </section>
+          <ExpandableCard
+            expandedTitle="用户痛点 · 场景档案"
+            expandedContent={
+              <div className="persona-brief">
+                <strong>{activePersona.targetUser}</strong>
+                <p style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--muted)', margin: '8px 0' }}>
+                  {activePersona.painPoint}
+                </p>
+                <small style={{ fontSize: 14 }}>核心动线：{activePersona.primaryFlow}</small>
+                <em>{activeTemplate.defaultAction}</em>
+                <small style={{ fontSize: 14, marginTop: 8 }}>复盘问题：{activeTemplate.reviewQuestion}</small>
+                <strong style={{ marginTop: 12 }}>关键模块</strong>
+                <div className="stat-bar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                  {activePersona.modules.map((mod) => (
+                    <article key={mod.title} style={{ padding: 14, border: '1px solid var(--border)', borderRadius: 16, background: 'var(--card-gradient)' }}>
+                      <strong style={{ display: 'block', color: 'var(--text)' }}>{mod.title}</strong>
+                      <small style={{ color: 'var(--muted)', display: 'block', marginTop: 6 }}>{mod.signal}</small>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            }
+          >
+            <section className="card">
+              <div className="card-heading compact"><h2>用户痛点</h2><BookOpen size={20} /></div>
+              <div className="persona-brief">
+                <strong>{activePersona.targetUser}</strong>
+                <p>{activePersona.painPoint}</p>
+                <small>{activePersona.primaryFlow}</small>
+                <em>{activeTemplate.defaultAction}</em>
+                <small>{activeTemplate.reviewQuestion}</small>
+              </div>
+            </section>
+          </ExpandableCard>
+
+          <ExpandableCard
+            expandedTitle="关键指标 · 全景"
+            expandedContent={
+              <>
+                <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                  {activePersona.name} 场景下的核心指标看板。每一项都对应一个可执行的成长动作。
+                </p>
+                <div className="metric-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  {activePersona.keyMetrics.map((metric, index) => (
+                    <article key={metric} style={{ padding: 18 }}>
+                      <strong style={{ fontSize: 16 }}>{metric}</strong>
+                      <span style={{ fontSize: 13 }}>
+                        {index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}
+                      </span>
+                      <small style={{ color: 'var(--muted)', display: 'block', marginTop: 8, lineHeight: 1.6 }}>
+                        {index === 0 ? '主信号：来自当前场景核心模块。' : '基线指标：根据近 7 日数据估算。'}
+                      </small>
+                    </article>
+                  ))}
+                </div>
+              </>
+            }
+          >
+            <section className="card">
+              <div className="card-heading compact"><h2>关键指标</h2><Brain size={20} /></div>
+              <div className="metric-grid">
+                {activePersona.keyMetrics.map((metric, index) => (
+                  <article key={metric}>
+                    <strong>{metric}</strong>
+                    <span>{index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}</span>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </ExpandableCard>
         </div>
       </section>
 
       <aside className="today-panel">
-        <section className="panel side-card">
-          <h2>今日行动</h2>
-          <div className="today-list">
-            {todoTasks.map((task) => (
-              <article key={task.id}><span /><div><strong>{task.title}</strong><small>{task.dueLabel} · {task.minutes} 分钟</small></div></article>
-            ))}
-          </div>
-        </section>
+        <ExpandableCard
+          expandedTitle="今日行动 · 完整清单"
+          expandedContent={
+            <div className="side-card-expanded">
+              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                {activePersona.name} 场景的全部待办任务。点击卡片以聚焦完成。
+              </p>
+              <div className="today-list">
+                {todoTasks.length === 0 ? (
+                  <p style={{ color: 'var(--muted)' }}>暂无待办，先去添加任务吧。</p>
+                ) : (
+                  todoTasks.map((task) => (
+                    <article key={task.id}>
+                      <span />
+                      <div>
+                        <strong>{task.title}</strong>
+                        <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardXp} XP</small>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+              {completedTasks.length > 0 && (
+                <>
+                  <strong>已完成 ({completedTasks.length})</strong>
+                  <div className="today-list">
+                    {completedTasks.map((task) => (
+                      <article key={task.id} style={{ opacity: 0.7 }}>
+                        <span style={{ background: 'var(--border)' }} />
+                        <div>
+                          <strong style={{ textDecoration: 'line-through' }}>{task.title}</strong>
+                          <small>{task.dueLabel} · {task.minutes} 分钟</small>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          }
+        >
+          <section className="panel side-card">
+            <h2>今日行动</h2>
+            <div className="today-list">
+              {todoTasks.map((task) => (
+                <article key={task.id}><span /><div><strong>{task.title}</strong><small>{task.dueLabel} · {task.minutes} 分钟</small></div></article>
+              ))}
+            </div>
+          </section>
+        </ExpandableCard>
 
         <section className="panel side-card timer-card" aria-label="任务专注计时器">
           <h2>任务专注</h2>
@@ -683,97 +920,263 @@ export default function App() {
           </div>
         </section>
 
-        <section className="panel side-card focus-history-card" aria-label="最近专注会话">
-          <h2>最近专注</h2>
-          {workspaceState.focusSessions.length === 0 ? (
-            <p className="empty-state">完成首个任务后，会自动沉淀到这里。</p>
-          ) : (
-            <ul className="focus-history-list">
-              {workspaceState.focusSessions.slice(0, 3).map((session) => (
-                <li key={session.id}>
-                  <strong>{session.taskTitle}</strong>
-                  <small>
-                    {session.minutes} 分钟 · {session.rewardXp} XP · {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                  </small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <ExpandableCard
+          expandedTitle="最近专注 · 完整记录"
+          expandedContent={
+            <div className="side-card-expanded">
+              {workspaceState.focusSessions.length === 0 ? (
+                <p style={{ color: 'var(--muted)' }}>完成首个任务后，会自动沉淀到这里。</p>
+              ) : (
+                <ul className="focus-history-list">
+                  {workspaceState.focusSessions.map((session) => (
+                    <li key={session.id}>
+                      <strong>{session.taskTitle}</strong>
+                      <small>
+                        {session.minutes} 分钟 · {session.rewardXp} XP · {new Date(session.completedAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </small>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          }
+        >
+          <section className="panel side-card focus-history-card" aria-label="最近专注会话">
+            <h2>最近专注</h2>
+            {workspaceState.focusSessions.length === 0 ? (
+              <p className="empty-state">完成首个任务后，会自动沉淀到这里。</p>
+            ) : (
+              <ul className="focus-history-list">
+                {workspaceState.focusSessions.slice(0, 3).map((session) => (
+                  <li key={session.id}>
+                    <strong>{session.taskTitle}</strong>
+                    <small>
+                      {session.minutes} 分钟 · {session.rewardXp} XP · {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </ExpandableCard>
 
-        <section className="panel side-card ai-card">
-          <div className="card-heading compact"><h2>{activePersona.aiRole}</h2><Bot size={20} /></div>
-          <p>{promptDraft.title}</p>
-          <strong>{activeProvider.name}</strong>
-          <small>{workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，已预留 Provider 接口'}</small>
-          <div className="ai-actions">
-            {activePersona.aiActions.map((action) => (
-              <span key={action}>{action}</span>
-            ))}
-          </div>
-        </section>
-
-        <section className="panel side-card multi-end-card">
-          <div className="card-heading compact"><h2>多端预留</h2><MonitorSmartphone size={20} /></div>
-          <p>当前桌面端优先，数据层已按本地优先和同步预留设计。</p>
-          <div className="platform-list">
-            <span>Desktop</span>
-            <span>微信小程序</span>
-            <span>Web/PWA</span>
-            <span>iOS</span>
-            <span>HarmonyOS</span>
-          </div>
-        </section>
-
-        <section className="panel side-card mini-program-card">
-            <div className="card-heading compact"><h2>小程序试验版</h2><MonitorSmartphone size={20} /></div>
-            <p>{miniProgramBlueprint.positioning}</p>
-            <span className="implementation-pill">微信小程序原生</span>
-          <div className="boundary-grid">
-            <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-            <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-          </div>
-          <div className="phone-preview" aria-label="小程序首页预览">
-            <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-            <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
-            <div className="phone-module-grid">
-              {defaultMiniProgramModules.slice(0, 4).map((module) => (
-                <article key={module.id}><strong>{module.title}</strong><small>{module.privacyLevel}</small></article>
+        <ExpandableCard
+          expandedTitle={`${activePersona.aiRole} · AI 行动教练`}
+          expandedContent={
+            <div className="ai-expanded">
+              <div className="ai-prompt-preview">
+                <strong>建议提示词</strong>
+                <p style={{ margin: '10px 0 0', color: 'var(--text)' }}>{promptDraft.title}</p>
+                <small style={{ display: 'block', marginTop: 12, color: 'var(--muted)' }}>
+                  Provider：{activeProvider.name} · 状态：
+                  {workspaceState.integrations.ai.status === 'ready' ? '已配置' : '未配置 API Key（已预留 Provider 接口）'}
+                </small>
+              </div>
+              <strong>支持的 AI 动作</strong>
+              <div className="ai-actions" style={{ marginTop: 0 }}>
+                {activePersona.aiActions.map((action) => (
+                  <span key={action}>{action}</span>
+                ))}
+              </div>
+              <strong style={{ marginTop: 8 }}>AI 教练职责</strong>
+              <p style={{ color: 'var(--muted)', lineHeight: 1.7, margin: 0 }}>
+                {activePersona.aiRole} 会根据当前场景的痛点、关键模块和近期专注记录，生成可执行的下一步建议，
+                并在你完成任务后协助复盘。
+              </p>
+            </div>
+          }
+        >
+          <section className="panel side-card ai-card">
+            <div className="card-heading compact"><h2>{activePersona.aiRole}</h2><Bot size={20} /></div>
+            <p>{promptDraft.title}</p>
+            <strong>{activeProvider.name}</strong>
+            <small>{workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，已预留 Provider 接口'}</small>
+            <div className="ai-actions">
+              {activePersona.aiActions.map((action) => (
+                <span key={action}>{action}</span>
               ))}
             </div>
-            <div className="phone-tabbar">
-              {miniProgramBlueprint.navigation.map((item) => (
-                <span key={item.id}>{item.label}</span>
+          </section>
+        </ExpandableCard>
+
+        <ExpandableCard
+          expandedTitle="多端预留 · 平台矩阵"
+          expandedContent={
+            <div className="platform-expanded">
+              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                当前桌面端优先，数据层已按本地优先和同步预留设计。以下是各平台规划：
+              </p>
+              {[
+                { name: 'Desktop', desc: '主战场 · Electron + React · 已上线', icon: '🖥️' },
+                { name: '微信小程序', desc: '碎片化场景 · 原生小程序 · 试验版已构建', icon: '💚' },
+                { name: 'Web / PWA', desc: '跨设备访问 · 离线可用 · 计划中', icon: '🌐' },
+                { name: 'iOS', desc: '原生体验 · 计划接入', icon: '🍎' },
+                { name: 'HarmonyOS', desc: '鸿蒙原生 · 适配 ArkUI · 计划中', icon: '🟢' }
+              ].map((p) => (
+                <article className="platform-detail" key={p.name}>
+                  <span className="platform-detail-icon" style={{ fontSize: 20 }}>{p.icon}</span>
+                  <div>
+                    <strong>{p.name}</strong>
+                    <span style={{ display: 'block', marginTop: 4 }}>{p.desc}</span>
+                  </div>
+                </article>
               ))}
             </div>
-          </div>
-          <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
-        </section>
+          }
+        >
+          <section className="panel side-card multi-end-card">
+            <div className="card-heading compact"><h2>多端预留</h2><MonitorSmartphone size={20} /></div>
+            <p>当前桌面端优先，数据层已按本地优先和同步预留设计。</p>
+            <div className="platform-list">
+              <span>Desktop</span>
+              <span>微信小程序</span>
+              <span>Web/PWA</span>
+              <span>iOS</span>
+              <span>HarmonyOS</span>
+            </div>
+          </section>
+        </ExpandableCard>
 
-        <section className="panel side-card theme-center">
-          <div className="card-heading compact"><h2>主题中心</h2><Sparkles size={20} /></div>
-          <p>后期可继续新增学习、办公、游戏化和品牌主题包。</p>
-          <div className="design-note">
-            <span>设计定位</span>
-            <strong>{activeTheme.design.tone}</strong>
-            <small>{activeTheme.design.principle}</small>
-          </div>
-          <button className="theme-recommend-button" onClick={restorePersonaTheme} type="button">
-            恢复场景推荐主题
-          </button>
-          <button className="theme-picker-button" onClick={openThemePicker} type="button">
-            <span>打开主题库</span>
-            <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
-          </button>
-          <div className="active-theme-preview" aria-label="当前主题预览">
-            <strong>{activeTheme.name}</strong>
-            <span className="theme-swatch-row" aria-hidden="true">
-              <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
-              <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
-              <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
-            </span>
-          </div>
-        </section>
+        <ExpandableCard
+          expandedTitle="小程序试验版 · 完整预览"
+          expandedContent={
+            <div className="mini-program-expanded">
+              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>{miniProgramBlueprint.positioning}</p>
+              <span className="implementation-pill">微信小程序原生</span>
+              <div className="boundary-grid" style={{ gridTemplateColumns: '1fr 1fr', margin: 0 }}>
+                <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+                <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+              </div>
+              <div className="phone-preview" aria-label="小程序首页预览">
+                <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
+                <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
+                <div className="phone-module-grid">
+                  {defaultMiniProgramModules.map((module) => (
+                    <article key={module.id}><strong>{module.title}</strong><small>{module.privacyLevel}</small></article>
+                  ))}
+                </div>
+                <div className="phone-tabbar">
+                  {miniProgramBlueprint.navigation.map((item) => (
+                    <span key={item.id}>{item.label}</span>
+                  ))}
+                </div>
+              </div>
+              <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
+            </div>
+          }
+        >
+          <section className="panel side-card mini-program-card">
+              <div className="card-heading compact"><h2>小程序试验版</h2><MonitorSmartphone size={20} /></div>
+              <p>{miniProgramBlueprint.positioning}</p>
+              <span className="implementation-pill">微信小程序原生</span>
+            <div className="boundary-grid">
+              <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+              <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+            </div>
+            <div className="phone-preview" aria-label="小程序首页预览">
+              <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
+              <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
+              <div className="phone-module-grid">
+                {defaultMiniProgramModules.slice(0, 4).map((module) => (
+                  <article key={module.id}><strong>{module.title}</strong><small>{module.privacyLevel}</small></article>
+                ))}
+              </div>
+              <div className="phone-tabbar">
+                {miniProgramBlueprint.navigation.map((item) => (
+                  <span key={item.id}>{item.label}</span>
+                ))}
+              </div>
+            </div>
+            <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
+          </section>
+        </ExpandableCard>
+
+        <ExpandableCard
+          expandedTitle="主题中心 · 视觉档案"
+          expandedContent={
+            <div className="theme-center-expanded">
+              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
+                当前主题：<strong style={{ color: 'var(--primary)' }}>{activeTheme.name}</strong>
+                {' · '}
+                共 {themeRegistry.length} 款主题、{themeFamilies.length} 个分类。
+              </p>
+              <div className="theme-detail-grid">
+                <div className="theme-detail-item">
+                  <span>设计基调</span>
+                  <strong>{activeTheme.design.tone}</strong>
+                </div>
+                <div className="theme-detail-item">
+                  <span>适用场景</span>
+                  <strong>{activeTheme.design.scene}</strong>
+                </div>
+                <div className="theme-detail-item">
+                  <span>设计原则</span>
+                  <strong>{activeTheme.design.principle}</strong>
+                </div>
+                <div className="theme-detail-item">
+                  <span>视觉舒适度</span>
+                  <strong>{activeTheme.visualComfort}</strong>
+                </div>
+              </div>
+              <div className="active-theme-preview" aria-label="当前主题预览">
+                <strong>主题色板</strong>
+                <span className="theme-swatch-row" aria-hidden="true">
+                  <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
+                  <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
+                  <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
+                </span>
+              </div>
+              <button
+                className="theme-recommend-button"
+                onClick={(event) => { event.stopPropagation(); restorePersonaTheme() }}
+                type="button"
+              >
+                恢复场景推荐主题
+              </button>
+              <button
+                className="theme-picker-button"
+                onClick={(event) => { event.stopPropagation(); openThemePicker() }}
+                type="button"
+              >
+                <span>打开主题库</span>
+                <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
+              </button>
+            </div>
+          }
+        >
+          <section className="panel side-card theme-center">
+            <div className="card-heading compact"><h2>主题中心</h2><Sparkles size={20} /></div>
+            <p>后期可继续新增学习、办公、游戏化和品牌主题包。</p>
+            <div className="design-note">
+              <span>设计定位</span>
+              <strong>{activeTheme.design.tone}</strong>
+              <small>{activeTheme.design.principle}</small>
+            </div>
+            <button
+              className="theme-recommend-button"
+              onClick={(event) => { event.stopPropagation(); restorePersonaTheme() }}
+              type="button"
+            >
+              恢复场景推荐主题
+            </button>
+            <button
+              className="theme-picker-button"
+              onClick={(event) => { event.stopPropagation(); openThemePicker() }}
+              type="button"
+            >
+              <span>打开主题库</span>
+              <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
+            </button>
+            <div className="active-theme-preview" aria-label="当前主题预览">
+              <strong>{activeTheme.name}</strong>
+              <span className="theme-swatch-row" aria-hidden="true">
+                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
+                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
+                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
+              </span>
+            </div>
+          </section>
+        </ExpandableCard>
       </aside>
 
       {isThemePickerOpen && (
