@@ -26,7 +26,16 @@ import {
 import { getPersonaById, personaRegistry, type PersonaId } from './personas/personaRegistry'
 import { getPersonaTemplateById } from './personas/personaTemplates'
 import { getDefaultMiniProgramModules, miniProgramBlueprint } from './platforms/miniProgramBlueprint'
-import { getThemeById, themeRegistry, type ThemeAesthetic, type ThemeId, type StudyTheme } from './themes/themeRegistry'
+import {
+  getThemeById,
+  materialLabels,
+  themeFamilyMeta,
+  themeRegistry,
+  type StudyTheme,
+  type ThemeAesthetic,
+  type ThemeFamilyId,
+  type ThemeId
+} from './themes/themeRegistry'
 
 const navigationItems = [
   { label: '首页仪表盘', icon: LineChart },
@@ -60,15 +69,14 @@ const themeFamilyLabels: Record<ThemeAesthetic, string> = {
   morandi: '莫兰迪',
   business: '商务',
   night: '夜间',
-  clash: '撞色'
+  clash: '撞色',
+  huawei: '华为',
+  liquid: '液态玻璃'
 }
 
-const themeFamilyOrder: ThemeAesthetic[] = ['minimal', 'dopamine', 'clash', 'ink', 'chinese', 'anime', 'morandi', 'business', 'night']
-
-const themeFamilies = themeFamilyOrder.map((aesthetic) => ({
-  aesthetic,
-  label: themeFamilyLabels[aesthetic],
-  themes: themeRegistry.filter((theme) => theme.aesthetic === aesthetic)
+const themeFamilies = themeFamilyMeta.map((family) => ({
+  ...family,
+  themes: themeRegistry.filter((theme) => family.includes.includes(theme.aesthetic))
 }))
 
 const ThemeOptionButton = ({
@@ -104,6 +112,8 @@ const applyTheme = (themeId: ThemeId) => {
   const theme = getThemeById(themeId)
   const root = document.documentElement
   root.dataset.theme = theme.id
+  root.dataset.aesthetic = theme.aesthetic
+  root.dataset.material = theme.material
   root.style.setProperty('--app-background', theme.tokens.colors.background)
   root.style.setProperty('--surface', theme.tokens.colors.surface)
   root.style.setProperty('--surface-strong', theme.tokens.colors.surfaceStrong)
@@ -115,6 +125,9 @@ const applyTheme = (themeId: ThemeId) => {
   root.style.setProperty('--border', theme.tokens.colors.border)
   root.style.setProperty('--hero-gradient', theme.tokens.gradients.hero)
   root.style.setProperty('--card-gradient', theme.tokens.gradients.card)
+  root.style.setProperty('--chart-plan', theme.tokens.charts.plan)
+  root.style.setProperty('--chart-focus', theme.tokens.charts.focus)
+  root.style.setProperty('--chart-review', theme.tokens.charts.review)
   root.style.setProperty('--radius', theme.tokens.effects.radius)
   root.style.setProperty('--shadow', theme.tokens.effects.shadow)
   root.style.setProperty('--glass', theme.tokens.effects.glass)
