@@ -56,7 +56,7 @@
 
 - [x] Write failing tests for rendering dashboard and switching theme.
 - [x] Implement desktop dashboard, side navigation, today panel, growth card, and theme center.
-- [ ] Verify GREEN with `npm test`.
+- [x] Verify GREEN with `npm test`.
 
 ### Task 5: Desktop shell
 
@@ -64,12 +64,12 @@
 - Create: `electron/main.cjs`
 
 - [x] Implement Electron BrowserWindow shell for local desktop usage.
-- [ ] Verify with `npm run build` and local browser preview.
+- [x] Verify with `npm run build` and local browser preview.
 
 ### Task 6: Final verification
 
-- [ ] Run `npm run lint`.
-- [ ] Run `npm test`.
-- [ ] Run `npm run build`.
-- [ ] Start `npm run dev`.
-- [ ] Open local page in browser and check no white screen, Console errors, or failed Network requests.
+- [x] Run `npm run lint`.
+- [x] Run `npm test`.
+- [x] Run `npm run build`.
+- [x] Start `npm run dev`.
+- [x] Open local page in browser and check no white screen, Console errors, or failed Network requests.
