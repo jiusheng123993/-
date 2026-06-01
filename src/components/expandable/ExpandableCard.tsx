@@ -158,7 +158,6 @@ export function ExpandableCard({
   const originalClassName = children.props.className ?? ''
   const originalStyle = children.props.style ?? {}
 
-  // eslint-disable-next-line react-hooks/refs
   const triggerNode = cloneElement(children, {
     ref: setTriggerRef,
     onClick: (event: ReactMouseEvent<HTMLElement>) => {
