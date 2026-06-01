@@ -1603,7 +1603,7 @@ export default function App() {
                         {tierProducts.map((product) => (
                           <div className="membership-period-card" key={product.id}>
                             <div className="membership-period-header">
-                              <span className="membership-period-label">{getPeriodLabel(product.period)}付</span>
+                              <span className="membership-period-label">{getPeriodLabel(product.period || '')}付</span>
                               {product.originalPrice && (
                                 <span className="membership-period-save">省{formatPrice(product.originalPrice - product.price)}</span>
                               )}
