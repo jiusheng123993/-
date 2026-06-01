@@ -48,7 +48,7 @@ button {
 .app-shell {
   position: relative;
   display: grid;
-  grid-template-columns: 224px minmax(640px, 1fr) 320px;
+  grid-template-columns: 260px minmax(0, 1fr) 380px;
   gap: 20px;
   min-height: 100vh;
   padding: 20px;
@@ -84,6 +84,279 @@ button {
 [data-theme='clash-neon-cyber'] .card::after {
   background: linear-gradient(135deg, rgba(148, 163, 184, 0.10), transparent 38%);
   opacity: 0.34;
+}
+
+/* ============================================
+   液态玻璃通用方案 - 适用所有 liquid-glass / glass / aqua 材质主题
+   核心：backdrop-filter 模糊 + SVG feTurbulence/feDisplacementMap 扭曲 + 多层光影 + 微动效
+   颜色继承主题 token，不写死，让每个主题保留自己的色调
+   ============================================ */
+
+/* 1. 玻璃材质通用变量（深色 / 浅色自适应） */
+html[data-material='liquid-glass'],
+html[data-material='glass'],
+html[data-material='aqua'] {
+  --glass-edge: rgba(255, 255, 255, 0.55);
+  --glass-edge-soft: rgba(255, 255, 255, 0.18);
+  --glass-tint: rgba(255, 255, 255, 0.12);
+  --glass-tint-hover: rgba(255, 255, 255, 0.22);
+  --glass-shadow: rgba(31, 38, 135, 0.12);
+  --glass-bubble: rgba(255, 255, 255, 0.5);
+}
+
+/* 深色玻璃主题（液态玻璃极光、夜空玻璃等）切换为深色玻璃 */
+html[data-theme='liquid-glass-aurora'],
+html[data-theme='night-focus'][data-material='glass'],
+html[data-theme='night-aurora'][data-material='glass'] {
+  --glass-edge: rgba(255, 255, 255, 0.28);
+  --glass-edge-soft: rgba(255, 255, 255, 0.08);
+  --glass-tint: rgba(255, 255, 255, 0.06);
+  --glass-tint-hover: rgba(255, 255, 255, 0.12);
+  --glass-shadow: rgba(0, 0, 0, 0.35);
+  --glass-bubble: rgba(255, 255, 255, 0.18);
+}
+
+/* 2. 应用 token 的实际样式：所有玻璃材质都生效 */
+html[data-material='liquid-glass'] body,
+html[data-material='glass'] body,
+html[data-material='aqua'] body {
+  background-attachment: fixed;
+  animation: liquidBackgroundShift 22s ease-in-out infinite;
+  background-size: 110% 110%;
+}
+
+@keyframes liquidBackgroundShift {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 8% 6%; }
+}
+
+html[data-material='liquid-glass'] .app-shell,
+html[data-material='glass'] .app-shell,
+html[data-material='aqua'] .app-shell {
+  background: transparent;
+}
+
+html[data-material='liquid-glass'] body::before,
+html[data-material='glass'] body::before,
+html[data-material='aqua'] body::before {
+  background-image: none;
+}
+
+/* 飘浮气泡层 */
+html[data-material='liquid-glass'] body::after,
+html[data-material='glass'] body::after,
+html[data-material='aqua'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle 60px at 15% 25%, var(--glass-bubble), transparent 70%),
+    radial-gradient(circle 40px at 75% 60%, var(--glass-bubble), transparent 70%),
+    radial-gradient(circle 80px at 50% 85%, var(--glass-bubble), transparent 70%),
+    radial-gradient(circle 50px at 88% 30%, var(--glass-bubble), transparent 70%);
+  opacity: 0.7;
+  animation: liquidBubbles 18s ease-in-out infinite;
+}
+
+@keyframes liquidBubbles {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(20px, -30px); }
+  50% { transform: translate(-15px, 25px); }
+  75% { transform: translate(25px, 15px); }
+}
+
+/* 所有面板/卡片：真透明玻璃 */
+html[data-material='liquid-glass'] .panel,
+html[data-material='liquid-glass'] .card,
+html[data-material='liquid-glass'] .sidebar,
+html[data-material='liquid-glass'] .today-panel,
+html[data-material='liquid-glass'] .focus-brief-card,
+html[data-material='liquid-glass'] .theme-modal,
+html[data-material='glass'] .panel,
+html[data-material='glass'] .card,
+html[data-material='glass'] .sidebar,
+html[data-material='glass'] .today-panel,
+html[data-material='glass'] .focus-brief-card,
+html[data-material='glass'] .theme-modal,
+html[data-material='aqua'] .panel,
+html[data-material='aqua'] .card,
+html[data-material='aqua'] .sidebar,
+html[data-material='aqua'] .today-panel,
+html[data-material='aqua'] .focus-brief-card,
+html[data-material='aqua'] .theme-modal {
+  background: var(--glass-tint) !important;
+  backdrop-filter: blur(20px) saturate(1.8) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.05) !important;
+  border: 1px solid var(--glass-edge-soft) !important;
+  border-top: 1px solid var(--glass-edge) !important;
+  border-left: 1px solid var(--glass-edge) !important;
+  box-shadow:
+    0 8px 32px var(--glass-shadow),
+    0 2px 8px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-edge),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    inset 1px 0 0 rgba(255, 255, 255, 0.25) !important;
+  position: relative;
+}
+
+/* 顶部高光带 - 玻璃边沿反射 */
+html[data-material='liquid-glass'] .panel::before,
+html[data-material='liquid-glass'] .card::before,
+html[data-material='glass'] .panel::before,
+html[data-material='glass'] .card::before,
+html[data-material='aqua'] .panel::before,
+html[data-material='aqua'] .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 顶部反光 + SVG 轻扭曲 */
+html[data-material='liquid-glass'] .panel::after,
+html[data-material='liquid-glass'] .card::after,
+html[data-material='glass'] .panel::after,
+html[data-material='glass'] .card::after,
+html[data-material='aqua'] .panel::after,
+html[data-material='aqua'] .card::after {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 15%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.05) 70%,
+    rgba(255, 255, 255, 0.16) 100%
+  );
+  opacity: 1;
+  filter: url(#liquid-glass-soft);
+  mix-blend-mode: overlay;
+}
+
+/* 玻璃按钮 */
+html[data-material='liquid-glass'] button:not(.nav-item):not(.theme-option):not(.theme-modal *),
+html[data-material='glass'] button:not(.nav-item):not(.theme-option):not(.theme-modal *),
+html[data-material='aqua'] button:not(.nav-item):not(.theme-option):not(.theme-modal *) {
+  background: var(--glass-tint-hover);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid var(--glass-edge-soft);
+  border-top-color: var(--glass-edge);
+  color: var(--text);
+  box-shadow:
+    0 4px 16px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-edge);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html[data-material='liquid-glass'] button:not(.nav-item):not(.theme-option):not(.theme-modal *):hover,
+html[data-material='glass'] button:not(.nav-item):not(.theme-option):not(.theme-modal *):hover,
+html[data-material='aqua'] button:not(.nav-item):not(.theme-option):not(.theme-modal *):hover {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary), transparent 50%),
+    color-mix(in srgb, var(--accent), transparent 55%));
+  border-color: var(--glass-edge);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 12px 28px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+html[data-material='liquid-glass'] button:not(.nav-item):not(.theme-option):not(.theme-modal *):active,
+html[data-material='glass'] button:not(.nav-item):not(.theme-option):not(.theme-modal *):active,
+html[data-material='aqua'] button:not(.nav-item):not(.theme-option):not(.theme-modal *):active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 导航按钮 - 玻璃液态高亮（颜色继承主题） */
+html[data-material='liquid-glass'] .nav-item,
+html[data-material='glass'] .nav-item,
+html[data-material='aqua'] .nav-item {
+  color: var(--text);
+  background: transparent;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html[data-material='liquid-glass'] .nav-item:hover,
+html[data-material='glass'] .nav-item:hover,
+html[data-material='aqua'] .nav-item:hover {
+  background: var(--glass-tint-hover);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  transform: translateX(2px);
+}
+
+html[data-material='liquid-glass'] .nav-item.active,
+html[data-material='glass'] .nav-item.active,
+html[data-material='aqua'] .nav-item.active {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary), transparent 35%),
+    color-mix(in srgb, var(--secondary), transparent 40%),
+    color-mix(in srgb, var(--accent), transparent 45%));
+  backdrop-filter: blur(12px) saturate(1.5);
+  border: 1px solid var(--glass-edge);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 8px 20px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* 输入控件 */
+html[data-material='liquid-glass'] input,
+html[data-material='liquid-glass'] textarea,
+html[data-material='liquid-glass'] select,
+html[data-material='glass'] input,
+html[data-material='glass'] textarea,
+html[data-material='glass'] select,
+html[data-material='aqua'] input,
+html[data-material='aqua'] textarea,
+html[data-material='aqua'] select {
+  background: var(--glass-tint-hover) !important;
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  border: 1px solid var(--glass-edge-soft) !important;
+  color: var(--text);
+  transition: all 0.25s ease;
+}
+
+html[data-material='liquid-glass'] input:focus,
+html[data-material='liquid-glass'] textarea:focus,
+html[data-material='glass'] input:focus,
+html[data-material='glass'] textarea:focus,
+html[data-material='aqua'] input:focus,
+html[data-material='aqua'] textarea:focus {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary), transparent 75%);
+  outline: none;
+}
+
+/* hero / 主标题区采用玻璃质感 */
+html[data-material='liquid-glass'] .hero,
+html[data-material='glass'] .hero,
+html[data-material='aqua'] .hero {
+  background: var(--glass-tint) !important;
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid var(--glass-edge-soft);
+  border-top-color: var(--glass-edge);
+}
+
+/* 主题预览卡片 */
+html[data-material='liquid-glass'] .theme-option-preview-card,
+html[data-material='glass'] .theme-option-preview-card,
+html[data-material='aqua'] .theme-option-preview-card {
+  background: var(--glass-tint-hover) !important;
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
 }
 
 .sidebar,
@@ -315,8 +588,9 @@ small,
 
 .focus-brief-card {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   position: relative;
+  padding: 16px 20px;
   --focus-brief-track: color-mix(in srgb, var(--primary), transparent 86%);
   --focus-brief-tick: color-mix(in srgb, var(--muted), transparent 40%);
   --focus-brief-gauge-low: color-mix(in srgb, var(--chart-review, var(--accent)), #f97316 28%);
@@ -388,47 +662,85 @@ small,
 
 @keyframes liquidShimmer {
   0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.6;
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.7;
   }
-  25% {
-    transform: translate(8px, -6px) scale(1.05);
-    opacity: 0.8;
+  20% {
+    transform: translate(12px, -8px) scale(1.08) rotate(3deg);
+    opacity: 0.9;
   }
-  50% {
-    transform: translate(4px, 8px) scale(0.98);
+  40% {
+    transform: translate(6px, 10px) scale(0.96) rotate(-2deg);
     opacity: 0.5;
   }
-  75% {
-    transform: translate(-6px, 4px) scale(1.02);
-    opacity: 0.7;
+  60% {
+    transform: translate(-8px, 6px) scale(1.04) rotate(2deg);
+    opacity: 0.8;
+  }
+  80% {
+    transform: translate(-4px, -10px) scale(1.02) rotate(-1deg);
+    opacity: 0.6;
   }
 }
 
 @keyframes liquidRefraction {
-  0%, 100% {
+  0% {
     background-position: 0% 0%;
+    transform: translate(0, 0);
   }
-  33% {
+  25% {
+    background-position: 50% 25%;
+    transform: translate(5px, -3px);
+  }
+  50% {
     background-position: 100% 50%;
+    transform: translate(0, 0);
   }
-  66% {
-    background-position: 50% 100%;
+  75% {
+    background-position: 50% 75%;
+    transform: translate(-5px, 3px);
+  }
+  100% {
+    background-position: 0% 100%;
+    transform: translate(0, 0);
   }
 }
 
 @keyframes glassGlow {
   0%, 100% {
     box-shadow: 
-      0 8px 32px rgba(255, 255, 255, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+      0 8px 32px rgba(255, 255, 255, 0.35),
+      0 2px 8px rgba(255, 255, 255, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0.4) 100%);
+  }
+  33% {
+    box-shadow: 
+      0 12px 48px rgba(255, 255, 255, 0.5),
+      0 4px 12px rgba(255, 255, 255, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0.5) 100%);
+  }
+  66% {
+    box-shadow: 
+      0 10px 40px rgba(255, 255, 255, 0.45),
+      0 3px 10px rgba(255, 255, 255, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.28) 50%, rgba(255, 255, 255, 0.45) 100%);
+  }
+}
+
+@keyframes liquidBubble {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.4;
   }
   50% {
-    box-shadow: 
-      0 12px 40px rgba(255, 255, 255, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+    transform: scale(1.15) translateY(-4px);
+    opacity: 0.7;
   }
 }
 
@@ -501,15 +813,16 @@ small,
 /* === Style A: Minimal Arc === */
 .focus-brief.minimal-arc {
   justify-items: center;
-  gap: 20px;
+  gap: 16px;
+  padding: 4px;
 }
 
 .minimal-arc-ring {
   position: relative;
   display: grid;
   place-items: center;
-  width: 160px;
-  height: 160px;
+  width: 200px;
+  height: 200px;
 }
 
 .minimal-arc-ring svg {
@@ -523,26 +836,106 @@ small,
 .minimal-arc-center {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   pointer-events: none;
+  padding-bottom: 12px;
 }
 
 .minimal-arc-center strong {
-  font-size: 38px;
+  font-size: 48px;
   font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   color: var(--text);
 }
 
 .minimal-arc-center span {
-  margin-top: 4px;
-  font-size: 13px;
-  letter-spacing: 0.08em;
+  margin-top: 10px;
+  font-size: 14px;
+  letter-spacing: 0.12em;
   color: var(--muted);
   font-weight: 600;
+  text-transform: uppercase;
+}
+
+.minimal-arc-subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 0 20px;
+}
+
+.minimal-arc-subtitle strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.minimal-arc-motivation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--primary), transparent 92%);
+  border-radius: 12px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.minimal-arc-motivation svg {
+  flex-shrink: 0;
+}
+
+.minimal-arc-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.minimal-arc-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--surface-strong), transparent 8%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.minimal-arc-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary), transparent 90%);
+  color: var(--primary);
+}
+
+.minimal-arc-stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.minimal-arc-stat-content strong {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+}
+
+.minimal-arc-stat-content span {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .minimal-arc-ticks {
@@ -559,7 +952,8 @@ small,
 
 /* === Style B: Stat Bar === */
 .focus-brief.stat-bar {
-  gap: 18px;
+  gap: 16px;
+  padding: 4px;
 }
 
 .stat-bar-head {
@@ -579,14 +973,14 @@ small,
 }
 
 .stat-bar-percent strong {
-  font-size: 52px;
+  font-size: 56px;
   line-height: 1;
   font-weight: 900;
 }
 
 .stat-bar-percent em {
   font-style: normal;
-  font-size: 22px;
+  font-size: 24px;
   color: var(--muted);
 }
 
@@ -672,7 +1066,8 @@ small,
 
 /* === Style C: Half Gauge === */
 .focus-brief.half-gauge {
-  gap: 14px;
+  gap: 12px;
+  padding: 4px;
 }
 
 .half-gauge-svg-wrap {
@@ -694,7 +1089,7 @@ small,
 }
 
 .half-gauge-center strong {
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 900;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -702,7 +1097,7 @@ small,
 }
 
 .half-gauge-center span {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
   letter-spacing: 0.05em;
 }
@@ -711,38 +1106,39 @@ small,
 .focus-brief-stat-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .focus-brief-stat-row.tight {
-  gap: 8px;
+  gap: 10px;
 }
 
 .focus-brief-stat {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   justify-items: center;
-  padding: 12px 8px;
-  border-radius: 14px;
+  padding: 16px 12px;
+  border-radius: 16px;
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-strong), transparent 14%);
 }
 
 .focus-brief-stat svg {
   color: var(--primary);
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .focus-brief-stat strong {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 900;
   color: var(--text);
   letter-spacing: -0.02em;
 }
 
 .focus-brief-stat span {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
+  font-weight: 500;
 }
 
 /* === Theme adaptation: by aesthetic === */
@@ -834,7 +1230,7 @@ small,
   pointer-events: none;
 }
 
-/* === Liquid Glass Enhanced - Real Glass Feel === */
+/* === Liquid Glass - True Transparent Glass === */
 .focus-brief-card[data-material='liquid-glass'] {
   position: relative;
 }
@@ -845,26 +1241,47 @@ small,
   inset: 0;
   border-radius: inherit;
   background: 
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 40%, rgba(255, 255, 255, 0.1) 100%);
+    linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.15) 0%, 
+      transparent 30%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
   pointer-events: none;
   z-index: 1;
   animation: liquidRefraction 8s ease-in-out infinite;
   background-size: 200% 200%;
 }
 
+.focus-brief-card[data-material='liquid-glass']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  box-shadow: 
+    inset 0 0 30px rgba(255, 255, 255, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  z-index: 2;
+  animation: glassGlow 4s ease-in-out infinite;
+}
+
 .focus-brief-card[data-material='liquid-glass'] .focus-brief-stat,
 .focus-brief-card[data-material='liquid-glass'] .stat-bar-grid article {
   position: relative;
-  backdrop-filter: blur(20px) saturate(1.25);
-  background: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.25) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 
-    0 8px 32px rgba(255, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
   animation: glassGlow 4s ease-in-out infinite;
 }
 
@@ -895,10 +1312,11 @@ small,
   inset: 14%;
   border-radius: 999px;
   background: 
-    radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 40%, transparent 70%),
-    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+    radial-gradient(ellipse at 30% 25%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.25) 40%, transparent 70%),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
   pointer-events: none;
-  animation: liquidShimmer 6s ease-in-out infinite;
+  animation: liquidShimmer 4s ease-in-out infinite, liquidBubble 3s ease-in-out infinite;
 }
 
 .focus-brief-card[data-material='liquid-glass'] .stat-bar-fill {
@@ -1506,27 +1924,26 @@ small,
 
 .theme-modal[data-material='liquid-glass'] {
   position: relative;
-  backdrop-filter: blur(24px) saturate(1.3);
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.85) 0%, 
-    rgba(255, 255, 255, 0.65) 50%, 
-    rgba(255, 255, 255, 0.75) 100%
-  ) !important;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(30px) saturate(1.1);
+  -webkit-backdrop-filter: blur(30px) saturate(1.1);
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 
-    0 25px 80px rgba(31, 74, 122, 0.15),
-    0 8px 32px rgba(255, 255, 255, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+    0 25px 80px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
   animation: glassGlow 6s ease-in-out infinite;
 }
 
 .theme-modal[data-material='liquid-glass']::before {
   background: 
-    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(125, 211, 252, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(244, 200, 233, 0.25) 0%, transparent 50%);
+    linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.1) 0%, 
+      transparent 40%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
   animation: liquidRefraction 10s ease-in-out infinite;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .theme-modal > * {
@@ -1901,9 +2318,10 @@ small,
 .theme-option[data-material='liquid-glass'] .theme-option-preview-card,
 .theme-option[data-material='glass'] .theme-option-preview-card,
 .theme-option[data-material='aqua'] .theme-option-preview-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.12)) !important;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .theme-option[data-material='liquid-glass'] .theme-option-preview-card {
@@ -1916,9 +2334,12 @@ small,
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(ellipse 60% 40% at 30% 10%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 30% at 70% 90%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
-  animation: liquidRefraction 6s ease-in-out infinite;
+    linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.08) 0%, 
+      transparent 40%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+  animation: liquidRefraction 8s ease-in-out infinite;
   background-size: 200% 200%;
 }
 
@@ -1926,7 +2347,7 @@ small,
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 40%, rgba(255, 255, 255, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
   animation: glassGlow 5s ease-in-out infinite;
 }
 
@@ -2238,12 +2659,20 @@ small,
 
 @media (max-width: 1280px) {
   .app-shell {
-    grid-template-columns: 208px minmax(620px, 1fr) 300px;
+    grid-template-columns: 220px minmax(0, 1fr) 320px;
     gap: 16px;
     padding: 16px;
   }
 
   .hero h1 {
     font-size: 38px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .app-shell {
+    grid-template-columns: 280px minmax(0, 1fr) 420px;
+    gap: 24px;
+    padding: 24px;
   }
 }

@@ -3,16 +3,22 @@ const path = require('path')
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
-    width: 1360,
-    height: 860,
+    width: 1600,
+    height: 960,
     minWidth: 1180,
     minHeight: 720,
     title: '个人学习规划记录',
     backgroundColor: '#f8fafc',
+    show: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false
     }
+  })
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize()
+    mainWindow.show()
   })
 
   if (!app.isPackaged) {
