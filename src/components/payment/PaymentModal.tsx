@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usePayment } from '../../hooks/usePayment'
 import type { OrderPaymentChannel } from '../../entitlement/orderTypes'
+import styles from './PaymentModal.module.css'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -43,12 +44,12 @@ export function PaymentModal({
 
   if (status === 'success' && orderId) {
     return (
-      <div className="payment-modal-overlay">
-        <div className="payment-result success">
-          <div className="icon">✓</div>
+      <div className={styles.overlay}>
+        <div className={`${styles.result} ${styles.success}`}>
+          <div className={styles.icon}>✓</div>
           <h2>支付成功</h2>
           <p>您已成功购买 {productName}</p>
-          <p className="order-id">订单号: {orderId}</p>
+          <p className={styles.orderId}>订单号: {orderId}</p>
           <button onClick={handleSuccess}>完成</button>
         </div>
       </div>
@@ -57,13 +58,13 @@ export function PaymentModal({
 
   if (status === 'failed') {
     return (
-      <div className="payment-modal-overlay">
-        <div className="payment-result failed">
-          <div className="icon">✗</div>
+      <div className={styles.overlay}>
+        <div className={`${styles.result} ${styles.failed}`}>
+          <div className={styles.icon}>✗</div>
           <h2>支付失败</h2>
           <p>{error || '支付过程中出现问题'}</p>
-          {orderId && <p className="order-id">订单号: {orderId}</p>}
-          <div className="actions">
+          {orderId && <p className={styles.orderId}>订单号: {orderId}</p>}
+          <div className={styles.actions}>
             <button onClick={handleClose}>关闭</button>
             <button onClick={() => reset()}>重试</button>
           </div>
@@ -75,13 +76,13 @@ export function PaymentModal({
   const isProcessing = status === 'pending' || status === 'processing'
 
   return (
-    <div className="payment-modal-overlay" onClick={handleClose}>
-      <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
+    <div className={styles.overlay} onClick={handleClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h2>确认支付</h2>
-        <p className="product-name">{productName}</p>
-        <p className="amount">¥{(amount / 100).toFixed(2)}</p>
+        <p className={styles.productName}>{productName}</p>
+        <p className={styles.amount}>¥{(amount / 100).toFixed(2)}</p>
 
-        <div className="channel-select">
+        <div className={styles.channelSelect}>
           <label>
             <input
               type="radio"
@@ -117,7 +118,7 @@ export function PaymentModal({
           </label>
         </div>
 
-        <div className="actions">
+        <div className={styles.actions}>
           <button 
             onClick={handleClose} 
             disabled={isProcessing}
@@ -127,7 +128,6 @@ export function PaymentModal({
           <button 
             onClick={handlePay} 
             disabled={isProcessing}
-            className="pay-button"
           >
             {isProcessing ? '处理中...' : '立即支付'}
           </button>
