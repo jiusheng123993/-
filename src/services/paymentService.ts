@@ -1,5 +1,6 @@
 import { createOrder as apiCreateOrder, getOrder } from '../api/payment'
 import { paymentWebSocket } from './websocket'
+import type { DevAuthSession } from '../auth/devAuthSession'
 import type { OrderPaymentChannel } from '../entitlement/orderTypes'
 import type { PaymentParams, OrderDetailResponse } from '../server/types'
 
@@ -10,15 +11,15 @@ export interface PaymentResult {
 }
 
 export async function initiatePayment(
-  userId: string,
+  authSession: DevAuthSession,
   productId: string,
   channel: OrderPaymentChannel
 ): Promise<{ orderId: string; paymentParams: PaymentParams }> {
   const result = await apiCreateOrder({
-    userId,
+    userId: authSession.userId,
     productId,
     channel
-  })
+  }, authSession)
 
   return {
     orderId: result.orderId,
@@ -51,12 +52,13 @@ export async function waitForPayment(
 
 export async function pollPaymentStatus(
   orderId: string,
+  authSession: DevAuthSession,
   interval = 3000,
   maxAttempts = 40
 ): Promise<{ success: boolean; order?: OrderDetailResponse; error?: string }> {
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const order = await getOrder(orderId)
+      const order = await getOrder(orderId, authSession)
       if (order.status === 'paid') {
         return { success: true, order }
       }
@@ -64,7 +66,7 @@ export async function pollPaymentStatus(
         return { success: false, error: 'Payment failed' }
       }
     } catch {
-      // Ignore errors during polling
+      void 0
     }
     await new Promise((resolve) => setTimeout(resolve, interval))
   }

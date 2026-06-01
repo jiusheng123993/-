@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { usePayment } from './usePayment'
 import { initiatePayment, waitForPayment } from '../services/paymentService'
+import { defaultDevUserSession } from '../auth/devAuthSession'
 
 vi.mock('../services/paymentService')
 
@@ -11,13 +12,13 @@ describe('usePayment', () => {
   })
 
   it('should have initial idle state', () => {
-    const { result } = renderHook(() => usePayment('user-123'))
+    const { result } = renderHook(() => usePayment(defaultDevUserSession))
     expect(result.current.status).toBe('idle')
     expect(result.current.orderId).toBeUndefined()
     expect(result.current.error).toBeUndefined()
   })
 
-  it('should fail when userId is not provided', async () => {
+  it('should fail when session is not provided', async () => {
     const { result } = renderHook(() => usePayment(undefined))
 
     await act(async () => {
@@ -33,15 +34,15 @@ describe('usePayment', () => {
       orderId: 'order-123',
       paymentParams: { appId: 'test' }
     })
-    vi.mocked(waitForPayment).mockResolvedValueOnce({ success: true })
+    vi.mocked(waitForPayment).mockResolvedValueOnce({ success: true, orderId: 'order-123' })
 
-    const { result } = renderHook(() => usePayment('user-123'))
+    const { result } = renderHook(() => usePayment(defaultDevUserSession))
 
     await act(async () => {
       await result.current.startPayment('study_monthly', 'wechat')
     })
 
-    expect(initiatePayment).toHaveBeenCalledWith('user-123', 'study_monthly', 'wechat')
+    expect(initiatePayment).toHaveBeenCalledWith(defaultDevUserSession, 'study_monthly', 'wechat')
     expect(result.current.status).toBe('success')
     expect(result.current.orderId).toBe('order-123')
   })
@@ -53,10 +54,11 @@ describe('usePayment', () => {
     })
     vi.mocked(waitForPayment).mockResolvedValueOnce({
       success: false,
+      orderId: 'order-123',
       error: 'Payment cancelled'
     })
 
-    const { result } = renderHook(() => usePayment('user-123'))
+    const { result } = renderHook(() => usePayment(defaultDevUserSession))
 
     await act(async () => {
       await result.current.startPayment('study_monthly', 'wechat')
@@ -69,7 +71,7 @@ describe('usePayment', () => {
   it('should handle payment initiation error', async () => {
     vi.mocked(initiatePayment).mockRejectedValueOnce(new Error('Network error'))
 
-    const { result } = renderHook(() => usePayment('user-123'))
+    const { result } = renderHook(() => usePayment(defaultDevUserSession))
 
     await act(async () => {
       await result.current.startPayment('study_monthly', 'wechat')
@@ -84,9 +86,9 @@ describe('usePayment', () => {
       orderId: 'order-123',
       paymentParams: {}
     })
-    vi.mocked(waitForPayment).mockResolvedValueOnce({ success: true })
+    vi.mocked(waitForPayment).mockResolvedValueOnce({ success: true, orderId: 'order-123' })
 
-    const { result } = renderHook(() => usePayment('user-123'))
+    const { result } = renderHook(() => usePayment(defaultDevUserSession))
 
     await act(async () => {
       await result.current.startPayment('study_monthly', 'wechat')

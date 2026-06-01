@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { initiatePayment, waitForPayment, pollPaymentStatus } from './paymentService'
+import { defaultDevUserSession } from '../auth/devAuthSession'
 
 vi.mock('./websocket', () => ({
   paymentWebSocket: {
@@ -25,16 +26,21 @@ describe('PaymentService', () => {
         paymentParams: { appId: 'test' }
       })
 
-      const result = await initiatePayment('user-123', 'study_monthly', 'wechat')
+      const result = await initiatePayment(defaultDevUserSession, 'study_monthly', 'wechat')
       expect(result.orderId).toBe('order-123')
       expect(result.paymentParams).toEqual({ appId: 'test' })
+      expect(createOrder).toHaveBeenCalledWith({
+        userId: 'dev-user-001',
+        productId: 'study_monthly',
+        channel: 'wechat'
+      }, defaultDevUserSession)
     })
 
     it('should throw error when API fails', async () => {
       const { createOrder } = await import('../api/payment')
       vi.mocked(createOrder).mockRejectedValue(new Error('Network error'))
 
-      await expect(initiatePayment('user-123', 'study_monthly', 'wechat'))
+      await expect(initiatePayment(defaultDevUserSession, 'study_monthly', 'wechat'))
         .rejects.toThrow('Network error')
     })
   })
@@ -94,15 +100,16 @@ describe('PaymentService', () => {
         .mockResolvedValueOnce({ status: 'pending' })
         .mockResolvedValueOnce({ status: 'paid' })
 
-      const result = await pollPaymentStatus('order-123', 10, 3)
+      const result = await pollPaymentStatus('order-123', defaultDevUserSession, 10, 3)
       expect(result.success).toBe(true)
+      expect(getOrder).toHaveBeenCalledWith('order-123', defaultDevUserSession)
     })
 
     it('should return failure when order fails', async () => {
       const { getOrder } = await import('../api/payment')
       vi.mocked(getOrder).mockResolvedValue({ status: 'failed' })
 
-      const result = await pollPaymentStatus('order-123', 10, 3)
+      const result = await pollPaymentStatus('order-123', defaultDevUserSession, 10, 3)
       expect(result.success).toBe(false)
     })
 
@@ -110,9 +117,20 @@ describe('PaymentService', () => {
       const { getOrder } = await import('../api/payment')
       vi.mocked(getOrder).mockResolvedValue({ status: 'pending' })
 
-      const result = await pollPaymentStatus('order-123', 5, 3)
+      const result = await pollPaymentStatus('order-123', defaultDevUserSession, 5, 3)
       expect(result.success).toBe(false)
       expect(result.error).toBe('Payment timeout')
+    })
+
+    it('should keep polling after transient order query errors', async () => {
+      const { getOrder } = await import('../api/payment')
+      vi.mocked(getOrder)
+        .mockRejectedValueOnce(new Error('Temporary network error'))
+        .mockResolvedValueOnce({ status: 'paid' })
+
+      const result = await pollPaymentStatus('order-123', defaultDevUserSession, 5, 3)
+      expect(result.success).toBe(true)
+      expect(getOrder).toHaveBeenCalledTimes(2)
     })
   })
 })

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { usePayment } from '../../hooks/usePayment'
+import type { DevAuthSession } from '../../auth/devAuthSession'
 import type { OrderPaymentChannel } from '../../entitlement/orderTypes'
 import styles from './PaymentModal.module.css'
 
@@ -8,6 +9,7 @@ interface PaymentModalProps {
   productId: string
   productName: string
   amount: number
+  authSession?: DevAuthSession
   userId?: string
   onClose: () => void
   onSuccess?: () => void
@@ -18,12 +20,22 @@ export function PaymentModal({
   productId, 
   productName, 
   amount, 
+  authSession,
   userId,
   onClose, 
   onSuccess 
 }: PaymentModalProps) {
   const [channel, setChannel] = useState<OrderPaymentChannel>('wechat')
-  const { status, orderId, error, startPayment, reset } = usePayment(userId)
+  const resolvedAuthSession = useMemo<DevAuthSession | undefined>(() => {
+    if (authSession) return authSession
+    if (!userId) return undefined
+    return {
+      userId,
+      role: 'user',
+      displayName: userId
+    }
+  }, [authSession, userId])
+  const { status, orderId, error, startPayment, reset } = usePayment(resolvedAuthSession)
 
   if (!isOpen) return null
 

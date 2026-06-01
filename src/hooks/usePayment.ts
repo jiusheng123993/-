@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { initiatePayment, waitForPayment } from '../services/paymentService'
+import type { DevAuthSession } from '../auth/devAuthSession'
 import type { OrderPaymentChannel } from '../entitlement/orderTypes'
 import type { PaymentParams } from '../server/types'
 
@@ -25,12 +26,12 @@ interface PaymentState {
   error?: string
 }
 
-export function usePayment(userId: string | undefined) {
+export function usePayment(authSession: DevAuthSession | undefined) {
   const [state, setState] = useState<PaymentState>({ status: 'idle' })
 
   const startPayment = useCallback(
     async (productId: string, channel: OrderPaymentChannel) => {
-      if (!userId) {
+      if (!authSession) {
         setState({ status: 'failed', error: 'Please login first' })
         return
       }
@@ -38,7 +39,7 @@ export function usePayment(userId: string | undefined) {
       setState({ status: 'pending' })
 
       try {
-        const { orderId, paymentParams } = await initiatePayment(userId, productId, channel)
+        const { orderId, paymentParams } = await initiatePayment(authSession, productId, channel)
         setState({ status: 'processing', orderId })
 
         await invokePaymentSDK(channel, paymentParams)
@@ -54,7 +55,7 @@ export function usePayment(userId: string | undefined) {
         setState({ status: 'failed', error: (error as Error).message })
       }
     },
-    [userId]
+    [authSession]
   )
 
   const reset = useCallback(() => {

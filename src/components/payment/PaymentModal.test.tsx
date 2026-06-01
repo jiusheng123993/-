@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PaymentModal } from './PaymentModal'
+import { defaultDevUserSession } from '../../auth/devAuthSession'
 import { usePayment } from '../../hooks/usePayment'
 
 vi.mock('../../hooks/usePayment')
@@ -26,7 +27,7 @@ function renderModal(props: Partial<React.ComponentProps<typeof PaymentModal>> =
       productId="study_monthly"
       productName="学习会员月卡"
       amount={1800}
-      userId="user-1"
+      authSession={defaultDevUserSession}
       onClose={vi.fn()}
       onSuccess={vi.fn()}
       {...props}
@@ -164,9 +165,10 @@ describe('PaymentModal', () => {
     expect(screen.getByText('支付过程中出现问题')).toBeInTheDocument()
   })
 
-  it('passes undefined userId to usePayment for login guard compatibility', () => {
-    renderModal({ userId: undefined })
+  it('passes undefined authSession to usePayment for login guard compatibility', () => {
+    renderModal({ authSession: undefined })
 
     expect(usePayment).toHaveBeenCalledWith(undefined)
   })
+
 })

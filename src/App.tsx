@@ -50,6 +50,7 @@ import { paymentAdapters } from './entitlement/paymentAdapters'
 import type { Product } from './entitlement/productTypes'
 import type { Order } from './entitlement/orderTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
+import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
 import styles from './components/membership/MembershipPage.module.css'
 
 const navigationItems = [
@@ -227,6 +228,7 @@ export default function App() {
   const activeFocusTask =
     candidateFocusTask && candidateFocusTask.status === 'todo' ? candidateFocusTask : null
   const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
+  const [authSession, setAuthSession] = useState<DevAuthSession>(() => loadDevAuthSession())
   const [isMembershipOpen, setIsMembershipOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -253,7 +255,12 @@ export default function App() {
     return matchesSearch && matchesFamily
   })
 
-  const userId = localStorage.getItem('user_id') || 'anonymous'
+  useEffect(() => {
+    saveDevAuthSession(authSession)
+    localStorage.setItem('user_id', authSession.userId)
+  }, [authSession])
+
+  const userId = authSession.userId
   const quotaStatus = aiQuotaProvider.getQuotaStatus(userId)
   const totalQuota = 
     (quotaStatus.free?.remaining || 0) + 
@@ -269,6 +276,10 @@ export default function App() {
   }
   const currentTier = getCurrentTier()
   
+  const switchDevAuthRole = () => {
+    setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
+  }
+  
   const handleSubscribe = (product: Product) => {
     setSelectedProduct(product)
     setIsPaymentOpen(true)
@@ -277,9 +288,8 @@ export default function App() {
   const handlePayment = async (channel: 'wechat' | 'alipay' | 'apple') => {
     if (!selectedProduct) return
     
-    const userId = localStorage.getItem('user_id') || 'anonymous'
     const order = orderService.createOrder({
-      userId,
+      userId: authSession.userId,
       productId: selectedProduct.id,
       amount: selectedProduct.price,
       channel
@@ -300,9 +310,8 @@ export default function App() {
   }
   
   const userOrders = useMemo(() => {
-    const uid = localStorage.getItem('user_id') || 'anonymous'
-    return orderService.getOrdersByUser(uid).slice(0, 5)
-  }, [])
+    return orderService.getOrdersByUser(authSession.userId).slice(0, 5)
+  }, [authSession.userId])
   
   const hasActiveTrial = (code: string) => {
     return userTrials.some(t => t.code === code && !t.used)
@@ -698,7 +707,12 @@ export default function App() {
                 type="button"
                 onClick={() => {
                   if (isMembership) setIsMembershipOpen(true)
-                  if (isAdmin) setIsAdminConsoleOpen(true)
+                  if (isAdmin) {
+                    if (authSession.role !== 'admin') {
+                      setAuthSession(createRoleSession('admin'))
+                    }
+                    setIsAdminConsoleOpen(true)
+                  }
                 }}
               >
                 <Icon size={18} />
@@ -731,6 +745,9 @@ export default function App() {
             >
               <Zap size={14} />
               <span>AI {totalQuota}</span>
+            </button>
+            <button className="pill" onClick={switchDevAuthRole} type="button">
+              {authSession.role === 'admin' ? '管理员' : '用户'} · {authSession.userId}
             </button>
             <span className="pill">当前主题：{activeTheme.name}</span>
             <span className="pill">{workspaceState.preferences.themeMode === 'manual' ? '手动主题' : '场景推荐'}</span>
