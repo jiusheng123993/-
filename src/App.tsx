@@ -1553,52 +1553,6 @@ export default function App() {
                 </div>
               </section>
 
-              <section className="membership-tiers-section">
-                <h3>会员套餐</h3>
-                
-                {['study', 'agent', 'agent_plus'].map((tier, _tierIdx) => {
-                  const tierProducts = tier === 'study' ? studyProducts : tier === 'agent' ? agentProducts : agentPlusProducts
-                  const tierInfo = getTierInfo(tier)
-                  return (
-                    <div className={`membership-tier-group ${tier === 'agent' ? 'featured' : ''}`} key={tier}>
-                      <div className="membership-tier-group-header">
-                        <span className="membership-tier-name">{tierInfo.name}</span>
-                        <span className="membership-tier-badge" style={{ background: tierInfo.color }}>{tierInfo.badge}</span>
-                      </div>
-                      <div className="membership-period-grid">
-                        {tierProducts.map((product) => (
-                          <div className="membership-period-card" key={product.id}>
-                            <div className="membership-period-header">
-                              <span className="membership-period-label">{getPeriodLabel(product.period || '')}付</span>
-                              {product.originalPrice && (
-                                <span className="membership-period-save">省{formatPrice(product.originalPrice - product.price)}</span>
-                              )}
-                            </div>
-                            <div className="membership-period-price">
-                              {product.originalPrice && (
-                                <span className="original-price">{formatPrice(product.originalPrice)}</span>
-                              )}
-                              <span className="price">{formatPrice(product.price)}</span>
-                            </div>
-                            <ul className="membership-period-grants">
-                              {product.grants.slice(0, 4).map((grant, idx) => (
-                                <li key={idx}>{getGrantLabel(grant.code)}</li>
-                              ))}
-                              {product.grants.length > 4 && (
-                                <li className="more">+{product.grants.length - 4} 更多</li>
-                              )}
-                            </ul>
-                            <button className="membership-period-button" style={{ background: tierInfo.color }} onClick={() => handleSubscribe(product)}>
-                              立即订阅
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-              </section>
-
               <section className="membership-trial-section">
                 <h3>免费试用</h3>
                 <p className="membership-trial-desc">先体验再决定，开启会员试用</p>
@@ -1657,6 +1611,52 @@ export default function App() {
                     </div>
                   )}
                 </div>
+              </section>
+
+              <section className="membership-tiers-section">
+                <h3>会员套餐</h3>
+                
+                {['study', 'agent', 'agent_plus'].map((tier, _tierIdx) => {
+                  const tierProducts = tier === 'study' ? studyProducts : tier === 'agent' ? agentProducts : agentPlusProducts
+                  const tierInfo = getTierInfo(tier)
+                  return (
+                    <div className={`membership-tier-group ${tier === 'agent' ? 'featured' : ''}`} key={tier}>
+                      <div className="membership-tier-group-header">
+                        <span className="membership-tier-name">{tierInfo.name}</span>
+                        <span className="membership-tier-badge" style={{ background: tierInfo.color }}>{tierInfo.badge}</span>
+                      </div>
+                      <div className="membership-period-grid">
+                        {tierProducts.map((product) => (
+                          <div className="membership-period-card" key={product.id}>
+                            <div className="membership-period-header">
+                              <span className="membership-period-label">{getPeriodLabel(product.period || '')}付</span>
+                              {product.originalPrice && (
+                                <span className="membership-period-save">省{formatPrice(product.originalPrice - product.price)}</span>
+                              )}
+                            </div>
+                            <div className="membership-period-price">
+                              {product.originalPrice && (
+                                <span className="original-price">{formatPrice(product.originalPrice)}</span>
+                              )}
+                              <span className="price">{formatPrice(product.price)}</span>
+                            </div>
+                            <ul className="membership-period-grants">
+                              {product.grants.slice(0, 4).map((grant, idx) => (
+                                <li key={idx}>{getGrantLabel(grant.code)}</li>
+                              ))}
+                              {product.grants.length > 4 && (
+                                <li className="more">+{product.grants.length - 4} 更多</li>
+                              )}
+                            </ul>
+                            <button className="membership-period-button" style={{ background: tierInfo.color }} onClick={() => handleSubscribe(product)}>
+                              立即订阅
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </section>
 
               <section className="membership-benefits-section">
