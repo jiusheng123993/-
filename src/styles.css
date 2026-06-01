@@ -2930,6 +2930,122 @@ small,
   color: #16a34a;
 }
 
+.membership-renewal-section {
+  margin-bottom: 32px;
+}
+
+.membership-renewal-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.membership-renewal-desc {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.membership-renewal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 32px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.membership-renewal-empty span {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.membership-renewal-empty small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.membership-renewal-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #fef3c7, #fef9c3);
+  border: 1px solid #fcd34d;
+  border-radius: 16px;
+}
+
+.membership-renewal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.renewal-status {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.renewal-urgent {
+  color: #dc2626;
+}
+
+.renewal-soon {
+  color: #d97706;
+}
+
+.renewal-normal {
+  color: #16a34a;
+}
+
+.renewal-discount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discount-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  background: #dc2626;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.discount-text {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.discount-text strong {
+  color: #dc2626;
+  font-size: 18px;
+}
+
+.membership-renewal-button {
+  padding: 14px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.membership-renewal-button:hover {
+  opacity: 0.9;
+}
+
+.membership-renewal-button:active {
+  transform: scale(0.98);
+}
+
 @media (max-width: 768px) {
   .membership-tier-grid {
     grid-template-columns: 1fr;

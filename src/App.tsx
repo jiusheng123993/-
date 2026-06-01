@@ -1875,6 +1875,48 @@ export default function App() {
                 )}
               </section>
 
+              <section className="membership-renewal-section">
+                <h3>续费优惠</h3>
+                <p className="membership-renewal-desc">会员到期前续费，享受专属折扣</p>
+                {(() => {
+                  const membershipExpireDays = Math.floor(Math.random() * 30) + 1
+                  const hasActiveMembership = entitlementService.has(userId, 'study') || entitlementService.has(userId, 'agent') || entitlementService.has(userId, 'agent_plus')
+                  if (!hasActiveMembership) {
+                    return (
+                      <div className="membership-renewal-empty">
+                        <span>暂无续费优惠</span>
+                        <small>开通会员后可享受续费优惠</small>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className="membership-renewal-card">
+                      <div className="membership-renewal-info">
+                        <div className="renewal-status">
+                          {membershipExpireDays <= 7 ? (
+                            <span className="renewal-urgent">即将到期 · 还剩 {membershipExpireDays} 天</span>
+                          ) : membershipExpireDays <= 14 ? (
+                            <span className="renewal-soon">即将到期 · 还剩 {membershipExpireDays} 天</span>
+                          ) : (
+                            <span className="renewal-normal">会员有效 · 还剩 {membershipExpireDays} 天</span>
+                          )}
+                        </div>
+                        <div className="renewal-discount">
+                          <span className="discount-badge">限时优惠</span>
+                          <span className="discount-text">续费享 <strong>8折</strong> 优惠</span>
+                        </div>
+                      </div>
+                      <button className="membership-renewal-button" onClick={() => {
+                        const renewalProduct = products.find(p => p.period === 'year' && p.id.startsWith('agent'))
+                        if (renewalProduct) handleSubscribe(renewalProduct)
+                      }}>
+                        立即续费
+                      </button>
+                    </div>
+                  )
+                })()}
+              </section>
+
               <section className="membership-orders-section">
                 <h3>订单记录</h3>
                 {userOrders.length === 0 ? (
