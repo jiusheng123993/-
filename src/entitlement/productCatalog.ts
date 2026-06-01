@@ -83,6 +83,24 @@ export const productCatalog: Product[] = [
     visibleTo: '2026-09-30'
   },
   {
+    id: 'agent_quarterly',
+    name: 'Agent 会员·季付',
+    type: 'subscription',
+    period: 'quarter',
+    price: 17280,
+    originalPrice: 19200,
+    grants: [
+      { code: 'agent', durationDays: 90 },
+      { code: 'study', durationDays: 90 },
+      { code: 'avatar_rpm', durationDays: 90 },
+      { code: 'memory_sync', durationDays: 90 },
+      { code: 'evolution_ritual', durationDays: 90 },
+      { code: 'avatar_evolution', durationDays: 90 }
+    ],
+    channel: ['wechat', 'apple', 'alipay'],
+    active: true
+  },
+  {
     id: 'agent_yearly',
     name: 'Agent 会员·年付',
     type: 'subscription',
