@@ -12,7 +12,7 @@ const fixedNow = '2026-06-01T10:00:00.000Z'
 
 const defaultScope: MemoryScope = {
   userId: 'user-default',
-  projectId: 'personal-study-planner'
+  projectId: 'xinghuanhai'
 }
 
 const createEvent = (overrides: Partial<MemoryEvent> = {}): MemoryEvent => ({
@@ -41,7 +41,7 @@ describe('memoryStore', () => {
 
   it('appends and lists active memories by user and project scope', () => {
     const store = createInMemoryMemoryStore(createInitialMemoryState())
-    const otherScope = { userId: 'other-user', projectId: 'personal-study-planner' }
+    const otherScope = { userId: 'other-user', projectId: 'xinghuanhai' }
 
     store.appendEvent(createEvent({ id: 'memory-1', content: '用户喜欢中文详细解释' }))
     store.appendEvent(createEvent({ id: 'memory-2', scope: otherScope, content: '其他用户喜欢英文' }))

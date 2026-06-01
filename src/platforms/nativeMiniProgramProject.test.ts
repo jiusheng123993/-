@@ -73,7 +73,7 @@ describe('native WeChat Mini Program project', () => {
   it('uses WeChat DevTools project config without adding cross-platform framework dependencies', () => {
     const projectConfig = readJson<MiniProgramProjectConfig>('project.config.json')
 
-    expect(projectConfig.projectname).toBe('personal-study-planner-miniprogram')
+    expect(projectConfig.projectname).toBe('xinghuanhai-miniprogram')
     expect(projectConfig.miniprogramRoot).toBe('miniprogram/')
     expect(projectConfig.setting.es6).toBe(true)
     expect(projectConfig.setting.minified).toBe(true)

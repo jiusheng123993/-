@@ -8,7 +8,7 @@ const fixedNow = '2026-06-01T10:00:00.000Z'
 
 const defaultScope: MemoryScope = {
   userId: 'user-default',
-  projectId: 'personal-study-planner'
+  projectId: 'xinghuanhai'
 }
 
 const task: WorkspaceTask = {

@@ -1,6 +1,6 @@
 {
   "description": "GrowthOS native WeChat Mini Program",
-  "projectname": "personal-study-planner-miniprogram",
+  "projectname": "xinghuanhai-miniprogram",
   "miniprogramRoot": "miniprogram/",
   "compileType": "miniprogram",
   "appid": "touristappid",

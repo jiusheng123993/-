@@ -748,5 +748,5 @@ interface Order {
 |---|---|
 | `2026-06-01-memory-and-self-evolving-agent-design.md` | 记忆系统、Agent 自我进化机制、角色建模 |
 | `2026-06-01-companion-persona-system-design.md` | Persona 系统、临时客串、自定义 Persona、合规围栏、D 伏笔 |
-| `2026-05-31-personal-study-planner-design.md` | 任务/计划/专注核心模块 |
+| `2026-05-31-xinghuanhai-design.md` | 任务/计划/专注核心模块 |
 | `2026-06-01-user-centered-visual-persona-system-design.md` | 视觉主题与角色基础系统 |

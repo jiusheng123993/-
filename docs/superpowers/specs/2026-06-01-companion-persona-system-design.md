@@ -535,7 +535,7 @@ if (!r.ok) return { ok: false, reason: 'avatar_quota_empty' }
 | 会员档位、价格、AI 通用额度、Agent 能力分层、宣传话术红线、未成年保护红线 | `monetization-and-membership-design.md` |
 | 记忆系统、画像 Schema、自我进化机制、角色建模、PersonaPrivateMemory 预留、partnerMatching 字段预留 | `memory-and-self-evolving-agent-design.md` |
 | **Persona 关系结构（单主+客串）、6 个预设、临时客串机制、自定义 Persona、社区、5 层合规围栏、D 伏笔细节** | 本文档 |
-| 任务/计划/专注/数据周报核心模块 | `personal-study-planner-design.md` |
+| 任务/计划/专注/数据周报核心模块 | `xinghuanhai-design.md` |
 | 视觉主题与角色基础系统 | `user-centered-visual-persona-system-design.md` |
 
 任何关于 Persona / 陪伴 / 自定义 / 社区 / 未成年保护的需求变更，**首先看本文档**，相关数据契约 / 权益 / 价格变更需联动 monetization 文档与 memory-agent 文档同步更新。
