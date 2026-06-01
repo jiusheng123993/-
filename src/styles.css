@@ -2741,149 +2741,129 @@ small,
 }
 
 .membership-trial-section h3 {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text);
-  margin: 0 0 16px;
+  margin: 0 0 12px;
 }
 
 .membership-trial-desc {
   font-size: 14px;
   color: var(--muted);
-  margin: -8px 0 20px;
+  margin: -8px 0 16px;
 }
 
 .membership-trial-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-@media (max-width: 900px) {
-  .membership-trial-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .membership-trial-grid {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .membership-trial-card {
-  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
   background: var(--card-gradient);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
 .membership-trial-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
 }
 
 .membership-trial-card.featured {
   border-color: #8b5cf6;
   background: linear-gradient(135deg, #f5f3ff, #faf5ff);
-  position: relative;
-  overflow: hidden;
-}
-
-.membership-trial-card.featured::before {
-  content: '推荐';
-  position: absolute;
-  top: 12px;
-  right: -28px;
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 32px;
-  transform: rotate(45deg);
 }
 
 .membership-trial-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .membership-trial-name {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
 }
 
 .membership-trial-badge {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   color: white;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 999px;
 }
 
 .membership-trial-features {
+  display: flex;
+  gap: 16px;
   list-style: none;
   padding: 0;
-  margin: 0 0 20px;
-  font-size: 13px;
+  margin: 0;
+  font-size: 12px;
   color: var(--muted);
-  line-height: 2;
 }
 
 .membership-trial-features li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .membership-trial-features li::before {
-  content: '✓';
-  color: #10b981;
-  font-weight: 700;
+  content: '·';
+  color: var(--primary);
 }
 
 .membership-trial-button {
-  width: 100%;
-  padding: 12px 20px;
-  font-size: 14px;
+  padding: 8px 20px;
+  font-size: 13px;
   font-weight: 600;
   color: white;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .membership-trial-button:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .membership-trial-status {
-  grid-column: 1 / -1;
-  padding: 20px;
+  padding: 16px;
   background: linear-gradient(135deg, #f0fdf4, #f0f9ff);
   border: 1px solid #bbf7d0;
-  border-radius: 16px;
+  border-radius: 12px;
 }
 
 .membership-trial-status h4 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #166534;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 }
 
 .membership-trial-active {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.membership-trial-active:not(:last-child) {
   border-bottom: 1px solid #bbf7d0;
 }
 

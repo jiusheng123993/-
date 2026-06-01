@@ -274,25 +274,6 @@ export default function App() {
     setIsPaymentOpen(true)
   }
   
-  const handleTrial = () => {
-    const userId = localStorage.getItem('user_id') || 'anonymous'
-    const trialDays = 7
-    entitlementService.grant(userId, {
-      code: 'study',
-      scope: 'trial',
-      source: 'trial',
-      expireAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString()
-    })
-    entitlementService.grant(userId, {
-      code: 'ai_quota_study',
-      source: 'trial',
-      expireAt: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString(),
-      remaining: trialDays * 10
-    })
-    alert(`试用已开通！\n\n有效期：${trialDays} 天\nAI 额度：${trialDays * 10} 次\n\n刷新页面后即可体验会员功能。`)
-    setIsMembershipOpen(false)
-  }
-  
   const handlePayment = async (channel: 'wechat' | 'alipay' | 'apple') => {
     if (!selectedProduct) return
     
@@ -1569,21 +1550,6 @@ export default function App() {
                     <span className="membership-quota-label">加油包</span>
                     <span className="membership-quota-value">{quotaStatus.pack?.remaining ?? 0}</span>
                   </div>
-                </div>
-              </section>
-
-              <section className="membership-trial-section">
-                <div className="membership-trial-card">
-                  <div className="membership-trial-content">
-                    <h4>首次开通试用</h4>
-                    <p>无需付费，立即体验 7 天会员权益</p>
-                    <ul className="membership-trial-features">
-                      <li>✅ 高级主题全解锁</li>
-                      <li>✅ 云同步功能</li>
-                      <li>✅ 70 次 AI 额度</li>
-                    </ul>
-                  </div>
-                  <button className="membership-trial-button" onClick={handleTrial}>立即试用</button>
                 </div>
               </section>
 
