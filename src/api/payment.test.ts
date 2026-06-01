@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { createOrder, getOrder, getUserOrders } from './payment'
+import { createOrder, getOrder, getUserOrders, refundOrder } from './payment'
+import { defaultDevUserSession } from '../auth/devAuthSession'
 
 describe('Payment API', () => {
   let mockFetch: ReturnType<typeof vi.fn>
@@ -15,7 +16,7 @@ describe('Payment API', () => {
   })
 
   describe('createOrder', () => {
-    it('should create order successfully', async () => {
+    it('should create order successfully with auth header', async () => {
       const mockResponse = {
         orderId: 'order-123',
         amount: 1800,
@@ -27,17 +28,20 @@ describe('Payment API', () => {
       })
 
       const result = await createOrder({
-        userId: 'user-123',
+        userId: 'dev-user-001',
         productId: 'study_monthly',
         channel: 'wechat'
-      })
+      }, defaultDevUserSession)
 
       expect(result).toEqual(mockResponse)
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/orders'),
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer dev-user:dev-user-001'
+          }
         })
       )
     })
@@ -45,19 +49,19 @@ describe('Payment API', () => {
     it('should throw error when response is not ok', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        json: async () => ({ message: 'Invalid product' })
+        json: async () => ({ error: 'Invalid product' })
       })
 
       await expect(createOrder({
-        userId: 'user-123',
+        userId: 'dev-user-001',
         productId: 'invalid',
         channel: 'wechat'
-      })).rejects.toThrow('Invalid product')
+      }, defaultDevUserSession)).rejects.toThrow('Invalid product')
     })
   })
 
   describe('getOrder', () => {
-    it('should get order by id', async () => {
+    it('should get order by id with auth header', async () => {
       const mockOrder = {
         orderId: 'order-123',
         status: 'paid'
@@ -67,21 +71,28 @@ describe('Payment API', () => {
         json: async () => mockOrder
       })
 
-      const result = await getOrder('order-123')
+      const result = await getOrder('order-123', defaultDevUserSession)
       expect(result).toEqual(mockOrder)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/orders/order-123'),
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer dev-user:dev-user-001' }
+        })
+      )
     })
 
-    it('should throw error when order not found', async () => {
+    it('should throw response error when order not found', async () => {
       mockFetch.mockResolvedValueOnce({
-        ok: false
+        ok: false,
+        json: async () => ({ error: 'Order not found' })
       })
 
-      await expect(getOrder('invalid')).rejects.toThrow('Failed to get order')
+      await expect(getOrder('invalid', defaultDevUserSession)).rejects.toThrow('Order not found')
     })
   })
 
   describe('getUserOrders', () => {
-    it('should get user orders', async () => {
+    it('should get user orders with auth header', async () => {
       const mockOrders = [
         { orderId: 'order-1', status: 'paid' },
         { orderId: 'order-2', status: 'pending' }
@@ -91,16 +102,47 @@ describe('Payment API', () => {
         json: async () => mockOrders
       })
 
-      const result = await getUserOrders('user-123')
+      const result = await getUserOrders('dev-user-001', defaultDevUserSession)
       expect(result).toEqual(mockOrders)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/orders/user/dev-user-001'),
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer dev-user:dev-user-001' }
+        })
+      )
     })
 
     it('should throw error when fetch fails', async () => {
       mockFetch.mockResolvedValueOnce({
-        ok: false
+        ok: false,
+        json: async () => ({ error: 'Forbidden' })
       })
 
-      await expect(getUserOrders('user-123')).rejects.toThrow('Failed to get orders')
+      await expect(getUserOrders('dev-user-002', defaultDevUserSession)).rejects.toThrow('Forbidden')
+    })
+  })
+
+  describe('refundOrder', () => {
+    it('should refund order with auth header', async () => {
+      const mockOrder = { orderId: 'order-123', status: 'refunded' }
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrder
+      })
+
+      const result = await refundOrder('order-123', defaultDevUserSession)
+
+      expect(result).toEqual(mockOrder)
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/orders/order-123/refund'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer dev-user:dev-user-001'
+          }
+        })
+      )
     })
   })
 })
