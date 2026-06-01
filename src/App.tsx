@@ -230,6 +230,8 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false)
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
+  const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
+  const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -317,6 +319,26 @@ export default function App() {
       expireAt: expireTime
     })
     alert(`试用已开启！您将享受 ${durationDays} 天的会员权益。`)
+  }
+  
+  const handleRedeemCoupon = (code: string) => {
+    if (!code.trim()) {
+      alert('请输入优惠券码')
+      return
+    }
+    const validCoupons: Record<string, {type: string; discount: number}> = {
+      'WELCOME10': { type: 'percent', discount: 10 },
+      'NEWUSER50': { type: 'amount', discount: 50 },
+      'AGENT2024': { type: 'percent', discount: 20 },
+      'VIP888': { type: 'amount', discount: 100 }
+    }
+    const coupon = validCoupons[code.toUpperCase()]
+    if (coupon) {
+      setUserCoupons(prev => [...prev, { code: code.toUpperCase(), ...coupon, used: false }])
+      alert(`优惠券 ${code} 兑换成功！`)
+    } else {
+      alert('优惠券码无效')
+    }
   }
   
   const getProductName = (productId: string) => {
@@ -1771,6 +1793,86 @@ export default function App() {
                     </div>
                   )}
                 </div>
+              </section>
+
+              <section className="membership-invite-section">
+                <h3>邀请好友</h3>
+                <p className="membership-invite-desc">邀请好友注册，双方都可获得奖励</p>
+                <div className="membership-invite-card">
+                  <div className="membership-invite-info">
+                    <div className="membership-invite-reward">
+                      <span className="reward-icon">🎁</span>
+                      <div className="reward-details">
+                        <span className="reward-title">邀请奖励</span>
+                        <span className="reward-value">成功邀请 1 人，双方各得 <strong>7 天会员</strong></span>
+                      </div>
+                    </div>
+                    <div className="membership-invite-reward">
+                      <span className="reward-icon">👥</span>
+                      <div className="reward-details">
+                        <span className="reward-title">邀请人数</span>
+                        <span className="reward-value">已邀请 <strong>{inviteRewards.length}</strong> 人</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="membership-invite-actions">
+                    <button className="membership-invite-copy" onClick={() => {
+                      const inviteLink = `${window.location.origin}?invite=${userId}`
+                      navigator.clipboard.writeText(inviteLink)
+                      alert('邀请链接已复制到剪贴板！')
+                    }}>
+                      复制邀请链接
+                    </button>
+                  </div>
+                  {inviteRewards.length > 0 && (
+                    <div className="membership-invite-list">
+                      <h4>邀请记录</h4>
+                      {inviteRewards.map((reward, i) => (
+                        <div key={i} className="membership-invite-item">
+                          <span className="invitee-name">{reward.inviteeName}</span>
+                          <span className={`invite-status ${reward.status}`}>{reward.status === 'active' ? '已激活' : '待激活'}</span>
+                          <span className="invite-reward">{reward.rewardDays}天</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="membership-coupon-section">
+                <h3>优惠券</h3>
+                <p className="membership-coupon-desc">输入优惠券码，享受专属折扣</p>
+                <div className="membership-coupon-input-group">
+                  <input 
+                    type="text" 
+                    className="membership-coupon-input" 
+                    placeholder="输入优惠券码"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement
+                        handleRedeemCoupon(input.value)
+                        input.value = ''
+                      }
+                    }}
+                  />
+                  <button className="membership-coupon-apply" onClick={(e) => {
+                    const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement
+                    handleRedeemCoupon(input.value)
+                    input.value = ''
+                  }}>使用</button>
+                </div>
+                {userCoupons.length > 0 && (
+                  <div className="membership-coupon-list">
+                    <h4>我的优惠券</h4>
+                    {userCoupons.filter(c => !c.used).map((coupon, i) => (
+                      <div key={i} className="membership-coupon-card">
+                        <span className="coupon-discount">{coupon.type === 'percent' ? `${coupon.discount}% 折扣` : `¥${coupon.discount} 减免`}</span>
+                        <span className="coupon-code">{coupon.code}</span>
+                        <span className="coupon-status">未使用</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
 
               <section className="membership-orders-section">
