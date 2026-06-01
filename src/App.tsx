@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
   Bot,
@@ -265,20 +265,20 @@ export default function App() {
   }, [authSession])
 
   const userId = authSession.userId
-  const quotaStatus = aiQuotaProvider.getQuotaStatus(userId)
-  const totalQuota = 
+  const quotaStatus = useMemo(() => aiQuotaProvider.getQuotaStatus(userId), [userId, aiQuotaProvider])
+  const totalQuota = useMemo(() => 
     (quotaStatus.free?.remaining || 0) + 
     (quotaStatus.study?.remaining || 0) + 
     (quotaStatus.agent?.remaining || 0) + 
     (quotaStatus.pack?.remaining || 0)
+  , [quotaStatus])
   
-  const getCurrentTier = () => {
+  const currentTier = useMemo(() => {
     if (entitlementService.has(userId, 'agent_plus')) return { level: 'agent_plus', label: 'Agent PLUS', color: '#8b5cf6' }
     if (entitlementService.has(userId, 'agent')) return { level: 'agent', label: 'Agent 会员', color: '#6366f1' }
     if (entitlementService.has(userId, 'study')) return { level: 'study', label: '学习会员', color: '#10b981' }
     return { level: 'free', label: '免费用户', color: '#94a3b8' }
-  }
-  const currentTier = getCurrentTier()
+  }, [userId, entitlementService])
   const memoryScope = useMemo<MemoryScope>(() => ({
     userId,
     projectId: 'growth-workbench'
@@ -289,10 +289,10 @@ export default function App() {
   const [memoryObserver] = useState(
     () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null
   )
-  const refreshMemoryEvents = () => {
+  const refreshMemoryEvents = useCallback(() => {
     if (!memoryStore) return
     setMemoryEvents(memoryStore.listEvents(memoryScope))
-  }
+  }, [memoryStore, memoryScope])
   
   const switchDevAuthRole = () => {
     setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
@@ -1220,6 +1220,34 @@ export default function App() {
             )}
           </section>
         </ExpandableCard>
+
+        <section className="panel side-card memory-insights-card" aria-label="记忆洞察">
+          <h2>🧠 记忆洞察</h2>
+          <h3>近期上下文</h3>
+          {workspaceState.focusSessions.length > 0 ? (
+            <ul className="memory-events-list">
+              {workspaceState.focusSessions.slice(0, 4).map((session) => (
+                <li key={session.id}>
+                  <span className="memory-event-time">
+                    {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <span className="memory-event-content">
+                    完成 {session.minutes} 分钟专注：{session.taskTitle}
+                  </span>
+                  <button
+                    className="memory-forget-btn"
+                    onClick={() => console.log('Forget:', session.id)}
+                    type="button"
+                  >
+                    忘记
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty-state">暂无记忆记录，完成专注后会显示在这里。</p>
+          )}
+        </section>
 
         <ExpandableCard
           expandedTitle={`${activePersona.aiRole} · AI 行动教练`}
