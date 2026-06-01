@@ -13,6 +13,7 @@ describe('workspaceStore', () => {
     expect(state.integrations.ai.providerId).toBe('deepseek')
     expect(state.tasks.some((task) => task.workspaceType === 'work')).toBe(true)
     expect(state.tasks.some((task) => task.workspaceType === 'growth')).toBe(true)
+    expect(state.focusSessions).toEqual([])
   })
 
   it('saves and loads state through the workspace provider contract', () => {

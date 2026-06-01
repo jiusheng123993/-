@@ -69,6 +69,16 @@ export type SyncSettings = {
 
 export type ThemeMode = 'persona-recommended' | 'manual'
 
+export type FocusSessionRecord = {
+  id: string
+  taskId: string
+  taskTitle: string
+  workspaceType: WorkspaceType
+  minutes: number
+  rewardXp: number
+  completedAt: string
+}
+
 export type WorkspaceState = {
   goals: WorkspaceGoal[]
   tasks: WorkspaceTask[]
@@ -76,6 +86,7 @@ export type WorkspaceState = {
   reviews: ReviewItem[]
   actionItems: ActionItem[]
   growth: GrowthState
+  focusSessions: FocusSessionRecord[]
   preferences: {
     themeId: ThemeId
     themeMode: ThemeMode
@@ -283,6 +294,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
     streakDays: 12,
     achievements: 23
   },
+  focusSessions: [],
   preferences: {
     themeId: 'minimal-premium',
     themeMode: 'persona-recommended',
@@ -353,6 +365,7 @@ const isWorkspaceState = (state: unknown): state is WorkspaceState => {
 
 const normalizeWorkspaceState = (state: WorkspaceState): WorkspaceState => ({
   ...state,
+  focusSessions: Array.isArray(state.focusSessions) ? state.focusSessions : [],
   preferences: {
     ...state.preferences,
     themeMode: state.preferences.themeMode ?? 'manual'

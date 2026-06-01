@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
 const openThemeLibrary = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -18,6 +18,10 @@ describe('App', () => {
   beforeEach(() => {
     window.localStorage.clear()
     document.documentElement.removeAttribute('data-theme')
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders the exam student persona dashboard', () => {
@@ -157,6 +161,27 @@ describe('App', () => {
     expect(growthCard).toHaveStyle({ background: 'linear-gradient(135deg, #f7f3e8 0%, #ece5d3 100%)' })
   })
 
+  it('shows a desktop focus overview based on the active persona tasks', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    expect(screen.getByRole('region', { name: '桌面专注概览' })).toBeInTheDocument()
+    expect(screen.getAllByText('33%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('2 个待办').length).toBeGreaterThan(0)
+    expect(screen.getByText('95 分钟')).toBeInTheDocument()
+    expect(screen.getAllByText('1 个已完成').length).toBeGreaterThan(0)
+    expect(screen.getByText('60:00')).toBeInTheDocument()
+    expect(screen.getAllByText('完成高数极限专题 20 题').length).toBeGreaterThan(0)
+
+    await user.click(screen.getByRole('button', { name: /职场办公/ }))
+
+    expect(screen.getAllByText('0%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('2 个待办').length).toBeGreaterThan(0)
+    expect(screen.getByText('75 分钟')).toBeInTheDocument()
+    expect(screen.getByText('45:00')).toBeInTheDocument()
+    expect(screen.getAllByText('补齐项目首页结构说明').length).toBeGreaterThan(0)
+  })
+
   it('keeps the manually selected theme when switching persona workflows', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -222,5 +247,97 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '内容生产线' })).toBeInTheDocument()
     expect(screen.getByText('选题转化率')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'AI 选题策划' })).toBeInTheDocument()
+  })
+
+  it('binds the next persona task to the focus timer and counts down to completion', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
+    render(<App />)
+
+    const timerCard = screen.getByRole('region', { name: '任务专注计时器' })
+    expect(within(timerCard).getByText('60:00')).toBeInTheDocument()
+
+    const startButton = within(timerCard).getByRole('button', { name: '绑定任务开始' })
+    await user.click(startButton)
+
+    expect(within(timerCard).getByRole('button', { name: '暂停专注' })).toBeInTheDocument()
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000)
+    })
+
+    expect(within(timerCard).getByText('59:58')).toBeInTheDocument()
+
+    await user.click(within(timerCard).getByRole('button', { name: '暂停专注' }))
+    expect(within(timerCard).getByRole('button', { name: '继续专注' })).toBeInTheDocument()
+
+    await act(async () => {
+      vi.advanceTimersByTime((59 * 60 + 58) * 1000)
+    })
+    expect(within(timerCard).getByText('59:58')).toBeInTheDocument()
+
+    await user.click(within(timerCard).getByRole('button', { name: '继续专注' }))
+    await act(async () => {
+      vi.advanceTimersByTime((59 * 60 + 58) * 1000)
+    })
+    await act(async () => {
+      vi.advanceTimersByTime(50)
+    })
+
+    expect(within(timerCard).getByText('35:00')).toBeInTheDocument()
+    expect(within(timerCard).getByText('背诵四级核心词 80 个')).toBeInTheDocument()
+    expect(screen.getByText('Lv. 18')).toBeInTheDocument()
+    expect(screen.getByText('24 个成就 · 1320 XP')).toBeInTheDocument()
+    expect(within(timerCard).getByRole('button', { name: '绑定任务开始' })).toBeInTheDocument()
+
+    const historyCard = screen.getByRole('region', { name: '最近专注会话' })
+    expect(within(historyCard).getByText('完成高数极限专题 20 题')).toBeInTheDocument()
+    expect(within(historyCard).getByText(/60 分钟 · 60 XP/)).toBeInTheDocument()
+  })
+
+  it('lets the user adjust focus duration before starting and shows stable countdown', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
+    render(<App />)
+
+    const timerCard = screen.getByRole('region', { name: '任务专注计时器' })
+    const decrease = within(timerCard).getByRole('button', { name: '减少专注时长' })
+    const increase = within(timerCard).getByRole('button', { name: '增加专注时长' })
+    const durationInput = within(timerCard).getByLabelText('专注时长（分钟）') as HTMLInputElement
+
+    expect(durationInput.value).toBe('60')
+    expect(within(timerCard).getByText('60:00')).toBeInTheDocument()
+
+    await user.click(decrease)
+    await user.click(decrease)
+    expect(durationInput.value).toBe('50')
+    expect(within(timerCard).getByText('50:00')).toBeInTheDocument()
+    expect(within(timerCard).getByText(/今天 · 50 XP/)).toBeInTheDocument()
+
+    await user.click(increase)
+    expect(durationInput.value).toBe('55')
+    expect(within(timerCard).getByText('55:00')).toBeInTheDocument()
+
+    await user.click(within(timerCard).getByRole('button', { name: '绑定任务开始' }))
+
+    await act(async () => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(within(timerCard).getByText('54:59')).toBeInTheDocument()
+
+    expect(decrease).toBeDisabled()
+    expect(increase).toBeDisabled()
+    expect(durationInput).toBeDisabled()
+
+    await user.click(within(timerCard).getByRole('button', { name: '暂停专注' }))
+    await user.click(within(timerCard).getByRole('button', { name: '重置' }))
+
+    expect(within(timerCard).getByText('60:00')).toBeInTheDocument()
+
+    await user.click(within(timerCard).getByRole('button', { name: '绑定任务开始' }))
+    await act(async () => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(within(timerCard).getByText('59:59')).toBeInTheDocument()
   })
 })

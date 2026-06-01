@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
   BookOpen,
   Bot,
@@ -7,8 +7,10 @@ import {
   Clock3,
   Flame,
   LineChart,
+  Minus,
   MonitorSmartphone,
   Palette,
+  Plus,
   Sparkles,
   Target,
   Trophy
@@ -17,6 +19,7 @@ import { createAiPromptDraft, getAiProviderById } from './ai/aiProvider'
 import {
   createBrowserWorkspaceStore,
   createInitialWorkspaceState,
+  type FocusSessionRecord,
   type WorkspaceState,
   type WorkspaceType
 } from './data/workspaceStore'
@@ -56,10 +59,11 @@ const themeFamilyLabels: Record<ThemeAesthetic, string> = {
   anime: '二次元',
   morandi: '莫兰迪',
   business: '商务',
-  night: '夜间'
+  night: '夜间',
+  clash: '撞色'
 }
 
-const themeFamilyOrder: ThemeAesthetic[] = ['minimal', 'dopamine', 'ink', 'chinese', 'anime', 'morandi', 'business', 'night']
+const themeFamilyOrder: ThemeAesthetic[] = ['minimal', 'dopamine', 'clash', 'ink', 'chinese', 'anime', 'morandi', 'business', 'night']
 
 const themeFamilies = themeFamilyOrder.map((aesthetic) => ({
   aesthetic,
@@ -130,6 +134,8 @@ export default function App() {
   const visibleTasks = workspaceState.tasks.filter((task) => task.workspaceType === activeWorkspaceType)
   const todoTasks = visibleTasks.filter((task) => task.status === 'todo')
   const completedTasks = visibleTasks.filter((task) => task.status === 'done')
+  const totalFocusMinutes = todoTasks.reduce((total, task) => total + task.minutes, 0)
+  const nextFocusTask = todoTasks[0]
   const activeProvider = getAiProviderById(workspaceState.integrations.ai.providerId)
   const promptDraft = createAiPromptDraft(activeProvider.id, {
     kind: activePersona.aiActions[0],
@@ -139,6 +145,18 @@ export default function App() {
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
   const [themeSearchQuery, setThemeSearchQuery] = useState('')
+  const [focusTaskId, setFocusTaskId] = useState<string | null>(null)
+  const [focusEndsAt, setFocusEndsAt] = useState<number | null>(null)
+  const [focusPausedRemainingMs, setFocusPausedRemainingMs] = useState<number | null>(null)
+  const [focusNow, setFocusNow] = useState<number>(() => Date.now())
+  const [focusDurationDraft, setFocusDurationDraft] = useState<Record<string, number>>({})
+  const focusIntervalRef = useRef<number | null>(null)
+  const isFocusRunning = focusEndsAt !== null
+  const candidateFocusTask = focusTaskId
+    ? workspaceState.tasks.find((task) => task.id === focusTaskId) ?? null
+    : null
+  const activeFocusTask =
+    candidateFocusTask && candidateFocusTask.status === 'todo' ? candidateFocusTask : null
   const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
@@ -170,6 +188,84 @@ export default function App() {
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [isThemePickerOpen])
+
+  useEffect(() => {
+    if (!isFocusRunning) {
+      if (focusIntervalRef.current !== null) {
+        window.clearInterval(focusIntervalRef.current)
+        focusIntervalRef.current = null
+      }
+      return
+    }
+
+    focusIntervalRef.current = window.setInterval(() => {
+      setFocusNow(Date.now())
+    }, 250)
+
+    return () => {
+      if (focusIntervalRef.current !== null) {
+        window.clearInterval(focusIntervalRef.current)
+        focusIntervalRef.current = null
+      }
+    }
+  }, [isFocusRunning])
+
+  const remainingMsFromEnds = focusEndsAt !== null ? Math.max(0, focusEndsAt - focusNow) : 0
+  const focusRemainingSeconds =
+    focusEndsAt !== null
+      ? Math.round(remainingMsFromEnds / 1000)
+      : focusPausedRemainingMs !== null
+        ? Math.round(focusPausedRemainingMs / 1000)
+        : 0
+
+  useEffect(() => {
+    if (focusEndsAt === null || remainingMsFromEnds > 0) return
+
+    const completedTaskId = focusTaskId
+    const finish = () => {
+      setFocusEndsAt(null)
+      setFocusPausedRemainingMs(null)
+      if (!completedTaskId) return
+
+      setWorkspaceState((state) => {
+        const target = state.tasks.find((task) => task.id === completedTaskId)
+        if (!target || target.status === 'done') return state
+
+        const session: FocusSessionRecord = {
+          id: `focus-${Date.now()}`,
+          taskId: target.id,
+          taskTitle: target.title,
+          workspaceType: target.workspaceType,
+          minutes: target.minutes,
+          rewardXp: target.rewardXp,
+          completedAt: new Date().toISOString()
+        }
+
+        return {
+          ...state,
+          tasks: state.tasks.map((task) =>
+            task.id === completedTaskId ? { ...task, status: 'done', dueLabel: '已完成' } : task
+          ),
+          growth: {
+            ...state.growth,
+            experience: state.growth.experience + target.rewardXp,
+            achievements: state.growth.achievements + 1
+          },
+          focusSessions: [session, ...state.focusSessions].slice(0, 20)
+        }
+      })
+      setFocusTaskId(null)
+      setFocusDurationDraft((current) => {
+        if (!(completedTaskId in current)) return current
+        const next = { ...current }
+        delete next[completedTaskId]
+        return next
+      })
+    }
+
+    const handle = window.setTimeout(finish, 0)
+    return () => window.clearTimeout(handle)
+  }, [focusEndsAt, remainingMsFromEnds, focusTaskId])
 
   const openThemePicker = () => {
     setThemeSearchQuery('')
@@ -218,6 +314,88 @@ export default function App() {
         }
       }
     })
+  }
+
+  const focusDisplayTask = activeFocusTask ?? nextFocusTask
+  const FOCUS_MIN_MINUTES = 5
+  const FOCUS_MAX_MINUTES = 180
+  const FOCUS_STEP_MINUTES = 5
+  const focusTargetMinutes = focusDisplayTask
+    ? focusDurationDraft[focusDisplayTask.id] ?? focusDisplayTask.minutes
+    : 25
+
+  const focusSeconds = activeFocusTask
+    ? focusRemainingSeconds
+    : focusTargetMinutes * 60
+  const focusMinuteText = String(Math.floor(focusSeconds / 60)).padStart(2, '0')
+  const focusSecondText = String(focusSeconds % 60).padStart(2, '0')
+  const focusRewardXp = focusDisplayTask
+    ? Math.round((focusDisplayTask.rewardXp * focusTargetMinutes) / focusDisplayTask.minutes)
+    : 0
+
+  const adjustFocusDuration = (delta: number) => {
+    if (!focusDisplayTask || isFocusRunning) return
+    const next = Math.min(
+      FOCUS_MAX_MINUTES,
+      Math.max(FOCUS_MIN_MINUTES, focusTargetMinutes + delta)
+    )
+    if (next === focusTargetMinutes) return
+    setFocusDurationDraft((current) => ({ ...current, [focusDisplayTask.id]: next }))
+    setFocusPausedRemainingMs(null)
+  }
+
+  const handleFocusDurationInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!focusDisplayTask || isFocusRunning) return
+    const raw = Number(event.target.value)
+    if (!Number.isFinite(raw)) return
+    const clamped = Math.min(FOCUS_MAX_MINUTES, Math.max(FOCUS_MIN_MINUTES, Math.round(raw)))
+    setFocusDurationDraft((current) => ({ ...current, [focusDisplayTask.id]: clamped }))
+    setFocusPausedRemainingMs(null)
+  }
+
+  const startFocusTimer = () => {
+    if (activeFocusTask) {
+      const targetMs = focusTargetMinutes * 60 * 1000
+      const remainingMs = focusPausedRemainingMs ?? targetMs
+      const now = Date.now()
+      setFocusEndsAt(now + remainingMs)
+      setFocusNow(now)
+      setFocusPausedRemainingMs(null)
+      return
+    }
+
+    if (!nextFocusTask) return
+    const now = Date.now()
+    const minutes = focusDurationDraft[nextFocusTask.id] ?? nextFocusTask.minutes
+    setFocusTaskId(nextFocusTask.id)
+    setFocusEndsAt(now + minutes * 60 * 1000)
+    setFocusNow(now)
+    setFocusPausedRemainingMs(null)
+  }
+
+  const pauseFocusTimer = () => {
+    if (focusEndsAt === null) return
+    const now = Date.now()
+    const remainingMs = Math.max(0, focusEndsAt - now)
+    setFocusPausedRemainingMs(remainingMs)
+    setFocusEndsAt(null)
+    setFocusNow(now)
+  }
+
+  const resetFocusTimer = () => {
+    const taskIdToClear = activeFocusTask?.id ?? focusDisplayTask?.id ?? null
+    setFocusEndsAt(null)
+    setFocusPausedRemainingMs(null)
+    setFocusTaskId(null)
+    setFocusNow(Date.now())
+    if (taskIdToClear) {
+      setFocusDurationDraft((current) => {
+        if (!(taskIdToClear in current)) return current
+        const next = { ...current }
+        delete next[taskIdToClear]
+        return next
+      })
+    }
   }
 
   return (
@@ -308,6 +486,19 @@ export default function App() {
             <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} XP</strong>
           </section>
 
+          <section className="card focus-brief-card" aria-label="桌面专注概览">
+            <div className="card-heading compact"><h2>桌面专注概览</h2><Clock3 size={20} /></div>
+            <div className="focus-brief-ring" style={{ '--focus-progress': `${weeklyProgress}%` } as CSSProperties}>
+              <strong>{weeklyProgress}%</strong>
+              <span>完成率</span>
+            </div>
+            <div className="focus-brief-meta">
+              <span>{todoTasks.length} 个待办</span>
+              <span>{totalFocusMinutes} 分钟</span>
+              <span>{completedTasks.length} 个已完成</span>
+            </div>
+          </section>
+
           <section className="card">
             <div className="card-heading compact"><h2>用户痛点</h2><BookOpen size={20} /></div>
             <div className="persona-brief">
@@ -343,10 +534,84 @@ export default function App() {
           </div>
         </section>
 
-        <section className="panel side-card timer-card">
+        <section className="panel side-card timer-card" aria-label="任务专注计时器">
           <h2>任务专注</h2>
-          <strong>25:00</strong>
-          <button type="button">绑定任务开始</button>
+          <strong>{`${focusMinuteText}:${focusSecondText}`}</strong>
+          <p>{focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}</p>
+          <small>
+            {focusDisplayTask
+              ? `${focusDisplayTask.dueLabel} · ${focusRewardXp} XP`
+              : '可先切换场景或新增任务'}
+          </small>
+          <div className="duration-control" aria-label="自定义专注时长">
+            <button
+              type="button"
+              className="duration-step"
+              disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes <= FOCUS_MIN_MINUTES}
+              onClick={() => adjustFocusDuration(-FOCUS_STEP_MINUTES)}
+              aria-label="减少专注时长"
+            >
+              <Minus size={16} strokeWidth={3} aria-hidden="true" />
+            </button>
+            <label className="duration-input">
+              <input
+                type="number"
+                min={FOCUS_MIN_MINUTES}
+                max={FOCUS_MAX_MINUTES}
+                step={1}
+                value={focusTargetMinutes}
+                disabled={!focusDisplayTask || isFocusRunning}
+                onChange={handleFocusDurationInput}
+                aria-label="专注时长（分钟）"
+              />
+              <span>分钟</span>
+            </label>
+            <button
+              type="button"
+              className="duration-step"
+              disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes >= FOCUS_MAX_MINUTES}
+              onClick={() => adjustFocusDuration(FOCUS_STEP_MINUTES)}
+              aria-label="增加专注时长"
+            >
+              <Plus size={16} strokeWidth={3} aria-hidden="true" />
+            </button>
+          </div>
+          <div className="timer-actions">
+            <button
+              className="timer-primary"
+              disabled={!nextFocusTask && !activeFocusTask}
+              onClick={isFocusRunning ? pauseFocusTimer : startFocusTimer}
+              type="button"
+            >
+              {isFocusRunning ? '暂停专注' : activeFocusTask ? '继续专注' : '绑定任务开始'}
+            </button>
+            <button
+              className="timer-secondary"
+              disabled={!activeFocusTask && focusPausedRemainingMs === null}
+              onClick={resetFocusTimer}
+              type="button"
+            >
+              重置
+            </button>
+          </div>
+        </section>
+
+        <section className="panel side-card focus-history-card" aria-label="最近专注会话">
+          <h2>最近专注</h2>
+          {workspaceState.focusSessions.length === 0 ? (
+            <p className="empty-state">完成首个任务后，会自动沉淀到这里。</p>
+          ) : (
+            <ul className="focus-history-list">
+              {workspaceState.focusSessions.slice(0, 3).map((session) => (
+                <li key={session.id}>
+                  <strong>{session.taskTitle}</strong>
+                  <small>
+                    {session.minutes} 分钟 · {session.rewardXp} XP · {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                  </small>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="panel side-card ai-card">
