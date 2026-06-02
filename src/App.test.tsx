@@ -174,7 +174,8 @@ describe('App', () => {
     expect(screen.getByText('60:00')).toBeInTheDocument()
     expect(screen.getAllByText('完成高数极限专题 20 题').length).toBeGreaterThan(0)
 
-    await user.click(screen.getByRole('button', { name: /职场办公/ }))
+    await user.click(screen.getByRole('button', { name: /切换用户场景/ }))
+    await user.click(screen.getByRole('option', { name: /.*职场办公.*/ }))
 
     expect(screen.getAllByText('0%').length).toBeGreaterThan(0)
     expect(screen.getAllByText('2 个待办').length).toBeGreaterThan(0)

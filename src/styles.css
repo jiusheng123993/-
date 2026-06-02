@@ -4105,3 +4105,392 @@ small,
     padding: 24px;
   }
 }
+
+/* Persona Switcher */
+.persona-switcher {
+  position: relative;
+  width: 100%;
+}
+
+.persona-switcher-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-gradient);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.persona-switcher-trigger:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.persona-switcher-active {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.persona-switcher-active svg {
+  color: var(--primary);
+}
+
+.persona-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  animation: personaDropdownFade 200ms ease-out;
+}
+
+@keyframes personaDropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.persona-switcher-group {
+  margin-bottom: 8px;
+}
+
+.persona-switcher-group-label {
+  display: block;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.persona-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.persona-switcher-item:hover {
+  background: var(--card-gradient);
+}
+
+.persona-switcher-item.active {
+  background: color-mix(in srgb, var(--primary), transparent 90%);
+  border: 1px solid color-mix(in srgb, var(--primary), transparent 70%);
+}
+
+.persona-switcher-item.custom {
+  border-left: 3px solid var(--primary);
+}
+
+.persona-switcher-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.persona-switcher-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.persona-switcher-item-desc {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.persona-switcher-item-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.persona-switcher-item:hover .persona-switcher-item-actions {
+  opacity: 1;
+}
+
+.persona-switcher-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.persona-switcher-action-btn:hover {
+  background: var(--card-gradient);
+  color: var(--primary);
+}
+
+.persona-switcher-action-btn.danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.persona-switcher-footer {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.persona-switcher-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.persona-switcher-create-btn:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 95%);
+}
+
+/* Persona Creator Modal */
+.persona-creator-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  animation: personaModalFade 200ms ease-out;
+}
+
+@keyframes personaModalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.persona-creator-modal {
+  width: min(560px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  background: var(--surface);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  animation: personaModalRise 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes personaModalRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.persona-creator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.persona-creator-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.persona-creator-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--card-gradient);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.persona-creator-close:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.persona-creator-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.persona-creator-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.persona-creator-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.persona-creator-progress span {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.persona-creator-step h4 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.persona-creator-field {
+  margin-bottom: 16px;
+}
+
+.persona-creator-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.persona-creator-field input,
+.persona-creator-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-gradient);
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.persona-creator-field input:focus,
+.persona-creator-field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary), transparent 85%);
+}
+
+.persona-creator-field input::placeholder,
+.persona-creator-field textarea::placeholder {
+  color: var(--muted);
+}
+
+.persona-creator-module {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: var(--card-gradient);
+}
+
+.persona-creator-module h5 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.persona-creator-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.persona-creator-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.persona-creator-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.persona-creator-btn.primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.persona-creator-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.persona-creator-btn.secondary {
+  background: var(--card-gradient);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.persona-creator-btn.secondary:hover {
+  border-color: var(--primary);
+}

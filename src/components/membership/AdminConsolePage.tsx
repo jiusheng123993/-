@@ -6,7 +6,10 @@ import { persistentOrderService, type OrderStats } from '../../entitlement/persi
 import type { EntitlementCode } from '../../entitlement/entitlementTypes'
 import type { Product } from '../../entitlement/productTypes'
 import type { Order, OrderStatus } from '../../entitlement/orderTypes'
+import { createSafetyIncidentLog, type SafetyIncident, type IncidentCategory, type IncidentSeverity } from '../../personas/safetyIncidentLog'
 import styles from './MembershipPage.module.css'
+
+const safetyIncidentLog = createSafetyIncidentLog()
 
 interface AdminConsolePageProps {
   onClose?: () => void
@@ -256,7 +259,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(() => adminAuth.isAuthenticated())
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(() => adminAuth.getCurrentUser())
-  const [activeTab, setActiveTab] = useState<'products' | 'grants' | 'users' | 'orders' | 'stats'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'grants' | 'users' | 'orders' | 'stats' | 'safety'>('products')
   const [products] = useState(() => getActiveProducts())
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [grantUserId, setGrantUserId] = useState('')
@@ -414,6 +417,13 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
           type="button"
         >
           数据统计
+        </button>
+        <button
+          className={activeTab === 'safety' ? 'theme-family-chip active' : 'theme-family-chip'}
+          onClick={() => setActiveTab('safety')}
+          type="button"
+        >
+          安全日志
         </button>
       </nav>
 
@@ -952,6 +962,146 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
           order={selectedOrder} 
           onClose={() => setSelectedOrder(null)} 
         />
+      )}
+
+      {activeTab === 'safety' && (
+        <section className={styles.statusSection}>
+          <h2>安全事件日志</h2>
+          <p style={{ color: 'var(--muted)', marginBottom: 24 }}>
+            查看系统安全拦截记录和内容审核日志
+          </p>
+
+          <div className={styles.statusCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3>最近安全事件</h3>
+              <button
+                className={styles.purchaseButton}
+                onClick={() => safetyIncidentLog.clear()}
+                style={{ background: '#ef4444', fontSize: 12 }}
+              >
+                清空日志
+              </button>
+            </div>
+
+            {(() => {
+              const recentIncidents = safetyIncidentLog.getRecent(50)
+              if (recentIncidents.length === 0) {
+                return (
+                  <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted)' }}>
+                    <span style={{ fontSize: 32 }}>🛡️</span>
+                    <p style={{ margin: '12px 0 0' }}>暂无安全事件记录</p>
+                  </div>
+                )
+              }
+
+              const categoryStats = {
+                content_violation: 0,
+                jailbreak_attempt: 0,
+                age_restriction: 0,
+                user_report: 0,
+                system_block: 0
+              }
+
+              recentIncidents.forEach(i => {
+                if (categoryStats[i.category as keyof typeof categoryStats] !== undefined) {
+                  categoryStats[i.category as keyof typeof categoryStats]++
+                }
+              })
+
+              return (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
+                    <div style={{ padding: 16, borderRadius: 8, background: 'rgba(239, 68, 68, 0.1)', textAlign: 'center' }}>
+                      <strong style={{ fontSize: 24, color: '#ef4444' }}>{categoryStats.content_violation}</strong>
+                      <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>内容违规</p>
+                    </div>
+                    <div style={{ padding: 16, borderRadius: 8, background: 'rgba(245, 158, 11, 0.1)', textAlign: 'center' }}>
+                      <strong style={{ fontSize: 24, color: '#f59e0b' }}>{categoryStats.jailbreak_attempt}</strong>
+                      <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>越狱攻击</p>
+                    </div>
+                    <div style={{ padding: 16, borderRadius: 8, background: 'rgba(99, 102, 241, 0.1)', textAlign: 'center' }}>
+                      <strong style={{ fontSize: 24, color: '#6366f1' }}>{categoryStats.age_restriction}</strong>
+                      <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>年龄限制</p>
+                    </div>
+                    <div style={{ padding: 16, borderRadius: 8, background: 'rgba(139, 92, 246, 0.1)', textAlign: 'center' }}>
+                      <strong style={{ fontSize: 24, color: '#8b5cf6' }}>{categoryStats.user_report}</strong>
+                      <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>用户举报</p>
+                    </div>
+                    <div style={{ padding: 16, borderRadius: 8, background: 'rgba(16, 185, 129, 0.1)', textAlign: 'center' }}>
+                      <strong style={{ fontSize: 24, color: '#10b981' }}>{categoryStats.system_block}</strong>
+                      <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>系统拦截</p>
+                    </div>
+                  </div>
+
+                  <table className="membership-benefits-table">
+                    <thead>
+                      <tr>
+                        <th>时间</th>
+                        <th>用户</th>
+                        <th>类型</th>
+                        <th>严重程度</th>
+                        <th>描述</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentIncidents.map((incident) => (
+                        <tr key={incident.id}>
+                          <td style={{ fontSize: 12 }}>
+                            {new Date(incident.createdAt).toLocaleString('zh-CN', { 
+                              month: '2-digit', 
+                              day: '2-digit', 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </td>
+                          <td><code style={{ fontSize: 11 }}>{incident.userId}</code></td>
+                          <td>
+                            <span style={{ 
+                              padding: '2px 8px', 
+                              borderRadius: 4, 
+                              fontSize: 11,
+                              background: incident.category === 'content_violation' ? 'rgba(239, 68, 68, 0.1)' :
+                                         incident.category === 'jailbreak_attempt' ? 'rgba(245, 158, 11, 0.1)' :
+                                         'rgba(99, 102, 241, 0.1)',
+                              color: incident.category === 'content_violation' ? '#ef4444' :
+                                     incident.category === 'jailbreak_attempt' ? '#f59e0b' : '#6366f1'
+                            }}>
+                              {incident.category === 'content_violation' ? '内容违规' :
+                               incident.category === 'jailbreak_attempt' ? '越狱攻击' :
+                               incident.category === 'age_restriction' ? '年龄限制' :
+                               incident.category === 'user_report' ? '用户举报' : '系统拦截'}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{ 
+                              padding: '2px 8px', 
+                              borderRadius: 4, 
+                              fontSize: 11,
+                              background: incident.severity === 'critical' ? 'rgba(239, 68, 68, 0.2)' :
+                                         incident.severity === 'high' ? 'rgba(239, 68, 68, 0.1)' :
+                                         incident.severity === 'medium' ? 'rgba(245, 158, 11, 0.1)' :
+                                         'rgba(148, 163, 184, 0.1)',
+                              color: incident.severity === 'critical' ? '#ef4444' :
+                                     incident.severity === 'high' ? '#ef4444' :
+                                     incident.severity === 'medium' ? '#f59e0b' : '#94a3b8'
+                            }}>
+                              {incident.severity === 'critical' ? '严重' :
+                               incident.severity === 'high' ? '高' :
+                               incident.severity === 'medium' ? '中' : '低'}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: 12, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {incident.description}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )
+            })()}
+          </div>
+        </section>
       )}
     </div>
   )

@@ -10,7 +10,8 @@ export interface PersonaSchedule {
     startedAt: string
     endsAt: string
   }
-  cameoFrequency: 'high' | 'medium' | 'low' | 'off'
+  cameoFrequency: 'daily' | 'weekly' | 'event_threshold' | 'off'
+  lastFocusMinutes?: number
 }
 
 export interface PersonaScheduleStorage {
@@ -73,7 +74,7 @@ export function createPersonaScheduleStorage(): PersonaScheduleStorage {
         mainPersonaSelectedAt: existing?.mainPersonaSelectedAt ?? now,
         mainPersonaLastChangedAt: now,
         activeCameo: existing?.activeCameo,
-        cameoFrequency: existing?.cameoFrequency ?? 'medium'
+        cameoFrequency: existing?.cameoFrequency ?? 'weekly'
       }
 
       this.save(schedule)

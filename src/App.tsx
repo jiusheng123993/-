@@ -27,6 +27,8 @@ import {
   type WorkspaceType
 } from './data/workspaceStore'
 import { getPersonaById, personaRegistry, type PersonaId } from './personas/personaRegistry'
+import { PersonaSwitcher } from './personas/PersonaSwitcher'
+import type { CustomPersona } from './personas/customPersona'
 import { getPersonaTemplateById } from './personas/personaTemplates'
 import { getDefaultMiniProgramModules, miniProgramBlueprint } from './platforms/miniProgramBlueprint'
 import {
@@ -806,17 +808,10 @@ export default function App() {
         </header>
 
         <section className="workspace-switcher" aria-label="用户场景切换">
-          {personaRegistry.map((persona) => (
-            <button
-              className={persona.id === activePersona.id ? 'workspace-tab active' : 'workspace-tab'}
-              key={persona.id}
-              onClick={() => switchPersona(persona.id)}
-              type="button"
-            >
-              <strong>{persona.name}</strong>
-              <span>{persona.primaryFlow}</span>
-            </button>
-          ))}
+          <PersonaSwitcher
+            activePersonaId={activePersona.id}
+            onSwitchPersona={(personaId) => switchPersona(personaId as PersonaId)}
+          />
         </section>
 
         <div className="dashboard-grid">

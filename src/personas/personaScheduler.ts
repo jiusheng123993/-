@@ -175,6 +175,64 @@ export function createPersonaScheduler(
       const schedule = storage.get(userId)
       if (!schedule || schedule.cameoFrequency === 'off') return null
 
+      const now = new Date()
+      const month = now.getMonth() + 1
+      const date = now.getDate()
+      const dayOfWeek = now.getDay()
+      const hour = now.getHours()
+
+      const holidayTriggers: { month: number; date: number; personaId: string; name: string }[] = [
+        { month: 1, date: 1, personaId: 'gentle_sister', name: '新年' },
+        { month: 2, date: 14, personaId: 'gentle_sister', name: '情人节' },
+        { month: 5, date: 1, personaId: 'strict_coach', name: '劳动节' },
+        { month: 6, date: 1, personaId: 'energetic_pal', name: '儿童节' },
+        { month: 9, date: 10, personaId: 'wise_elder', name: '教师节' },
+        { month: 10, date: 1, personaId: 'wise_elder', name: '国庆节' },
+        { month: 12, date: 25, personaId: 'gentle_sister', name: '圣诞节' }
+      ]
+
+      const examTriggers: { month: number; startDate: number; endDate: number; personaId: string; name: string }[] = [
+        { month: 1, startDate: 5, endDate: 15, personaId: 'strict_coach', name: '期末考试' },
+        { month: 6, startDate: 20, endDate: 30, personaId: 'strict_coach', name: '期末考试' },
+        { month: 12, startDate: 20, endDate: 30, personaId: 'strict_coach', name: '期末考试' }
+      ]
+
+      for (const holiday of holidayTriggers) {
+        if (month === holiday.month && date === holiday.date) {
+          const cameo = PRESET_PERSONAS.find(p => p.id === holiday.personaId)
+          if (cameo) {
+            return cameo
+          }
+        }
+      }
+
+      for (const exam of examTriggers) {
+        if (month === exam.month && date >= exam.startDate && date <= exam.endDate) {
+          const cameo = PRESET_PERSONAS.find(p => p.id === exam.personaId)
+          if (cameo) {
+            return cameo
+          }
+        }
+      }
+
+      if (schedule.cameoFrequency === 'daily' && hour >= 20) {
+        const eveningPersona = PRESET_PERSONAS.find(p => p.id === 'gentle_sister')
+        if (eveningPersona) return eveningPersona
+      }
+
+      if (schedule.cameoFrequency === 'weekly' && dayOfWeek === 0) {
+        const weekendPersona = PRESET_PERSONAS.find(p => p.id === 'wise_elder')
+        if (weekendPersona) return weekendPersona
+      }
+
+      if (schedule.cameoFrequency === 'event_threshold') {
+        const focusMinutes = schedule.lastFocusMinutes || 0
+        if (focusMinutes >= 120) {
+          const highPerformer = PRESET_PERSONAS.find(p => p.id === 'strict_coach')
+          if (highPerformer) return highPerformer
+        }
+      }
+
       return null
     }
   }
