@@ -102,6 +102,24 @@
   margin-bottom: 24px;
 }
 
+.identity-status {
+  margin: 0 0 16px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.identity-card-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
 .identity-card {
   position: relative;
   display: grid;
@@ -154,6 +172,42 @@
 
 .identity-card-active::before {
   opacity: 1;
+}
+
+.identity-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.identity-icon-button {
+  min-width: 56px;
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease, background 220ms ease, color 220ms ease;
+}
+
+.identity-icon-button:hover,
+.identity-icon-button:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+.identity-icon-button-danger:hover,
+.identity-icon-button-danger:focus-visible {
+  border-color: #ef4444;
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .identity-card-topline,
@@ -271,6 +325,22 @@
   font-weight: 700;
 }
 
+.identity-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.identity-shortcuts span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 55%, transparent);
+}
+
 .identity-tag-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -311,6 +381,7 @@
 
 .identity-btn-primary,
 .identity-btn-secondary,
+.identity-btn-danger,
 .identity-create-button {
   min-height: 46px;
   border-radius: 14px;
@@ -322,7 +393,8 @@
 }
 
 .identity-btn-primary,
-.identity-btn-secondary {
+.identity-btn-secondary,
+.identity-btn-danger {
   padding: 12px 22px;
 }
 
@@ -334,6 +406,7 @@
 
 .identity-btn-primary:hover:not(:disabled),
 .identity-btn-secondary:hover,
+.identity-btn-danger:hover,
 .identity-create-button:hover {
   transform: translateY(-2px);
 }
@@ -353,6 +426,16 @@
   background: var(--surface-strong);
 }
 
+.identity-btn-danger {
+  border: 0;
+  background: #dc2626;
+  color: #fff;
+}
+
+.identity-btn-danger:hover {
+  background: #b91c1c;
+}
+
 .identity-create-button {
   display: flex;
   align-items: center;
@@ -369,6 +452,38 @@
   border-color: var(--primary);
   color: var(--primary);
   background: color-mix(in srgb, var(--primary) 7%, transparent);
+}
+
+.identity-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.38);
+  animation: identityEnter 220ms ease both;
+}
+
+.identity-dialog {
+  width: min(100%, 380px);
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+}
+
+.identity-dialog h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.identity-dialog p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
 }
 
 @keyframes identityEnter {
@@ -397,6 +512,14 @@
     border-radius: 18px;
   }
 
+  .identity-card-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .identity-card-actions {
+    flex-direction: row;
+  }
+
   .identity-tag-grid {
     grid-template-columns: 1fr;
   }
@@ -406,7 +529,8 @@
   }
 
   .identity-btn-primary,
-  .identity-btn-secondary {
+  .identity-btn-secondary,
+  .identity-btn-danger {
     width: 100%;
   }
 }
@@ -415,14 +539,17 @@
   .identity-empty,
   .identity-form,
   .identity-card,
-  .identity-create-button {
+  .identity-create-button,
+  .identity-dialog-backdrop {
     animation: none;
   }
 
   .identity-card,
   .identity-tag,
+  .identity-icon-button,
   .identity-btn-primary,
   .identity-btn-secondary,
+  .identity-btn-danger,
   .identity-create-button,
   .identity-input,
   .identity-card::before {
@@ -432,8 +559,11 @@
   .identity-card:hover,
   .identity-card:focus-visible,
   .identity-tag:hover,
+  .identity-icon-button:hover,
+  .identity-icon-button:focus-visible,
   .identity-btn-primary:hover:not(:disabled),
   .identity-btn-secondary:hover,
+  .identity-btn-danger:hover,
   .identity-create-button:hover {
     transform: none;
   }
