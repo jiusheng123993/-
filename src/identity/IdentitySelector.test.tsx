@@ -137,4 +137,11 @@ describe('IdentitySelector', () => {
     const secondCard = screen.getByRole('button', { name: /职场新人/ })
 
     expect(secondCard).toHaveAttribute('aria-pressed', 'true')
-    expect(firstCard).toHaveAttribute('aria-pressed', '
+    expect(firstCard).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.click(within(firstCard).getByText('考研党'))
+
+    expect(firstCard).toHaveAttribute('aria-pressed', 'true')
+    expect(secondCard).toHaveAttribute('aria-pressed', 'false')
+  })
+})

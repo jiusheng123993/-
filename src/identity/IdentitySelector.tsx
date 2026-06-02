@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useIdentity } from './IdentityProvider'
-import type { IdentityTag } from './types'
+import type { Identity, IdentityTag } from './types'
+import './IdentitySelector.css'
 
 const IDENTITY_TAGS: { id: IdentityTag; label: string }[] = [
   { id: 'student', label: '学生' },
@@ -13,14 +14,29 @@ const IDENTITY_TAGS: { id: IdentityTag; label: string }[] = [
   { id: 'other', label: '其他' }
 ]
 
+const getTagLabel = (tag: IdentityTag) => IDENTITY_TAGS.find(item => item.id === tag)?.label ?? tag
+
 export const IdentitySelector: React.FC = () => {
   const { state, dispatch } = useIdentity()
   const [isCreating, setIsCreating] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [selectedTags, setSelectedTags] = useState<IdentityTag[]>([])
+  const [isNameTouched, setIsNameTouched] = useState(false)
+  const nameInputId = useId()
+  const descriptionInputId = useId()
+  const nameErrorId = useId()
+  const nameError = isNameTouched && !name.trim() ? '请输入身份名称' : ''
+
+  const resetForm = () => {
+    setName('')
+    setDescription('')
+    setSelectedTags([])
+    setIsNameTouched(false)
+  }
 
   const handleCreate = () => {
+    setIsNameTouched(true)
     if (!name.trim()) return
     dispatch({
       type: 'CREATE_IDENTITY',
@@ -30,9 +46,17 @@ export const IdentitySelector: React.FC = () => {
         tags: selectedTags
       }
     })
-    setName('')
-    setDescription('')
-    setSelectedTags([])
+    resetForm()
+    setIsCreating(false)
+  }
+
+  const handleNameChange = (value: string) => {
+    setName(value)
+    if (value.trim()) setIsNameTouched(false)
+  }
+
+  const handleCancel = () => {
+    resetForm()
     setIsCreating(false)
   }
 
@@ -42,183 +66,157 @@ export const IdentitySelector: React.FC = () => {
     )
   }
 
+  const selectIdentity = (identity: Identity) => {
+    dispatch({ type: 'SET_ACTIVE_IDENTITY', payload: identity.id })
+  }
+
   return (
-    <div className="identity-selector" style={{ padding: '24px' }}>
-      <h2 style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 700 }}>选择身份</h2>
+    <section className="identity-selector" aria-labelledby="identity-selector-title">
+      <div className="identity-selector-header">
+        <span className="identity-eyebrow">身份系统</span>
+        <h2 id="identity-selector-title">选择身份</h2>
+        <p>为不同生活阶段保存专属配置，让模块推荐和学习节奏更贴合当前状态。</p>
+      </div>
 
       {state.identities.length === 0 && !isCreating && (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--muted)' }}>
+        <div className="identity-empty" aria-live="polite">
+          <div className="identity-empty-icon" aria-hidden="true">＋</div>
           <p>还没有创建身份</p>
-          <p>创建一个新身份来开始使用吧</p>
+          <span>创建一个新身份来开始使用吧</span>
         </div>
       )}
 
       {state.identities.length > 0 && !isCreating && (
-        <div style={{ display: 'grid', gap: '12px', marginBottom: '24px' }}>
-          {state.identities.map(identity => (
-            <div
-              key={identity.id}
-              onClick={() => dispatch({ type: 'SET_ACTIVE_IDENTITY', payload: identity.id })}
-              style={{
-                padding: '16px',
-                borderRadius: '12px',
-                border: identity.id === state.activeIdentityId ? '2px solid var(--primary)' : '1px solid var(--border)',
-                background: identity.id === state.activeIdentityId ? 'var(--surface-strong)' : 'var(--surface)',
-                cursor: 'pointer',
-                transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)'
-              }}
-            >
-              <div style={{ fontWeight: 600, marginBottom: '4px' }}>{identity.name}</div>
-              <div style={{ fontSize: '14px', color: 'var(--muted)' }}>{identity.description}</div>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                {identity.tags.map(tag => (
-                  <span key={tag} style={{
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    background: 'var(--primary)',
-                    color: '#fff',
-                    fontSize: '12px'
-                  }}>
-                    {IDENTITY_TAGS.find(t => t.id === tag)?.label}
+        <div className="identity-card-grid" role="list" aria-label="身份列表">
+          {state.identities.map(identity => {
+            const isActive = identity.id === state.activeIdentityId
+            const tagText = identity.tags.map(getTagLabel).join('、')
+            return (
+              <button
+                key={identity.id}
+                type="button"
+                className={`identity-card${isActive ? ' identity-card-active' : ''}`}
+                onClick={() => selectIdentity(identity)}
+                aria-pressed={isActive}
+                aria-label={`${identity.name}${identity.description ? `，${identity.description}` : ''}${tagText ? `，标签：${tagText}` : ''}`}
+              >
+                <span className="identity-card-topline">
+                  <span className="identity-card-name">{identity.name}</span>
+                  {isActive && <span className="identity-active-badge">当前</span>}
+                </span>
+                {identity.description && <span className="identity-card-description">{identity.description}</span>}
+                {identity.tags.length > 0 && (
+                  <span className="identity-card-tags" aria-label={`标签：${tagText}`}>
+                    {identity.tags.map(tag => (
+                      <span key={tag} className="identity-tag-chip">
+                        {getTagLabel(tag)}
+                      </span>
+                    ))}
                   </span>
-                ))}
-              </div>
-            </div>
-          ))}
+                )}
+              </button>
+            )
+          })}
         </div>
       )}
 
       {isCreating && (
-        <div style={{
-          padding: '24px',
-          borderRadius: '16px',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)'
-        }}>
-          <h3 style={{ margin: '0 0 16px' }}>创建新身份</h3>
+        <form
+          className="identity-form"
+          aria-label="创建新身份"
+          onSubmit={event => {
+            event.preventDefault()
+            handleCreate()
+          }}
+        >
+          <div className="identity-form-heading">
+            <span className="identity-eyebrow">新建配置</span>
+            <h3>创建新身份</h3>
+            <p>填写一个容易识别的身份名称，再选择标签用于后续推荐。</p>
+          </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>身份名称</label>
+          <div className="identity-field">
+            <label htmlFor={nameInputId}>身份名称</label>
             <input
+              id={nameInputId}
+              className={`identity-input${nameError ? ' identity-input-error' : ''}`}
               type="text"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={event => handleNameChange(event.target.value)}
+              onBlur={() => setIsNameTouched(true)}
               placeholder="例如：考研党、职场新人、全职妈妈"
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface-strong)',
-                color: 'var(--text)',
-                fontSize: '14px'
-              }}
+              aria-invalid={nameError ? 'true' : 'false'}
+              aria-describedby={nameError ? nameErrorId : undefined}
             />
+            {nameError && (
+              <div id={nameErrorId} className="identity-error" role="alert">
+                {nameError}
+              </div>
+            )}
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>描述（可选）</label>
+          <div className="identity-field">
+            <label htmlFor={descriptionInputId}>描述（可选）</label>
             <textarea
+              id={descriptionInputId}
+              className="identity-input identity-textarea"
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={event => setDescription(event.target.value)}
               placeholder="描述一下你的使用场景..."
               rows={3}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface-strong)',
-                color: 'var(--text)',
-                fontSize: '14px',
-                resize: 'vertical'
-              }}
             />
           </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>标签</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {IDENTITY_TAGS.map(tag => (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    border: '1px solid var(--border)',
-                    background: selectedTags.includes(tag.id) ? 'var(--primary)' : 'var(--surface-strong)',
-                    color: selectedTags.includes(tag.id) ? '#fff' : 'var(--text)',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}
-                >
-                  {tag.label}
-                </button>
-              ))}
+          <fieldset className="identity-fieldset">
+            <legend>标签</legend>
+            <div className="identity-tag-grid">
+              {IDENTITY_TAGS.map(tag => {
+                const isSelected = selectedTags.includes(tag.id)
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    className={`identity-tag${isSelected ? ' selected' : ''}`}
+                    onClick={() => toggleTag(tag.id)}
+                    aria-pressed={isSelected}
+                  >
+                    {tag.label}
+                  </button>
+                )
+              })}
             </div>
-          </div>
+          </fieldset>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div className="identity-step-actions">
             <button
-              onClick={handleCreate}
+              type="submit"
+              className="identity-btn-primary"
               disabled={!name.trim()}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'var(--primary)',
-                color: '#fff',
-                cursor: name.trim() ? 'pointer' : 'not-allowed',
-                opacity: name.trim() ? 1 : 0.5,
-                fontSize: '14px',
-                fontWeight: 600
-              }}
             >
               创建
             </button>
             <button
-              onClick={() => {
-                setIsCreating(false)
-                setName('')
-                setDescription('')
-                setSelectedTags([])
-              }}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                background: 'transparent',
-                color: 'var(--text)',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              type="button"
+              className="identity-btn-secondary"
+              onClick={handleCancel}
             >
               取消
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {!isCreating && (
         <button
+          type="button"
+          className="identity-create-button"
+          aria-label="创建新身份"
           onClick={() => setIsCreating(true)}
-          style={{
-            width: '100%',
-            padding: '16px',
-            borderRadius: '12px',
-            border: '2px dashed var(--border)',
-            background: 'transparent',
-            color: 'var(--muted)',
-            cursor: 'pointer',
-            fontSize: '14px',
-            transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
         >
-          + 创建新身份
+          <span aria-hidden="true">＋</span>
+          创建新身份
         </button>
       )}
-    </div>
+    </section>
   )
 }
