@@ -2377,6 +2377,40 @@ export default function App() {
         </div>
       )}
     </main>
+
+      {isIdentitySelectorOpen && (
+        <div 
+          className="identity-modal-backdrop" 
+          onClick={() => setIsIdentitySelectorOpen(false)}
+          role="presentation"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'var(--app-background)',
+              borderRadius: '24px',
+              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.12)',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflow: 'auto'
+            }}
+          >
+            <IdentitySelector />
+          </div>
+        </div>
+      )}
+
     </IdentityProvider>
   )
 }
