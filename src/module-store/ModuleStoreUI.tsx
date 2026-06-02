@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import type { Module, ModuleCategory, ModuleSize, ModuleStoreState } from './types'
 import { createCustomModule } from './moduleStoreLogic'
 
@@ -24,6 +25,7 @@ type ModuleStoreUIProps = {
   onAddModule: (moduleId: string) => void
   onRemoveModule: (moduleId: string, deleteCustomModule?: boolean) => void
   onCreateCustomModule: (module: Module) => void
+  canvasPreview?: ReactNode
 }
 
 export const ModuleStoreUI = ({
@@ -31,18 +33,31 @@ export const ModuleStoreUI = ({
   onClose,
   onAddModule,
   onRemoveModule,
-  onCreateCustomModule
+  onCreateCustomModule,
+  canvasPreview
 }: ModuleStoreUIProps) => {
   const [activeCategory, setActiveCategory] = useState<ModuleCategory | 'all'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [size, setSize] = useState<ModuleSize>('medium')
   const activeIds = new Set(state.activeModules.map((item) => item.moduleId))
+  const activeCount = state.activeModules.length
+  const totalCount = state.availableModules.length
   const categories = useMemo<(ModuleCategory | 'all')[]>(() => {
     const values = new Set<ModuleCategory>(state.availableModules.map((module) => module.category))
     return ['all', ...Array.from(values)]
   }, [state.availableModules])
-  const visibleModules = state.availableModules.filter((module) => activeCategory === 'all' || module.category === activeCategory)
+  const visibleModules = useMemo(() => {
+    return state.availableModules.filter((module) => {
+      const matchesCategory = activeCategory === 'all' || module.category === activeCategory
+      const matchesSearch = searchQuery.trim() === '' || 
+        module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        module.description.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesCategory && matchesSearch
+    })
+  }, [state.availableModules, activeCategory, searchQuery])
 
   const createModule = () => {
     const module = createCustomModule({
@@ -71,7 +86,7 @@ export const ModuleStoreUI = ({
         <header className="module-store-header">
           <div>
             <p className="eyebrow">Module Store · 工作台组件库</p>
-            <h2>模块商店</h2>
+            <h2>模块商店 <span className="module-store-count">已激活 {activeCount}/{totalCount}</span></h2>
           </div>
           <button aria-label="关闭模块商店" className="module-store-close" onClick={onClose} type="button">×</button>
         </header>
@@ -91,11 +106,26 @@ export const ModuleStoreUI = ({
           ))}
         </div>
 
+        <div className="module-store-search">
+          <input
+            aria-label="搜索模块"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="搜索模块名称或描述..."
+            type="search"
+            value={searchQuery}
+          />
+        </div>
+
         <div className="module-store-grid">
           {visibleModules.map((module) => {
             const isActive = activeIds.has(module.id)
+            const isExpanded = expandedModuleId === module.id
             return (
-              <article className={isActive ? 'module-store-item active' : 'module-store-item'} key={module.id}>
+              <article 
+                className={isExpanded ? 'module-store-item expanded' : (isActive ? 'module-store-item active' : 'module-store-item')} 
+                key={module.id}
+                onClick={() => setExpandedModuleId(isExpanded ? null : module.id)}
+              >
                 <div className="module-store-item-header">
                   <span className="module-store-item-icon" aria-hidden="true">{module.icon === 'Sparkles' ? '✦' : '◈'}</span>
                   <div className="module-store-item-info">
@@ -103,30 +133,66 @@ export const ModuleStoreUI = ({
                     <p>{module.description}</p>
                   </div>
                 </div>
-                <div className="module-store-item-meta">
-                  <span className="module-store-item-size">{sizeLabels[module.size]}</span>
-                  <span className="module-store-item-category">{categoryLabels[module.category]}</span>
-                </div>
-                <div className="module-store-item-actions">
-                  {isActive ? (
-                    <button className="module-store-btn module-store-btn-remove" onClick={() => onRemoveModule(module.id)} type="button">
-                      从画布移除
-                    </button>
-                  ) : (
-                    <button className="module-store-btn module-store-btn-add" onClick={() => onAddModule(module.id)} type="button">
-                      添加到画布
-                    </button>
-                  )}
-                  {module.isCustom && (
-                    <button className="module-store-btn module-store-btn-delete" onClick={() => onRemoveModule(module.id, true)} type="button">
-                      删除自定义
-                    </button>
-                  )}
-                </div>
+                {isExpanded && (
+                  <div className="module-store-item-details">
+                    <p className="module-store-item-full-desc">{module.description}</p>
+                    <div className="module-store-item-meta">
+                      <span className="module-store-item-size">{sizeLabels[module.size]}</span>
+                      <span className="module-store-item-category">{categoryLabels[module.category]}</span>
+                    </div>
+                    <div className="module-store-item-actions" onClick={(event) => event.stopPropagation()}>
+                      {isActive ? (
+                        <button className="module-store-btn module-store-btn-remove" onClick={() => onRemoveModule(module.id)} type="button">
+                          从画布移除
+                        </button>
+                      ) : (
+                        <button className="module-store-btn module-store-btn-add" onClick={() => onAddModule(module.id)} type="button">
+                          添加到画布
+                        </button>
+                      )}
+                      {module.isCustom && (
+                        <button className="module-store-btn module-store-btn-delete" onClick={() => onRemoveModule(module.id, true)} type="button">
+                          删除自定义
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {!isExpanded && (
+                  <>
+                    <div className="module-store-item-meta">
+                      <span className="module-store-item-size">{sizeLabels[module.size]}</span>
+                      <span className="module-store-item-category">{categoryLabels[module.category]}</span>
+                    </div>
+                    <div className="module-store-item-actions">
+                      {isActive ? (
+                        <button className="module-store-btn module-store-btn-remove" onClick={(event) => { event.stopPropagation(); onRemoveModule(module.id) }} type="button">
+                          从画布移除
+                        </button>
+                      ) : (
+                        <button className="module-store-btn module-store-btn-add" onClick={(event) => { event.stopPropagation(); onAddModule(module.id) }} type="button">
+                          添加到画布
+                        </button>
+                      )}
+                      {module.isCustom && (
+                        <button className="module-store-btn module-store-btn-delete" onClick={(event) => { event.stopPropagation(); onRemoveModule(module.id, true) }} type="button">
+                          删除自定义
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
               </article>
             )
           })}
         </div>
+
+        {canvasPreview && (
+          <div className="module-store-preview-section">
+            <p className="module-store-drag-hint">↕ 拖拽模块可调整画布排列顺序</p>
+            {canvasPreview}
+          </div>
+        )}
 
         <footer className="module-store-footer">
           <div className="module-store-create-form">

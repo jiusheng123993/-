@@ -234,5 +234,3 @@ export function AgeGateFeatureGuard({ userId, feature, children, fallback }: {
 
   return <>{children}</>
 }
-
-export { ageGateService }

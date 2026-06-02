@@ -32,3 +32,23 @@
 2026-06-03 03:38: [分析中] [清理乱码本地知识库目录] — 已完成: 用户要求检查乱码本地知识库数据，有数据转移到正确位置，无数据删除；正在: 检查路径、数据库和正确目录配置；下一步: 判断是否迁移并执行清理；阻塞: 无；验证: 待检查 SQLite 表与文件存在性。
 
 2026-06-03 03:38: [修改中] [Git远端更新] — 已完成: 按建议开始更新 origin 到迁移后仓库；正在: 执行 git remote set-url 并验证 develop 分支可访问；下一步: 检查 remote/status 后决定是否提交记忆记录；阻塞: 无；验证: 待 git remote -v 与 git ls-remote。
+
+2026-06-03 03:42: [已完成] [清理乱码本地知识库目录] — 已完成: 已检查乱码 memory.db，业务表 projects/memories/handoff_notes/import_* 全为 0，仅 FTS 内部元数据；正确目录 E:\个人本地知识库\.memory-data\memory.db 存在且含 projects=9、memories=109、handoff_notes=20；已删除三个乱码副产物；正在: 写入交接；下一步: 若乱码再次出现，检查启动脚本编码或 Trae MCP 配置；阻塞: 无；验证: E 盘根目录无残留 *.memory-data/server.log/server.err。
+
+2026-06-03 03:45: [分析中] [清理lint问题] — 已完成: 用户要求按建议进行，已读取项目记忆并运行 lint，发现当前 1 error/12 warnings；正在: 读取相关文件与未提交 diff；下一步: 先修复 ModuleStoreUI 未使用参数错误，再清理 warning；阻塞: 无；验证: npm run lint 当前失败于 canvasPreview 未使用。
+
+2026-06-03 04:09: [已完成] [继续增强身份系统编辑删除与键盘体验] — 已完成: 确认 IdentitySelector 已具备编辑、删除确认、Ctrl/⌘+Enter 保存、Escape 取消和可访问提示；目标测试、全量测试、lint、build 通过；正在: 写入交接并总结；下一步: 等待用户确认是否继续做 E2E 或提交；阻塞: 浏览器自动化对身份按钮交互定位未成功，页面可渲染和 Network 已检查；验证: npm run test -- src/identity/IdentitySelector.test.tsx、npm run test、npm run lint、npm run build。
+
+2026-06-03 04:11: [分析完成] [检查本地知识库路径编码问题] — 已完成: 检查启动脚本、config.ts、正确数据目录、用户主目录默认库；正在: 提出优化建议；下一步: 可选实施优化或删除空默认库；阻塞: 无；验证: 正确库含 projects=9、memories=127、handoff_notes=25；默认库业务表全为 0。
+
+2026-06-03 00:00: [已完成] [清理新旧 UI 重复与性能卡顿] — 已完成: 移除默认首页旧独立 Sidebar/SidebarToggle，默认不再渲染可拖拽模块画布，模块画布改为模块商店内按需展示，压缩模块商店和画布高度，修复 Canvas 未使用变量；正在: 交付总结；下一步: 用户验收页面是否仍杂乱，必要时继续做重内容懒加载；阻塞: 无；验证: npm run test 891/891 通过，npm run test -- src/App.test.tsx 20/20 通过，npm run lint 0 errors/11 warnings，npm run build 通过，浏览器 Console error 0，默认 DOM nodeCount 476/buttons 31/canvasCount 0，打开模块商店后 canvasCount 1。
+
+2026-06-03 04:15: [分析中] [补强身份系统页面级 E2E 验收] — 已完成: 读取项目记忆、搜索相关记忆、检查 Git/package、CodeGraph 状态、读取 App/IdentitySelector/App.test；正在: 分析 App 身份入口和测试插入点；下一步: App.test.tsx 添加页面级身份创建-编辑-删除流程测试并确认失败；阻塞: 无；验证: 待执行。
+
+2026-06-03 04:18: [修改中] [补强身份系统页面级 E2E 验收] — 已完成: App.test.tsx 新增页面级身份流程测试并确认 RED；正在: 最小修复 App 身份弹窗语义；下一步: 复跑 npm run test -- src/App.test.tsx；阻塞: 无；验证: 目标测试 20/21 通过，失败原因是 dialog name 仍为 创建身份。
+
+2026-06-03 04:28: [测试中] [补强身份系统页面级 E2E 验收] — 已完成: App 身份弹窗语义改为 身份管理，关闭按钮 aria-label 改为 关闭身份管理；App.test 页面级身份全流程测试已从 RED 转 GREEN；正在: 运行身份目标测试、全量 test、lint、build；下一步: 浏览器桌面/移动验证；阻塞: 无；验证: npm run test -- src/App.test.tsx 21/21 通过。
+
+2026-06-03 04:35: [修复中] [补强身份系统页面级 E2E 验收] — 已完成: 发现目标测试失败由既有 App.test 对重复 region 使用 getByRole 导致，ModuleStoreUI 缺少 canvasPreview props 导致 build/lint 阻塞；正在: 修复测试查询和 ModuleStoreUI 类型；下一步: 复跑目标测试、全量 test/lint/build；阻塞: 无；验证: build 在补 canvasPreview 后已通过一次，目标测试仍需复跑。
+
+2026-06-03 04:37: [修复中] [补强身份系统页面级 E2E 验收] — 已完成: 修复 App.test 中与当前 UI 并存状态冲突的查询，使用 getAllByRole 处理多个画布 region/模块商店入口并避免固定 aside 数量；正在: 复跑目标和全量验证；下一步: 修复剩余失败或进行浏览器验证；阻塞: 无；验证: 待执行。

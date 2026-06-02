@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useMemo, useCallback } from 'react'
 import { createPersonaSafetyGate, type PersonaSafetyGate, type SafetyCheckResult } from './personaSafetyGate'
 import { createSafetyIncidentLog } from './safetyIncidentLog'

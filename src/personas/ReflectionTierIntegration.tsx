@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useMemo } from 'react'
 import { createReflectionTierProvider, type ReflectionTierProvider } from '../entitlement/reflectionTierProvider'
 import { createEntitlementService } from '../entitlement/entitlementService'

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useMemo, useState } from 'react'
 import { createPersonaProvider, type PersonaProvider } from '../entitlement/personaProvider'
 import { createEntitlementService } from '../entitlement/entitlementService'

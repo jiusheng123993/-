@@ -53,7 +53,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     store.save(state)
-  }, [state])
+  }, [state, store])
 
   return (
     <IdentityContext.Provider value={{ state, dispatch }}>
@@ -62,6 +62,7 @@ export const IdentityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useIdentity = () => {
   const context = useContext(IdentityContext)
   if (!context) throw new Error('useIdentity must be used within IdentityProvider')

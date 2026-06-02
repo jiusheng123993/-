@@ -83,7 +83,7 @@ export function AvatarCanvas({
       setIsLoading(false)
       onLoad?.()
     }
-  }, [width, height, backgroundColor, showGrid, onLoad, onError])
+  }, [width, height, backgroundColor, showGrid, onLoad, onError, avatar.name, avatar.stickerUrl])
 
   const render3DPlaceholder = useCallback((ctx: CanvasRenderingContext2D) => {
     ctx.fillStyle = backgroundColor
@@ -153,7 +153,7 @@ export function AvatarCanvas({
 
     setIsLoading(false)
     onLoad?.()
-  }, [width, height, backgroundColor, showGrid, currentAnimation, onLoad])
+  }, [width, height, backgroundColor, showGrid, currentAnimation, onLoad, avatar.modelUrl])
 
   const renderLive2DPlaceholder = useCallback((ctx: CanvasRenderingContext2D) => {
     ctx.fillStyle = backgroundColor
@@ -226,7 +226,7 @@ export function AvatarCanvas({
     } else {
       render2DSticker(ctx)
     }
-  }, [render2DSticker, render3DPlaceholder, renderLive2DPlaceholder])
+  }, [render2DSticker, render3DPlaceholder, renderLive2DPlaceholder, avatar.renderMode])
 
   useEffect(() => {
     if (!autoRotate) return
