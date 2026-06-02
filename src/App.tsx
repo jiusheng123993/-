@@ -62,6 +62,21 @@ import { createMemoryObserver } from './memory/memoryObserver'
 import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
 import { EvolutionRitualUI } from './agent/evolution/EvolutionRitualUI'
 import { useEvolutionRitual } from './agent/evolution/useEvolutionRitual'
+import { DraggableCanvas } from './canvas/DraggableCanvas'
+import { AIRecommendationUI } from './module-store/AIRecommendationUI'
+import { LayoutShareUI } from './module-store/LayoutShareUI'
+import { ModuleStoreUI } from './module-store/ModuleStoreUI'
+import { defaultModules } from './module-store/ModuleRegistry'
+import {
+  addModuleToLayout,
+  createInitialModuleStoreState,
+  exportModuleLayout,
+  importModuleLayout,
+  recommendModulesForIdentity,
+  removeModuleFromLayout,
+  upsertCustomModule
+} from './module-store/moduleStoreLogic'
+import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import styles from './components/membership/MembershipPage.module.css'
 
 const navigationItems = [
@@ -92,6 +107,7 @@ const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
 
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()
 const memoryStore = typeof window === 'undefined' ? undefined : createBrowserMemoryStore()
+const moduleLayoutStorageKey = 'xinghuanhai-module-layout-state'
 
 const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
@@ -211,6 +227,26 @@ const loadInitialState = (): WorkspaceState => {
   return store.load()
 }
 
+const loadInitialModuleStoreState = (): ModuleStoreState => {
+  const fallback = addModuleToLayout(
+    addModuleToLayout(
+      addModuleToLayout(createInitialModuleStoreState(defaultModules), 'today-tasks'),
+      'focus-timer'
+    ),
+    'notes'
+  )
+
+  if (typeof window === 'undefined') return fallback
+  const saved = window.localStorage.getItem(moduleLayoutStorageKey)
+  if (!saved) return fallback
+
+  try {
+    return importModuleLayout(saved, defaultModules)
+  } catch {
+    return fallback
+  }
+}
+
 export default function App() {
   const [workspaceState, setWorkspaceState] = useState<WorkspaceState>(() => loadInitialState())
   const activeTheme = useMemo(() => getThemeById(workspaceState.preferences.themeId), [workspaceState.preferences.themeId])
@@ -231,6 +267,10 @@ export default function App() {
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
   const [isIdentitySelectorOpen, setIsIdentitySelectorOpen] = useState(false)
+  const [moduleStoreState, setModuleStoreState] = useState<ModuleStoreState>(() => loadInitialModuleStoreState())
+  const [isAIRecommendationOpen, setIsAIRecommendationOpen] = useState(false)
+  const [isLayoutShareOpen, setIsLayoutShareOpen] = useState(false)
+  const [layoutImportError, setLayoutImportError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themeSearchQuery, setThemeSearchQuery] = useState('')
   const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeFamilyId | 'all'>('all')
@@ -315,6 +355,11 @@ export default function App() {
   const [memoryObserver] = useState(
     () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null
   )
+  const recommendedModules = useMemo(() => recommendModulesForIdentity({
+    identityDescription: `${activePersona.name} ${activePersona.targetUser} ${activePersona.painPoint} ${activePersona.primaryFlow}`,
+    personaModuleTitles: activePersona.modules.map((module) => module.title)
+  }), [activePersona])
+  const exportedModuleLayout = useMemo(() => exportModuleLayout(moduleStoreState), [moduleStoreState])
   const refreshMemoryEvents = useCallback(() => {
     if (!memoryStore) return
     setMemoryEvents(memoryStore.listEvents(memoryScope))
@@ -490,6 +535,10 @@ export default function App() {
   }, [workspaceState])
 
   useEffect(() => {
+    window.localStorage.setItem(moduleLayoutStorageKey, exportModuleLayout(moduleStoreState))
+  }, [moduleStoreState])
+
+  useEffect(() => {
     if (!isThemePickerOpen) return
 
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -607,6 +656,37 @@ export default function App() {
       ...current,
       preferences: { ...current.preferences, focusBriefStyle: nextStyleId }
     }))
+  }
+
+  const addCanvasModule = (moduleId: string) => {
+    setModuleStoreState((current) => addModuleToLayout(current, moduleId))
+  }
+
+  const removeCanvasModule = (moduleId: string, deleteCustomModule = false) => {
+    setModuleStoreState((current) => removeModuleFromLayout(current, moduleId, { deleteCustomModule }))
+  }
+
+  const updateCanvasItems = (items: CanvasItem[]) => {
+    setModuleStoreState((current) => ({ ...current, activeModules: items }))
+  }
+
+  const createCustomCanvasModule = (module: typeof moduleStoreState.availableModules[number]) => {
+    setModuleStoreState((current) => upsertCustomModule(current, module))
+  }
+
+  const applyRecommendedModules = (moduleIds: string[]) => {
+    setModuleStoreState((current) => moduleIds.reduce((state, moduleId) => addModuleToLayout(state, moduleId), current))
+    setIsAIRecommendationOpen(false)
+  }
+
+  const importLayout = (value: string) => {
+    try {
+      setModuleStoreState(importModuleLayout(value, defaultModules))
+      setLayoutImportError(null)
+      setIsLayoutShareOpen(false)
+    } catch (error) {
+      setLayoutImportError(error instanceof Error ? error.message : '布局导入失败')
+    }
   }
 
   const switchPersona = (personaId: PersonaId) => {
@@ -818,6 +898,15 @@ export default function App() {
             >
               创建身份
             </button>
+            <button className="pill" onClick={() => setModuleStoreState((current) => ({ ...current, isStoreOpen: true }))} type="button">
+              模块商店
+            </button>
+            <button className="pill" onClick={() => setIsAIRecommendationOpen(true)} type="button">
+              AI 推荐模块
+            </button>
+            <button className="pill" onClick={() => setIsLayoutShareOpen(true)} type="button">
+              布局分享
+            </button>
             <span className="pill warm">连续 {workspaceState.growth.streakDays} 天</span>
           </div>
         </header>
@@ -827,6 +916,23 @@ export default function App() {
             activePersonaId={activePersona.id}
             onSwitchPersona={(personaId) => switchPersona(personaId as PersonaId)}
           />
+        </section>
+
+        <section className="panel" aria-label="可拖拽模块画布">
+          <div className="card-heading">
+            <div>
+              <p className="eyebrow">Draggable Canvas · 智能对齐</p>
+              <h2>可拖拽模块画布</h2>
+            </div>
+            <strong>{moduleStoreState.activeModules.length} 个模块</strong>
+          </div>
+          <DraggableCanvas
+            items={moduleStoreState.activeModules}
+            modules={moduleStoreState.availableModules}
+            onItemsChange={updateCanvasItems}
+            onRemoveModule={removeCanvasModule}
+          />
+          {layoutImportError && <small style={{ color: '#dc2626' }}>{layoutImportError}</small>}
         </section>
 
         <div className="dashboard-grid">
@@ -2376,41 +2482,34 @@ export default function App() {
           </section>
         </div>
       )}
-    </main>
 
-      {isIdentitySelectorOpen && (
-        <div 
-          className="identity-modal-backdrop" 
-          onClick={() => setIsIdentitySelectorOpen(false)}
-          role="presentation"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.4)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 2000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <div 
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: 'var(--app-background)',
-              borderRadius: '24px',
-              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.12)',
-              maxWidth: '600px',
-              width: '90%',
-              maxHeight: '80vh',
-              overflow: 'auto'
-            }}
-          >
-            <IdentitySelector />
-          </div>
-        </div>
+      {moduleStoreState.isStoreOpen && (
+        <ModuleStoreUI
+          onAddModule={addCanvasModule}
+          onClose={() => setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))}
+          onCreateCustomModule={createCustomCanvasModule}
+          onRemoveModule={removeCanvasModule}
+          state={moduleStoreState}
+        />
       )}
 
+      {isAIRecommendationOpen && (
+        <AIRecommendationUI
+          identityDescription={`${activePersona.name}：${activePersona.targetUser}`}
+          modules={recommendedModules}
+          onApply={applyRecommendedModules}
+          onClose={() => setIsAIRecommendationOpen(false)}
+        />
+      )}
+
+      {isLayoutShareOpen && (
+        <LayoutShareUI
+          exportedLayout={exportedModuleLayout}
+          onClose={() => setIsLayoutShareOpen(false)}
+          onImport={importLayout}
+        />
+      )}
+    </main>
     </IdentityProvider>
   )
 }

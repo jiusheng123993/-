@@ -1,0 +1,230 @@
+import { defaultModules } from './ModuleRegistry'
+import type { CanvasItem, Module, ModuleId, ModuleSize, ModuleStoreState } from './types'
+
+const CANVAS_COLUMNS = 4
+const LAYOUT_VERSION = 1
+
+const moduleWidthBySize: Record<ModuleSize, number> = {
+  small: 1,
+  medium: 2,
+  large: 2,
+  'full-width': 4
+}
+
+const moduleHeightBySize: Record<ModuleSize, number> = {
+  small: 1,
+  medium: 1,
+  large: 2,
+  'full-width': 1
+}
+
+const keywordModuleMap: Array<{ keywords: string[]; moduleIds: ModuleId[] }> = [
+  { keywords: ['任务', '待办', '行动', '计划', '项目', '交付', '看板'], moduleIds: ['today-tasks', 'statistics'] },
+  { keywords: ['专注', '番茄', '自律', '习惯', '打卡', '冲刺'], moduleIds: ['focus-timer', 'today-tasks'] },
+  { keywords: ['日历', '日程', '发布', '会议', '截止', '排期'], moduleIds: ['calendar'] },
+  { keywords: ['笔记', '灵感', '记录', '复盘', '素材', '错题'], moduleIds: ['notes'] },
+  { keywords: ['天气', '出行', '生活'], moduleIds: ['weather'] },
+  { keywords: ['统计', '数据', '指标', '趋势', '复盘', '成长'], moduleIds: ['statistics'] }
+]
+
+const safeText = (value: string, fallback: string) => {
+  const normalized = value.trim().replace(/\s+/g, ' ')
+  return normalized.length > 0 ? normalized : fallback
+}
+
+const getModuleWidth = (size: ModuleSize) => moduleWidthBySize[size]
+const getModuleHeight = (size: ModuleSize) => moduleHeightBySize[size]
+
+const rectsOverlap = (a: CanvasItem, b: CanvasItem) => {
+  const aRight = a.position.x + getModuleWidth(a.size)
+  const bRight = b.position.x + getModuleWidth(b.size)
+  const aBottom = a.position.y + getModuleHeight(a.size)
+  const bBottom = b.position.y + getModuleHeight(b.size)
+
+  return a.position.x < bRight && aRight > b.position.x && a.position.y < bBottom && aBottom > b.position.y
+}
+
+export const snapCanvasPosition = (position: { x: number; y: number }, size: ModuleSize) => {
+  const width = getModuleWidth(size)
+  return {
+    x: Math.max(0, Math.min(CANVAS_COLUMNS - width, Math.round(position.x))),
+    y: Math.max(0, Math.round(position.y))
+  }
+}
+
+export const findNextCanvasPosition = (items: CanvasItem[], size: ModuleSize) => {
+  const width = getModuleWidth(size)
+  for (let y = 0; y < 50; y += 1) {
+    for (let x = 0; x <= CANVAS_COLUMNS - width; x += 1) {
+      const candidate: CanvasItem = { moduleId: '__candidate__', position: { x, y }, size }
+      if (!items.some((item) => rectsOverlap(candidate, item))) return { x, y }
+    }
+  }
+  return { x: 0, y: items.length }
+}
+
+export const createInitialModuleStoreState = (availableModules: Module[] = defaultModules): ModuleStoreState => ({
+  availableModules,
+  activeModules: [],
+  isStoreOpen: false
+})
+
+export const addModuleToLayout = (state: ModuleStoreState, moduleId: ModuleId): ModuleStoreState => {
+  if (state.activeModules.some((item) => item.moduleId === moduleId)) return state
+  const module = state.availableModules.find((item) => item.id === moduleId)
+  if (!module) return state
+  const item: CanvasItem = {
+    moduleId,
+    position: findNextCanvasPosition(state.activeModules, module.size),
+    size: module.size
+  }
+  return { ...state, activeModules: [...state.activeModules, item] }
+}
+
+export const removeModuleFromLayout = (
+  state: ModuleStoreState,
+  moduleId: ModuleId,
+  options: { deleteCustomModule?: boolean } = {}
+): ModuleStoreState => {
+  const nextActiveModules = state.activeModules.filter((item) => item.moduleId !== moduleId)
+  const target = state.availableModules.find((module) => module.id === moduleId)
+  const shouldDelete = options.deleteCustomModule === true && target?.isCustom === true
+
+  return {
+    ...state,
+    activeModules: nextActiveModules,
+    availableModules: shouldDelete
+      ? state.availableModules.filter((module) => module.id !== moduleId)
+      : state.availableModules
+  }
+}
+
+export const moveModuleInLayout = (
+  state: ModuleStoreState,
+  moduleId: ModuleId,
+  position: { x: number; y: number }
+): ModuleStoreState => ({
+  ...state,
+  activeModules: state.activeModules.map((item) =>
+    item.moduleId === moduleId
+      ? { ...item, position: snapCanvasPosition(position, item.size) }
+      : item
+  )
+})
+
+export const resizeModuleInLayout = (state: ModuleStoreState, moduleId: ModuleId, size: ModuleSize): ModuleStoreState => ({
+  ...state,
+  activeModules: state.activeModules.map((item) =>
+    item.moduleId === moduleId
+      ? { ...item, size, position: snapCanvasPosition(item.position, size) }
+      : item
+  )
+})
+
+export const createCustomModule = (input: Omit<Module, 'id' | 'isDefault'>): Module => {
+  const title = safeText(input.title, '自定义模块')
+  const idBase = title.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '')
+  return {
+    ...input,
+    id: `custom-${idBase || Date.now().toString(36)}`,
+    title,
+    description: safeText(input.description, '用于承载你的个性化工作流'),
+    icon: safeText(input.icon, 'Sparkles'),
+    category: 'custom',
+    isDefault: false,
+    isCustom: true
+  }
+}
+
+export const upsertCustomModule = (state: ModuleStoreState, module: Module): ModuleStoreState => ({
+  ...state,
+  availableModules: state.availableModules.some((item) => item.id === module.id)
+    ? state.availableModules.map((item) => item.id === module.id ? module : item)
+    : [...state.availableModules, module]
+})
+
+export const recommendModulesForIdentity = ({
+  identityDescription,
+  personaModuleTitles = []
+}: {
+  identityDescription: string
+  personaModuleTitles?: string[]
+}): Module[] => {
+  const text = [identityDescription, ...personaModuleTitles].join(' ').toLowerCase()
+  const moduleIds = new Set<ModuleId>()
+
+  keywordModuleMap.forEach(({ keywords, moduleIds: ids }) => {
+    if (keywords.some((keyword) => text.includes(keyword.toLowerCase()))) {
+      ids.forEach((id) => moduleIds.add(id))
+    }
+  })
+
+  if (moduleIds.size === 0) {
+    ;['today-tasks', 'focus-timer', 'notes'].forEach((id) => moduleIds.add(id))
+  }
+
+  return defaultModules.filter((module) => moduleIds.has(module.id))
+}
+
+type LayoutPayload = {
+  version: number
+  exportedAt: string
+  modules: Module[]
+  activeModules: CanvasItem[]
+}
+
+const isModuleSize = (value: unknown): value is ModuleSize =>
+  value === 'small' || value === 'medium' || value === 'large' || value === 'full-width'
+
+const isCanvasItem = (value: unknown): value is CanvasItem => {
+  if (!value || typeof value !== 'object') return false
+  const item = value as CanvasItem
+  return typeof item.moduleId === 'string'
+    && isModuleSize(item.size)
+    && typeof item.position?.x === 'number'
+    && typeof item.position?.y === 'number'
+}
+
+const isModule = (value: unknown): value is Module => {
+  if (!value || typeof value !== 'object') return false
+  const module = value as Module
+  return typeof module.id === 'string'
+    && typeof module.title === 'string'
+    && typeof module.description === 'string'
+    && typeof module.icon === 'string'
+    && isModuleSize(module.size)
+    && typeof module.isDefault === 'boolean'
+    && typeof module.isCustom === 'boolean'
+}
+
+export const exportModuleLayout = (state: ModuleStoreState): string => JSON.stringify({
+  version: LAYOUT_VERSION,
+  exportedAt: new Date().toISOString(),
+  modules: state.availableModules.filter((module) => module.isCustom),
+  activeModules: state.activeModules
+}, null, 2)
+
+export const importModuleLayout = (raw: string, baseModules: Module[] = defaultModules): ModuleStoreState => {
+  let payload: LayoutPayload
+  try {
+    payload = JSON.parse(raw) as LayoutPayload
+  } catch {
+    throw new Error('布局文件格式无效')
+  }
+
+  if (payload.version !== LAYOUT_VERSION) throw new Error('布局版本不受支持')
+  if (!Array.isArray(payload.modules) || !Array.isArray(payload.activeModules)) throw new Error('布局内容不完整')
+
+  const customModules = payload.modules.filter((module) => isModule(module) && module.isCustom)
+  const availableModules = [...baseModules]
+  customModules.forEach((module) => {
+    if (!availableModules.some((item) => item.id === module.id)) availableModules.push(module)
+  })
+
+  const availableIds = new Set(availableModules.map((module) => module.id))
+  const activeModules = payload.activeModules
+    .filter((item) => isCanvasItem(item) && availableIds.has(item.moduleId))
+    .map((item) => ({ ...item, position: snapCanvasPosition(item.position, item.size) }))
+
+  return { availableModules, activeModules, isStoreOpen: false }
+}

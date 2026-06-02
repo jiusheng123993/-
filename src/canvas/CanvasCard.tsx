@@ -1,52 +1,57 @@
 import { useState } from 'react'
-
-type CanvasSize = 'small' | 'medium' | 'large' | 'full-width'
+import type { ModuleSize } from '../module-store/types'
 
 interface CanvasCardProps {
   title: string
   description: string
-  size: CanvasSize
+  size: ModuleSize
+  position: { x: number; y: number }
   onDragStart: () => void
   onDragEnd: () => void
-  onClick: () => void
-  onDoubleClick: () => void
+  onMove: (position: { x: number; y: number }) => void
+  onRemove: () => void
+  onResize: (size: ModuleSize) => void
 }
 
-export const CanvasCard: React.FC<CanvasCardProps> = ({
+const sizeMeta: Record<ModuleSize, { columns: number; rows: number; label: string }> = {
+  small: { columns: 1, rows: 1, label: '小' },
+  medium: { columns: 2, rows: 1, label: '中' },
+  large: { columns: 2, rows: 2, label: '大' },
+  'full-width': { columns: 4, rows: 1, label: '通栏' }
+}
+
+export const CanvasCard = ({
   title,
   description,
   size,
+  position,
   onDragStart,
   onDragEnd,
-  onClick,
-  onDoubleClick
-}) => {
+  onMove,
+  onRemove,
+  onResize
+}: CanvasCardProps) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-
-  const sizeClasses: Record<CanvasSize, string> = {
-    small: 'col-span-1 row-span-1',
-    medium: 'col-span-2 row-span-1',
-    large: 'col-span-2 row-span-2',
-    'full-width': 'col-span-1 row-span-2'
-  }
+  const meta = sizeMeta[size]
 
   return (
-    <div
-      className={`canvas-card ${sizeClasses[size]} ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''}`}
-      onMouseDown={() => {
+    <article
+      className={`canvas-card ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''}`}
+      draggable
+      onDragStart={() => {
         setIsDragging(true)
         onDragStart()
       }}
-      onMouseUp={() => {
+      onDragEnd={() => {
         setIsDragging(false)
         onDragEnd()
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
       style={{
+        gridColumn: `${position.x + 1} / span ${meta.columns}`,
+        gridRow: `${position.y + 1} / span ${meta.rows}`,
         background: 'var(--surface)',
         borderRadius: '16px',
         padding: '16px',
@@ -61,8 +66,20 @@ export const CanvasCard: React.FC<CanvasCardProps> = ({
         opacity: isDragging ? 0.8 : 1
       }}
     >
-      <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: 600 }}>{title}</h3>
-      <p style={{ margin: 0, fontSize: '14px', color: 'var(--muted)' }}>{description}</p>
-    </div>
+      <div className="card-heading compact">
+        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>{title}</h3>
+        <span className="pill">{meta.label}</span>
+      </div>
+      <p style={{ margin: '8px 0 12px', fontSize: '14px', color: 'var(--muted)' }}>{description}</p>
+      <div className="module-store-item-actions">
+        <button className="module-store-btn module-store-btn-remove" onClick={() => onMove({ x: position.x - 1, y: position.y })} type="button">←</button>
+        <button className="module-store-btn module-store-btn-remove" onClick={() => onMove({ x: position.x + 1, y: position.y })} type="button">→</button>
+        <button className="module-store-btn module-store-btn-remove" onClick={() => onMove({ x: position.x, y: position.y + 1 })} type="button">↓</button>
+        <select aria-label={`${title} 模块尺寸`} onChange={(event) => onResize(event.target.value as ModuleSize)} value={size}>
+          {Object.entries(sizeMeta).map(([value, option]) => <option key={value} value={value}>{option.label}</option>)}
+        </select>
+        <button className="module-store-btn module-store-btn-delete" onClick={onRemove} type="button">移除</button>
+      </div>
+    </article>
   )
 }

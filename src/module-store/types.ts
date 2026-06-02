@@ -2,12 +2,14 @@ export type ModuleId = string
 
 export type ModuleSize = 'small' | 'medium' | 'large' | 'full-width'
 
+export type ModuleCategory = 'productivity' | 'learning' | 'health' | 'life' | 'custom'
+
 export type Module = {
   id: ModuleId
   title: string
   description: string
   icon: string
-  category: 'productivity' | 'learning' | 'health' | 'life' | 'custom'
+  category: ModuleCategory
   size: ModuleSize
   isDefault: boolean
   isCustom: boolean
