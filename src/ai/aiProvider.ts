@@ -37,7 +37,12 @@ export type AiPromptDraft = {
   userPrompt: string
 }
 
-const cloudAiCapabilities: AiTaskKind[] = ['daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report', 'memory-reflection']
+const cloudAiCapabilities: AiTaskKind[] = [
+  'daily-plan', 'task-breakdown', 'meeting-actions', 'daily-review', 'weekly-report',
+  'memory-reflection', 'agent-chat', 'silent-suggestion', 'avatar-evolution-check',
+  'reflection-l1-teaser', 'reflection-l2-weekly', 'reflection-l4-realtime',
+  'persona-customize-polish', 'persona-cameo-greeting'
+]
 
 export const aiProviderRegistry: AiProvider[] = [
   {
@@ -88,7 +93,15 @@ export const createAiPromptDraft = (providerId: AiProviderId, request: AiPromptR
     'meeting-actions': '会议记录转行动项',
     'daily-review': '生成每日复盘',
     'weekly-report': '生成周报素材',
-    'memory-reflection': '记忆反思与画像更新'
+    'memory-reflection': '记忆反思与画像更新',
+    'agent-chat': 'Agent 聊天对话',
+    'silent-suggestion': '静默建议生成',
+    'avatar-evolution-check': '角色进化检查',
+    'reflection-l1-teaser': 'L1 半切反思',
+    'reflection-l2-weekly': 'L2 完整周反思',
+    'reflection-l4-realtime': 'L4 实时反思',
+    'persona-customize-polish': 'Persona 润色与安全扫描',
+    'persona-cameo-greeting': '客串 Persona 开场白'
   }
 
   return {

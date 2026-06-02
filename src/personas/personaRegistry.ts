@@ -1,7 +1,9 @@
 import type { AiTaskKind } from '../ai/aiProvider'
 import type { ThemeId } from '../themes/themeRegistry'
 
-export type PersonaId = 'exam-student' | 'office-worker' | 'creator' | 'self-growth'
+export type PresetPersonaId = 'exam-student' | 'office-worker' | 'creator' | 'self-growth'
+export type ExtendedPersonaId = 'grad-exam' | 'civil-service' | 'cert-exam' | 'english-cet'
+export type PersonaId = PresetPersonaId | ExtendedPersonaId
 
 export type ScenarioModule = {
   id: string
@@ -185,6 +187,166 @@ export const personaRegistry: PersonaScenario[] = [
       }
     ],
     aiActions: ['daily-review', 'daily-plan', 'task-breakdown'],
+    recommendedThemeId: 'cream-dopamine'
+  },
+  {
+    id: 'grad-exam',
+    name: '考研冲刺',
+    targetUser: '准备研究生入学考试的大学生和在职考研人',
+    painPoint: '科目多、时间紧、资料杂、容易焦虑和自我怀疑。',
+    primaryFlow: '院校目标 → 科目规划 → 真题训练 → 错题复盘 → 模拟冲刺',
+    hero: '围绕考研目标，把院校选择、科目规划、真题训练和模拟考试串成完整备考闭环。',
+    mainModuleTitle: '考研冲刺计划',
+    sideModuleTitle: '真题训练',
+    aiRole: 'AI 考研导师',
+    keyMetrics: ['考研倒计时', '真题完成率', '薄弱科目数', '模拟考分数'],
+    modules: [
+      {
+        id: 'grad-countdown',
+        title: '考研倒计时',
+        description: '精确到天的考研时间规划，自动调整冲刺节奏。',
+        signal: '120 天'
+      },
+      {
+        id: 'grad-subjects',
+        title: '科目规划',
+        description: '政治、英语、数学、专业课的进度管理和优先级排序。',
+        signal: '4 科进行中'
+      },
+      {
+        id: 'grad-past-papers',
+        title: '真题训练',
+        description: '历年真题分类训练，自动记录正确率和用时。',
+        signal: '已完成 15 套'
+      },
+      {
+        id: 'grad-mistakes',
+        title: '错题复盘',
+        description: '把真题错题按知识点归类，生成针对性复习计划。',
+        signal: '32 题待复盘'
+      }
+    ],
+    aiActions: ['daily-plan', 'task-breakdown', 'daily-review'],
+    recommendedThemeId: 'minimal-premium'
+  },
+  {
+    id: 'civil-service',
+    name: '考公备战',
+    targetUser: '准备公务员考试、事业单位考试的备考人员',
+    painPoint: '行测题量大、申论难提分、面试紧张、岗位竞争激烈。',
+    primaryFlow: '岗位筛选 → 行测训练 → 申论积累 → 面试模拟 → 冲刺复盘',
+    hero: '把岗位筛选、行测训练、申论积累和面试模拟整合成高效考公系统。',
+    mainModuleTitle: '考公备战计划',
+    sideModuleTitle: '行测训练',
+    aiRole: 'AI 考公教练',
+    keyMetrics: ['行测正确率', '申论得分', '面试模拟次数', '岗位匹配度'],
+    modules: [
+      {
+        id: 'cs-jobs',
+        title: '岗位筛选',
+        description: '根据学历、专业、地域筛选合适岗位，追踪竞争比。',
+        signal: '3 个目标岗位'
+      },
+      {
+        id: 'cs-xingce',
+        title: '行测训练',
+        description: '言语理解、数量关系、判断推理、资料分析专项训练。',
+        signal: '正确率 68%'
+      },
+      {
+        id: 'cs-shenlun',
+        title: '申论积累',
+        description: '热点素材、范文模板、写作框架的系统积累。',
+        signal: '12 篇范文'
+      },
+      {
+        id: 'cs-interview',
+        title: '面试模拟',
+        description: '结构化面试、无领导小组讨论模拟和点评。',
+        signal: '5 次模拟'
+      }
+    ],
+    aiActions: ['daily-plan', 'task-breakdown', 'daily-review'],
+    recommendedThemeId: 'business-bluegray'
+  },
+  {
+    id: 'cert-exam',
+    name: '考证达人',
+    targetUser: '准备各类职业资格考试、专业技能认证的人员',
+    painPoint: '证书种类多、备考资料杂、考试时间冲突、难以坚持。',
+    primaryFlow: '证书规划 → 资料整理 → 章节学习 → 模拟考试 → 证书管理',
+    hero: '把证书规划、资料整理、章节学习和模拟考试整合成考证管理系统。',
+    mainModuleTitle: '考证管理',
+    sideModuleTitle: '模拟考试',
+    aiRole: 'AI 考证顾问',
+    keyMetrics: ['证书进度', '模拟考通过率', '学习完成率', '考试倒计时'],
+    modules: [
+      {
+        id: 'cert-plan',
+        title: '证书规划',
+        description: '管理多个证书的考试时间、备考周期和优先级。',
+        signal: '2 个证书备考中'
+      },
+      {
+        id: 'cert-materials',
+        title: '资料整理',
+        description: '教材、网课、笔记的分类管理和快速检索。',
+        signal: '15 份资料'
+      },
+      {
+        id: 'cert-chapters',
+        title: '章节学习',
+        description: '按章节推进学习进度，标记重点和难点。',
+        signal: '第 5 章进行中'
+      },
+      {
+        id: 'cert-mock',
+        title: '模拟考试',
+        description: '按真实考试时间和题型进行模拟，自动评分和分析。',
+        signal: '上次 82 分'
+      }
+    ],
+    aiActions: ['daily-plan', 'task-breakdown', 'weekly-report'],
+    recommendedThemeId: 'healing-anime'
+  },
+  {
+    id: 'english-cet',
+    name: '四六级备考',
+    targetUser: '准备大学英语四六级考试的学生',
+    painPoint: '词汇量不足、听力难、阅读慢、写作模板化。',
+    primaryFlow: '词汇积累 → 听力训练 → 阅读提速 → 写作模板 → 模拟测试',
+    hero: '把词汇、听力、阅读、写作四大模块系统训练，冲刺四六级高分。',
+    mainModuleTitle: '四六级冲刺',
+    sideModuleTitle: '词汇积累',
+    aiRole: 'AI 英语教练',
+    keyMetrics: ['词汇量', '听力正确率', '阅读速度', '写作得分'],
+    modules: [
+      {
+        id: 'cet-vocab',
+        title: '词汇积累',
+        description: '按考频和主题分类记忆四六级核心词汇。',
+        signal: '已掌握 2800 词'
+      },
+      {
+        id: 'cet-listening',
+        title: '听力训练',
+        description: '精听、泛听结合，提升听力理解和速记能力。',
+        signal: '正确率 75%'
+      },
+      {
+        id: 'cet-reading',
+        title: '阅读提速',
+        description: '长难句分析、快速定位、答题技巧训练。',
+        signal: '平均 8 分钟/篇'
+      },
+      {
+        id: 'cet-writing',
+        title: '写作模板',
+        description: '高频话题模板、万能句型、范文积累。',
+        signal: '12 个模板'
+      }
+    ],
+    aiActions: ['daily-plan', 'task-breakdown', 'daily-review'],
     recommendedThemeId: 'cream-dopamine'
   }
 ]

@@ -78,7 +78,11 @@ const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
   'exam-student': 'study',
   'office-worker': 'work',
   creator: 'growth',
-  'self-growth': 'growth'
+  'self-growth': 'growth',
+  'grad-exam': 'study',
+  'civil-service': 'study',
+  'cert-exam': 'study',
+  'english-cet': 'study'
 }
 
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()

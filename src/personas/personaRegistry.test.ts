@@ -5,7 +5,10 @@ describe('personaRegistry', () => {
   it('defines differentiated scenarios for target user groups', () => {
     const ids = personaRegistry.map((persona) => persona.id)
 
-    expect(ids).toEqual(['exam-student', 'office-worker', 'creator', 'self-growth'])
+    expect(ids).toEqual([
+      'exam-student', 'office-worker', 'creator', 'self-growth',
+      'grad-exam', 'civil-service', 'cert-exam', 'english-cet'
+    ])
     expect(new Set(ids).size).toBe(personaRegistry.length)
   })
 
