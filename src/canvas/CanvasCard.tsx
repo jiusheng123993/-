@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import type { ModuleSize } from '../module-store/types'
+
+type CanvasSize = 'small' | 'medium' | 'large' | 'full-width'
 
 interface CanvasCardProps {
   title: string
   description: string
-  size: ModuleSize
+  size: CanvasSize
   onDragStart: () => void
   onDragEnd: () => void
   onClick: () => void
@@ -23,7 +24,7 @@ export const CanvasCard: React.FC<CanvasCardProps> = ({
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
-  const sizeClasses = {
+  const sizeClasses: Record<CanvasSize, string> = {
     small: 'col-span-1 row-span-1',
     medium: 'col-span-2 row-span-1',
     large: 'col-span-2 row-span-2',

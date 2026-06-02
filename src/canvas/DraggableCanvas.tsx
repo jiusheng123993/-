@@ -1,6 +1,12 @@
 import { useState, useCallback } from 'react'
 import { CanvasCard } from './CanvasCard'
-import type { CanvasItem } from '../module-store/types'
+
+type CanvasSize = 'small' | 'medium' | 'large' | 'full-width'
+
+interface CanvasItem {
+  moduleId: string
+  size: CanvasSize
+}
 
 interface DraggableCanvasProps {
   items: CanvasItem[]
