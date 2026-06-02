@@ -1,30 +1,21 @@
-# 星寰海项目状态（Agent 接手必读）
+# 项目状态
 
+## 当前任务
+Persona 选择界面重构 - 文档更新阶段
 
-## 快速开始
-1. 读取项目记忆：`get_project_brief`
-2. 查看当前状态：读取本文件
-3. 查看进度：读取 progress.md
+## 已完成
+- [x] 创建新设计文档 `docs/superpowers/specs/2026-06-02-persona-selection-ui-redesign.md`
+- [x] 迁移旧文档有用内容到新文档
+- [x] 删除旧文档 `docs/superpowers/specs/2026-06-01-user-centered-visual-persona-system-design.md`
+- [x] 修复主题列表：从 8 个更新为 34 个（与 themeRegistry.ts 一致）
+- [x] 提交 Git 记录
 
-## 项目信息
-- 项目名：星寰海
-- 工作区：e:\星寰海
-- Git分支：develop
-- 技术栈：React 18 + TypeScript + Vite + Vitest + Express + Electron
-
-## 当前状态
-已完成 M4 3D 角色生成模块（E12-E16）开发
-
-## 验证状态
-- 测试：881/881 通过
-- Lint：1 个既有 warning
-- TypeScript：0 错误
-
-## 禁止修改
-- src/server/ - 后端服务
-- src/entitlement/entitlementService.ts - 权益核心
-- src/auth/devAuthSession.ts - 认证（开发用）
-- 既有错误模块勿轻易修改
+## 主题列表修复详情
+- 旧文档错误：只列出 8 个主题
+- 实际数量：34 个主题（来自 themeRegistry.ts）
+- 已按 aesthetic family 分类：minimal(2), dopamine(5), ink(3), chinese(1), anime(2), morandi(2), business(2), night(2), clash(5), huawei(4), liquid(2), other(2)
 
 ## 下一步
-待开发 M5 模块（根据任务清单继续）
+- 继续实现身份系统 UI
+- 实现模块商店
+- 实现可拖拽画布

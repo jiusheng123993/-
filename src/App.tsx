@@ -29,6 +29,7 @@ import {
 import { getPersonaById, type PersonaId } from './personas/personaRegistry'
 import { PersonaSwitcher } from './personas/PersonaSwitcher'
 import { IdentityProvider } from './identity/IdentityProvider'
+import { IdentitySelector } from './identity/IdentitySelector'
 import { Sidebar } from './sidebar/Sidebar'
 import { SidebarToggle } from './sidebar/SidebarToggle'
 import { getPersonaTemplateById } from './personas/personaTemplates'
@@ -229,6 +230,7 @@ export default function App() {
   })
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
+  const [isIdentitySelectorOpen, setIsIdentitySelectorOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themeSearchQuery, setThemeSearchQuery] = useState('')
   const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeFamilyId | 'all'>('all')
@@ -809,6 +811,13 @@ export default function App() {
             </button>
             <span className="pill">当前主题：{activeTheme.name}</span>
             <span className="pill">{workspaceState.preferences.themeMode === 'manual' ? '手动主题' : '场景推荐'}</span>
+            <button 
+              className="pill" 
+              onClick={() => setIsIdentitySelectorOpen(true)}
+              type="button"
+            >
+              创建身份
+            </button>
             <span className="pill warm">连续 {workspaceState.growth.streakDays} 天</span>
           </div>
         </header>
@@ -2339,6 +2348,30 @@ export default function App() {
                   </button>
                 )}
               </div>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isIdentitySelectorOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsIdentitySelectorOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="创建身份"
+            style={{ maxWidth: 600 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Identity · 身份管理</p>
+                <h2>创建新身份</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsIdentitySelectorOpen(false)} type="button">×</button>
+            </header>
+            <div className="membership-modal-content">
+              <IdentitySelector />
             </div>
           </section>
         </div>

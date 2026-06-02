@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IdentitySelector } from '../identity/IdentitySelector'
 
 interface SidebarProps {
   isOpen: boolean
@@ -65,6 +66,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             </button>
           ))}
         </nav>
+
+        <div style={{ flex: 1, overflow: 'auto', marginTop: '16px' }}>
+          {activeSection === 'identity' && <IdentitySelector />}
+        </div>
 
         <div className="sidebar-footer" style={{ marginTop: 'auto', paddingTop: '24px' }}>
           <button
