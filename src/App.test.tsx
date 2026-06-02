@@ -8,6 +8,11 @@ const openThemeLibrary = async (user: ReturnType<typeof userEvent.setup>) => {
   return screen.getByRole('dialog', { name: '主题库' })
 }
 
+const switchPersona = async (user: ReturnType<typeof userEvent.setup>, personaName: string) => {
+  await user.click(screen.getByRole('button', { name: /切换用户场景/ }))
+  await user.click(screen.getByRole('option', { name: new RegExp(personaName) }))
+}
+
 const searchTheme = async (user: ReturnType<typeof userEvent.setup>, query: string) => {
   const searchInput = screen.getByRole('searchbox', { name: '搜索主题' })
   await user.clear(searchInput)
@@ -240,7 +245,7 @@ describe('App', () => {
     await openThemeLibrary(user)
     await searchTheme(user, '年轻')
     await user.click(screen.getByRole('button', { name: '轻多巴胺年轻感' }))
-    await user.click(screen.getByRole('button', { name: /职场办公/ }))
+    await switchPersona(user, '职场办公')
 
     expect(screen.getByText('当前主题：轻多巴胺年轻感')).toBeInTheDocument()
     expect(screen.getByText('手动主题')).toBeInTheDocument()
@@ -252,7 +257,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /职场办公/ }))
+    await switchPersona(user, '职场办公')
 
     expect(screen.getByText('当前主题：商务蓝灰')).toBeInTheDocument()
     expect(screen.getByText('场景推荐')).toBeInTheDocument()
@@ -263,7 +268,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /职场办公/ }))
+    await switchPersona(user, '职场办公')
     await openThemeLibrary(user)
     await searchTheme(user, '年轻')
     await user.click(screen.getByRole('button', { name: '轻多巴胺年轻感' }))
@@ -278,7 +283,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /职场办公/ }))
+    await switchPersona(user, '职场办公')
 
     expect(screen.getByRole('heading', { name: '职场办公' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '项目推进看板' })).toBeInTheDocument()
@@ -292,7 +297,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /内容创作/ }))
+    await switchPersona(user, '内容创作')
 
     expect(screen.getByRole('heading', { name: '内容创作' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '内容生产线' })).toBeInTheDocument()

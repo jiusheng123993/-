@@ -6,7 +6,7 @@ import { persistentOrderService, type OrderStats } from '../../entitlement/persi
 import type { EntitlementCode } from '../../entitlement/entitlementTypes'
 import type { Product } from '../../entitlement/productTypes'
 import type { Order, OrderStatus } from '../../entitlement/orderTypes'
-import { createSafetyIncidentLog, type SafetyIncident, type IncidentCategory, type IncidentSeverity } from '../../personas/safetyIncidentLog'
+import { createSafetyIncidentLog } from '../../personas/safetyIncidentLog'
 import styles from './MembershipPage.module.css'
 
 const safetyIncidentLog = createSafetyIncidentLog()

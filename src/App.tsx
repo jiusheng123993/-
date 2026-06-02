@@ -26,9 +26,8 @@ import {
   type WorkspaceState,
   type WorkspaceType
 } from './data/workspaceStore'
-import { getPersonaById, personaRegistry, type PersonaId } from './personas/personaRegistry'
+import { getPersonaById, type PersonaId } from './personas/personaRegistry'
 import { PersonaSwitcher } from './personas/PersonaSwitcher'
-import type { CustomPersona } from './personas/customPersona'
 import { getPersonaTemplateById } from './personas/personaTemplates'
 import { getDefaultMiniProgramModules, miniProgramBlueprint } from './platforms/miniProgramBlueprint'
 import {

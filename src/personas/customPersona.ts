@@ -19,9 +19,9 @@ export type CustomPersonaInput = {
   sideModuleTitle: string
   aiRole: string
   keyMetrics: string[]
-  modules: { id: string; title: string; description: string; signal: string }[]
-  aiActions: string[]
-  recommendedThemeId: string
+  modules: PersonaScenario['modules']
+  aiActions: PersonaScenario['aiActions']
+  recommendedThemeId: PersonaScenario['recommendedThemeId']
 }
 
 const STORAGE_KEY = 'growth-workbench-custom-personas'
@@ -63,7 +63,7 @@ export const updateCustomPersona = (id: CustomPersonaId, updates: Partial<Custom
   const existing = loadCustomPersonas()
   const index = existing.findIndex((p) => p.id === id)
   if (index === -1) return null
-  const updated = { ...existing[index], ...updates, updatedAt: new Date().toISOString() }
+  const updated: CustomPersona = { ...existing[index], ...updates, updatedAt: new Date().toISOString() }
   existing[index] = updated
   saveCustomPersonas(existing)
   return updated

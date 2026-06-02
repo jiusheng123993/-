@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { createReflectionTierProvider, type ReflectionTierProvider, type ReflectionTier } from '../entitlement/reflectionTierProvider'
+import { createReflectionTierProvider, type ReflectionTierProvider } from '../entitlement/reflectionTierProvider'
 import { createEntitlementService } from '../entitlement/entitlementService'
 import styles from '../components/membership/MembershipPage.module.css'
 

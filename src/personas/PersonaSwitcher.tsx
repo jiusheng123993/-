@@ -4,18 +4,26 @@ import { personaRegistry, type PersonaId, type PersonaScenario } from './persona
 import type { CustomPersona, CustomPersonaInput } from './customPersona'
 import { addCustomPersona, deleteCustomPersona, loadCustomPersonas } from './customPersona'
 
-const personaIcons: Record<string, React.ElementType> = {
-  'exam-student': BookOpen,
-  'office-worker': Briefcase,
-  creator: Palette,
-  'self-growth': Sprout,
-  'grad-exam': GraduationCap,
-  'civil-service': Building2,
-  'cert-exam': Award,
-  'english-cet': Languages
+const getPersonaIcon = (id: string) => {
+  switch (id) {
+    case 'office-worker':
+      return <Briefcase size={18} />
+    case 'creator':
+      return <Palette size={18} />
+    case 'self-growth':
+      return <Sprout size={18} />
+    case 'grad-exam':
+      return <GraduationCap size={18} />
+    case 'civil-service':
+      return <Building2 size={18} />
+    case 'cert-exam':
+      return <Award size={18} />
+    case 'english-cet':
+      return <Languages size={18} />
+    default:
+      return <BookOpen size={18} />
+  }
 }
-
-const getPersonaIcon = (id: string) => personaIcons[id] || BookOpen
 
 type PersonaGroup = {
   label: string
@@ -74,12 +82,10 @@ export const PersonaSwitcher = ({ activePersonaId, onSwitchPersona, onCreateCust
         type="button"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-label="切换用户场景"
       >
         <span className="persona-switcher-active">
-          {(() => {
-            const Icon = getPersonaIcon(activePersona.id)
-            return <Icon size={18} />
-          })()}
+          {getPersonaIcon(activePersona.id)}
           <span>{activePersona.name}</span>
         </span>
         <ChevronDown size={16} className={isOpen ? 'rotated' : ''} />
@@ -92,7 +98,6 @@ export const PersonaSwitcher = ({ activePersonaId, onSwitchPersona, onCreateCust
               <div key={group.label} className="persona-switcher-group">
                 <span className="persona-switcher-group-label">{group.label}</span>
                 {group.personas.map((persona) => {
-                  const Icon = getPersonaIcon(persona.id)
                   const isActive = persona.id === activePersonaId
                   const isCustom = persona.id.startsWith('custom-')
                   return (
@@ -106,7 +111,7 @@ export const PersonaSwitcher = ({ activePersonaId, onSwitchPersona, onCreateCust
                       role="option"
                       aria-selected={isActive}
                     >
-                      <Icon size={18} />
+                      {getPersonaIcon(persona.id)}
                       <div className="persona-switcher-item-info">
                         <span className="persona-switcher-item-name">{persona.name}</span>
                         <span className="persona-switcher-item-desc">{(persona as PersonaScenario).primaryFlow || '自定义场景'}</span>
