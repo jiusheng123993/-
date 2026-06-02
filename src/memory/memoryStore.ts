@@ -1,4 +1,5 @@
-import type { LocalStorageLike, MemoryEvent, MemoryFact, MemoryProfile, MemoryScope, MemoryState, MemoryStore } from './memoryTypes'
+import type { LocalStorageLike, MemoryEvent, MemoryFact, MemoryScope, MemoryState, MemoryStore } from './memoryTypes'
+import type { MemoryProfile } from './memoryProfile'
 
 const defaultMemoryStorageKey = 'growth-workbench-memory-state'
 
