@@ -251,7 +251,6 @@ export default function App() {
   
   const { 
     pendingEntry, 
-    isLoading: isEvolutionLoading,
     handleAccept: handleEvolutionAccept,
     handleReject: handleEvolutionReject,
     handleModify: handleEvolutionModify,

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import type { EvolutionEntry } from './evolutionRitualTypes'
 import { evolutionStorage } from './evolutionStorage'
 import { reflectionEngine } from './reflectionEngine'
-import type { MemoryEvent } from '../../memory/memoryTypes'
 
 export function useEvolutionRitual(userId: string | undefined) {
   const [pendingEntry, setPendingEntry] = useState<EvolutionEntry | null>(null)
@@ -23,17 +22,21 @@ export function useEvolutionRitual(userId: string | undefined) {
         return
       }
 
+      const now = new Date().toISOString()
+      const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      
       const shouldTrigger = reflectionEngine.shouldTrigger(
         [],
-        undefined,
-        undefined
+        lastWeek,
+        now
       )
       
       if (shouldTrigger) {
         const entry = reflectionEngine.createEntry(
           'cron',
           'Weekly reflection triggered',
-          []
+          [],
+          userId
         )
         await evolutionStorage.save(entry)
         setPendingEntry(entry)

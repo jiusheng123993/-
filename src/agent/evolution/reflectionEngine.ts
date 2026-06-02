@@ -6,7 +6,9 @@ import type {
   EventThresholdCategory,
   SummarizeResult,
   ProfileChangeProposal,
+  ReflectionTriggerType,
 } from './reflectionEngineTypes'
+import { EvolutionEntry } from './evolutionRitualTypes'
 
 const DEFAULT_TRIGGERS: ReflectionTrigger[] = [
   {
@@ -192,10 +194,40 @@ function getDefaultTriggersImpl(): ReflectionTrigger[] {
   return DEFAULT_TRIGGERS
 }
 
+function createEntryImpl(
+  triggerType: ReflectionTriggerType,
+  triggerDetail: string,
+  events: MemoryEvent[],
+  userId: string
+): EvolutionEntry {
+  const now = new Date().toISOString()
+  const proposedChanges: ProfileChangeProposal[] = events.slice(0, 3).map((event, i) => ({
+    fieldPath: `dynamicContext.${i}`,
+    oldValue: null,
+    newValue: event.content,
+    reasoning: `Based on recent activity: ${event.content.substring(0, 50)}...`,
+    evidenceEventIds: [event.id],
+    confidence: 0.7 + Math.random() * 0.25
+  }))
+
+  return {
+    id: `evo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    userId,
+    triggeredBy: triggerType,
+    triggerDetail,
+    proposedChanges,
+    userDecision: 'pending',
+    finalChanges: [],
+    reflectionNote: '',
+    createdAt: now
+  }
+}
+
 export const reflectionEngine: ReflectionEngine = {
   shouldTrigger: shouldTriggerImpl,
   executeReflection: executeReflectionImpl,
   getDefaultTriggers: getDefaultTriggersImpl,
+  createEntry: createEntryImpl,
 }
 
 export { isSundayAt21, checkEventThresholds, countEventsByCategory }

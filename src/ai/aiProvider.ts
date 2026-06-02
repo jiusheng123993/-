@@ -1,6 +1,20 @@
 export type AiProviderId = 'deepseek' | 'openai' | 'tongyi' | 'doubao' | 'local'
 
-export type AiTaskKind = 'daily-plan' | 'task-breakdown' | 'meeting-actions' | 'daily-review' | 'weekly-report' | 'memory-reflection'
+export type AiTaskKind =
+  | 'daily-plan' | 'task-breakdown' | 'meeting-actions'
+  | 'daily-review' | 'weekly-report'
+  // 记忆与进化
+  | 'memory-reflection'
+  | 'agent-chat'
+  | 'silent-suggestion'
+  | 'avatar-evolution-check'
+  // 反思分层
+  | 'reflection-l1-teaser'
+  | 'reflection-l2-weekly'
+  | 'reflection-l4-realtime'
+  // Persona 系统
+  | 'persona-customize-polish'
+  | 'persona-cameo-greeting'
 
 export type AiProvider = {
   id: AiProviderId

@@ -11,6 +11,7 @@ export interface ProfileChangeProposal {
 
 export interface EvolutionEntry {
   id: string
+  userId: string
   triggeredBy: EvolutionTriggerType
   triggerDetail: string
   proposedChanges: ProfileChangeProposal[]

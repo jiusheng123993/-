@@ -1,4 +1,5 @@
-import type { MemoryEvent, MemoryProfile } from '../../memory/memoryTypes'
+import type { MemoryProfile, MemoryEvent } from '../../memory/memoryTypes'
+import type { EvolutionEntry } from './evolutionRitualTypes'
 
 export type ReflectionTriggerType = 'cron' | 'event_threshold' | 'manual'
 
@@ -46,4 +47,5 @@ export interface ReflectionEngine {
   shouldTrigger(events: MemoryEvent[], lastReflectionAt: string, now: string): boolean
   executeReflection(profile: MemoryProfile, events: MemoryEvent[]): Promise<SummarizeResult>
   getDefaultTriggers(): ReflectionTrigger[]
+  createEntry(triggerType: ReflectionTriggerType, triggerDetail: string, events: MemoryEvent[], userId: string): EvolutionEntry
 }

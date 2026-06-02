@@ -1,42 +1,35 @@
-import { openDB, type IDBPDatabase } from 'idb'
 import type { EvolutionEntry } from './evolutionRitualTypes'
 
-const DB_NAME = 'xinghuanhai-evolution'
-const STORE_NAME = 'evolution-entries'
+const STORAGE_KEY = 'xinghuanhai_evolution_entries'
 
-let dbPromise: Promise<IDBPDatabase> | null = null
-
-function getDB() {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 1, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-          store.createIndex('userId', 'userId')
-          store.createIndex('triggeredBy', 'triggeredBy')
-          store.createIndex('userDecision', 'userDecision')
-          store.createIndex('createdAt', 'createdAt')
-        }
-      }
-    })
+function getAll(): Record<string, EvolutionEntry> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
   }
-  return dbPromise
+}
+
+function setAll(entries: Record<string, EvolutionEntry>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
 }
 
 export const evolutionStorage = {
   async save(entry: EvolutionEntry): Promise<void> {
-    const db = await getDB()
-    await db.put(STORE_NAME, entry)
+    const entries = getAll()
+    entries[entry.id] = entry
+    setAll(entries)
   },
 
   async getById(id: string): Promise<EvolutionEntry | undefined> {
-    const db = await getDB()
-    return db.get(STORE_NAME, id)
+    const entries = getAll()
+    return entries[id]
   },
 
   async getByUser(userId: string): Promise<EvolutionEntry[]> {
-    const db = await getDB()
-    return db.getAllFromIndex(STORE_NAME, 'userId', userId)
+    const entries = getAll()
+    return Object.values(entries).filter(e => e.userId === userId)
   },
 
   async getPending(userId: string): Promise<EvolutionEntry[]> {
@@ -50,8 +43,8 @@ export const evolutionStorage = {
   },
 
   async updateDecision(id: string, decision: EvolutionEntry['userDecision'], finalChanges?: EvolutionEntry['finalChanges'], reflectionNote?: string): Promise<EvolutionEntry | undefined> {
-    const db = await getDB()
-    const entry = await db.get(STORE_NAME, id)
+    const entries = getAll()
+    const entry = entries[id]
     if (!entry) return undefined
     
     const updated: EvolutionEntry = {
@@ -61,17 +54,18 @@ export const evolutionStorage = {
       reflectionNote: reflectionNote ?? entry.reflectionNote,
       decidedAt: new Date().toISOString()
     }
-    await db.put(STORE_NAME, updated)
+    entries[id] = updated
+    setAll(entries)
     return updated
   },
 
   async delete(id: string): Promise<void> {
-    const db = await getDB()
-    await db.delete(STORE_NAME, id)
+    const entries = getAll()
+    delete entries[id]
+    setAll(entries)
   },
 
   async getAll(userId: string): Promise<EvolutionEntry[]> {
-    const db = await getDB()
-    return db.getAllFromIndex(STORE_NAME, 'userId', userId)
+    return this.getByUser(userId)
   }
 }
