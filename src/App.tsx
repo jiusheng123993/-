@@ -28,6 +28,9 @@ import {
 } from './data/workspaceStore'
 import { getPersonaById, type PersonaId } from './personas/personaRegistry'
 import { PersonaSwitcher } from './personas/PersonaSwitcher'
+import { IdentityProvider } from './identity/IdentityProvider'
+import { Sidebar } from './sidebar/Sidebar'
+import { SidebarToggle } from './sidebar/SidebarToggle'
 import { getPersonaTemplateById } from './personas/personaTemplates'
 import { getDefaultMiniProgramModules, miniProgramBlueprint } from './platforms/miniProgramBlueprint'
 import {
@@ -226,6 +229,7 @@ export default function App() {
   })
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themeSearchQuery, setThemeSearchQuery] = useState('')
   const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeFamilyId | 'all'>('all')
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null)
@@ -718,6 +722,9 @@ export default function App() {
   }
 
   return (
+    <IdentityProvider>
+      <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(false)} />
     <main className="app-shell">
       <svg className="liquid-glass-svg-defs" aria-hidden="true" focusable="false" width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
         <defs>
@@ -2337,5 +2344,6 @@ export default function App() {
         </div>
       )}
     </main>
+    </IdentityProvider>
   )
 }
