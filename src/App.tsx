@@ -51,9 +51,12 @@ import type { Product } from './entitlement/productTypes'
 import type { Order } from './entitlement/orderTypes'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
+import { SpaceList, SpaceDetail, RelationshipSpaceProvider } from './relationship'
 import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
 import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
+import { EvolutionRitualUI } from './agent/evolution/EvolutionRitualUI'
+import { useEvolutionRitual } from './agent/evolution/useEvolutionRitual'
 import styles from './components/membership/MembershipPage.module.css'
 
 const navigationItems = [
@@ -66,6 +69,7 @@ const navigationItems = [
   { label: '复盘提醒', icon: Brain },
   { label: '数据统计', icon: Trophy },
   { label: '主题中心', icon: Palette },
+  { label: '关系空间', icon: Crown },
   { label: '会员中心', icon: Crown },
   { label: '管理后台', icon: Zap }
 ]
@@ -238,10 +242,21 @@ export default function App() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false)
+  const [isRelationshipSpaceOpen, setIsRelationshipSpaceOpen] = useState(false)
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
+  
+  const { 
+    pendingEntry, 
+    isLoading: isEvolutionLoading,
+    handleAccept: handleEvolutionAccept,
+    handleReject: handleEvolutionReject,
+    handleModify: handleEvolutionModify,
+    handleClose: handleEvolutionClose
+  } = useEvolutionRitual(authSession?.userId)
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -741,6 +756,9 @@ export default function App() {
                       setAuthSession(createRoleSession('admin'))
                     }
                     setIsAdminConsoleOpen(true)
+                  }
+                  if (item.label === '关系空间') {
+                    setIsRelationshipSpaceOpen(true)
                   }
                 }}
               >
@@ -2162,6 +2180,56 @@ export default function App() {
             </div>
           </section>
         </div>
+      )}
+
+      {isRelationshipSpaceOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsRelationshipSpaceOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="关系空间"
+            style={{ maxWidth: 900 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Relationship Space · 关系空间</p>
+                <h2>与伙伴一起成长</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsRelationshipSpaceOpen(false)} type="button" aria-label="关闭关系空间">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <RelationshipSpaceProvider>
+                {selectedSpaceId ? (
+                  <SpaceDetail
+                    spaceId={selectedSpaceId}
+                    userId={authSession.userId}
+                    onBack={() => setSelectedSpaceId(null)}
+                  />
+                ) : (
+                  <SpaceList
+                    userId={authSession.userId}
+                    onSelectSpace={setSelectedSpaceId}
+                    onCreateSpace={() => {}}
+                  />
+                )}
+              </RelationshipSpaceProvider>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {pendingEntry && (
+        <EvolutionRitualUI
+          entry={pendingEntry}
+          onAccept={handleEvolutionAccept}
+          onReject={handleEvolutionReject}
+          onModify={handleEvolutionModify}
+          onClose={handleEvolutionClose}
+        />
       )}
 
       {isAdminConsoleOpen && (

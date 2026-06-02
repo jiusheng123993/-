@@ -1,4 +1,4 @@
-import type { MemoryEvent, MemoryFact, MemoryProfile } from './memoryTypes'
+import type { MemoryEvent, MemoryFact, LegacyMemoryProfile } from './memoryTypes'
 
 type PromptMode = 'chat' | 'silent_suggestion' | 'reflection'
 
@@ -39,7 +39,7 @@ export const buildMemoryEventContext = (events: MemoryEvent[], query: string): s
   return section('相关记忆事件', relevantEvents)
 }
 
-export const buildMemorySystemPromptExtension = (profile: MemoryProfile, events: MemoryEvent[], context: PromptContext): string => {
+export const buildMemorySystemPromptExtension = (profile: LegacyMemoryProfile, events: MemoryEvent[], context: PromptContext): string => {
   const activeContents = new Set(events.filter((event) => event.status === 'active').map((event) => event.content))
   const formatFacts = (facts: MemoryFact[]) => facts.filter((fact) => activeContents.has(fact.content)).map(factLine)
   const contextLines = [

@@ -1,5 +1,4 @@
-import type { LocalStorageLike, MemoryEvent, MemoryFact, MemoryScope, MemoryState, MemoryStore } from './memoryTypes'
-import type { MemoryProfile } from './memoryProfile'
+import type { LocalStorageLike, MemoryEvent, MemoryFact, MemoryScope, MemoryState, MemoryStore, LegacyMemoryProfile } from './memoryTypes'
 
 const defaultMemoryStorageKey = 'growth-workbench-memory-state'
 
@@ -47,7 +46,7 @@ export const createInitialMemoryState = (): MemoryState => ({
   }
 })
 
-export const deriveMemoryProfile = (scope: MemoryScope, events: MemoryEvent[], generatedAt: string): MemoryProfile => {
+export const deriveMemoryProfile = (scope: MemoryScope, events: MemoryEvent[], generatedAt: string): LegacyMemoryProfile => {
   const activeEvents = events.filter((event) => sameScope(event.scope, scope) && isActiveAt(event, generatedAt))
   const staticFacts = sortFacts(activeEvents.filter((event) => event.kind === 'preference' || event.kind === 'goal' || event.kind === 'habit').map(toFact))
   const dynamicContext = sortFacts(activeEvents.filter((event) => event.kind === 'context').map(toFact))
@@ -62,7 +61,7 @@ export const deriveMemoryProfile = (scope: MemoryScope, events: MemoryEvent[], g
   }
 }
 
-export const buildMemoryPromptContext = (profile: MemoryProfile, events: MemoryEvent[]) => {
+export const buildMemoryPromptContext = (profile: LegacyMemoryProfile, events: MemoryEvent[]) => {
   const activeContents = new Set(events.filter((event) => event.status === 'active').map((event) => event.content))
   const formatFacts = (facts: MemoryFact[]) => facts.filter((fact) => activeContents.has(fact.content)).map((fact) => `- ${fact.content}`)
   const sections = [

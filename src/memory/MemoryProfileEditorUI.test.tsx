@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { MemoryProfileEditorUI } from './MemoryProfileEditorUI'
 import type { MemoryProfile } from './memoryTypes'
@@ -89,7 +89,8 @@ function renderEditor(props: Partial<React.ComponentProps<typeof MemoryProfileEd
 }
 
 function expandSection(name: string) {
-  fireEvent.click(screen.getByText(name))
+  const label = screen.getByText(name)
+  fireEvent.click(label.parentElement!)
 }
 
 describe('MemoryProfileEditorUI', () => {

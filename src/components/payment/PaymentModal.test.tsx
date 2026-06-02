@@ -125,7 +125,7 @@ describe('PaymentModal', () => {
     expect(screen.getByLabelText('Apple Pay')).toBeDisabled()
   })
 
-  it('renders success result and triggers success callbacks', () => {
+  it('renders success result via PaymentSuccess and triggers success callbacks', () => {
     const onClose = vi.fn()
     const onSuccess = vi.fn()
     mockPaymentState({ status: 'success', orderId: 'order-123' })
@@ -135,6 +135,7 @@ describe('PaymentModal', () => {
     expect(screen.getByText('支付成功')).toBeInTheDocument()
     expect(screen.getByText('您已成功购买 学习会员月卡')).toBeInTheDocument()
     expect(screen.getByText('订单号: order-123')).toBeInTheDocument()
+    expect(screen.getByText('学习会员权益已解锁')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('完成'))
 
@@ -143,13 +144,21 @@ describe('PaymentModal', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('renders failed result and supports retry', () => {
+  it('renders agent_plus tier success with unlock items', () => {
+    mockPaymentState({ status: 'success', orderId: 'order-ap' })
+
+    renderModal({ productId: 'agent_plus_monthly', productName: 'Agent PLUS 月卡' })
+
+    expect(screen.getByText('Agent PLUS 旗舰权益已解锁')).toBeInTheDocument()
+    expect(screen.getByText('✓ AI 3D角色生成')).toBeInTheDocument()
+  })
+
+  it('renders failed result via PaymentFailure and supports retry', () => {
     mockPaymentState({ status: 'failed', orderId: 'order-123', error: '支付取消' })
 
     renderModal()
 
-    expect(screen.getByText('支付失败')).toBeInTheDocument()
-    expect(screen.getByText('支付取消')).toBeInTheDocument()
+    expect(screen.getByText('支付已取消')).toBeInTheDocument()
     expect(screen.getByText('订单号: order-123')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('重试'))
@@ -162,7 +171,30 @@ describe('PaymentModal', () => {
 
     renderModal()
 
-    expect(screen.getByText('支付过程中出现问题')).toBeInTheDocument()
+    expect(screen.getByText('支付失败')).toBeInTheDocument()
+    expect(screen.getByText('支付过程中出现问题，请稍后重试')).toBeInTheDocument()
+  })
+
+  it('shows contact support button when onContactSupport is provided', () => {
+    const onContactSupport = vi.fn()
+    mockPaymentState({ status: 'failed', error: '系统错误' })
+
+    renderModal({ onContactSupport })
+
+    fireEvent.click(screen.getByText('联系客服'))
+
+    expect(onContactSupport).toHaveBeenCalled()
+  })
+
+  it('shows view membership button on success when onViewMembership is provided', () => {
+    const onViewMembership = vi.fn()
+    mockPaymentState({ status: 'success', orderId: 'order-1' })
+
+    renderModal({ onViewMembership })
+
+    fireEvent.click(screen.getByText('查看我的会员'))
+
+    expect(onViewMembership).toHaveBeenCalled()
   })
 
   it('passes undefined authSession to usePayment for login guard compatibility', () => {

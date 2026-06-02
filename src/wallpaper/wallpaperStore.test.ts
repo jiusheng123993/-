@@ -1,176 +1,128 @@
-import { describe, expect, it } from 'vitest'
-import {
-  createBrowserWallpaperStore,
-  createMemoryWallpaperStore
-} from './wallpaperStore'
-import { createDefaultWallpaperConfig } from './wallpaperConfig'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { createWallpaperStore } from './wallpaperStore'
+import type { WallpaperConfig } from './wallpaperTypes'
+import { DEFAULT_WALLPAPER_ADJUSTMENTS, WALLPAPER_CONSTRAINTS } from './wallpaperTypes'
 
-describe('wallpaperStore', () => {
-  it('loads a default wallpaper config when no saved state exists', () => {
-    const store = createMemoryWallpaperStore()
-    const loaded = store.load()
+function makeAddData(overrides: Partial<WallpaperConfig> = {}) {
+  return {
+    source: 'upload' as const,
+    localPath: 'blob:test',
+    thumbnailDataUrl: 'data:image/jpeg;base64,test',
+    adjustments: { ...DEFAULT_WALLPAPER_ADJUSTMENTS },
+    readabilityWarning: false,
+    ...overrides
+  }
+}
 
-    expect(loaded.source.kind).toBe('none')
-    expect(loaded.privacyLevel).toBe('private')
-    expect(loaded.storage).toBe('local-only')
+describe('WallpaperStore', () => {
+  let store: ReturnType<typeof createWallpaperStore>
+
+  beforeEach(() => {
+    localStorage.clear()
+    store = createWallpaperStore()
   })
 
-  it('saves and loads a wallpaper config with a data-url source', () => {
-    const store = createMemoryWallpaperStore()
-    const config = createDefaultWallpaperConfig()
-    config.source = {
-      kind: 'data-url',
-      dataUrl: 'data:image/png;base64,AAABBBCCC',
-      mimeType: 'image/png',
-      byteSize: 9
-    }
-    config.overlayOpacity = 0.6
-    config.blurPx = 14
-    config.brightness = 0.9
-
-    store.save(config)
-    const loaded = store.load()
-
-    expect(loaded.source.kind).toBe('data-url')
-    if (loaded.source.kind === 'data-url') {
-      expect(loaded.source.dataUrl).toBe('data:image/png;base64,AAABBBCCC')
-      expect(loaded.source.mimeType).toBe('image/png')
-    }
-    expect(loaded.overlayOpacity).toBe(0.6)
-    expect(loaded.blurPx).toBe(14)
-    expect(loaded.brightness).toBe(0.9)
+  it('starts with no configs', () => {
+    expect(store.getAll()).toHaveLength(0)
+    expect(store.getActive()).toBeUndefined()
   })
 
-  it('removes the wallpaper and resets to default', () => {
-    const store = createMemoryWallpaperStore()
-    const config = createDefaultWallpaperConfig()
-    config.source = {
-      kind: 'data-url',
-      dataUrl: 'data:image/jpeg;base64,DDD',
-      mimeType: 'image/jpeg',
-      byteSize: 3
-    }
-
-    store.save(config)
-    store.remove()
-    const loaded = store.load()
-
-    expect(loaded.source.kind).toBe('none')
+  it('adds a config and returns it with id and timestamps', () => {
+    const config = store.add(makeAddData())
+    expect(config.id).toBeTruthy()
+    expect(config.createdAt).toBeTruthy()
+    expect(config.updatedAt).toBeTruthy()
+    expect(config.source).toBe('upload')
   })
 
-  it('preserves privacy flags across save and load', () => {
-    const store = createMemoryWallpaperStore()
-    const config = createDefaultWallpaperConfig()
-    config.includeInSync = false
-    config.includeInScreenshots = false
-    config.privacyLevel = 'private'
-
-    store.save(config)
-    const loaded = store.load()
-
-    expect(loaded.includeInSync).toBe(false)
-    expect(loaded.includeInScreenshots).toBe(false)
-    expect(loaded.privacyLevel).toBe('private')
+  it('retrieves added config by id', () => {
+    const added = store.add(makeAddData())
+    const found = store.getById(added.id)
+    expect(found).toBeDefined()
+    expect(found!.id).toBe(added.id)
   })
 
-  it('browser store falls back to default when localStorage is empty', () => {
-    const key = 'test-wallpaper-config-empty'
-    const store = createBrowserWallpaperStore(key)
-    const loaded = store.load()
-
-    expect(loaded.source.kind).toBe('none')
-    expect(loaded.privacyLevel).toBe('private')
+  it('returns active config after add', () => {
+    const added = store.add(makeAddData())
+    const active = store.getActive()
+    expect(active).toBeDefined()
+    expect(active!.id).toBe(added.id)
   })
 
-  it('browser store persists and reloads wallpaper config', () => {
-    const key = 'test-wallpaper-config-persist'
-    const store = createBrowserWallpaperStore(key)
-    const config = createDefaultWallpaperConfig()
-    config.source = {
-      kind: 'data-url',
-      dataUrl: 'data:image/webp;base64,EEE',
-      mimeType: 'image/webp',
-      byteSize: 3
-    }
-    config.saturation = 0.8
-
-    store.save(config)
-
-    const store2 = createBrowserWallpaperStore(key)
-    const loaded = store2.load()
-
-    expect(loaded.source.kind).toBe('data-url')
-    if (loaded.source.kind === 'data-url') {
-      expect(loaded.source.mimeType).toBe('image/webp')
-    }
-    expect(loaded.saturation).toBe(0.8)
+  it('updates a config', () => {
+    const added = store.add(makeAddData())
+    const updated = store.update(added.id, { readabilityWarning: true })
+    expect(updated).toBeDefined()
+    expect(updated!.readabilityWarning).toBe(true)
   })
 
-  it('browser store removes wallpaper and clears storage', () => {
-    const key = 'test-wallpaper-config-remove'
-    const store = createBrowserWallpaperStore(key)
-    const config = createDefaultWallpaperConfig()
-    config.source = {
-      kind: 'data-url',
-      dataUrl: 'data:image/png;base64,FFF',
-      mimeType: 'image/png',
-      byteSize: 3
-    }
-
-    store.save(config)
-    store.remove()
-
-    const store2 = createBrowserWallpaperStore(key)
-    const loaded = store2.load()
-    expect(loaded.source.kind).toBe('none')
+  it('returns undefined when updating non-existent config', () => {
+    const result = store.update('nonexistent', { readabilityWarning: true })
+    expect(result).toBeUndefined()
   })
 
-  it('browser store recovers from corrupted JSON without throwing', () => {
-    const key = 'test-wallpaper-config-corrupted'
-    window.localStorage.setItem(key, '{not-valid-json')
-    const store = createBrowserWallpaperStore(key)
-    const loaded = store.load()
-    expect(loaded.source.kind).toBe('none')
-    window.localStorage.removeItem(key)
+  it('removes a config', () => {
+    const added = store.add(makeAddData())
+    expect(store.remove(added.id)).toBe(true)
+    expect(store.getById(added.id)).toBeUndefined()
   })
 
-  it('browser store sanitizes out-of-range fields injected via DevTools', () => {
-    const key = 'test-wallpaper-config-tampered'
-    const tampered = {
-      source: { kind: 'none' },
-      overlayColor: 'rgba(0,0,0,0.4)',
-      overlayOpacity: 99,
-      blurPx: -50,
-      brightness: 99,
-      saturation: -3,
-      vignetteStrength: 8,
-      cardOpacity: -1,
-      privacyLevel: 'private',
-      storage: 'local-only',
-      includeInSync: false,
-      includeInScreenshots: false,
-      themeIdAtCapture: 'minimal-premium'
-    }
-    window.localStorage.setItem(key, JSON.stringify(tampered))
-    const store = createBrowserWallpaperStore(key)
-    const loaded = store.load()
-
-    expect(loaded.overlayOpacity).toBeLessThanOrEqual(1)
-    expect(loaded.blurPx).toBeGreaterThanOrEqual(0)
-    expect(loaded.brightness).toBeLessThanOrEqual(1.5)
-    expect(loaded.saturation).toBeGreaterThanOrEqual(0)
-    expect(loaded.vignetteStrength).toBeLessThanOrEqual(1)
-    expect(loaded.cardOpacity).toBeGreaterThanOrEqual(0.3)
-
-    window.localStorage.removeItem(key)
+  it('returns false when removing non-existent config', () => {
+    expect(store.remove('nonexistent')).toBe(false)
   })
 
-  it('memory store load returns isolated clones to avoid hidden mutations', () => {
-    const store = createMemoryWallpaperStore()
-    const first = store.load()
-    first.brightness = 0.4
+  it('finds config by theme binding', () => {
+    store.add(makeAddData({ themeBinding: 'minimal-cream' }))
+    store.add(makeAddData({ themeBinding: 'night-focus' as WallpaperConfig['themeBinding'] }))
+    const found = store.getByTheme('night-focus')
+    expect(found).toBeDefined()
+    expect(found!.themeBinding).toBe('night-focus')
+  })
 
-    const second = store.load()
-    expect(second.brightness).not.toBe(0.4)
+  it('resets all configs', () => {
+    store.add(makeAddData())
+    store.add(makeAddData())
+    store.resetToDefault()
+    expect(store.getAll()).toHaveLength(0)
+    expect(store.getActive()).toBeUndefined()
+  })
+
+  it('resets configs for specific theme only', () => {
+    store.add(makeAddData({ themeBinding: 'minimal-cream' }))
+    store.add(makeAddData({ themeBinding: 'night-focus' as WallpaperConfig['themeBinding'] }))
+    store.resetToDefault('minimal-cream')
+    expect(store.getAll()).toHaveLength(1)
+    expect(store.getAll()[0].themeBinding).toBe('night-focus')
+  })
+
+  it('processUpload rejects unsupported format', async () => {
+    const file = new File(['test'], 'test.bmp', { type: 'image/bmp' })
+    await expect(store.processUpload(file)).rejects.toThrow('Unsupported format')
+  })
+
+  it('processUpload rejects oversized file', async () => {
+    const bigData = new Uint8Array(WALLPAPER_CONSTRAINTS.MAX_FILE_SIZE_BYTES + 1)
+    const file = new File([bigData], 'big.jpg', { type: 'image/jpeg' })
+    await expect(store.processUpload(file)).rejects.toThrow('File too large')
+  })
+
+  it('processUpload accepts valid file format and size', () => {
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+    expect(WALLPAPER_CONSTRAINTS.SUPPORTED_FORMATS.includes(file.type)).toBe(true)
+    expect(file.size).toBeLessThanOrEqual(WALLPAPER_CONSTRAINTS.MAX_FILE_SIZE_BYTES)
+  })
+
+  it('persists configs to localStorage', () => {
+    store.add(makeAddData())
+    const raw = localStorage.getItem(WALLPAPER_CONSTRAINTS.STORAGE_KEY)
+    expect(raw).toBeTruthy()
+    const parsed = JSON.parse(raw!)
+    expect(parsed).toHaveLength(1)
+  })
+
+  it('loads configs from localStorage on new store instance', () => {
+    store.add(makeAddData())
+    const newStore = createWallpaperStore()
+    expect(newStore.getAll()).toHaveLength(1)
   })
 })

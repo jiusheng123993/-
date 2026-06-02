@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { usePayment } from '../../hooks/usePayment'
 import type { DevAuthSession } from '../../auth/devAuthSession'
 import type { OrderPaymentChannel } from '../../entitlement/orderTypes'
+import { PaymentSuccess } from './PaymentSuccess'
+import { PaymentFailure } from './PaymentFailure'
 import styles from './PaymentModal.module.css'
 
 interface PaymentModalProps {
@@ -11,8 +13,18 @@ interface PaymentModalProps {
   amount: number
   authSession?: DevAuthSession
   userId?: string
+  tier?: 'study' | 'agent' | 'agent_plus'
   onClose: () => void
   onSuccess?: () => void
+  onViewMembership?: () => void
+  onContactSupport?: () => void
+}
+
+function resolveTierFromProductId(productId: string): 'study' | 'agent' | 'agent_plus' | undefined {
+  if (productId.startsWith('agent_plus')) return 'agent_plus'
+  if (productId.startsWith('agent')) return 'agent'
+  if (productId.startsWith('study')) return 'study'
+  return undefined
 }
 
 export function PaymentModal({ 
@@ -22,8 +34,11 @@ export function PaymentModal({
   amount, 
   authSession,
   userId,
+  tier,
   onClose, 
-  onSuccess 
+  onSuccess,
+  onViewMembership,
+  onContactSupport
 }: PaymentModalProps) {
   const [channel, setChannel] = useState<OrderPaymentChannel>('wechat')
   const resolvedAuthSession = useMemo<DevAuthSession | undefined>(() => {
@@ -36,6 +51,7 @@ export function PaymentModal({
     }
   }, [authSession, userId])
   const { status, orderId, error, startPayment, reset } = usePayment(resolvedAuthSession)
+  const resolvedTier = tier ?? resolveTierFromProductId(productId)
 
   if (!isOpen) return null
 
@@ -57,13 +73,13 @@ export function PaymentModal({
   if (status === 'success' && orderId) {
     return (
       <div className={styles.overlay}>
-        <div className={`${styles.result} ${styles.success}`}>
-          <div className={styles.icon}>✓</div>
-          <h2>支付成功</h2>
-          <p>您已成功购买 {productName}</p>
-          <p className={styles.orderId}>订单号: {orderId}</p>
-          <button onClick={handleSuccess}>完成</button>
-        </div>
+        <PaymentSuccess
+          productName={productName}
+          orderId={orderId}
+          tier={resolvedTier}
+          onClose={handleSuccess}
+          onViewMembership={onViewMembership}
+        />
       </div>
     )
   }
@@ -71,16 +87,13 @@ export function PaymentModal({
   if (status === 'failed') {
     return (
       <div className={styles.overlay}>
-        <div className={`${styles.result} ${styles.failed}`}>
-          <div className={styles.icon}>✗</div>
-          <h2>支付失败</h2>
-          <p>{error || '支付过程中出现问题'}</p>
-          {orderId && <p className={styles.orderId}>订单号: {orderId}</p>}
-          <div className={styles.actions}>
-            <button onClick={handleClose}>关闭</button>
-            <button onClick={() => reset()}>重试</button>
-          </div>
-        </div>
+        <PaymentFailure
+          error={error}
+          orderId={orderId}
+          onRetry={() => reset()}
+          onClose={handleClose}
+          onContactSupport={onContactSupport}
+        />
       </div>
     )
   }

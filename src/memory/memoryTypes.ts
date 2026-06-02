@@ -36,7 +36,7 @@ export type MemoryFact = {
   updatedAt: string
 }
 
-export type MemoryProfile = {
+export type LegacyMemoryProfile = {
   scope: MemoryScope
   staticFacts: MemoryFact[]
   dynamicContext: MemoryFact[]
@@ -51,7 +51,7 @@ export type MemorySettings = {
 
 export type MemoryState = {
   events: MemoryEvent[]
-  profiles: MemoryProfile[]
+  profiles: LegacyMemoryProfile[]
   settings: MemorySettings
 }
 
@@ -72,7 +72,7 @@ export type LocalStorageLike = {
 export type PersonalityTrait =
   | 'MBTI_INTJ' | 'MBTI_ENTP' | 'MBTI_INFP' | 'MBTI_ESFJ'
   | 'MBTI_ISTJ' | 'MBTI_ENFP' | 'MBTI_ISFJ' | 'MBTI_ESTP'
-  | 'MBTI_INTJ' | 'MBTI_ENTJ' | 'MBTI_ISTP' | 'MBTI_ESFP'
+  | 'MBTI_INTP' | 'MBTI_ENTJ' | 'MBTI_ISTP' | 'MBTI_ESFP'
   | 'MBTI_INFJ' | 'MBTI_ENFJ' | 'MBTI_ISFP' | 'MBTI_ESTJ'
   | 'unknown'
 

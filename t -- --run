@@ -1,0 +1,40 @@
+[33m3985b27[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m)[m feat(ui): add memory insights panel with recent context
+[33mdfb6239[m fix: resolve lint errors and build type issues
+[33mab5faf3[m refactor: rename app title to 星寰海, update all references
+[33m793c216[m refactor: rename project from personal-study-planner to xinghuanhai
+[33mc79ba7d[m[33m ([m[1;31morigin/develop[m[33m)[m chore(security): ignore payment secret files
+[33md5b7003[m feat(memory): integrate memory observer into focus completion flow
+[33mcdf886b[m docs(architecture): add visual module map
+[33mf38edbd[m feat(memory): add workspace memory observer
+[33mc6ff377[m docs(membership): add backend integration design spec
+[33m5ff221a[m feat(memory): add prompt memory injection support
+[33m533003c[m feat(memory): add local-first memory store
+[33m7f3ebd2[m feat(auth): add frontend dev session and auth headers
+[33m47a9490[m fix(api): attach auth headers to order requests
+[33m85a834b[m feat(auth): add frontend dev auth session
+[33meaa18c3[m docs(auth): add frontend auth session spec and plan
+[33ma0ae581[m test(payment): add PaymentModal component coverage
+[33m12855b7[m test(entitlement): add persistent service coverage
+[33m8960512[m fix(auth): enforce order resource permissions
+[33m858cb80[m feat(auth): add dev bearer auth middleware
+[33m9cb5294[m docs(auth): add permission implementation plan
+[33m21553c9[m refactor: move trial section above subscription tiers
+[33md24857a[m docs(auth): add permission design spec
+[33m296a695[m feat: add Agent PLUS quarterly subscription option
+[33m92c1fa4[m feat: add Agent quarterly subscription option
+[33m666fd02[m test(server): add backend service tests
+[33mc902802[m security: harden order/payment API with input validation and global error handling
+[33m6be1269[m test(server): add orders and payment router tests
+[33m924a5e6[m test(hooks): add usePayment and usePaymentStatus tests
+[33m9cca231[m fix: remove duplicate trial section and improve layout
+[33mcd45659[m test(api): add payment API tests
+[33mc343d13[m test(services): add websocket and paymentService tests
+[33m3ba1fb4[m test: add AdminAuth unit tests
+[33m76f7d8c[m fix(server): share orderService instance across routes
+[33m14ab274[m test(e2e): add payment flow integration tests
+[33mafeb888[m fix: prevent duplicate browser window and improve trial section layout
+[33m0552391[m feat(payment): add order query page, refund function and backend server
+[33m76fb934[m fix: resolve App.tsx type errors and add server entry point
+[33m943fe55[m style(payment): add PaymentModal styles with animations
+[33m5e9fd90[m feat(membership): integrate PaymentModal into MembershipPage
+[33m38ca67c[m feat(entitlement): add AgentTierProvider for tier resolution

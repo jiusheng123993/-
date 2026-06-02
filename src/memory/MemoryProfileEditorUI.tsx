@@ -134,17 +134,20 @@ function ChipInput({ values, onChange, disabled, placeholder }: {
   )
 }
 
-function SelectField({ label, value, options, onChange, disabled }: {
+function SelectField({ label, value, options, onChange, disabled, fieldId }: {
   label: string
   value: string | undefined
   options: string[]
   onChange: (value: string | undefined) => void
   disabled?: boolean
+  fieldId?: string
 }) {
+  const id = fieldId ?? `field-${label}`
   return (
     <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+      <label className={styles.label} htmlFor={id}>{label}</label>
       <select
+        id={id}
         className={styles.select}
         value={value ?? ''}
         onChange={e => onChange(e.target.value || undefined)}
@@ -159,18 +162,21 @@ function SelectField({ label, value, options, onChange, disabled }: {
   )
 }
 
-function InputField({ label, value, onChange, disabled, type, placeholder }: {
+function InputField({ label, value, onChange, disabled, type, placeholder, fieldId }: {
   label: string
   value: string | number | undefined
   onChange: (value: string | number | undefined) => void
   disabled?: boolean
   type?: string
   placeholder?: string
+  fieldId?: string
 }) {
+  const id = fieldId ?? `field-${label}`
   return (
     <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+      <label className={styles.label} htmlFor={id}>{label}</label>
       <input
+        id={id}
         className={styles.input}
         type={type ?? 'text'}
         value={value ?? ''}
@@ -188,17 +194,20 @@ function InputField({ label, value, onChange, disabled, type, placeholder }: {
   )
 }
 
-function TextareaField({ label, value, onChange, disabled, placeholder }: {
+function TextareaField({ label, value, onChange, disabled, placeholder, fieldId }: {
   label: string
   value: string | undefined
   onChange: (value: string | undefined) => void
   disabled?: boolean
   placeholder?: string
+  fieldId?: string
 }) {
+  const id = fieldId ?? `field-${label}`
   return (
     <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+      <label className={styles.label} htmlFor={id}>{label}</label>
       <textarea
+        id={id}
         className={styles.textarea}
         value={value ?? ''}
         onChange={e => onChange(e.target.value || undefined)}

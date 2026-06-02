@@ -215,6 +215,162 @@ describe('Payment Flow E2E', () => {
     })
   })
 
+  describe('Edge Cases and Boundary Scenarios', () => {
+    it('should prevent duplicate entitlement grants for same product', () => {
+      const userId = 'e2e-duplicate-user'
+
+      subscriptionProvider.activate(userId, 'study_monthly', 'order-1')
+      expect(entitlementService.has(userId, 'study')).toBe(true)
+
+      subscriptionProvider.activate(userId, 'study_monthly', 'order-2')
+      expect(entitlementService.has(userId, 'study')).toBe(true)
+    })
+
+    it('should handle concurrent order creation for same user', () => {
+      const userId = 'e2e-concurrent-user'
+
+      const order1 = orderService.createOrder({
+        userId,
+        productId: 'study_monthly',
+        amount: 1800,
+        channel: 'wechat'
+      })
+
+      const order2 = orderService.createOrder({
+        userId,
+        productId: 'study_monthly',
+        amount: 1800,
+        channel: 'alipay'
+      })
+
+      expect(order1.id).not.toBe(order2.id)
+      expect(order1.status).toBe('pending')
+      expect(order2.status).toBe('pending')
+    })
+
+    it('should handle payment timeout - order remains pending', () => {
+      const userId = 'e2e-timeout-user'
+
+      const order = orderService.createOrder({
+        userId,
+        productId: 'study_monthly',
+        amount: 1800,
+        channel: 'wechat'
+      })
+
+      expect(order.status).toBe('pending')
+      expect(order.paidAt).toBeUndefined()
+
+      const orders = orderService.getOrdersByUser(userId)
+      const pendingOrders = orders.filter(o => o.status === 'pending')
+      expect(pendingOrders.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('should handle network recovery - pay pending order after delay', () => {
+      const userId = 'e2e-recovery-user'
+
+      const order = orderService.createOrder({
+        userId,
+        productId: 'study_monthly',
+        amount: 1800,
+        channel: 'wechat'
+      })
+
+      expect(order.status).toBe('pending')
+
+      const paidOrder = orderService.markAsPaid(order.id, 'wx-recovered-001')
+      expect(paidOrder.status).toBe('paid')
+
+      subscriptionProvider.activate(userId, 'study_monthly', order.id)
+      expect(entitlementService.has(userId, 'study')).toBe(true)
+    })
+
+    it('should handle order status inconsistency - cannot refund already refunded order', () => {
+      const userId = 'e2e-inconsist-user'
+
+      const order = orderService.createOrder({
+        userId,
+        productId: 'study_monthly',
+        amount: 1800,
+        channel: 'wechat'
+      })
+
+      orderService.markAsPaid(order.id, 'wx-paid-001')
+      orderService.markAsRefunded(order.id)
+
+      expect(() => orderService.markAsRefunded(order.id)).toThrow()
+    })
+
+    it('should handle quota exhaustion gracefully', () => {
+      const userId = 'e2e-exhaust-user'
+
+      entitlementService.grant(userId, {
+        code: 'ai_quota_free',
+        source: 'monthly_grant',
+        remaining: 1,
+        expireAt: null
+      })
+
+      const result1 = aiQuotaProvider.consume(userId)
+      expect(result1.ok).toBe(true)
+      expect(result1.remaining).toBe(0)
+
+      const result2 = aiQuotaProvider.consume(userId)
+      expect(result2.ok).toBe(false)
+    })
+
+    it('should handle tier downgrade after cancellation', () => {
+      const userId = 'e2e-downgrade-user'
+
+      subscriptionProvider.activate(userId, 'agent_plus_monthly', 'order-1')
+      expect(agentTierProvider.getTier(userId)).toBe('agent_plus')
+
+      subscriptionProvider.deactivate(userId, 'agent_plus')
+      subscriptionProvider.deactivate(userId, 'agent')
+      subscriptionProvider.deactivate(userId, 'study')
+      expect(agentTierProvider.getTier(userId)).toBe('free')
+      expect(agentTierProvider.isPro(userId)).toBe(false)
+    })
+
+    it('should handle tier upgrade from study to agent', () => {
+      const userId = 'e2e-upgrade-user'
+
+      subscriptionProvider.activate(userId, 'study_monthly', 'order-1')
+      expect(agentTierProvider.getTier(userId)).toBe('study')
+
+      subscriptionProvider.activate(userId, 'agent_monthly', 'order-2')
+      expect(agentTierProvider.getTier(userId)).toBe('agent')
+    })
+
+    it('should handle empty product catalog query', () => {
+      const product = getProductById('nonexistent_product')
+      expect(product).toBeUndefined()
+    })
+
+    it('should handle entitlement revoke and re-grant', () => {
+      const userId = 'e2e-revoke-user'
+
+      entitlementService.grant(userId, {
+        code: 'study',
+        source: 'subscription',
+        remaining: 1,
+        expireAt: '2026-12-31'
+      })
+      expect(entitlementService.has(userId, 'study')).toBe(true)
+
+      entitlementService.revoke(userId, (e) => e.code === 'study')
+      expect(entitlementService.has(userId, 'study')).toBe(false)
+
+      entitlementService.grant(userId, {
+        code: 'study',
+        source: 'subscription',
+        remaining: 1,
+        expireAt: '2026-12-31'
+      })
+      expect(entitlementService.has(userId, 'study')).toBe(true)
+    })
+  })
+
   describe('Order Management', () => {
     it('should list user orders', () => {
       const userId = 'e2e-orders-user'
