@@ -132,33 +132,33 @@
 
 ### E12 AvatarTypes
 
-- [ ] T12.1 创建 `src/avatar/avatarTypes.ts`：定义 AvatarConfig、AvatarPart、AvatarAnimation、AvatarExportFormat 类型
-- [ ] T12.2 创建 `src/avatar/avatarConstraints.ts`：定义角色生成约束（尺寸、格式、性能）
+- [x] T12.1 创建 `src/avatar/avatarTypes.ts`：定义 AvatarConfig、AvatarPart、AvatarAnimation、AvatarExportFormat 类型
+- [x] T12.2 创建 `src/avatar/avatarConstraints.ts`：定义角色生成约束（尺寸、格式、性能）
 
 ### E13 AvatarGenerator
 
-- [ ] T13.1 创建 `src/avatar/avatarGenerator.ts`：实现3D角色生成核心逻辑
-- [ ] T13.2 创建 `src/avatar/avatarGenerator.test.ts`：测试生成逻辑、参数校验
-- [ ] T13.3 集成 AI Provider：调用 AI 生成角色描述
-- [ ] T13.4 集成 EntitlementService：检查 avatar_rpm 权益
+- [x] T13.1 创建 `src/avatar/avatarGenerator.ts`：实现3D角色生成核心逻辑
+- [x] T13.2 创建 `src/avatar/avatarGenerator.test.ts`：测试生成逻辑、参数校验
+- [x] T13.3 集成 AI Provider：调用 AI 生成角色描述
+- [x] T13.4 集成 EntitlementService：检查 avatar_rpm 权益
 
 ### E14 AvatarRenderer
 
-- [ ] T14.1 创建 `src/avatar/AvatarRenderer.tsx`：3D角色渲染组件
-- [ ] T14.2 创建 `src/avatar/AvatarCanvas.tsx`：3D画布组件
-- [ ] T14.3 创建 `src/avatar/avatarRenderer.test.ts`：测试渲染逻辑
+- [x] T14.1 创建 `src/avatar/AvatarRenderer.tsx`：3D角色渲染组件
+- [x] T14.2 创建 `src/avatar/AvatarCanvas.tsx`：3D画布组件
+- [ ] T14.3 创建 `src/avatar/avatarRenderer.test.ts`：测试渲染逻辑（跳过，需要浏览器环境）
 
 ### E15 AvatarCustomizer
 
-- [ ] T15.1 创建 `src/avatar/AvatarCustomizer.tsx`：角色定制组件
-- [ ] T15.2 创建 `src/avatar/PartPicker.tsx`：部件选择器组件
-- [ ] T15.3 创建 `src/avatar/AnimationPicker.tsx`：动画选择器组件
+- [x] T15.1 创建 `src/avatar/AvatarCustomizer.tsx`：角色定制组件
+- [x] T15.2 创建 `src/avatar/PartPicker.tsx`：部件选择器组件
+- [x] T15.3 创建 `src/avatar/AnimationPicker.tsx`：动画选择器组件
 
 ### E16 AvatarExport
 
-- [ ] T16.1 创建 `src/avatar/avatarExport.ts`：实现角色导出功能
-- [ ] T16.2 创建 `src/avatar/avatarExport.test.ts`：测试导出逻辑
-- [ ] T16.3 支持格式：PNG、GIF、MP4、GLB
+- [x] T16.1 创建 `src/avatar/avatarExport.ts`：实现角色导出功能
+- [ ] T16.2 创建 `src/avatar/avatarExport.test.ts`：测试导出逻辑（跳过，需要浏览器环境）
+- [x] T16.3 支持格式：PNG、GIF、MP4、GLB
 
 ### M4 验收
 

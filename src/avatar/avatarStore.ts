@@ -56,6 +56,8 @@ export type AvatarStore = {
     aiModelId?: string
     rpmAvatarUrl?: string
     rpmConfig?: Record<string, unknown>
+    animations?: AvatarDefinition['animations']
+    evolution?: AvatarEvolution
   }) => AvatarDefinition | null
   updateAvatar: (id: string, patch: Partial<AvatarDefinition>) => AvatarDefinition | undefined
   deleteAvatar: (id: string) => boolean
@@ -112,8 +114,8 @@ export function createAvatarStore(): AvatarStore {
         aiModelId: params.aiModelId,
         rpmAvatarUrl: params.rpmAvatarUrl,
         rpmConfig: params.rpmConfig,
-        evolution: { ...DEFAULT_AVATAR_EVOLUTION },
-        animations: [],
+        evolution: params.evolution || { ...DEFAULT_AVATAR_EVOLUTION },
+        animations: params.animations || [],
         createdAt: now,
         updatedAt: now
       }
