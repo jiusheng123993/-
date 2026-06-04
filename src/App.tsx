@@ -1,23 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  BookOpen,
   Bot,
-  Brain,
-  Briefcase,
-  Clock3,
-  Crown,
-  Flame,
-  LineChart,
   Minus,
-  MonitorSmartphone,
-  Palette,
-  Plus,
-  Sparkles,
-  Target,
-  Trophy,
-  Zap
+  Plus
 } from 'lucide-react'
-import { ExpandableCard } from './components/expandable/ExpandableCard'
 import { createAiPromptDraft, getAiProviderById } from './ai/aiProvider'
 import {
   createBrowserWorkspaceStore,
@@ -40,7 +26,6 @@ import {
   themeFamilyMeta,
   themeRegistry,
   type StudyTheme,
-  type ThemeAesthetic,
   type ThemeFamilyId,
   type ThemeId
 } from './themes/themeRegistry'
@@ -54,6 +39,9 @@ import { createOrderService } from './entitlement/orderService'
 import { paymentAdapters } from './entitlement/paymentAdapters'
 import type { Product } from './entitlement/productTypes'
 import type { Order } from './entitlement/orderTypes'
+import { themeFamilyLabels, applyThemeToDOM } from './hooks/useTheme'
+import { WallpaperPicker } from './wallpaper/WallpaperPicker'
+import { deriveWallpaperFromTheme } from './wallpaper/wallpaperConfig'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
 import { SpaceList, SpaceDetail, RelationshipSpaceProvider } from './relationship'
@@ -62,7 +50,7 @@ import { createMemoryObserver } from './memory/memoryObserver'
 import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
 import { EvolutionRitualUI } from './agent/evolution/EvolutionRitualUI'
 import { useEvolutionRitual } from './agent/evolution/useEvolutionRitual'
-import { DraggableCanvas } from './canvas/DraggableCanvas'
+import { CanvasCard } from './canvas/CanvasCard'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
 import { ModuleStoreUI } from './module-store/ModuleStoreUI'
@@ -78,21 +66,6 @@ import {
 } from './module-store/moduleStoreLogic'
 import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import styles from './components/membership/MembershipPage.module.css'
-
-const navigationItems = [
-  { label: '首页仪表盘', icon: LineChart },
-  { label: '学习目标', icon: Target },
-  { label: '办公行动', icon: Briefcase },
-  { label: '每日打卡', icon: Flame },
-  { label: '番茄专注', icon: Clock3 },
-  { label: '知识笔记', icon: BookOpen },
-  { label: '复盘提醒', icon: Brain },
-  { label: '数据统计', icon: Trophy },
-  { label: '主题中心', icon: Palette },
-  { label: '关系空间', icon: Crown },
-  { label: '会员中心', icon: Crown },
-  { label: '管理后台', icon: Zap }
-]
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
   'exam-student': 'study',
@@ -114,20 +87,6 @@ const aiQuotaProvider = createAiQuotaProvider(entitlementService)
 const orderService = createOrderService()
 
 const defaultMiniProgramModules = getDefaultMiniProgramModules()
-
-const themeFamilyLabels: Record<ThemeAesthetic, string> = {
-  minimal: '极简',
-  dopamine: '多巴胺',
-  ink: '水墨',
-  chinese: '国风',
-  anime: '二次元',
-  morandi: '莫兰迪',
-  business: '商务',
-  night: '夜间',
-  clash: '撞色',
-  huawei: '华为',
-  liquid: '液态玻璃'
-}
 
 const themeFamilies = themeFamilyMeta.map((family) => ({
   ...family,
@@ -197,44 +156,36 @@ const ThemeOptionButton = ({
   )
 }
 
-const applyTheme = (themeId: ThemeId) => {
-  const theme = getThemeById(themeId)
-  const root = document.documentElement
-  root.dataset.theme = theme.id
-  root.dataset.aesthetic = theme.aesthetic
-  root.dataset.material = theme.material
-  root.style.setProperty('--app-background', theme.tokens.colors.background)
-  root.style.setProperty('--surface', theme.tokens.colors.surface)
-  root.style.setProperty('--surface-strong', theme.tokens.colors.surfaceStrong)
-  root.style.setProperty('--primary', theme.tokens.colors.primary)
-  root.style.setProperty('--secondary', theme.tokens.colors.secondary)
-  root.style.setProperty('--accent', theme.tokens.colors.accent)
-  root.style.setProperty('--text', theme.tokens.colors.text)
-  root.style.setProperty('--muted', theme.tokens.colors.muted)
-  root.style.setProperty('--border', theme.tokens.colors.border)
-  root.style.setProperty('--hero-gradient', theme.tokens.gradients.hero)
-  root.style.setProperty('--card-gradient', theme.tokens.gradients.card)
-  root.style.setProperty('--chart-plan', theme.tokens.charts.plan)
-  root.style.setProperty('--chart-focus', theme.tokens.charts.focus)
-  root.style.setProperty('--chart-review', theme.tokens.charts.review)
-  root.style.setProperty('--radius', theme.tokens.effects.radius)
-  root.style.setProperty('--shadow', theme.tokens.effects.shadow)
-  root.style.setProperty('--glass', theme.tokens.effects.glass)
-}
-
 const loadInitialState = (): WorkspaceState => {
   if (!store) return createInitialWorkspaceState()
   return store.load()
 }
 
-const loadInitialModuleStoreState = (): ModuleStoreState => {
-  const fallback = addModuleToLayout(
-    addModuleToLayout(
-      addModuleToLayout(createInitialModuleStoreState(defaultModules), 'today-tasks'),
-      'focus-timer'
-    ),
-    'notes'
+const defaultWorkbenchModuleIds = [
+  'persona-plan',
+  'today-actions',
+  'focus-session',
+  'focus-overview',
+  'growth-rpg',
+  'persona-brief',
+  'key-metrics',
+  'focus-history',
+  'memory-insights',
+  'ai-coach',
+  'platform-matrix',
+  'mini-program-preview',
+  'theme-center',
+  'statistics'
+]
+
+const createDefaultWorkbenchState = () =>
+  defaultWorkbenchModuleIds.reduce(
+    (state, moduleId) => addModuleToLayout(state, moduleId),
+    createInitialModuleStoreState(defaultModules)
   )
+
+const loadInitialModuleStoreState = (): ModuleStoreState => {
+  const fallback = createDefaultWorkbenchState()
 
   if (typeof window === 'undefined') return fallback
   const saved = window.localStorage.getItem(moduleLayoutStorageKey)
@@ -266,11 +217,13 @@ export default function App() {
   })
   const weeklyProgress = visibleTasks.length === 0 ? 0 : Math.round((completedTasks.length / visibleTasks.length) * 100)
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false)
+  const [isWallpaperPickerOpen, setIsWallpaperPickerOpen] = useState(false)
   const [isIdentitySelectorOpen, setIsIdentitySelectorOpen] = useState(false)
   const [moduleStoreState, setModuleStoreState] = useState<ModuleStoreState>(() => loadInitialModuleStoreState())
   const [isAIRecommendationOpen, setIsAIRecommendationOpen] = useState(false)
   const [isLayoutShareOpen, setIsLayoutShareOpen] = useState(false)
   const [layoutImportError, setLayoutImportError] = useState<string | null>(null)
+  const [openWorkbenchDetail, setOpenWorkbenchDetail] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [themeSearchQuery, setThemeSearchQuery] = useState('')
   const [activeThemeFamily, setActiveThemeFamily] = useState<ThemeFamilyId | 'all'>('all')
@@ -279,6 +232,9 @@ export default function App() {
   const [focusPausedRemainingMs, setFocusPausedRemainingMs] = useState<number | null>(null)
   const [focusNow, setFocusNow] = useState<number>(() => Date.now())
   const [focusDurationDraft, setFocusDurationDraft] = useState<Record<string, number>>({})
+  const [growthRewardClaimed, setGrowthRewardClaimed] = useState(false)
+  const [aiCoachDraft, setAiCoachDraft] = useState<string | null>(null)
+  const [miniProgramPreviewMode, setMiniProgramPreviewMode] = useState<'home' | 'modules'>('home')
   const focusIntervalRef = useRef<number | null>(null)
   const savedWorkspaceStateRef = useRef<WorkspaceState | null>(null)
   const isFocusRunning = focusEndsAt !== null
@@ -524,8 +480,8 @@ export default function App() {
   }
 
   useEffect(() => {
-    applyTheme(workspaceState.preferences.themeId)
-  }, [workspaceState.preferences.themeId])
+    applyThemeToDOM(workspaceState.preferences.themeId, workspaceState.preferences.wallpaperConfig)
+  }, [workspaceState.preferences.themeId, workspaceState.preferences.wallpaperConfig])
 
   useEffect(() => {
     if (!store) return
@@ -539,15 +495,18 @@ export default function App() {
   }, [moduleStoreState])
 
   useEffect(() => {
-    if (!isThemePickerOpen) return
+    if (!isThemePickerOpen && !isWallpaperPickerOpen) return
 
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsThemePickerOpen(false)
+      if (event.key === 'Escape') {
+        setIsThemePickerOpen(false)
+        setIsWallpaperPickerOpen(false)
+      }
     }
 
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [isThemePickerOpen])
+  }, [isThemePickerOpen, isWallpaperPickerOpen])
 
   useEffect(() => {
     if (!isFocusRunning) {
@@ -597,7 +556,7 @@ export default function App() {
           taskTitle: target.title,
           workspaceType: target.workspaceType,
           minutes: target.minutes,
-          rewardXp: target.rewardXp,
+          rewardPoints: target.rewardPoints,
           completedAt: new Date().toISOString()
         }
 
@@ -612,7 +571,7 @@ export default function App() {
           ),
           growth: {
             ...state.growth,
-            experience: state.growth.experience + target.rewardXp,
+            experience: state.growth.experience + target.rewardPoints,
             achievements: state.growth.achievements + 1
           },
           focusSessions: [session, ...state.focusSessions].slice(0, 20)
@@ -641,9 +600,18 @@ export default function App() {
   }
 
   const switchTheme = (themeId: ThemeId) => {
+    const newTheme = getThemeById(themeId)
+    const derivedWallpaper = deriveWallpaperFromTheme(newTheme)
     setWorkspaceState((current) => ({
       ...current,
-      preferences: { ...current.preferences, themeId, themeMode: 'manual' }
+      preferences: {
+        ...current.preferences,
+        themeId,
+        themeMode: 'manual',
+        wallpaperConfig: current.preferences.wallpaperConfig
+          ? { ...current.preferences.wallpaperConfig, themeIdAtCapture: themeId }
+          : derivedWallpaper
+      }
     }))
     setIsThemePickerOpen(false)
   }
@@ -687,6 +655,83 @@ export default function App() {
     } catch (error) {
       setLayoutImportError(error instanceof Error ? error.message : '布局导入失败')
     }
+  }
+
+  const completeTaskFromWorkbench = (taskId: string) => {
+    setWorkspaceState((state) => {
+      const target = state.tasks.find((task) => task.id === taskId)
+      if (!target || target.status === 'done') return state
+
+      memoryObserver?.onTaskCompleted(target)
+      refreshMemoryEvents()
+
+      return {
+        ...state,
+        tasks: state.tasks.map((task) =>
+          task.id === taskId ? { ...task, status: 'done', dueLabel: '已完成' } : task
+        ),
+        growth: {
+          ...state.growth,
+          experience: state.growth.experience + target.rewardPoints,
+          achievements: state.growth.achievements + 1
+        }
+      }
+    })
+  }
+
+  const forgetFocusSession = (sessionId: string) => {
+    setWorkspaceState((state) => ({
+      ...state,
+      focusSessions: state.focusSessions.filter((session) => session.id !== sessionId)
+    }))
+  }
+
+  const claimGrowthReward = () => {
+    if (growthRewardClaimed) return
+    setWorkspaceState((state) => ({
+      ...state,
+      growth: {
+        ...state.growth,
+        experience: state.growth.experience + 20,
+        streakDays: state.growth.streakDays + 1
+      }
+    }))
+    setGrowthRewardClaimed(true)
+  }
+
+  const generateAiCoachDraft = () => {
+    const targetTask = nextFocusTask ?? visibleTasks[0]
+    setAiCoachDraft(targetTask
+      ? `今日先推进「${targetTask.title}」，用 ${Math.min(25, targetTask.minutes)} 分钟完成第一轮行动，再根据复盘结果拆下一步。`
+      : `今日先推进「${activePersona.modules[0]?.title ?? activePersona.mainModuleTitle}」，用一个 25 分钟行动块建立启动感。`
+    )
+  }
+
+  const markSyncReady = () => {
+    setWorkspaceState((state) => state.sync.status === 'sync-ready'
+      ? state
+      : {
+        ...state,
+        sync: {
+          ...state.sync,
+          status: 'sync-ready'
+        }
+      }
+    )
+  }
+
+  const moveWorkbenchItem = (moduleId: string, position: { x: number; y: number }) => {
+    setModuleStoreState((current) => {
+      const target = current.activeModules.find((item) => item.moduleId === moduleId)
+      if (!target) return current
+      const next = importModuleLayout(exportModuleLayout(current), current.availableModules)
+      return {
+        ...next,
+        activeModules: next.activeModules.map((item) =>
+          item.moduleId === moduleId ? { ...item, position } : item
+        )
+      }
+    })
   }
 
   const switchPersona = (personaId: PersonaId) => {
@@ -734,8 +779,8 @@ export default function App() {
     : focusTargetMinutes * 60
   const focusMinuteText = String(Math.floor(focusSeconds / 60)).padStart(2, '0')
   const focusSecondText = String(focusSeconds % 60).padStart(2, '0')
-  const focusRewardXp = focusDisplayTask
-    ? Math.round((focusDisplayTask.rewardXp * focusTargetMinutes) / focusDisplayTask.minutes)
+  const focusRewardPoints = focusDisplayTask
+    ? Math.round((focusDisplayTask.rewardPoints * focusTargetMinutes) / focusDisplayTask.minutes)
     : 0
 
   const adjustFocusDuration = (delta: number) => {
@@ -806,7 +851,22 @@ export default function App() {
   return (
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(false)} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onToggle={() => setSidebarOpen(false)}
+        onOpenModuleStore={() => setModuleStoreState((current) => ({ ...current, isStoreOpen: true }))}
+        onOpenAIRecommendation={() => setIsAIRecommendationOpen(true)}
+        onOpenLayoutShare={() => setIsLayoutShareOpen(true)}
+        onOpenThemePicker={openThemePicker}
+        onOpenMembership={() => setIsMembershipOpen(true)}
+        onOpenIdentitySelector={() => setIsIdentitySelectorOpen(true)}
+        onSwitchDevAuthRole={switchDevAuthRole}
+        devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
+        currentThemeName={activeTheme.name}
+        membershipTier={currentTier.label}
+        aiQuota={totalQuota}
+        streakDays={workspaceState.growth.streakDays}
+      />
     <main className="app-shell">
       <svg className="liquid-glass-svg-defs" aria-hidden="true" focusable="false" width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
         <defs>
@@ -824,45 +884,6 @@ export default function App() {
           </filter>
         </defs>
       </svg>
-      <aside className="sidebar panel">
-        <div className="brand">
-          <span className="brand-mark">G</span>
-          <div>
-            <strong>星寰海</strong>
-            <small>AI 个人空间</small>
-          </div>
-        </div>
-        <nav className="nav-list" aria-label="主导航">
-          {navigationItems.map((item, index) => {
-            const Icon = item.icon
-            const isMembership = item.label === '会员中心'
-            const isAdmin = item.label === '管理后台'
-            return (
-              <button 
-                className={(isMembership && isMembershipOpen) || (isAdmin && isAdminConsoleOpen) ? 'nav-item active' : index === 0 ? 'nav-item active' : 'nav-item'} 
-                key={item.label} 
-                type="button"
-                onClick={() => {
-                  if (isMembership) setIsMembershipOpen(true)
-                  if (isAdmin) {
-                    if (authSession.role !== 'admin') {
-                      setAuthSession(createRoleSession('admin'))
-                    }
-                    setIsAdminConsoleOpen(true)
-                  }
-                  if (item.label === '关系空间') {
-                    setIsRelationshipSpaceOpen(true)
-                  }
-                }}
-              >
-                <Icon size={18} />
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-      </aside>
-
       <section className="workspace">
         <header className="hero panel">
           <div>
@@ -870,45 +891,7 @@ export default function App() {
             <h1>{activePersona.name}</h1>
             <p className="hero-subtitle">{activePersona.hero}</p>
           </div>
-          <div className="hero-actions">
-            <button 
-              className="pill membership-pill" 
-              style={{ background: currentTier.color }}
-              onClick={() => setIsMembershipOpen(true)}
-            >
-              <Crown size={14} />
-              <span>{currentTier.label}</span>
-            </button>
-            <button 
-              className="pill quota-pill"
-              onClick={() => setIsMembershipOpen(true)}
-            >
-              <Zap size={14} />
-              <span>AI {totalQuota}</span>
-            </button>
-            <button className="pill" onClick={switchDevAuthRole} type="button">
-              {authSession.role === 'admin' ? '管理员' : '用户'} · {authSession.userId}
-            </button>
-            <span className="pill">当前主题：{activeTheme.name}</span>
-            <span className="pill">{workspaceState.preferences.themeMode === 'manual' ? '手动主题' : '场景推荐'}</span>
-            <button 
-              className="pill" 
-              onClick={() => setIsIdentitySelectorOpen(true)}
-              type="button"
-            >
-              创建身份
-            </button>
-            <button className="pill" onClick={() => setModuleStoreState((current) => ({ ...current, isStoreOpen: true }))} type="button">
-              模块商店
-            </button>
-            <button className="pill" onClick={() => setIsAIRecommendationOpen(true)} type="button">
-              AI 推荐模块
-            </button>
-            <button className="pill" onClick={() => setIsLayoutShareOpen(true)} type="button">
-              布局分享
-            </button>
-            <span className="pill warm">连续 {workspaceState.growth.streakDays} 天</span>
-          </div>
+          <span className="pill hero-theme-name">{activeTheme.name}</span>
         </header>
 
         <section className="workspace-switcher" aria-label="用户场景切换">
@@ -926,691 +909,929 @@ export default function App() {
             </div>
             <strong>{moduleStoreState.activeModules.length} 个模块</strong>
           </div>
-          <DraggableCanvas
-            items={moduleStoreState.activeModules}
-            modules={moduleStoreState.availableModules}
-            onItemsChange={updateCanvasItems}
-            onRemoveModule={removeCanvasModule}
-          />
+          <div className="draggable-canvas workbench-canvas" role="region" aria-label="星寰海画布工作台">
+            {moduleStoreState.activeModules.map((item) => {
+              const module = moduleStoreState.availableModules.find((candidate) => candidate.id === item.moduleId)
+              if (!module) return null
+
+              const cardChildren: Record<string, React.ReactNode> = {
+                'persona-plan': (
+                  <div className="persona-brief">
+                    <strong>{activeTemplate.title}</strong>
+                    <small>{activeTemplate.operatingRhythm}</small>
+                    <em>{activeTemplate.defaultAction}</em>
+                  </div>
+                ),
+                'growth-rpg': (
+                  <section className="growth-card card" style={{ background: activeTheme.tokens.gradients.card }}>
+                    <h2>Lv. {workspaceState.growth.level}</h2>
+                    <div className="xp-track"><span /></div>
+                    <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} 积分</strong>
+                  </section>
+                ),
+                'focus-overview': (
+                  <section
+                    className="card focus-brief-card"
+                    aria-label="桌面专注概览"
+                    data-style={focusBriefStyleId}
+                    data-aesthetic={activeTheme.aesthetic}
+                    data-material={activeTheme.material}
+                  >
+                    <FocusBriefStyleComponent
+                      data={{
+                        progress: weeklyProgress,
+                        todoCount: todoTasks.length,
+                        totalMinutes: totalFocusMinutes,
+                        completedCount: completedTasks.length
+                      }}
+                      context={{
+                        aesthetic: activeTheme.aesthetic,
+                        material: activeTheme.material
+                      }}
+                    />
+                    <FocusBriefStylePicker currentStyleId={focusBriefStyleId} onStyleChange={switchFocusBriefStyle} />
+                    <div className="focus-brief-legacy-meta" aria-hidden="true">
+                      <span>{todoTasks.length} 个待办</span>
+                      <span>{totalFocusMinutes} 分钟</span>
+                      <span>{completedTasks.length} 个已完成</span>
+                    </div>
+                  </section>
+                ),
+                'persona-brief': (
+                  <section className="card">
+                    <div className="persona-brief">
+                      <strong>{activePersona.targetUser}</strong>
+                      <p>{activePersona.painPoint}</p>
+                      <small>{activePersona.primaryFlow}</small>
+                    </div>
+                  </section>
+                ),
+                'key-metrics': (
+                  <section className="card">
+                    <div className="metric-grid">
+                      {activePersona.keyMetrics.map((metric, index) => (
+                        <article key={metric}>
+                          <strong>{metric}</strong>
+                          <span>{index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}</span>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ),
+                'today-actions': (
+                  <section className="panel side-card">
+                    <div className="today-list">
+                      {todoTasks.map((task) => (
+                        <article key={task.id}><span /><div><strong>{task.title}</strong><small>{task.dueLabel} · {task.minutes} 分钟</small></div></article>
+                      ))}
+                    </div>
+                  </section>
+                ),
+                'focus-session': (
+                  <section className="panel side-card timer-card" role="region" aria-label="任务专注计时器">
+                    <strong>{`${focusMinuteText}:${focusSecondText}`}</strong>
+                    <p>{focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}</p>
+                    <small>
+                      {focusDisplayTask
+                        ? `${focusDisplayTask.dueLabel} · ${focusRewardPoints} 积分`
+                        : '可先切换场景或新增任务'}
+                    </small>
+                    <div className="duration-control" aria-label="自定义专注时长">
+                      <button
+                        type="button"
+                        className="duration-step"
+                        disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes <= FOCUS_MIN_MINUTES}
+                        onClick={() => adjustFocusDuration(-FOCUS_STEP_MINUTES)}
+                        aria-label="减少专注时长"
+                      >
+                        <Minus size={16} strokeWidth={3} aria-hidden="true" />
+                      </button>
+                      <label className="duration-input">
+                        <input
+                          type="number"
+                          min={FOCUS_MIN_MINUTES}
+                          max={FOCUS_MAX_MINUTES}
+                          step={1}
+                          value={focusTargetMinutes}
+                          disabled={!focusDisplayTask || isFocusRunning}
+                          onChange={handleFocusDurationInput}
+                          aria-label="专注时长（分钟）"
+                        />
+                        <span>分钟</span>
+                      </label>
+                      <button
+                        type="button"
+                        className="duration-step"
+                        disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes >= FOCUS_MAX_MINUTES}
+                        onClick={() => adjustFocusDuration(FOCUS_STEP_MINUTES)}
+                        aria-label="增加专注时长"
+                      >
+                        <Plus size={16} strokeWidth={3} aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div className="timer-actions">
+                      <button
+                        className="timer-primary"
+                        disabled={!nextFocusTask && !activeFocusTask}
+                        onClick={isFocusRunning ? pauseFocusTimer : startFocusTimer}
+                        type="button"
+                      >
+                        {isFocusRunning ? '暂停专注' : activeFocusTask ? '继续专注' : '绑定任务开始'}
+                      </button>
+                      <button
+                        className="timer-secondary"
+                        disabled={!activeFocusTask && focusPausedRemainingMs === null}
+                        onClick={resetFocusTimer}
+                        type="button"
+                      >
+                        重置
+                      </button>
+                    </div>
+                  </section>
+                ),
+                'focus-history': (
+                  <section className="panel side-card focus-history-card" role="region" aria-label="最近专注会话">
+                    {workspaceState.focusSessions.length === 0 ? (
+                      <p className="empty-state">完成首个任务后，会自动沉淀到这里。</p>
+                    ) : (
+                      <ul className="focus-history-list">
+                        {workspaceState.focusSessions.slice(0, 3).map((session) => (
+                          <li key={session.id}>
+                            <strong>{session.taskTitle}</strong>
+                            <small>
+                              {session.minutes} 分钟 · {session.rewardPoints} 积分 · {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                ),
+                'memory-insights': (
+                  <section className="panel side-card memory-insights-card" role="region" aria-label="记忆洞察">
+                    <h3>近期上下文</h3>
+                    {workspaceState.focusSessions.length > 0 ? (
+                      <ul className="memory-events-list">
+                        {workspaceState.focusSessions.slice(0, 4).map((session) => (
+                          <li key={session.id}>
+                            <span className="memory-event-time">
+                              {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            <span className="memory-event-content">
+                              完成 {session.minutes} 分钟专注：{session.taskTitle}
+                            </span>
+                            <button
+                              className="memory-forget-btn"
+                              onClick={() => console.log('Forget:', session.id)}
+                              type="button"
+                            >
+                              忘记
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="empty-state">暂无记忆记录，完成专注后会显示在这里。</p>
+                    )}
+                  </section>
+                ),
+                'ai-coach': (
+                  <section className="panel side-card ai-card">
+                    <div className="card-heading compact"><h2>{activePersona.aiRole}</h2><Bot size={20} /></div>
+                    <p>{promptDraft.title}</p>
+                    <strong>{activeProvider.name}</strong>
+                    <small>{workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，已预留 Provider 接口'}</small>
+                    <div className="ai-actions">
+                      {activePersona.aiActions.map((action) => (
+                        <span key={action}>{action}</span>
+                      ))}
+                    </div>
+                  </section>
+                ),
+                'platform-matrix': (
+                  <section className="panel side-card multi-end-card">
+                    <p>当前桌面端优先，数据层已按本地优先和同步预留设计。</p>
+                    <div className="platform-list">
+                      <span>Desktop</span>
+                      <span>微信小程序</span>
+                      <span>Web/PWA</span>
+                      <span>iOS</span>
+                      <span>HarmonyOS</span>
+                    </div>
+                  </section>
+                ),
+                'mini-program-preview': (
+                  <section className="panel side-card mini-program-card">
+                    <p>{miniProgramBlueprint.positioning}</p>
+                    <span className="implementation-pill">微信小程序原生</span>
+                    <div className="boundary-grid">
+                      <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+                      <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+                    </div>
+                    <div className="phone-preview" aria-label="小程序首页预览">
+                      <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
+                      <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
+                      <div className="phone-module-grid">
+                        {defaultMiniProgramModules.slice(0, 4).map((mod) => (
+                          <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
+                        ))}
+                      </div>
+                      <div className="phone-tabbar">
+                        {miniProgramBlueprint.navigation.map((nav) => (
+                          <span key={nav.id}>{nav.label}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
+                  </section>
+                ),
+                'theme-center': (
+                  <section className="panel side-card theme-center">
+                    <p>后期可继续新增学习、办公、游戏化和品牌主题包。</p>
+                    <div className="design-note">
+                      <span>设计定位</span>
+                      <strong>{activeTheme.design.tone}</strong>
+                      <small>{activeTheme.design.principle}</small>
+                    </div>
+                    <button
+                      className="theme-recommend-button"
+                      onClick={() => restorePersonaTheme()}
+                      type="button"
+                    >
+                      恢复场景推荐主题
+                    </button>
+                    <button
+                      className="theme-picker-button"
+                      onClick={() => openThemePicker()}
+                      type="button"
+                    >
+                      <span>打开主题库</span>
+                      <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
+                    </button>
+                    <button
+                      className="wallpaper-picker-button"
+                      onClick={() => setIsWallpaperPickerOpen(true)}
+                      type="button"
+                    >
+                      <span>壁纸设置</span>
+                      <small>自定义壁纸与主题联动效果</small>
+                    </button>
+                    <div className="active-theme-preview" aria-label="当前主题预览">
+                      <strong>{activeTheme.name}</strong>
+                      <span className="theme-swatch-row" aria-hidden="true">
+                        <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
+                        <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
+                        <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
+                      </span>
+                    </div>
+                  </section>
+                ),
+                'statistics': (
+                  <section className="panel side-card statistics-card" role="region" aria-label="数据统计">
+                    <div className="statistics-grid">
+                      <article className="statistics-item">
+                        <span className="statistics-value">{completedTasks.length}</span>
+                        <span className="statistics-label">已完成任务</span>
+                      </article>
+                      <article className="statistics-item">
+                        <span className="statistics-value">{todoTasks.length}</span>
+                        <span className="statistics-label">待办任务</span>
+                      </article>
+                      <article className="statistics-item">
+                        <span className="statistics-value">{workspaceState.focusSessions.reduce((sum, s) => sum + s.minutes, 0)}</span>
+                        <span className="statistics-label">专注分钟</span>
+                      </article>
+                      <article className="statistics-item">
+                        <span className="statistics-value">{workspaceState.growth.streakDays}</span>
+                        <span className="statistics-label">连续天数</span>
+                      </article>
+                    </div>
+                    <div className="statistics-progress">
+                      <div className="statistics-progress-header">
+                        <span>本场景进度</span>
+                        <span>{weeklyProgress}%</span>
+                      </div>
+                      <div className="statistics-progress-bar">
+                        <div className="statistics-progress-fill" style={{ width: `${weeklyProgress}%` }} />
+                      </div>
+                    </div>
+                  </section>
+                )
+              }
+
+              const personaTitleMap: Record<string, string> = {
+                'persona-plan': activePersona.mainModuleTitle,
+                'ai-coach': activePersona.aiRole
+              }
+
+              const checkCollision = (_moduleId: string, targetPos: { x: number; y: number }) => {
+                const hasCollision = moduleStoreState.activeModules.some((other) => {
+                  if (other.moduleId === item.moduleId) return false
+                  const otherRight = other.position.x + (other.size === 'full-width' ? 4 : other.size === 'large' ? 2 : other.size === 'medium' ? 2 : 1)
+                  const otherBottom = other.position.y + (other.size === 'large' ? 2 : 1)
+                  const targetRight = targetPos.x + (item.size === 'full-width' ? 4 : item.size === 'large' ? 2 : item.size === 'medium' ? 2 : 1)
+                  const targetBottom = targetPos.y + (item.size === 'large' ? 2 : 1)
+                  return targetPos.x < otherRight && targetRight > other.position.x && targetPos.y < otherBottom && targetBottom > other.position.y
+                })
+                if (!hasCollision) {
+                  moveWorkbenchItem(item.moduleId, targetPos)
+                }
+              }
+
+              return (
+                <CanvasCard
+                  key={item.moduleId}
+                  title={personaTitleMap[item.moduleId] || module.title}
+                  description={module.description}
+                  size={item.size}
+                  position={item.position}
+                  onDragStart={() => undefined}
+                  onDragEnd={() => undefined}
+                  onMove={(position) => moveWorkbenchItem(item.moduleId, position)}
+                  onRemove={() => removeCanvasModule(item.moduleId)}
+                  onResize={(size) => updateCanvasItems(moduleStoreState.activeModules.map((candidate) => (
+                    candidate.moduleId === item.moduleId ? { ...candidate, size } : candidate
+                  )))}
+                  onOpenDetails={() => setOpenWorkbenchDetail(item.moduleId)}
+                  collisionEnabled={true}
+                  onCollision={checkCollision}
+                >
+                  {cardChildren[item.moduleId]}
+                </CanvasCard>
+              )
+            })}
+          </div>
           {layoutImportError && <small style={{ color: '#dc2626' }}>{layoutImportError}</small>}
         </section>
-
-        <div className="dashboard-grid">
-          <ExpandableCard
-            expandedTitle={activePersona.mainModuleTitle}
-            expandedContent={
-              <>
-                <div className="card-heading">
-                  <div>
-                    <p className="eyebrow">Persona Template · 完整视图</p>
-                    <strong style={{ fontSize: 22, color: 'var(--primary)' }}>{activeTemplate.title}</strong>
-                  </div>
-                  <strong style={{ color: 'var(--primary)', fontSize: 32 }}>{weeklyProgress}%</strong>
-                </div>
-                <div className="progress-track"><span style={{ width: `${weeklyProgress}%` }} /></div>
-                <div className="template-summary">
-                  <strong>{activeTemplate.title}</strong>
-                  <small>{activeTemplate.operatingRhythm}</small>
-                </div>
-                <div className="template-section-grid">
-                  {activeTemplate.sections.map((section) => (
-                    <article className="template-section" key={section.title}>
-                      <strong>{section.title}</strong>
-                      {section.items.map((item) => (
-                        <div className="template-item" key={item.title}>
-                          <span>{item.status}</span>
-                          <div><b>{item.title}</b><small>{item.meta}</small></div>
-                        </div>
-                      ))}
-                    </article>
-                  ))}
-                </div>
-                <div className="persona-brief">
-                  <strong>默认行动建议</strong>
-                  <em>{activeTemplate.defaultAction}</em>
-                  <small>复盘问题：{activeTemplate.reviewQuestion}</small>
-                </div>
-              </>
-            }
-          >
-            <section className="plan-card card large-card">
-              <div className="card-heading">
-                <div>
-                  <p className="eyebrow">Persona Template</p>
-                  <h2>{activePersona.mainModuleTitle}</h2>
-                </div>
-                <strong>{weeklyProgress}%</strong>
-              </div>
-              <div className="progress-track" aria-label={`${activePersona.mainModuleTitle}进度`}><span style={{ width: `${weeklyProgress}%` }} /></div>
-              <div className="template-summary">
-                <strong>{activeTemplate.title}</strong>
-                <small>{activeTemplate.operatingRhythm}</small>
-              </div>
-              <div className="template-section-grid">
-                {activeTemplate.sections.map((section) => (
-                  <article className="template-section" key={section.title}>
-                    <strong>{section.title}</strong>
-                    {section.items.map((item) => (
-                      <div className="template-item" key={item.title}>
-                        <span>{item.status}</span>
-                        <div><b>{item.title}</b><small>{item.meta}</small></div>
-                      </div>
-                    ))}
-                  </article>
-                ))}
-              </div>
-            </section>
-          </ExpandableCard>
-
-          <ExpandableCard
-            expandedTitle={`Lv. ${workspaceState.growth.level} · 成长档案`}
-            expandedContent={
-              <div className="growth-detail">
-                <div className="growth-detail-level">
-                  <strong>Lv. {workspaceState.growth.level}</strong>
-                  <span>持续 {workspaceState.growth.streakDays} 天 · 累计 {workspaceState.growth.experience} XP</span>
-                </div>
-                <p style={{ color: 'var(--muted)', lineHeight: 1.8, margin: 0 }}>
-                  在学习、办公、复盘等场景完成行动后，会自动沉淀经验值。坚持每日打卡可以激活连续奖励。
-                </p>
-                <div className="growth-detail-stats">
-                  <article className="growth-detail-stat">
-                    <strong>{workspaceState.growth.achievements}</strong>
-                    <span>解锁成就</span>
-                  </article>
-                  <article className="growth-detail-stat">
-                    <strong>{workspaceState.growth.experience}</strong>
-                    <span>累计 XP</span>
-                  </article>
-                  <article className="growth-detail-stat">
-                    <strong>{workspaceState.growth.streakDays}</strong>
-                    <span>连续打卡</span>
-                  </article>
-                </div>
-                <strong style={{ marginTop: 8 }}>近期里程碑</strong>
-                <div className="growth-milestones">
-                  {[
-                    { name: '首次完成番茄专注', meta: '触发解锁条件', xp: 50, locked: false },
-                    { name: '连续 7 天打卡', meta: '当前 ' + workspaceState.growth.streakDays + ' 天', xp: 120, locked: workspaceState.growth.streakDays < 7 },
-                    { name: '完成 10 个学习目标', meta: '已完成 ' + completedTasks.length + ' 个', xp: 200, locked: completedTasks.length < 10 },
-                    { name: '达到 Lv. 5', meta: '当前 Lv. ' + workspaceState.growth.level, xp: 500, locked: workspaceState.growth.level < 5 }
-                  ].map((m) => (
-                    <div className="growth-milestone" key={m.name}>
-                      <span className={`growth-milestone-dot${m.locked ? ' locked' : ''}`} />
-                      <div>
-                        <strong>{m.name}</strong>
-                        <span style={{ display: 'block' }}>{m.meta}</span>
-                      </div>
-                      <span className="growth-milestone-xp">+{m.xp} XP</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            }
-          >
-            <section className="growth-card card" style={{ background: activeTheme.tokens.gradients.card }}>
-              <p className="eyebrow">Growth RPG</p>
-              <h2>Lv. {workspaceState.growth.level}</h2>
-              <p>完成学习、办公和成长行动都会沉淀经验。</p>
-              <div className="xp-track"><span /></div>
-              <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} XP</strong>
-            </section>
-          </ExpandableCard>
-
-          <ExpandableCard
-            expandedTitle="桌面专注概览"
-            expandedContent={
-              <>
-                <FocusBriefStyleComponent
-                  data={{
-                    progress: weeklyProgress,
-                    todoCount: todoTasks.length,
-                    totalMinutes: totalFocusMinutes,
-                    completedCount: completedTasks.length
-                  }}
-                  context={{
-                    aesthetic: activeTheme.aesthetic,
-                    material: activeTheme.material
-                  }}
-                />
-                <div className="metric-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-                  <article>
-                    <strong>{weeklyProgress}%</strong>
-                    <span>本周进度</span>
-                  </article>
-                  <article>
-                    <strong>{todoTasks.length}</strong>
-                    <span>待办任务</span>
-                  </article>
-                  <article>
-                    <strong>{totalFocusMinutes}</strong>
-                    <span>计划分钟</span>
-                  </article>
-                  <article>
-                    <strong>{completedTasks.length}</strong>
-                    <span>已完成</span>
-                  </article>
-                </div>
-                <strong style={{ marginTop: 8 }}>切换概览风格</strong>
-                <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
-                  你可以在主卡片右上角的图标切换不同的可视化风格：极简弧、统计条、半盘表，每种风格都会自动适配主题。
-                </p>
-              </>
-            }
-          >
-            <section
-              className="card focus-brief-card"
-              aria-label="桌面专注概览"
-              data-style={focusBriefStyleId}
-              data-aesthetic={activeTheme.aesthetic}
-              data-material={activeTheme.material}
-            >
-              <div className="card-heading compact">
-                <h2>桌面专注概览</h2>
-                <div
-                  className="focus-brief-heading-actions"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <Clock3 size={20} />
-                  <FocusBriefStylePicker
-                    currentStyleId={focusBriefStyleId}
-                    onStyleChange={switchFocusBriefStyle}
-                  />
-                </div>
-              </div>
-              <FocusBriefStyleComponent
-                data={{
-                  progress: weeklyProgress,
-                  todoCount: todoTasks.length,
-                  totalMinutes: totalFocusMinutes,
-                  completedCount: completedTasks.length
-                }}
-                context={{
-                  aesthetic: activeTheme.aesthetic,
-                  material: activeTheme.material
-                }}
-              />
-              <div className="focus-brief-legacy-meta" aria-hidden="true">
-                <span>{todoTasks.length} 个待办</span>
-                <span>{totalFocusMinutes} 分钟</span>
-                <span>{completedTasks.length} 个已完成</span>
-              </div>
-            </section>
-          </ExpandableCard>
-
-          <ExpandableCard
-            expandedTitle="用户痛点 · 场景档案"
-            expandedContent={
-              <div className="persona-brief">
-                <strong>{activePersona.targetUser}</strong>
-                <p style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--muted)', margin: '8px 0' }}>
-                  {activePersona.painPoint}
-                </p>
-                <small style={{ fontSize: 14 }}>核心动线：{activePersona.primaryFlow}</small>
-                <em>{activeTemplate.defaultAction}</em>
-                <small style={{ fontSize: 14, marginTop: 8 }}>复盘问题：{activeTemplate.reviewQuestion}</small>
-                <strong style={{ marginTop: 12 }}>关键模块</strong>
-                <div className="stat-bar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                  {activePersona.modules.map((mod) => (
-                    <article key={mod.title} style={{ padding: 14, border: '1px solid var(--border)', borderRadius: 16, background: 'var(--card-gradient)' }}>
-                      <strong style={{ display: 'block', color: 'var(--text)' }}>{mod.title}</strong>
-                      <small style={{ color: 'var(--muted)', display: 'block', marginTop: 6 }}>{mod.signal}</small>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            }
-          >
-            <section className="card">
-              <div className="card-heading compact"><h2>用户痛点</h2><BookOpen size={20} /></div>
-              <div className="persona-brief">
-                <strong>{activePersona.targetUser}</strong>
-                <p>{activePersona.painPoint}</p>
-                <small>{activePersona.primaryFlow}</small>
-                <em>{activeTemplate.defaultAction}</em>
-                <small>{activeTemplate.reviewQuestion}</small>
-              </div>
-            </section>
-          </ExpandableCard>
-
-          <ExpandableCard
-            expandedTitle="关键指标 · 全景"
-            expandedContent={
-              <>
-                <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
-                  {activePersona.name} 场景下的核心指标看板。每一项都对应一个可执行的成长动作。
-                </p>
-                <div className="metric-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                  {activePersona.keyMetrics.map((metric, index) => (
-                    <article key={metric} style={{ padding: 18 }}>
-                      <strong style={{ fontSize: 16 }}>{metric}</strong>
-                      <span style={{ fontSize: 13 }}>
-                        {index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}
-                      </span>
-                      <small style={{ color: 'var(--muted)', display: 'block', marginTop: 8, lineHeight: 1.6 }}>
-                        {index === 0 ? '主信号：来自当前场景核心模块。' : '基线指标：根据近 7 日数据估算。'}
-                      </small>
-                    </article>
-                  ))}
-                </div>
-              </>
-            }
-          >
-            <section className="card">
-              <div className="card-heading compact"><h2>关键指标</h2><Brain size={20} /></div>
-              <div className="metric-grid">
-                {activePersona.keyMetrics.map((metric, index) => (
-                  <article key={metric}>
-                    <strong>{metric}</strong>
-                    <span>{index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}</span>
-                  </article>
-                ))}
-              </div>
-            </section>
-          </ExpandableCard>
-        </div>
       </section>
 
-      <aside className="today-panel">
-        <ExpandableCard
-          expandedTitle="今日行动 · 完整清单"
-          expandedContent={
-            <div className="side-card-expanded">
-              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
-                {activePersona.name} 场景的全部待办任务。点击卡片以聚焦完成。
-              </p>
-              <div className="today-list">
-                {todoTasks.length === 0 ? (
-                  <p style={{ color: 'var(--muted)' }}>暂无待办，先去添加任务吧。</p>
-                ) : (
-                  todoTasks.map((task) => (
-                    <article key={task.id}>
-                      <span />
-                      <div>
-                        <strong>{task.title}</strong>
-                        <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardXp} XP</small>
-                      </div>
-                    </article>
-                  ))
-                )}
+      {openWorkbenchDetail === 'persona-plan' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="考试冲刺计划 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 按需加载</p>
+                <h2>{activePersona.mainModuleTitle}</h2>
+                <small>从画布卡片打开后才渲染完整内容</small>
               </div>
-              {completedTasks.length > 0 && (
-                <>
-                  <strong>已完成 ({completedTasks.length})</strong>
-                  <div className="today-list">
-                    {completedTasks.map((task) => (
-                      <article key={task.id} style={{ opacity: 0.7 }}>
-                        <span style={{ background: 'var(--border)' }} />
-                        <div>
-                          <strong style={{ textDecoration: 'line-through' }}>{task.title}</strong>
-                          <small>{task.dueLabel} · {task.minutes} 分钟</small>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          }
-        >
-          <section className="panel side-card">
-            <h2>今日行动</h2>
-            <div className="today-list">
-              {todoTasks.map((task) => (
-                <article key={task.id}><span /><div><strong>{task.title}</strong><small>{task.dueLabel} · {task.minutes} 分钟</small></div></article>
-              ))}
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="persona-brief">
+              <strong>默认行动建议</strong>
+              <em>{activeTemplate.defaultAction}</em>
+              <small>复盘问题：{activeTemplate.reviewQuestion}</small>
             </div>
           </section>
-        </ExpandableCard>
+        </div>
+      )}
 
-        <section className="panel side-card timer-card" aria-label="任务专注计时器">
-          <h2>任务专注</h2>
-          <strong>{`${focusMinuteText}:${focusSecondText}`}</strong>
-          <p>{focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}</p>
-          <small>
-            {focusDisplayTask
-              ? `${focusDisplayTask.dueLabel} · ${focusRewardXp} XP`
-              : '可先切换场景或新增任务'}
-          </small>
-          <div className="duration-control" aria-label="自定义专注时长">
-            <button
-              type="button"
-              className="duration-step"
-              disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes <= FOCUS_MIN_MINUTES}
-              onClick={() => adjustFocusDuration(-FOCUS_STEP_MINUTES)}
-              aria-label="减少专注时长"
-            >
-              <Minus size={16} strokeWidth={3} aria-hidden="true" />
-            </button>
-            <label className="duration-input">
-              <input
-                type="number"
-                min={FOCUS_MIN_MINUTES}
-                max={FOCUS_MAX_MINUTES}
-                step={1}
-                value={focusTargetMinutes}
-                disabled={!focusDisplayTask || isFocusRunning}
-                onChange={handleFocusDurationInput}
-                aria-label="专注时长（分钟）"
-              />
-              <span>分钟</span>
-            </label>
-            <button
-              type="button"
-              className="duration-step"
-              disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes >= FOCUS_MAX_MINUTES}
-              onClick={() => adjustFocusDuration(FOCUS_STEP_MINUTES)}
-              aria-label="增加专注时长"
-            >
-              <Plus size={16} strokeWidth={3} aria-hidden="true" />
-            </button>
-          </div>
-          <div className="timer-actions">
-            <button
-              className="timer-primary"
-              disabled={!nextFocusTask && !activeFocusTask}
-              onClick={isFocusRunning ? pauseFocusTimer : startFocusTimer}
-              type="button"
-            >
-              {isFocusRunning ? '暂停专注' : activeFocusTask ? '继续专注' : '绑定任务开始'}
-            </button>
-            <button
-              className="timer-secondary"
-              disabled={!activeFocusTask && focusPausedRemainingMs === null}
-              onClick={resetFocusTimer}
-              type="button"
-            >
-              重置
-            </button>
-          </div>
-        </section>
-
-        <ExpandableCard
-          expandedTitle="最近专注 · 完整记录"
-          expandedContent={
-            <div className="side-card-expanded">
-              {workspaceState.focusSessions.length === 0 ? (
-                <p style={{ color: 'var(--muted)' }}>完成首个任务后，会自动沉淀到这里。</p>
-              ) : (
-                <ul className="focus-history-list">
-                  {workspaceState.focusSessions.map((session) => (
-                    <li key={session.id}>
-                      <strong>{session.taskTitle}</strong>
-                      <small>
-                        {session.minutes} 分钟 · {session.rewardXp} XP · {new Date(session.completedAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          }
-        >
-          <section className="panel side-card focus-history-card" aria-label="最近专注会话">
-            <h2>最近专注</h2>
-            {workspaceState.focusSessions.length === 0 ? (
-              <p className="empty-state">完成首个任务后，会自动沉淀到这里。</p>
-            ) : (
-              <ul className="focus-history-list">
-                {workspaceState.focusSessions.slice(0, 3).map((session) => (
-                  <li key={session.id}>
-                    <strong>{session.taskTitle}</strong>
-                    <small>
-                      {session.minutes} 分钟 · {session.rewardXp} XP · {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                    </small>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </ExpandableCard>
-
-        <section className="panel side-card memory-insights-card" aria-label="记忆洞察">
-          <h2>🧠 记忆洞察</h2>
-          <h3>近期上下文</h3>
-          {workspaceState.focusSessions.length > 0 ? (
-            <ul className="memory-events-list">
-              {workspaceState.focusSessions.slice(0, 4).map((session) => (
-                <li key={session.id}>
-                  <span className="memory-event-time">
-                    {new Date(session.completedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <span className="memory-event-content">
-                    完成 {session.minutes} 分钟专注：{session.taskTitle}
-                  </span>
+      {openWorkbenchDetail === 'mini-program-preview' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal mini-program-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="小程序试验版 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 移动端预览</p>
+                <h2>小程序试验版</h2>
+                <small>{miniProgramBlueprint.positioning} · {getThemeById(miniProgramBlueprint.recommendedThemeId).name}</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="mini-program-detail-grid">
+              <section className="workbench-detail-panel mini-program-phone-panel" aria-label="小程序交互预览">
+                <div className="card-heading compact">
+                  <h3>微信小程序原生</h3>
                   <button
-                    className="memory-forget-btn"
-                    onClick={() => console.log('Forget:', session.id)}
+                    className="mini-program-mode-button"
+                    onClick={() => setMiniProgramPreviewMode((mode) => mode === 'home' ? 'modules' : 'home')}
                     type="button"
                   >
-                    忘记
+                    {miniProgramPreviewMode === 'home' ? '切换到模块页' : '切换到首页预览'}
                   </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="empty-state">暂无记忆记录，完成专注后会显示在这里。</p>
-          )}
-        </section>
-
-        <ExpandableCard
-          expandedTitle={`${activePersona.aiRole} · AI 行动教练`}
-          expandedContent={
-            <div className="ai-expanded">
-              <div className="ai-prompt-preview">
-                <strong>建议提示词</strong>
-                <p style={{ margin: '10px 0 0', color: 'var(--text)' }}>{promptDraft.title}</p>
-                <small style={{ display: 'block', marginTop: 12, color: 'var(--muted)' }}>
-                  Provider：{activeProvider.name} · 状态：
-                  {workspaceState.integrations.ai.status === 'ready' ? '已配置' : '未配置 API Key（已预留 Provider 接口）'}
-                </small>
-              </div>
-              <strong>支持的 AI 动作</strong>
-              <div className="ai-actions" style={{ marginTop: 0 }}>
-                {activePersona.aiActions.map((action) => (
-                  <span key={action}>{action}</span>
-                ))}
-              </div>
-              <strong style={{ marginTop: 8 }}>AI 教练职责</strong>
-              <p style={{ color: 'var(--muted)', lineHeight: 1.7, margin: 0 }}>
-                {activePersona.aiRole} 会根据当前场景的痛点、关键模块和近期专注记录，生成可执行的下一步建议，
-                并在你完成任务后协助复盘。
-              </p>
-            </div>
-          }
-        >
-          <section className="panel side-card ai-card">
-            <div className="card-heading compact"><h2>{activePersona.aiRole}</h2><Bot size={20} /></div>
-            <p>{promptDraft.title}</p>
-            <strong>{activeProvider.name}</strong>
-            <small>{workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，已预留 Provider 接口'}</small>
-            <div className="ai-actions">
-              {activePersona.aiActions.map((action) => (
-                <span key={action}>{action}</span>
-              ))}
-            </div>
-          </section>
-        </ExpandableCard>
-
-        <ExpandableCard
-          expandedTitle="多端预留 · 平台矩阵"
-          expandedContent={
-            <div className="platform-expanded">
-              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
-                当前桌面端优先，数据层已按本地优先和同步预留设计。以下是各平台规划：
-              </p>
-              {[
-                { name: 'Desktop', desc: '主战场 · Electron + React · 已上线', icon: '🖥️' },
-                { name: '微信小程序', desc: '碎片化场景 · 原生小程序 · 试验版已构建', icon: '💚' },
-                { name: 'Web / PWA', desc: '跨设备访问 · 离线可用 · 计划中', icon: '🌐' },
-                { name: 'iOS', desc: '原生体验 · 计划接入', icon: '🍎' },
-                { name: 'HarmonyOS', desc: '鸿蒙原生 · 适配 ArkUI · 计划中', icon: '🟢' }
-              ].map((p) => (
-                <article className="platform-detail" key={p.name}>
-                  <span className="platform-detail-icon" style={{ fontSize: 20 }}>{p.icon}</span>
-                  <div>
-                    <strong>{p.name}</strong>
-                    <span style={{ display: 'block', marginTop: 4 }}>{p.desc}</span>
+                </div>
+                <div className="phone-preview large" aria-label="小程序详情预览">
+                  <div className="phone-preview-top"><strong>{miniProgramPreviewMode === 'home' ? '今天' : '模块'}</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
+                  {miniProgramPreviewMode === 'home' ? (
+                    <>
+                      <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
+                      <div className="phone-module-grid">
+                        {defaultMiniProgramModules.slice(0, 4).map((mod) => (
+                          <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="phone-module-grid detail">
+                      {miniProgramBlueprint.modules.map((mod) => (
+                        <article key={mod.id}><strong>{mod.title}</strong><small>{mod.description}</small></article>
+                      ))}
+                    </div>
+                  )}
+                  <div className="phone-tabbar">
+                    {miniProgramBlueprint.navigation.map((nav) => (
+                      <span key={nav.id}>{nav.label}</span>
+                    ))}
                   </div>
-                </article>
-              ))}
-            </div>
-          }
-        >
-          <section className="panel side-card multi-end-card">
-            <div className="card-heading compact"><h2>多端预留</h2><MonitorSmartphone size={20} /></div>
-            <p>当前桌面端优先，数据层已按本地优先和同步预留设计。</p>
-            <div className="platform-list">
-              <span>Desktop</span>
-              <span>微信小程序</span>
-              <span>Web/PWA</span>
-              <span>iOS</span>
-              <span>HarmonyOS</span>
+                </div>
+              </section>
+              <aside className="workbench-detail-panel mini-program-boundary-panel" aria-label="小程序边界说明">
+                <h3>边界与同步</h3>
+                <div className="boundary-grid">
+                  <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+                  <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+                </div>
+                <p>{miniProgramBlueprint.syncStrategy}</p>
+              </aside>
             </div>
           </section>
-        </ExpandableCard>
+        </div>
+      )}
 
-        <ExpandableCard
-          expandedTitle="小程序试验版 · 完整预览"
-          expandedContent={
-            <div className="mini-program-expanded">
-              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>{miniProgramBlueprint.positioning}</p>
-              <span className="implementation-pill">微信小程序原生</span>
-              <div className="boundary-grid" style={{ gridTemplateColumns: '1fr 1fr', margin: 0 }}>
-                <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-                <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+      {openWorkbenchDetail === 'platform-matrix' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal platform-matrix-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="多端预留 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 多端架构</p>
+                <h2>多端预留</h2>
+                <small>{workspaceState.sync.mode} · {workspaceState.sync.status} · {miniProgramBlueprint.implementationRoute.framework}</small>
               </div>
-              <div className="phone-preview" aria-label="小程序首页预览">
-                <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-                <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
-                <div className="phone-module-grid">
-                  {defaultMiniProgramModules.map((module) => (
-                    <article key={module.id}><strong>{module.title}</strong><small>{module.privacyLevel}</small></article>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="platform-matrix-detail-grid">
+              <section className="workbench-detail-panel platform-matrix-route" aria-label="多端实现路线">
+                <div className="card-heading compact">
+                  <h3>实现路线</h3>
+                  <span className="implementation-pill">{miniProgramBlueprint.implementationRoute.platform}</span>
+                </div>
+                <p>{miniProgramBlueprint.implementationRoute.reason}</p>
+                <div className="platform-stage-list">
+                  <article><span>Desktop</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+                  <article><span>微信小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+                  <article><span>Web/PWA</span><strong>复用数据契约与 Provider 接口</strong></article>
+                  <article><span>iOS</span><strong>保留原生容器与同步适配层</strong></article>
+                  <article><span>HarmonyOS</span><strong>保留跨端流转与主题一致性</strong></article>
+                </div>
+              </section>
+              <aside className="workbench-detail-panel platform-sync-panel" aria-label="同步预留状态">
+                <h3>同步预留状态</h3>
+                <div className="metric-grid compact">
+                  <article><strong>{workspaceState.sync.mode}</strong><span>同步模式</span></article>
+                  <article><strong>{workspaceState.sync.status}</strong><span>接口状态</span></article>
+                  <article><strong>{miniProgramBlueprint.modules.length}</strong><span>移动模块</span></article>
+                </div>
+                <p>{miniProgramBlueprint.syncStrategy}</p>
+                <button
+                  className="platform-sync-button"
+                  disabled={workspaceState.sync.status === 'sync-ready'}
+                  onClick={markSyncReady}
+                  type="button"
+                >
+                  {workspaceState.sync.status === 'sync-ready' ? '同步接口已预留' : '标记同步接口已预留'}
+                </button>
+              </aside>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'ai-coach' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal ai-coach-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label={`${activePersona.aiRole} · 工作台详情`}
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · AI 行动教练</p>
+                <h2>{activePersona.aiRole}</h2>
+                <small>{activeProvider.name} · {workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，使用本地草稿模式'}</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="ai-coach-detail-grid">
+              <section className="workbench-detail-panel ai-coach-prompt-panel" aria-label="AI 提示词草稿">
+                <div className="card-heading compact">
+                  <h3>{promptDraft.title}</h3>
+                  <span className="pill">{activeProvider.name}</span>
+                </div>
+                <div className="ai-prompt-preview">
+                  <strong>系统提示</strong>
+                  <p>{promptDraft.systemPrompt}</p>
+                  <strong>用户上下文</strong>
+                  <p>{promptDraft.userPrompt}</p>
+                </div>
+                <button className="ai-generate-button" onClick={generateAiCoachDraft} type="button">
+                  生成本地行动草稿
+                </button>
+              </section>
+              <aside className="workbench-detail-panel ai-coach-result-panel" aria-label="AI 行动草稿">
+                <h3>{aiCoachDraft ? '本地草稿已生成' : '待生成行动草稿'}</h3>
+                <p>{aiCoachDraft ?? '点击生成后，会基于当前身份、待办和 AI Provider 设置生成一条可执行行动建议。'}</p>
+                <div className="ai-actions">
+                  {activePersona.aiActions.map((action) => (
+                    <span key={action}>{createAiPromptDraft(activeProvider.id, { kind: action, input: activePersona.primaryFlow }).title}</span>
                   ))}
                 </div>
-                <div className="phone-tabbar">
-                  {miniProgramBlueprint.navigation.map((item) => (
-                    <span key={item.id}>{item.label}</span>
+              </aside>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'growth-rpg' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal growth-rpg-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="成长等级 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 游戏化成长</p>
+                <h2>成长等级</h2>
+                <small>连续 {workspaceState.growth.streakDays} 天 · {workspaceState.growth.achievements} 个成就 · {weeklyProgress}% 本场景进度</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="growth-rpg-detail-grid">
+              <section className="workbench-detail-panel growth-rpg-hero" aria-label="成长等级概览">
+                <span className="growth-level-badge">Lv. {workspaceState.growth.level}</span>
+                <strong>{workspaceState.growth.experience} 积分</strong>
+                <div className="xp-track" aria-label="等级经验进度">
+                  <span style={{ width: `${Math.min(100, workspaceState.growth.experience % 100)}%` }} />
+                </div>
+                <p>{activePersona.primaryFlow}</p>
+                <button
+                  className="growth-reward-button"
+                  disabled={growthRewardClaimed}
+                  onClick={claimGrowthReward}
+                  type="button"
+                >
+                  {growthRewardClaimed ? '今日奖励已领取' : '领取今日成长奖励'}
+                </button>
+              </section>
+              <aside className="workbench-detail-panel growth-rpg-summary" aria-label="成长成就摘要">
+                <h3>成长账本</h3>
+                <div className="metric-grid compact">
+                  <article><strong>{workspaceState.growth.streakDays}</strong><span>连续天数</span></article>
+                  <article><strong>{workspaceState.growth.achievements}</strong><span>成就数</span></article>
+                  <article><strong>{completedTasks.length}</strong><span>本场景完成</span></article>
+                </div>
+                <div className="growth-achievement-list">
+                  <article><span>主线进度</span><strong>{weeklyProgress}%</strong></article>
+                  <article><span>待专注分钟</span><strong>{totalFocusMinutes}</strong></article>
+                  <article><span>今日待办</span><strong>{todoTasks.length}</strong></article>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'today-actions' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal today-actions-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="今日行动 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 任务编排</p>
+                <h2>今日行动</h2>
+                <small>{todoTasks.length} 个待办 · {completedTasks.length} 个已完成 · {totalFocusMinutes} 分钟计划</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="today-actions-detail-grid">
+              <section className="workbench-detail-panel" aria-label="今日待办列表">
+                <div className="card-heading compact">
+                  <h3>待推进任务</h3>
+                  <span className="pill">{visibleTasks.length} 项</span>
+                </div>
+                <div className="today-actions-detail-list">
+                  {visibleTasks.map((task) => (
+                    <article key={task.id} className={task.status === 'done' ? 'done' : ''}>
+                      <span className="task-status-dot" aria-hidden="true" />
+                      <div>
+                        <strong>{task.title}</strong>
+                        <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardPoints} 积分</small>
+                      </div>
+                      <button
+                        type="button"
+                        className="task-complete-button"
+                        disabled={task.status === 'done'}
+                        onClick={() => completeTaskFromWorkbench(task.id)}
+                      >
+                        {task.status === 'done' ? `已完成 ${task.title}` : `完成 ${task.title}`}
+                      </button>
+                    </article>
                   ))}
                 </div>
-              </div>
-              <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
+              </section>
+              <aside className="workbench-detail-panel today-actions-summary" aria-label="今日行动摘要">
+                <h3>行动摘要</h3>
+                <div className="metric-grid compact">
+                  <article><strong>{weeklyProgress}%</strong><span>本场景进度</span></article>
+                  <article><strong>{todoTasks.length}</strong><span>剩余待办</span></article>
+                  <article><strong>{workspaceState.growth.experience}</strong><span>成长积分</span></article>
+                </div>
+                <p>{activePersona.primaryFlow}</p>
+              </aside>
             </div>
-          }
-        >
-          <section className="panel side-card mini-program-card">
-              <div className="card-heading compact"><h2>小程序试验版</h2><MonitorSmartphone size={20} /></div>
-              <p>{miniProgramBlueprint.positioning}</p>
-              <span className="implementation-pill">微信小程序原生</span>
-            <div className="boundary-grid">
-              <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-              <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-            </div>
-            <div className="phone-preview" aria-label="小程序首页预览">
-              <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-              <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
-              <div className="phone-module-grid">
-                {defaultMiniProgramModules.slice(0, 4).map((module) => (
-                  <article key={module.id}><strong>{module.title}</strong><small>{module.privacyLevel}</small></article>
-                ))}
-              </div>
-              <div className="phone-tabbar">
-                {miniProgramBlueprint.navigation.map((item) => (
-                  <span key={item.id}>{item.label}</span>
-                ))}
-              </div>
-            </div>
-            <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
           </section>
-        </ExpandableCard>
+        </div>
+      )}
 
-        <ExpandableCard
-          expandedTitle="主题中心 · 视觉档案"
-          expandedContent={
-            <div className="theme-center-expanded">
-              <p style={{ color: 'var(--muted)', margin: 0, lineHeight: 1.7 }}>
-                当前主题：<strong style={{ color: 'var(--primary)' }}>{activeTheme.name}</strong>
-                {' · '}
-                共 {themeRegistry.length} 款主题、{themeFamilies.length} 个分类。
-              </p>
-              <div className="theme-detail-grid">
-                <div className="theme-detail-item">
-                  <span>设计基调</span>
-                  <strong>{activeTheme.design.tone}</strong>
-                </div>
-                <div className="theme-detail-item">
-                  <span>适用场景</span>
-                  <strong>{activeTheme.design.scene}</strong>
-                </div>
-                <div className="theme-detail-item">
-                  <span>设计原则</span>
-                  <strong>{activeTheme.design.principle}</strong>
-                </div>
-                <div className="theme-detail-item">
-                  <span>视觉舒适度</span>
-                  <strong>{activeTheme.visualComfort}</strong>
-                </div>
+      {openWorkbenchDetail === 'memory-insights' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal memory-insights-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="记忆洞察 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 记忆沉淀</p>
+                <h2>记忆洞察</h2>
+                <small>{workspaceState.focusSessions.length} 条专注记忆 · 最近上下文优先展示</small>
               </div>
-              <div className="active-theme-preview" aria-label="当前主题预览">
-                <strong>主题色板</strong>
-                <span className="theme-swatch-row" aria-hidden="true">
-                  <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
-                  <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
-                  <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
-                </span>
-              </div>
-              <button
-                className="theme-recommend-button"
-                onClick={(event) => { event.stopPropagation(); restorePersonaTheme() }}
-                type="button"
-              >
-                恢复场景推荐主题
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
               </button>
-              <button
-                className="theme-picker-button"
-                onClick={(event) => { event.stopPropagation(); openThemePicker() }}
-                type="button"
-              >
-                <span>打开主题库</span>
-                <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
-              </button>
-            </div>
-          }
-        >
-          <section className="panel side-card theme-center">
-            <div className="card-heading compact"><h2>主题中心</h2><Sparkles size={20} /></div>
-            <p>后期可继续新增学习、办公、游戏化和品牌主题包。</p>
-            <div className="design-note">
-              <span>设计定位</span>
-              <strong>{activeTheme.design.tone}</strong>
-              <small>{activeTheme.design.principle}</small>
-            </div>
-            <button
-              className="theme-recommend-button"
-              onClick={(event) => { event.stopPropagation(); restorePersonaTheme() }}
-              type="button"
-            >
-              恢复场景推荐主题
-            </button>
-            <button
-              className="theme-picker-button"
-              onClick={(event) => { event.stopPropagation(); openThemePicker() }}
-              type="button"
-            >
-              <span>打开主题库</span>
-              <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
-            </button>
-            <div className="active-theme-preview" aria-label="当前主题预览">
-              <strong>{activeTheme.name}</strong>
-              <span className="theme-swatch-row" aria-hidden="true">
-                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
-                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
-                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
-              </span>
+            </header>
+            <div className="memory-insights-detail-grid">
+              <section className="workbench-detail-panel" aria-label="专注记忆时间线">
+                <div className="card-heading compact">
+                  <h3>专注记忆时间线</h3>
+                  <span className="pill">{workspaceState.focusSessions.length} 条</span>
+                </div>
+                {workspaceState.focusSessions.length === 0 ? (
+                  <p className="empty-state">暂无记忆记录，完成专注后会显示在这里。</p>
+                ) : (
+                  <ul className="memory-detail-timeline">
+                    {workspaceState.focusSessions.map((session) => (
+                      <li key={session.id}>
+                        <span className="memory-event-time">
+                          {new Date(session.completedAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <div>
+                          <strong>{session.taskTitle}</strong>
+                          <small>完成 {session.minutes} 分钟专注：{session.taskTitle}</small>
+                          <em>{session.rewardPoints} 积分 · {session.workspaceType}</em>
+                        </div>
+                        <button
+                          className="memory-forget-btn"
+                          onClick={() => forgetFocusSession(session.id)}
+                          type="button"
+                        >
+                          忘记 {session.taskTitle}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+              <aside className="workbench-detail-panel memory-insights-summary" aria-label="记忆洞察摘要">
+                <h3>上下文摘要</h3>
+                <div className="metric-grid compact">
+                  <article><strong>{workspaceState.focusSessions.length}</strong><span>记忆数</span></article>
+                  <article><strong>{totalFocusMinutes}</strong><span>待专注分钟</span></article>
+                  <article><strong>{completedTasks.length}</strong><span>完成任务</span></article>
+                </div>
+                <p>{workspaceState.focusSessions[0] ? `最近完成：${workspaceState.focusSessions[0].taskTitle}` : '完成一次专注后，系统会把任务、分钟数和积分沉淀为上下文。'}</p>
+              </aside>
             </div>
           </section>
-        </ExpandableCard>
-      </aside>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'focus-session' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal focus-session-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="任务专注 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 深度专注</p>
+                <h2>任务专注</h2>
+                <small>{focusDisplayTask ? `${focusDisplayTask.dueLabel} · ${focusTargetMinutes} 分钟 · ${focusRewardPoints} 积分` : '当前场景暂无待办任务'}</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="focus-session-detail-grid">
+              <section className="workbench-detail-panel focus-session-hero" aria-label="详情专注计时器">
+                <span className="focus-session-time">{`${focusMinuteText}:${focusSecondText}`}</span>
+                <h3>{focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}</h3>
+                <p>{activePersona.primaryFlow}</p>
+                <div className="duration-control" aria-label="详情自定义专注时长">
+                  <button
+                    type="button"
+                    className="duration-step"
+                    disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes <= FOCUS_MIN_MINUTES}
+                    onClick={() => adjustFocusDuration(-FOCUS_STEP_MINUTES)}
+                    aria-label="减少详情专注时长"
+                  >
+                    <Minus size={16} strokeWidth={3} aria-hidden="true" />
+                  </button>
+                  <label className="duration-input">
+                    <input
+                      type="number"
+                      min={FOCUS_MIN_MINUTES}
+                      max={FOCUS_MAX_MINUTES}
+                      step={1}
+                      value={focusTargetMinutes}
+                      disabled={!focusDisplayTask || isFocusRunning}
+                      onChange={handleFocusDurationInput}
+                      aria-label="详情专注时长（分钟）"
+                    />
+                    <span>分钟</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="duration-step"
+                    disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes >= FOCUS_MAX_MINUTES}
+                    onClick={() => adjustFocusDuration(FOCUS_STEP_MINUTES)}
+                    aria-label="增加详情专注时长"
+                  >
+                    <Plus size={16} strokeWidth={3} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="timer-actions">
+                  <button
+                    className="timer-primary"
+                    disabled={!nextFocusTask && !activeFocusTask}
+                    onClick={isFocusRunning ? pauseFocusTimer : startFocusTimer}
+                    type="button"
+                  >
+                    {isFocusRunning ? '暂停专注' : activeFocusTask ? '继续专注' : '绑定任务开始'}
+                  </button>
+                  <button
+                    className="timer-secondary"
+                    disabled={!activeFocusTask && focusPausedRemainingMs === null}
+                    onClick={resetFocusTimer}
+                    type="button"
+                  >
+                    重置
+                  </button>
+                </div>
+              </section>
+              <aside className="workbench-detail-panel focus-session-queue" aria-label="专注任务队列">
+                <h3>任务队列</h3>
+                <div className="today-actions-detail-list">
+                  {todoTasks.map((task) => (
+                    <article key={task.id} className={task.id === focusDisplayTask?.id ? 'active' : ''}>
+                      <span className="task-status-dot" aria-hidden="true" />
+                      <div>
+                        <strong>{task.title}</strong>
+                        <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardPoints} 积分</small>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </aside>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'statistics' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal statistics-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="数据统计 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 数据统计</p>
+                <h2>数据统计</h2>
+                <small>{completedTasks.length} 个已完成 · {todoTasks.length} 个待办 · {workspaceState.growth.streakDays} 天连续</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="statistics-detail-grid">
+              <section className="workbench-detail-panel statistics-overview" aria-label="统计概览">
+                <div className="card-heading compact">
+                  <h3>综合统计</h3>
+                  <span className="pill">{visibleTasks.length} 项任务</span>
+                </div>
+                <div className="statistics-detail-cards">
+                  <article className="statistics-detail-card">
+                    <span className="statistics-detail-icon">✓</span>
+                    <div className="statistics-detail-content">
+                      <span className="statistics-detail-value">{completedTasks.length}</span>
+                      <span className="statistics-detail-label">已完成任务</span>
+                    </div>
+                  </article>
+                  <article className="statistics-detail-card">
+                    <span className="statistics-detail-icon">⏳</span>
+                    <div className="statistics-detail-content">
+                      <span className="statistics-detail-value">{todoTasks.length}</span>
+                      <span className="statistics-detail-label">待办任务</span>
+                    </div>
+                  </article>
+                  <article className="statistics-detail-card">
+                    <span className="statistics-detail-icon">⏱</span>
+                    <div className="statistics-detail-content">
+                      <span className="statistics-detail-value">{workspaceState.focusSessions.reduce((sum, s) => sum + s.minutes, 0)}</span>
+                      <span className="statistics-detail-label">累计专注分钟</span>
+                    </div>
+                  </article>
+                  <article className="statistics-detail-card">
+                    <span className="statistics-detail-icon">🔥</span>
+                    <div className="statistics-detail-content">
+                      <span className="statistics-detail-value">{workspaceState.growth.streakDays}</span>
+                      <span className="statistics-detail-label">连续天数</span>
+                    </div>
+                  </article>
+                  <article className="statistics-detail-card">
+                    <span className="statistics-detail-icon">⭐</span>
+                    <div className="statistics-detail-content">
+                      <span className="statistics-detail-value">{workspaceState.growth.experience}</span>
+                      <span className="statistics-detail-label">成长积分</span>
+                    </div>
+                  </article>
+                  <article className="statistics-detail-card">
+                    <span className="statistics-detail-icon">🏆</span>
+                    <div className="statistics-detail-content">
+                      <span className="statistics-detail-value">{workspaceState.growth.achievements}</span>
+                      <span className="statistics-detail-label">成就数</span>
+                    </div>
+                  </article>
+                </div>
+              </section>
+              <aside className="workbench-detail-panel statistics-summary" aria-label="统计摘要">
+                <h3>进度摘要</h3>
+                <div className="metric-grid compact">
+                  <article><strong>{weeklyProgress}%</strong><span>场景进度</span></article>
+                  <article><strong>{totalFocusMinutes}</strong><span>计划分钟</span></article>
+                  <article><strong>{workspaceState.growth.level}</strong><span>等级</span></article>
+                </div>
+                <div className="statistics-progress-detail">
+                  <div className="statistics-progress-header">
+                    <span>本场景完成度</span>
+                    <span>{weeklyProgress}%</span>
+                  </div>
+                  <div className="statistics-progress-bar large">
+                    <div className="statistics-progress-fill" style={{ width: `${weeklyProgress}%` }} />
+                  </div>
+                </div>
+                <p>{activePersona.primaryFlow}</p>
+              </aside>
+            </div>
+          </section>
+        </div>
+      )}
 
       {isThemePickerOpen && (
         <div className="theme-modal-backdrop" onClick={closeThemePicker} role="presentation">
@@ -1719,6 +1940,35 @@ export default function App() {
                 </div>
               )}
             </div>
+          </section>
+        </div>
+      )}
+
+      {isWallpaperPickerOpen && (
+        <div className="theme-modal-backdrop" onClick={() => setIsWallpaperPickerOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal wallpaper-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="壁纸设置"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Wallpaper · 壁纸设置</p>
+                <h2>为当前主题搭配壁纸</h2>
+                <small>
+                  当前主题 <strong>{activeTheme.name}</strong> · 壁纸效果与主题自动联动
+                </small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setIsWallpaperPickerOpen(false)} type="button" aria-label="关闭壁纸设置">
+                ×
+              </button>
+            </header>
+            <WallpaperPicker
+              currentThemeId={activeTheme.id}
+              onClose={() => setIsWallpaperPickerOpen(false)}
+            />
           </section>
         </div>
       )}
@@ -2466,15 +2716,15 @@ export default function App() {
             className="membership-modal"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
-            aria-label="创建身份"
+            aria-label="身份管理"
             style={{ maxWidth: 600 }}
           >
             <header className="membership-modal-hero">
               <div className="membership-modal-hero-text">
                 <p className="eyebrow">Identity · 身份管理</p>
-                <h2>创建新身份</h2>
+                <h2>身份管理</h2>
               </div>
-              <button className="membership-modal-close" onClick={() => setIsIdentitySelectorOpen(false)} type="button">×</button>
+              <button className="membership-modal-close" aria-label="关闭身份管理" onClick={() => setIsIdentitySelectorOpen(false)} type="button">×</button>
             </header>
             <div className="membership-modal-content">
               <IdentitySelector />

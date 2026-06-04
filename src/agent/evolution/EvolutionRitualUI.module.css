@@ -1,9 +1,14 @@
 .container {
-  max-width: 480px;
+  position: fixed;
+  right: 24px;
+  top: 24px;
+  width: 380px;
+  max-width: calc(100vw - 48px);
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  z-index: 1100;
 }
 
 .header {

@@ -3,9 +3,9 @@ import { renderHook, act } from '@testing-library/react'
 import { useFocusTimer, type FocusTask } from './useFocusTimer'
 
 const mockTasks: FocusTask[] = [
-  { id: 'task-1', title: '完成高数极限专题 20 题', status: 'todo', minutes: 60, rewardXp: 60, dueLabel: '今天', workspaceType: 'study' },
-  { id: 'task-2', title: '背诵四级核心词 80 个', status: 'todo', minutes: 45, rewardXp: 45, dueLabel: '今天', workspaceType: 'study' },
-  { id: 'task-3', title: '已完成任务', status: 'done', minutes: 30, rewardXp: 30, dueLabel: '昨天', workspaceType: 'study' }
+  { id: 'task-1', title: '完成高数极限专题 20 题', status: 'todo', minutes: 60, rewardPoints: 60, dueLabel: '今天', workspaceType: 'study' },
+  { id: 'task-2', title: '背诵四级核心词 80 个', status: 'todo', minutes: 45, rewardPoints: 45, dueLabel: '今天', workspaceType: 'study' },
+  { id: 'task-3', title: '已完成任务', status: 'done', minutes: 30, rewardPoints: 30, dueLabel: '昨天', workspaceType: 'study' }
 ]
 
 describe('useFocusTimer', () => {
@@ -130,14 +130,14 @@ describe('useFocusTimer', () => {
     expect(result.current.targetMinutes).toBe(60)
   })
 
-  it('calculates reward XP based on duration', () => {
+  it('calculates reward points based on duration', () => {
     const { result } = renderHook(() => useFocusTimer({ tasks: mockTasks }))
 
     act(() => {
       result.current.adjustDuration(-30)
     })
 
-    expect(result.current.rewardXp).toBe(30)
+    expect(result.current.rewardPoints).toBe(30)
   })
 
   it('uses next task when no task is bound', () => {

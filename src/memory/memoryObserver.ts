@@ -69,7 +69,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
       append(
         resolvedOptions,
         'context',
-        `完成任务：${task.title}，获得 ${task.rewardXp} XP，预计投入 ${task.minutes} 分钟。`,
+        `完成任务：${task.title}，获得 ${task.rewardPoints} 积分，预计投入 ${task.minutes} 分钟。`,
         ['task_completed', task.workspaceType, task.source],
         0.82
       )
@@ -87,7 +87,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
       append(
         resolvedOptions,
         'habit',
-        `完成 ${session.minutes} 分钟专注：${session.taskTitle}，获得 ${session.rewardXp} XP。`,
+        `完成 ${session.minutes} 分钟专注：${session.taskTitle}，获得 ${session.rewardPoints} 积分。`,
         ['focus_session', session.workspaceType],
         Math.min(0.95, 0.65 + session.minutes / 200)
       )

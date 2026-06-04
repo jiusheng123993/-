@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { getThemeById, themeRegistry, type ThemeId, type ThemeAesthetic } from '../themes/themeRegistry'
+import { toWallpaperCssVariables, deriveWallpaperFromTheme, type WallpaperConfig } from '../wallpaper/wallpaperConfig'
 
-const themeFamilyLabels: Record<string, string> = {
+export const themeFamilyLabels: Record<ThemeAesthetic, string> = {
   minimal: '极简',
   dopamine: '多巴胺',
   ink: '水墨',
@@ -15,7 +16,7 @@ const themeFamilyLabels: Record<string, string> = {
   liquid: '液态玻璃'
 }
 
-export function applyThemeToDOM(themeId: ThemeId) {
+export function applyThemeToDOM(themeId: ThemeId, wallpaperConfig?: WallpaperConfig) {
   const theme = getThemeById(themeId)
   const root = document.documentElement
   root.dataset.theme = theme.id
@@ -38,6 +39,11 @@ export function applyThemeToDOM(themeId: ThemeId) {
   root.style.setProperty('--radius', theme.tokens.effects.radius)
   root.style.setProperty('--shadow', theme.tokens.effects.shadow)
   root.style.setProperty('--glass', theme.tokens.effects.glass)
+  const wallpaper = wallpaperConfig ?? deriveWallpaperFromTheme(theme)
+  const wallpaperVars = toWallpaperCssVariables(wallpaper)
+  for (const [key, value] of Object.entries(wallpaperVars)) {
+    root.style.setProperty(key, value)
+  }
 }
 
 interface UseThemeOptions {

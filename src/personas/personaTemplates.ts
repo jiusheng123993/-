@@ -163,7 +163,7 @@ export const personaTemplates: PersonaTemplate[] = [
       {
         title: '成就系统',
         items: [
-          { title: '恢复行动', meta: '中断后重新开始 · +20 XP', status: '奖励' },
+          { title: '恢复行动', meta: '中断后重新开始 · +20 积分', status: '奖励' },
           { title: '本周复盘', meta: '完成 3 次 · 可升级', status: '接近达成' }
         ]
       }

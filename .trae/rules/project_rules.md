@@ -16,7 +16,7 @@
 ### 测试要求
 - 新增功能必须包含测试
 - 运行 `npm run test` 确保通过
-- 当前状态：881/881 测试通过
+- 当前状态：需运行确认
 
 ### 模块边界
 - UI层 → 禁止直接访问 localStorage，通过 hooks/data 层
@@ -28,6 +28,11 @@
 - `src/entitlement/entitlementService.ts` - 权益核心
 - `src/auth/devAuthSession.ts` - 认证（开发用）
 
+### UI 规范
+- 独立 Sidebar/SidebarToggle 是最新版 UI，必须保留
+- 默认主界面保留可拖拽模块画布
+- 旧 dashboard/会员中心/主题中心等重内容应折叠或按需加载
+
 ## 常用命令
 ```bash
 npm run dev       # 启动开发服务器
@@ -37,6 +42,11 @@ npm run build     # 构建
 ```
 
 ## 当前状态
-- 测试：881/881 通过
-- Lint：1 个既有 warning
-- TypeScript：0 错误
+- 测试：运行中（Vitest）
+- Lint：PowerShell 执行策略限制，需手动验证
+- TypeScript：0 错误（VS Code 诊断确认）
+
+## 项目记忆
+- 项目已初始化 CodeGraph 索引（257 文件，2980 节点）
+- 当前任务：UI 全面换血为画布工作台（进行中）
+- 禁止修改：src/server/、src/entitlement/entitlementService.ts、src/auth/devAuthSession.ts

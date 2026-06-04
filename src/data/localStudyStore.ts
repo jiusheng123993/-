@@ -14,7 +14,7 @@ export type StudyTask = {
   goalId: string
   status: 'todo' | 'done'
   minutes: number
-  rewardXp: number
+  rewardPoints: number
 }
 
 export type StudyNote = {
@@ -79,7 +79,7 @@ export const createInitialStudyState = (): StudyState => ({
       goalId: 'goal-math',
       status: 'todo',
       minutes: 60,
-      rewardXp: 60
+      rewardPoints: 60
     },
     {
       id: 'task-2',
@@ -87,7 +87,7 @@ export const createInitialStudyState = (): StudyState => ({
       goalId: 'goal-english',
       status: 'todo',
       minutes: 35,
-      rewardXp: 45
+      rewardPoints: 45
     },
     {
       id: 'task-3',
@@ -95,7 +95,7 @@ export const createInitialStudyState = (): StudyState => ({
       goalId: 'goal-math',
       status: 'done',
       minutes: 25,
-      rewardXp: 35
+      rewardPoints: 35
     }
   ],
   notes: [

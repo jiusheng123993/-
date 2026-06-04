@@ -11,7 +11,7 @@
 - [x] T1.1 创建 `src/wallpaper/wallpaperTypes.ts`：定义 WallpaperConfig、PresetWallpaper、WallpaperSource、ReadabilityCheckResult 类型
 - [x] T1.2 创建 `src/wallpaper/wallpaperStore.ts`：实现壁纸配置CRUD、本地文件管理、缩略图生成
 - [x] T1.3 创建 `src/wallpaper/wallpaperStore.test.ts`：测试配置保存/读取/删除、文件大小限制、缩略图生成
-- [ ] T1.4 集成到 workspaceStore：在 WorkspaceState 中增加 wallpaperConfig 字段
+- [x] T1.4 集成到 workspaceStore：在 WorkspaceState 中增加 wallpaperConfig 字段
 
 ### E2 WallpaperService
 
@@ -26,15 +26,15 @@
 - [x] T3.2 创建 `src/wallpaper/WallpaperAdjuster.tsx`：壁纸调整控件（遮罩/模糊/亮度/饱和度/暗角/卡片透明度）
 - [x] T3.3 创建 `src/wallpaper/WallpaperPreview.tsx`：壁纸预览组件（实时预览调整效果）
 - [x] T3.4 创建 `src/wallpaper/ReadabilityWarning.tsx`：可读性预警组件
-- [ ] T3.5 集成到 App.tsx：在主题中心添加壁纸设置入口
-- [ ] T3.6 集成到 applyTheme：壁纸与主题联动渲染
+- [x] T3.5 集成到 App.tsx：在主题中心添加壁纸设置入口
+- [x] T3.6 集成到 applyTheme：壁纸与主题联动渲染
 
 ### M1 验收
 
 - [x] 可上传本地图片作为壁纸
 - [x] 可调整遮罩/模糊/亮度/饱和度/暗角/卡片透明度
 - [x] 可读性预警正常工作
-- [ ] 壁纸与主题联动正常
+- [x] 壁纸与主题联动正常
 - [x] 壁纸删除后可恢复默认背景
 - [x] 壁纸默认仅本地保存
 - [x] 单元测试全部通过

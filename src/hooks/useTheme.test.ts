@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTheme, applyThemeToDOM } from './useTheme'
+import { createDefaultWallpaperConfig } from '../wallpaper/wallpaperConfig'
 
 describe('useTheme', () => {
   beforeEach(() => {
@@ -89,5 +90,24 @@ describe('applyThemeToDOM', () => {
     
     expect(document.documentElement.dataset.theme).toBe('minimal-premium')
     expect(document.documentElement.style.getPropertyValue('--primary')).toBeTruthy()
+  })
+
+  it('applies wallpaper CSS variables derived from theme by default', () => {
+    applyThemeToDOM('minimal-premium')
+
+    expect(document.documentElement.style.getPropertyValue('--wallpaper-blur')).toBeTruthy()
+    expect(document.documentElement.style.getPropertyValue('--wallpaper-brightness')).toBeTruthy()
+    expect(document.documentElement.style.getPropertyValue('--wallpaper-card-opacity')).toBeTruthy()
+  })
+
+  it('uses provided wallpaperConfig instead of deriving from theme', () => {
+    const customConfig = createDefaultWallpaperConfig()
+    customConfig.blurPx = 30
+    customConfig.brightness = 0.5
+
+    applyThemeToDOM('minimal-premium', customConfig)
+
+    expect(document.documentElement.style.getPropertyValue('--wallpaper-blur')).toBe('30px')
+    expect(document.documentElement.style.getPropertyValue('--wallpaper-brightness')).toBe('0.5')
   })
 })

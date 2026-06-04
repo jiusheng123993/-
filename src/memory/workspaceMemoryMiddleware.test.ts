@@ -69,7 +69,7 @@ describe('workspaceMemoryMiddleware', () => {
           taskTitle: '完成高数极限专题 20 题',
           workspaceType: 'study' as const,
           minutes: 60,
-          rewardXp: 60,
+          rewardPoints: 60,
           completedAt: '2026-06-01T10:00:00.000Z'
         }
       ]

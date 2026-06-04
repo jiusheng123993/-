@@ -6,6 +6,7 @@ interface SidebarToggleProps {
 export const SidebarToggle: React.FC<SidebarToggleProps> = ({ isOpen, onToggle }) => {
   return (
     <button
+      aria-label={isOpen ? '关闭侧边栏' : '打开侧边栏'}
       className="sidebar-toggle"
       onClick={onToggle}
       style={{

@@ -5,7 +5,7 @@ export interface FocusTask {
   title: string
   status: 'todo' | 'done'
   minutes: number
-  rewardXp: number
+  rewardPoints: number
   dueLabel: string
   workspaceType: string
 }
@@ -16,7 +16,7 @@ export interface FocusSession {
   taskTitle: string
   workspaceType: string
   minutes: number
-  rewardXp: number
+  rewardPoints: number
   completedAt: string
 }
 
@@ -68,9 +68,9 @@ export function useFocusTimer({ tasks, onSessionComplete, onTaskComplete }: UseF
   const minuteText = String(Math.floor(remainingSeconds / 60)).padStart(2, '0')
   const secondText = String(remainingSeconds % 60).padStart(2, '0')
 
-  const rewardXp = useMemo(() => {
+  const rewardPoints = useMemo(() => {
     if (!displayTask) return 0
-    return Math.round((displayTask.rewardXp * targetMinutes) / displayTask.minutes)
+    return Math.round((displayTask.rewardPoints * targetMinutes) / displayTask.minutes)
   }, [displayTask, targetMinutes])
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export function useFocusTimer({ tasks, onSessionComplete, onTaskComplete }: UseF
         taskTitle: target.title,
         workspaceType: target.workspaceType,
         minutes: target.minutes,
-        rewardXp: target.rewardXp,
+        rewardPoints: target.rewardPoints,
         completedAt: new Date().toISOString()
       }
 
@@ -203,7 +203,7 @@ export function useFocusTimer({ tasks, onSessionComplete, onTaskComplete }: UseF
     remainingSeconds,
     minuteText,
     secondText,
-    rewardXp,
+    rewardPoints,
     isRunning,
     isPaused,
     adjustDuration,

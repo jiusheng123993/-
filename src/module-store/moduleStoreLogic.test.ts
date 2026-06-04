@@ -70,8 +70,8 @@ describe('moduleStoreLogic', () => {
       personaModuleTitles: ['灵感收集箱', '内容生产线', '发布日历']
     })
 
-    expect(recommended.map((module) => module.id)).toEqual(
-      expect.arrayContaining(['notes', 'calendar', 'statistics'])
+    expect(recommended.map(module => module.id)).toEqual(
+      expect.arrayContaining(['notes', 'calendar', 'statistics', 'persona-plan', 'today-actions'])
     )
   })
 

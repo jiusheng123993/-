@@ -18,7 +18,7 @@ const task: WorkspaceTask = {
   workspaceType: 'study',
   status: 'done',
   minutes: 60,
-  rewardXp: 60,
+  rewardPoints: 60,
   source: 'manual',
   dueLabel: '今天'
 }
@@ -29,7 +29,7 @@ const focusSession: FocusSessionRecord = {
   taskTitle: '完成高数极限专题 20 题',
   workspaceType: 'study',
   minutes: 60,
-  rewardXp: 60,
+  rewardPoints: 60,
   completedAt: fixedNow
 }
 

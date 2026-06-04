@@ -38,7 +38,7 @@ describe('workspaceStore', () => {
   it('migrates legacy study state into the study workspace', () => {
     const migrated = migrateLegacyStudyState({
       goals: [{ id: 'goal-legacy', title: '旧学习目标', subject: '英语', targetDate: '2026-06-30', progress: 30 }],
-      tasks: [{ id: 'task-legacy', title: '旧任务', goalId: 'goal-legacy', status: 'todo', minutes: 20, rewardXp: 10 }],
+      tasks: [{ id: 'task-legacy', title: '旧任务', goalId: 'goal-legacy', status: 'todo', minutes: 20, rewardPoints: 10 }],
       notes: [{ id: 'note-legacy', title: '旧笔记', subject: '英语', updatedAt: '昨天' }],
       reviews: [{ id: 'review-legacy', title: '旧复习', subject: '英语', dueDate: '今天', level: 'easy' }],
       preferences: { themeId: 'cream-dopamine' }

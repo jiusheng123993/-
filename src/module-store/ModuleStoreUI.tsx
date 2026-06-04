@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
 import type { Module, ModuleCategory, ModuleSize, ModuleStoreState } from './types'
 import { createCustomModule } from './moduleStoreLogic'
 
@@ -25,7 +24,6 @@ type ModuleStoreUIProps = {
   onAddModule: (moduleId: string) => void
   onRemoveModule: (moduleId: string, deleteCustomModule?: boolean) => void
   onCreateCustomModule: (module: Module) => void
-  canvasPreview?: ReactNode
 }
 
 export const ModuleStoreUI = ({
@@ -33,8 +31,7 @@ export const ModuleStoreUI = ({
   onClose,
   onAddModule,
   onRemoveModule,
-  onCreateCustomModule,
-  canvasPreview
+  onCreateCustomModule
 }: ModuleStoreUIProps) => {
   const [activeCategory, setActiveCategory] = useState<ModuleCategory | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -186,13 +183,6 @@ export const ModuleStoreUI = ({
             )
           })}
         </div>
-
-        {canvasPreview && (
-          <div className="module-store-preview-section">
-            <p className="module-store-drag-hint">↕ 拖拽模块可调整画布排列顺序</p>
-            {canvasPreview}
-          </div>
-        )}
 
         <footer className="module-store-footer">
           <div className="module-store-create-form">

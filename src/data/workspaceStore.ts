@@ -1,6 +1,7 @@
 import type { PersonaId } from '../personas/personaRegistry'
 import type { ThemeId } from '../themes/themeRegistry'
 import type { FocusBriefStyleId } from '../components/focusBrief/types'
+import type { WallpaperConfig as WallpaperRenderConfig } from '../wallpaper/wallpaperConfig'
 
 export type WorkspaceType = 'study' | 'work' | 'growth'
 
@@ -20,7 +21,7 @@ export type WorkspaceTask = {
   workspaceType: WorkspaceType
   status: 'todo' | 'done'
   minutes: number
-  rewardXp: number
+  rewardPoints: number
   source: 'manual' | 'ai' | 'meeting' | 'review'
   dueLabel: string
 }
@@ -76,7 +77,7 @@ export type FocusSessionRecord = {
   taskTitle: string
   workspaceType: WorkspaceType
   minutes: number
-  rewardXp: number
+  rewardPoints: number
   completedAt: string
 }
 
@@ -94,6 +95,7 @@ export type WorkspaceState = {
     activeWorkspace: WorkspaceType
     activePersona: PersonaId
     focusBriefStyle?: FocusBriefStyleId
+    wallpaperConfig?: WallpaperRenderConfig
   }
   integrations: {
     ai: AiSettings
@@ -108,7 +110,7 @@ export type WorkspaceStore = {
 
 type LegacyStudyState = {
   goals?: Array<{ id: string; title: string; subject: string; targetDate: string; progress: number }>
-  tasks?: Array<{ id: string; title: string; goalId: string; status: 'todo' | 'done'; minutes: number; rewardXp: number }>
+  tasks?: Array<{ id: string; title: string; goalId: string; status: 'todo' | 'done'; minutes: number; rewardPoints: number }>
   notes?: Array<{ id: string; title: string; subject: string; updatedAt: string }>
   reviews?: Array<{ id: string; title: string; subject: string; dueDate: string; level: 'easy' | 'medium' | 'hard' }>
   growth?: GrowthState
@@ -158,7 +160,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
       workspaceType: 'study',
       status: 'todo',
       minutes: 60,
-      rewardXp: 60,
+      rewardPoints: 60,
       source: 'manual',
       dueLabel: '今天'
     },
@@ -169,7 +171,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
       workspaceType: 'study',
       status: 'todo',
       minutes: 35,
-      rewardXp: 45,
+      rewardPoints: 45,
       source: 'review',
       dueLabel: '今晚'
     },
@@ -180,7 +182,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
       workspaceType: 'study',
       status: 'done',
       minutes: 25,
-      rewardXp: 35,
+      rewardPoints: 35,
       source: 'manual',
       dueLabel: '已完成'
     },
@@ -191,7 +193,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
       workspaceType: 'work',
       status: 'todo',
       minutes: 45,
-      rewardXp: 50,
+      rewardPoints: 50,
       source: 'meeting',
       dueLabel: '周三前'
     },
@@ -202,7 +204,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
       workspaceType: 'work',
       status: 'todo',
       minutes: 30,
-      rewardXp: 35,
+      rewardPoints: 35,
       source: 'ai',
       dueLabel: '周五'
     },
@@ -213,7 +215,7 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
       workspaceType: 'growth',
       status: 'todo',
       minutes: 10,
-      rewardXp: 20,
+      rewardPoints: 20,
       source: 'ai',
       dueLabel: '睡前'
     }
@@ -302,7 +304,8 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
     themeMode: 'persona-recommended',
     activeWorkspace: 'study',
     activePersona: 'exam-student',
-    focusBriefStyle: 'minimal-arc'
+    focusBriefStyle: 'minimal-arc',
+    wallpaperConfig: undefined
   },
   integrations: {
     ai: {
@@ -355,7 +358,8 @@ export const migrateLegacyStudyState = (legacyState: LegacyStudyState): Workspac
       themeId: legacyState.preferences?.themeId ?? fallback.preferences.themeId,
       themeMode: legacyState.preferences?.themeId ? 'manual' : fallback.preferences.themeMode,
       activeWorkspace: 'study',
-      activePersona: 'exam-student'
+      activePersona: 'exam-student',
+      wallpaperConfig: undefined
     }
   }
 }
@@ -372,7 +376,8 @@ const normalizeWorkspaceState = (state: WorkspaceState): WorkspaceState => ({
   preferences: {
     ...state.preferences,
     themeMode: state.preferences.themeMode ?? 'manual',
-    focusBriefStyle: state.preferences.focusBriefStyle ?? 'minimal-arc'
+    focusBriefStyle: state.preferences.focusBriefStyle ?? 'minimal-arc',
+    wallpaperConfig: state.preferences.wallpaperConfig
   }
 })
 
