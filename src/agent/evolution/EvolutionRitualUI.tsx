@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { EvolutionRitualUIProps, EvolutionEntry } from './evolutionRitualTypes'
 import styles from './EvolutionRitualUI.module.css'
 
@@ -60,6 +60,9 @@ export function EvolutionRitualUI({
   onClose,
 }: EvolutionRitualUIProps) {
   const [isModifying, setIsModifying] = useState(false)
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null)
+  const dragStartRef = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [modifiedValues, setModifiedValues] = useState<Record<string, unknown>>(() => {
     const initial: Record<string, unknown> = {}
     for (const change of entry.proposedChanges) {
@@ -69,6 +72,39 @@ export function EvolutionRitualUI({
   })
 
   const daysSince = getDaysSinceCreation(entry.createdAt)
+
+  const handleDragStart = useCallback((event: React.PointerEvent) => {
+    event.stopPropagation()
+    const el = containerRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    dragStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      posX: rect.left,
+      posY: rect.top
+    }
+    el.setPointerCapture(event.pointerId)
+
+    const handleMove = (e: PointerEvent) => {
+      if (!dragStartRef.current) return
+      const dx = e.clientX - dragStartRef.current.x
+      const dy = e.clientY - dragStartRef.current.y
+      setPosition({
+        x: dragStartRef.current.posX + dx,
+        y: dragStartRef.current.posY + dy
+      })
+    }
+
+    const handleUp = () => {
+      dragStartRef.current = null
+      window.removeEventListener('pointermove', handleMove)
+      window.removeEventListener('pointerup', handleUp)
+    }
+
+    window.addEventListener('pointermove', handleMove)
+    window.addEventListener('pointerup', handleUp)
+  }, [])
 
   const handleAccept = () => {
     onAccept(entry.id)
@@ -106,8 +142,12 @@ export function EvolutionRitualUI({
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <div
+      ref={containerRef}
+      className={styles.container}
+      style={position ? { left: position.x, top: position.y, right: 'auto' } : undefined}
+    >
+      <div className={styles.header} onPointerDown={handleDragStart}>
         <h2>{getTitle(entry)}</h2>
         <div className={styles.triggerInfo}>
           {entry.triggeredBy === 'cron' && '每周定期反思'}

@@ -53,6 +53,9 @@ export const CanvasCard = ({
   const onDragEndRef = useRef(onDragEnd)
   const onDragMoveRef = useRef(onDragMove)
   const onCollisionRef = useRef(onCollision)
+  const isDraggingRef = useRef(false)
+  const handlePointerMoveRef = useRef<((event: PointerEvent) => void) | null>(null)
+  const handlePointerUpRef = useRef<(() => void) | null>(null)
   const meta = sizeMeta[size]
 
   onMoveRef.current = onMove
@@ -67,68 +70,66 @@ export const CanvasCard = ({
     }
   }, [isDragging, position])
 
-  useEffect(() => {
-    if (!isDragging) return
+  const handlePointerMove = useCallback((event: PointerEvent) => {
+    if (!dragStartRef.current || !cardRef.current) return
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!dragStartRef.current || !cardRef.current) return
+    const canvas = cardRef.current.closest('.draggable-canvas') as HTMLElement
+    if (!canvas) return
 
-      const canvas = cardRef.current.closest('.draggable-canvas') as HTMLElement
-      if (!canvas) return
+    const canvasRect = canvas.getBoundingClientRect()
+    const columnWidth = canvasRect.width / 4
+    const rowHeight = 148
 
-      const canvasRect = canvas.getBoundingClientRect()
-      const columnWidth = canvasRect.width / 4
-      const rowHeight = 148
+    const deltaX = event.clientX - dragStartRef.current.x
+    const deltaY = event.clientY - dragStartRef.current.y
 
-      const deltaX = event.clientX - dragStartRef.current.x
-      const deltaY = event.clientY - dragStartRef.current.y
+    const newGridX = dragStartRef.current.gridX + deltaX / columnWidth
+    const newGridY = dragStartRef.current.gridY + deltaY / rowHeight
 
-      const newGridX = dragStartRef.current.gridX + deltaX / columnWidth
-      const newGridY = dragStartRef.current.gridY + deltaY / rowHeight
+    const snappedX = Math.max(0, Math.min(4 - meta.columns, Math.round(newGridX)))
+    const snappedY = Math.max(0, Math.round(newGridY))
 
-      const snappedX = Math.max(0, Math.min(4 - meta.columns, Math.round(newGridX)))
-      const snappedY = Math.max(0, Math.round(newGridY))
+    const newPos = { x: snappedX, y: snappedY }
+    setVisualPosition(newPos)
+    visualPositionRef.current = newPos
+    setDragOffset({
+      x: (newGridX - snappedX) * columnWidth,
+      y: (newGridY - snappedY) * rowHeight
+    })
 
-      const newPos = { x: snappedX, y: snappedY }
-      setVisualPosition(newPos)
-      visualPositionRef.current = newPos
-      setDragOffset({
-        x: (newGridX - snappedX) * columnWidth,
-        y: (newGridY - snappedY) * rowHeight
-      })
+    if (onDragMoveRef.current) {
+      onDragMoveRef.current(newPos)
+    }
+  }, [meta.columns])
 
-      if (onDragMoveRef.current) {
-        onDragMoveRef.current(newPos)
+  handlePointerMoveRef.current = handlePointerMove
+
+  const handlePointerUp = useCallback(() => {
+    const finalPos = visualPositionRef.current
+    if (dragStartRef.current && finalPos) {
+      if (collisionEnabled && onCollisionRef.current) {
+        onCollisionRef.current(title, finalPos)
+      } else {
+        onMoveRef.current(finalPos)
       }
     }
-
-    const handlePointerUp = () => {
-      const finalPos = visualPositionRef.current
-      if (dragStartRef.current && finalPos) {
-        if (collisionEnabled && onCollisionRef.current) {
-          onCollisionRef.current(title, finalPos)
-        } else {
-          onMoveRef.current(finalPos)
-        }
-      }
-      setIsDragging(false)
-      setDragOffset({ x: 0, y: 0 })
-      dragStartRef.current = null
-      visualPositionRef.current = null
-      onDragEndRef.current()
+    setIsDragging(false)
+    isDraggingRef.current = false
+    setDragOffset({ x: 0, y: 0 })
+    dragStartRef.current = null
+    visualPositionRef.current = null
+    if (handlePointerMoveRef.current) {
+      window.removeEventListener('pointermove', handlePointerMoveRef.current)
     }
-
-    window.addEventListener('pointermove', handlePointerMove)
-    window.addEventListener('pointerup', handlePointerUp)
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove)
-      window.removeEventListener('pointerup', handlePointerUp)
+    if (handlePointerUpRef.current) {
+      window.removeEventListener('pointerup', handlePointerUpRef.current)
     }
-  }, [isDragging, meta.columns, collisionEnabled, title])
+    onDragEndRef.current()
+  }, [collisionEnabled, title])
+
+  handlePointerUpRef.current = handlePointerUp
 
   const startDrag = useCallback((event: React.PointerEvent) => {
-    event.preventDefault()
     event.stopPropagation()
 
     const canvas = cardRef.current?.closest('.draggable-canvas') as HTMLElement
@@ -143,8 +144,17 @@ export const CanvasCard = ({
 
     const startPos = { x: position.x, y: position.y }
     setIsDragging(true)
+    isDraggingRef.current = true
     setVisualPosition(startPos)
     visualPositionRef.current = startPos
+
+    if (handlePointerMoveRef.current) {
+      window.addEventListener('pointermove', handlePointerMoveRef.current)
+    }
+    if (handlePointerUpRef.current) {
+      window.addEventListener('pointerup', handlePointerUpRef.current)
+    }
+
     onDragStart()
   }, [position.x, position.y, onDragStart])
 
@@ -205,38 +215,26 @@ export const CanvasCard = ({
       className={`canvas-card ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''} ${isResizing ? 'resizing' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => !isDragging && setIsHovered(false)}
+      onClick={() => {
+        if (!isDragging && onOpenDetails) onOpenDetails()
+      }}
       style={{
         gridColumn: `${displayPosition.x + 1} / span ${meta.columns}`,
         gridRow: `${displayPosition.y + 1} / span ${meta.rows}`,
-        background: 'var(--surface)',
-        borderRadius: '16px',
-        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
         cursor: 'default',
-        transition: isDragging ? 'none' : 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: isDragging
-          ? '0 12px 32px rgba(0, 0, 0, 0.16)'
-          : isHovered
-            ? '0 8px 24px rgba(0, 0, 0, 0.12)'
-            : '0 2px 8px rgba(0, 0, 0, 0.08)',
+        transition: isDragging ? 'none' : undefined,
         transform: isDragging
-          ? `scale(1.02) translate(${dragOffset.x}px, ${dragOffset.y}px)`
-          : isHovered
-            ? 'translateY(-4px)'
-            : 'none',
-        opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging ? 1000 : 1,
+          ? `scale(1.03) translate(${dragOffset.x}px, ${dragOffset.y}px)`
+          : undefined,
+        opacity: isDragging ? 0.85 : undefined,
+        zIndex: isDragging ? 1000 : undefined,
         userSelect: 'none'
       }}
     >
-      <div className="card-heading compact">
-        <button
-          aria-label={`拖动 ${title}`}
-          className="canvas-card-drag-handle"
-          onPointerDown={startDrag}
-          type="button"
-        >
-          ⠿
-        </button>
+      <div className="card-heading compact" onPointerDown={startDrag}>
+        <span className="canvas-card-drag-indicator">⠿</span>
         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, flex: 1 }}>{title}</h3>
         <span className="pill">{meta.label}</span>
         <button
@@ -251,17 +249,9 @@ export const CanvasCard = ({
           ×
         </button>
       </div>
-      <p style={{ margin: '8px 0 12px', fontSize: '14px', color: 'var(--muted)' }}>{description}</p>
+      <p className="canvas-card-description">{description}</p>
       {children && <div className="canvas-card-content">{children}</div>}
-      {onOpenDetails && (
-        <button className="canvas-card-detail-button" onClick={onOpenDetails} type="button">
-          打开 {title}详情
-        </button>
-      )}
-      <div 
-        className="canvas-card-resize-handles"
-        style={{ pointerEvents: isHovered ? 'auto' : 'none' }}
-      >
+      <div className="canvas-card-resize-handles">
         <div 
           className="resize-handle resize-handle-e"
           onPointerDown={handleResizePointerDown('e')}

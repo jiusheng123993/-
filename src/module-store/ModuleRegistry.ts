@@ -230,6 +230,146 @@ export const defaultModules: Module[] = [
     size: 'medium',
     isDefault: true,
     isCustom: false
+  },
+  {
+    id: 'journal',
+    title: '复盘日记',
+    description: '每日复盘、心情记录和反思',
+    icon: 'BookOpen',
+    category: 'productivity',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'goal-tracker',
+    title: '目标管理',
+    description: '设定目标、关键结果和进度追踪',
+    icon: 'Target',
+    category: 'productivity',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'study-dashboard',
+    title: '学习仪表盘',
+    description: '管理学习目标、任务、笔记和复习计划',
+    icon: 'GraduationCap',
+    category: 'learning',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'creator-workbench',
+    title: '内容创作工作台',
+    description: '灵感收集、内容生产、发布日历和客户交付管理',
+    icon: 'PenTool',
+    category: 'productivity',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'finance-tracker',
+    title: '财务管理',
+    description: '收入支出追踪、预算管理、财务目标进度',
+    icon: 'Wallet',
+    category: 'productivity',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'reading-list',
+    title: '阅读清单',
+    description: '书籍管理、阅读进度追踪、读书笔记',
+    icon: 'BookOpen',
+    category: 'learning',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'project-manager',
+    title: '项目管理',
+    description: '项目看板、里程碑、任务分解和进度追踪',
+    icon: 'FolderKanban',
+    category: 'productivity',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'wellness-life',
+    title: '健康生活',
+    description: '饮食记录、饮水追踪、运动管理和健康目标',
+    icon: 'Heart',
+    category: 'health',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'quick-notes',
+    title: '速记',
+    description: '快速捕捉想法、置顶重要笔记、全文搜索',
+    icon: 'StickyNote',
+    category: 'productivity',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'report-center',
+    title: '报告中心',
+    description: '周报/月报生成，数据可视化汇总',
+    icon: 'FileText',
+    category: 'productivity',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'global-search',
+    title: '全局搜索',
+    description: '搜索所有任务、笔记、目标等内容',
+    icon: 'Search',
+    category: 'productivity',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'mood-tracker',
+    title: '心情追踪',
+    description: '记录每日心情，查看趋势和统计',
+    icon: 'Smile',
+    category: 'health',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'time-block',
+    title: '时间块',
+    description: '一天时间块规划和管理',
+    icon: 'Clock',
+    category: 'productivity',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'focus-stats',
+    title: '专注统计',
+    description: '专注时长趋势、任务分布、效率分析',
+    icon: 'BarChart',
+    category: 'productivity',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
   }
 ]
 

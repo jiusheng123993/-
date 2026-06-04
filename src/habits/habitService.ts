@@ -246,3 +246,25 @@ export function removeHabit(state: HabitState, habitId: string): HabitState {
     records: state.records.filter((r) => r.habitId !== habitId)
   }
 }
+
+export interface HabitStore {
+  load: () => HabitState
+  save: (state: HabitState) => void
+}
+
+export function createHabitBrowserStore(storageKey = 'habit-state'): HabitStore {
+  return {
+    load: () => {
+      const stored = window.localStorage.getItem(storageKey)
+      if (!stored) return createInitialHabitState()
+      try {
+        return JSON.parse(stored) as HabitState
+      } catch {
+        return createInitialHabitState()
+      }
+    },
+    save: (state) => {
+      window.localStorage.setItem(storageKey, JSON.stringify(state))
+    }
+  }
+}

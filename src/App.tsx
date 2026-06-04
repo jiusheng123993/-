@@ -54,7 +54,11 @@ import { MemoryContextPreview } from './memory/MemoryContextPreview'
 import { EvolutionRitualUI } from './agent/evolution/EvolutionRitualUI'
 import { useEvolutionRitual } from './agent/evolution/useEvolutionRitual'
 import { AgentChatUI, AgentChatToggle } from './agent/AgentChatUI'
+import { SilentSuggestionUI, useSilentSuggestions } from './agent/SilentSuggestionUI'
+import { useToast } from './components/toast/Toast'
+import { useApiKeyStatus } from './hooks/useApiKeyStatus'
 import { CanvasCard } from './canvas/CanvasCard'
+import { DraggableModal } from './canvas/DraggableModal'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
 import { ModuleStoreUI } from './module-store/ModuleStoreUI'
@@ -73,6 +77,33 @@ import { CycleTracker } from './cycle'
 import { AvatarManager } from './avatar'
 import { BadgeDisplay } from './badges/BadgeDisplay'
 import { HabitTracker } from './habits/HabitTrackerUI'
+import { JournalUI } from './journal/JournalUI'
+import { GoalTrackerUI } from './goals/GoalTrackerUI'
+import { StudyDashboardUI } from './study/StudyDashboardUI'
+import { createStudyService } from './study/studyService'
+import { CreatorWorkbenchUI } from './creator/CreatorWorkbenchUI'
+import { FinanceUI } from './finance/FinanceUI'
+import { createFinanceService } from './finance/financeService'
+import { ReadingUI } from './reading/ReadingUI'
+import { createReadingService } from './reading/readingService'
+import { ProjectUI } from './project/ProjectUI'
+import { createProjectService } from './project/projectService'
+import { WellnessUI } from './wellness/WellnessUI'
+import { createWellnessService } from './wellness/wellnessService'
+import { QuickNotesUI } from './quicknotes/QuickNotesUI'
+import { createQuickNotesService } from './quicknotes/quickNotesService'
+import { ReportUI } from './report/ReportUI'
+import { GlobalSearchUI } from './globalsearch/GlobalSearchUI'
+import { MoodUI } from './mood/MoodUI'
+import { createMoodService } from './mood/moodService'
+import { TimeBlockUI } from './timeblock/TimeBlockUI'
+import { createTimeBlockService } from './timeblock/timeBlockService'
+import { FocusStatsUI } from './focusstats/FocusStatsUI'
+import { FocusHistoryUI } from './focushistory/FocusHistoryUI'
+import { QuoteUI } from './quotes/QuoteUI'
+import { EnglishUI } from './english/EnglishUI'
+import { WatchListUI } from './watchlist/WatchListUI'
+import { TemplateUI } from './templates/TemplateUI'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -183,7 +214,30 @@ const defaultWorkbenchModuleIds = [
   'platform-matrix',
   'mini-program-preview',
   'theme-center',
-  'statistics'
+  'statistics',
+  'cycle-today',
+  'memory-profile',
+  'badge-display',
+  'habit-tracker',
+  'journal',
+  'goal-tracker',
+  'study-dashboard',
+  'creator-workbench',
+  'finance-tracker',
+  'reading-list',
+  'project-manager',
+  'wellness-life',
+  'quick-notes',
+  'report-center',
+  'global-search',
+  'mood-tracker',
+  'time-block',
+  'focus-stats',
+  'focus-history',
+  'quote-collection',
+  'english-learning',
+  'watch-list',
+  'template-center'
 ]
 
 const createDefaultWorkbenchState = () =>
@@ -208,6 +262,24 @@ const loadInitialModuleStoreState = (): ModuleStoreState => {
 
 export default function App() {
   const [workspaceState, setWorkspaceState] = useState<WorkspaceState>(() => loadInitialState())
+  const { addToast } = useToast()
+  const { status: apiKeyStatus } = useApiKeyStatus()
+
+  useEffect(() => {
+    if (apiKeyStatus === 'ready' && workspaceState.integrations.ai.status !== 'ready') {
+      setWorkspaceState(prev => ({
+        ...prev,
+        integrations: {
+          ...prev.integrations,
+          ai: {
+            ...prev.integrations.ai,
+            status: 'ready'
+          }
+        }
+      }))
+    }
+  }, [apiKeyStatus, workspaceState.integrations.ai.status])
+  
   const activeTheme = useMemo(() => getThemeById(workspaceState.preferences.themeId), [workspaceState.preferences.themeId])
   const activePersona = getPersonaById(workspaceState.preferences.activePersona)
   const activeTemplate = getPersonaTemplateById(activePersona.id)
@@ -263,19 +335,7 @@ export default function App() {
   const [isCycleTrackerOpen, setIsCycleTrackerOpen] = useState(false)
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
-  const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => {
-    const stored = localStorage.getItem('memory-profile')
-    return stored ? JSON.parse(stored) : {
-      identity: { mbti: 'unknown', ageGroup: 'adult', workStyle: 'mixed', nickname: '' },
-      personality: { traits: [], motivationStyle: 'growth', feedbackStyle: 'gentle', stressResponse: 'need_break' },
-      rhythm: { energyPeak: 'morning', sleepPattern: 'stable', breakPreference: 'pomodoro_25' },
-      goals: { shortTerm: '', longTerm: '', milestones: [] },
-      preferences: { encouragementStyle: 'coach', reminderFrequency: 'medium', detailLevel: 'moderate', languageStyle: 'casual' },
-      boundaries: { maxFocusMinutes: 120, maxDailyTasks: 10, avoidTopics: [] },
-      learning: { style: 'visual', currentFocus: '', completedCourses: [] },
-      emotional: { moodTrend: 'stable', motivationLevel: 'medium', lastCheckIn: '' }
-    }
-  })
+  const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
@@ -289,6 +349,9 @@ export default function App() {
     handleModify: handleEvolutionModify,
     handleClose: handleEvolutionClose
   } = useEvolutionRitual(authSession?.userId)
+  
+  const { suggestions: silentSuggestions } = useSilentSuggestions()
+  
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -377,7 +440,11 @@ export default function App() {
     
     setIsPaymentOpen(false)
     setIsMembershipOpen(false)
-    alert(`订单已创建：${order.id}\n\n请在打开的页面中完成支付。\n\n支付完成后刷新页面查看会员状态。`)
+    addToast({
+      type: 'success',
+      title: '订单已创建',
+      message: `订单号：${order.id}，请在打开的页面中完成支付，支付完成后刷新页面查看会员状态。`
+    })
   }
   
   const userOrders = useMemo(() => {
@@ -401,12 +468,16 @@ export default function App() {
       source: 'trial',
       expireAt: expireTime
     })
-    alert(`试用已开启！您将享受 ${durationDays} 天的会员权益。`)
+    addToast({
+      type: 'success',
+      title: '试用已开启',
+      message: `您将享受 ${durationDays} 天的会员权益。`
+    })
   }
   
   const handleRedeemCoupon = (code: string) => {
     if (!code.trim()) {
-      alert('请输入优惠券码')
+      addToast({ type: 'warning', title: '请输入优惠券码' })
       return
     }
     const validCoupons: Record<string, {type: string; discount: number}> = {
@@ -418,9 +489,9 @@ export default function App() {
     const coupon = validCoupons[code.toUpperCase()]
     if (coupon) {
       setUserCoupons(prev => [...prev, { code: code.toUpperCase(), ...coupon, used: false }])
-      alert(`优惠券 ${code} 兑换成功！`)
+      addToast({ type: 'success', title: '兑换成功', message: `优惠券 ${code.toUpperCase()} 已添加到您的账户。` })
     } else {
-      alert('优惠券码无效')
+      addToast({ type: 'error', title: '优惠券码无效' })
     }
   }
   
@@ -447,9 +518,9 @@ export default function App() {
   const handleRefundOrder = (orderId: string) => {
     try {
       orderService.markAsRefunded(orderId)
-      alert('退款申请已提交，请耐心等待处理')
+      addToast({ type: 'success', title: '退款申请已提交', message: '请耐心等待处理。' })
     } catch (e) {
-      alert(`退款失败: ${e instanceof Error ? e.message : '未知错误'}`)
+      addToast({ type: 'error', title: '退款失败', message: e instanceof Error ? e.message : '未知错误' })
     }
   }
   
@@ -517,6 +588,7 @@ export default function App() {
   }, [workspaceState])
 
   useEffect(() => {
+    // Layout persistence concern: module layout is saved independently from workspace state
     window.localStorage.setItem(moduleLayoutStorageKey, exportModuleLayout(moduleStoreState))
   }, [moduleStoreState])
 
@@ -1004,7 +1076,7 @@ export default function App() {
                       {activePersona.keyMetrics.map((metric, index) => (
                         <article key={metric}>
                           <strong>{metric}</strong>
-                          <span>{index === 0 ? activePersona.modules[0].signal : `${70 + index * 6}%`}</span>
+                          <span>{index === 0 ? (activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle) : `${70 + index * 6}%`}</span>
                         </article>
                       ))}
                     </div>
@@ -1114,7 +1186,13 @@ export default function App() {
                             </span>
                             <button
                               className="memory-forget-btn"
-                              onClick={() => console.log('Forget:', session.id)}
+                              onClick={() => {
+                                setWorkspaceState((prev) => ({
+                                  ...prev,
+                                  focusSessions: prev.focusSessions.filter((s) => s.id !== session.id)
+                                }))
+                                addToast({ type: 'info', title: '已移除', message: `专注记录「${session.taskTitle}」已从上下文中移除。` })
+                              }}
                               type="button"
                             >
                               忘记
@@ -1162,7 +1240,7 @@ export default function App() {
                     </div>
                     <div className="phone-preview" aria-label="小程序首页预览">
                       <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-                      <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
+                      <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle}</small></div>
                       <div className="phone-module-grid">
                         {defaultMiniProgramModules.slice(0, 4).map((mod) => (
                           <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
@@ -1373,6 +1451,234 @@ export default function App() {
                       查看全部习惯
                     </button>
                   </section>
+                ),
+                'journal': (
+                  <section className="panel side-card journal-card" role="region" aria-label="复盘日记">
+                    <JournalUI compact />
+                    <button
+                      className="journal-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('journal')}
+                      type="button"
+                    >
+                      打开复盘日记
+                    </button>
+                  </section>
+                ),
+                'goal-tracker': (
+                  <section className="panel side-card goal-tracker-card" role="region" aria-label="目标管理">
+                    <GoalTrackerUI compact />
+                    <button
+                      className="goal-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('goal-tracker')}
+                      type="button"
+                    >
+                      打开目标管理
+                    </button>
+                  </section>
+                ),
+                'study-dashboard': (
+                  <section className="panel side-card study-dashboard-card" role="region" aria-label="学习仪表盘">
+                    <StudyDashboardUI compact />
+                    <button
+                      className="study-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('study-dashboard')}
+                      type="button"
+                    >
+                      打开学习仪表盘
+                    </button>
+                  </section>
+                ),
+                'creator-workbench': (
+                  <section className="panel side-card creator-workbench-card" role="region" aria-label="内容创作工作台">
+                    <CreatorWorkbenchUI compact />
+                    <button
+                      className="creator-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('creator-workbench')}
+                      type="button"
+                    >
+                      打开创作工作台
+                    </button>
+                  </section>
+                ),
+                'finance-tracker': (
+                  <section className="panel side-card finance-tracker-card" role="region" aria-label="财务管理">
+                    <FinanceUI compact />
+                    <button
+                      className="finance-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('finance-tracker')}
+                      type="button"
+                    >
+                      打开财务管理
+                    </button>
+                  </section>
+                ),
+                'reading-list': (
+                  <section className="panel side-card reading-list-card" role="region" aria-label="阅读清单">
+                    <ReadingUI compact />
+                    <button
+                      className="reading-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('reading-list')}
+                      type="button"
+                    >
+                      打开阅读清单
+                    </button>
+                  </section>
+                ),
+                'project-manager': (
+                  <section className="panel side-card project-manager-card" role="region" aria-label="项目管理">
+                    <ProjectUI compact />
+                    <button
+                      className="project-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('project-manager')}
+                      type="button"
+                    >
+                      打开项目管理
+                    </button>
+                  </section>
+                ),
+                'wellness-life': (
+                  <section className="panel side-card wellness-life-card" role="region" aria-label="健康生活">
+                    <WellnessUI compact />
+                    <button
+                      className="wellness-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('wellness-life')}
+                      type="button"
+                    >
+                      打开健康生活
+                    </button>
+                  </section>
+                ),
+                'quick-notes': (
+                  <section className="panel side-card quick-notes-card" role="region" aria-label="速记">
+                    <QuickNotesUI compact />
+                    <button
+                      className="quicknotes-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('quick-notes')}
+                      type="button"
+                    >
+                      打开速记
+                    </button>
+                  </section>
+                ),
+                'report-center': (
+                  <section className="panel side-card report-center-card" role="region" aria-label="报告中心">
+                    <ReportUI compact />
+                    <button
+                      className="report-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('report-center')}
+                      type="button"
+                    >
+                      打开报告
+                    </button>
+                  </section>
+                ),
+                'global-search': (
+                  <section className="panel side-card global-search-card" role="region" aria-label="全局搜索">
+                    <GlobalSearchUI compact />
+                    <button
+                      className="search-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('global-search')}
+                      type="button"
+                    >
+                      打开搜索
+                    </button>
+                  </section>
+                ),
+                'mood-tracker': (
+                  <section className="panel side-card mood-tracker-card" role="region" aria-label="心情追踪">
+                    <MoodUI compact />
+                    <button
+                      className="mood-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('mood-tracker')}
+                      type="button"
+                    >
+                      打开心情
+                    </button>
+                  </section>
+                ),
+                'time-block': (
+                  <section className="panel side-card time-block-card" role="region" aria-label="时间块">
+                    <TimeBlockUI compact />
+                    <button
+                      className="timeblock-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('time-block')}
+                      type="button"
+                    >
+                      打开时间块
+                    </button>
+                  </section>
+                ),
+                'focus-stats': (
+                  <section className="panel side-card focus-stats-card" role="region" aria-label="专注统计">
+                    <FocusStatsUI compact />
+                    <button
+                      className="focusstats-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('focus-stats')}
+                      type="button"
+                    >
+                      打开统计
+                    </button>
+                  </section>
+                ),
+                'focus-history': (
+                  <section className="panel side-card focus-history-card" role="region" aria-label="专注历史">
+                    <FocusHistoryUI compact />
+                    <button
+                      className="focushistory-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('focus-history')}
+                      type="button"
+                    >
+                      打开历史
+                    </button>
+                  </section>
+                ),
+                'quote-collection': (
+                  <section className="panel side-card quote-collection-card" role="region" aria-label="语录收藏">
+                    <QuoteUI compact />
+                    <button
+                      className="quote-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('quote-collection')}
+                      type="button"
+                    >
+                      打开语录
+                    </button>
+                  </section>
+                ),
+                'english-learning': (
+                  <section className="panel side-card english-learning-card" role="region" aria-label="英语学习">
+                    <EnglishUI compact />
+                    <button
+                      className="english-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('english-learning')}
+                      type="button"
+                    >
+                      打开英语
+                    </button>
+                  </section>
+                ),
+                'watch-list': (
+                  <section className="panel side-card watch-list-card" role="region" aria-label="观影记录">
+                    <WatchListUI compact />
+                    <button
+                      className="watchlist-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('watch-list')}
+                      type="button"
+                    >
+                      打开观影
+                    </button>
+                  </section>
+                ),
+                'template-center': (
+                  <section className="panel side-card template-center-card" role="region" aria-label="模板中心">
+                    <TemplateUI compact />
+                    <button
+                      className="template-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('template-center')}
+                      type="button"
+                    >
+                      打开模板
+                    </button>
+                  </section>
                 )
               }
 
@@ -1422,638 +1728,978 @@ export default function App() {
         </section>
       </section>
 
-      {openWorkbenchDetail === 'persona-plan' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="考试冲刺计划 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 按需加载</p>
-                <h2>{activePersona.mainModuleTitle}</h2>
-                <small>从画布卡片打开后才渲染完整内容</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="persona-brief">
-              <strong>默认行动建议</strong>
-              <em>{activeTemplate.defaultAction}</em>
-              <small>复盘问题：{activeTemplate.reviewQuestion}</small>
-            </div>
-          </section>
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'persona-plan'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title={activePersona.mainModuleTitle}
+        subtitle="从画布卡片打开后才渲染完整内容"
+        ariaLabel="考试冲刺计划 · 工作台详情"
+      >
+        <div className="persona-brief">
+          <strong>默认行动建议</strong>
+          <em>{activeTemplate.defaultAction}</em>
+          <small>复盘问题：{activeTemplate.reviewQuestion}</small>
         </div>
-      )}
+      </DraggableModal>
 
-      {openWorkbenchDetail === 'mini-program-preview' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal mini-program-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="小程序试验版 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 移动端预览</p>
-                <h2>小程序试验版</h2>
-                <small>{miniProgramBlueprint.positioning} · {getThemeById(miniProgramBlueprint.recommendedThemeId).name}</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'mini-program-preview'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="小程序试验版"
+        subtitle={`${miniProgramBlueprint.positioning} · ${getThemeById(miniProgramBlueprint.recommendedThemeId).name}`}
+        ariaLabel="小程序试验版 · 工作台详情"
+        className="mini-program-detail-modal"
+      >
+        <div className="mini-program-detail-grid">
+          <section className="workbench-detail-panel mini-program-phone-panel" aria-label="小程序交互预览">
+            <div className="card-heading compact">
+              <h3>微信小程序原生</h3>
+              <button
+                className="mini-program-mode-button"
+                onClick={() => setMiniProgramPreviewMode((mode) => mode === 'home' ? 'modules' : 'home')}
+                type="button"
+              >
+                {miniProgramPreviewMode === 'home' ? '切换到模块页' : '切换到首页预览'}
               </button>
-            </header>
-            <div className="mini-program-detail-grid">
-              <section className="workbench-detail-panel mini-program-phone-panel" aria-label="小程序交互预览">
-                <div className="card-heading compact">
-                  <h3>微信小程序原生</h3>
-                  <button
-                    className="mini-program-mode-button"
-                    onClick={() => setMiniProgramPreviewMode((mode) => mode === 'home' ? 'modules' : 'home')}
-                    type="button"
-                  >
-                    {miniProgramPreviewMode === 'home' ? '切换到模块页' : '切换到首页预览'}
-                  </button>
-                </div>
-                <div className="phone-preview large" aria-label="小程序详情预览">
-                  <div className="phone-preview-top"><strong>{miniProgramPreviewMode === 'home' ? '今天' : '模块'}</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-                  {miniProgramPreviewMode === 'home' ? (
-                    <>
-                      <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0].signal}</small></div>
-                      <div className="phone-module-grid">
-                        {defaultMiniProgramModules.slice(0, 4).map((mod) => (
-                          <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="phone-module-grid detail">
-                      {miniProgramBlueprint.modules.map((mod) => (
-                        <article key={mod.id}><strong>{mod.title}</strong><small>{mod.description}</small></article>
-                      ))}
-                    </div>
-                  )}
-                  <div className="phone-tabbar">
-                    {miniProgramBlueprint.navigation.map((nav) => (
-                      <span key={nav.id}>{nav.label}</span>
+            </div>
+            <div className="phone-preview large" aria-label="小程序详情预览">
+              <div className="phone-preview-top"><strong>{miniProgramPreviewMode === 'home' ? '今天' : '模块'}</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
+              {miniProgramPreviewMode === 'home' ? (
+                <>
+                  <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle}</small></div>
+                  <div className="phone-module-grid">
+                    {defaultMiniProgramModules.slice(0, 4).map((mod) => (
+                      <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
                     ))}
                   </div>
-                </div>
-              </section>
-              <aside className="workbench-detail-panel mini-program-boundary-panel" aria-label="小程序边界说明">
-                <h3>边界与同步</h3>
-                <div className="boundary-grid">
-                  <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-                  <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-                </div>
-                <p>{miniProgramBlueprint.syncStrategy}</p>
-              </aside>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {openWorkbenchDetail === 'platform-matrix' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal platform-matrix-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="多端预留 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 多端架构</p>
-                <h2>多端预留</h2>
-                <small>{workspaceState.sync.mode} · {workspaceState.sync.status} · {miniProgramBlueprint.implementationRoute.framework}</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="platform-matrix-detail-grid">
-              <section className="workbench-detail-panel platform-matrix-route" aria-label="多端实现路线">
-                <div className="card-heading compact">
-                  <h3>实现路线</h3>
-                  <span className="implementation-pill">{miniProgramBlueprint.implementationRoute.platform}</span>
-                </div>
-                <p>{miniProgramBlueprint.implementationRoute.reason}</p>
-                <div className="platform-stage-list">
-                  <article><span>Desktop</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-                  <article><span>微信小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-                  <article><span>Web/PWA</span><strong>复用数据契约与 Provider 接口</strong></article>
-                  <article><span>iOS</span><strong>保留原生容器与同步适配层</strong></article>
-                  <article><span>HarmonyOS</span><strong>保留跨端流转与主题一致性</strong></article>
-                </div>
-              </section>
-              <aside className="workbench-detail-panel platform-sync-panel" aria-label="同步预留状态">
-                <h3>同步预留状态</h3>
-                <div className="metric-grid compact">
-                  <article><strong>{workspaceState.sync.mode}</strong><span>同步模式</span></article>
-                  <article><strong>{workspaceState.sync.status}</strong><span>接口状态</span></article>
-                  <article><strong>{miniProgramBlueprint.modules.length}</strong><span>移动模块</span></article>
-                </div>
-                <p>{miniProgramBlueprint.syncStrategy}</p>
-                <button
-                  className="platform-sync-button"
-                  disabled={workspaceState.sync.status === 'sync-ready'}
-                  onClick={markSyncReady}
-                  type="button"
-                >
-                  {workspaceState.sync.status === 'sync-ready' ? '同步接口已预留' : '标记同步接口已预留'}
-                </button>
-              </aside>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {openWorkbenchDetail === 'ai-coach' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal ai-coach-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label={`${activePersona.aiRole} · 工作台详情`}
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · AI 行动教练</p>
-                <h2>{activePersona.aiRole}</h2>
-                <small>{activeProvider.name} · {workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，使用本地草稿模式'}</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="ai-coach-detail-grid">
-              <section className="workbench-detail-panel ai-coach-prompt-panel" aria-label="AI 提示词草稿">
-                <div className="card-heading compact">
-                  <h3>{promptDraft.title}</h3>
-                  <span className="pill">{activeProvider.name}</span>
-                </div>
-                <div className="ai-prompt-preview">
-                  <strong>系统提示</strong>
-                  <p>{promptDraft.systemPrompt}</p>
-                  <strong>用户上下文</strong>
-                  <p>{promptDraft.userPrompt}</p>
-                </div>
-                <button className="ai-generate-button" onClick={generateAiCoachDraft} type="button">
-                  生成本地行动草稿
-                </button>
-              </section>
-              <aside className="workbench-detail-panel ai-coach-result-panel" aria-label="AI 行动草稿">
-                <h3>{aiCoachDraft ? '本地草稿已生成' : '待生成行动草稿'}</h3>
-                <p>{aiCoachDraft ?? '点击生成后，会基于当前身份、待办和 AI Provider 设置生成一条可执行行动建议。'}</p>
-                <div className="ai-actions">
-                  {activePersona.aiActions.map((action) => (
-                    <span key={action}>{createAiPromptDraft(activeProvider.id, { kind: action, input: activePersona.primaryFlow }).title}</span>
+                </>
+              ) : (
+                <div className="phone-module-grid detail">
+                  {miniProgramBlueprint.modules.map((mod) => (
+                    <article key={mod.id}><strong>{mod.title}</strong><small>{mod.description}</small></article>
                   ))}
                 </div>
-              </aside>
+              )}
+              <div className="phone-tabbar">
+                {miniProgramBlueprint.navigation.map((nav) => (
+                  <span key={nav.id}>{nav.label}</span>
+                ))}
+              </div>
             </div>
           </section>
+          <aside className="workbench-detail-panel mini-program-boundary-panel" aria-label="小程序边界说明">
+            <h3>边界与同步</h3>
+            <div className="boundary-grid">
+              <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+              <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+            </div>
+            <p>{miniProgramBlueprint.syncStrategy}</p>
+          </aside>
         </div>
-      )}
+      </DraggableModal>
 
-      {openWorkbenchDetail === 'badge-display' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal badge-display-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="成就徽章 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 成就系统</p>
-                <h2>成就徽章</h2>
-                <small>完成专注和任务来解锁更多徽章</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="membership-modal-content">
-              <BadgeDisplay
-                progress={{
-                  totalFocusSessions: workspaceState.focusSessions.length,
-                  streakDays: workspaceState.growth.streakDays,
-                  completedTasks: completedTasks.length,
-                  usedPersonas: [activePersona.id],
-                  themeSwitches: 1,
-                  hasMemoryProfile: memoryProfile.identity.mbti !== 'unknown',
-                  hasAvatar: false,
-                  cycleDaysRecorded: 0,
-                  earlyBirdSessions: 0,
-                  nightOwlSessions: 0
-                }}
-              />
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'platform-matrix'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="多端预留"
+        subtitle={`${workspaceState.sync.mode} · ${workspaceState.sync.status} · ${miniProgramBlueprint.implementationRoute.framework}`}
+        ariaLabel="多端预留 · 工作台详情"
+        className="platform-matrix-detail-modal"
+      >
+        <div className="platform-matrix-detail-grid">
+          <section className="workbench-detail-panel platform-matrix-route" aria-label="多端实现路线">
+            <div className="card-heading compact">
+              <h3>实现路线</h3>
+              <span className="implementation-pill">{miniProgramBlueprint.implementationRoute.platform}</span>
+            </div>
+            <p>{miniProgramBlueprint.implementationRoute.reason}</p>
+            <div className="platform-stage-list">
+              <article><span>Desktop</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
+              <article><span>微信小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
+              <article><span>Web/PWA</span><strong>复用数据契约与 Provider 接口</strong></article>
+              <article><span>iOS</span><strong>保留原生容器与同步适配层</strong></article>
+              <article><span>HarmonyOS</span><strong>保留跨端流转与主题一致性</strong></article>
             </div>
           </section>
-        </div>
-      )}
-
-      {openWorkbenchDetail === 'habit-tracker' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal habit-tracker-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="习惯追踪 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 习惯养成</p>
-                <h2>习惯追踪</h2>
-                <small>坚持每日打卡，养成好习惯</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="membership-modal-content">
-              <HabitTracker />
+          <aside className="workbench-detail-panel platform-sync-panel" aria-label="同步预留状态">
+            <h3>同步预留状态</h3>
+            <div className="metric-grid compact">
+              <article><strong>{workspaceState.sync.mode}</strong><span>同步模式</span></article>
+              <article><strong>{workspaceState.sync.status}</strong><span>接口状态</span></article>
+              <article><strong>{miniProgramBlueprint.modules.length}</strong><span>移动模块</span></article>
             </div>
-          </section>
+            <p>{miniProgramBlueprint.syncStrategy}</p>
+            <button
+              className="platform-sync-button"
+              disabled={workspaceState.sync.status === 'sync-ready'}
+              onClick={markSyncReady}
+              type="button"
+            >
+              {workspaceState.sync.status === 'sync-ready' ? '同步接口已预留' : '标记同步接口已预留'}
+            </button>
+          </aside>
         </div>
-      )}
+      </DraggableModal>
 
-      {openWorkbenchDetail === 'growth-rpg' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal growth-rpg-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="成长等级 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 游戏化成长</p>
-                <h2>成长等级</h2>
-                <small>连续 {workspaceState.growth.streakDays} 天 · {workspaceState.growth.achievements} 个成就 · {weeklyProgress}% 本场景进度</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="growth-rpg-detail-grid">
-              <section className="workbench-detail-panel growth-rpg-hero" aria-label="成长等级概览">
-                <span className="growth-level-badge">Lv. {workspaceState.growth.level}</span>
-                <strong>{workspaceState.growth.experience} 积分</strong>
-                <div className="xp-track" aria-label="等级经验进度">
-                  <span style={{ width: `${Math.min(100, workspaceState.growth.experience % 100)}%` }} />
-                </div>
-                <p>{activePersona.primaryFlow}</p>
-                <button
-                  className="growth-reward-button"
-                  disabled={growthRewardClaimed}
-                  onClick={claimGrowthReward}
-                  type="button"
-                >
-                  {growthRewardClaimed ? '今日奖励已领取' : '领取今日成长奖励'}
-                </button>
-              </section>
-              <aside className="workbench-detail-panel growth-rpg-summary" aria-label="成长成就摘要">
-                <h3>成长账本</h3>
-                <div className="metric-grid compact">
-                  <article><strong>{workspaceState.growth.streakDays}</strong><span>连续天数</span></article>
-                  <article><strong>{workspaceState.growth.achievements}</strong><span>成就数</span></article>
-                  <article><strong>{completedTasks.length}</strong><span>本场景完成</span></article>
-                </div>
-                <div className="growth-achievement-list">
-                  <article><span>主线进度</span><strong>{weeklyProgress}%</strong></article>
-                  <article><span>待专注分钟</span><strong>{totalFocusMinutes}</strong></article>
-                  <article><span>今日待办</span><strong>{todoTasks.length}</strong></article>
-                </div>
-              </aside>
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'ai-coach'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title={activePersona.aiRole}
+        subtitle={`${activeProvider.name} · ${workspaceState.integrations.ai.status === 'ready' ? '已配置，可生成建议' : '未配置 API Key，使用本地草稿模式'}`}
+        ariaLabel={`${activePersona.aiRole} · 工作台详情`}
+        className="ai-coach-detail-modal"
+      >
+        <div className="ai-coach-detail-grid">
+          <section className="workbench-detail-panel ai-coach-prompt-panel" aria-label="AI 提示词草稿">
+            <div className="card-heading compact">
+              <h3>{promptDraft.title}</h3>
+              <span className="pill">{activeProvider.name}</span>
             </div>
-          </section>
-        </div>
-      )}
-
-      {openWorkbenchDetail === 'today-actions' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal today-actions-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="今日行动 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 任务编排</p>
-                <h2>今日行动</h2>
-                <small>{todoTasks.length} 个待办 · {completedTasks.length} 个已完成 · {totalFocusMinutes} 分钟计划</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="today-actions-detail-grid">
-              <section className="workbench-detail-panel" aria-label="今日待办列表">
-                <div className="card-heading compact">
-                  <h3>待推进任务</h3>
-                  <span className="pill">{visibleTasks.length} 项</span>
-                </div>
-                <div className="today-actions-detail-list">
-                  {visibleTasks.map((task) => (
-                    <article key={task.id} className={task.status === 'done' ? 'done' : ''}>
-                      <span className="task-status-dot" aria-hidden="true" />
-                      <div>
-                        <strong>{task.title}</strong>
-                        <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardPoints} 积分</small>
-                      </div>
-                      <button
-                        type="button"
-                        className="task-complete-button"
-                        disabled={task.status === 'done'}
-                        onClick={() => completeTaskFromWorkbench(task.id)}
-                      >
-                        {task.status === 'done' ? `已完成 ${task.title}` : `完成 ${task.title}`}
-                      </button>
-                    </article>
-                  ))}
-                </div>
-              </section>
-              <aside className="workbench-detail-panel today-actions-summary" aria-label="今日行动摘要">
-                <h3>行动摘要</h3>
-                <div className="metric-grid compact">
-                  <article><strong>{weeklyProgress}%</strong><span>本场景进度</span></article>
-                  <article><strong>{todoTasks.length}</strong><span>剩余待办</span></article>
-                  <article><strong>{workspaceState.growth.experience}</strong><span>成长积分</span></article>
-                </div>
-                <p>{activePersona.primaryFlow}</p>
-              </aside>
+            <div className="ai-prompt-preview">
+              <strong>系统提示</strong>
+              <p>{promptDraft.systemPrompt}</p>
+              <strong>用户上下文</strong>
+              <p>{promptDraft.userPrompt}</p>
             </div>
+            <button className="ai-generate-button" onClick={generateAiCoachDraft} type="button">
+              生成本地行动草稿
+            </button>
           </section>
-        </div>
-      )}
-
-      {openWorkbenchDetail === 'memory-insights' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal memory-insights-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="记忆洞察 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 记忆沉淀</p>
-                <h2>记忆洞察</h2>
-                <small>{workspaceState.focusSessions.length} 条专注记忆 · 最近上下文优先展示</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="memory-insights-detail-grid">
-              <section className="workbench-detail-panel" aria-label="专注记忆时间线">
-                <div className="card-heading compact">
-                  <h3>专注记忆时间线</h3>
-                  <span className="pill">{workspaceState.focusSessions.length} 条</span>
-                </div>
-                {workspaceState.focusSessions.length === 0 ? (
-                  <p className="empty-state">暂无记忆记录，完成专注后会显示在这里。</p>
-                ) : (
-                  <ul className="memory-detail-timeline">
-                    {workspaceState.focusSessions.map((session) => (
-                      <li key={session.id}>
-                        <span className="memory-event-time">
-                          {new Date(session.completedAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        <div>
-                          <strong>{session.taskTitle}</strong>
-                          <small>完成 {session.minutes} 分钟专注：{session.taskTitle}</small>
-                          <em>{session.rewardPoints} 积分 · {session.workspaceType}</em>
-                        </div>
-                        <button
-                          className="memory-forget-btn"
-                          onClick={() => forgetFocusSession(session.id)}
-                          type="button"
-                        >
-                          忘记 {session.taskTitle}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-              <aside className="workbench-detail-panel memory-insights-summary" aria-label="记忆洞察摘要">
-                <h3>上下文摘要</h3>
-                <div className="metric-grid compact">
-                  <article><strong>{workspaceState.focusSessions.length}</strong><span>记忆数</span></article>
-                  <article><strong>{totalFocusMinutes}</strong><span>待专注分钟</span></article>
-                  <article><strong>{completedTasks.length}</strong><span>完成任务</span></article>
-                </div>
-                <p>{workspaceState.focusSessions[0] ? `最近完成：${workspaceState.focusSessions[0].taskTitle}` : '完成一次专注后，系统会把任务、分钟数和积分沉淀为上下文。'}</p>
-              </aside>
+          <aside className="workbench-detail-panel ai-coach-result-panel" aria-label="AI 行动草稿">
+            <h3>{aiCoachDraft ? '本地草稿已生成' : '待生成行动草稿'}</h3>
+            <p>{aiCoachDraft ?? '点击生成后，会基于当前身份、待办和 AI Provider 设置生成一条可执行行动建议。'}</p>
+            <div className="ai-actions">
+              {activePersona.aiActions.map((action) => (
+                <span key={action}>{createAiPromptDraft(activeProvider.id, { kind: action, input: activePersona.primaryFlow }).title}</span>
+              ))}
             </div>
-          </section>
+          </aside>
         </div>
-      )}
+      </DraggableModal>
 
-      {openWorkbenchDetail === 'focus-session' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal focus-session-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="任务专注 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 深度专注</p>
-                <h2>任务专注</h2>
-                <small>{focusDisplayTask ? `${focusDisplayTask.dueLabel} · ${focusTargetMinutes} 分钟 · ${focusRewardPoints} 积分` : '当前场景暂无待办任务'}</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="focus-session-detail-grid">
-              <section className="workbench-detail-panel focus-session-hero" aria-label="详情专注计时器">
-                <span className="focus-session-time">{`${focusMinuteText}:${focusSecondText}`}</span>
-                <h3>{focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}</h3>
-                <p>{activePersona.primaryFlow}</p>
-                <div className="duration-control" aria-label="详情自定义专注时长">
-                  <button
-                    type="button"
-                    className="duration-step"
-                    disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes <= FOCUS_MIN_MINUTES}
-                    onClick={() => adjustFocusDuration(-FOCUS_STEP_MINUTES)}
-                    aria-label="减少详情专注时长"
-                  >
-                    <Minus size={16} strokeWidth={3} aria-hidden="true" />
-                  </button>
-                  <label className="duration-input">
-                    <input
-                      type="number"
-                      min={FOCUS_MIN_MINUTES}
-                      max={FOCUS_MAX_MINUTES}
-                      step={1}
-                      value={focusTargetMinutes}
-                      disabled={!focusDisplayTask || isFocusRunning}
-                      onChange={handleFocusDurationInput}
-                      aria-label="详情专注时长（分钟）"
-                    />
-                    <span>分钟</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="duration-step"
-                    disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes >= FOCUS_MAX_MINUTES}
-                    onClick={() => adjustFocusDuration(FOCUS_STEP_MINUTES)}
-                    aria-label="增加详情专注时长"
-                  >
-                    <Plus size={16} strokeWidth={3} aria-hidden="true" />
-                  </button>
-                </div>
-                <div className="timer-actions">
-                  <button
-                    className="timer-primary"
-                    disabled={!nextFocusTask && !activeFocusTask}
-                    onClick={isFocusRunning ? pauseFocusTimer : startFocusTimer}
-                    type="button"
-                  >
-                    {isFocusRunning ? '暂停专注' : activeFocusTask ? '继续专注' : '绑定任务开始'}
-                  </button>
-                  <button
-                    className="timer-secondary"
-                    disabled={!activeFocusTask && focusPausedRemainingMs === null}
-                    onClick={resetFocusTimer}
-                    type="button"
-                  >
-                    重置
-                  </button>
-                </div>
-              </section>
-              <aside className="workbench-detail-panel focus-session-queue" aria-label="专注任务队列">
-                <h3>任务队列</h3>
-                <div className="today-actions-detail-list">
-                  {todoTasks.map((task) => (
-                    <article key={task.id} className={task.id === focusDisplayTask?.id ? 'active' : ''}>
-                      <span className="task-status-dot" aria-hidden="true" />
-                      <div>
-                        <strong>{task.title}</strong>
-                        <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardPoints} 积分</small>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </aside>
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'badge-display'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="成就徽章"
+        subtitle="完成专注和任务来解锁更多徽章"
+        ariaLabel="成就徽章 · 工作台详情"
+        className="badge-display-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <BadgeDisplay
+            progress={{
+              totalFocusSessions: workspaceState.focusSessions.length,
+              streakDays: workspaceState.growth.streakDays,
+              completedTasks: completedTasks.length,
+              usedPersonas: [activePersona.id],
+              themeSwitches: 1,
+              hasMemoryProfile: memoryProfile.identity.mbti !== 'unknown',
+              hasAvatar: false,
+              cycleDaysRecorded: 0,
+              earlyBirdSessions: 0,
+              nightOwlSessions: 0
+            }}
+          />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'habit-tracker'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="习惯追踪"
+        subtitle="坚持每日打卡，养成好习惯"
+        ariaLabel="习惯追踪 · 工作台详情"
+        className="habit-tracker-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <HabitTracker />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'journal'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="复盘日记"
+        subtitle="记录每日收获、反思和心情"
+        ariaLabel="复盘日记 · 工作台详情"
+        className="journal-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <JournalUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'goal-tracker'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="目标管理"
+        subtitle="设定目标、追踪关键结果"
+        ariaLabel="目标管理 · 工作台详情"
+        className="goal-tracker-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <GoalTrackerUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'study-dashboard'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="学习仪表盘"
+        subtitle="管理学习目标、任务、笔记和复习计划"
+        ariaLabel="学习仪表盘 · 工作台详情"
+        className="study-dashboard-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <StudyDashboardUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'creator-workbench'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="内容创作工作台"
+        subtitle="灵感收集、内容生产、发布日历和客户交付管理"
+        ariaLabel="内容创作工作台 · 工作台详情"
+        className="creator-workbench-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <CreatorWorkbenchUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'finance-tracker'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="财务管理"
+        subtitle="收入支出追踪、预算管理、财务目标进度"
+        ariaLabel="财务管理 · 工作台详情"
+        className="finance-tracker-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <FinanceUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'reading-list'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="阅读清单"
+        subtitle="书籍管理、阅读进度追踪、读书笔记"
+        ariaLabel="阅读清单 · 工作台详情"
+        className="reading-list-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <ReadingUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'project-manager'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="项目管理"
+        subtitle="项目看板、里程碑、任务分解和进度追踪"
+        ariaLabel="项目管理 · 工作台详情"
+        className="project-manager-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <ProjectUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'wellness-life'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="健康生活"
+        subtitle="饮食记录、饮水追踪、运动管理和健康目标"
+        ariaLabel="健康生活 · 工作台详情"
+        className="wellness-life-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <WellnessUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'quick-notes'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="速记"
+        subtitle="快速捕捉想法、置顶重要笔记、全文搜索"
+        ariaLabel="速记 · 工作台详情"
+        className="quick-notes-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <QuickNotesUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'report-center'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="报告中心"
+        subtitle="周报/月报生成，数据可视化汇总"
+        ariaLabel="报告中心 · 工作台详情"
+        className="report-center-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <ReportUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'global-search'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="全局搜索"
+        subtitle="搜索所有任务、笔记、目标等内容"
+        ariaLabel="全局搜索 · 工作台详情"
+        className="global-search-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <GlobalSearchUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'mood-tracker'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="心情追踪"
+        subtitle="记录每日心情，查看趋势和统计"
+        ariaLabel="心情追踪 · 工作台详情"
+        className="mood-tracker-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <MoodUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'time-block'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="时间块"
+        subtitle="一天时间块规划和管理"
+        ariaLabel="时间块 · 工作台详情"
+        className="time-block-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <TimeBlockUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'focus-stats'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="专注统计"
+        subtitle="专注时长趋势、任务分布、效率分析"
+        ariaLabel="专注统计 · 工作台详情"
+        className="focus-stats-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <FocusStatsUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'focus-history'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="专注历史"
+        subtitle="专注时段热力图、周分布、效率趋势"
+        ariaLabel="专注历史 · 工作台详情"
+        className="focus-history-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <FocusHistoryUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'quote-collection'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="语录收藏"
+        subtitle="收集励志语录、名人名言、灵感句子"
+        ariaLabel="语录收藏 · 工作台详情"
+        className="quote-collection-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <QuoteUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'english-learning'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="英语学习"
+        subtitle="单词记忆、语法笔记、学习进度"
+        ariaLabel="英语学习 · 工作台详情"
+        className="english-learning-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <EnglishUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'watch-list'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="观影记录"
+        subtitle="电影/电视剧/纪录片观看记录和推荐"
+        ariaLabel="观影记录 · 工作台详情"
+        className="watch-list-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <WatchListUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'template-center'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="模板中心"
+        subtitle="任务模板、快速添加常用任务集"
+        ariaLabel="模板中心 · 工作台详情"
+        className="template-center-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <TemplateUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'growth-rpg'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="成长等级"
+        subtitle={`连续 ${workspaceState.growth.streakDays} 天 · ${workspaceState.growth.achievements} 个成就 · ${weeklyProgress}% 本场景进度`}
+        ariaLabel="成长等级 · 工作台详情"
+        className="growth-rpg-detail-modal"
+      >
+        <div className="growth-rpg-detail-grid">
+          <section className="workbench-detail-panel growth-rpg-hero" aria-label="成长等级概览">
+            <span className="growth-level-badge">Lv. {workspaceState.growth.level}</span>
+            <strong>{workspaceState.growth.experience} 积分</strong>
+            <div className="xp-track" aria-label="等级经验进度">
+              <span style={{ width: `${Math.min(100, workspaceState.growth.experience % 100)}%` }} />
             </div>
+            <p>{activePersona.primaryFlow}</p>
+            <button
+              className="growth-reward-button"
+              disabled={growthRewardClaimed}
+              onClick={claimGrowthReward}
+              type="button"
+            >
+              {growthRewardClaimed ? '今日奖励已领取' : '领取今日成长奖励'}
+            </button>
           </section>
+          <aside className="workbench-detail-panel growth-rpg-summary" aria-label="成长成就摘要">
+            <h3>成长账本</h3>
+            <div className="metric-grid compact">
+              <article><strong>{workspaceState.growth.streakDays}</strong><span>连续天数</span></article>
+              <article><strong>{workspaceState.growth.achievements}</strong><span>成就数</span></article>
+              <article><strong>{completedTasks.length}</strong><span>本场景完成</span></article>
+            </div>
+            <div className="growth-achievement-list">
+              <article><span>主线进度</span><strong>{weeklyProgress}%</strong></article>
+              <article><span>待专注分钟</span><strong>{totalFocusMinutes}</strong></article>
+              <article><span>今日待办</span><strong>{todoTasks.length}</strong></article>
+            </div>
+          </aside>
         </div>
-      )}
+      </DraggableModal>
 
-      {openWorkbenchDetail === 'statistics' && (
-        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
-          <section
-            aria-modal="true"
-            className="theme-modal workbench-detail-modal statistics-detail-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="数据统计 · 工作台详情"
-          >
-            <header className="theme-modal-hero">
-              <div className="theme-modal-hero-text">
-                <p className="eyebrow">Workbench Detail · 数据统计</p>
-                <h2>数据统计</h2>
-                <small>{completedTasks.length} 个已完成 · {todoTasks.length} 个待办 · {workspaceState.growth.streakDays} 天连续</small>
-              </div>
-              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
-                ×
-              </button>
-            </header>
-            <div className="statistics-detail-grid">
-              <section className="workbench-detail-panel statistics-overview" aria-label="统计概览">
-                <div className="card-heading compact">
-                  <h3>综合统计</h3>
-                  <span className="pill">{visibleTasks.length} 项任务</span>
-                </div>
-                <div className="statistics-detail-cards">
-                  <article className="statistics-detail-card">
-                    <span className="statistics-detail-icon">✓</span>
-                    <div className="statistics-detail-content">
-                      <span className="statistics-detail-value">{completedTasks.length}</span>
-                      <span className="statistics-detail-label">已完成任务</span>
-                    </div>
-                  </article>
-                  <article className="statistics-detail-card">
-                    <span className="statistics-detail-icon">⏳</span>
-                    <div className="statistics-detail-content">
-                      <span className="statistics-detail-value">{todoTasks.length}</span>
-                      <span className="statistics-detail-label">待办任务</span>
-                    </div>
-                  </article>
-                  <article className="statistics-detail-card">
-                    <span className="statistics-detail-icon">⏱</span>
-                    <div className="statistics-detail-content">
-                      <span className="statistics-detail-value">{workspaceState.focusSessions.reduce((sum, s) => sum + s.minutes, 0)}</span>
-                      <span className="statistics-detail-label">累计专注分钟</span>
-                    </div>
-                  </article>
-                  <article className="statistics-detail-card">
-                    <span className="statistics-detail-icon">🔥</span>
-                    <div className="statistics-detail-content">
-                      <span className="statistics-detail-value">{workspaceState.growth.streakDays}</span>
-                      <span className="statistics-detail-label">连续天数</span>
-                    </div>
-                  </article>
-                  <article className="statistics-detail-card">
-                    <span className="statistics-detail-icon">⭐</span>
-                    <div className="statistics-detail-content">
-                      <span className="statistics-detail-value">{workspaceState.growth.experience}</span>
-                      <span className="statistics-detail-label">成长积分</span>
-                    </div>
-                  </article>
-                  <article className="statistics-detail-card">
-                    <span className="statistics-detail-icon">🏆</span>
-                    <div className="statistics-detail-content">
-                      <span className="statistics-detail-value">{workspaceState.growth.achievements}</span>
-                      <span className="statistics-detail-label">成就数</span>
-                    </div>
-                  </article>
-                </div>
-              </section>
-              <aside className="workbench-detail-panel statistics-summary" aria-label="统计摘要">
-                <h3>进度摘要</h3>
-                <div className="metric-grid compact">
-                  <article><strong>{weeklyProgress}%</strong><span>场景进度</span></article>
-                  <article><strong>{totalFocusMinutes}</strong><span>计划分钟</span></article>
-                  <article><strong>{workspaceState.growth.level}</strong><span>等级</span></article>
-                </div>
-                <div className="statistics-progress-detail">
-                  <div className="statistics-progress-header">
-                    <span>本场景完成度</span>
-                    <span>{weeklyProgress}%</span>
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'today-actions'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="今日行动"
+        subtitle={`${todoTasks.length} 个待办 · ${completedTasks.length} 个已完成 · ${totalFocusMinutes} 分钟计划`}
+        ariaLabel="今日行动 · 工作台详情"
+        className="today-actions-detail-modal"
+      >
+        <div className="today-actions-detail-grid">
+          <section className="workbench-detail-panel" aria-label="今日待办列表">
+            <div className="card-heading compact">
+              <h3>待推进任务</h3>
+              <span className="pill">{visibleTasks.length} 项</span>
+            </div>
+            <div className="today-actions-detail-list">
+              {visibleTasks.map((task) => (
+                <article key={task.id} className={task.status === 'done' ? 'done' : ''}>
+                  <span className="task-status-dot" aria-hidden="true" />
+                  <div>
+                    <strong>{task.title}</strong>
+                    <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardPoints} 积分</small>
                   </div>
-                  <div className="statistics-progress-bar large">
-                    <div className="statistics-progress-fill" style={{ width: `${weeklyProgress}%` }} />
+                  <button
+                    type="button"
+                    className="task-complete-button"
+                    disabled={task.status === 'done'}
+                    onClick={() => completeTaskFromWorkbench(task.id)}
+                  >
+                    {task.status === 'done' ? `已完成 ${task.title}` : `完成 ${task.title}`}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
+          <aside className="workbench-detail-panel today-actions-summary" aria-label="今日行动摘要">
+            <h3>行动摘要</h3>
+            <div className="metric-grid compact">
+              <article><strong>{weeklyProgress}%</strong><span>本场景进度</span></article>
+              <article><strong>{todoTasks.length}</strong><span>剩余待办</span></article>
+              <article><strong>{workspaceState.growth.experience}</strong><span>成长积分</span></article>
+            </div>
+            <p>{activePersona.primaryFlow}</p>
+          </aside>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'memory-insights'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="记忆洞察"
+        subtitle={`${workspaceState.focusSessions.length} 条专注记忆 · 最近上下文优先展示`}
+        ariaLabel="记忆洞察 · 工作台详情"
+        className="memory-insights-detail-modal"
+      >
+        <div className="memory-insights-detail-grid">
+          <section className="workbench-detail-panel" aria-label="专注记忆时间线">
+            <div className="card-heading compact">
+              <h3>专注记忆时间线</h3>
+              <span className="pill">{workspaceState.focusSessions.length} 条</span>
+            </div>
+            {workspaceState.focusSessions.length === 0 ? (
+              <p className="empty-state">暂无记忆记录，完成专注后会显示在这里。</p>
+            ) : (
+              <ul className="memory-detail-timeline">
+                {workspaceState.focusSessions.map((session) => (
+                  <li key={session.id}>
+                    <span className="memory-event-time">
+                      {new Date(session.completedAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <div>
+                      <strong>{session.taskTitle}</strong>
+                      <small>完成 {session.minutes} 分钟专注：{session.taskTitle}</small>
+                      <em>{session.rewardPoints} 积分 · {session.workspaceType}</em>
+                    </div>
+                    <button
+                      className="memory-forget-btn"
+                      onClick={() => forgetFocusSession(session.id)}
+                      type="button"
+                    >
+                      忘记 {session.taskTitle}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <aside className="workbench-detail-panel memory-insights-summary" aria-label="记忆洞察摘要">
+            <h3>上下文摘要</h3>
+            <div className="metric-grid compact">
+              <article><strong>{workspaceState.focusSessions.length}</strong><span>记忆数</span></article>
+              <article><strong>{totalFocusMinutes}</strong><span>待专注分钟</span></article>
+              <article><strong>{completedTasks.length}</strong><span>完成任务</span></article>
+            </div>
+            <p>{workspaceState.focusSessions[0] ? `最近完成：${workspaceState.focusSessions[0].taskTitle}` : '完成一次专注后，系统会把任务、分钟数和积分沉淀为上下文。'}</p>
+          </aside>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'focus-session'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="任务专注"
+        subtitle={focusDisplayTask ? `${focusDisplayTask.dueLabel} · ${focusTargetMinutes} 分钟 · ${focusRewardPoints} 积分` : '当前场景暂无待办任务'}
+        ariaLabel="任务专注 · 工作台详情"
+        className="focus-session-detail-modal"
+      >
+        <div className="focus-session-detail-grid">
+          <section className="workbench-detail-panel focus-session-hero" aria-label="详情专注计时器">
+            <span className="focus-session-time">{`${focusMinuteText}:${focusSecondText}`}</span>
+            <h3>{focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}</h3>
+            <p>{activePersona.primaryFlow}</p>
+            <div className="duration-control" aria-label="详情自定义专注时长">
+              <button
+                type="button"
+                className="duration-step"
+                disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes <= FOCUS_MIN_MINUTES}
+                onClick={() => adjustFocusDuration(-FOCUS_STEP_MINUTES)}
+                aria-label="减少详情专注时长"
+              >
+                <Minus size={16} strokeWidth={3} aria-hidden="true" />
+              </button>
+              <label className="duration-input">
+                <input
+                  type="number"
+                  min={FOCUS_MIN_MINUTES}
+                  max={FOCUS_MAX_MINUTES}
+                  step={1}
+                  value={focusTargetMinutes}
+                  disabled={!focusDisplayTask || isFocusRunning}
+                  onChange={handleFocusDurationInput}
+                  aria-label="详情专注时长（分钟）"
+                />
+                <span>分钟</span>
+              </label>
+              <button
+                type="button"
+                className="duration-step"
+                disabled={!focusDisplayTask || isFocusRunning || focusTargetMinutes >= FOCUS_MAX_MINUTES}
+                onClick={() => adjustFocusDuration(FOCUS_STEP_MINUTES)}
+                aria-label="增加详情专注时长"
+              >
+                <Plus size={16} strokeWidth={3} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="timer-actions">
+              <button
+                className="timer-primary"
+                disabled={!nextFocusTask && !activeFocusTask}
+                onClick={isFocusRunning ? pauseFocusTimer : startFocusTimer}
+                type="button"
+              >
+                {isFocusRunning ? '暂停专注' : activeFocusTask ? '继续专注' : '绑定任务开始'}
+              </button>
+              <button
+                className="timer-secondary"
+                disabled={!activeFocusTask && focusPausedRemainingMs === null}
+                onClick={resetFocusTimer}
+                type="button"
+              >
+                重置
+              </button>
+            </div>
+          </section>
+          <aside className="workbench-detail-panel focus-session-queue" aria-label="专注任务队列">
+            <h3>任务队列</h3>
+            <div className="today-actions-detail-list">
+              {todoTasks.map((task) => (
+                <article key={task.id} className={task.id === focusDisplayTask?.id ? 'active' : ''}>
+                  <span className="task-status-dot" aria-hidden="true" />
+                  <div>
+                    <strong>{task.title}</strong>
+                    <small>{task.dueLabel} · {task.minutes} 分钟 · {task.rewardPoints} 积分</small>
                   </div>
+                </article>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'statistics'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="数据统计"
+        subtitle={`${completedTasks.length} 个已完成 · ${todoTasks.length} 个待办 · ${workspaceState.growth.streakDays} 天连续`}
+        ariaLabel="数据统计 · 工作台详情"
+        className="statistics-detail-modal"
+      >
+        <div className="statistics-detail-grid">
+          <section className="workbench-detail-panel statistics-overview" aria-label="统计概览">
+            <div className="card-heading compact">
+              <h3>综合统计</h3>
+              <span className="pill">{visibleTasks.length} 项任务</span>
+            </div>
+            <div className="statistics-detail-cards">
+              <article className="statistics-detail-card">
+                <span className="statistics-detail-icon">✓</span>
+                <div className="statistics-detail-content">
+                  <span className="statistics-detail-value">{completedTasks.length}</span>
+                  <span className="statistics-detail-label">已完成任务</span>
                 </div>
-                <p>{activePersona.primaryFlow}</p>
-              </aside>
+              </article>
+              <article className="statistics-detail-card">
+                <span className="statistics-detail-icon">⏳</span>
+                <div className="statistics-detail-content">
+                  <span className="statistics-detail-value">{todoTasks.length}</span>
+                  <span className="statistics-detail-label">待办任务</span>
+                </div>
+              </article>
+              <article className="statistics-detail-card">
+                <span className="statistics-detail-icon">⏱</span>
+                <div className="statistics-detail-content">
+                  <span className="statistics-detail-value">{(workspaceState.focusSessions ?? []).reduce((sum, s) => sum + s.minutes, 0)}</span>
+                  <span className="statistics-detail-label">累计专注分钟</span>
+                </div>
+              </article>
+              <article className="statistics-detail-card">
+                <span className="statistics-detail-icon">🔥</span>
+                <div className="statistics-detail-content">
+                  <span className="statistics-detail-value">{workspaceState.growth.streakDays}</span>
+                  <span className="statistics-detail-label">连续天数</span>
+                </div>
+              </article>
+              <article className="statistics-detail-card">
+                <span className="statistics-detail-icon">⭐</span>
+                <div className="statistics-detail-content">
+                  <span className="statistics-detail-value">{workspaceState.growth.experience}</span>
+                  <span className="statistics-detail-label">成长积分</span>
+                </div>
+              </article>
+              <article className="statistics-detail-card">
+                <span className="statistics-detail-icon">🏆</span>
+                <div className="statistics-detail-content">
+                  <span className="statistics-detail-value">{workspaceState.growth.achievements}</span>
+                  <span className="statistics-detail-label">成就数</span>
+                </div>
+              </article>
+            </div>
+          </section>
+          <aside className="workbench-detail-panel statistics-summary" aria-label="统计摘要">
+            <h3>进度摘要</h3>
+            <div className="metric-grid compact">
+              <article><strong>{weeklyProgress}%</strong><span>场景进度</span></article>
+              <article><strong>{totalFocusMinutes}</strong><span>计划分钟</span></article>
+              <article><strong>{workspaceState.growth.level}</strong><span>等级</span></article>
+            </div>
+            <div className="statistics-progress-detail">
+              <div className="statistics-progress-header">
+                <span>本场景完成度</span>
+                <span>{weeklyProgress}%</span>
+              </div>
+              <div className="statistics-progress-bar large">
+                <div className="statistics-progress-fill" style={{ width: `${weeklyProgress}%` }} />
+              </div>
+            </div>
+            <p>{activePersona.primaryFlow}</p>
+          </aside>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'focus-overview'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="桌面专注概览"
+        subtitle={`${todoTasks.length} 个待办 · ${totalFocusMinutes} 分钟 · ${completedTasks.length} 个已完成`}
+        ariaLabel="桌面专注概览 · 工作台详情"
+      >
+        <div className="focus-overview-detail">
+          <FocusBriefStyleComponent
+            data={{
+              progress: weeklyProgress,
+              todoCount: todoTasks.length,
+              totalMinutes: totalFocusMinutes,
+              completedCount: completedTasks.length
+            }}
+            context={{
+              aesthetic: activeTheme.aesthetic,
+              material: activeTheme.material
+            }}
+          />
+          <FocusBriefStylePicker currentStyleId={focusBriefStyleId} onStyleChange={switchFocusBriefStyle} />
+          <div className="focus-overview-stats">
+            <article><strong>{todoTasks.length}</strong><span>待办任务</span></article>
+            <article><strong>{totalFocusMinutes}</strong><span>计划分钟</span></article>
+            <article><strong>{completedTasks.length}</strong><span>已完成</span></article>
+            <article><strong>{weeklyProgress}%</strong><span>完成率</span></article>
+          </div>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'persona-brief'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="用户痛点"
+        subtitle={`${activePersona.name} · ${activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle}`}
+        ariaLabel="用户痛点 · 工作台详情"
+      >
+        <div className="persona-brief-detail">
+          <section className="workbench-detail-panel">
+            <h3>目标用户</h3>
+            <p className="persona-target">{activePersona.targetUser}</p>
+          </section>
+          <section className="workbench-detail-panel">
+            <h3>核心痛点</h3>
+            <p className="persona-pain">{activePersona.painPoint}</p>
+          </section>
+          <section className="workbench-detail-panel">
+            <h3>核心动线</h3>
+            <p className="persona-flow">{activePersona.primaryFlow}</p>
+          </section>
+          <section className="workbench-detail-panel">
+            <h3>关键指标</h3>
+            <div className="metric-grid">
+              {activePersona.keyMetrics.map((metric) => (
+                <article key={metric}><strong>{metric}</strong></article>
+              ))}
             </div>
           </section>
         </div>
-      )}
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'key-metrics'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="关键指标"
+        subtitle={`${activePersona.name} 场景核心数据`}
+        ariaLabel="关键指标 · 工作台详情"
+      >
+        <div className="key-metrics-detail">
+          <div className="metrics-detail-grid">
+            {activePersona.keyMetrics.map((metric, index) => (
+              <article key={metric} className="metrics-detail-card">
+                <span className="metrics-detail-icon">
+                  {index === 0 ? '📅' : index === 1 ? '⏱' : index === 2 ? '📊' : '✅'}
+                </span>
+                <div className="metrics-detail-content">
+                  <strong>{metric}</strong>
+                  <span className="metrics-detail-value">
+                    {index === 0 ? (activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle) : `${70 + index * 6}%`}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="metrics-progress-section">
+            <h3>场景进度</h3>
+            <div className="statistics-progress-bar large">
+              <div className="statistics-progress-fill" style={{ width: `${weeklyProgress}%` }} />
+            </div>
+            <span>{weeklyProgress}% 完成</span>
+          </div>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'focus-history'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="最近专注"
+        subtitle={`${workspaceState.focusSessions.length} 次专注记录`}
+        ariaLabel="最近专注 · 工作台详情"
+      >
+        <div className="focus-history-detail">
+          {workspaceState.focusSessions.length === 0 ? (
+            <p className="empty-state">完成首个任务后，会自动沉淀到这里。</p>
+          ) : (
+            <ul className="focus-history-detail-list">
+              {workspaceState.focusSessions.map((session) => (
+                <li key={session.id} className="focus-history-detail-item">
+                  <div className="focus-history-detail-main">
+                    <strong>{session.taskTitle}</strong>
+                    <span className="focus-history-detail-meta">
+                      {session.minutes} 分钟 · {session.rewardPoints} 积分
+                    </span>
+                  </div>
+                  <span className="focus-history-detail-time">
+                    {new Date(session.completedAt).toLocaleString('zh-CN', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="focus-history-summary">
+            <article>
+              <strong>{workspaceState.focusSessions.reduce((sum, s) => sum + s.minutes, 0)}</strong>
+              <span>累计分钟</span>
+            </article>
+            <article>
+              <strong>{workspaceState.focusSessions.length}</strong>
+              <span>专注次数</span>
+            </article>
+            <article>
+              <strong>{workspaceState.focusSessions.reduce((sum, s) => sum + s.rewardPoints, 0)}</strong>
+              <span>累计积分</span>
+            </article>
+          </div>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'theme-center'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="主题中心"
+        subtitle={`当前：${activeTheme.name} · ${themeRegistry.length} 款主题`}
+        ariaLabel="主题中心 · 工作台详情"
+      >
+        <div className="theme-center-detail">
+          <div className="theme-center-current">
+            <div className="theme-center-preview" style={{ background: activeTheme.tokens.gradients.hero }}>
+              <span className="theme-center-preview-name">{activeTheme.name}</span>
+              <span className="theme-center-preview-tone">{activeTheme.design.tone}</span>
+            </div>
+            <div className="theme-center-info">
+              <p>{activeTheme.design.principle}</p>
+              <div className="theme-center-swatches">
+                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.primary }} />
+                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.secondary }} />
+                <span className="theme-swatch" style={{ background: activeTheme.tokens.colors.accent }} />
+              </div>
+            </div>
+          </div>
+          <div className="theme-center-actions">
+            <button className="theme-recommend-button" onClick={() => { restorePersonaTheme(); setOpenWorkbenchDetail(null) }} type="button">
+              恢复场景推荐主题
+            </button>
+            <button className="theme-picker-button" onClick={() => { openThemePicker(); setOpenWorkbenchDetail(null) }} type="button">
+              打开主题库 ({themeRegistry.length} 款)
+            </button>
+            <button className="wallpaper-picker-button" onClick={() => { setIsWallpaperPickerOpen(true); setOpenWorkbenchDetail(null) }} type="button">
+              壁纸设置
+            </button>
+          </div>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'cycle-today'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="今日周期"
+        subtitle="查看周期阶段和能量建议"
+        ariaLabel="今日周期 · 工作台详情"
+      >
+        <div className="cycle-today-detail">
+          <div className="cycle-today-phase-display">
+            <span className="cycle-phase-dot" style={{ background: 'var(--primary)' }} />
+            <div>
+              <strong>当前阶段</strong>
+              <p>查看今日周期阶段和能量建议</p>
+            </div>
+          </div>
+          <div className="cycle-today-metrics-detail">
+            <article>
+              <span className="cycle-metric-value-large">--</span>
+              <span className="cycle-metric-label">周期天数</span>
+            </article>
+            <article>
+              <span className="cycle-metric-value-large">--</span>
+              <span className="cycle-metric-label">能量等级</span>
+            </article>
+          </div>
+          <button
+            className="cycle-detail-open-btn"
+            onClick={() => { setIsCycleTrackerOpen(true); setOpenWorkbenchDetail(null) }}
+            type="button"
+          >
+            打开完整周期追踪
+          </button>
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'memory-profile'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="记忆画像"
+        subtitle={`${memoryProfile.identity.mbti !== 'unknown' ? memoryProfile.identity.mbti : '未设置'} · ${memoryProfile.rhythm.energyPeak === 'morning' ? '晨间型' : memoryProfile.rhythm.energyPeak === 'afternoon' ? '午后型' : memoryProfile.rhythm.energyPeak === 'evening' ? '晚间型' : '未设置'}`}
+        ariaLabel="记忆画像 · 工作台详情"
+      >
+        <div className="memory-profile-detail">
+          <MemoryContextPreview
+            profile={memoryProfile}
+            events={memoryEvents}
+            mode="chat"
+          />
+          <button
+            className="memory-profile-edit-btn"
+            onClick={() => { setIsMemoryProfileOpen(true); setOpenWorkbenchDetail(null) }}
+            type="button"
+          >
+            编辑完整画像
+          </button>
+        </div>
+      </DraggableModal>
 
       {isThemePickerOpen && (
         <div className="theme-modal-backdrop" onClick={closeThemePicker} role="presentation">
@@ -2523,7 +3169,7 @@ export default function App() {
                     <button className="membership-invite-copy" onClick={() => {
                       const inviteLink = `${window.location.origin}?invite=${userId}`
                       navigator.clipboard.writeText(inviteLink)
-                      alert('邀请链接已复制到剪贴板！')
+                      addToast({ type: 'info', title: '已复制', message: '邀请链接已复制到剪贴板！' })
                     }}>
                       复制邀请链接
                     </button>
@@ -2822,7 +3468,11 @@ export default function App() {
               <AvatarManager
                 userId={authSession.userId}
                 onAvatarSelect={(avatarId) => {
-                  console.log('Selected avatar:', avatarId)
+                  setWorkspaceState((prev) => ({
+                    ...prev,
+                    preferences: { ...prev.preferences, avatarId }
+                  }))
+                  addToast({ type: 'success', title: '角色已更新', message: `已选择新角色形象。` })
                 }}
               />
             </div>
@@ -2898,8 +3548,8 @@ export default function App() {
               <MemoryProfileEditorUI
                 profile={memoryProfile}
                 onSave={(profile) => {
-                  localStorage.setItem('memory-profile', JSON.stringify(profile))
                   setMemoryProfile(profile)
+                  setWorkspaceState(prev => ({ ...prev, memoryProfile: profile }))
                   setIsMemoryProfileOpen(false)
                 }}
                 onCancel={() => setIsMemoryProfileOpen(false)}
@@ -3121,6 +3771,8 @@ export default function App() {
       {!isAgentChatOpen && (
         <AgentChatToggle onClick={() => setIsAgentChatOpen(true)} />
       )}
+
+      <SilentSuggestionUI suggestions={silentSuggestions} />
     </main>
     </IdentityProvider>
   )

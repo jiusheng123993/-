@@ -68,12 +68,21 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
   const systemPrompt = buildChatSystemPrompt(personaId, profile)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
+  const providers: Array<{ id: AiProviderId; name: string }> = [
+    { id: 'deepseek', name: 'DeepSeek' },
+    { id: 'openai', name: 'OpenAI' },
+    { id: 'tongyi', name: '通义千问' },
+    { id: 'doubao', name: '豆包' }
+  ]
+  
   if (useXFYunCoding) {
     try {
       const response = await fetchXFYunCodingCompletion(systemPrompt, userPrompt, conversationHistory)
-      return {
-        content: response,
-        mood: determineMood(response)
+      if (response && !response.includes('AI 服务暂时不可用') && !response.includes('空响应')) {
+        return {
+          content: response,
+          mood: determineMood(response)
+        }
       }
     } catch (error) {
       console.error('XFYun Coding chat error:', error)
@@ -102,11 +111,37 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
       content: response,
       mood: determineMood(response)
     }
-  } catch (error) {
-    console.error('Agent chat error:', error)
+  } catch (primaryError) {
+    console.error('Primary provider failed:', primaryError)
+    
+    for (const provider of providers) {
+      if (provider.id === providerId) continue
+      
+      const altProvider = getAiProviderById(provider.id)
+      if (!altProvider.capabilities.includes('agent-chat')) continue
+      
+      try {
+        const altDraft = createAiPromptDraft(altProvider.id, {
+          kind: 'agent-chat',
+          input: userPrompt,
+          context: systemPrompt
+        })
+        
+        const response = await fetchChatCompletion(altProvider.id, altDraft.systemPrompt, altDraft.userPrompt)
+        
+        return {
+          content: response,
+          mood: determineMood(response)
+        }
+      } catch (altError) {
+        console.error(`${provider.name} failed:`, altError)
+      }
+    }
+    
+    console.error('All AI providers failed, using fallback')
     return {
-      content: '抱歉，AI 服务暂时不可用，请稍后再试。',
-      mood: 'concerned'
+      content: getFallbackResponse(userPrompt),
+      mood: 'neutral'
     }
   }
 }
@@ -119,7 +154,7 @@ async function fetchChatCompletion(
   const apiConfig = getApiConfig(providerId)
   
   if (!apiConfig.apiKey) {
-    return getFallbackResponse(userPrompt)
+    throw new Error(`${providerId} API key not configured`)
   }
   
   const messages = [
@@ -152,32 +187,34 @@ async function fetchChatCompletion(
       return data.choices[0].message.content
     }
     
-    return 'AI 返回了空响应，请稍后再试。'
+    throw new Error('Empty response from AI')
   } catch (error) {
     console.error('Chat API error:', error)
-    return getFallbackResponse(userPrompt)
+    throw error
   }
 }
 
 function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: string; model: string } {
+  const isDev = import.meta.env.DEV
+  
   const configs: Record<AiProviderId, { endpoint: string; apiKey: string; model: string }> = {
     deepseek: {
-      endpoint: 'https://api.deepseek.com/v1/chat/completions',
+      endpoint: isDev ? '/api/deepseek' : 'https://api.deepseek.com/v1/chat/completions',
       apiKey: localStorage.getItem('deepseek_api_key') || '',
       model: 'deepseek-chat'
     },
     openai: {
-      endpoint: 'https://api.openai.com/v1/chat/completions',
+      endpoint: isDev ? '/api/openai' : 'https://api.openai.com/v1/chat/completions',
       apiKey: localStorage.getItem('openai_api_key') || '',
       model: 'gpt-4o-mini'
     },
     tongyi: {
-      endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+      endpoint: isDev ? '/api/tongyi' : 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
       apiKey: localStorage.getItem('tongyi_api_key') || '',
       model: 'qwen-turbo'
     },
     doubao: {
-      endpoint: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+      endpoint: isDev ? '/api/doubao' : 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
       apiKey: localStorage.getItem('doubao_api_key') || '',
       model: 'doubao-pro-32k'
     },
@@ -192,9 +229,11 @@ function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: str
 }
 
 export function getXFYunCodingConfig(): { endpoint: string; apiKey: string; model: string } {
+  const fullKey = localStorage.getItem('xfyun_coding_api_key') || 'e896be4b52a7156fc230932c7d7af743:YzNhODQxNzc5NDA2ZmY0NWU5NmRjOTQw'
+  const isDev = import.meta.env.DEV
   return {
-    endpoint: 'https://maas-coding-api.cn-huabei-1.xf-yun.com/v2',
-    apiKey: localStorage.getItem('xfyun_coding_api_key') || 'e896be4b52a7156fc230932c7d7af743:YzNhODQxNjc5NDA2ZmY0NWU5NmRjOTQw',
+    endpoint: isDev ? '/api/xfyun' : 'https://maas-coding-api.cn-huabei-1.xf-yun.com/v2/chat/completions',
+    apiKey: fullKey,
     model: localStorage.getItem('xfyun_coding_model') || 'astron-code-latest'
   }
 }
@@ -207,7 +246,7 @@ async function fetchXFYunCodingCompletion(
   const config = getXFYunCodingConfig()
   
   if (!config.apiKey) {
-    return getFallbackResponse(userPrompt)
+    throw new Error('XFYun API key not configured')
   }
   
   const messages: Array<{ role: string; content: string }> = [
@@ -217,15 +256,11 @@ async function fetchXFYunCodingCompletion(
   if (conversationHistory && conversationHistory.length > 0) {
     const recentHistory = conversationHistory.slice(-6)
     for (const h of recentHistory) {
-      messages.push({ role: h.role, content: h.content })
+      messages.push({ role: h.role === 'agent' ? 'assistant' : h.role, content: h.content })
     }
   }
   
   messages.push({ role: 'user', content: userPrompt })
-  
-  const authParts = config.apiKey.split(':')
-  const appId = authParts[0]
-  const apiKey = authParts[1] || ''
   
   const timestamp = new Date().toISOString()
   
@@ -239,17 +274,16 @@ async function fetchXFYunCodingCompletion(
     requestBody.model = config.model
   }
   
+  const bodyString = JSON.stringify(requestBody)
+  
   try {
     const response = await fetch(config.endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-App-Id': appId,
-        'X-Request-Id': `req_${Date.now()}`,
-        'X-Timestamp': timestamp,
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${config.apiKey}`
       },
-      body: JSON.stringify(requestBody)
+      body: bodyString
     })
     
     if (!response.ok) {
@@ -264,15 +298,48 @@ async function fetchXFYunCodingCompletion(
       return data.choices[0].message.content
     }
     
-    if (data.result?.text) {
-      return data.result.text
+    if (data.content) {
+      return data.content
     }
     
     return 'AI 返回了空响应，请稍后再试。'
   } catch (error) {
     console.error('XFYun Coding API error:', error)
-    return getFallbackResponse(userPrompt)
+    throw error
   }
+}
+
+async function generateHMACSignature(
+  url: string,
+  method: string,
+  body: string,
+  timestamp: string,
+  appId: string,
+  apiSecret: string
+): Promise<string> {
+  const urlObj = new URL(url)
+  const pathAndQuery = urlObj.pathname + (urlObj.search || '')
+  
+  const signatureString = `${method}\n${pathAndQuery}\n${timestamp}\n${body}`
+  
+  const encoder = new TextEncoder()
+  const keyData = encoder.encode(apiSecret)
+  const messageData = encoder.encode(signatureString)
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData)
+  
+  const hashArray = Array.from(new Uint8Array(signature))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  
+  return `${appId}:${hashHex}`
 }
 
 function getFallbackResponse(userPrompt: string): string {

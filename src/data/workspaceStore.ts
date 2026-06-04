@@ -2,6 +2,7 @@ import type { PersonaId } from '../personas/personaRegistry'
 import type { ThemeId } from '../themes/themeRegistry'
 import type { FocusBriefStyleId } from '../components/focusBrief/types'
 import type { WallpaperConfig as WallpaperRenderConfig } from '../wallpaper/wallpaperConfig'
+import type { MemoryProfile } from '../memory/memoryTypes'
 
 export type WorkspaceType = 'study' | 'work' | 'growth'
 
@@ -89,6 +90,7 @@ export type WorkspaceState = {
   actionItems: ActionItem[]
   growth: GrowthState
   focusSessions: FocusSessionRecord[]
+  memoryProfile: MemoryProfile
   preferences: {
     themeId: ThemeId
     themeMode: ThemeMode
@@ -299,6 +301,79 @@ export const createInitialWorkspaceState = (): WorkspaceState => ({
     achievements: 23
   },
   focusSessions: [],
+  memoryProfile: {
+    version: 1,
+    scope: { userId: '', projectId: 'default' },
+    identity: {
+      nickname: '',
+      ageGroup: 'adult',
+      occupation: '',
+      currentRole: '',
+      organization: '',
+      lifeStage: ''
+    },
+    personality: {
+      mbtiTendency: 'unknown',
+      workStyle: 'mixed',
+      planningStyle: 'adaptive',
+      motivationStyle: 'growth',
+      feedbackStyle: 'gentle',
+      stressResponse: 'need_break',
+      selfDescription: '',
+      traits: []
+    },
+    rhythm: {
+      energyPeak: 'morning',
+      typicalStudyHours: '',
+      sleepPattern: 'stable',
+      preferredSessionLength: 25,
+      breakPreference: 'pomodoro_25',
+      weeklyActiveDays: 5
+    },
+    goals: {
+      primaryGoal: '',
+      secondaryGoals: [],
+      targetExams: [],
+      targetDate: '',
+      careerDirection: ''
+    },
+    preferences: {
+      encouragementStyle: 'coach',
+      reminderFrequency: 'medium',
+      detailLevel: 'moderate',
+      languageStyle: 'casual'
+    },
+    boundaries: {
+      tabooTopics: [],
+      triggerWords: [],
+      dontMention: [],
+      sensitiveAreas: []
+    },
+    learning: {
+      strongSubjects: [],
+      weakSubjects: [],
+      learningStyle: 'visual',
+      commonBlockers: [],
+      effectiveStrategies: []
+    },
+    emotional: {
+      currentMoodTrend: 'stable',
+      motivationLevel: 'medium',
+      supportNeeds: [],
+      recentWins: []
+    },
+    meta: {
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      lastReflectionAt: undefined,
+      totalEventsProcessed: 0,
+      sourceBreakdown: {
+        manual: 0,
+        conversation: 0,
+        behavior: 0
+      }
+    }
+  },
   preferences: {
     themeId: 'minimal-premium',
     themeMode: 'persona-recommended',
@@ -370,16 +445,20 @@ const isWorkspaceState = (state: unknown): state is WorkspaceState => {
   return Array.isArray(candidate.goals) && Array.isArray(candidate.tasks) && Boolean(candidate.preferences?.activeWorkspace)
 }
 
-const normalizeWorkspaceState = (state: WorkspaceState): WorkspaceState => ({
-  ...state,
-  focusSessions: Array.isArray(state.focusSessions) ? state.focusSessions : [],
-  preferences: {
-    ...state.preferences,
-    themeMode: state.preferences.themeMode ?? 'manual',
-    focusBriefStyle: state.preferences.focusBriefStyle ?? 'minimal-arc',
-    wallpaperConfig: state.preferences.wallpaperConfig
+const normalizeWorkspaceState = (state: WorkspaceState): WorkspaceState => {
+  const defaults = createInitialWorkspaceState()
+  return {
+    ...state,
+    focusSessions: Array.isArray(state.focusSessions) ? state.focusSessions : [],
+    memoryProfile: state.memoryProfile ?? defaults.memoryProfile,
+    preferences: {
+      ...state.preferences,
+      themeMode: state.preferences.themeMode ?? 'manual',
+      focusBriefStyle: state.preferences.focusBriefStyle ?? 'minimal-arc',
+      wallpaperConfig: state.preferences.wallpaperConfig
+    }
   }
-})
+}
 
 export const createMemoryWorkspaceStore = (initialState = createInitialWorkspaceState()): WorkspaceStore => {
   let state = structuredClone(initialState)

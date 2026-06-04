@@ -198,6 +198,93 @@
 
 ---
 
+## M12 静默建议卡片（P2）
+
+### E17 SilentSuggestionUI
+
+- [x] T17.1 创建 `src/agent/SilentSuggestionUI.tsx`：静默建议卡片组件
+- [x] T17.2 创建 `useSilentSuggestions` hook：生成智能建议
+- [x] T17.3 集成到 App.tsx：渲染静默建议卡片
+
+### M12 验收
+
+- [x] 根据时间生成智能建议（早上/晚上/周一等）
+- [x] 支持优先级显示（高/中/低）
+- [x] 支持关闭和操作按钮
+- [x] TypeScript 编译通过
+
+---
+
+## M18 AvatarEvolution（P2）
+
+### E18 AvatarEvolution
+
+- [x] T18.1 `src/avatar/evolutionEngine.ts` 已存在：角色进化引擎
+- [x] T18.2 `src/avatar/AvatarEvolutionPanel.tsx` 已存在：进化面板 UI
+
+### M18 验收
+
+- [x] 角色进化规则已实现
+- [x] 进化面板 UI 已集成到 AvatarManager
+
+---
+
+## M13 AvatarRegistry（P1）
+
+### E13 AvatarRegistry
+
+- [x] T13.1 创建 `src/avatar/avatarRegistry.ts`：角色注册表
+- [x] T13.2 定义 AvatarRegistry 接口（CRUD 操作）
+- [x] T13.3 定义内置角色数据（星灵、晨曦、暮云）
+- [x] T13.4 实现注册表 CRUD 方法
+- [x] T13.5 添加辅助函数（getDefaultAvatar、createAvatarFromTemplate）
+
+### M13 验收
+
+- [x] 支持获取单个/所有/内置角色
+- [x] 支持注册/更新/删除角色
+- [x] 支持按风格查找角色
+- [x] TypeScript 编译通过
+
+---
+
+## M16 AvatarSourceAdapter（P2）
+
+### E18 AvatarSourceAdapter
+
+- [x] T16.1 创建 `src/avatar/sources/avatarSourceAdapter.ts`：资产来源适配器
+- [x] T16.2 定义 AvatarAsset、AvatarSourceConfig、AvatarSourceAdapter 接口
+- [x] T16.3 定义内置资产数据 BUILTIN_AVATAR_ASSETS
+- [x] T16.4 实现本地适配器 createLocalAvatarSourceAdapter
+- [x] T16.5 实现 URL 适配器 createUrlAvatarSourceAdapter
+- [x] T16.6 实现 API 适配器 createApiAvatarSourceAdapter
+
+### M16 验收
+
+- [x] 支持多种资产来源（本地/URL/API）
+- [x] 支持资产列表、获取、上传、删除、搜索
+- [x] TypeScript 编译通过
+
+---
+
+## M19 云同步适配器（P3）
+
+### E18 CloudSyncAdapter
+
+- [x] T19.1 创建 `src/memory/sync/cloudSyncAdapter.ts`：定义接口和类型
+- [x] T19.2 定义 CloudSyncConfig、CloudSyncStatus、CloudSyncPayload 接口
+- [x] T19.3 定义 CloudSyncAdapter 接口（connect/disconnect/sync/pull/push）
+- [x] T19.4 实现 Mock 云同步适配器（用于测试和演示）
+- [x] T19.5 添加配置存储/读取函数
+
+### M19 验收
+
+- [x] 定义完整的云同步接口
+- [x] 支持本地模拟适配器
+- [x] TypeScript 编译通过
+
+---
+
 ## 全局验收
 
 - [x] 所有模块 TypeScript 编译通过

@@ -13,10 +13,12 @@
  * - 响应式布局，支持移动端和桌面端
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { getActiveProducts } from '../../entitlement/productCatalog'
 import type { Product } from '../../entitlement/productTypes'
 import { PaymentModal } from '../payment/PaymentModal'
+import { createEntitlementService } from '../../entitlement/entitlementService'
+import { createAiQuotaProvider } from '../../entitlement/aiQuotaProvider'
 import styles from './MembershipPage.module.css'
 
 interface MembershipPageProps {
@@ -29,6 +31,9 @@ export function MembershipPage({ userId, onPurchase }: MembershipPageProps) {
   const [currentTier] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+
+  const entitlementService = useMemo(() => createEntitlementService(), [])
+  const aiQuotaProvider = useMemo(() => createAiQuotaProvider(entitlementService), [entitlementService])
 
   const subscriptionProducts = products.filter((p) => p.type === 'subscription')
   const packProducts = products.filter((p) => p.type === 'pack')
@@ -112,7 +117,7 @@ export function MembershipPage({ userId, onPurchase }: MembershipPageProps) {
         </div>
       </section>
 
-      <QuotaDisplay />
+      <QuotaDisplay userId={userId} aiQuotaProvider={aiQuotaProvider} />
 
       {selectedProduct && (
         <PaymentModal
@@ -172,36 +177,52 @@ function ProductCard({ product, currentTier, onPurchase, formatPrice, getTierLab
   )
 }
 
-function QuotaDisplay() {
-  // TODO: 从 aiQuotaProvider 查询实际配额
+function QuotaDisplay({ userId, aiQuotaProvider }: { userId?: string; aiQuotaProvider: ReturnType<typeof createAiQuotaProvider> }) {
+  const quotaStatus = useMemo(() => {
+    if (!userId) return null
+    return aiQuotaProvider.getQuotaStatus(userId)
+  }, [userId, aiQuotaProvider])
+
   const quota = {
-    free: 5,
-    study: 0,
-    agent: 0,
-    pack: 0
+    free: quotaStatus?.free?.remaining ?? 0,
+    study: quotaStatus?.study?.remaining ?? 0,
+    agent: quotaStatus?.agent?.remaining ?? 0,
+    pack: quotaStatus?.pack?.remaining ?? 0
+  }
+
+  const activeSourceLabel: Record<string, string> = {
+    ai_quota_free: '免费额度',
+    ai_quota_study: '学习会员',
+    ai_quota_agent: 'Agent 会员',
+    ai_quota: '加油包'
   }
 
   return (
     <section className={styles.quotaSection}>
       <h2>AI 额度</h2>
       <div className={styles.quotaGrid}>
-        <div className={styles.quotaCard}>
+        <div className={`${styles.quotaCard} ${quotaStatus?.activeSource === 'ai_quota_free' ? styles.activeQuota : ''}`}>
           <span className={styles.quotaLabel}>免费额度</span>
           <span className={styles.quotaValue}>{quota.free}</span>
         </div>
-        <div className={styles.quotaCard}>
+        <div className={`${styles.quotaCard} ${quotaStatus?.activeSource === 'ai_quota_study' ? styles.activeQuota : ''}`}>
           <span className={styles.quotaLabel}>学习会员</span>
           <span className={styles.quotaValue}>{quota.study}</span>
         </div>
-        <div className={styles.quotaCard}>
+        <div className={`${styles.quotaCard} ${quotaStatus?.activeSource === 'ai_quota_agent' ? styles.activeQuota : ''}`}>
           <span className={styles.quotaLabel}>Agent 会员</span>
           <span className={styles.quotaValue}>{quota.agent}</span>
         </div>
-        <div className={styles.quotaCard}>
+        <div className={`${styles.quotaCard} ${quotaStatus?.activeSource === 'ai_quota' ? styles.activeQuota : ''}`}>
           <span className={styles.quotaLabel}>加油包</span>
           <span className={styles.quotaValue}>{quota.pack}</span>
         </div>
       </div>
+      {quotaStatus?.activeSource && (
+        <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8, textAlign: 'center' }}>
+          当前使用: {activeSourceLabel[quotaStatus.activeSource] || quotaStatus.activeSource}
+        </p>
+      )}
     </section>
   )
 }

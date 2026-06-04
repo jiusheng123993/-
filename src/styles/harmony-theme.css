@@ -32,31 +32,31 @@
   }
 }
 
-/* Canvas Card Styles */
+/* Canvas Card Styles - base overrides in styles.css */
 .canvas-card {
   background: var(--surface);
   border-radius: var(--radius-md);
   padding: 16px;
-  cursor: grab;
+  cursor: default;
   transition: all var(--transition-normal);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
 }
 
 .canvas-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px) scale(1.01);
   box-shadow: var(--shadow-md);
 }
 
 .canvas-card.dragging {
-  opacity: 0.8;
-  transform: scale(1.02);
+  opacity: 0.85;
+  transform: scale(1.03);
   box-shadow: var(--shadow-lg);
   cursor: grabbing;
 }
 
 .canvas-card:active {
-  transform: scale(0.98);
+  transform: scale(0.985);
 }
 
 /* Sidebar Styles */

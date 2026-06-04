@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react'
 import { createPersonaProvider, type PersonaProvider } from '../entitlement/personaProvider'
 import { createEntitlementService } from '../entitlement/entitlementService'
 import { PRESET_PERSONAS, type PersonaDefinition } from './personaScheduler'
+import { addCustomPersona, type CustomPersonaInput } from './customPersona'
+import { X } from 'lucide-react'
 import styles from '../components/membership/MembershipPage.module.css'
 
 const entitlementService = createEntitlementService()
@@ -16,6 +18,7 @@ interface PersonaSelectorUIProps {
 
 export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: PersonaSelectorUIProps) {
   const [selectedId, setSelectedId] = useState(currentPersonaId || 'senior_buddy')
+  const [showCreator, setShowCreator] = useState(false)
 
   const availablePresets = useMemo(() => {
     return personaProvider.getAvailablePresets(userId)
@@ -152,9 +155,7 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
                 border: '2px dashed var(--border)',
                 background: 'transparent'
               }}
-              onClick={() => {
-                alert('自定义角色创建功能开发中...')}
-              }
+              onClick={() => setShowCreator(true)}
             >
               <div className={styles.cardHeader}>
                 <span className={styles.tierLabel}>创建新角色</span>
@@ -214,6 +215,292 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
           </tbody>
         </table>
       </section>
+
+      {showCreator && (
+        <CustomPersonaCreatorModal
+          onClose={() => setShowCreator(false)}
+          onCreate={() => setShowCreator(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function CustomPersonaCreatorModal({ onClose, onCreate }: { onClose: () => void; onCreate: () => void }) {
+  const [formData, setFormData] = useState<CustomPersonaInput>({
+    name: '',
+    targetUser: '',
+    painPoint: '',
+    primaryFlow: '',
+    hero: '',
+    mainModuleTitle: '',
+    sideModuleTitle: '',
+    aiRole: '',
+    keyMetrics: ['', '', '', ''],
+    modules: [
+      { id: 'mod-1', title: '', description: '', signal: '' },
+      { id: 'mod-2', title: '', description: '', signal: '' },
+      { id: 'mod-3', title: '', description: '', signal: '' },
+      { id: 'mod-4', title: '', description: '', signal: '' }
+    ],
+    aiActions: ['daily-plan', 'task-breakdown', 'daily-review'],
+    recommendedThemeId: 'minimal-premium'
+  })
+
+  const [step, setStep] = useState(1)
+  const totalSteps = 3
+
+  const updateField = <K extends keyof CustomPersonaInput>(field: K, value: CustomPersonaInput[K]) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const updateModule = (index: number, field: 'title' | 'description' | 'signal', value: string) => {
+    setFormData((prev) => {
+      const modules = [...prev.modules]
+      modules[index] = { ...modules[index], [field]: value }
+      return { ...prev, modules }
+    })
+  }
+
+  const handleSubmit = () => {
+    addCustomPersona(formData)
+    onCreate()
+  }
+
+  const isStepValid = () => {
+    switch (step) {
+      case 1:
+        return !!formData.name && !!formData.targetUser && !!formData.painPoint && !!formData.primaryFlow
+      case 2:
+        return !!formData.mainModuleTitle && !!formData.sideModuleTitle && !!formData.aiRole
+      case 3:
+        return formData.modules.every((m) => !!m.title && !!m.description)
+      default:
+        return false
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+      }}
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        style={{
+          background: 'var(--bg-primary, #1a1a2e)',
+          borderRadius: 16,
+          padding: 32,
+          width: '90vw',
+          maxWidth: 560,
+          maxHeight: '85vh',
+          overflow: 'auto',
+          border: '1px solid var(--border)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="创建自定义角色"
+      >
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h3 style={{ margin: 0, fontSize: 20 }}>创建自定义角色</h3>
+          <button
+            onClick={onClose}
+            type="button"
+            aria-label="关闭"
+            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 4 }}
+          >
+            <X size={20} />
+          </button>
+        </header>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+            <div
+              style={{ height: '100%', background: 'var(--accent, #6366f1)', borderRadius: 2, transition: 'width 0.3s', width: `${(step / totalSteps) * 100}%` }}
+            />
+          </div>
+          <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>步骤 {step}/{totalSteps}</span>
+        </div>
+
+        {step === 1 && (
+          <div>
+            <h4 style={{ margin: '0 0 16px' }}>基本信息</h4>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>角色名称</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => updateField('name', e.target.value)}
+                placeholder="例如：考研冲刺"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>目标用户</label>
+              <input
+                type="text"
+                value={formData.targetUser}
+                onChange={(e) => updateField('targetUser', e.target.value)}
+                placeholder="例如：考研学生"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>核心痛点</label>
+              <input
+                type="text"
+                value={formData.painPoint}
+                onChange={(e) => updateField('painPoint', e.target.value)}
+                placeholder="例如：复习效率低、缺乏规划"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>主要流程</label>
+              <input
+                type="text"
+                value={formData.primaryFlow}
+                onChange={(e) => updateField('primaryFlow', e.target.value)}
+                placeholder="例如：每日计划 → 学习 → 复盘"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div>
+            <h4 style={{ margin: '0 0 16px' }}>模块与角色</h4>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>主模块标题</label>
+              <input
+                type="text"
+                value={formData.mainModuleTitle}
+                onChange={(e) => updateField('mainModuleTitle', e.target.value)}
+                placeholder="例如：今日学习计划"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>副模块标题</label>
+              <input
+                type="text"
+                value={formData.sideModuleTitle}
+                onChange={(e) => updateField('sideModuleTitle', e.target.value)}
+                placeholder="例如：学习统计"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>AI 角色</label>
+              <input
+                type="text"
+                value={formData.aiRole}
+                onChange={(e) => updateField('aiRole', e.target.value)}
+                placeholder="例如：学习教练"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: 'var(--muted)' }}>角色形象</label>
+              <input
+                type="text"
+                value={formData.hero}
+                onChange={(e) => updateField('hero', e.target.value)}
+                placeholder="例如：经验丰富的导师"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 14, boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div>
+            <h4 style={{ margin: '0 0 16px' }}>模块配置</h4>
+            {formData.modules.map((mod, index) => (
+              <div key={mod.id} style={{ marginBottom: 16, padding: 12, borderRadius: 8, background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: 12, color: 'var(--muted)' }}>模块 {index + 1}</span>
+                <input
+                  type="text"
+                  value={mod.title}
+                  onChange={(e) => updateModule(index, 'title', e.target.value)}
+                  placeholder="模块标题"
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 13, marginTop: 6, boxSizing: 'border-box' }}
+                />
+                <input
+                  type="text"
+                  value={mod.description}
+                  onChange={(e) => updateModule(index, 'description', e.target.value)}
+                  placeholder="模块描述"
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontSize: 13, marginTop: 6, boxSizing: 'border-box' }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
+          <button
+            onClick={() => setStep((s) => Math.max(1, s - 1))}
+            disabled={step === 1}
+            type="button"
+            style={{
+              padding: '8px 20px',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              color: step === 1 ? 'var(--border)' : 'var(--text-primary)',
+              cursor: step === 1 ? 'not-allowed' : 'pointer',
+              fontSize: 14
+            }}
+          >
+            上一步
+          </button>
+          {step < totalSteps ? (
+            <button
+              onClick={() => setStep((s) => s + 1)}
+              disabled={!isStepValid()}
+              type="button"
+              style={{
+                padding: '8px 20px',
+                borderRadius: 8,
+                border: 'none',
+                background: !isStepValid() ? 'var(--border)' : 'var(--accent, #6366f1)',
+                color: 'white',
+                cursor: !isStepValid() ? 'not-allowed' : 'pointer',
+                fontSize: 14
+              }}
+            >
+              下一步
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={!isStepValid()}
+              type="button"
+              style={{
+                padding: '8px 20px',
+                borderRadius: 8,
+                border: 'none',
+                background: !isStepValid() ? 'var(--border)' : '#10b981',
+                color: 'white',
+                cursor: !isStepValid() ? 'not-allowed' : 'pointer',
+                fontSize: 14
+              }}
+            >
+              创建角色
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

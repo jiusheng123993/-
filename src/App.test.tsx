@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { createInitialWorkspaceState } from './data/workspaceStore'
+import { ToastProvider } from './components/toast/Toast'
+
+const renderApp = () => render(<ToastProvider><App /></ToastProvider>)
 
 const openThemeLibrary = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: /打开主题库/ }))
@@ -31,7 +34,7 @@ describe('App', () => {
   })
 
   it('renders the exam student persona dashboard with the new workbench canvas', () => {
-    render(<App />)
+    renderApp()
 
     expect(screen.getByRole('heading', { name: '星寰海' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: '星寰海画布工作台' })).toBeInTheDocument()
@@ -43,7 +46,7 @@ describe('App', () => {
   })
 
   it('uses the latest independent sidebar and the workbench canvas', () => {
-    render(<App />)
+    renderApp()
 
     expect(screen.getByRole('heading', { name: '星寰海' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '打开侧边栏' })).toBeInTheDocument()
@@ -57,7 +60,7 @@ describe('App', () => {
 
   it('moves legacy dashboard blocks into the draggable canvas workbench and lazy-loads details', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(workbench).toBeInTheDocument()
@@ -76,7 +79,7 @@ describe('App', () => {
 
   it('opens today actions as a lazy workbench detail and completes a task', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '今日行动 · 工作台详情' })).not.toBeInTheDocument()
@@ -96,7 +99,7 @@ describe('App', () => {
   it('opens focus session as a lazy workbench detail and controls the active timer', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '任务专注 · 工作台详情' })).not.toBeInTheDocument()
@@ -136,7 +139,7 @@ describe('App', () => {
     window.localStorage.setItem('growth-workbench-state', JSON.stringify(seededState))
 
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '记忆洞察 · 工作台详情' })).not.toBeInTheDocument()
@@ -154,7 +157,7 @@ describe('App', () => {
 
   it('opens growth RPG as a lazy workbench detail and claims the daily reward', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '成长等级 · 工作台详情' })).not.toBeInTheDocument()
@@ -173,7 +176,7 @@ describe('App', () => {
 
   it('opens AI coach as a lazy workbench detail and generates a local action draft', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: 'AI 备考教练 · 工作台详情' })).not.toBeInTheDocument()
@@ -193,7 +196,7 @@ describe('App', () => {
 
   it('opens platform matrix as a lazy workbench detail and marks sync as ready', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '多端预留 · 工作台详情' })).not.toBeInTheDocument()
@@ -213,7 +216,7 @@ describe('App', () => {
 
   it('opens mini program preview as a lazy workbench detail and switches preview pages', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '小程序试验版 · 工作台详情' })).not.toBeInTheDocument()
@@ -234,7 +237,7 @@ describe('App', () => {
 
   it('opens a searchable theme library from a single theme center button', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     expect(screen.queryByRole('dialog', { name: '主题库' })).not.toBeInTheDocument()
 
@@ -250,7 +253,7 @@ describe('App', () => {
 
   it('filters theme choices by search keyword inside the popup', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const dialog = await openThemeLibrary(user)
     await searchTheme(user, '薄荷')
@@ -262,7 +265,7 @@ describe('App', () => {
 
   it('closes the theme popup with Escape and backdrop click', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await openThemeLibrary(user)
     await user.keyboard('{Escape}')
@@ -277,7 +280,7 @@ describe('App', () => {
 
   it('clears the previous theme search when reopening the popup', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await openThemeLibrary(user)
     await searchTheme(user, '薄荷')
@@ -290,7 +293,7 @@ describe('App', () => {
 
   it('switches to the cream dopamine theme from the theme popup', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await openThemeLibrary(user)
     await searchTheme(user, '年轻')
@@ -303,7 +306,7 @@ describe('App', () => {
 
   it('offers multiple selectable dopamine color palettes through popup search', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     expect(screen.queryByRole('button', { name: '多巴胺薄荷绿' })).not.toBeInTheDocument()
 
@@ -323,7 +326,7 @@ describe('App', () => {
 
   it('shows theme color swatches before selecting a palette', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const dialog = await openThemeLibrary(user)
     await searchTheme(user, '薄荷')
@@ -339,7 +342,7 @@ describe('App', () => {
 
   it('uses the active theme on the growth level card instead of a fixed dark block', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await openThemeLibrary(user)
     await searchTheme(user, '水墨留白')
@@ -353,7 +356,7 @@ describe('App', () => {
 
   it('shows a desktop focus overview based on the active persona tasks', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     expect(screen.getByText('2 个待办')).toBeInTheDocument()
     expect(screen.getByText('95 分钟')).toBeInTheDocument()
@@ -371,7 +374,7 @@ describe('App', () => {
 
   it('lets the user switch focus brief visual style and persists it', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     const trigger = screen.getByRole('button', { name: /切换专注概览样式/ })
     await user.click(trigger)
@@ -409,7 +412,7 @@ describe('App', () => {
   })
 
   it('reflects the active theme aesthetic and material on the focus brief card', () => {
-    render(<App />)
+    renderApp()
 
     const focusCard = screen.getByText('2 个待办').closest('[data-aesthetic]')
     expect(focusCard).toHaveAttribute('data-aesthetic')
@@ -420,7 +423,7 @@ describe('App', () => {
 
   it('keeps the manually selected theme when switching persona workflows', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await openThemeLibrary(user)
     await searchTheme(user, '年轻')
@@ -434,7 +437,7 @@ describe('App', () => {
 
   it('uses persona recommended themes until the user manually selects a theme', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await switchPersona(user, '职场办公')
 
@@ -444,7 +447,7 @@ describe('App', () => {
 
   it('restores persona recommended theme mode from a manual theme', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await switchPersona(user, '职场办公')
     await openThemeLibrary(user)
@@ -458,7 +461,7 @@ describe('App', () => {
 
   it('switches persona content into office-specific workflows', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await switchPersona(user, '职场办公')
 
@@ -469,7 +472,7 @@ describe('App', () => {
 
   it('switches persona content into creator-specific workflows', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await switchPersona(user, '内容创作')
 
@@ -481,7 +484,7 @@ describe('App', () => {
   it('binds the next persona task to the focus timer and counts down to completion', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
-    render(<App />)
+    renderApp()
 
     const timerCard = screen.getByRole('region', { name: '任务专注计时器' })
     expect(within(timerCard).getByText('60:00')).toBeInTheDocument()
@@ -536,7 +539,7 @@ describe('App', () => {
   it('lets the user adjust focus duration before starting and shows stable countdown', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
-    render(<App />)
+    renderApp()
 
     const timerCard = screen.getByRole('region', { name: '任务专注计时器' })
     const decrease = within(timerCard).getByRole('button', { name: '减少专注时长' })
@@ -580,7 +583,7 @@ describe('App', () => {
 
   it('supports the full identity management flow from the app shell', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    renderApp()
 
     await user.click(screen.getByRole('button', { name: '打开侧边栏' }))
     await user.click(screen.getByRole('button', { name: '设置' }))

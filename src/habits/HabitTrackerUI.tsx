@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { HabitState, Habit } from './habitService'
 import {
-  createInitialHabitState,
+  createHabitBrowserStore,
   toggleHabit,
   getTodayDateString,
   getTodayHabitRecords,
@@ -15,11 +15,10 @@ interface HabitTrackerProps {
   compact?: boolean
 }
 
+const habitStore = createHabitBrowserStore()
+
 export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
-  const [state, setState] = useState<HabitState>(() => {
-    const stored = localStorage.getItem('habit-state')
-    return stored ? JSON.parse(stored) : createInitialHabitState()
-  })
+  const [state, setState] = useState<HabitState>(() => habitStore.load())
   const [showAddForm, setShowAddForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitIcon, setNewHabitIcon] = useState('⭐')
@@ -31,7 +30,7 @@ export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
 
   const persistState = useCallback((newState: HabitState) => {
     setState(newState)
-    localStorage.setItem('habit-state', JSON.stringify(newState))
+    habitStore.save(newState)
   }, [])
 
   const handleToggle = (habitId: string) => {

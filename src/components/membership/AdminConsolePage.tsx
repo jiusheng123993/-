@@ -7,6 +7,7 @@ import type { EntitlementCode } from '../../entitlement/entitlementTypes'
 import type { Product } from '../../entitlement/productTypes'
 import type { Order, OrderStatus } from '../../entitlement/orderTypes'
 import { createSafetyIncidentLog } from '../../personas/safetyIncidentLog'
+import { useToast } from '../toast/Toast'
 import styles from './MembershipPage.module.css'
 
 const safetyIncidentLog = createSafetyIncidentLog()
@@ -259,6 +260,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(() => adminAuth.isAuthenticated())
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(() => adminAuth.getCurrentUser())
+  const { addToast } = useToast()
   const [activeTab, setActiveTab] = useState<'products' | 'grants' | 'users' | 'orders' | 'stats' | 'safety'>('products')
   const [products] = useState(() => getActiveProducts())
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -340,9 +342,9 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
         b.createdAt.localeCompare(a.createdAt)
       ))
       setOrderStats(persistentOrderService.getStats())
-      alert('退款成功')
+      addToast({ type: 'success', title: '退款成功' })
     } catch (e) {
-      alert(`退款失败: ${e instanceof Error ? e.message : '未知错误'}`)
+      addToast({ type: 'error', title: '退款失败', message: e instanceof Error ? e.message : '未知错误' })
     }
   }
 

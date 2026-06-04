@@ -16,6 +16,12 @@
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   position: relative;
+  cursor: grab;
+  user-select: none;
+}
+
+.header:active {
+  cursor: grabbing;
 }
 
 .header h2 {

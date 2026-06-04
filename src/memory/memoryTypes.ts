@@ -112,6 +112,7 @@ export interface MemoryProfilePersonality {
   feedbackStyle?: FeedbackStyle
   stressResponse?: StressResponse
   selfDescription?: string
+  traits: string[]
 }
 
 export interface MemoryProfileRhythm {
