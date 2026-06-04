@@ -7,6 +7,7 @@ type AIRecommendationUIProps = {
   onClose: () => void
   onApply: (moduleIds: string[]) => void
   onReRecommend?: (description: string) => void
+  onSaveModule?: (module: Module) => void
 }
 
 type EditingModule = {
@@ -43,7 +44,8 @@ export const AIRecommendationUI = ({
   identityDescription, 
   onClose, 
   onApply, 
-  onReRecommend 
+  onReRecommend,
+  onSaveModule
 }: AIRecommendationUIProps) => {
   const [description, setDescription] = useState(identityDescription)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(modules.map(m => m.id)))
@@ -180,8 +182,11 @@ export const AIRecommendationUI = ({
   }, [])
 
   const handleSaveEdit = useCallback(() => {
+    if (editingModule && onSaveModule) {
+      onSaveModule(editingModule)
+    }
     handleCloseDetail()
-  }, [handleCloseDetail])
+  }, [editingModule, onSaveModule, handleCloseDetail])
 
   useEffect(() => {
     if (!dragState.isDragging) return

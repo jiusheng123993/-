@@ -10,6 +10,12 @@ interface SidebarProps {
   onOpenThemePicker: () => void
   onOpenMembership: () => void
   onOpenIdentitySelector: () => void
+  onOpenCycleTracker: () => void
+  onOpenAvatarManager: () => void
+  onOpenMemoryProfile: () => void
+  onOpenPersonaSelector: () => void
+  onOpenRelationshipSpace: () => void
+  onOpenAgentChat: () => void
   onSwitchDevAuthRole: () => void
   devAuthLabel: string
   currentThemeName: string
@@ -27,6 +33,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenThemePicker,
   onOpenMembership,
   onOpenIdentitySelector,
+  onOpenCycleTracker,
+  onOpenAvatarManager,
+  onOpenMemoryProfile,
+  onOpenPersonaSelector,
+  onOpenRelationshipSpace,
+  onOpenAgentChat,
   onSwitchDevAuthRole,
   devAuthLabel,
   currentThemeName,
@@ -40,6 +52,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'identity', label: '身份切换', icon: 'User' },
     { id: 'modules', label: '模块商店', icon: 'Grid' },
     { id: 'ai', label: 'AI 助手', icon: 'Bot' },
+    { id: 'persona', label: '人格切换', icon: 'Sparkles' },
+    { id: 'relationship', label: '关系空间', icon: 'Users' },
+    { id: 'memory', label: '记忆画像', icon: 'Brain' },
+    { id: 'cycle', label: '周期追踪', icon: 'Heart' },
+    { id: 'avatar', label: '我的角色', icon: 'Smile' },
     { id: 'settings', label: '设置', icon: 'Settings' },
     { id: 'theme', label: '主题切换', icon: 'Palette' }
   ]
@@ -52,10 +69,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onOpenModuleStore()
         break
       case 'ai':
-        onOpenAIRecommendation()
+        onOpenAgentChat()
         break
       case 'theme':
         onOpenThemePicker()
+        break
+      case 'relationship':
+        onOpenRelationshipSpace()
+        break
+      case 'cycle':
+        onOpenCycleTracker()
+        break
+      case 'avatar':
+        onOpenAvatarManager()
+        break
+      case 'memory':
+        onOpenMemoryProfile()
+        break
+      case 'persona':
+        onOpenPersonaSelector()
         break
     }
   }

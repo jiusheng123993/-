@@ -190,6 +190,46 @@ export const defaultModules: Module[] = [
     size: 'large',
     isDefault: true,
     isCustom: false
+  },
+  {
+    id: 'cycle-today',
+    title: '今日周期',
+    description: '展示当前周期阶段和能量建议',
+    icon: 'Heart',
+    category: 'health',
+    size: 'small',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'memory-profile',
+    title: '记忆画像',
+    description: '查看和管理个人记忆画像',
+    icon: 'Brain',
+    category: 'ai',
+    size: 'large',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'badge-display',
+    title: '成就徽章',
+    description: '查看已解锁的成就徽章和进度',
+    icon: 'Award',
+    category: 'productivity',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'habit-tracker',
+    title: '习惯追踪',
+    description: '每日习惯打卡和进度追踪',
+    icon: 'CheckSquare',
+    category: 'health',
+    size: 'medium',
+    isDefault: true,
+    isCustom: false
   }
 ]
 

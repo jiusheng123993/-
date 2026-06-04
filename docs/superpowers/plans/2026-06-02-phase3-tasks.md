@@ -68,8 +68,8 @@
 - [x] T7.4 创建 `src/cycle/CycleTodayCard.tsx`：今日状态卡片
 - [x] T7.5 创建 `src/cycle/CycleSettings.tsx`：周期设置组件
 - [x] T7.6 创建 `src/cycle/PrivacyLock.tsx`：隐私锁组件
-- [ ] T7.7 集成到 App.tsx：添加导航入口
-- [ ] T7.8 集成到 Dashboard：今日状态卡片展示
+- [x] T7.7 集成到 App.tsx：添加导航入口
+- [x] T7.8 集成到 Dashboard：今日状态卡片展示
 
 ### M2 验收
 
@@ -125,6 +125,7 @@
 - [x] 亲密度计算准确
 - [x] 单元测试全部通过
 - [x] lint/typecheck/build 通过
+- [x] Sidebar 集成关系空间导航入口
 
 ---
 
@@ -162,19 +163,59 @@
 
 ### M4 验收
 
-- [ ] 可生成3D角色
-- [ ] 可定制角色外观
-- [ ] 可导出多种格式
-- [ ] 生成性能达标（<3秒）
-- [ ] 单元测试全部通过
-- [ ] lint/typecheck/build 通过
+- [x] 可生成3D角色
+- [x] 可定制角色外观
+- [x] 可导出多种格式
+- [x] 生成性能达标（<3秒）
+- [x] 单元测试全部通过
+- [x] lint/typecheck/build 通过
+- [x] App.tsx 集成角色管理入口
+- [x] Sidebar 集成角色管理导航
+
+---
+
+## M11 Agent 聊天窗口（P2）
+
+### E17 AgentChatUI
+
+- [x] T17.1 创建 `src/agent/AgentChatUI.tsx`：聊天窗口主组件
+- [x] T17.2 创建 `AgentChatToggle`：浮动聊天按钮组件
+- [x] T17.3 集成到 App.tsx：添加状态和渲染逻辑
+- [x] T17.4 集成到 Sidebar：添加导航入口
+
+### M11 验收
+
+- [x] 可打开/关闭聊天窗口
+- [x] 可发送消息并接收回复
+- [x] 浮动按钮显示在右下角
+- [x] Sidebar 点击「AI 助手」打开聊天
+- [x] TypeScript 编译通过
+- [x] 单元测试通过（249/249）
+- [x] 接入真实 AI Provider（DeepSeek/OpenAI/通义/豆包）
+- [x] 接入星火讯飞 Coding（GLM-5.1）- 默认优先使用
+- [x] 支持对话历史上下文
+- [x] 无 API Key 时智能降级回复
 
 ---
 
 ## 全局验收
 
 - [x] 所有模块 TypeScript 编译通过
-- [x] 所有单元测试通过（784/784）
+- [x] 所有单元测试通过（911/911）
 - [x] 无新增 lint 错误
 - [x] App.tsx 集成关系空间导航入口
+- [x] M5 记忆画像模块集成完成
+  - [x] ModuleRegistry 添加 memory-profile 模块
+  - [x] App.tsx 添加记忆画像模态框
+  - [x] Sidebar 添加"记忆画像"导航入口
+  - [x] 记忆画像数据持久化到 localStorage
+- [x] M6 MemoryInjector UI 集成完成
+  - [x] 创建 MemoryContextPreview 组件
+  - [x] 在记忆画像模态框中显示记忆上下文预览
+  - [x] 展示画像信息和记忆事件对 AI 的影响
+- [x] M7 ReflectionEngine UI 已集成（通过 EvolutionRitualUI 自动触发）
+- [x] PersonaSelectorUI 人格切换模块集成完成
+  - [x] Sidebar 添加"人格切换"导航入口
+  - [x] App.tsx 添加人格选择模态框
+  - [x] 支持切换不同 AI 人格
 - [ ] 浏览器验证通过

@@ -6,6 +6,10 @@ dist-electron
 .superpowers/
 .codegraph/
 npm-debug.log*
+debug.log
+test-result*.txt
+tatus
+screenshot-*.png
 
 # 支付配置（包含敏感密钥）
 config/payment/

@@ -4433,6 +4433,1436 @@ small,
   }
 }
 
+.statistics-card {
+  display: grid;
+  gap: 16px;
+}
+
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.statistics-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statistics-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.statistics-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.statistics-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.statistics-progress {
+  display: grid;
+  gap: 6px;
+}
+
+.statistics-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.statistics-progress-header span:last-child {
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.statistics-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary), transparent 82%);
+  overflow: hidden;
+}
+
+.statistics-progress-bar.large {
+  height: 12px;
+}
+
+.statistics-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--hero-gradient);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.statistics-detail-modal .statistics-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.statistics-detail-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.statistics-detail-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statistics-detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.statistics-detail-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.statistics-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statistics-detail-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.statistics-detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.statistics-summary {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.statistics-summary h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.statistics-progress-detail {
+  display: grid;
+  gap: 8px;
+}
+
+.statistics-progress-detail .statistics-progress-header {
+  font-size: 14px;
+}
+
+.statistics-summary p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 1280px) {
+  .statistics-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .statistics-detail-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.today-tasks-card {
+  display: grid;
+  gap: 12px;
+}
+
+.today-tasks-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.today-tasks-count {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.today-tasks-pending {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.today-tasks-done {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.today-tasks-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.today-tasks-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.today-tasks-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.today-tasks-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today-tasks-item-minutes {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 86%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.today-tasks-empty {
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+  color: var(--muted);
+  list-style: none;
+}
+
+.today-tasks-detail-modal .today-tasks-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.today-tasks-detail-todo {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.today-tasks-detail-done {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.today-tasks-detail-done h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.today-tasks-detail-item.completed .task-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.today-tasks-detail-item.completed .task-meta {
+  color: #10b981;
+}
+
+.today-tasks-empty-detail {
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  padding: 20px 0;
+  margin: 0;
+}
+
+.today-tasks-detail-stats {
+  display: grid;
+  gap: 12px;
+}
+
+.today-tasks-detail-stats h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+@media (max-width: 1280px) {
+  .today-tasks-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.focus-timer-card {
+  display: grid;
+  gap: 12px;
+  text-align: center;
+}
+
+.focus-timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.focus-timer-time {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.focus-timer-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.focus-timer-task {
+  min-height: 20px;
+}
+
+.focus-timer-task-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.focus-timer-task-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.focus-timer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.focus-timer-start,
+.focus-timer-reset {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.focus-timer-start {
+  color: white;
+  background: var(--hero-gradient);
+}
+
+.focus-timer-start:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.focus-timer-start:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.focus-timer-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.focus-timer-reset {
+  color: var(--text);
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.focus-timer-reset:hover:not(:disabled) {
+  background: var(--surface-strong);
+}
+
+.focus-timer-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.focus-timer-detail-modal .focus-timer-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.focus-timer-detail-main {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  text-align: center;
+}
+
+.focus-timer-detail-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.focus-timer-detail-time {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.focus-timer-detail-status {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.focus-timer-detail-task {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.focus-timer-detail-task-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.focus-timer-detail-task-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.focus-timer-detail-task-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.focus-timer-detail-task-empty {
+  font-size: 14px;
+  color: var(--muted);
+  padding: 12px;
+}
+
+.focus-timer-detail-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.focus-timer-detail-start,
+.focus-timer-detail-reset {
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.focus-timer-detail-start {
+  color: white;
+  background: var(--hero-gradient);
+}
+
+.focus-timer-detail-start:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.focus-timer-detail-start:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.focus-timer-detail-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.focus-timer-detail-reset {
+  color: var(--text);
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.focus-timer-detail-reset:hover:not(:disabled) {
+  background: var(--surface-strong);
+}
+
+.focus-timer-detail-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.focus-timer-detail-stats {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.focus-timer-detail-stats h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.focus-timer-detail-sessions h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.focus-timer-detail-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.focus-timer-detail-session-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.focus-timer-session-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-timer-session-meta {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 86%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.focus-timer-session-empty {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 16px;
+}
+
+@media (max-width: 1280px) {
+  .focus-timer-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calendar-card {
+  display: grid;
+  gap: 10px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar-month {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calendar-today-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 86%);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.calendar-weekday {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.calendar-day {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 6px 0;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.calendar-day.empty {
+  color: transparent;
+}
+
+.calendar-day.today {
+  color: white;
+  background: var(--hero-gradient);
+  font-weight: 900;
+}
+
+.calendar-detail-modal .calendar-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.calendar-detail-main {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.calendar-detail-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendar-detail-weekday {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+.calendar-detail-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendar-detail-day {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 12px 0;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.calendar-detail-day.empty {
+  color: transparent;
+}
+
+.calendar-detail-day.today {
+  color: white;
+  background: var(--hero-gradient);
+  font-weight: 900;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary), transparent 60%);
+}
+
+.calendar-detail-sidebar {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.calendar-detail-sidebar h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.calendar-detail-events {
+  display: grid;
+  gap: 8px;
+}
+
+.calendar-detail-event {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.calendar-detail-event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.calendar-detail-event-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-detail-no-events {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 16px;
+  margin: 0;
+}
+
+.calendar-detail-summary h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+@media (max-width: 1280px) {
+  .calendar-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.notes-card {
+  display: grid;
+  gap: 10px;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notes-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.notes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.notes-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notes-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.notes-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes-item-area {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 86%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notes-empty {
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+  color: var(--muted);
+  list-style: none;
+}
+
+.notes-detail-modal .notes-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.notes-detail-list {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.notes-detail-items {
+  display: grid;
+  gap: 12px;
+}
+
+.notes-detail-item {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notes-detail-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.notes-detail-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-detail-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.notes-detail-item-area {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 86%);
+  padding: 2px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notes-detail-item-content {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notes-detail-item-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.notes-detail-empty {
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px;
+  margin: 0;
+}
+
+.notes-detail-sidebar {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.notes-detail-sidebar h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.notes-detail-areas h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.notes-detail-area-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.notes-detail-area-tag {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.notes-detail-area-tag strong {
+  color: var(--primary);
+  margin-left: 4px;
+}
+
+@media (max-width: 1280px) {
+  .notes-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.weather-card {
+  display: grid;
+  gap: 12px;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.weather-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.weather-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weather-temp {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.weather-condition {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.weather-details {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.weather-detail {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.weather-detail-modal .weather-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.weather-detail-main {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+
+.weather-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.weather-detail-hero-icon {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.weather-detail-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weather-detail-hero-temp {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.weather-detail-hero-condition {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.weather-detail-hero-feels {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.weather-detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.weather-detail-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border-radius: 16px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.weather-detail-metric-icon {
+  font-size: 22px;
+}
+
+.weather-detail-metric-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.weather-detail-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.weather-detail-sidebar {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.weather-detail-sidebar h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.weather-detail-hourly {
+  display: grid;
+  gap: 8px;
+}
+
+.weather-detail-hourly-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.weather-detail-hourly-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 40px;
+}
+
+.weather-detail-hourly-icon {
+  font-size: 20px;
+}
+
+.weather-detail-hourly-temp {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.weather-detail-tip h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.weather-detail-tip p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 1280px) {
+  .weather-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .weather-detail-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cycle-today-card {
+  display: grid;
+  gap: 12px;
+}
+
+.cycle-today-phase {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cycle-today-phase-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.cycle-today-phase-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cycle-today-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.cycle-today-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.cycle-today-stat strong {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.cycle-today-stat small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.cycle-today-detail-modal .cycle-today-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  min-height: 0;
+}
+
+.cycle-today-detail-main {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+
+.cycle-today-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.cycle-today-detail-hero-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.cycle-today-detail-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cycle-today-detail-hero-phase {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cycle-today-detail-hero-tip {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.cycle-today-detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.cycle-today-detail-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border-radius: 16px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+}
+
+.cycle-today-detail-metric-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.cycle-today-detail-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.cycle-today-detail-sidebar {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.cycle-today-detail-sidebar h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.cycle-today-detail-phases {
+  display: grid;
+  gap: 8px;
+}
+
+.cycle-today-detail-phase-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card-gradient);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cycle-today-detail-phase-item.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary), transparent 80%);
+}
+
+.cycle-today-detail-phase-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.cycle-today-detail-phase-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cycle-today-detail-phase-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cycle-today-detail-phase-desc {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cycle-today-detail-phase-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  background: var(--hero-gradient);
+  padding: 2px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.cycle-today-detail-energy h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.cycle-today-detail-energy p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 1280px) {
+  .cycle-today-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cycle-today-detail-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Persona Switcher */
 .persona-switcher {
   position: relative;

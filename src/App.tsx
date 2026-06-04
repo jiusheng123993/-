@@ -13,6 +13,7 @@ import {
   type WorkspaceType
 } from './data/workspaceStore'
 import { getPersonaById, type PersonaId } from './personas/personaRegistry'
+import { PersonaSelectorUI } from './personas/PersonaSelectorUI'
 import { PersonaSwitcher } from './personas/PersonaSwitcher'
 import { IdentityProvider } from './identity/IdentityProvider'
 import { IdentitySelector } from './identity/IdentitySelector'
@@ -47,9 +48,12 @@ import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuth
 import { SpaceList, SpaceDetail, RelationshipSpaceProvider } from './relationship'
 import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
-import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
+import type { MemoryEvent, MemoryScope, MemoryProfile } from './memory/memoryTypes'
+import { MemoryProfileEditorUI } from './memory/MemoryProfileEditorUI'
+import { MemoryContextPreview } from './memory/MemoryContextPreview'
 import { EvolutionRitualUI } from './agent/evolution/EvolutionRitualUI'
 import { useEvolutionRitual } from './agent/evolution/useEvolutionRitual'
+import { AgentChatUI, AgentChatToggle } from './agent/AgentChatUI'
 import { CanvasCard } from './canvas/CanvasCard'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
@@ -65,6 +69,10 @@ import {
   upsertCustomModule
 } from './module-store/moduleStoreLogic'
 import type { CanvasItem, ModuleStoreState } from './module-store/types'
+import { CycleTracker } from './cycle'
+import { AvatarManager } from './avatar'
+import { BadgeDisplay } from './badges/BadgeDisplay'
+import { HabitTracker } from './habits/HabitTrackerUI'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -250,6 +258,24 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState(false)
   const [isRelationshipSpaceOpen, setIsRelationshipSpaceOpen] = useState(false)
+  const [isAgentChatOpen, setIsAgentChatOpen] = useState(false)
+  const [isMemoryProfileOpen, setIsMemoryProfileOpen] = useState(false)
+  const [isCycleTrackerOpen, setIsCycleTrackerOpen] = useState(false)
+  const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
+  const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
+  const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => {
+    const stored = localStorage.getItem('memory-profile')
+    return stored ? JSON.parse(stored) : {
+      identity: { mbti: 'unknown', ageGroup: 'adult', workStyle: 'mixed', nickname: '' },
+      personality: { traits: [], motivationStyle: 'growth', feedbackStyle: 'gentle', stressResponse: 'need_break' },
+      rhythm: { energyPeak: 'morning', sleepPattern: 'stable', breakPreference: 'pomodoro_25' },
+      goals: { shortTerm: '', longTerm: '', milestones: [] },
+      preferences: { encouragementStyle: 'coach', reminderFrequency: 'medium', detailLevel: 'moderate', languageStyle: 'casual' },
+      boundaries: { maxFocusMinutes: 120, maxDailyTasks: 10, avoidTopics: [] },
+      learning: { style: 'visual', currentFocus: '', completedCourses: [] },
+      emotional: { moodTrend: 'stable', motivationLevel: 'medium', lastCheckIn: '' }
+    }
+  })
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
@@ -305,7 +331,7 @@ export default function App() {
     userId,
     projectId: 'growth-workbench'
   }), [userId])
-  const [, setMemoryEvents] = useState<MemoryEvent[]>(() =>
+  const [memoryEvents, setMemoryEvents] = useState<MemoryEvent[]>(() =>
     memoryStore ? memoryStore.listEvents(memoryScope) : []
   )
   const [memoryObserver] = useState(
@@ -860,6 +886,12 @@ export default function App() {
         onOpenThemePicker={openThemePicker}
         onOpenMembership={() => setIsMembershipOpen(true)}
         onOpenIdentitySelector={() => setIsIdentitySelectorOpen(true)}
+        onOpenCycleTracker={() => setIsCycleTrackerOpen(true)}
+        onOpenAvatarManager={() => setIsAvatarManagerOpen(true)}
+        onOpenMemoryProfile={() => setIsMemoryProfileOpen(true)}
+        onOpenPersonaSelector={() => setIsPersonaSelectorOpen(true)}
+        onOpenRelationshipSpace={() => setIsRelationshipSpaceOpen(true)}
+        onOpenAgentChat={() => setIsAgentChatOpen(true)}
         onSwitchDevAuthRole={switchDevAuthRole}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
@@ -1216,6 +1248,131 @@ export default function App() {
                       </div>
                     </div>
                   </section>
+                ),
+                'cycle-today': (
+                  <section className="panel side-card cycle-today-card" role="region" aria-label="今日周期">
+                    <div className="cycle-today-header">
+                      <span className="cycle-phase-indicator" style={{ 
+                        display: 'inline-block', 
+                        width: 12, 
+                        height: 12, 
+                        borderRadius: '50%', 
+                        background: 'var(--primary)',
+                        marginRight: 8 
+                      }} />
+                      <strong>当前阶段</strong>
+                    </div>
+                    <p className="cycle-today-phase">查看今日周期阶段和能量建议</p>
+                    <div className="cycle-today-metrics">
+                      <article>
+                        <span className="cycle-metric-value">--</span>
+                        <span className="cycle-metric-label">周期天数</span>
+                      </article>
+                      <article>
+                        <span className="cycle-metric-value">--</span>
+                        <span className="cycle-metric-label">能量等级</span>
+                      </article>
+                    </div>
+                    <button
+                      className="cycle-today-detail-btn"
+                      onClick={() => setIsCycleTrackerOpen(true)}
+                      type="button"
+                    >
+                      查看详情
+                    </button>
+                  </section>
+                ),
+                'memory-profile': (
+                  <section className="panel side-card memory-profile-card" role="region" aria-label="记忆画像">
+                    <div className="memory-profile-header">
+                      <strong>记忆画像</strong>
+                      <span className="memory-profile-badge" style={{
+                        fontSize: 11,
+                        padding: '2px 8px',
+                        borderRadius: 8,
+                        background: 'var(--surface-elevated)',
+                        color: 'var(--muted)'
+                      }}>
+                        {memoryProfile.identity.mbti !== 'unknown' ? memoryProfile.identity.mbti : '未设置'}
+                      </span>
+                    </div>
+                    <div className="memory-profile-traits">
+                      {memoryProfile.personality.traits.length > 0 ? (
+                        memoryProfile.personality.traits.slice(0, 3).map((trait) => (
+                          <span key={trait} className="memory-trait-tag" style={{
+                            display: 'inline-block',
+                            fontSize: 11,
+                            padding: '2px 8px',
+                            borderRadius: 6,
+                            background: 'var(--primary)',
+                            color: '#fff',
+                            marginRight: 4,
+                            marginBottom: 4
+                          }}>
+                            {trait}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="empty-state">点击下方按钮完善你的记忆画像</p>
+                      )}
+                    </div>
+                    <div className="memory-profile-summary">
+                      <small>
+                        节奏：{memoryProfile.rhythm.energyPeak === 'morning' ? '晨间型' : 
+                               memoryProfile.rhythm.energyPeak === 'afternoon' ? '午后型' : 
+                               memoryProfile.rhythm.energyPeak === 'evening' ? '晚间型' : '未设置'}
+                        {' · '}
+                        学习风格：{memoryProfile.learning.style === 'visual' ? '视觉型' : 
+                                  memoryProfile.learning.style === 'auditory' ? '听觉型' : 
+                                  memoryProfile.learning.style === 'kinesthetic' ? '动觉型' : '未设置'}
+                      </small>
+                    </div>
+                    <button
+                      className="memory-profile-detail-btn"
+                      onClick={() => setIsMemoryProfileOpen(true)}
+                      type="button"
+                    >
+                      编辑画像
+                    </button>
+                  </section>
+                ),
+                'badge-display': (
+                  <section className="panel side-card badge-display-card" role="region" aria-label="成就徽章">
+                    <BadgeDisplay
+                      progress={{
+                        totalFocusSessions: workspaceState.focusSessions.length,
+                        streakDays: workspaceState.growth.streakDays,
+                        completedTasks: completedTasks.length,
+                        usedPersonas: [activePersona.id],
+                        themeSwitches: 1,
+                        hasMemoryProfile: memoryProfile.identity.mbti !== 'unknown',
+                        hasAvatar: false,
+                        cycleDaysRecorded: 0,
+                        earlyBirdSessions: 0,
+                        nightOwlSessions: 0
+                      }}
+                      compact
+                    />
+                    <button
+                      className="badge-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('badge-display')}
+                      type="button"
+                    >
+                      查看全部徽章
+                    </button>
+                  </section>
+                ),
+                'habit-tracker': (
+                  <section className="panel side-card habit-tracker-card" role="region" aria-label="习惯追踪">
+                    <HabitTracker compact />
+                    <button
+                      className="habit-detail-btn"
+                      onClick={() => setOpenWorkbenchDetail('habit-tracker')}
+                      type="button"
+                    >
+                      查看全部习惯
+                    </button>
+                  </section>
                 )
               }
 
@@ -1462,6 +1619,71 @@ export default function App() {
                   ))}
                 </div>
               </aside>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'badge-display' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal badge-display-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="成就徽章 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 成就系统</p>
+                <h2>成就徽章</h2>
+                <small>完成专注和任务来解锁更多徽章</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <BadgeDisplay
+                progress={{
+                  totalFocusSessions: workspaceState.focusSessions.length,
+                  streakDays: workspaceState.growth.streakDays,
+                  completedTasks: completedTasks.length,
+                  usedPersonas: [activePersona.id],
+                  themeSwitches: 1,
+                  hasMemoryProfile: memoryProfile.identity.mbti !== 'unknown',
+                  hasAvatar: false,
+                  cycleDaysRecorded: 0,
+                  earlyBirdSessions: 0,
+                  nightOwlSessions: 0
+                }}
+              />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {openWorkbenchDetail === 'habit-tracker' && (
+        <div className="theme-modal-backdrop" onClick={() => setOpenWorkbenchDetail(null)} role="presentation">
+          <section
+            aria-modal="true"
+            className="theme-modal workbench-detail-modal habit-tracker-detail-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="习惯追踪 · 工作台详情"
+          >
+            <header className="theme-modal-hero">
+              <div className="theme-modal-hero-text">
+                <p className="eyebrow">Workbench Detail · 习惯养成</p>
+                <h2>习惯追踪</h2>
+                <small>坚持每日打卡，养成好习惯</small>
+              </div>
+              <button className="theme-modal-close" onClick={() => setOpenWorkbenchDetail(null)} type="button" aria-label="关闭工作台详情">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <HabitTracker />
             </div>
           </section>
         </div>
@@ -2551,6 +2773,63 @@ export default function App() {
         </div>
       )}
 
+      {isCycleTrackerOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsCycleTrackerOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="周期追踪"
+            style={{ maxWidth: 800 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Cycle Tracker · 周期追踪</p>
+                <h2>了解你的身体节奏</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsCycleTrackerOpen(false)} type="button" aria-label="关闭周期追踪">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <CycleTracker />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isAvatarManagerOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsAvatarManagerOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="我的角色"
+            style={{ maxWidth: 900 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Avatar Manager · 我的角色</p>
+                <h2>创建你的 3D 角色</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsAvatarManagerOpen(false)} type="button" aria-label="关闭角色管理">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <AvatarManager
+                userId={authSession.userId}
+                onAvatarSelect={(avatarId) => {
+                  console.log('Selected avatar:', avatarId)
+                }}
+              />
+            </div>
+          </section>
+        </div>
+      )}
+
       {isRelationshipSpaceOpen && (
         <div className="membership-modal-backdrop" onClick={() => setIsRelationshipSpaceOpen(false)} role="presentation">
           <section
@@ -2586,6 +2865,78 @@ export default function App() {
                   />
                 )}
               </RelationshipSpaceProvider>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isMemoryProfileOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsMemoryProfileOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="记忆画像"
+            style={{ maxWidth: 800 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Memory Profile · 记忆画像</p>
+                <h2>了解你的独特风格</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsMemoryProfileOpen(false)} type="button" aria-label="关闭记忆画像">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <MemoryContextPreview
+                profile={memoryProfile}
+                events={memoryEvents}
+                mode="chat"
+              />
+              <MemoryProfileEditorUI
+                profile={memoryProfile}
+                onSave={(profile) => {
+                  localStorage.setItem('memory-profile', JSON.stringify(profile))
+                  setMemoryProfile(profile)
+                  setIsMemoryProfileOpen(false)
+                }}
+                onCancel={() => setIsMemoryProfileOpen(false)}
+              />
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isPersonaSelectorOpen && (
+        <div className="membership-modal-backdrop" onClick={() => setIsPersonaSelectorOpen(false)} role="presentation">
+          <section
+            aria-modal="true"
+            className="membership-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-label="人格切换"
+            style={{ maxWidth: 600 }}
+          >
+            <header className="membership-modal-hero">
+              <div className="membership-modal-hero-text">
+                <p className="eyebrow">Persona · 人格</p>
+                <h2>选择适合你的 AI 伙伴</h2>
+              </div>
+              <button className="membership-modal-close" onClick={() => setIsPersonaSelectorOpen(false)} type="button" aria-label="关闭人格选择">
+                ×
+              </button>
+            </header>
+            <div className="membership-modal-content">
+              <PersonaSelectorUI
+                userId={authSession.userId}
+                currentPersonaId={currentPersonaId}
+                onSelect={(personaId) => {
+                  setCurrentPersonaId(personaId)
+                  setIsPersonaSelectorOpen(false)
+                }}
+              />
             </div>
           </section>
         </div>
@@ -2758,6 +3109,17 @@ export default function App() {
           onClose={() => setIsLayoutShareOpen(false)}
           onImport={importLayout}
         />
+      )}
+
+      {isAgentChatOpen && (
+        <AgentChatUI
+          isOpen={isAgentChatOpen}
+          onClose={() => setIsAgentChatOpen(false)}
+          personaId={activePersona?.id}
+        />
+      )}
+      {!isAgentChatOpen && (
+        <AgentChatToggle onClick={() => setIsAgentChatOpen(true)} />
       )}
     </main>
     </IdentityProvider>
