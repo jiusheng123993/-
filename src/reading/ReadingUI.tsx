@@ -32,7 +32,9 @@ export function ReadingUI({ compact = false, service: externalService }: Reading
   const [bookCategory, setBookCategory] = useState('')
   const [noteContent, setNoteContent] = useState('')
   const [notePage, setNotePage] = useState('')
+  const [newNoteType, setNewNoteType] = useState('')
   const [goalTarget, setGoalTarget] = useState('')
+  const [readingPageInputs, setReadingPageInputs] = useState<Record<string, string>>({})
 
   const state = service.getState()
   const stats = service.getReadingStats()
@@ -282,13 +284,18 @@ export function ReadingUI({ compact = false, service: externalService }: Reading
                       <input
                         type="number"
                         placeholder="更新页码"
-                        style={{ flex: 1, padding: '8px 12px', border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 13 }}
+                        value={readingPageInputs[book.id] ?? ''}
+                        onChange={(e) => setReadingPageInputs((prev) => ({ ...prev, [book.id]: e.target.value }))}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            const val = parseInt((e.target as HTMLInputElement).value)
-                            if (val >= 0) service.updateBookProgress(book.id, val)
+                            const val = parseInt(readingPageInputs[book.id] || '')
+                            if (val >= 0) {
+                              service.updateBookProgress(book.id, val)
+                              setReadingPageInputs((prev) => ({ ...prev, [book.id]: '' }))
+                            }
                           }
                         }}
+                        style={{ flex: 1, padding: '8px 12px', border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 13 }}
                       />
                       <button
                         onClick={() => service.updateBookStatus(book.id, 'completed')}
@@ -311,8 +318,9 @@ export function ReadingUI({ compact = false, service: externalService }: Reading
             <h3 style={{ fontSize: 14, marginBottom: 16 }}>添加笔记</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12, marginBottom: 12 }}>
               <select
-                value=""
+                value={newNoteType}
                 onChange={(e) => {
+                  setNewNoteType(e.target.value)
                   if (e.target.value) {
                     const book = state.books.find((b) => b.id === e.target.value)
                     if (book) setNotePage(String(book.currentPage || 1))
@@ -339,11 +347,11 @@ export function ReadingUI({ compact = false, service: externalService }: Reading
             />
             <button
               onClick={() => {
-                const selectEl = document.querySelector('select') as HTMLSelectElement
-                if (selectEl?.value && noteContent) {
-                  service.addNote(selectEl.value, parseInt(notePage) || 1, noteContent)
+                if (newNoteType && noteContent) {
+                  service.addNote(newNoteType, parseInt(notePage) || 1, noteContent)
                   setNoteContent('')
                   setNotePage('')
+                  setNewNoteType('')
                 }
               }}
               style={{ width: '100%', padding: '12px 16px', border: 'none', borderRadius: 8, background: colors.accent, color: colors.text, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}

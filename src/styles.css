@@ -8124,3 +8124,79 @@ small,
   border-color: var(--primary);
   background: color-mix(in srgb, var(--primary), transparent 92%);
 }
+
+/* ===== 全局数据表格样式 ===== */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card-gradient);
+  white-space: nowrap;
+}
+
+.data-table td {
+  color: var(--muted);
+}
+
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.data-table tbody tr:hover td {
+  background: var(--card-gradient);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 斑马纹变体 */
+.data-table-striped tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--surface), var(--muted) 4%);
+}
+
+.data-table-striped tbody tr:hover td {
+  background: var(--card-gradient);
+}
+
+/* 紧凑变体 */
+.data-table-compact th,
+.data-table-compact td {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .data-table th,
+  .data-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .data-table-compact th,
+  .data-table-compact td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}

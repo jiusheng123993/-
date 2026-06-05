@@ -38,6 +38,7 @@ export function FinanceUI({ compact = false, service: externalService }: Finance
   const [goalAmount, setGoalAmount] = useState('')
   const [goalDeadline, setGoalDeadline] = useState('')
   const [goalCategory, setGoalCategory] = useState<FinanceGoal['category']>('saving')
+  const [goalDepositInputs, setGoalDepositInputs] = useState<Record<string, string>>({})
 
   const now = new Date()
   const summary = service.getMonthlySummary(now.getFullYear(), now.getMonth() + 1)
@@ -447,13 +448,18 @@ export function FinanceUI({ compact = false, service: externalService }: Finance
                       <input
                         type="number"
                         placeholder="当前存款"
-                        style={{ flex: 1, padding: '8px 12px', border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 13 }}
+                        value={goalDepositInputs[goal.id] ?? ''}
+                        onChange={(e) => setGoalDepositInputs((prev) => ({ ...prev, [goal.id]: e.target.value }))}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            const val = parseFloat((e.target as HTMLInputElement).value)
-                            if (val >= 0) service.updateGoalProgress(goal.id, val)
+                            const val = parseFloat(goalDepositInputs[goal.id] || '')
+                            if (val >= 0) {
+                              service.updateGoalProgress(goal.id, val)
+                              setGoalDepositInputs((prev) => ({ ...prev, [goal.id]: '' }))
+                            }
                           }
                         }}
+                        style={{ flex: 1, padding: '8px 12px', border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 13 }}
                       />
                       <span style={{ color: colors.textSecondary, fontSize: 13 }}>
                         {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()}

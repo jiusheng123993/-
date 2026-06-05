@@ -9,17 +9,17 @@ interface MoodUIProps {
 }
 
 const colors = {
-  bg: '#0f0f1a',
-  cardBg: '#1a1a2e',
-  cardBorder: '#2a2a4a',
-  text: '#e0e0e0',
-  textSecondary: '#8888aa',
-  accent: '#f59e0b',
-  inputBg: '#12121f',
-  inputBorder: '#2a2a4a',
+  bg: 'var(--app-background, #f8fafc)',
+  cardBg: 'var(--card-gradient, #ffffff)',
+  cardBorder: 'var(--border, rgba(15, 118, 110, 0.12))',
+  text: 'var(--text, #0f172a)',
+  textSecondary: 'var(--muted, #64748b)',
+  accent: 'var(--primary, #0f766e)',
+  inputBg: 'var(--surface, rgba(255, 255, 255, 0.82))',
+  inputBorder: 'var(--border, rgba(15, 118, 110, 0.12))',
 }
 
-const moodColors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e']
+const moodColors = ['var(--chart-review, #ef4444)', 'var(--chart-plan, #f97316)', '#eab308', '#84cc16', '#22c55e']
 
 export function MoodUI({ compact = false, service: externalService }: MoodUIProps) {
   const [service] = useState(() => externalService ?? createMoodService())
@@ -131,7 +131,7 @@ export function MoodUI({ compact = false, service: externalService }: MoodUIProp
                   border: 'none',
                   borderRadius: 4,
                   background: daysToShow === days ? colors.accent : colors.inputBg,
-                  color: daysToShow === days ? '#000' : colors.textSecondary,
+                  color: daysToShow === days ? 'var(--surface-strong, #fff)' : colors.textSecondary,
                   fontSize: 11,
                   cursor: 'pointer'
                 }}
