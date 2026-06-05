@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import type { PersonaId } from '../personas/personaRegistry'
 import type { AvatarMood } from '../avatar/avatarTypes'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
+import type { MemoryObserver } from '../memory/memoryObserver'
 import { agentRuntime } from './agentRuntime'
 
 export interface AgentMessage {
@@ -20,6 +21,7 @@ export interface AgentChatUIProps {
   avatarId?: string
   profile?: MemoryProfile
   memoryEvents?: MemoryEvent[]
+  memoryObserver?: MemoryObserver | null
   onSendMessage?: (message: string) => Promise<string>
 }
 
@@ -39,12 +41,35 @@ function getMoodEmoji(mood?: AvatarMood): string {
   }
 }
 
-export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memoryEvents, onSendMessage }: AgentChatUIProps) {
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  '学习': ['学习', '考试', '复习', '课程', '知识', '阅读', '读书', '笔记', '记忆'],
+  '目标': ['目标', '计划', '规划', '进度', '达成', '完成'],
+  '专注': ['专注', '注意力', '分心', '效率', '番茄', '深度工作'],
+  '情绪': ['焦虑', '压力', '心情', '情绪', '放松', '开心', '难过'],
+  '习惯': ['习惯', '打卡', '坚持', '自律', '日常'],
+  '时间管理': ['时间', '安排', '日程', '拖延', '截止'],
+  '成长': ['成长', '进步', '提升', '改变', '突破'],
+  '健康': ['健康', '睡眠', '运动', '饮食', '身体'],
+}
+
+function extractTopics(content: string): string[] {
+  const topics: string[] = []
+  const lowerContent = content.toLowerCase()
+  for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+    if (keywords.some(kw => lowerContent.includes(kw))) {
+      topics.push(topic)
+    }
+  }
+  return topics.length > 0 ? topics : ['general']
+}
+
+export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memoryEvents, memoryObserver, onSendMessage }: AgentChatUIProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const streamingContentRef = useRef('')
 
   const conversationHistoryRef = useRef<Array<{ role: 'user' | 'agent'; content: string }>>([])
 
@@ -78,6 +103,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
 
     setMessages(prev => [...prev, userMessage])
     conversationHistoryRef.current.push({ role: 'user', content: userMessage.content })
+    streamingContentRef.current = ''
     
     setInputValue('')
     setIsLoading(true)
@@ -113,6 +139,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
           memoryEvents: memoryEvents,
           signal: controller.signal,
           onChunk: (chunk: string) => {
+            streamingContentRef.current += chunk
             setMessages(prev => prev.map(m =>
               m.id === streamingId
                 ? { ...m, content: m.content + chunk }
@@ -121,12 +148,12 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
           }
         })
 
-        const finalContent = conversationHistoryRef.current.length > 0
-          ? '' : ''
+        conversationHistoryRef.current.push({ role: 'agent', content: streamingContentRef.current })
+        streamingContentRef.current = ''
+
         setMessages(prev => {
           const streamMsg = prev.find(m => m.id === streamingId)
           if (streamMsg) {
-            conversationHistoryRef.current.push({ role: 'agent', content: streamMsg.content })
             return prev.map(m =>
               m.id === streamingId
                 ? { ...m, mood: mapMood(undefined) }
@@ -145,8 +172,30 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
     } finally {
       setIsLoading(false)
       abortControllerRef.current = null
+      
+      if (memoryObserver && conversationHistoryRef.current.length >= 2) {
+        const lastUserMsg = [...conversationHistoryRef.current].reverse().find(h => h.role === 'user')
+        const lastAgentMsg = [...conversationHistoryRef.current].reverse().find(h => h.role === 'agent')
+        if (lastUserMsg && lastAgentMsg) {
+          const topics = extractTopics(lastUserMsg.content)
+          const summary = lastUserMsg.content.length > 80 
+            ? lastUserMsg.content.slice(0, 80) + '...' 
+            : lastUserMsg.content
+          memoryObserver.onConversationComplete(summary, topics)
+          
+          const memoryMatches = lastAgentMsg.content.matchAll(/\[MEMORY:\s*([^\]=]+)\s*=\s*([^\]]+)\]/g)
+          for (const match of memoryMatches) {
+            const fieldPath = match[1].trim()
+            const newValue = match[2].trim()
+            memoryObserver.onUserPreferenceLearned(
+              `${fieldPath}=${newValue}`,
+              `用户在对话中说："${lastUserMsg.content.slice(0, 50)}"`
+            )
+          }
+        }
+      }
     }
-  }, [inputValue, isLoading, onSendMessage, personaId, aiRole])
+  }, [inputValue, isLoading, onSendMessage, personaId, aiRole, memoryObserver])
 
   function mapMood(mood?: 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'): AvatarMood {
     return mood ?? 'neutral'

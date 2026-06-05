@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { MemoryProfile, MemoryEvent } from './memoryTypes'
-import { buildMemorySystemPromptExtension } from './memoryInjector'
+import { buildMemoryProfilePrompt } from './memoryInjector'
 import { buildMemoryEventContext } from './memoryInjector'
 
 export interface MemoryContextPreviewProps {
@@ -19,53 +19,6 @@ export function MemoryContextPreview({
   currentTask
 }: MemoryContextPreviewProps) {
   const context = useMemo(() => {
-    const legacyProfile = {
-      identity: {
-        mbti: profile.identity.mbti,
-        ageGroup: profile.identity.ageGroup,
-        workStyle: profile.identity.workStyle,
-        nickname: profile.identity.nickname,
-        occupation: profile.identity.occupation || ''
-      },
-      personality: {
-        traits: profile.personality.traits,
-        motivationStyle: profile.personality.motivationStyle,
-        feedbackStyle: profile.personality.feedbackStyle,
-        stressResponse: profile.personality.stressResponse
-      },
-      rhythm: {
-        energyPeak: profile.rhythm.energyPeak,
-        sleepPattern: profile.rhythm.sleepPattern,
-        breakPreference: profile.rhythm.breakPreference
-      },
-      goals: {
-        shortTerm: profile.goals.shortTerm,
-        longTerm: profile.goals.longTerm,
-        milestones: profile.goals.milestones
-      },
-      preferences: {
-        encouragementStyle: profile.preferences.encouragementStyle,
-        reminderFrequency: profile.preferences.reminderFrequency,
-        detailLevel: profile.preferences.detailLevel,
-        languageStyle: profile.preferences.languageStyle
-      },
-      boundaries: {
-        maxFocusMinutes: profile.boundaries.maxFocusMinutes,
-        maxDailyTasks: profile.boundaries.maxDailyTasks,
-        avoidTopics: profile.boundaries.avoidTopics
-      },
-      learning: {
-        style: profile.learning.style,
-        currentFocus: profile.learning.currentFocus,
-        completedCourses: profile.learning.completedCourses
-      },
-      emotional: {
-        moodTrend: profile.emotional.moodTrend,
-        motivationLevel: profile.emotional.motivationLevel,
-        lastCheckIn: profile.emotional.lastCheckIn
-      }
-    }
-
     const promptContext = {
       mode,
       personaId,
@@ -73,7 +26,7 @@ export function MemoryContextPreview({
       timeOfDay: getTimeOfDay()
     }
 
-    const systemPrompt = buildMemorySystemPromptExtension(legacyProfile, events, promptContext)
+    const systemPrompt = buildMemoryProfilePrompt(profile, events, promptContext)
     const eventContext = buildMemoryEventContext(events, currentTask || '')
 
     return { systemPrompt, eventContext }

@@ -96,6 +96,7 @@ import { WellnessUI } from './wellness/WellnessUI'
 import { createWellnessService } from './wellness/wellnessService'
 import { QuickNotesUI } from './quicknotes/QuickNotesUI'
 import { createQuickNotesService } from './quicknotes/quickNotesService'
+import { OnboardingUI, type OnboardingData } from './onboarding/OnboardingUI'
 import { ReportUI } from './report/ReportUI'
 import { GlobalSearchUI } from './globalsearch/GlobalSearchUI'
 import { MoodUI } from './mood/MoodUI'
@@ -124,6 +125,8 @@ const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()
 const memoryStore = typeof window === 'undefined' ? undefined : createBrowserMemoryStore()
 const moduleLayoutStorageKey = 'xinghuanhai-module-layout-state'
+const onboardingStorageKey = 'xinghuanhai-onboarding-completed'
+const onboardingDataKey = 'xinghuanhai-onboarding-data'
 
 const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
@@ -377,7 +380,28 @@ export default function App() {
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true
+    return window.localStorage.getItem(onboardingStorageKey) === 'true'
+  })
   
+  const getWorkspaceState = useCallback(() => workspaceState, [workspaceState])
+
+  const handleOnboardingComplete = useCallback((data: OnboardingData) => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(onboardingStorageKey, 'true')
+      window.localStorage.setItem(onboardingDataKey, JSON.stringify(data))
+    }
+    setOnboardingCompleted(true)
+  }, [])
+
+  const handleOnboardingSkip = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(onboardingStorageKey, 'true')
+    }
+    setOnboardingCompleted(true)
+  }, [])
+
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
       theme.name,
@@ -442,7 +466,10 @@ export default function App() {
     handleReject: handleEvolutionReject,
     handleModify: handleEvolutionModify,
     handleClose: handleEvolutionClose
-  } = useEvolutionRitual(authSession?.userId, memoryEvents, memoryProfile)
+  } = useEvolutionRitual(authSession?.userId, memoryEvents, memoryProfile, (updatedProfile) => {
+    setMemoryProfile(updatedProfile)
+    setWorkspaceState((prev) => ({ ...prev, memoryProfile: updatedProfile }))
+  })
 
   const { suggestions: silentSuggestions } = useSilentSuggestions(memoryProfile, memoryEvents)
   
@@ -731,7 +758,7 @@ export default function App() {
     return () => window.clearTimeout(handle)
   }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents])
 
-  const closeAllSidebarPanels = () => {
+  const closeAllSidebarPanels = (except?: string) => {
     flushSync(() => {
       setIsThemePickerOpen(false)
       setIsWallpaperPickerOpen(false)
@@ -742,7 +769,7 @@ export default function App() {
       setIsPaymentOpen(false)
       setIsAdminConsoleOpen(false)
       setIsRelationshipSpaceOpen(false)
-      setIsAgentChatOpen(false)
+      if (except !== 'agentChat') setIsAgentChatOpen(false)
       setIsMemoryProfileOpen(false)
       setIsCycleTrackerOpen(false)
       setIsAvatarManagerOpen(false)
@@ -1038,6 +1065,15 @@ export default function App() {
     )
   }
 
+  if (!onboardingCompleted) {
+    return (
+      <OnboardingUI
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+    )
+  }
+
   return (
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
@@ -1089,8 +1125,10 @@ export default function App() {
           setIsRelationshipSpaceOpen(true)
         }}
         onOpenAgentChat={() => {
-          closeAllSidebarPanels()
-          setIsAgentChatOpen(true)
+          closeAllSidebarPanels('agentChat')
+          flushSync(() => {
+            setIsAgentChatOpen(true)
+          })
         }}
         onSwitchDevAuthRole={switchDevAuthRole}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
@@ -1502,7 +1540,7 @@ export default function App() {
                         background: 'var(--surface-elevated)',
                         color: 'var(--muted)'
                       }}>
-                        {memoryProfile.identity.mbti !== 'unknown' ? memoryProfile.identity.mbti : '未设置'}
+                        {memoryProfile.personality.mbtiTendency && memoryProfile.personality.mbtiTendency !== 'unknown' ? memoryProfile.personality.mbtiTendency : '未设置'}
                       </span>
                     </div>
                     <div className="memory-profile-traits">
@@ -1531,9 +1569,9 @@ export default function App() {
                                memoryProfile.rhythm.energyPeak === 'afternoon' ? '午后型' : 
                                memoryProfile.rhythm.energyPeak === 'evening' ? '晚间型' : '未设置'}
                         {' · '}
-                        学习风格：{memoryProfile.learning.style === 'visual' ? '视觉型' : 
-                                  memoryProfile.learning.style === 'auditory' ? '听觉型' : 
-                                  memoryProfile.learning.style === 'kinesthetic' ? '动觉型' : '未设置'}
+                        学习风格：{memoryProfile.learning.learningStyle === 'visual' ? '视觉型' : 
+                                  memoryProfile.learning.learningStyle === 'auditory' ? '听觉型' : 
+                                  memoryProfile.learning.learningStyle === 'kinesthetic' ? '动觉型' : '未设置'}
                       </small>
                     </div>
                     <button
@@ -1554,7 +1592,7 @@ export default function App() {
                         completedTasks: completedTasks.length,
                         usedPersonas: [activePersona.id],
                         themeSwitches: 1,
-                        hasMemoryProfile: memoryProfile.identity.mbti !== 'unknown',
+                        hasMemoryProfile: memoryProfile.personality.mbtiTendency !== 'unknown',
                         hasAvatar: false,
                         cycleDaysRecorded: 0,
                         earlyBirdSessions: 0,
@@ -1894,7 +1932,7 @@ export default function App() {
               completedTasks: completedTasks.length,
               usedPersonas: [activePersona.id],
               themeSwitches: 1,
-              hasMemoryProfile: memoryProfile.identity.mbti !== 'unknown',
+              hasMemoryProfile: memoryProfile.personality.mbtiTendency !== 'unknown',
               hasAvatar: false,
               cycleDaysRecorded: 0,
               earlyBirdSessions: 0,
@@ -2652,7 +2690,7 @@ export default function App() {
         isOpen={openWorkbenchDetail === 'memory-profile'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="记忆画像"
-        subtitle={`${memoryProfile.identity.mbti !== 'unknown' ? memoryProfile.identity.mbti : '未设置'} · ${memoryProfile.rhythm.energyPeak === 'morning' ? '晨间型' : memoryProfile.rhythm.energyPeak === 'afternoon' ? '午后型' : memoryProfile.rhythm.energyPeak === 'evening' ? '晚间型' : '未设置'}`}
+        subtitle={`${memoryProfile.personality.mbtiTendency && memoryProfile.personality.mbtiTendency !== 'unknown' ? memoryProfile.personality.mbtiTendency : '未设置'} · ${memoryProfile.rhythm.energyPeak === 'morning' ? '晨间型' : memoryProfile.rhythm.energyPeak === 'afternoon' ? '午后型' : memoryProfile.rhythm.energyPeak === 'evening' ? '晚间型' : '未设置'}`}
         ariaLabel="记忆画像 · 工作台详情"
       >
         <div className="memory-profile-detail">
@@ -3723,6 +3761,7 @@ export default function App() {
           aiRole={activePersona?.aiRole}
           profile={memoryProfile}
           memoryEvents={memoryEvents}
+          memoryObserver={memoryObserver}
         />
       )}
       {!isAgentChatOpen && (

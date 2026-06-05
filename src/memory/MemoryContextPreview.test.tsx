@@ -4,13 +4,13 @@ import { MemoryContextPreview } from './MemoryContextPreview'
 import type { MemoryProfile, MemoryEvent } from './memoryTypes'
 
 vi.mock('./memoryInjector', () => ({
-  buildMemorySystemPromptExtension: vi.fn((profile, events) => {
-    if (!events || events.length === 0) return ''
-    return 'System prompt extension'
+  buildMemoryProfilePrompt: vi.fn((profile, events) => {
+    if (!profile || !events || events.length === 0) return ''
+    return '=== 用户画像 ===\n身份\n  - 昵称: 测试用户\n\n=== 相关记忆 ===\n- 用户表达了想要提高学习效率的愿望'
   }),
   buildMemoryEventContext: vi.fn((events, query) => {
     if (!events || events.length === 0) return ''
-    return 'Event context'
+    return '相关记忆事件\n- 用户表达了想要提高学习效率的愿望'
   })
 }))
 
@@ -135,7 +135,7 @@ describe('MemoryContextPreview', () => {
     
     render(<MemoryContextPreview profile={profile} events={events} />)
     
-    expect(screen.getByText(/记忆事件/)).toBeInTheDocument()
+    expect(screen.getAllByText(/记忆事件/).length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows placeholder when no memory data', () => {

@@ -452,7 +452,7 @@ export function FinanceUI({ compact = false, service: externalService }: Finance
                         onChange={(e) => setGoalDepositInputs((prev) => ({ ...prev, [goal.id]: e.target.value }))}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            const val = parseFloat(goalDepositInputs[goal.id] || '')
+                            const val = parseFloat(e.currentTarget.value)
                             if (val >= 0) {
                               service.updateGoalProgress(goal.id, val)
                               setGoalDepositInputs((prev) => ({ ...prev, [goal.id]: '' }))

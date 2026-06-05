@@ -151,6 +151,79 @@ export function SilentSuggestionUI({ suggestions, onDismiss, onAction }: SilentS
 
 export function useSilentSuggestions(profile?: MemoryProfile, memoryEvents?: MemoryEvent[]) {
   const [suggestions, setSuggestions] = useState<SilentSuggestion[]>([])
+  const [aiSuggestions, setAiSuggestions] = useState<SilentSuggestion[]>([])
+
+  const generateAiSuggestions = useCallback(async () => {
+    if (!profile && (!memoryEvents || memoryEvents.length === 0)) return
+    
+    try {
+      const apiKey = localStorage.getItem('deepseek_api_key') || ''
+      if (!apiKey) return
+
+      const nickname = profile?.identity?.nickname || '用户'
+      const primaryGoal = profile?.goals?.primaryGoal || '未设定'
+      const motivationLevel = profile?.emotional?.motivationLevel || 'medium'
+      
+      const recentEvents = (memoryEvents || []).slice(-10)
+      const eventLines = recentEvents.map(e => {
+        const time = new Date(e.timestamp).toLocaleDateString('zh-CN')
+        return `- [${time}] ${e.category}: ${e.summary}`
+      }).join('\n')
+
+      const prompt = `你是一个个人成长工作台的智能建议引擎。请基于以下用户信息，生成1-2条个性化建议。
+
+用户昵称：${nickname}
+主要目标：${primaryGoal}
+动力水平：${motivationLevel}
+
+近期活动：
+${eventLines || '暂无活动记录'}
+
+请输出JSON格式的建议列表：
+[{"message": "建议内容（30字以内，温暖鼓励的语气）", "priority": "high/medium/low"}]
+
+只输出JSON数组，不要其他内容。`
+
+      const isDev = import.meta.env.DEV
+      const endpoint = isDev ? '/api/deepseek' : 'https://api.deepseek.com/v1/chat/completions'
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: '你是一个个人成长工作台的智能建议引擎。只输出JSON格式。' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.8,
+          max_tokens: 300
+        })
+      })
+
+      if (!response.ok) return
+      
+      const data = await response.json()
+      const content = data.choices?.[0]?.message?.content || ''
+      
+      const jsonMatch = content.match(/\[[\s\S]*\]/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]) as Array<{ message: string; priority: string }>
+        const aiSuggestionsList: SilentSuggestion[] = parsed.map((item, index) => ({
+          id: `ai-suggestion-${Date.now()}-${index}`,
+          message: item.message,
+          priority: (item.priority as 'high' | 'medium' | 'low') || 'low',
+          dismissible: true
+        }))
+        setAiSuggestions(aiSuggestionsList)
+      }
+    } catch {
+      // AI suggestions are optional, silently fail
+    }
+  }, [profile, memoryEvents])
 
   const generateSuggestions = useCallback(() => {
     const now = new Date()
@@ -278,9 +351,15 @@ export function useSilentSuggestions(profile?: MemoryProfile, memoryEvents?: Mem
 
   useEffect(() => {
     generateSuggestions()
-    const interval = setInterval(generateSuggestions, 30 * 60 * 1000)
+    generateAiSuggestions()
+    const interval = setInterval(() => {
+      generateSuggestions()
+      generateAiSuggestions()
+    }, 30 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [generateSuggestions])
+  }, [generateSuggestions, generateAiSuggestions])
 
-  return { suggestions, refresh: generateSuggestions }
+  const allSuggestions = [...aiSuggestions, ...suggestions]
+
+  return { suggestions: allSuggestions, refresh: generateSuggestions }
 }

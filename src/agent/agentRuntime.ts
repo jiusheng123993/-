@@ -41,20 +41,20 @@ function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, m
   if (profile) {
     const parts: string[] = []
     if (profile.identity.nickname) parts.push(`用户昵称：${profile.identity.nickname}`)
-    if (profile.identity.role) parts.push(`角色：${profile.identity.role}`)
+    if (profile.identity.currentRole) parts.push(`角色：${profile.identity.currentRole}`)
     if (profile.goals.primaryGoal) parts.push(`主要目标：${profile.goals.primaryGoal}`)
-    if (profile.goals.activeGoals && profile.goals.activeGoals.length > 0) {
-      parts.push(`当前活跃目标：${profile.goals.activeGoals.join('、')}`)
+    if (profile.goals.secondaryGoals && profile.goals.secondaryGoals.length > 0) {
+      parts.push(`次要目标：${profile.goals.secondaryGoals.join('、')}`)
     }
     if (profile.personality.planningStyle) parts.push(`规划风格：${profile.personality.planningStyle}`)
-    if (profile.personality.workRhythm) parts.push(`工作节奏：${profile.personality.workRhythm}`)
+    if (profile.personality.workStyle) parts.push(`工作风格：${profile.personality.workStyle}`)
     if (profile.preferences.encouragementStyle) parts.push(`鼓励风格：${profile.preferences.encouragementStyle}`)
-    if (profile.preferences.communicationStyle) parts.push(`沟通偏好：${profile.preferences.communicationStyle}`)
-    if (profile.boundaries.topicsToAvoid && profile.boundaries.topicsToAvoid.length > 0) {
-      parts.push(`避免话题：${profile.boundaries.topicsToAvoid.join('、')}`)
+    if (profile.preferences.languageStyle) parts.push(`语言偏好：${profile.preferences.languageStyle}`)
+    if (profile.boundaries.tabooTopics && profile.boundaries.tabooTopics.length > 0) {
+      parts.push(`避免话题：${profile.boundaries.tabooTopics.join('、')}`)
     }
-    if (profile.learning.preferredMethods && profile.learning.preferredMethods.length > 0) {
-      parts.push(`学习偏好：${profile.learning.preferredMethods.join('、')}`)
+    if (profile.learning.effectiveStrategies && profile.learning.effectiveStrategies.length > 0) {
+      parts.push(`有效学习策略：${profile.learning.effectiveStrategies.join('、')}`)
     }
     
     if (parts.length > 0) {
@@ -72,7 +72,29 @@ function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, m
     memoryContext = `\n\n用户近期活动记忆：\n${eventLines.join('\n')}\n\n请基于以上记忆，在对话中自然地引用用户近期的活动和进展，让对话更有连续性和个性化。`
   }
   
-  return `${basePrompt}${profileContext}${memoryContext}\n\n请用简洁、友好的方式回复用户的提问。如果用户询问学习相关问题，给出具体可执行的建议。`
+  return `${basePrompt}${profileContext}${memoryContext}
+
+## 记忆与学习能力
+你具备记忆能力。在对话中：
+1. 如果用户表达了新的偏好、习惯、目标或个人信息，请在回复末尾用 [MEMORY: 字段路径=新值] 的格式记录下来。例如：[MEMORY: preferences.languageStyle=casual]
+2. 如果用户提到了新的目标或改变了目标，请记录：[MEMORY: goals.primaryGoal=通过英语六级]
+3. 如果用户表达了情绪状态变化，请记录：[MEMORY: emotional.motivationLevel=high]
+4. 在对话中自然地引用你记住的关于用户的信息，让对话有连续性和个性化。
+5. 如果用户问"你记得我什么"或类似问题，请基于用户画像和活动记忆来回答。
+
+可记录的字段路径包括：
+- identity.nickname（昵称）
+- identity.currentRole（当前角色）
+- goals.primaryGoal（主要目标）
+- personality.planningStyle（规划风格：structured/flexible/minimal/adaptive）
+- personality.workStyle（工作风格：independent/collaborative/mixed）
+- preferences.encouragementStyle（鼓励风格：cheerleader/coach/philosopher/silent_partner）
+- preferences.languageStyle（语言偏好：casual/formal/academic/playful）
+- learning.effectiveStrategies（有效学习策略列表）
+- emotional.motivationLevel（动力水平：high/medium/low/burnout_risk）
+- rhythm.energyPeak（精力高峰：morning/afternoon/evening/night_owl/flexible）
+
+请用简洁、友好的方式回复用户的提问。如果用户询问学习相关问题，给出具体可执行的建议。`
 }
 
 function buildChatUserPrompt(

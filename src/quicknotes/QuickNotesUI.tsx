@@ -94,7 +94,7 @@ export function QuickNotesUI({ compact = false, service: externalService }: Quic
             placeholder="快速记录想法..."
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddNote()}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const val = e.currentTarget.value.trim(); if (val) { service.addNote(val); setNewNote(''); } } }}
             style={{ flex: 1, padding: '12px 16px', border: `1px solid ${colors.inputBorder}`, borderRadius: 8, background: colors.inputBg, color: colors.text, fontSize: 14 }}
           />
           <button

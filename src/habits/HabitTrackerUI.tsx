@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type { HabitState, Habit } from './habitService'
 import {
   createHabitBrowserStore,
@@ -17,6 +17,46 @@ interface HabitTrackerProps {
 
 const habitStore = createHabitBrowserStore()
 
+const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
+
+function buildHeatmapData(state: HabitState, weeks: number) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const startDate = new Date(today)
+  startDate.setDate(startDate.getDate() - (weeks * 7 - 1))
+  startDate.setHours(0, 0, 0, 0)
+
+  const activeHabits = state.habits.filter((h) => h.isActive)
+  const cells: { date: string; dayOfWeek: number; weekIndex: number; count: number; total: number }[] = []
+
+  for (let w = 0; w < weeks; w++) {
+    for (let d = 0; d < 7; d++) {
+      const cellDate = new Date(startDate)
+      cellDate.setDate(startDate.getDate() + w * 7 + d)
+      const dateStr = cellDate.toISOString().split('T')[0]
+      const dayRecords = state.records.filter((r) => r.date === dateStr && r.completed)
+      cells.push({
+        date: dateStr,
+        dayOfWeek: d,
+        weekIndex: w,
+        count: dayRecords.length,
+        total: activeHabits.length
+      })
+    }
+  }
+  return cells
+}
+
+function getHeatColor(completed: number, total: number): string {
+  if (total === 0 || completed === 0) return 'var(--surface-elevated)'
+  const ratio = completed / total
+  if (ratio >= 1) return 'var(--primary)'
+  if (ratio >= 0.75) return 'color-mix(in srgb, var(--primary) 75%, var(--surface-elevated))'
+  if (ratio >= 0.5) return 'color-mix(in srgb, var(--primary) 50%, var(--surface-elevated))'
+  if (ratio >= 0.25) return 'color-mix(in srgb, var(--primary) 25%, var(--surface-elevated))'
+  return 'color-mix(in srgb, var(--primary) 12%, var(--surface-elevated))'
+}
+
 export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
   const [state, setState] = useState<HabitState>(() => habitStore.load())
   const [showAddForm, setShowAddForm] = useState(false)
@@ -24,9 +64,12 @@ export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
   const [newHabitIcon, setNewHabitIcon] = useState('⭐')
   const [newHabitTarget, setNewHabitTarget] = useState(1)
   const [newHabitUnit, setNewHabitUnit] = useState('次')
+  const [viewMode, setViewMode] = useState<'list' | 'heatmap'>('list')
   const today = getTodayDateString()
   const todayRecords = getTodayHabitRecords(state, today)
   const completionRate = getHabitCompletionRate(state, today)
+
+  const heatmapData = useMemo(() => buildHeatmapData(state, 12), [state])
 
   const persistState = useCallback((newState: HabitState) => {
     setState(newState)
@@ -90,7 +133,101 @@ export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
         </div>
       </div>
 
-      <div className="habit-list">
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button
+          onClick={() => setViewMode('list')}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            borderRadius: 8,
+            border: 'none',
+            background: viewMode === 'list' ? 'var(--primary)' : 'var(--surface-elevated)',
+            color: viewMode === 'list' ? '#fff' : 'var(--text)',
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: 13
+          }}
+        >
+          列表
+        </button>
+        <button
+          onClick={() => setViewMode('heatmap')}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            borderRadius: 8,
+            border: 'none',
+            background: viewMode === 'heatmap' ? 'var(--primary)' : 'var(--surface-elevated)',
+            color: viewMode === 'heatmap' ? '#fff' : 'var(--text)',
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: 13
+          }}
+        >
+          热力图
+        </button>
+      </div>
+
+      {viewMode === 'heatmap' ? (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+            {WEEKDAYS.map((day) => (
+              <div key={day} style={{ width: 24, textAlign: 'center', fontSize: 10, color: 'var(--muted)' }}>
+                {day}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 8 }}>
+            {Array.from({ length: 12 }, (_, w) => (
+              <div key={w} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {Array.from({ length: 7 }, (_, d) => {
+                  const cell = heatmapData.find((c) => c.weekIndex === w && c.dayOfWeek === d)
+                  if (!cell) return <div key={d} style={{ width: 24, height: 24 }} />
+                  const isToday = cell.date === today
+                  return (
+                    <div
+                      key={d}
+                      title={`${cell.date}: ${cell.count}/${cell.total} 完成`}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 4,
+                        background: getHeatColor(cell.count, cell.total),
+                        border: isToday ? '2px solid var(--text)' : '1px solid transparent',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 11, color: 'var(--muted)' }}>
+            <span>少</span>
+            {[0.12, 0.25, 0.5, 0.75, 1].map((ratio) => (
+              <div
+                key={ratio}
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 3,
+                  background: ratio === 0.12
+                    ? 'color-mix(in srgb, var(--primary) 12%, var(--surface-elevated))'
+                    : ratio === 0.25
+                    ? 'color-mix(in srgb, var(--primary) 25%, var(--surface-elevated))'
+                    : ratio === 0.5
+                    ? 'color-mix(in srgb, var(--primary) 50%, var(--surface-elevated))'
+                    : ratio === 0.75
+                    ? 'color-mix(in srgb, var(--primary) 75%, var(--surface-elevated))'
+                    : 'var(--primary)'
+                }}
+              />
+            ))}
+            <span>多</span>
+          </div>
+        </div>
+      ) : (
+        <div className="habit-list">
         {activeHabits.map((habit) => {
           const record = todayRecords.find((r) => r.habitId === habit.id)
           const isCompleted = record?.completed ?? false
@@ -168,6 +305,7 @@ export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
           )
         })}
       </div>
+      )}
 
       {showAddForm ? (
         <div className="habit-add-form" style={{

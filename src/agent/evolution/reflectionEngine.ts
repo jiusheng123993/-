@@ -170,7 +170,7 @@ function buildReflectionPrompt(profile: MemoryProfile, events: MemoryEvent[]): s
   const nickname = profile.identity.nickname || '用户'
   const primaryGoal = profile.goals.primaryGoal || '未设定'
   const planningStyle = profile.personality.planningStyle || '未设定'
-  const workRhythm = profile.personality.workRhythm || '未设定'
+  const workStyle = profile.personality.workStyle || '未设定'
   const motivationLevel = profile.emotional.motivationLevel || 'medium'
 
   const recentEvents = events.slice(-20)
@@ -185,7 +185,7 @@ function buildReflectionPrompt(profile: MemoryProfile, events: MemoryEvent[]): s
 - 昵称：${nickname}
 - 主要目标：${primaryGoal}
 - 规划风格：${planningStyle}
-- 工作节奏：${workRhythm}
+- 工作风格：${workStyle}
 - 当前动力水平：${motivationLevel}
 
 近期活动记录：

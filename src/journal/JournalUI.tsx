@@ -14,18 +14,22 @@ import {
   getWeekStartDate,
   MOOD_OPTIONS
 } from './journalService'
+import { createAiPromptDraft } from '../ai/aiProvider'
 
 const journalStore = createJournalBrowserStore()
 
 interface JournalUIProps {
   onClose?: () => void
   compact?: boolean
+  getWorkspaceState?: () => any
 }
 
-export function JournalUI({ onClose, compact = false }: JournalUIProps) {
+export function JournalUI({ onClose, compact = false, getWorkspaceState }: JournalUIProps) {
   const [state, setState] = useState<JournalState>(() => journalStore.load())
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'history'>('daily')
   const [isEditing, setIsEditing] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
   const [editForm, setEditForm] = useState({
     title: '',
     content: '',
@@ -111,6 +115,79 @@ export function JournalUI({ onClose, compact = false }: JournalUIProps) {
 
   const handleDelete = (id: string) => {
     persistState(deleteJournalEntry(state, id))
+  }
+
+  const handleAiAssist = async () => {
+    setAiLoading(true)
+    setAiSuggestion(null)
+    try {
+      const ws = getWorkspaceState?.()
+      const todayTasks = ws?.tasks?.filter((t: any) => {
+        if (!t.createdAt) return false
+        const d = new Date(t.createdAt)
+        const tdy = new Date()
+        return d.toDateString() === tdy.toDateString()
+      }) || []
+      const todayFocus = ws?.focusSessions?.filter((s: any) => {
+        if (!s.completedAt) return false
+        const d = new Date(s.completedAt)
+        const tdy = new Date()
+        return d.toDateString() === tdy.toDateString()
+      }) || []
+      const todayHabits = ws?.habitState?.records?.filter((r: any) => r.date === today) || []
+      const todayMood = ws?.moodState?.records?.filter((r: any) => r.date === today) || []
+
+      const contextParts: string[] = []
+      if (todayTasks.length > 0) {
+        contextParts.push(`今日任务：${todayTasks.map((t: any) => `${t.title}(${t.completed ? '已完成' : '未完成'})`).join('、')}`)
+      }
+      if (todayFocus.length > 0) {
+        const totalMin = todayFocus.reduce((s: number, f: any) => s + (f.minutes || 0), 0)
+        contextParts.push(`今日专注：${todayFocus.length}次，共${totalMin}分钟`)
+      }
+      if (todayHabits.length > 0) {
+        const done = todayHabits.filter((r: any) => r.completed).length
+        contextParts.push(`今日习惯：${done}/${todayHabits.length} 完成`)
+      }
+      if (todayMood.length > 0) {
+        contextParts.push(`今日心情记录：${todayMood.length}条`)
+      }
+
+      const draft = createAiPromptDraft({
+        kind: 'daily-review',
+        input: '请根据以下数据生成今日复盘建议',
+        context: contextParts.join('\n') || '暂无今日活动数据'
+      })
+
+      const prompt = `${draft.systemPrompt}\n\n用户今日数据：\n${draft.userPrompt}\n\n请生成一段温暖、鼓励的复盘建议（200字以内），包含：1. 今日亮点总结 2. 可改进的地方 3. 明日建议。`
+
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('xhh_deepseek_key') || ''}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 500,
+          temperature: 0.7
+        })
+      })
+
+      if (!response.ok) {
+        const errText = await response.text()
+        throw new Error(`API 请求失败: ${response.status} ${errText}`)
+      }
+
+      const data = await response.json()
+      const content = data.choices?.[0]?.message?.content || '无法生成建议，请稍后重试'
+      setAiSuggestion(content)
+    } catch (err: any) {
+      setAiSuggestion(`AI 辅助暂不可用：${err.message || '请检查 API Key 配置'}`)
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   if (compact) {
@@ -418,6 +495,24 @@ export function JournalUI({ onClose, compact = false }: JournalUIProps) {
                 {todayEntry.content}
               </div>
 
+              {aiSuggestion && (
+                <div style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  background: 'color-mix(in srgb, var(--primary) 8%, var(--surface-elevated))',
+                  border: '1px solid color-mix(in srgb, var(--primary) 20%, var(--border))',
+                  marginBottom: 12,
+                  lineHeight: 1.7,
+                  fontSize: 14
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 18 }}>🤖</span>
+                    <strong style={{ fontSize: 13, color: 'var(--primary)' }}>AI 复盘建议</strong>
+                  </div>
+                  <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{aiSuggestion}</p>
+                </div>
+              )}
+
               {todayEntry.highlights.length > 0 && (
                 <div style={{ marginBottom: 12 }}>
                   <strong style={{ fontSize: 13, color: 'var(--muted)' }}>✨ 今日亮点</strong>
@@ -467,6 +562,24 @@ export function JournalUI({ onClose, compact = false }: JournalUIProps) {
                   编辑复盘
                 </button>
                 <button
+                  onClick={handleAiAssist}
+                  disabled={aiLoading}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: 8,
+                    border: '1px solid var(--primary)',
+                    background: aiLoading ? 'var(--surface-elevated)' : 'transparent',
+                    color: aiLoading ? 'var(--muted)' : 'var(--primary)',
+                    cursor: aiLoading ? 'not-allowed' : 'pointer',
+                    fontSize: 13,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  🤖 {aiLoading ? '生成中...' : 'AI 复盘'}
+                </button>
+                <button
                   onClick={() => handleDelete(todayEntry.id)}
                   style={{
                     padding: '10px 16px',
@@ -493,20 +606,55 @@ export function JournalUI({ onClose, compact = false }: JournalUIProps) {
               <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 16px' }}>
                 花几分钟回顾今天，记录收获和反思
               </p>
-              <button
-                onClick={startEditing}
-                style={{
-                  padding: '10px 24px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: 'var(--primary)',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontWeight: 600
-                }}
-              >
-                开始复盘
-              </button>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                <button
+                  onClick={startEditing}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontWeight: 600
+                  }}
+                >
+                  开始复盘
+                </button>
+                <button
+                  onClick={handleAiAssist}
+                  disabled={aiLoading}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: 8,
+                    border: '1px solid var(--primary)',
+                    background: 'transparent',
+                    color: 'var(--primary)',
+                    cursor: aiLoading ? 'not-allowed' : 'pointer',
+                    fontWeight: 600
+                  }}
+                >
+                  🤖 {aiLoading ? '生成中...' : 'AI 帮我复盘'}
+                </button>
+              </div>
+              {aiSuggestion && (
+                <div style={{
+                  marginTop: 16,
+                  padding: 16,
+                  borderRadius: 12,
+                  background: 'color-mix(in srgb, var(--primary) 8%, var(--surface-elevated))',
+                  border: '1px solid color-mix(in srgb, var(--primary) 20%, var(--border))',
+                  lineHeight: 1.7,
+                  fontSize: 14,
+                  textAlign: 'left'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{ fontSize: 18 }}>🤖</span>
+                    <strong style={{ fontSize: 13, color: 'var(--primary)' }}>AI 复盘建议</strong>
+                  </div>
+                  <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{aiSuggestion}</p>
+                </div>
+              )}
             </div>
           )}
         </div>

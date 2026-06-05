@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { EvolutionEntry } from './evolutionRitualTypes'
 import type { MemoryEvent, MemoryProfile } from '../../memory/memoryTypes'
+import type { ProfileChangeProposal } from './reflectionEngineTypes'
 import { evolutionStorage } from './evolutionStorage'
 import { reflectionEngine } from './reflectionEngine'
 
@@ -13,10 +14,31 @@ function getWeekKey(date: Date): string {
   return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
 }
 
+function applyProfileChanges(profile: MemoryProfile, changes: ProfileChangeProposal[]): MemoryProfile {
+  const updated = { ...profile }
+  for (const change of changes) {
+    setNestedValue(updated, change.fieldPath, change.newValue)
+  }
+  return updated
+}
+
+function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = path.split('.')
+  let current: Record<string, unknown> = obj
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+      current[keys[i]] = {}
+    }
+    current = current[keys[i]] as Record<string, unknown>
+  }
+  current[keys[keys.length - 1]] = value
+}
+
 export function useEvolutionRitual(
   userId: string | undefined,
   memoryEvents?: MemoryEvent[],
-  memoryProfile?: MemoryProfile
+  memoryProfile?: MemoryProfile,
+  onProfileUpdate?: (updatedProfile: MemoryProfile) => void
 ) {
   const [pendingEntry, setPendingEntry] = useState<EvolutionEntry | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -61,13 +83,13 @@ export function useEvolutionRitual(
       
       if (shouldTrigger) {
         const profile = memoryProfile || {
-          identity: { nickname: userId, role: '', mbti: 'unknown' },
-          personality: { traits: [], planningStyle: '', workRhythm: '' },
+          identity: { nickname: userId, currentRole: '' },
+          personality: { traits: [], planningStyle: '' },
           rhythm: { energyPeak: 'unknown' },
-          goals: { primaryGoal: '', activeGoals: [] },
-          preferences: { encouragementStyle: '', communicationStyle: '' },
-          boundaries: { topicsToAvoid: [] },
-          learning: { style: 'unknown', preferredMethods: [] },
+          goals: { primaryGoal: '', secondaryGoals: [] },
+          preferences: { encouragementStyle: '' },
+          boundaries: { tabooTopics: [] },
+          learning: { learningStyle: 'unknown', effectiveStrategies: [] },
           emotional: { motivationLevel: 'medium' }
         } as MemoryProfile
 
@@ -98,9 +120,16 @@ export function useEvolutionRitual(
   }, [checkAndCreateEntry])
 
   const handleAccept = useCallback(async (entryId: string) => {
+    const entry = await evolutionStorage.getById(entryId)
     await evolutionStorage.updateDecision(entryId, 'accepted')
+    
+    if (entry && onProfileUpdate && memoryProfile) {
+      const updatedProfile = applyProfileChanges(memoryProfile, entry.proposedChanges)
+      onProfileUpdate(updatedProfile)
+    }
+    
     setPendingEntry(null)
-  }, [])
+  }, [memoryProfile, onProfileUpdate])
 
   const handleReject = useCallback(async (entryId: string) => {
     await evolutionStorage.updateDecision(entryId, 'rejected')
@@ -108,9 +137,24 @@ export function useEvolutionRitual(
   }, [])
 
   const handleModify = useCallback(async (entryId: string, modifiedChanges: EvolutionEntry['finalChanges']) => {
+    const entry = await evolutionStorage.getById(entryId)
     await evolutionStorage.updateDecision(entryId, 'modified', modifiedChanges)
+    
+    if (entry && onProfileUpdate && memoryProfile && modifiedChanges) {
+      const proposals = modifiedChanges.map(c => ({
+        fieldPath: c.fieldPath,
+        oldValue: c.oldValue,
+        newValue: c.newValue,
+        reasoning: '',
+        evidenceEventIds: [] as string[],
+        confidence: 0.8
+      }))
+      const updatedProfile = applyProfileChanges(memoryProfile, proposals)
+      onProfileUpdate(updatedProfile)
+    }
+    
     setPendingEntry(null)
-  }, [])
+  }, [memoryProfile, onProfileUpdate])
 
   const handleClose = useCallback(async () => {
     if (pendingEntry) {

@@ -288,7 +288,7 @@ export function ReadingUI({ compact = false, service: externalService }: Reading
                         onChange={(e) => setReadingPageInputs((prev) => ({ ...prev, [book.id]: e.target.value }))}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
-                            const val = parseInt(readingPageInputs[book.id] || '')
+                            const val = parseInt(e.currentTarget.value)
                             if (val >= 0) {
                               service.updateBookProgress(book.id, val)
                               setReadingPageInputs((prev) => ({ ...prev, [book.id]: '' }))

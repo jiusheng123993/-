@@ -18,6 +18,8 @@ export type MemoryObserver = {
   onScheduleAnomaly: (detectedAt: string, anomalyType: string) => void
   onStreakEvent: (type: StreakEventType, detail: string) => void
   onGoalChange: (oldGoal: WorkspaceGoal, newGoal: WorkspaceGoal) => void
+  onConversationComplete: (summary: string, topics: string[], userSentiment?: string) => void
+  onUserPreferenceLearned: (preference: string, evidence: string) => void
 }
 
 const createDefaultId = () => `memory-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -139,6 +141,27 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         ['goal_change', newGoal.workspaceType],
         'goal_updated',
         newGoal.progress === 100 ? 0.9 : 0.82
+      )
+    },
+    onConversationComplete: (summary, topics, userSentiment) => {
+      const sentimentTag = userSentiment ? `sentiment_${userSentiment}` : 'sentiment_neutral'
+      append(
+        resolvedOptions,
+        'context',
+        `对话摘要：${summary}`,
+        ['conversation', ...topics.map(t => `topic_${t}`), sentimentTag],
+        'conversation_complete',
+        0.75
+      )
+    },
+    onUserPreferenceLearned: (preference, evidence) => {
+      append(
+        resolvedOptions,
+        'preference',
+        `用户偏好：${preference}。依据：${evidence}`,
+        ['user_preference', 'conversation_insight'],
+        'preference_learned',
+        0.85
       )
     }
   }
