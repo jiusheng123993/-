@@ -289,7 +289,7 @@ function CustomPersonaCreatorModal({ onClose, onCreate }: { onClose: () => void;
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000
+        zIndex: 2147483647
       }}
       onClick={onClose}
       role="presentation"

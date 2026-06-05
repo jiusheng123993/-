@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import {
   Bot,
   Minus,
@@ -690,21 +691,23 @@ export default function App() {
   }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents])
 
   const closeAllSidebarPanels = () => {
-    setIsThemePickerOpen(false)
-    setIsWallpaperPickerOpen(false)
-    setIsIdentitySelectorOpen(false)
-    setIsAIRecommendationOpen(false)
-    setIsLayoutShareOpen(false)
-    setIsMembershipOpen(false)
-    setIsPaymentOpen(false)
-    setIsAdminConsoleOpen(false)
-    setIsRelationshipSpaceOpen(false)
-    setIsAgentChatOpen(false)
-    setIsMemoryProfileOpen(false)
-    setIsCycleTrackerOpen(false)
-    setIsAvatarManagerOpen(false)
-    setIsPersonaSelectorOpen(false)
-    setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
+    flushSync(() => {
+      setIsThemePickerOpen(false)
+      setIsWallpaperPickerOpen(false)
+      setIsIdentitySelectorOpen(false)
+      setIsAIRecommendationOpen(false)
+      setIsLayoutShareOpen(false)
+      setIsMembershipOpen(false)
+      setIsPaymentOpen(false)
+      setIsAdminConsoleOpen(false)
+      setIsRelationshipSpaceOpen(false)
+      setIsAgentChatOpen(false)
+      setIsMemoryProfileOpen(false)
+      setIsCycleTrackerOpen(false)
+      setIsAvatarManagerOpen(false)
+      setIsPersonaSelectorOpen(false)
+      setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
+    })
   }
 
   const openThemePicker = () => {
