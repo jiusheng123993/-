@@ -25,6 +25,9 @@ export type MemoryEvent = {
   createdAt: string
   updatedAt: string
   expiresAt: string | null
+  category?: string
+  summary?: string
+  timestamp?: string
 }
 
 export type MemoryFact = {

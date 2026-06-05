@@ -29,6 +29,7 @@ const append = (
   kind: MemoryKind,
   content: string,
   tags: string[],
+  category: string,
   confidence = 0.8
 ) => {
   const timestamp = options.now()
@@ -43,7 +44,10 @@ const append = (
     tags,
     createdAt: timestamp,
     updatedAt: timestamp,
-    expiresAt: null
+    expiresAt: null,
+    category,
+    summary: content,
+    timestamp
   }
 
   options.store.appendEvent(event)
@@ -71,6 +75,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         'context',
         `完成任务：${task.title}，获得 ${task.rewardPoints} 积分，预计投入 ${task.minutes} 分钟。`,
         ['task_completed', task.workspaceType, task.source],
+        'task_completed',
         0.82
       )
     },
@@ -80,6 +85,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         'context',
         `任务延期：${task.title}，原计划 ${task.dueLabel}，需要重新安排。`,
         ['task_delayed', task.workspaceType, task.source],
+        'task_delayed',
         0.76
       )
     },
@@ -89,6 +95,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         'habit',
         `完成 ${session.minutes} 分钟专注：${session.taskTitle}，获得 ${session.rewardPoints} 积分。`,
         ['focus_session', session.workspaceType],
+        'focus_completed',
         Math.min(0.95, 0.65 + session.minutes / 200)
       )
     },
@@ -99,6 +106,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         'context',
         `计划偏离：原计划「${expected}」，实际「${actual}」。`,
         ['plan_deviation'],
+        'plan_deviation',
         0.78
       )
     },
@@ -108,6 +116,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         'context',
         `作息异常：${anomalyType}，检测时间 ${detectedAt}。`,
         ['schedule_anomaly'],
+        'schedule_anomaly',
         0.74
       )
     },
@@ -117,6 +126,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         type === 'milestone' || type === 'restored' ? 'habit' : 'context',
         `连续行动事件：${detail}。`,
         [`streak_${type}`],
+        `streak_${type}`,
         type === 'milestone' ? 0.88 : 0.8
       )
     },
@@ -127,6 +137,7 @@ export const createMemoryObserver = (options: MemoryObserverOptions): MemoryObse
         'goal',
         `目标更新：${newGoal.title}，目标进度从 ${oldGoal.progress}% 更新到 ${newGoal.progress}%。`,
         ['goal_change', newGoal.workspaceType],
+        'goal_updated',
         newGoal.progress === 100 ? 0.9 : 0.82
       )
     }

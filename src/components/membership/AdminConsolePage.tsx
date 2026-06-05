@@ -676,7 +676,8 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
           {queryResult.length > 0 && (
             <div className={styles.statusCard} style={{ marginTop: 24 }}>
               <h3>查询结果: {queryUserId}</h3>
-              <table className="membership-benefits-table" style={{ marginTop: 16 }}>
+              <div className="table-responsive">
+              <table className="membership-benefits-table data-table" style={{ marginTop: 16 }}>
                 <thead>
                   <tr>
                     <th>权益代码</th>
@@ -696,6 +697,7 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </section>
@@ -745,7 +747,8 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
                 暂无订单数据
               </p>
             ) : (
-              <table className="membership-benefits-table">
+              <div className="table-responsive">
+              <table className="membership-benefits-table data-table">
                 <thead>
                   <tr>
                     <th>订单号</th>
@@ -804,6 +807,7 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </section>
@@ -1035,7 +1039,8 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
                     </div>
                   </div>
 
-                  <table className="membership-benefits-table">
+                  <div className="table-responsive">
+                  <table className="membership-benefits-table data-table">
                     <thead>
                       <tr>
                         <th>时间</th>
@@ -1099,6 +1104,7 @@ export function AdminConsolePage({ onClose }: AdminConsolePageProps) {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </>
               )
             })()}

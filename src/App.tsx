@@ -377,7 +377,6 @@ export default function App() {
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
-  const { pendingEntry, handleEvolutionAccept, handleEvolutionReject } = useEvolutionRitual(authSession?.userId ?? 'anonymous', memoryEvents, memoryProfile)
   
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [

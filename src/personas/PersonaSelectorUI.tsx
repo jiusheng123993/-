@@ -178,7 +178,8 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
 
       <section className={styles.quotaSection}>
         <h2>角色权限说明</h2>
-        <table className="membership-benefits-table">
+        <div className="table-responsive">
+        <table className="membership-benefits-table data-table">
           <thead>
             <tr>
               <th>角色</th>
@@ -214,6 +215,7 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
             </tr>
           </tbody>
         </table>
+        </div>
       </section>
 
       {showCreator && (
