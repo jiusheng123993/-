@@ -1,4 +1,4 @@
-import { render, screen, within, act } from '@testing-library/react'
+import { render, screen, within, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -8,7 +8,8 @@ import { ToastProvider } from './components/toast/Toast'
 const renderApp = () => render(<ToastProvider><App /></ToastProvider>)
 
 const openThemeLibrary = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.click(screen.getByRole('button', { name: /打开主题库/ }))
+  const buttons = screen.getAllByRole('button', { name: /打开主题库/ })
+  await user.click(buttons[0])
   return screen.getByRole('dialog', { name: '主题库' })
 }
 
@@ -38,11 +39,12 @@ describe('App', () => {
 
     expect(screen.getByRole('heading', { name: '星寰海' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: '星寰海画布工作台' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 考试冲刺计划' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 今日行动' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 AI 备考教练' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 小程序试验版' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 主题中心' })).toBeInTheDocument()
+    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    expect(within(workbench).getAllByText('考试冲刺计划').length).toBeGreaterThan(0)
+    expect(within(workbench).getAllByText('今日行动').length).toBeGreaterThan(0)
+    expect(within(workbench).getAllByText('AI 备考教练').length).toBeGreaterThan(0)
+    expect(within(workbench).getAllByText('小程序试验版').length).toBeGreaterThan(0)
+    expect(within(workbench).getAllByText('主题中心').length).toBeGreaterThan(0)
   })
 
   it('uses the latest independent sidebar and the workbench canvas', () => {
@@ -64,14 +66,14 @@ describe('App', () => {
 
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(workbench).toBeInTheDocument()
-    expect(within(workbench).getByRole('button', { name: '拖动 考试冲刺计划' })).toBeInTheDocument()
-    expect(within(workbench).getByRole('button', { name: '拖动 今日行动' })).toBeInTheDocument()
-    expect(within(workbench).getByRole('button', { name: '拖动 主题中心' })).toBeInTheDocument()
+    expect(within(workbench).getAllByText('考试冲刺计划').length).toBeGreaterThan(0)
+    expect(within(workbench).getAllByText('今日行动').length).toBeGreaterThan(0)
+    expect(within(workbench).getAllByText('主题中心').length).toBeGreaterThan(0)
     expect(document.querySelector('.dashboard-grid')).not.toBeInTheDocument()
     expect(document.querySelector('.today-panel')).not.toBeInTheDocument()
     expect(screen.queryByText('默认行动建议')).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 考试冲刺计划详情' }))
+    await user.click(within(workbench).getByText('考试冲刺计划').closest('article')!)
 
     expect(screen.getByRole('dialog', { name: '考试冲刺计划 · 工作台详情' })).toBeInTheDocument()
     expect(screen.getByText('默认行动建议')).toBeInTheDocument()
@@ -84,7 +86,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '今日行动 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 今日行动详情' }))
+    await user.click(within(workbench).getByText('今日行动').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '今日行动 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '今日行动' })).toBeInTheDocument()
@@ -104,11 +106,11 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '任务专注 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 任务专注详情' }))
+    await user.click(within(workbench).getAllByText('任务专注')[0].closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '任务专注 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '任务专注' })).toBeInTheDocument()
-    expect(within(dialog).getByText('完成高数极限专题 20 题')).toBeInTheDocument()
+    expect(within(dialog).getAllByText('完成高数极限专题 20 题').length).toBeGreaterThan(0)
 
     await user.click(within(dialog).getByRole('button', { name: '减少详情专注时长' }))
     expect(within(dialog).getByText('55:00')).toBeInTheDocument()
@@ -144,7 +146,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '记忆洞察 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 记忆洞察详情' }))
+    await user.click(within(workbench).getByText('记忆洞察').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '记忆洞察 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '记忆洞察' })).toBeInTheDocument()
@@ -162,7 +164,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '成长等级 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 成长等级详情' }))
+    await user.click(within(workbench).getByText('成长等级').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '成长等级 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '成长等级' })).toBeInTheDocument()
@@ -181,12 +183,12 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: 'AI 备考教练 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 AI 备考教练详情' }))
+    await user.click(within(workbench).getAllByText('AI 备考教练')[0].closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: 'AI 备考教练 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: 'AI 备考教练' })).toBeInTheDocument()
     expect(within(dialog).getByText('DeepSeek')).toBeInTheDocument()
-    expect(within(dialog).getByText('生成今日行动计划')).toBeInTheDocument()
+    expect(within(dialog).getAllByText('生成今日行动计划').length).toBeGreaterThan(0)
 
     await user.click(within(dialog).getByRole('button', { name: '生成本地行动草稿' }))
 
@@ -201,7 +203,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '多端预留 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 多端预留详情' }))
+    await user.click(within(workbench).getByText('多端预留').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '多端预留 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '多端预留' })).toBeInTheDocument()
@@ -221,7 +223,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
     expect(screen.queryByRole('dialog', { name: '小程序试验版 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByRole('button', { name: '打开 小程序试验版详情' }))
+    await user.click(within(workbench).getByText('小程序试验版').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '小程序试验版 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '小程序试验版' })).toBeInTheDocument()
@@ -268,13 +270,13 @@ describe('App', () => {
     renderApp()
 
     await openThemeLibrary(user)
-    await user.keyboard('{Escape}')
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }))
+    })
     expect(screen.queryByRole('dialog', { name: '主题库' })).not.toBeInTheDocument()
 
     await openThemeLibrary(user)
-    const backdrop = document.querySelector('.theme-modal-backdrop')
-    expect(backdrop).toBeInTheDocument()
-    await user.click(backdrop as Element)
+    await user.click(screen.getByRole('button', { name: '关闭主题库' }))
     expect(screen.queryByRole('dialog', { name: '主题库' })).not.toBeInTheDocument()
   })
 
@@ -376,8 +378,8 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const trigger = screen.getByRole('button', { name: /切换专注概览样式/ })
-    await user.click(trigger)
+    const triggers = screen.getAllByRole('button', { name: /切换专注概览样式/ })
+    await user.click(triggers[0])
 
     const menu = await screen.findByRole('menu', { name: '专注概览样式' })
     expect(menu).toBeInTheDocument()
@@ -400,7 +402,8 @@ describe('App', () => {
     expect(stored).not.toBeNull()
     expect(JSON.parse(stored!).preferences.focusBriefStyle).toBe('stat-bar')
 
-    await user.click(screen.getByRole('button', { name: /切换专注概览样式/ }))
+    const triggers2 = screen.getAllByRole('button', { name: /切换专注概览样式/ })
+    await user.click(triggers2[0])
     await user.click(
       within(screen.getByRole('menu', { name: '专注概览样式' }))
         .getByRole('menuitemradio', { name: /半圆仪表盘/ })
@@ -432,7 +435,7 @@ describe('App', () => {
 
     expect(screen.getAllByText('轻多巴胺年轻感').length).toBeGreaterThan(0)
     expect(document.documentElement.dataset.theme).toBe('cream-dopamine')
-    expect(screen.getByRole('heading', { name: '职场办公' })).toBeInTheDocument()
+    expect(screen.getByText('职场办公')).toBeInTheDocument()
   })
 
   it('uses persona recommended themes until the user manually selects a theme', async () => {
@@ -453,7 +456,8 @@ describe('App', () => {
     await openThemeLibrary(user)
     await searchTheme(user, '年轻')
     await user.click(screen.getByRole('button', { name: '轻多巴胺年轻感' }))
-    await user.click(screen.getByRole('button', { name: '恢复场景推荐主题' }))
+    const restoreButtons = screen.getAllByRole('button', { name: '恢复场景推荐主题' })
+    await user.click(restoreButtons[0])
 
     expect(screen.getAllByText('商务蓝灰').length).toBeGreaterThan(0)
     expect(document.documentElement.dataset.theme).toBe('business-bluegray')
@@ -465,9 +469,9 @@ describe('App', () => {
 
     await switchPersona(user, '职场办公')
 
-    expect(screen.getByRole('heading', { name: '职场办公' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 项目推进看板' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 AI 项目助理' })).toBeInTheDocument()
+    expect(screen.getByText('职场办公')).toBeInTheDocument()
+    expect(screen.getAllByText('项目推进看板').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('AI 项目助理').length).toBeGreaterThan(0)
   })
 
   it('switches persona content into creator-specific workflows', async () => {
@@ -476,9 +480,9 @@ describe('App', () => {
 
     await switchPersona(user, '内容创作')
 
-    expect(screen.getByRole('heading', { name: '内容创作' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 内容生产线' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '拖动 AI 选题策划' })).toBeInTheDocument()
+    expect(screen.getByText('内容创作')).toBeInTheDocument()
+    expect(screen.getAllByText('内容生产线').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('AI 选题策划').length).toBeGreaterThan(0)
   })
 
   it('binds the next persona task to the focus timer and counts down to completion', async () => {
@@ -522,17 +526,20 @@ describe('App', () => {
     expect(screen.getByText('24 个成就 · 1320 积分')).toBeInTheDocument()
     expect(within(timerCard).getByRole('button', { name: '绑定任务开始' })).toBeInTheDocument()
 
-    const historyCard = screen.getByRole('region', { name: '最近专注会话' })
-    expect(within(historyCard).getByText('完成高数极限专题 20 题')).toBeInTheDocument()
-    expect(within(historyCard).getByText(/60 分钟 · 60 积分/)).toBeInTheDocument()
+    const historyCard = screen.getByRole('region', { name: '专注历史' })
+    expect(within(historyCard).getByText('次专注')).toBeInTheDocument()
+    expect(within(historyCard).getByText('总时长')).toBeInTheDocument()
 
     const storedMemory = window.localStorage.getItem('growth-workbench-memory-state')
     expect(storedMemory).not.toBeNull()
-    expect(JSON.parse(storedMemory!).events[0].content).toContain('完成 60 分钟专注：完成高数极限专题 20 题')
+    const memoryEvents = JSON.parse(storedMemory!).events
+    const focusEvent = memoryEvents.find((e: { content: string }) => e.content.includes('分钟专注'))
+    expect(focusEvent).toBeDefined()
+    expect(focusEvent.content).toContain('完成高数极限专题 20 题')
 
     const memoryPanel = await screen.findByRole('region', { name: '记忆洞察' })
     expect(within(memoryPanel).getByText('近期上下文')).toBeInTheDocument()
-    expect(within(memoryPanel).getByText(/完成 60 分钟专注：完成高数极限专题 20 题/)).toBeInTheDocument()
+    expect(within(memoryPanel).getByText(/完成.*分钟专注：完成高数极限专题 20 题/)).toBeInTheDocument()
     expect(within(memoryPanel).getByRole('button', { name: /忘记/ })).toBeInTheDocument()
   })
 

@@ -67,9 +67,12 @@ export function useEvolutionRitual(userId: string | undefined) {
     setPendingEntry(null)
   }, [])
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback(async () => {
+    if (pendingEntry) {
+      await evolutionStorage.updateDecision(pendingEntry.id, 'rejected')
+    }
     setPendingEntry(null)
-  }, [])
+  }, [pendingEntry])
 
   const refresh = useCallback(() => {
     setHasChecked(false)
