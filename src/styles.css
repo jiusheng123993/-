@@ -53,6 +53,18 @@ button {
   background: var(--app-background);
 }
 
+.workspace-layout {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  overflow: hidden;
+}
+
+.workspace-layout > .workspace {
+  flex: 1;
+  min-width: 0;
+}
+
 .panel,
 .card {
   position: relative;
@@ -304,8 +316,7 @@ html[data-material='aqua'] .nav-item.active {
     color-mix(in srgb, var(--accent), transparent 45%));
   backdrop-filter: blur(12px) saturate(1.5);
   border: 1px solid var(--glass-edge);
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: var(--surface, #ffffff);
   box-shadow:
     0 8px 20px var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -554,6 +565,33 @@ small,
   font-size: 14px;
 }
 
+.hero-quote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 16px;
+}
+
+.hero-quote-text {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.hero-quote-author {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
 .hero h1,
 .card h2,
 .side-card h2,
@@ -664,8 +702,8 @@ small,
 }
 
 .pill.warm {
-  color: #92400e;
-  background: #fef3c7;
+  color: var(--warning, #92400e);
+  background: var(--warning-bg, #fef3c7);
 }
 
 .dashboard-grid {
@@ -1558,13 +1596,13 @@ small,
 }
 
 .dark-card {
-  color: #f8fafc;
-  background: linear-gradient(135deg, #111827, #312e81);
+  color: var(--surface, #f8fafc);
+  background: linear-gradient(135deg, var(--bg-primary, #111827), var(--primary, #312e81));
 }
 
 .dark-card .eyebrow,
 .dark-card p {
-  color: #c4b5fd;
+  color: var(--muted, #c4b5fd);
 }
 
 .review-grid {
@@ -2790,7 +2828,7 @@ small,
 .membership-period-save {
   font-size: 11px;
   font-weight: 600;
-  color: #ef4444;
+  color: var(--error, #ef4444);
   background: rgba(239, 68, 68, 0.1);
   padding: 2px 8px;
   border-radius: 999px;
@@ -3222,7 +3260,7 @@ small,
 
 .membership-trial-card.featured {
   border-color: #8b5cf6;
-  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  background: linear-gradient(135deg, var(--bg-secondary, #f5f3ff), var(--bg-secondary, #faf5ff));
 }
 
 .membership-trial-header {
@@ -3287,15 +3325,15 @@ small,
 
 .membership-trial-status {
   padding: 16px;
-  background: linear-gradient(135deg, #f0fdf4, #f0f9ff);
-  border: 1px solid #bbf7d0;
+  background: linear-gradient(135deg, var(--bg-secondary, #f0fdf4), var(--bg-secondary, #f0f9ff));
+  border: 1px solid var(--border, #bbf7d0);
   border-radius: 12px;
 }
 
 .membership-trial-status h4 {
   font-size: 13px;
   font-weight: 600;
-  color: #166534;
+  color: var(--success, #166534);
   margin: 0 0 10px;
 }
 
@@ -3309,7 +3347,7 @@ small,
 }
 
 .membership-trial-active:not(:last-child) {
-  border-bottom: 1px solid #bbf7d0;
+  border-bottom: 1px solid var(--border, #bbf7d0);
 }
 
 .membership-trial-active:last-child {
@@ -3350,8 +3388,8 @@ small,
 }
 
 .membership-dynamic-benefit.unlocked {
-  border-color: #10b981;
-  background: linear-gradient(135deg, #f0fdf4, #fafafa);
+  border-color: var(--success, #10b981);
+  background: linear-gradient(135deg, var(--bg-secondary, #f0fdf4), var(--bg-secondary, #fafafa));
 }
 
 .membership-dynamic-benefit.locked {
@@ -3440,7 +3478,7 @@ small,
 }
 
 .reward-value strong {
-  color: #6366f1;
+  color: var(--primary, #6366f1);
 }
 
 .membership-invite-actions {
@@ -3502,13 +3540,13 @@ small,
 }
 
 .invite-status.active {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--success-bg, #dcfce7);
+  color: var(--success, #16a34a);
 }
 
 .invite-status.pending {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--warning-bg, #fef3c7);
+  color: var(--warning, #d97706);
 }
 
 .invite-reward {
@@ -3534,7 +3572,7 @@ small,
 
 .membership-coupon-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--primary, #6366f1);
 }
 
 .membership-coupon-apply {
@@ -3565,8 +3603,8 @@ small,
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, #fef3c7, #fef9c3);
-  border: 1px solid #fcd34d;
+  background: linear-gradient(135deg, var(--warning-bg, #fef3c7), var(--warning-bg, #fef9c3));
+  border: 1px solid var(--border, #fcd34d);
   border-radius: 12px;
   margin-bottom: 12px;
 }
@@ -3574,7 +3612,7 @@ small,
 .coupon-discount {
   font-size: 16px;
   font-weight: 700;
-  color: #d97706;
+  color: var(--warning, #d97706);
 }
 
 .coupon-code {
@@ -3586,7 +3624,7 @@ small,
 
 .coupon-status {
   font-size: 12px;
-  color: #16a34a;
+  color: var(--success, #16a34a);
 }
 
 .membership-renewal-section {
@@ -3632,8 +3670,8 @@ small,
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  background: linear-gradient(135deg, #fef3c7, #fef9c3);
-  border: 1px solid #fcd34d;
+  background: linear-gradient(135deg, var(--warning-bg, #fef3c7), var(--warning-bg, #fef9c3));
+  border: 1px solid var(--border, #fcd34d);
   border-radius: 16px;
 }
 
@@ -3649,15 +3687,15 @@ small,
 }
 
 .renewal-urgent {
-  color: #dc2626;
+  color: var(--error, #dc2626);
 }
 
 .renewal-soon {
-  color: #d97706;
+  color: var(--warning, #d97706);
 }
 
 .renewal-normal {
-  color: #16a34a;
+  color: var(--success, #16a34a);
 }
 
 .renewal-discount {
@@ -3670,7 +3708,7 @@ small,
   font-size: 12px;
   font-weight: 600;
   color: white;
-  background: #dc2626;
+  background: var(--error, #dc2626);
   padding: 2px 8px;
   border-radius: 999px;
 }
@@ -3681,7 +3719,7 @@ small,
 }
 
 .discount-text strong {
-  color: #dc2626;
+  color: var(--error, #dc2626);
   font-size: 18px;
 }
 
@@ -3690,7 +3728,7 @@ small,
   font-size: 15px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  background: linear-gradient(135deg, var(--error, #dc2626), #b91c1c);
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -3815,17 +3853,17 @@ small,
   font-size: 11px;
   font-weight: 600;
   color: white;
-  background: #6366f1;
+  background: var(--primary, #6366f1);
   padding: 2px 8px;
   border-radius: 999px;
 }
 
 .membership-activity-card:nth-child(2) .activity-tag {
-  background: #f59e0b;
+  background: var(--warning, #f59e0b);
 }
 
 .membership-activity-card:nth-child(3) .activity-tag {
-  background: #10b981;
+  background: var(--success, #10b981);
 }
 
 .activity-title {
@@ -3844,16 +3882,16 @@ small,
   padding: 10px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: #6366f1;
+  color: var(--primary, #6366f1);
   background: transparent;
-  border: 1px solid #6366f1;
+  border: 1px solid var(--primary, #6366f1);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .activity-button:hover {
-  background: #6366f1;
+  background: var(--primary, #6366f1);
   color: white;
 }
 
@@ -3888,8 +3926,8 @@ small,
 }
 
 .membership-service-item:hover {
-  border-color: #6366f1;
-  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  border-color: var(--primary, #6366f1);
+  background: linear-gradient(135deg, var(--bg-secondary, #f5f3ff), var(--bg-secondary, #faf5ff));
 }
 
 .service-icon {
@@ -4866,7 +4904,7 @@ small,
 }
 
 .today-tasks-detail-item.completed .task-meta {
-  color: #10b981;
+  color: var(--success, #10b981);
 }
 
 .today-tasks-empty-detail {
@@ -6151,8 +6189,8 @@ small,
 }
 
 .persona-switcher-action-btn.danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--error-bg, #fef2f2);
+  color: var(--error, #dc2626);
 }
 
 .persona-switcher-footer {
@@ -6904,11 +6942,11 @@ small,
 }
 
 .cycle-stats-bar-fill.symptom {
-  background: #f59e0b;
+  background: var(--warning, #f59e0b);
 }
 
 .cycle-stats-bar-fill.mood {
-  background: #10b981;
+  background: var(--success, #10b981);
 }
 
 .cycle-stats-bar-count {
@@ -7136,7 +7174,7 @@ small,
 
 .module-store-item.active {
   border-color: var(--primary);
-  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  background: linear-gradient(135deg, var(--bg-secondary, #f5f3ff), var(--bg-secondary, #faf5ff));
 }
 
 .module-store-item-header {
@@ -7215,13 +7253,13 @@ small,
 }
 
 .module-store-btn-delete {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background: var(--error-bg, #fef2f2);
+  color: var(--error, #dc2626);
+  border: 1px solid var(--border, #fecaca);
 }
 
 .module-store-btn-delete:hover {
-  background: #fecaca;
+  background: var(--error-bg, #fecaca);
 }
 
 .module-store-btn-create {
@@ -7307,7 +7345,7 @@ small,
   position: relative;
   z-index: -1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: 148px;
   gap: 20px;
   width: 100%;
@@ -7419,7 +7457,7 @@ small,
 
 .canvas-card-close-btn:hover {
   background: var(--surface-hover);
-  color: #ef4444;
+  color: var(--error, #ef4444);
 }
 
 .canvas-card-resize-handles {
@@ -7482,7 +7520,7 @@ small,
 }
 
 .canvas-card.collision-warning {
-  box-shadow: 0 0 0 2px #ef4444;
+  box-shadow: 0 0 0 2px var(--error, #ef4444);
 }
 
 .canvas-card-content {
@@ -7918,7 +7956,7 @@ small,
 
 .ai-recommendation-stack-card.selected {
   border-color: var(--primary);
-  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  background: linear-gradient(135deg, var(--bg-secondary, #f5f3ff), var(--bg-secondary, #faf5ff));
 }
 
 .ai-recommendation-stack-card.selected::after {
