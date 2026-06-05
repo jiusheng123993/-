@@ -38,8 +38,8 @@ describe('App', () => {
     renderApp()
 
     expect(screen.getByRole('heading', { name: '星寰海' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: '星寰海画布工作台' })).toBeInTheDocument()
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    expect(screen.getByRole('region', { name: '工作台画布' })).toBeInTheDocument()
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(within(workbench).getAllByText('考试冲刺计划').length).toBeGreaterThan(0)
     expect(within(workbench).getAllByText('今日行动').length).toBeGreaterThan(0)
     expect(within(workbench).getAllByText('AI 备考教练').length).toBeGreaterThan(0)
@@ -52,7 +52,7 @@ describe('App', () => {
 
     expect(screen.getByRole('heading', { name: '星寰海' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '打开侧边栏' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: '星寰海画布工作台' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: '工作台画布' })).toBeInTheDocument()
     expect(document.querySelector('.draggable-canvas')).toBeInTheDocument()
     expect(document.querySelectorAll('aside.sidebar')).toHaveLength(1)
     expect(document.querySelector('.app-shell > aside.sidebar.panel')).not.toBeInTheDocument()
@@ -64,7 +64,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(workbench).toBeInTheDocument()
     expect(within(workbench).getAllByText('考试冲刺计划').length).toBeGreaterThan(0)
     expect(within(workbench).getAllByText('今日行动').length).toBeGreaterThan(0)
@@ -83,7 +83,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '今日行动 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getByText('今日行动').closest('article')!)
@@ -103,7 +103,7 @@ describe('App', () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '任务专注 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getAllByText('任务专注')[0].closest('article')!)
@@ -143,7 +143,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '记忆洞察 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getByText('记忆洞察').closest('article')!)
@@ -161,7 +161,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '成长等级 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getByText('成长等级').closest('article')!)
@@ -180,7 +180,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: 'AI 备考教练 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getAllByText('AI 备考教练')[0].closest('article')!)
@@ -200,7 +200,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '多端预留 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getByText('多端预留').closest('article')!)
@@ -220,7 +220,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '星寰海画布工作台' })
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '小程序试验版 · 工作台详情' })).not.toBeInTheDocument()
 
     await user.click(within(workbench).getByText('小程序试验版').closest('article')!)
@@ -363,14 +363,14 @@ describe('App', () => {
     expect(screen.getByText('2 个待办')).toBeInTheDocument()
     expect(screen.getByText('95 分钟')).toBeInTheDocument()
     expect(screen.getByText('1 个已完成')).toBeInTheDocument()
-    expect(screen.getByText('60:00')).toBeInTheDocument()
+    expect(screen.getAllByText('60:00').length).toBeGreaterThan(0)
     expect(screen.getAllByText('完成高数极限专题 20 题').length).toBeGreaterThan(0)
 
     await user.click(screen.getByRole('button', { name: /切换用户场景/ }))
     await user.click(screen.getByRole('option', { name: /.*职场办公.*/ }))
 
-    expect(screen.getByText('75 分钟')).toBeInTheDocument()
-    expect(screen.getByText('45:00')).toBeInTheDocument()
+    expect(screen.getAllByText('75 分钟').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('45:00').length).toBeGreaterThan(0)
     expect(screen.getAllByText('补齐项目首页结构说明').length).toBeGreaterThan(0)
   })
 

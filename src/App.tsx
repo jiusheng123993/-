@@ -59,6 +59,7 @@ import { SilentSuggestionUI, useSilentSuggestions } from './agent/SilentSuggesti
 import { useToast } from './components/toast/Toast'
 import { useApiKeyStatus } from './hooks/useApiKeyStatus'
 import { CanvasCard } from './canvas/CanvasCard'
+import { SidebarPanel } from './sidebar-panel'
 import { DraggableModal } from './canvas/DraggableModal'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
@@ -1107,6 +1108,7 @@ export default function App() {
           </filter>
         </defs>
       </svg>
+      <div className="workspace-layout">
       <section className="workspace">
         <header className="hero panel">
           <div className="hero-brand">
@@ -1848,6 +1850,21 @@ export default function App() {
           {layoutImportError && <small style={{ color: '#dc2626' }}>{layoutImportError}</small>}
         </section>
       </section>
+      <SidebarPanel
+        personaId={activePersona.id}
+        streakDays={workspaceState.growth.streakDays}
+        totalFocusMinutes={Math.floor(focusSeconds / 60)}
+        completedTasks={completedTasks.length}
+        todoTasks={todoTasks.map(t => ({ id: t.id, title: t.title, dueLabel: t.dueLabel, minutes: t.minutes }))}
+        focusMinuteText={focusMinuteText}
+        focusSecondText={focusSecondText}
+        isFocusRunning={isFocusRunning}
+        focusDisplayTask={focusDisplayTask ? { id: focusDisplayTask.id, title: focusDisplayTask.title, dueLabel: focusDisplayTask.dueLabel } : null}
+        onStartFocus={startFocusTimer}
+        onPauseFocus={pauseFocusTimer}
+        onResetFocus={resetFocusTimer}
+      />
+      </div>
 
       <DraggableModal
         isOpen={openWorkbenchDetail === 'persona-plan'}
