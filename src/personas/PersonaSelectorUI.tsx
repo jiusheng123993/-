@@ -39,15 +39,15 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
 
   const getPersonaBadge = (persona: PersonaDefinition) => {
     if (persona.category === 'preset') {
-      return { label: '预设', color: '#6366f1' }
+      return { label: '预设', color: 'var(--primary, #6366f1)' }
     }
     if (persona.category === 'cameo') {
       return { label: '客串', color: '#f59e0b' }
     }
     if (persona.category === 'custom') {
-      return { label: '自定义', color: '#10b981' }
+      return { label: '自定义', color: 'var(--success, #10b981)' }
     }
-    return { label: persona.category, color: '#94a3b8' }
+    return { label: persona.category, color: 'var(--muted, #94a3b8)' }
   }
 
   return (
@@ -63,7 +63,7 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div>
               <span className={styles.quotaLabel}>预设角色</span>
-              <span className={styles.quotaValue} style={{ color: availablePresets.length > 0 ? '#10b981' : '#94a3b8' }}>
+              <span className={styles.quotaValue} style={{ color: availablePresets.length > 0 ? 'var(--success, #10b981)' : 'var(--muted, #94a3b8)' }}>
                 {availablePresets.length > 0 ? `${availablePresets.length} 个可用` : '需开通 Agent 会员'}
               </span>
             </div>
@@ -490,7 +490,7 @@ function CustomPersonaCreatorModal({ onClose, onCreate }: { onClose: () => void;
                 padding: '8px 20px',
                 borderRadius: 8,
                 border: 'none',
-                background: !isStepValid() ? 'var(--border)' : '#10b981',
+                background: !isStepValid() ? 'var(--border)' : 'var(--success, #10b981)',
                 color: 'white',
                 cursor: !isStepValid() ? 'not-allowed' : 'pointer',
                 fontSize: 14

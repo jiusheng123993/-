@@ -8,15 +8,15 @@ interface FocusHistoryUIProps {
 }
 
 const colors = {
-  bg: '#0f0f1a',
-  cardBg: '#1a1a2e',
-  cardBorder: '#2a2a4a',
-  text: '#e0e0e0',
-  textSecondary: '#8888aa',
+  bg: 'var(--bg-primary, #0f0f1a)',
+  cardBg: 'var(--surface, #1a1a2e)',
+  cardBorder: 'var(--border, #2a2a4a)',
+  text: 'var(--text, #e0e0e0)',
+  textSecondary: 'var(--muted, #8888aa)',
   accent: '#ef4444',
   accentLight: '#f87171',
   income: '#4caf50',
-  progressBg: '#2a2a4a',
+  progressBg: 'var(--border, #2a2a4a)',
 }
 
 const dayLabels = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']

@@ -10,20 +10,20 @@ interface StudyDashboardUIProps {
 }
 
 const colors = {
-  bg: '#0f0f1a',
-  cardBg: '#1a1a2e',
-  cardBorder: '#2a2a4a',
-  text: '#e0e0e0',
-  textSecondary: '#8888aa',
+  bg: 'var(--bg-primary, #0f0f1a)',
+  cardBg: 'var(--surface, #1a1a2e)',
+  cardBorder: 'var(--border, #2a2a4a)',
+  text: 'var(--text, #e0e0e0)',
+  textSecondary: 'var(--muted, #8888aa)',
   accent: '#6c63ff',
   accentLight: '#8b83ff',
   green: '#4caf50',
   yellow: '#ffc107',
   red: '#f44336',
-  progressBg: '#2a2a4a',
-  inputBg: '#12121f',
-  inputBorder: '#2a2a4a',
-  hoverBg: '#222240',
+  progressBg: 'var(--border, #2a2a4a)',
+  inputBg: 'var(--bg-secondary, #12121f)',
+  inputBorder: 'var(--border, #2a2a4a)',
+  hoverBg: 'var(--bg-secondary, #222240)',
 }
 
 const progressGradient = `linear-gradient(90deg, ${colors.accent}, ${colors.accentLight})`

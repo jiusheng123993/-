@@ -444,7 +444,7 @@ function ContentTab({ service }: { service: CreatorService }) {
                 onClick={() => handleStageChange(piece.id, stage)}
                 style={{
                   ...stageBtnStyle,
-                  backgroundColor: piece.stage === stage ? STAGE_COLORS[stage] : '#f3f4f6',
+                  backgroundColor: piece.stage === stage ? STAGE_COLORS[stage] : 'var(--bg-secondary, #f3f4f6)',
                   color: piece.stage === stage ? '#fff' : 'var(--muted)'
                 }}
               >

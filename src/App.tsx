@@ -207,7 +207,6 @@ const defaultWorkbenchModuleIds = [
   'focus-session',
   'focus-overview',
   'growth-rpg',
-  'persona-brief',
   'key-metrics',
   'focus-history',
   'memory-insights',
@@ -390,7 +389,7 @@ export default function App() {
     if (entitlementService.has(userId, 'agent_plus')) return { level: 'agent_plus', label: 'Agent PLUS', color: '#8b5cf6' }
     if (entitlementService.has(userId, 'agent')) return { level: 'agent', label: 'Agent 会员', color: '#6366f1' }
     if (entitlementService.has(userId, 'study')) return { level: 'study', label: '学习会员', color: '#10b981' }
-    return { level: 'free', label: '免费用户', color: '#94a3b8' }
+    return { level: 'free', label: '免费用户', color: 'var(--muted, #94a3b8)' }
   }, [userId])
   const memoryScope = useMemo<MemoryScope>(() => ({
     userId,
@@ -513,8 +512,8 @@ export default function App() {
   }
   
   const getStatusColor = (status: string) => {
-    const map: Record<string, string> = { pending: '#f59e0b', paid: '#10b981', refunded: '#6b7280', failed: '#ef4444' }
-    return map[status] || '#6b7280'
+    const map: Record<string, string> = { pending: '#f59e0b', paid: '#10b981', refunded: 'var(--muted, #6b7280)', failed: '#ef4444' }
+    return map[status] || 'var(--muted, #6b7280)'
   }
   
   const handleRefundOrder = (orderId: string) => {
@@ -968,6 +967,47 @@ export default function App() {
     }
   }
 
+  const DAILY_QUOTES = [
+    { content: '不积跬步，无以至千里', author: '荀子' },
+    { content: '千里之行，始于足下', author: '老子' },
+    { content: '学而不思则罔，思而不学则殆', author: '孔子' },
+    { content: '业精于勤，荒于嬉', author: '韩愈' },
+    { content: '书山有路勤为径，学海无涯苦作舟', author: '韩愈' },
+    { content: '天行健，君子以自强不息', author: '周易' },
+    { content: '博观而约取，厚积而薄发', author: '苏轼' },
+    { content: '纸上得来终觉浅，绝知此事要躬行', author: '陆游' },
+    { content: '路漫漫其修远兮，吾将上下而求索', author: '屈原' },
+    { content: '宝剑锋从磨砺出，梅花香自苦寒来', author: '佚名' },
+    { content: '少壮不努力，老大徒伤悲', author: '汉乐府' },
+    { content: '黑发不知勤学早，白首方悔读书迟', author: '颜真卿' },
+    { content: '莫等闲，白了少年头，空悲切', author: '岳飞' },
+    { content: '有志者，事竟成', author: '范晔' },
+    { content: '锲而不舍，金石可镂', author: '荀子' },
+    { content: '温故而知新，可以为师矣', author: '孔子' },
+    { content: '三人行，必有我师焉', author: '孔子' },
+    { content: '知之为知之，不知为不知，是知也', author: '孔子' },
+    { content: '学而时习之，不亦说乎', author: '孔子' },
+    { content: '吾生也有涯，而知也无涯', author: '庄子' },
+    { content: '非淡泊无以明志，非宁静无以致远', author: '诸葛亮' },
+    { content: '盛年不重来，一日难再晨', author: '陶渊明' },
+    { content: '及时当勉励，岁月不待人', author: '陶渊明' },
+    { content: '读书破万卷，下笔如有神', author: '杜甫' },
+    { content: '问渠那得清如许，为有源头活水来', author: '朱熹' },
+    { content: '山重水复疑无路，柳暗花明又一村', author: '陆游' },
+    { content: '长风破浪会有时，直挂云帆济沧海', author: '李白' },
+    { content: '天生我材必有用，千金散尽还复来', author: '李白' },
+    { content: '会当凌绝顶，一览众山小', author: '杜甫' },
+    { content: '欲穷千里目，更上一层楼', author: '王之涣' },
+    { content: '不以规矩，不能成方圆', author: '孟子' },
+    { content: '生于忧患，死于安乐', author: '孟子' }
+  ]
+
+  const getDailyQuote = () => {
+    const today = new Date()
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
+    return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length]
+  }
+
   const ClockDisplay = () => {
     const [now, setNow] = useState(() => new Date())
     useEffect(() => {
@@ -1076,10 +1116,14 @@ export default function App() {
           <div className="hero-datetime">
             <ClockDisplay />
           </div>
+          <div className="hero-quote">
+            <span className="hero-quote-text">"{getDailyQuote().content}"</span>
+            <span className="hero-quote-author">—— {getDailyQuote().author}</span>
+          </div>
           <div className="hero-meta">
             {workspaceState.growth.streakDays > 0 && (
               <span className="hero-streak">
-                🔥 <strong>{workspaceState.growth.streakDays}</strong> 天
+                已坚持 <strong>{workspaceState.growth.streakDays}</strong> 天
               </span>
             )}
             <span className="hero-theme-name">{activeTheme.name}</span>
@@ -1093,15 +1137,13 @@ export default function App() {
           />
         </section>
 
-        <section className="panel" aria-label="可拖拽模块画布">
+        <section className="panel" aria-label="工作台">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Draggable Canvas · 智能对齐</p>
-              <h2>可拖拽模块画布</h2>
+              <h2>工作台</h2>
             </div>
-            <strong>{moduleStoreState.activeModules.length} 个模块</strong>
           </div>
-          <div className="draggable-canvas workbench-canvas" role="region" aria-label="星寰海画布工作台">
+          <div className="draggable-canvas workbench-canvas" role="region" aria-label="工作台画布">
             {moduleStoreState.activeModules.map((item) => {
               const module = moduleStoreState.availableModules.find((candidate) => candidate.id === item.moduleId)
               if (!module) return null
@@ -1146,15 +1188,6 @@ export default function App() {
                       <span>{todoTasks.length} 个待办</span>
                       <span>{totalFocusMinutes} 分钟</span>
                       <span>{completedTasks.length} 个已完成</span>
-                    </div>
-                  </section>
-                ),
-                'persona-brief': (
-                  <section className="card">
-                    <div className="persona-brief">
-                      <strong>{activePersona.targetUser}</strong>
-                      <p>{activePersona.painPoint}</p>
-                      <small>{activePersona.primaryFlow}</small>
                     </div>
                   </section>
                 ),
@@ -2579,37 +2612,6 @@ export default function App() {
             <article><strong>{completedTasks.length}</strong><span>已完成</span></article>
             <article><strong>{weeklyProgress}%</strong><span>完成率</span></article>
           </div>
-        </div>
-      </DraggableModal>
-
-      <DraggableModal
-        isOpen={openWorkbenchDetail === 'persona-brief'}
-        onClose={() => setOpenWorkbenchDetail(null)}
-        title="用户痛点"
-        subtitle={`${activePersona.name} · ${activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle}`}
-        ariaLabel="用户痛点 · 工作台详情"
-      >
-        <div className="persona-brief-detail">
-          <section className="workbench-detail-panel">
-            <h3>目标用户</h3>
-            <p className="persona-target">{activePersona.targetUser}</p>
-          </section>
-          <section className="workbench-detail-panel">
-            <h3>核心痛点</h3>
-            <p className="persona-pain">{activePersona.painPoint}</p>
-          </section>
-          <section className="workbench-detail-panel">
-            <h3>核心动线</h3>
-            <p className="persona-flow">{activePersona.primaryFlow}</p>
-          </section>
-          <section className="workbench-detail-panel">
-            <h3>关键指标</h3>
-            <div className="metric-grid">
-              {activePersona.keyMetrics.map((metric) => (
-                <article key={metric}><strong>{metric}</strong></article>
-              ))}
-            </div>
-          </section>
         </div>
       </DraggableModal>
 

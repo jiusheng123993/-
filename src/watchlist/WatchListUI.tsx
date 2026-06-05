@@ -8,14 +8,14 @@ interface WatchListUIProps {
 }
 
 const colors = {
-  bg: '#0f0f1a',
-  cardBg: '#1a1a2e',
-  cardBorder: '#2a2a4a',
-  text: '#e0e0e0',
-  textSecondary: '#8888aa',
+  bg: 'var(--bg-primary, #0f0f1a)',
+  cardBg: 'var(--surface, #1a1a2e)',
+  cardBorder: 'var(--border, #2a2a4a)',
+  text: 'var(--text, #e0e0e0)',
+  textSecondary: 'var(--muted, #8888aa)',
   accent: '#8b5cf6',
-  inputBg: '#12121f',
-  inputBorder: '#2a2a4a',
+  inputBg: 'var(--bg-secondary, #12121f)',
+  inputBorder: 'var(--border, #2a2a4a)',
 }
 
 const typeLabels = { movie: '电影', tv: '电视剧', documentary: '纪录片' }
