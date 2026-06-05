@@ -6,7 +6,7 @@
 
 .section {
   margin-bottom: 24px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border, #e2e8f0);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -16,17 +16,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #f8fafc;
+  background: var(--bg-secondary, #f8fafc);
   cursor: pointer;
   font-weight: 600;
   font-size: 16px;
-  color: #1e293b;
+  color: var(--text, #1e293b);
   user-select: none;
   transition: background 0.15s ease;
 }
 
 .sectionHeader:hover {
-  background: #f1f5f9;
+  background: var(--bg-secondary, #f1f5f9);
 }
 
 .sectionContent {
@@ -50,7 +50,7 @@
   display: block;
   margin-bottom: 6px;
   font-size: 14px;
-  color: #475569;
+  color: var(--text, #475569);
   font-weight: 500;
 }
 
@@ -59,11 +59,11 @@
 .textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border, #e2e8f0);
   border-radius: 8px;
   font-size: 14px;
-  color: #1e293b;
-  background: #fff;
+  color: var(--text, #1e293b);
+  background: var(--surface, #fff);
   box-sizing: border-box;
   transition: border-color 0.15s ease;
 }
@@ -87,11 +87,11 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border, #e2e8f0);
   border-radius: 8px;
   min-height: 42px;
   align-items: center;
-  background: #fff;
+  background: var(--surface, #fff);
   transition: border-color 0.15s ease;
 }
 
@@ -105,8 +105,8 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  background: #e0e7ff;
-  color: #4338ca;
+  background: var(--primary-light, #e0e7ff);
+  color: var(--primary, #4338ca);
   border-radius: 16px;
   font-size: 13px;
   white-space: nowrap;
@@ -130,7 +130,7 @@
   min-width: 120px;
   font-size: 14px;
   padding: 2px 0;
-  color: #1e293b;
+  color: var(--text, #1e293b);
   background: transparent;
 }
 
@@ -140,7 +140,7 @@
   gap: 12px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border, #e2e8f0);
 }
 
 .saveButton {
@@ -162,9 +162,9 @@
 
 .cancelButton {
   padding: 12px 24px;
-  background: #f1f5f9;
-  color: #1a1a2e;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-secondary, #f1f5f9);
+  color: var(--text, #1a1a2e);
+  border: 1px solid var(--border, #e2e8f0);
   border-radius: 8px;
   font-weight: 500;
   font-size: 14px;
@@ -173,14 +173,14 @@
 }
 
 .cancelButton:hover {
-  background: #e2e8f0;
+  background: var(--border, #e2e8f0);
 }
 
 .expandIcon {
   transition: transform 0.2s ease;
   display: inline-flex;
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted, #64748b);
 }
 
 .expandIcon.expanded {
@@ -190,12 +190,12 @@
 .readOnly .input,
 .readOnly .select,
 .readOnly .textarea {
-  background: #f8fafc;
+  background: var(--bg-secondary, #f8fafc);
   cursor: not-allowed;
 }
 
 .readOnly .chipInput {
-  background: #f8fafc;
+  background: var(--bg-secondary, #f8fafc);
   cursor: not-allowed;
 }
 

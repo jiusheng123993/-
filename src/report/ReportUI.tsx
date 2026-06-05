@@ -247,10 +247,10 @@ export function ReportUI({ compact = false }: ReportUIProps) {
 
         <div style={{ background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: 12, padding: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Heart size={18} style={{ color: '#3b82f6' }} />
+            <Heart size={18} style={{ color: 'var(--primary)' }} />
             <span style={{ fontWeight: 500 }}>健康</span>
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#3b82f6', marginBottom: 4 }}>{report.wellness.totalWater}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>{report.wellness.totalWater}</div>
           <small style={{ color: colors.textSecondary }}>ml 饮水量</small>
           <div style={{ marginTop: 12 }}>
             <div style={{ fontSize: 16, fontWeight: 600 }}>{report.wellness.totalExercise} 分钟</div>
