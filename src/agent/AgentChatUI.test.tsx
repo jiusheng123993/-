@@ -21,18 +21,23 @@ describe('AgentChatUI', () => {
 
   it('does not render when isOpen is false', () => {
     render(<AgentChatUI isOpen={false} onClose={() => {}} />)
-    expect(screen.queryByText('AI 学习搭子')).not.toBeInTheDocument()
+    expect(screen.queryByText('AI 助手')).not.toBeInTheDocument()
   })
 
   it('renders greeting message when opened', () => {
     render(<AgentChatUI isOpen onClose={() => {}} />)
-    expect(screen.getByText('AI 学习搭子')).toBeInTheDocument()
+    expect(screen.getByText('AI 助手')).toBeInTheDocument()
     expect(screen.getByText('在线')).toBeInTheDocument()
   })
 
-  it('shows different greeting for different persona', () => {
-    render(<AgentChatUI isOpen onClose={() => {}} personaId="exam_prep" />)
-    expect(screen.getByText(/备考助手/)).toBeInTheDocument()
+  it('shows custom aiRole when provided', () => {
+    render(<AgentChatUI isOpen onClose={() => {}} aiRole="AI 备考教练" />)
+    expect(screen.getByText('AI 备考教练')).toBeInTheDocument()
+  })
+
+  it('shows default AI 助手 when no aiRole provided', () => {
+    render(<AgentChatUI isOpen onClose={() => {}} />)
+    expect(screen.getByText('AI 助手')).toBeInTheDocument()
   })
 
   it('allows message input', () => {

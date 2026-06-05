@@ -15,20 +15,14 @@ export interface AgentChatUIProps {
   isOpen: boolean
   onClose: () => void
   personaId?: PersonaId
+  aiRole?: string
   avatarId?: string
   onSendMessage?: (message: string) => Promise<string>
 }
 
-const PERSONA_GREETINGS: Record<string, string> = {
-  default: '你好！我是你的 AI 学习搭子，有什么可以帮你的吗？',
-  exam_prep: '你好！我是你的备考助手，让我们一起冲刺吧！',
-  study_buddy: '你好！一起学习的路上有我陪你。',
-  life_coach: '你好！有什么生活或学习上的困惑都可以问我。',
-}
-
-function getGreeting(personaId?: string): string {
-  if (!personaId) return PERSONA_GREETINGS.default
-  return PERSONA_GREETINGS[personaId] ?? PERSONA_GREETINGS.default
+function getGreeting(aiRole?: string): string {
+  const role = aiRole || 'AI 助手'
+  return `你好！我是你的${role}，有什么可以帮你的吗？`
 }
 
 function getMoodEmoji(mood?: AvatarMood): string {
@@ -42,11 +36,12 @@ function getMoodEmoji(mood?: AvatarMood): string {
   }
 }
 
-export function AgentChatUI({ isOpen, onClose, personaId, onSendMessage }: AgentChatUIProps) {
+export function AgentChatUI({ isOpen, onClose, personaId, aiRole, onSendMessage }: AgentChatUIProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const conversationHistoryRef = useRef<Array<{ role: 'user' | 'agent'; content: string }>>([])
 
@@ -55,14 +50,14 @@ export function AgentChatUI({ isOpen, onClose, personaId, onSendMessage }: Agent
       const greeting: AgentMessage = {
         id: `msg-${Date.now()}`,
         role: 'agent',
-        content: getGreeting(personaId),
+        content: getGreeting(aiRole),
         timestamp: new Date().toISOString(),
         mood: 'happy'
       }
       setMessages([greeting])
       conversationHistoryRef.current = []
     }
-  }, [isOpen, personaId])
+  }, [isOpen, aiRole])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -84,44 +79,69 @@ export function AgentChatUI({ isOpen, onClose, personaId, onSendMessage }: Agent
     setInputValue('')
     setIsLoading(true)
 
-    try {
-      let responseContent: string
-      let responseMood: AvatarMood = 'thinking'
+    const streamingId = `msg-stream-${Date.now()}`
+    const streamingMessage: AgentMessage = {
+      id: streamingId,
+      role: 'agent',
+      content: '',
+      timestamp: new Date().toISOString(),
+      mood: 'thinking'
+    }
+    setMessages(prev => [...prev, streamingMessage])
 
+    try {
       if (onSendMessage) {
-        responseContent = await onSendMessage(userMessage.content)
+        const responseContent = await onSendMessage(userMessage.content)
+        setMessages(prev => prev.map(m =>
+          m.id === streamingId
+            ? { ...m, content: responseContent, mood: mapMood(undefined) }
+            : m
+        ))
+        conversationHistoryRef.current.push({ role: 'agent', content: responseContent })
       } else {
-        const response = await agentRuntime.sendMessage({
+        const controller = new AbortController()
+        abortControllerRef.current = controller
+
+        await agentRuntime.sendMessageStream({
           message: userMessage.content,
           personaId: personaId,
-          conversationHistory: conversationHistoryRef.current
+          conversationHistory: conversationHistoryRef.current,
+          signal: controller.signal,
+          onChunk: (chunk: string) => {
+            setMessages(prev => prev.map(m =>
+              m.id === streamingId
+                ? { ...m, content: m.content + chunk }
+                : m
+            ))
+          }
         })
-        responseContent = response.content
-        responseMood = mapMood(response.mood)
-      }
 
-      const agentMessage: AgentMessage = {
-        id: `msg-${Date.now()}`,
-        role: 'agent',
-        content: responseContent,
-        timestamp: new Date().toISOString(),
-        mood: responseMood
+        const finalContent = conversationHistoryRef.current.length > 0
+          ? '' : ''
+        setMessages(prev => {
+          const streamMsg = prev.find(m => m.id === streamingId)
+          if (streamMsg) {
+            conversationHistoryRef.current.push({ role: 'agent', content: streamMsg.content })
+            return prev.map(m =>
+              m.id === streamingId
+                ? { ...m, mood: mapMood(undefined) }
+                : m
+            )
+          }
+          return prev
+        })
       }
-      setMessages(prev => [...prev, agentMessage])
-      conversationHistoryRef.current.push({ role: 'agent', content: responseContent })
     } catch {
-      const errorMessage: AgentMessage = {
-        id: `msg-${Date.now()}`,
-        role: 'agent',
-        content: '抱歉，出了点问题，请稍后再试。',
-        timestamp: new Date().toISOString(),
-        mood: 'concerned'
-      }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => prev.map(m =>
+        m.id === streamingId
+          ? { ...m, content: m.content || '抱歉，出了点问题，请稍后再试。', mood: 'concerned' }
+          : m
+      ))
     } finally {
       setIsLoading(false)
+      abortControllerRef.current = null
     }
-  }, [inputValue, isLoading, onSendMessage, personaId])
+  }, [inputValue, isLoading, onSendMessage, personaId, aiRole])
 
   function mapMood(mood?: 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'): AvatarMood {
     return mood ?? 'neutral'
@@ -138,21 +158,33 @@ export function AgentChatUI({ isOpen, onClose, personaId, onSendMessage }: Agent
 
   return (
     <div
+      className="agent-chat-modal-backdrop"
       style={{
         position: 'fixed',
-        right: '24px',
-        bottom: '24px',
-        width: '380px',
-        height: '520px',
-        background: 'var(--surface)',
-        borderRadius: '16px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        inset: 0,
+        background: 'rgba(15, 23, 42, 0.48)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
-        flexDirection: 'column',
-        zIndex: 1001,
-        overflow: 'hidden'
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 2147483647
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
       }}
     >
+      <div
+        style={{
+          width: 'min(90vw, 800px)',
+          height: 'min(85vh, 700px)',
+          background: 'var(--surface)',
+          borderRadius: '20px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
       <div
         style={{
           display: 'flex',
@@ -179,7 +211,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, onSendMessage }: Agent
             🤖
           </div>
           <div>
-            <div style={{ fontWeight: 600, fontSize: '15px' }}>AI 学习搭子</div>
+            <div style={{ fontWeight: 600, fontSize: '15px' }}>{aiRole || 'AI 助手'}</div>
             <div style={{ fontSize: '12px', color: 'var(--muted)' }}>在线</div>
           </div>
         </div>
@@ -308,6 +340,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, onSendMessage }: Agent
           ➤
         </button>
       </div>
+      </div>
     </div>
   )
 }
@@ -332,7 +365,7 @@ export function AgentChatToggle({ onClick }: { onClick: () => void }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000,
+        zIndex: 2147483647,
         transition: 'transform 200ms, box-shadow 200ms'
       }}
       aria-label="打开 AI 聊天"

@@ -11,6 +11,11 @@ export interface AgentChatRequest {
   conversationHistory?: Array<{ role: 'user' | 'agent'; content: string }>
 }
 
+export interface AgentChatStreamRequest extends AgentChatRequest {
+  signal?: AbortSignal
+  onChunk: (chunk: string) => void
+}
+
 export interface AgentChatResponse {
   content: string
   mood?: 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'
@@ -60,6 +65,75 @@ function buildChatUserPrompt(
   }
   
   return `${historyContext}\n\n用户最新消息：${message}`
+}
+
+export async function sendAgentChatMessageStream(request: AgentChatStreamRequest): Promise<void> {
+  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, conversationHistory, signal, onChunk } = request
+  
+  const systemPrompt = buildChatSystemPrompt(personaId, profile)
+  const userPrompt = buildChatUserPrompt(message, conversationHistory)
+  
+  const providers: Array<{ id: AiProviderId; name: string }> = [
+    { id: 'deepseek', name: 'DeepSeek' },
+    { id: 'openai', name: 'OpenAI' },
+    { id: 'tongyi', name: '通义千问' },
+    { id: 'doubao', name: '豆包' }
+  ]
+  
+  if (useXFYunCoding) {
+    try {
+      await fetchXFYunCodingCompletionStream(systemPrompt, userPrompt, conversationHistory, onChunk, signal)
+      return
+    } catch (error) {
+      if (signal?.aborted) return
+      console.error('XFYun Coding stream error:', error)
+    }
+  }
+  
+  const activeProvider = getAiProviderById(providerId)
+  
+  if (!activeProvider.capabilities.includes('agent-chat')) {
+    onChunk('当前 AI Provider 不支持聊天功能，请检查配置。')
+    return
+  }
+  
+  const draft = createAiPromptDraft(activeProvider.id, {
+    kind: 'agent-chat',
+    input: userPrompt,
+    context: systemPrompt
+  })
+  
+  try {
+    await fetchChatCompletionStream(activeProvider.id, draft.systemPrompt, draft.userPrompt, onChunk, signal)
+    return
+  } catch (primaryError) {
+    if (signal?.aborted) return
+    console.error('Primary provider stream failed:', primaryError)
+    
+    for (const provider of providers) {
+      if (provider.id === providerId) continue
+      
+      const altProvider = getAiProviderById(provider.id)
+      if (!altProvider.capabilities.includes('agent-chat')) continue
+      
+      try {
+        const altDraft = createAiPromptDraft(altProvider.id, {
+          kind: 'agent-chat',
+          input: userPrompt,
+          context: systemPrompt
+        })
+        
+        await fetchChatCompletionStream(altProvider.id, altDraft.systemPrompt, altDraft.userPrompt, onChunk, signal)
+        return
+      } catch (altError) {
+        if (signal?.aborted) return
+        console.error(`${provider.name} stream failed:`, altError)
+      }
+    }
+    
+    console.error('All AI providers failed, using fallback')
+    onChunk(getFallbackResponse(userPrompt))
+  }
 }
 
 export async function sendAgentChatMessage(request: AgentChatRequest): Promise<AgentChatResponse> {
@@ -194,6 +268,84 @@ async function fetchChatCompletion(
   }
 }
 
+async function fetchChatCompletionStream(
+  providerId: AiProviderId,
+  systemPrompt: string,
+  userPrompt: string,
+  onChunk: (chunk: string) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  const apiConfig = getApiConfig(providerId)
+  
+  if (!apiConfig.apiKey) {
+    throw new Error(`${providerId} API key not configured`)
+  }
+  
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ]
+  
+  const response = await fetch(apiConfig.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiConfig.apiKey}`
+    },
+    body: JSON.stringify({
+      model: apiConfig.model,
+      messages,
+      temperature: 0.7,
+      max_tokens: 1000,
+      stream: true
+    }),
+    signal
+  })
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+  
+  const reader = response.body?.getReader()
+  if (!reader) {
+    throw new Error('No response body reader')
+  }
+  
+  const decoder = new TextDecoder()
+  let buffer = ''
+  
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed || !trimmed.startsWith('data: ')) continue
+        
+        const dataStr = trimmed.slice(6)
+        if (dataStr === '[DONE]') continue
+        
+        try {
+          const data = JSON.parse(dataStr)
+          const content = data.choices?.[0]?.delta?.content
+          if (content) {
+            onChunk(content)
+          }
+        } catch {
+          // skip unparseable chunks
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: string; model: string } {
   const isDev = import.meta.env.DEV
   
@@ -309,6 +461,99 @@ async function fetchXFYunCodingCompletion(
   }
 }
 
+async function fetchXFYunCodingCompletionStream(
+  systemPrompt: string,
+  userPrompt: string,
+  conversationHistory: Array<{ role: 'user' | 'agent'; content: string }> | undefined,
+  onChunk: (chunk: string) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  const config = getXFYunCodingConfig()
+  
+  if (!config.apiKey) {
+    throw new Error('XFYun API key not configured')
+  }
+  
+  const messages: Array<{ role: string; content: string }> = [
+    { role: 'system', content: systemPrompt }
+  ]
+  
+  if (conversationHistory && conversationHistory.length > 0) {
+    const recentHistory = conversationHistory.slice(-6)
+    for (const h of recentHistory) {
+      messages.push({ role: h.role === 'agent' ? 'assistant' : h.role, content: h.content })
+    }
+  }
+  
+  messages.push({ role: 'user', content: userPrompt })
+  
+  const requestBody: Record<string, unknown> = {
+    messages,
+    temperature: 0.7,
+    max_tokens: 1000,
+    stream: true
+  }
+  
+  if (config.model) {
+    requestBody.model = config.model
+  }
+  
+  const response = await fetch(config.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify(requestBody),
+    signal
+  })
+  
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('XFYun Coding API stream error:', response.status, errorText)
+    throw new Error(`API error: ${response.status}`)
+  }
+  
+  const reader = response.body?.getReader()
+  if (!reader) {
+    throw new Error('No response body reader')
+  }
+  
+  const decoder = new TextDecoder()
+  let buffer = ''
+  
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed || !trimmed.startsWith('data: ')) continue
+        
+        const dataStr = trimmed.slice(6)
+        if (dataStr === '[DONE]') continue
+        
+        try {
+          const data = JSON.parse(dataStr)
+          const content = data.choices?.[0]?.delta?.content
+          if (content) {
+            onChunk(content)
+          }
+        } catch {
+          // skip unparseable chunks
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 async function generateHMACSignature(
   url: string,
   method: string,
@@ -391,5 +636,6 @@ function determineMood(response: string): 'neutral' | 'happy' | 'encouraging' | 
 }
 
 export const agentRuntime = {
-  sendMessage: sendAgentChatMessage
+  sendMessage: sendAgentChatMessage,
+  sendMessageStream: sendAgentChatMessageStream
 }

@@ -335,6 +335,7 @@ export default function App() {
   const [isCycleTrackerOpen, setIsCycleTrackerOpen] = useState(false)
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
+  const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -688,6 +689,24 @@ export default function App() {
     return () => window.clearTimeout(handle)
   }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents])
 
+  const closeAllSidebarPanels = () => {
+    setIsThemePickerOpen(false)
+    setIsWallpaperPickerOpen(false)
+    setIsIdentitySelectorOpen(false)
+    setIsAIRecommendationOpen(false)
+    setIsLayoutShareOpen(false)
+    setIsMembershipOpen(false)
+    setIsPaymentOpen(false)
+    setIsAdminConsoleOpen(false)
+    setIsRelationshipSpaceOpen(false)
+    setIsAgentChatOpen(false)
+    setIsMemoryProfileOpen(false)
+    setIsCycleTrackerOpen(false)
+    setIsAvatarManagerOpen(false)
+    setIsPersonaSelectorOpen(false)
+    setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
+  }
+
   const openThemePicker = () => {
     setThemeSearchQuery('')
     setIsThemePickerOpen(true)
@@ -946,24 +965,81 @@ export default function App() {
     }
   }
 
+  const ClockDisplay = () => {
+    const [now, setNow] = useState(() => new Date())
+    useEffect(() => {
+      const timer = setInterval(() => setNow(new Date()), 1000)
+      return () => clearInterval(timer)
+    }, [])
+
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
+    const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    const weekdayStr = weekdays[now.getDay()]
+
+    return (
+      <>
+        <span className="hero-date">{dateStr}</span>
+        <span className="hero-weekday">{weekdayStr}</span>
+        <span className="hero-time">{timeStr}</span>
+      </>
+    )
+  }
+
   return (
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar 
         isOpen={sidebarOpen} 
         onToggle={() => setSidebarOpen(false)}
-        onOpenModuleStore={() => setModuleStoreState((current) => ({ ...current, isStoreOpen: true }))}
-        onOpenAIRecommendation={() => setIsAIRecommendationOpen(true)}
-        onOpenLayoutShare={() => setIsLayoutShareOpen(true)}
-        onOpenThemePicker={openThemePicker}
-        onOpenMembership={() => setIsMembershipOpen(true)}
-        onOpenIdentitySelector={() => setIsIdentitySelectorOpen(true)}
-        onOpenCycleTracker={() => setIsCycleTrackerOpen(true)}
-        onOpenAvatarManager={() => setIsAvatarManagerOpen(true)}
-        onOpenMemoryProfile={() => setIsMemoryProfileOpen(true)}
-        onOpenPersonaSelector={() => setIsPersonaSelectorOpen(true)}
-        onOpenRelationshipSpace={() => setIsRelationshipSpaceOpen(true)}
-        onOpenAgentChat={() => setIsAgentChatOpen(true)}
+        onOpenModuleStore={() => {
+          closeAllSidebarPanels()
+          setModuleStoreState((current) => ({ ...current, isStoreOpen: true }))
+        }}
+        onOpenAIRecommendation={() => {
+          closeAllSidebarPanels()
+          setIsAIRecommendationOpen(true)
+        }}
+        onOpenLayoutShare={() => {
+          closeAllSidebarPanels()
+          setIsLayoutShareOpen(true)
+        }}
+        onOpenThemePicker={() => {
+          closeAllSidebarPanels()
+          openThemePicker()
+        }}
+        onOpenMembership={() => {
+          closeAllSidebarPanels()
+          setIsMembershipOpen(true)
+        }}
+        onOpenIdentitySelector={() => {
+          closeAllSidebarPanels()
+          setIsIdentitySelectorOpen(true)
+        }}
+        onOpenCycleTracker={() => {
+          closeAllSidebarPanels()
+          setIsCycleTrackerOpen(true)
+        }}
+        onOpenAvatarManager={() => {
+          closeAllSidebarPanels()
+          setIsAvatarManagerOpen(true)
+        }}
+        onOpenMemoryProfile={() => {
+          closeAllSidebarPanels()
+          setIsMemoryProfileOpen(true)
+        }}
+        onOpenPersonaSelector={() => {
+          closeAllSidebarPanels()
+          setIsPersonaSelectorOpen(true)
+        }}
+        onOpenRelationshipSpace={() => {
+          closeAllSidebarPanels()
+          setIsRelationshipSpaceOpen(true)
+        }}
+        onOpenAgentChat={() => {
+          closeAllSidebarPanels()
+          setIsAgentChatOpen(true)
+        }}
         onSwitchDevAuthRole={switchDevAuthRole}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
@@ -990,12 +1066,21 @@ export default function App() {
       </svg>
       <section className="workspace">
         <header className="hero panel">
-          <div>
-            <p className="eyebrow">桌面优先 · 多端预留 · AI 行动教练</p>
-            <h1>{activePersona.name}</h1>
-            <p className="hero-subtitle">{activePersona.hero}</p>
+          <div className="hero-brand">
+            <div className="hero-logo" aria-hidden="true">寰</div>
+            <span className="hero-app-name">星寰海</span>
           </div>
-          <span className="pill hero-theme-name">{activeTheme.name}</span>
+          <div className="hero-datetime">
+            <ClockDisplay />
+          </div>
+          <div className="hero-meta">
+            {workspaceState.growth.streakDays > 0 && (
+              <span className="hero-streak">
+                🔥 <strong>{workspaceState.growth.streakDays}</strong> 天
+              </span>
+            )}
+            <span className="hero-theme-name">{activeTheme.name}</span>
+          </div>
         </header>
 
         <section className="workspace-switcher" aria-label="用户场景切换">
@@ -3766,6 +3851,7 @@ export default function App() {
           isOpen={isAgentChatOpen}
           onClose={() => setIsAgentChatOpen(false)}
           personaId={activePersona?.id}
+          aiRole={activePersona?.aiRole}
         />
       )}
       {!isAgentChatOpen && (
