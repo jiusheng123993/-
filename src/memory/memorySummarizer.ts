@@ -180,6 +180,100 @@ function analyzeLearningChanges(
   return proposals
 }
 
+function analyzePreferenceChanges(
+  events: MemoryEvent[],
+  profile: MemoryProfile
+): ProfileChangeProposal[] {
+  const proposals: ProfileChangeProposal[] = []
+
+  const taskEvents = events.filter(e => e.category === 'task_completed')
+  const focusEvents = events.filter(e => e.category === 'focus_completed')
+  const journalEvents = events.filter(e => e.category === 'journal_created')
+
+  if (taskEvents.length >= 10 && profile.preferences.planningStyle !== 'structured') {
+    proposals.push({
+      fieldPath: 'preferences.planningStyle',
+      oldValue: profile.preferences.planningStyle ?? 'flexible',
+      newValue: 'structured',
+      reasoning: `近期完成了 ${taskEvents.length} 个任务，表现出结构化规划倾向`,
+      evidenceEventIds: taskEvents.slice(0, 3).map(e => e.id),
+      confidence: 0.65
+    })
+  }
+
+  if (focusEvents.length >= 5 && profile.preferences.workStyle !== 'deep_work') {
+    proposals.push({
+      fieldPath: 'preferences.workStyle',
+      oldValue: profile.preferences.workStyle ?? 'flexible',
+      newValue: 'deep_work',
+      reasoning: `近期完成了 ${focusEvents.length} 次深度专注，表现出深度工作偏好`,
+      evidenceEventIds: focusEvents.slice(0, 3).map(e => e.id),
+      confidence: 0.7
+    })
+  }
+
+  if (journalEvents.length >= 3 && profile.preferences.reflectionFrequency !== 'daily') {
+    proposals.push({
+      fieldPath: 'preferences.reflectionFrequency',
+      oldValue: profile.preferences.reflectionFrequency ?? 'weekly',
+      newValue: 'daily',
+      reasoning: `近期创建了 ${journalEvents.length} 篇日记，表现出每日反思习惯`,
+      evidenceEventIds: journalEvents.slice(0, 3).map(e => e.id),
+      confidence: 0.65
+    })
+  }
+
+  return proposals
+}
+
+function analyzePersonalityTraits(
+  events: MemoryEvent[],
+  profile: MemoryProfile
+): ProfileChangeProposal[] {
+  const proposals: ProfileChangeProposal[] = []
+
+  const taskEvents = events.filter(e => e.category === 'task_completed')
+  const focusEvents = events.filter(e => e.category === 'focus_completed')
+  const goalEvents = events.filter(e => e.category === 'goal_updated')
+
+  const currentTraits = profile.personality.traits || []
+
+  if (taskEvents.length >= 8 && !currentTraits.includes('执行力强')) {
+    proposals.push({
+      fieldPath: 'personality.traits',
+      oldValue: currentTraits,
+      newValue: [...currentTraits, '执行力强'],
+      reasoning: `近期完成了 ${taskEvents.length} 个任务，表现出较强的执行力`,
+      evidenceEventIds: taskEvents.slice(0, 3).map(e => e.id),
+      confidence: 0.7
+    })
+  }
+
+  if (focusEvents.length >= 5 && !currentTraits.includes('专注力强')) {
+    proposals.push({
+      fieldPath: 'personality.traits',
+      oldValue: currentTraits,
+      newValue: [...currentTraits, '专注力强'],
+      reasoning: `近期完成了 ${focusEvents.length} 次深度专注`,
+      evidenceEventIds: focusEvents.slice(0, 3).map(e => e.id),
+      confidence: 0.7
+    })
+  }
+
+  if (goalEvents.length >= 3 && !currentTraits.includes('目标导向')) {
+    proposals.push({
+      fieldPath: 'personality.traits',
+      oldValue: currentTraits,
+      newValue: [...currentTraits, '目标导向'],
+      reasoning: `近期更新了 ${goalEvents.length} 次目标，表现出目标导向特质`,
+      evidenceEventIds: goalEvents.slice(0, 3).map(e => e.id),
+      confidence: 0.65
+    })
+  }
+
+  return proposals
+}
+
 function generateReflectionNote(
   events: MemoryEvent[],
   proposals: ProfileChangeProposal[]
@@ -238,8 +332,10 @@ export function createMemorySummarizer(options: Partial<SummarizeOptions> = {}):
       const rhythmProposals = analyzeRhythmChanges(recentEvents, currentProfile)
       const goalProposals = analyzeGoalChanges(recentEvents, currentProfile)
       const learningProposals = analyzeLearningChanges(recentEvents, currentProfile)
+      const preferenceProposals = analyzePreferenceChanges(recentEvents, currentProfile)
+      const personalityProposals = analyzePersonalityTraits(recentEvents, currentProfile)
 
-      const allProposals = [...emotionalProposals, ...rhythmProposals, ...goalProposals, ...learningProposals]
+      const allProposals = [...emotionalProposals, ...rhythmProposals, ...goalProposals, ...learningProposals, ...preferenceProposals, ...personalityProposals]
 
       const filteredProposals = allProposals
         .filter((p) => p.confidence >= opts.minConfidence)

@@ -1,6 +1,6 @@
 import { createAiPromptDraft, getAiProviderById, type AiProviderId } from '../ai/aiProvider'
 import type { PersonaId } from '../personas/personaRegistry'
-import type { MemoryProfile } from '../memory/memoryTypes'
+import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 
 export interface AgentChatRequest {
   message: string
@@ -8,6 +8,7 @@ export interface AgentChatRequest {
   providerId?: AiProviderId
   useXFYunCoding?: boolean
   profile?: MemoryProfile
+  memoryEvents?: MemoryEvent[]
   conversationHistory?: Array<{ role: 'user' | 'agent'; content: string }>
 }
 
@@ -33,23 +34,45 @@ function getPersonaSystemPrompt(personaId?: string): string {
   return PERSONA_SYSTEM_PROMPTS[personaId] ?? PERSONA_SYSTEM_PROMPTS.default
 }
 
-function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile): string {
+function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, memoryEvents?: MemoryEvent[]): string {
   const basePrompt = getPersonaSystemPrompt(personaId)
   
   let profileContext = ''
   if (profile) {
     const parts: string[] = []
     if (profile.identity.nickname) parts.push(`用户昵称：${profile.identity.nickname}`)
+    if (profile.identity.role) parts.push(`角色：${profile.identity.role}`)
     if (profile.goals.primaryGoal) parts.push(`主要目标：${profile.goals.primaryGoal}`)
+    if (profile.goals.activeGoals && profile.goals.activeGoals.length > 0) {
+      parts.push(`当前活跃目标：${profile.goals.activeGoals.join('、')}`)
+    }
     if (profile.personality.planningStyle) parts.push(`规划风格：${profile.personality.planningStyle}`)
+    if (profile.personality.workRhythm) parts.push(`工作节奏：${profile.personality.workRhythm}`)
     if (profile.preferences.encouragementStyle) parts.push(`鼓励风格：${profile.preferences.encouragementStyle}`)
+    if (profile.preferences.communicationStyle) parts.push(`沟通偏好：${profile.preferences.communicationStyle}`)
+    if (profile.boundaries.topicsToAvoid && profile.boundaries.topicsToAvoid.length > 0) {
+      parts.push(`避免话题：${profile.boundaries.topicsToAvoid.join('、')}`)
+    }
+    if (profile.learning.preferredMethods && profile.learning.preferredMethods.length > 0) {
+      parts.push(`学习偏好：${profile.learning.preferredMethods.join('、')}`)
+    }
     
     if (parts.length > 0) {
       profileContext = `\n\n用户画像信息：\n${parts.join('\n')}`
     }
   }
+
+  let memoryContext = ''
+  if (memoryEvents && memoryEvents.length > 0) {
+    const recentEvents = memoryEvents.slice(-10)
+    const eventLines = recentEvents.map(e => {
+      const time = new Date(e.timestamp).toLocaleDateString('zh-CN')
+      return `- [${time}] ${e.category}: ${e.summary}`
+    })
+    memoryContext = `\n\n用户近期活动记忆：\n${eventLines.join('\n')}\n\n请基于以上记忆，在对话中自然地引用用户近期的活动和进展，让对话更有连续性和个性化。`
+  }
   
-  return `${basePrompt}${profileContext}\n\n请用简洁、友好的方式回复用户的提问。如果用户询问学习相关问题，给出具体可执行的建议。`
+  return `${basePrompt}${profileContext}${memoryContext}\n\n请用简洁、友好的方式回复用户的提问。如果用户询问学习相关问题，给出具体可执行的建议。`
 }
 
 function buildChatUserPrompt(
@@ -68,9 +91,9 @@ function buildChatUserPrompt(
 }
 
 export async function sendAgentChatMessageStream(request: AgentChatStreamRequest): Promise<void> {
-  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, conversationHistory, signal, onChunk } = request
+  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, conversationHistory, signal, onChunk } = request
   
-  const systemPrompt = buildChatSystemPrompt(personaId, profile)
+  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
   const providers: Array<{ id: AiProviderId; name: string }> = [

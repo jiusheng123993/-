@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { PersonaId } from '../personas/personaRegistry'
 import type { AvatarMood } from '../avatar/avatarTypes'
+import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 import { agentRuntime } from './agentRuntime'
 
 export interface AgentMessage {
@@ -17,6 +18,8 @@ export interface AgentChatUIProps {
   personaId?: PersonaId
   aiRole?: string
   avatarId?: string
+  profile?: MemoryProfile
+  memoryEvents?: MemoryEvent[]
   onSendMessage?: (message: string) => Promise<string>
 }
 
@@ -36,7 +39,7 @@ function getMoodEmoji(mood?: AvatarMood): string {
   }
 }
 
-export function AgentChatUI({ isOpen, onClose, personaId, aiRole, onSendMessage }: AgentChatUIProps) {
+export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memoryEvents, onSendMessage }: AgentChatUIProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -106,6 +109,8 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, onSendMessage 
           message: userMessage.content,
           personaId: personaId,
           conversationHistory: conversationHistoryRef.current,
+          profile: profile,
+          memoryEvents: memoryEvents,
           signal: controller.signal,
           onChunk: (chunk: string) => {
             setMessages(prev => prev.map(m =>

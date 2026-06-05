@@ -41,7 +41,7 @@ export const buildMemoryEventContext = (events: MemoryEvent[], query: string): s
 
 export const buildMemorySystemPromptExtension = (profile: LegacyMemoryProfile, events: MemoryEvent[], context: PromptContext): string => {
   const activeContents = new Set(events.filter((event) => event.status === 'active').map((event) => event.content))
-  const formatFacts = (facts: MemoryFact[]) => facts.filter((fact) => activeContents.has(fact.content)).map(factLine)
+  const formatFacts = (facts: MemoryFact[] | undefined) => (facts || []).filter((fact) => activeContents.has(fact.content)).map(factLine)
   const contextLines = [
     `- 模式：${context.mode}`,
     context.personaId ? `- 当前 Persona：${context.personaId}` : '',

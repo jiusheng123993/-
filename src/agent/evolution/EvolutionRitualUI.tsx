@@ -155,7 +155,12 @@ export function EvolutionRitualUI({
           {entry.triggeredBy === 'manual' && '手动触发反思'}
         </div>
         {onClose && (
-          <button className={styles.closeButton} onClick={onClose} aria-label="关闭">
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label="关闭"
+          >
             ✕
           </button>
         )}

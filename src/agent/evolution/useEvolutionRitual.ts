@@ -1,9 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { EvolutionEntry } from './evolutionRitualTypes'
+import type { MemoryEvent, MemoryProfile } from '../../memory/memoryTypes'
 import { evolutionStorage } from './evolutionStorage'
 import { reflectionEngine } from './reflectionEngine'
 
-export function useEvolutionRitual(userId: string | undefined) {
+function getWeekKey(date: Date): string {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  const monday = new Date(d.setDate(diff))
+  return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+}
+
+export function useEvolutionRitual(
+  userId: string | undefined,
+  memoryEvents?: MemoryEvent[],
+  memoryProfile?: MemoryProfile
+) {
   const [pendingEntry, setPendingEntry] = useState<EvolutionEntry | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [hasChecked, setHasChecked] = useState(false)
@@ -22,22 +36,53 @@ export function useEvolutionRitual(userId: string | undefined) {
         return
       }
 
+      const allEntries = await evolutionStorage.getByUser(userId)
+      const currentWeekKey = getWeekKey(new Date())
+      const hasEntryThisWeek = allEntries.some((entry) => {
+        const entryWeekKey = getWeekKey(new Date(entry.createdAt))
+        return entryWeekKey === currentWeekKey
+      })
+
+      if (hasEntryThisWeek) {
+        setIsLoading(false)
+        return
+      }
+
       const now = new Date().toISOString()
       const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const events = memoryEvents || []
       
       const shouldTrigger = reflectionEngine.shouldTrigger(
-        [],
+        events,
         lastWeek,
-        now
+        now,
+        hasEntryThisWeek
       )
       
       if (shouldTrigger) {
+        const profile = memoryProfile || {
+          identity: { nickname: userId, role: '', mbti: 'unknown' },
+          personality: { traits: [], planningStyle: '', workRhythm: '' },
+          rhythm: { energyPeak: 'unknown' },
+          goals: { primaryGoal: '', activeGoals: [] },
+          preferences: { encouragementStyle: '', communicationStyle: '' },
+          boundaries: { topicsToAvoid: [] },
+          learning: { style: 'unknown', preferredMethods: [] },
+          emotional: { motivationLevel: 'medium' }
+        } as MemoryProfile
+
+        const reflectionResult = await reflectionEngine.executeReflection(profile, events)
+        
         const entry = reflectionEngine.createEntry(
           'cron',
           'Weekly reflection triggered',
-          [],
+          events,
           userId
         )
+        
+        entry.reflectionNote = reflectionResult.reflectionNote
+        entry.proposedChanges = reflectionResult.proposedChanges
+        
         await evolutionStorage.save(entry)
         setPendingEntry(entry)
       }
@@ -46,7 +91,7 @@ export function useEvolutionRitual(userId: string | undefined) {
     } finally {
       setIsLoading(false)
     }
-  }, [userId, hasChecked])
+  }, [userId, hasChecked, memoryEvents, memoryProfile])
 
   useEffect(() => {
     checkAndCreateEntry()
