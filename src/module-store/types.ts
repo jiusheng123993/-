@@ -1,6 +1,6 @@
 export type ModuleId = string
 
-export type ModuleSize = 'small' | 'medium' | 'large' | 'full-width'
+export type ModuleSize = { columns: number; rows: number }
 
 export type ModuleCategory = 'productivity' | 'learning' | 'health' | 'life' | 'custom'
 

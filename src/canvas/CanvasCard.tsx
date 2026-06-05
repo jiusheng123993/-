@@ -18,12 +18,12 @@ interface CanvasCardProps {
   onCollision?: (moduleId: string, targetPosition: { x: number; y: number }) => void
 }
 
-const sizeMeta: Record<ModuleSize, { columns: number; rows: number; label: string }> = {
-  small: { columns: 1, rows: 1, label: '小' },
-  medium: { columns: 2, rows: 1, label: '中' },
-  large: { columns: 2, rows: 2, label: '大' },
-  'full-width': { columns: 4, rows: 1, label: '通栏' }
-}
+const MIN_COLUMNS = 1
+const MAX_COLUMNS = 4
+const MIN_ROWS = 1
+const MAX_ROWS = 6
+
+const sizeLabel = (size: ModuleSize) => `${size.columns}×${size.rows}`
 
 export const CanvasCard = ({
   title,
@@ -56,7 +56,6 @@ export const CanvasCard = ({
   const isDraggingRef = useRef(false)
   const handlePointerMoveRef = useRef<((event: PointerEvent) => void) | null>(null)
   const handlePointerUpRef = useRef<(() => void) | null>(null)
-  const meta = sizeMeta[size]
 
   onMoveRef.current = onMove
   onDragEndRef.current = onDragEnd
@@ -86,7 +85,7 @@ export const CanvasCard = ({
     const newGridX = dragStartRef.current.gridX + deltaX / columnWidth
     const newGridY = dragStartRef.current.gridY + deltaY / rowHeight
 
-    const snappedX = Math.max(0, Math.min(4 - meta.columns, Math.round(newGridX)))
+    const snappedX = Math.max(0, Math.min(4 - size.columns, Math.round(newGridX)))
     const snappedY = Math.max(0, Math.round(newGridY))
 
     const newPos = { x: snappedX, y: snappedY }
@@ -100,7 +99,7 @@ export const CanvasCard = ({
     if (onDragMoveRef.current) {
       onDragMoveRef.current(newPos)
     }
-  }, [meta.columns])
+  }, [size.columns])
 
   handlePointerMoveRef.current = handlePointerMove
 
@@ -164,13 +163,14 @@ export const CanvasCard = ({
     e.preventDefault()
     e.stopPropagation()
     setIsResizing(true)
-    
+
     const canvas = cardRef.current?.closest('.draggable-canvas') as HTMLElement
     if (!canvas) return
 
     const startX = e.clientX
     const startY = e.clientY
-    const startSize = size
+    const startCols = size.columns
+    const startRows = size.rows
 
     const handleResizeMove = (moveEvent: PointerEvent) => {
       const canvasRect = canvas.getBoundingClientRect()
@@ -180,22 +180,18 @@ export const CanvasCard = ({
       const deltaX = moveEvent.clientX - startX
       const deltaY = moveEvent.clientY - startY
 
-      const deltaCols = Math.round(deltaX / columnWidth)
-      const deltaRows = Math.round(deltaY / rowHeight)
-
-      let newSize: ModuleSize = startSize
+      let newCols = startCols
+      let newRows = startRows
 
       if (direction === 'e' || direction === 'se') {
-        if (deltaCols > 0) newSize = 'medium'
-        if (deltaCols > 1 || startSize === 'medium' && deltaCols > 0) newSize = 'large'
-        if (deltaCols > 2 || startSize === 'large' && deltaCols > 0) newSize = 'full-width'
+        newCols = Math.max(MIN_COLUMNS, Math.min(MAX_COLUMNS, startCols + Math.round(deltaX / columnWidth)))
       }
       if (direction === 's' || direction === 'se') {
-        if (deltaRows > 0 && startSize !== 'full-width') newSize = 'large'
+        newRows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, startRows + Math.round(deltaY / rowHeight)))
       }
 
-      if (newSize !== size) {
-        onResize(newSize)
+      if (newCols !== size.columns || newRows !== size.rows) {
+        onResize({ columns: newCols, rows: newRows })
       }
     }
 
@@ -219,8 +215,8 @@ export const CanvasCard = ({
         if (!isDragging && onOpenDetails) onOpenDetails()
       }}
       style={{
-        gridColumn: `${displayPosition.x + 1} / span ${meta.columns}`,
-        gridRow: `${displayPosition.y + 1} / span ${meta.rows}`,
+        gridColumn: `${displayPosition.x + 1} / span ${size.columns}`,
+        gridRow: `${displayPosition.y + 1} / span ${size.rows}`,
         display: 'flex',
         flexDirection: 'column',
         cursor: 'default',
@@ -229,14 +225,14 @@ export const CanvasCard = ({
           ? `scale(1.03) translate(${dragOffset.x}px, ${dragOffset.y}px)`
           : undefined,
         opacity: isDragging ? 0.85 : undefined,
-        zIndex: isDragging ? 1000 : undefined,
+        zIndex: isDragging || isResizing ? 1000 : undefined,
         userSelect: 'none'
       }}
     >
       <div className="card-heading compact" onPointerDown={startDrag}>
         <span className="canvas-card-drag-indicator">⠿</span>
         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, flex: 1 }}>{title}</h3>
-        <span className="pill">{meta.label}</span>
+        <span className="pill">{sizeLabel(size)}</span>
         <button
           aria-label={`关闭 ${title}`}
           className="canvas-card-close-btn"

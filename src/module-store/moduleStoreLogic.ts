@@ -2,21 +2,7 @@ import { defaultModules } from './ModuleRegistry'
 import type { CanvasItem, Module, ModuleId, ModuleSize, ModuleStoreState } from './types'
 
 const CANVAS_COLUMNS = 4
-const LAYOUT_VERSION = 1
-
-const moduleWidthBySize: Record<ModuleSize, number> = {
-  small: 1,
-  medium: 2,
-  large: 2,
-  'full-width': 4
-}
-
-const moduleHeightBySize: Record<ModuleSize, number> = {
-  small: 1,
-  medium: 1,
-  large: 2,
-  'full-width': 1
-}
+const LAYOUT_VERSION = 2
 
 const keywordModuleMap: Array<{ keywords: string[]; moduleIds: ModuleId[] }> = [
   { keywords: ['任务', '待办', '行动', '计划', '项目', '交付', '看板', '冲刺', '生产线', '创作'], moduleIds: ['today-actions', 'statistics', 'persona-plan'] },
@@ -32,30 +18,25 @@ const safeText = (value: string, fallback: string) => {
   return normalized.length > 0 ? normalized : fallback
 }
 
-const getModuleWidth = (size: ModuleSize) => moduleWidthBySize[size]
-const getModuleHeight = (size: ModuleSize) => moduleHeightBySize[size]
-
 const rectsOverlap = (a: CanvasItem, b: CanvasItem) => {
-  const aRight = a.position.x + getModuleWidth(a.size)
-  const bRight = b.position.x + getModuleWidth(b.size)
-  const aBottom = a.position.y + getModuleHeight(a.size)
-  const bBottom = b.position.y + getModuleHeight(b.size)
+  const aRight = a.position.x + a.size.columns
+  const bRight = b.position.x + b.size.columns
+  const aBottom = a.position.y + a.size.rows
+  const bBottom = b.position.y + b.size.rows
 
   return a.position.x < bRight && aRight > b.position.x && a.position.y < bBottom && aBottom > b.position.y
 }
 
 export const snapCanvasPosition = (position: { x: number; y: number }, size: ModuleSize) => {
-  const width = getModuleWidth(size)
   return {
-    x: Math.max(0, Math.min(CANVAS_COLUMNS - width, Math.round(position.x))),
+    x: Math.max(0, Math.min(CANVAS_COLUMNS - size.columns, Math.round(position.x))),
     y: Math.max(0, Math.round(position.y))
   }
 }
 
 export const findNextCanvasPosition = (items: CanvasItem[], size: ModuleSize) => {
-  const width = getModuleWidth(size)
   for (let y = 0; y < 50; y += 1) {
-    for (let x = 0; x <= CANVAS_COLUMNS - width; x += 1) {
+    for (let x = 0; x <= CANVAS_COLUMNS - size.columns; x += 1) {
       const candidate: CanvasItem = { moduleId: '__candidate__', position: { x, y }, size }
       if (!items.some((item) => rectsOverlap(candidate, item))) return { x, y }
     }
@@ -173,8 +154,13 @@ type LayoutPayload = {
   activeModules: CanvasItem[]
 }
 
-const isModuleSize = (value: unknown): value is ModuleSize =>
-  value === 'small' || value === 'medium' || value === 'large' || value === 'full-width'
+const isModuleSize = (value: unknown): value is ModuleSize => {
+  if (!value || typeof value !== 'object') return false
+  const s = value as Record<string, unknown>
+  return typeof s.columns === 'number' && typeof s.rows === 'number'
+    && s.columns >= 1 && s.columns <= 4
+    && s.rows >= 1 && s.rows <= 6
+}
 
 const isCanvasItem = (value: unknown): value is CanvasItem => {
   if (!value || typeof value !== 'object') return false

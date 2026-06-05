@@ -14,7 +14,7 @@ const renderCanvasCard = (props: Partial<Parameters<typeof CanvasCard>[0]> = {})
       <CanvasCard
         title="今日行动"
         description="管理今日待办"
-        size="medium"
+        size={{ columns: 2, rows: 1 }}
         position={{ x: 0, y: 0 }}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
@@ -89,9 +89,9 @@ describe('CanvasCard', () => {
 
     expect(onMove).not.toHaveBeenCalled()
 
-    const dragHandle = screen.getByRole('button', { name: '拖动 今日行动' })
+    const dragHeading = document.querySelector('.card-heading') as HTMLElement
     act(() => {
-      dragHandle.dispatchEvent(new PointerEvent('pointerdown', { clientX: 0, clientY: 0, bubbles: true }))
+      dragHeading.dispatchEvent(new PointerEvent('pointerdown', { clientX: 0, clientY: 0, bubbles: true }))
     })
     dispatchPointerMove(360, 0)
     dispatchPointerUp()
@@ -113,9 +113,9 @@ describe('CanvasCard', () => {
 
     const { onMove } = renderCanvasCard()
 
-    const dragHandle = screen.getByRole('button', { name: '拖动 今日行动' })
+    const dragHeading = document.querySelector('.card-heading') as HTMLElement
     act(() => {
-      dragHandle.dispatchEvent(new PointerEvent('pointerdown', { clientX: 0, clientY: 0, bubbles: true, pointerType: 'touch' }))
+      dragHeading.dispatchEvent(new PointerEvent('pointerdown', { clientX: 0, clientY: 0, bubbles: true, pointerType: 'touch' }))
     })
     dispatchPointerMove(360, 0, 'touch')
     dispatchPointerUp('touch')

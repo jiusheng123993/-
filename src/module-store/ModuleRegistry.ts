@@ -7,7 +7,7 @@ export const defaultModules: Module[] = [
     description: '查看和管理今日待办事项',
     icon: 'CheckCircle',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -17,7 +17,7 @@ export const defaultModules: Module[] = [
     description: '番茄工作法专注计时',
     icon: 'Clock',
     category: 'productivity',
-    size: 'small',
+    size: { columns: 1, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -27,7 +27,7 @@ export const defaultModules: Module[] = [
     description: '查看日程安排',
     icon: 'Calendar',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -37,7 +37,7 @@ export const defaultModules: Module[] = [
     description: '快速记录想法和笔记',
     icon: 'FileText',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -47,7 +47,7 @@ export const defaultModules: Module[] = [
     description: '查看当地天气',
     icon: 'Cloud',
     category: 'life',
-    size: 'small',
+    size: { columns: 1, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -57,7 +57,7 @@ export const defaultModules: Module[] = [
     description: '查看个人数据统计',
     icon: 'BarChart',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -67,7 +67,7 @@ export const defaultModules: Module[] = [
     description: '按当前身份展示主行动计划和复盘节奏',
     icon: 'BookOpen',
     category: 'learning',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -77,7 +77,7 @@ export const defaultModules: Module[] = [
     description: '展示经验、连续天数和成就进度',
     icon: 'Crown',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -87,17 +87,7 @@ export const defaultModules: Module[] = [
     description: '汇总本周进度、待办数量和计划分钟',
     icon: 'Clock',
     category: 'productivity',
-    size: 'large',
-    isDefault: true,
-    isCustom: false
-  },
-  {
-    id: 'persona-brief',
-    title: '用户痛点',
-    description: '展示当前身份的目标用户、痛点和核心动线',
-    icon: 'Brain',
-    category: 'learning',
-    size: 'medium',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -107,7 +97,7 @@ export const defaultModules: Module[] = [
     description: '展示当前场景最重要的成长指标',
     icon: 'BarChart',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -117,7 +107,7 @@ export const defaultModules: Module[] = [
     description: '展示今日待办、完成状态和行动入口',
     icon: 'CheckCircle',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -127,7 +117,7 @@ export const defaultModules: Module[] = [
     description: '为当前任务启动专注计时器',
     icon: 'Clock',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -137,7 +127,7 @@ export const defaultModules: Module[] = [
     description: '查看最近完成的专注记录',
     icon: 'Clock',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -147,7 +137,7 @@ export const defaultModules: Module[] = [
     description: '查看近期上下文和成长记忆',
     icon: 'Brain',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -157,7 +147,7 @@ export const defaultModules: Module[] = [
     description: '根据当前场景生成下一步行动建议',
     icon: 'Bot',
     category: 'learning',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -167,7 +157,7 @@ export const defaultModules: Module[] = [
     description: '展示桌面、小程序和未来多端规划',
     icon: 'MonitorSmartphone',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -177,7 +167,7 @@ export const defaultModules: Module[] = [
     description: '预览小程序轻量执行端结构',
     icon: 'MonitorSmartphone',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -187,7 +177,7 @@ export const defaultModules: Module[] = [
     description: '管理主题库、场景推荐和视觉风格',
     icon: 'Sparkles',
     category: 'life',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -197,7 +187,7 @@ export const defaultModules: Module[] = [
     description: '展示当前周期阶段和能量建议',
     icon: 'Heart',
     category: 'health',
-    size: 'small',
+    size: { columns: 1, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -207,7 +197,7 @@ export const defaultModules: Module[] = [
     description: '查看和管理个人记忆画像',
     icon: 'Brain',
     category: 'ai',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -217,7 +207,7 @@ export const defaultModules: Module[] = [
     description: '查看已解锁的成就徽章和进度',
     icon: 'Award',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -227,7 +217,7 @@ export const defaultModules: Module[] = [
     description: '每日习惯打卡和进度追踪',
     icon: 'CheckSquare',
     category: 'health',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -237,7 +227,7 @@ export const defaultModules: Module[] = [
     description: '每日复盘、心情记录和反思',
     icon: 'BookOpen',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -247,7 +237,7 @@ export const defaultModules: Module[] = [
     description: '设定目标、关键结果和进度追踪',
     icon: 'Target',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -257,7 +247,7 @@ export const defaultModules: Module[] = [
     description: '管理学习目标、任务、笔记和复习计划',
     icon: 'GraduationCap',
     category: 'learning',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -267,7 +257,7 @@ export const defaultModules: Module[] = [
     description: '灵感收集、内容生产、发布日历和客户交付管理',
     icon: 'PenTool',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -277,7 +267,7 @@ export const defaultModules: Module[] = [
     description: '收入支出追踪、预算管理、财务目标进度',
     icon: 'Wallet',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -287,7 +277,7 @@ export const defaultModules: Module[] = [
     description: '书籍管理、阅读进度追踪、读书笔记',
     icon: 'BookOpen',
     category: 'learning',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -297,7 +287,7 @@ export const defaultModules: Module[] = [
     description: '项目看板、里程碑、任务分解和进度追踪',
     icon: 'FolderKanban',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -307,7 +297,7 @@ export const defaultModules: Module[] = [
     description: '饮食记录、饮水追踪、运动管理和健康目标',
     icon: 'Heart',
     category: 'health',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -317,7 +307,7 @@ export const defaultModules: Module[] = [
     description: '快速捕捉想法、置顶重要笔记、全文搜索',
     icon: 'StickyNote',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -327,7 +317,7 @@ export const defaultModules: Module[] = [
     description: '周报/月报生成，数据可视化汇总',
     icon: 'FileText',
     category: 'productivity',
-    size: 'large',
+    size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
   },
@@ -337,7 +327,7 @@ export const defaultModules: Module[] = [
     description: '搜索所有任务、笔记、目标等内容',
     icon: 'Search',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -347,7 +337,7 @@ export const defaultModules: Module[] = [
     description: '记录每日心情，查看趋势和统计',
     icon: 'Smile',
     category: 'health',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -357,7 +347,7 @@ export const defaultModules: Module[] = [
     description: '一天时间块规划和管理',
     icon: 'Clock',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -367,7 +357,7 @@ export const defaultModules: Module[] = [
     description: '专注时长趋势、任务分布、效率分析',
     icon: 'BarChart',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   }

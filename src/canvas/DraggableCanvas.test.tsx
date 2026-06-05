@@ -3,33 +3,33 @@ import { describe, expect, it, vi } from 'vitest'
 import { DraggableCanvas } from './DraggableCanvas'
 import type { CanvasItem, Module } from '../module-store/types'
 
-const createModule = (id: string, title: string, size: string = 'medium'): Module => ({
+const createModule = (id: string, title: string, size: { columns: number; rows: number } = { columns: 2, rows: 1 }): Module => ({
   id,
   title,
   description: `模块描述 - ${title}`,
   icon: 'CheckCircle',
   category: 'productivity',
-  size: size as any,
+  size,
   isDefault: true,
   isCustom: false
 })
 
-const createCanvasItem = (moduleId: string, x: number, y: number, size: string = 'medium'): CanvasItem => ({
+const createCanvasItem = (moduleId: string, x: number, y: number, size: { columns: number; rows: number } = { columns: 2, rows: 1 }): CanvasItem => ({
   moduleId,
   position: { x, y },
-  size: size as any
+  size
 })
 
 const renderCanvas = (props: Partial<Parameters<typeof DraggableCanvas>[0]> = {}) => {
   const modules = [
-    createModule('today-tasks', '今日任务', 'medium'),
-    createModule('focus-timer', '专注计时', 'small'),
-    createModule('weather', '天气', 'small')
+    createModule('today-tasks', '今日任务', { columns: 2, rows: 1 }),
+    createModule('focus-timer', '专注计时', { columns: 1, rows: 1 }),
+    createModule('weather', '天气', { columns: 1, rows: 1 })
   ]
   const items = [
-    createCanvasItem('today-tasks', 0, 0, 'medium'),
-    createCanvasItem('focus-timer', 1, 0, 'small'),
-    createCanvasItem('weather', 2, 0, 'small')
+    createCanvasItem('today-tasks', 0, 0, { columns: 2, rows: 1 }),
+    createCanvasItem('focus-timer', 1, 0, { columns: 1, rows: 1 }),
+    createCanvasItem('weather', 2, 0, { columns: 1, rows: 1 })
   ]
 
   const onItemsChange = vi.fn()
@@ -105,14 +105,14 @@ describe('DraggableCanvas', () => {
 
   it('renders with different module sizes', () => {
     const modules = [
-      createModule('small-module', '小模块', 'small'),
-      createModule('large-module', '大模块', 'large'),
-      createModule('full-module', '通栏模块', 'full-width')
+      createModule('small-module', '小模块', { columns: 1, rows: 1 }),
+      createModule('large-module', '大模块', { columns: 2, rows: 2 }),
+      createModule('full-module', '通栏模块', { columns: 4, rows: 1 })
     ]
     const items = [
-      createCanvasItem('small-module', 0, 0, 'small'),
-      createCanvasItem('large-module', 0, 1, 'large'),
-      createCanvasItem('full-module', 0, 3, 'full-width')
+      createCanvasItem('small-module', 0, 0, { columns: 1, rows: 1 }),
+      createCanvasItem('large-module', 0, 1, { columns: 2, rows: 2 }),
+      createCanvasItem('full-module', 0, 3, { columns: 4, rows: 1 })
     ]
 
     renderCanvas({ modules, items })

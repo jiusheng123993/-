@@ -11,11 +11,21 @@ const categoryLabels: Record<ModuleCategory | 'all', string> = {
   custom: '自定义'
 }
 
-const sizeLabels: Record<ModuleSize, string> = {
-  small: '小卡片',
-  medium: '标准卡片',
-  large: '大卡片',
-  'full-width': '通栏'
+const presetSizes: { columns: number; rows: number; label: string }[] = [
+  { columns: 1, rows: 1, label: '1×1 小卡片' },
+  { columns: 2, rows: 1, label: '2×1 标准' },
+  { columns: 3, rows: 1, label: '3×1 宽' },
+  { columns: 4, rows: 1, label: '4×1 通栏' },
+  { columns: 1, rows: 2, label: '1×2 高' },
+  { columns: 2, rows: 2, label: '2×2 大' },
+  { columns: 3, rows: 2, label: '3×2 超大' },
+  { columns: 4, rows: 2, label: '4×2 全屏' }
+]
+
+const sizeToKey = (size: ModuleSize) => `${size.columns}x${size.rows}`
+const keyToSize = (key: string): ModuleSize => {
+  const [c, r] = key.split('x').map(Number)
+  return { columns: c || 2, rows: r || 1 }
 }
 
 type ModuleStoreUIProps = {
@@ -38,7 +48,7 @@ export const ModuleStoreUI = ({
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [size, setSize] = useState<ModuleSize>('medium')
+  const [sizeKey, setSizeKey] = useState('2x1')
   const activeIds = new Set(state.activeModules.map((item) => item.moduleId))
   const activeCount = state.activeModules.length
   const totalCount = state.availableModules.length
@@ -62,14 +72,16 @@ export const ModuleStoreUI = ({
       description,
       icon: 'Sparkles',
       category: 'custom',
-      size,
+      size: keyToSize(sizeKey),
       isCustom: true
     })
     onCreateCustomModule(module)
     setTitle('')
     setDescription('')
-    setSize('medium')
+    setSizeKey('2x1')
   }
+
+  const formatSizeLabel = (size: ModuleSize) => `${size.columns}×${size.rows}`
 
   return (
     <div className="module-store-backdrop" onClick={onClose} role="presentation">
@@ -134,7 +146,7 @@ export const ModuleStoreUI = ({
                   <div className="module-store-item-details">
                     <p className="module-store-item-full-desc">{module.description}</p>
                     <div className="module-store-item-meta">
-                      <span className="module-store-item-size">{sizeLabels[module.size]}</span>
+                      <span className="module-store-item-size">{formatSizeLabel(module.size)}</span>
                       <span className="module-store-item-category">{categoryLabels[module.category]}</span>
                     </div>
                     <div className="module-store-item-actions" onClick={(event) => event.stopPropagation()}>
@@ -158,7 +170,7 @@ export const ModuleStoreUI = ({
                 {!isExpanded && (
                   <>
                     <div className="module-store-item-meta">
-                      <span className="module-store-item-size">{sizeLabels[module.size]}</span>
+                      <span className="module-store-item-size">{formatSizeLabel(module.size)}</span>
                       <span className="module-store-item-category">{categoryLabels[module.category]}</span>
                     </div>
                     <div className="module-store-item-actions">
@@ -189,8 +201,10 @@ export const ModuleStoreUI = ({
             <h4>创建自定义模块</h4>
             <input aria-label="自定义模块名称" onChange={(event) => setTitle(event.target.value)} placeholder="例如：晨间复盘" value={title} />
             <input aria-label="自定义模块描述" onChange={(event) => setDescription(event.target.value)} placeholder="这个模块要帮你记录什么？" value={description} />
-            <select aria-label="自定义模块尺寸" onChange={(event) => setSize(event.target.value as ModuleSize)} value={size}>
-              {Object.entries(sizeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            <select aria-label="自定义模块尺寸" onChange={(event) => setSizeKey(event.target.value)} value={sizeKey}>
+              {presetSizes.map(({ columns, rows, label }) => (
+                <option key={`${columns}x${rows}`} value={`${columns}x${rows}`}>{label}</option>
+              ))}
             </select>
             <button className="module-store-btn module-store-btn-create" onClick={createModule} type="button">创建并添加到商店</button>
           </div>

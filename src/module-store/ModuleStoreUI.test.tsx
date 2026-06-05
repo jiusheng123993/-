@@ -2,25 +2,26 @@ import { render, screen, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ModuleStoreUI } from './ModuleStoreUI'
-import type { Module, ModuleStoreState, ModuleItem } from './types'
+import type { Module, ModuleStoreState, CanvasItem } from './types'
 
-const createModuleItem = (id: string, title: string, category: string = 'productivity', size: string = 'medium'): Module => ({
+const createModuleItem = (id: string, title: string, category: string = 'productivity', size: { columns: number; rows: number } = { columns: 2, rows: 1 }): Module => ({
   id,
   title,
   description: `模块描述 - ${title}`,
   icon: 'CheckCircle',
   category: category as any,
-  size: size as any,
+  size,
   isDefault: true,
   isCustom: false
 })
 
-const createActiveModule = (moduleId: string, position: number = 0): ModuleItem => ({
+const createActiveModule = (moduleId: string, position: number = 0): CanvasItem => ({
   moduleId,
-  position
+  position: { x: position, y: 0 },
+  size: { columns: 2, rows: 1 }
 })
 
-const createMockState = (modules: Module[], activeModules: ModuleItem[] = []): ModuleStoreState => ({
+const createMockState = (modules: Module[], activeModules: CanvasItem[] = []): ModuleStoreState => ({
   availableModules: modules,
   activeModules,
   isStoreOpen: true
@@ -28,10 +29,10 @@ const createMockState = (modules: Module[], activeModules: ModuleItem[] = []): M
 
 const renderModuleStore = (props: Partial<Parameters<typeof ModuleStoreUI>[0]> = {}) => {
   const modules = [
-    createModuleItem('today-tasks', '今日任务', 'productivity', 'medium'),
-    createModuleItem('focus-timer', '专注计时', 'productivity', 'small'),
-    createModuleItem('weather', '天气', 'life', 'small'),
-    createModuleItem('custom-1', '晨间复盘', 'custom', 'medium')
+    createModuleItem('today-tasks', '今日任务', 'productivity', { columns: 2, rows: 1 }),
+    createModuleItem('focus-timer', '专注计时', 'productivity', { columns: 1, rows: 1 }),
+    createModuleItem('weather', '天气', 'life', { columns: 1, rows: 1 }),
+    createModuleItem('custom-1', '晨间复盘', 'custom', { columns: 2, rows: 1 })
   ]
   const activeItems = [
     createActiveModule('today-tasks', 0),
@@ -115,7 +116,7 @@ describe('ModuleStoreUI', () => {
 
     const article = screen.getByText('天气').closest('article')
     expect(article).toHaveClass('expanded')
-    expect(within(article!).getByText('小卡片')).toBeInTheDocument()
+    expect(within(article!).getByText('1×1')).toBeInTheDocument()
     expect(within(article!).getByText('生活')).toBeInTheDocument()
   })
 
@@ -125,14 +126,14 @@ describe('ModuleStoreUI', () => {
 
     await user.type(screen.getByPlaceholderText('例如：晨间复盘'), '晚间复盘')
     await user.type(screen.getByPlaceholderText('这个模块要帮你记录什么？'), '记录每日反思')
-    await user.selectOptions(screen.getByLabelText('自定义模块尺寸'), 'large')
+    await user.selectOptions(screen.getByLabelText('自定义模块尺寸'), '2x2')
     await user.click(screen.getByRole('button', { name: '创建并添加到商店' }))
 
     expect(onCreateCustomModule).toHaveBeenCalledTimes(1)
     const createdModule = onCreateCustomModule.mock.calls[0][0]
     expect(createdModule.title).toBe('晚间复盘')
     expect(createdModule.description).toBe('记录每日反思')
-    expect(createdModule.size).toBe('large')
+    expect(createdModule.size).toEqual({ columns: 2, rows: 2 })
     expect(createdModule.category).toBe('custom')
     expect(createdModule.isCustom).toBe(true)
   })
@@ -169,7 +170,7 @@ describe('ModuleStoreUI', () => {
   })
 
   it('shows custom category tab when custom modules exist', () => {
-    const customModule = createModuleItem('custom-test', '测试自定义', 'custom', 'medium')
+    const customModule = createModuleItem('custom-test', '测试自定义', 'custom', { columns: 2, rows: 1 })
     const state = createMockState([
       createModuleItem('today-tasks', '今日任务'),
       customModule

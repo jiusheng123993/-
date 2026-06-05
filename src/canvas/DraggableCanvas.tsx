@@ -15,20 +15,6 @@ interface DraggableCanvasProps {
   onRemoveModule: (moduleId: string) => void
 }
 
-const moduleWidthBySize: Record<ModuleSize, number> = {
-  small: 1,
-  medium: 2,
-  large: 2,
-  'full-width': 4
-}
-
-const moduleHeightBySize: Record<ModuleSize, number> = {
-  small: 1,
-  medium: 1,
-  large: 2,
-  'full-width': 1
-}
-
 const ALIGN_THRESHOLD = 0.3
 
 const computeAlignLines = (
@@ -38,8 +24,8 @@ const computeAlignLines = (
   allItems: CanvasItem[]
 ): AlignLine[] => {
   const lines: AlignLine[] = []
-  const dragWidth = moduleWidthBySize[dragSize]
-  const dragHeight = moduleHeightBySize[dragSize]
+  const dragWidth = dragSize.columns
+  const dragHeight = dragSize.rows
 
   const dragLeft = dragPosition.x
   const dragRight = dragPosition.x + dragWidth
@@ -51,8 +37,8 @@ const computeAlignLines = (
   for (const item of allItems) {
     if (item.moduleId === dragItemId) continue
 
-    const itemWidth = moduleWidthBySize[item.size]
-    const itemHeight = moduleHeightBySize[item.size]
+    const itemWidth = item.size.columns
+    const itemHeight = item.size.rows
     const itemLeft = item.position.x
     const itemRight = item.position.x + itemWidth
     const itemTop = item.position.y

@@ -22,13 +22,13 @@ describe('moduleStoreLogic', () => {
     const withTimer = addModuleToLayout(withDuplicate, 'focus-timer')
 
     expect(withTasks.activeModules).toEqual([
-      { moduleId: 'today-tasks', position: { x: 0, y: 0 }, size: 'medium' }
+      { moduleId: 'today-tasks', position: { x: 0, y: 0 }, size: { columns: 2, rows: 1 } }
     ])
     expect(withDuplicate.activeModules).toHaveLength(1)
     expect(withTimer.activeModules[1]).toEqual({
       moduleId: 'focus-timer',
       position: { x: 2, y: 0 },
-      size: 'small'
+      size: { columns: 1, rows: 1 }
     })
   })
 
@@ -38,7 +38,7 @@ describe('moduleStoreLogic', () => {
       description: '记录醒来后的第一个行动',
       icon: 'Sunrise',
       category: 'custom',
-      size: 'small',
+      size: { columns: 1, rows: 1 },
       isCustom: true
     })
     const state = addModuleToLayout(
@@ -58,10 +58,10 @@ describe('moduleStoreLogic', () => {
     const state = addModuleToLayout(initialState(), 'statistics')
 
     const moved = moveModuleInLayout(state, 'statistics', { x: 2.7, y: -1.2 })
-    const resized = resizeModuleInLayout(moved, 'statistics', 'full-width')
+    const resized = resizeModuleInLayout(moved, 'statistics', { columns: 4, rows: 1 })
 
     expect(moved.activeModules[0].position).toEqual({ x: 2, y: 0 })
-    expect(resized.activeModules[0].size).toBe('full-width')
+    expect(resized.activeModules[0].size).toEqual({ columns: 4, rows: 1 })
   })
 
   it('recommends default modules from identity description keywords and persona module names', () => {
@@ -81,7 +81,7 @@ describe('moduleStoreLogic', () => {
       description: '用于验证导入导出',
       icon: 'Sparkles',
       category: 'custom',
-      size: 'medium',
+      size: { columns: 2, rows: 1 },
       isCustom: true
     })
     const state = addModuleToLayout(
@@ -91,13 +91,13 @@ describe('moduleStoreLogic', () => {
     const exported = exportModuleLayout(state)
     const imported = importModuleLayout(exported, defaultModules)
 
-    expect(JSON.parse(exported)).toMatchObject({ version: 1 })
+    expect(JSON.parse(exported)).toMatchObject({ version: 2 })
     expect(imported.availableModules.some((module) => module.id === custom.id)).toBe(true)
     expect(imported.activeModules).toEqual(state.activeModules)
   })
 
   it('rejects invalid layout import payloads', () => {
-    expect(() => importModuleLayout('{"version":2}', defaultModules)).toThrow('布局版本不受支持')
+    expect(() => importModuleLayout('{"version":3}', defaultModules)).toThrow('布局版本不受支持')
     expect(() => importModuleLayout('not-json', defaultModules)).toThrow('布局文件格式无效')
   })
 })

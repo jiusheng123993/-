@@ -6,11 +6,11 @@ import { LayoutShareUI } from './LayoutShareUI'
 const mockLayoutData = {
   exportedAt: '2024-06-04T10:00:00.000Z',
   activeModules: [
-    { moduleId: 'today-tasks', position: { x: 0, y: 0 } },
-    { moduleId: 'focus-timer', position: { x: 1, y: 0 } }
+    { moduleId: 'today-tasks', position: { x: 0, y: 0 }, size: { columns: 2, rows: 1 } },
+    { moduleId: 'focus-timer', position: { x: 1, y: 0 }, size: { columns: 1, rows: 1 } }
   ],
   modules: [
-    { id: 'custom-1', title: '晨间复盘', description: '记录每日反思', category: 'custom', size: 'medium' }
+    { id: 'custom-1', title: '晨间复盘', description: '记录每日反思', category: 'custom', size: { columns: 2, rows: 1 } }
   ]
 }
 

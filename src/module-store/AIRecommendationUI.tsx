@@ -332,13 +332,20 @@ export const AIRecommendationUI = ({
               <h3>尺寸</h3>
               <select
                 className="ai-recommendation-edit-select"
-                value={editingModule.size}
-                onChange={(e) => setEditingModule(prev => prev ? { ...prev, size: e.target.value as ModuleSize } : null)}
+                value={`${editingModule.size.columns}x${editingModule.size.rows}`}
+                onChange={(e) => {
+                  const [c, r] = e.target.value.split('x').map(Number)
+                  setEditingModule(prev => prev ? { ...prev, size: { columns: c || 2, rows: r || 1 } } : null)
+                }}
               >
-                <option value="small">小</option>
-                <option value="medium">中</option>
-                <option value="large">大</option>
-                <option value="full-width">全宽</option>
+                <option value="1x1">1×1 小</option>
+                <option value="2x1">2×1 中</option>
+                <option value="3x1">3×1 宽</option>
+                <option value="4x1">4×1 全宽</option>
+                <option value="1x2">1×2 高</option>
+                <option value="2x2">2×2 大</option>
+                <option value="3x2">3×2 超大</option>
+                <option value="4x2">4×2 全屏</option>
               </select>
             </div>
             <div className="ai-recommendation-detail-section">

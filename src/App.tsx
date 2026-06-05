@@ -49,6 +49,7 @@ import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuth
 import { SpaceList, SpaceDetail, RelationshipSpaceProvider } from './relationship'
 import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
+import { withWorkspaceMemoryObserver } from './memory/workspaceMemoryMiddleware'
 import type { MemoryEvent, MemoryScope, MemoryProfile } from './memory/memoryTypes'
 import { MemoryProfileEditorUI } from './memory/MemoryProfileEditorUI'
 import { MemoryContextPreview } from './memory/MemoryContextPreview'
@@ -61,6 +62,7 @@ import { useApiKeyStatus } from './hooks/useApiKeyStatus'
 import { CanvasCard } from './canvas/CanvasCard'
 import { SidebarPanel } from './sidebar-panel'
 import { DraggableModal } from './canvas/DraggableModal'
+import { getDailyQuote } from './quotes/dailyQuote'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
 import { ModuleStoreUI } from './module-store/ModuleStoreUI'
@@ -74,7 +76,7 @@ import {
   removeModuleFromLayout,
   upsertCustomModule
 } from './module-store/moduleStoreLogic'
-import type { CanvasItem, ModuleStoreState } from './module-store/types'
+import type { CanvasItem, ModuleSize, ModuleStoreState } from './module-store/types'
 import { CycleTracker } from './cycle'
 import { AvatarManager } from './avatar'
 import { BadgeDisplay } from './badges/BadgeDisplay'
@@ -261,6 +263,38 @@ const loadInitialModuleStoreState = (): ModuleStoreState => {
   }
 }
 
+function CouponRedeemInput({ onRedeem }: { onRedeem: (code: string) => void }) {
+  const [code, setCode] = useState('')
+
+  const handleRedeem = () => {
+    const trimmed = code.trim()
+    if (trimmed) {
+      onRedeem(trimmed)
+      setCode('')
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleRedeem()
+    }
+  }
+
+  return (
+    <div className="membership-coupon-input-group">
+      <input
+        type="text"
+        className="membership-coupon-input"
+        placeholder="输入优惠券码"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+      <button className="membership-coupon-apply" onClick={handleRedeem}>使用</button>
+    </div>
+  )
+}
+
 export default function App() {
   const [workspaceState, setWorkspaceState] = useState<WorkspaceState>(() => loadInitialState())
   const { addToast } = useToast()
@@ -343,16 +377,7 @@ export default function App() {
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
   const [inviteRewards] = useState<{inviteeName: string; rewardDays: number; status: string}[]>([])
-  
-  const { 
-    pendingEntry, 
-    handleAccept: handleEvolutionAccept,
-    handleReject: handleEvolutionReject,
-    handleModify: handleEvolutionModify,
-    handleClose: handleEvolutionClose
-  } = useEvolutionRitual(authSession?.userId)
-  
-  const { suggestions: silentSuggestions } = useSilentSuggestions()
+  const { pendingEntry, handleEvolutionAccept, handleEvolutionReject } = useEvolutionRitual(authSession?.userId ?? 'anonymous', memoryEvents, memoryProfile)
   
   const filteredThemes = themeRegistry.filter((theme) => {
     const searchableText = [
@@ -411,6 +436,16 @@ export default function App() {
     if (!memoryStore) return
     setMemoryEvents(memoryStore.listEvents(memoryScope))
   }, [memoryScope])
+
+  const { 
+    pendingEntry, 
+    handleAccept: handleEvolutionAccept,
+    handleReject: handleEvolutionReject,
+    handleModify: handleEvolutionModify,
+    handleClose: handleEvolutionClose
+  } = useEvolutionRitual(authSession?.userId, memoryEvents, memoryProfile)
+
+  const { suggestions: silentSuggestions } = useSilentSuggestions(memoryProfile, memoryEvents)
   
   const switchDevAuthRole = () => {
     setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
@@ -585,9 +620,16 @@ export default function App() {
   useEffect(() => {
     if (!store) return
     if (savedWorkspaceStateRef.current === workspaceState) return
+    const previousState = savedWorkspaceStateRef.current
     savedWorkspaceStateRef.current = workspaceState
-    store.save(workspaceState)
-  }, [workspaceState])
+    if (previousState && memoryObserver) {
+      const wrappedStore = withWorkspaceMemoryObserver(store, memoryObserver)
+      wrappedStore.save(workspaceState)
+    } else {
+      store.save(workspaceState)
+    }
+    refreshMemoryEvents()
+  }, [workspaceState, memoryObserver, refreshMemoryEvents])
 
   useEffect(() => {
     // Layout persistence concern: module layout is saved independently from workspace state
@@ -890,9 +932,10 @@ export default function App() {
   const FOCUS_MIN_MINUTES = 5
   const FOCUS_MAX_MINUTES = 180
   const FOCUS_STEP_MINUTES = 5
+  const DEFAULT_FOCUS_ID = '__default_focus__'
   const focusTargetMinutes = focusDisplayTask
     ? focusDurationDraft[focusDisplayTask.id] ?? focusDisplayTask.minutes
-    : 25
+    : focusDurationDraft[DEFAULT_FOCUS_ID] ?? 25
 
   const focusSeconds = activeFocusTask
     ? focusRemainingSeconds
@@ -904,22 +947,27 @@ export default function App() {
     : 0
 
   const adjustFocusDuration = (delta: number) => {
-    if (!focusDisplayTask || isFocusRunning) return
+    if (isFocusRunning) return
+    const targetId = focusDisplayTask ? focusDisplayTask.id : DEFAULT_FOCUS_ID
+    const currentMinutes = focusDisplayTask
+      ? focusDurationDraft[focusDisplayTask.id] ?? focusDisplayTask.minutes
+      : focusDurationDraft[DEFAULT_FOCUS_ID] ?? 25
     const next = Math.min(
       FOCUS_MAX_MINUTES,
-      Math.max(FOCUS_MIN_MINUTES, focusTargetMinutes + delta)
+      Math.max(FOCUS_MIN_MINUTES, currentMinutes + delta)
     )
-    if (next === focusTargetMinutes) return
-    setFocusDurationDraft((current) => ({ ...current, [focusDisplayTask.id]: next }))
+    if (next === currentMinutes) return
+    setFocusDurationDraft((current) => ({ ...current, [targetId]: next }))
     setFocusPausedRemainingMs(null)
   }
 
   const handleFocusDurationInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!focusDisplayTask || isFocusRunning) return
+    if (isFocusRunning) return
     const raw = Number(event.target.value)
     if (!Number.isFinite(raw)) return
     const clamped = Math.min(FOCUS_MAX_MINUTES, Math.max(FOCUS_MIN_MINUTES, Math.round(raw)))
-    setFocusDurationDraft((current) => ({ ...current, [focusDisplayTask.id]: clamped }))
+    const targetId = focusDisplayTask ? focusDisplayTask.id : DEFAULT_FOCUS_ID
+    setFocusDurationDraft((current) => ({ ...current, [targetId]: clamped }))
     setFocusPausedRemainingMs(null)
   }
 
@@ -968,46 +1016,7 @@ export default function App() {
     }
   }
 
-  const DAILY_QUOTES = [
-    { content: '不积跬步，无以至千里', author: '荀子' },
-    { content: '千里之行，始于足下', author: '老子' },
-    { content: '学而不思则罔，思而不学则殆', author: '孔子' },
-    { content: '业精于勤，荒于嬉', author: '韩愈' },
-    { content: '书山有路勤为径，学海无涯苦作舟', author: '韩愈' },
-    { content: '天行健，君子以自强不息', author: '周易' },
-    { content: '博观而约取，厚积而薄发', author: '苏轼' },
-    { content: '纸上得来终觉浅，绝知此事要躬行', author: '陆游' },
-    { content: '路漫漫其修远兮，吾将上下而求索', author: '屈原' },
-    { content: '宝剑锋从磨砺出，梅花香自苦寒来', author: '佚名' },
-    { content: '少壮不努力，老大徒伤悲', author: '汉乐府' },
-    { content: '黑发不知勤学早，白首方悔读书迟', author: '颜真卿' },
-    { content: '莫等闲，白了少年头，空悲切', author: '岳飞' },
-    { content: '有志者，事竟成', author: '范晔' },
-    { content: '锲而不舍，金石可镂', author: '荀子' },
-    { content: '温故而知新，可以为师矣', author: '孔子' },
-    { content: '三人行，必有我师焉', author: '孔子' },
-    { content: '知之为知之，不知为不知，是知也', author: '孔子' },
-    { content: '学而时习之，不亦说乎', author: '孔子' },
-    { content: '吾生也有涯，而知也无涯', author: '庄子' },
-    { content: '非淡泊无以明志，非宁静无以致远', author: '诸葛亮' },
-    { content: '盛年不重来，一日难再晨', author: '陶渊明' },
-    { content: '及时当勉励，岁月不待人', author: '陶渊明' },
-    { content: '读书破万卷，下笔如有神', author: '杜甫' },
-    { content: '问渠那得清如许，为有源头活水来', author: '朱熹' },
-    { content: '山重水复疑无路，柳暗花明又一村', author: '陆游' },
-    { content: '长风破浪会有时，直挂云帆济沧海', author: '李白' },
-    { content: '天生我材必有用，千金散尽还复来', author: '李白' },
-    { content: '会当凌绝顶，一览众山小', author: '杜甫' },
-    { content: '欲穷千里目，更上一层楼', author: '王之涣' },
-    { content: '不以规矩，不能成方圆', author: '孟子' },
-    { content: '生于忧患，死于安乐', author: '孟子' }
-  ]
 
-  const getDailyQuote = () => {
-    const today = new Date()
-    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
-    return DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length]
-  }
 
   const ClockDisplay = () => {
     const [now, setNow] = useState(() => new Date())
@@ -1554,253 +1563,106 @@ export default function App() {
                       }}
                       compact
                     />
-                    <button
-                      className="badge-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('badge-display')}
-                      type="button"
-                    >
-                      查看全部徽章
-                    </button>
                   </section>
                 ),
                 'habit-tracker': (
                   <section className="panel side-card habit-tracker-card" role="region" aria-label="习惯追踪">
                     <HabitTracker compact />
-                    <button
-                      className="habit-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('habit-tracker')}
-                      type="button"
-                    >
-                      查看全部习惯
-                    </button>
                   </section>
                 ),
                 'journal': (
                   <section className="panel side-card journal-card" role="region" aria-label="复盘日记">
                     <JournalUI compact />
-                    <button
-                      className="journal-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('journal')}
-                      type="button"
-                    >
-                      打开复盘日记
-                    </button>
                   </section>
                 ),
                 'goal-tracker': (
                   <section className="panel side-card goal-tracker-card" role="region" aria-label="目标管理">
                     <GoalTrackerUI compact />
-                    <button
-                      className="goal-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('goal-tracker')}
-                      type="button"
-                    >
-                      打开目标管理
-                    </button>
                   </section>
                 ),
                 'study-dashboard': (
                   <section className="panel side-card study-dashboard-card" role="region" aria-label="学习仪表盘">
                     <StudyDashboardUI compact />
-                    <button
-                      className="study-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('study-dashboard')}
-                      type="button"
-                    >
-                      打开学习仪表盘
-                    </button>
                   </section>
                 ),
                 'creator-workbench': (
                   <section className="panel side-card creator-workbench-card" role="region" aria-label="内容创作工作台">
                     <CreatorWorkbenchUI compact />
-                    <button
-                      className="creator-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('creator-workbench')}
-                      type="button"
-                    >
-                      打开创作工作台
-                    </button>
                   </section>
                 ),
                 'finance-tracker': (
                   <section className="panel side-card finance-tracker-card" role="region" aria-label="财务管理">
                     <FinanceUI compact />
-                    <button
-                      className="finance-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('finance-tracker')}
-                      type="button"
-                    >
-                      打开财务管理
-                    </button>
                   </section>
                 ),
                 'reading-list': (
                   <section className="panel side-card reading-list-card" role="region" aria-label="阅读清单">
                     <ReadingUI compact />
-                    <button
-                      className="reading-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('reading-list')}
-                      type="button"
-                    >
-                      打开阅读清单
-                    </button>
                   </section>
                 ),
                 'project-manager': (
                   <section className="panel side-card project-manager-card" role="region" aria-label="项目管理">
                     <ProjectUI compact />
-                    <button
-                      className="project-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('project-manager')}
-                      type="button"
-                    >
-                      打开项目管理
-                    </button>
                   </section>
                 ),
                 'wellness-life': (
                   <section className="panel side-card wellness-life-card" role="region" aria-label="健康生活">
                     <WellnessUI compact />
-                    <button
-                      className="wellness-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('wellness-life')}
-                      type="button"
-                    >
-                      打开健康生活
-                    </button>
                   </section>
                 ),
                 'quick-notes': (
                   <section className="panel side-card quick-notes-card" role="region" aria-label="速记">
                     <QuickNotesUI compact />
-                    <button
-                      className="quicknotes-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('quick-notes')}
-                      type="button"
-                    >
-                      打开速记
-                    </button>
                   </section>
                 ),
                 'report-center': (
                   <section className="panel side-card report-center-card" role="region" aria-label="报告中心">
                     <ReportUI compact />
-                    <button
-                      className="report-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('report-center')}
-                      type="button"
-                    >
-                      打开报告
-                    </button>
                   </section>
                 ),
                 'global-search': (
                   <section className="panel side-card global-search-card" role="region" aria-label="全局搜索">
                     <GlobalSearchUI compact />
-                    <button
-                      className="search-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('global-search')}
-                      type="button"
-                    >
-                      打开搜索
-                    </button>
                   </section>
                 ),
                 'mood-tracker': (
                   <section className="panel side-card mood-tracker-card" role="region" aria-label="心情追踪">
                     <MoodUI compact />
-                    <button
-                      className="mood-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('mood-tracker')}
-                      type="button"
-                    >
-                      打开心情
-                    </button>
                   </section>
                 ),
                 'time-block': (
                   <section className="panel side-card time-block-card" role="region" aria-label="时间块">
                     <TimeBlockUI compact />
-                    <button
-                      className="timeblock-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('time-block')}
-                      type="button"
-                    >
-                      打开时间块
-                    </button>
                   </section>
                 ),
                 'focus-stats': (
                   <section className="panel side-card focus-stats-card" role="region" aria-label="专注统计">
                     <FocusStatsUI compact />
-                    <button
-                      className="focusstats-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('focus-stats')}
-                      type="button"
-                    >
-                      打开统计
-                    </button>
                   </section>
                 ),
                 'focus-history': (
                   <section className="panel side-card focus-history-card" role="region" aria-label="专注历史">
                     <FocusHistoryUI compact />
-                    <button
-                      className="focushistory-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('focus-history')}
-                      type="button"
-                    >
-                      打开历史
-                    </button>
                   </section>
                 ),
                 'quote-collection': (
                   <section className="panel side-card quote-collection-card" role="region" aria-label="语录收藏">
                     <QuoteUI compact />
-                    <button
-                      className="quote-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('quote-collection')}
-                      type="button"
-                    >
-                      打开语录
-                    </button>
                   </section>
                 ),
                 'english-learning': (
                   <section className="panel side-card english-learning-card" role="region" aria-label="英语学习">
                     <EnglishUI compact />
-                    <button
-                      className="english-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('english-learning')}
-                      type="button"
-                    >
-                      打开英语
-                    </button>
                   </section>
                 ),
                 'watch-list': (
                   <section className="panel side-card watch-list-card" role="region" aria-label="观影记录">
                     <WatchListUI compact />
-                    <button
-                      className="watchlist-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('watch-list')}
-                      type="button"
-                    >
-                      打开观影
-                    </button>
                   </section>
                 ),
                 'template-center': (
                   <section className="panel side-card template-center-card" role="region" aria-label="模板中心">
                     <TemplateUI compact />
-                    <button
-                      className="template-detail-btn"
-                      onClick={() => setOpenWorkbenchDetail('template-center')}
-                      type="button"
-                    >
-                      打开模板
-                    </button>
                   </section>
                 )
               }
@@ -1813,10 +1675,10 @@ export default function App() {
               const checkCollision = (_moduleId: string, targetPos: { x: number; y: number }) => {
                 const hasCollision = moduleStoreState.activeModules.some((other) => {
                   if (other.moduleId === item.moduleId) return false
-                  const otherRight = other.position.x + (other.size === 'full-width' ? 4 : other.size === 'large' ? 2 : other.size === 'medium' ? 2 : 1)
-                  const otherBottom = other.position.y + (other.size === 'large' ? 2 : 1)
-                  const targetRight = targetPos.x + (item.size === 'full-width' ? 4 : item.size === 'large' ? 2 : item.size === 'medium' ? 2 : 1)
-                  const targetBottom = targetPos.y + (item.size === 'large' ? 2 : 1)
+                  const otherRight = other.position.x + other.size.columns
+                  const otherBottom = other.position.y + other.size.rows
+                  const targetRight = targetPos.x + item.size.columns
+                  const targetBottom = targetPos.y + item.size.rows
                   return targetPos.x < otherRight && targetRight > other.position.x && targetPos.y < otherBottom && targetBottom > other.position.y
                 })
                 if (!hasCollision) {
@@ -1860,9 +1722,11 @@ export default function App() {
         focusSecondText={focusSecondText}
         isFocusRunning={isFocusRunning}
         focusDisplayTask={focusDisplayTask ? { id: focusDisplayTask.id, title: focusDisplayTask.title, dueLabel: focusDisplayTask.dueLabel } : null}
+        focusTargetMinutes={focusTargetMinutes}
         onStartFocus={startFocusTimer}
         onPauseFocus={pauseFocusTimer}
         onResetFocus={resetFocusTimer}
+        onAdjustFocus={adjustFocusDuration}
       />
       </div>
 
@@ -3097,7 +2961,8 @@ export default function App() {
 
               <section className="membership-benefits-section">
                 <h3>权益对比</h3>
-                <table className="membership-benefits-table">
+                <div className="table-responsive">
+                <table className="membership-benefits-table data-table">
                   <thead>
                     <tr>
                       <th>权益项目</th>
@@ -3166,6 +3031,7 @@ export default function App() {
                     </tr>
                   </tbody>
                 </table>
+                </div>
               </section>
 
               <section className="membership-dynamic-benefits-section">
@@ -3299,25 +3165,7 @@ export default function App() {
               <section className="membership-coupon-section">
                 <h3>优惠券</h3>
                 <p className="membership-coupon-desc">输入优惠券码，享受专属折扣</p>
-                <div className="membership-coupon-input-group">
-                  <input 
-                    type="text" 
-                    className="membership-coupon-input" 
-                    placeholder="输入优惠券码"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement
-                        handleRedeemCoupon(input.value)
-                        input.value = ''
-                      }
-                    }}
-                  />
-                  <button className="membership-coupon-apply" onClick={(e) => {
-                    const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement
-                    handleRedeemCoupon(input.value)
-                    input.value = ''
-                  }}>使用</button>
-                </div>
+                <CouponRedeemInput onRedeem={handleRedeemCoupon} />
                 {userCoupons.length > 0 && (
                   <div className="membership-coupon-list">
                     <h4>我的优惠券</h4>
@@ -3874,6 +3722,8 @@ export default function App() {
           onClose={() => setIsAgentChatOpen(false)}
           personaId={activePersona?.id}
           aiRole={activePersona?.aiRole}
+          profile={memoryProfile}
+          memoryEvents={memoryEvents}
         />
       )}
       {!isAgentChatOpen && (

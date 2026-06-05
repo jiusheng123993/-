@@ -11,7 +11,7 @@ const recommendedModules: Module[] = [
     description: '整理今天最重要的行动',
     icon: '✅',
     category: 'productivity',
-    size: 'medium',
+    size: { columns: 2, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -21,7 +21,7 @@ const recommendedModules: Module[] = [
     description: '保持稳定的专注节奏',
     icon: '⏱️',
     category: 'learning',
-    size: 'small',
+    size: { columns: 1, rows: 1 },
     isDefault: true,
     isCustom: false
   },
@@ -31,7 +31,7 @@ const recommendedModules: Module[] = [
     description: '提醒喝水和休息',
     icon: '🌿',
     category: 'health',
-    size: 'small',
+    size: { columns: 1, rows: 1 },
     isDefault: false,
     isCustom: false
   }
