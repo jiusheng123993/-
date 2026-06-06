@@ -48,6 +48,7 @@ export const CanvasCard = ({
   const [visualPosition, setVisualPosition] = useState<{ x: number; y: number } | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [previewSize, setPreviewSize] = useState<ModuleSize | null>(null)
+  const [isSnapped, setIsSnapped] = useState(false)
   const cardRef = useRef<HTMLElement>(null)
   const dragStartRef = useRef<{ x: number; y: number; gridX: number; gridY: number } | null>(null)
   const visualPositionRef = useRef<{ x: number; y: number } | null>(null)
@@ -198,6 +199,9 @@ export const CanvasCard = ({
         newRows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, Math.floor(snappedRows)))
       }
 
+      const snapped = (direction === 'e' || direction === 'se') && Math.abs(rawCols - Math.round(rawCols)) < SNAP_THRESHOLD ||
+                       (direction === 's' || direction === 'se') && Math.abs(rawRows - Math.round(rawRows)) < SNAP_THRESHOLD
+      setIsSnapped(snapped)
       setPreviewSize({ columns: newCols, rows: newRows })
 
       if (newCols !== size.columns || newRows !== size.rows) {
@@ -208,6 +212,7 @@ export const CanvasCard = ({
     const handleResizeUp = () => {
       setIsResizing(false)
       setPreviewSize(null)
+      setIsSnapped(false)
       window.removeEventListener('pointermove', handleResizeMove)
       window.removeEventListener('pointerup', handleResizeUp)
     }
@@ -219,7 +224,7 @@ export const CanvasCard = ({
   return (
     <article
       ref={cardRef}
-      className={`canvas-card ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''} ${isResizing ? 'resizing' : ''}`}
+      className={`canvas-card ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''} ${isResizing ? 'resizing' : ''} ${isSnapped ? 'snap-indicator' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => !isDragging && setIsHovered(false)}
       onClick={() => {
