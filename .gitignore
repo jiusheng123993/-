@@ -11,6 +11,10 @@ test-result*.txt
 tatus
 screenshot-*.png
 
+# 构建产物
+release/
+build/
+
 # 支付配置（包含敏感密钥）
 config/payment/
 *.pem

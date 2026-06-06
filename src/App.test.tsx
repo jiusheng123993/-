@@ -27,6 +27,7 @@ const searchTheme = async (user: ReturnType<typeof userEvent.setup>, query: stri
 describe('App', () => {
   beforeEach(() => {
     window.localStorage.clear()
+    window.localStorage.setItem('xinghuanhai-onboarding-completed', 'true')
     document.documentElement.removeAttribute('data-theme')
   })
 

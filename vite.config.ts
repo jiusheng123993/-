@@ -3,6 +3,11 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react()],
+  base: './',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
   server: {
     open: false,
     proxy: {
