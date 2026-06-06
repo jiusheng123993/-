@@ -79,6 +79,7 @@ import {
 import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import { CycleTracker } from './cycle'
 import { DataBackupUI } from './data/DataBackupUI'
+import { SyncUI } from './data/SyncUI'
 import { AvatarManager } from './avatar'
 import { BadgeDisplay } from './badges/BadgeDisplay'
 import { HabitTracker } from './habits/HabitTrackerUI'
@@ -421,6 +422,7 @@ export default function App() {
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
   const [isDataBackupOpen, setIsDataBackupOpen] = useState(false)
+  const [isSyncOpen, setIsSyncOpen] = useState(false)
   const [isTemplateOpen, setIsTemplateOpen] = useState(false)
   const [isReviewSchedulerOpen, setIsReviewSchedulerOpen] = useState(false)
   const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState(false)
@@ -839,6 +841,12 @@ export default function App() {
       setIsCycleTrackerOpen(false)
       setIsAvatarManagerOpen(false)
       setIsPersonaSelectorOpen(false)
+      setIsDataBackupOpen(false)
+      setIsTemplateOpen(false)
+      setIsReviewSchedulerOpen(false)
+      setIsKnowledgeGraphOpen(false)
+      setIsScheduleOpen(false)
+      setIsBacklinkOpen(false)
       setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
     })
   }
@@ -3512,25 +3520,59 @@ export default function App() {
         <DataBackupUI onClose={() => setIsDataBackupOpen(false)} />
       )}
 
-      {isTemplateOpen && (
-        <TemplateUI onClose={() => setIsTemplateOpen(false)} />
+      {isSyncOpen && (
+        <SyncUI onClose={() => setIsSyncOpen(false)} />
       )}
+
+      <DraggableModal
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
+        title="模板中心"
+        subtitle="选择预设模板快速开始"
+        ariaLabel="模板中心"
+      >
+        <TemplateUI onClose={() => setIsTemplateOpen(false)} />
+      </DraggableModal>
 
       {isReviewSchedulerOpen && (
         <ReviewSchedulerUI onClose={() => setIsReviewSchedulerOpen(false)} />
       )}
 
-      {isKnowledgeGraphOpen && (
+      <DraggableModal
+        isOpen={isKnowledgeGraphOpen}
+        onClose={() => setIsKnowledgeGraphOpen(false)}
+        title="知识图谱"
+        subtitle="可视化你的知识星系"
+        ariaLabel="知识图谱"
+        width={900}
+        height={700}
+      >
         <KnowledgeGraphUI onClose={() => setIsKnowledgeGraphOpen(false)} />
-      )}
+      </DraggableModal>
 
-      {isScheduleOpen && (
+      <DraggableModal
+        isOpen={isScheduleOpen}
+        onClose={() => setIsScheduleOpen(false)}
+        title="日程管理"
+        subtitle="安排你的时间"
+        ariaLabel="日程管理"
+        width={800}
+        height={600}
+      >
         <ScheduleUI onClose={() => setIsScheduleOpen(false)} />
-      )}
+      </DraggableModal>
 
-      {isBacklinkOpen && (
+      <DraggableModal
+        isOpen={isBacklinkOpen}
+        onClose={() => setIsBacklinkOpen(false)}
+        title="双向链接"
+        subtitle="查看笔记之间的关联"
+        ariaLabel="双向链接"
+        width={800}
+        height={600}
+      >
         <BacklinkPanel onClose={() => setIsBacklinkOpen(false)} />
-      )}
+      </DraggableModal>
 
       {isAvatarManagerOpen && (
         <div className="membership-modal-backdrop" onClick={() => setIsAvatarManagerOpen(false)} role="presentation">
