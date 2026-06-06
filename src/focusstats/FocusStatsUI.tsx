@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Clock, TrendingUp, Calendar, BarChart3, Target, Flame, Award, Zap } from 'lucide-react'
+import { Clock, TrendingUp, BarChart3, Target, Flame, Award, Zap } from 'lucide-react'
 
 interface FocusStatsUIProps {
   compact?: boolean

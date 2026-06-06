@@ -11,7 +11,6 @@ import {
   getAverageMoodScore,
   getWeeklyReflection,
   getTodayDateString,
-  getWeekStartDate,
   MOOD_OPTIONS
 } from './journalService'
 import { createAiPromptDraft } from '../ai/aiProvider'
