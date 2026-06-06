@@ -1,6 +1,66 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AgentChatUI, AgentChatToggle } from './AgentChatUI'
+import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
+import type { MemoryObserver } from '../memory/memoryObserver'
+
+vi.mock('./agentRuntime', () => ({
+  agentRuntime: {
+    sendMessageStream: vi.fn(),
+  },
+}))
+
+function makeProfile(overrides: Partial<MemoryProfile> = {}): MemoryProfile {
+  return {
+    version: 1,
+    scope: { userId: 'u1', projectId: 'p1' },
+    identity: { nickname: '测试用户', currentRole: '学生' },
+    personality: { traits: [], planningStyle: 'structured', workStyle: 'morning' },
+    rhythm: { energyPeak: 'morning' },
+    goals: { primaryGoal: '通过考试', secondaryGoals: ['每天学习2小时'] },
+    preferences: { encouragementStyle: 'warm', languageStyle: 'casual' },
+    boundaries: { tabooTopics: [] },
+    learning: { learningStyle: 'visual', effectiveStrategies: ['笔记法'] },
+    emotional: { motivationLevel: 'medium' },
+    meta: {
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-06-01T00:00:00Z',
+      lastReflectionAt: '2026-05-25T00:00:00Z',
+      totalEventsProcessed: 10,
+      sourceBreakdown: { manual: 3, conversation: 4, behavior: 3 },
+    },
+    ...overrides,
+  }
+}
+
+function makeEvent(overrides: Partial<MemoryEvent> & { id: string }): MemoryEvent {
+  return {
+    scope: { userId: 'u1', projectId: 'p1' },
+    kind: 'habit',
+    content: 'test event',
+    source: 'behavior',
+    confidence: 0.8,
+    status: 'active',
+    tags: [],
+    createdAt: '2026-06-01T10:00:00Z',
+    updatedAt: '2026-06-01T10:00:00Z',
+    expiresAt: null,
+    ...overrides,
+  }
+}
+
+function makeObserver(overrides: Partial<MemoryObserver> = {}): MemoryObserver {
+  return {
+    onConversationComplete: vi.fn(),
+    onUserPreferenceLearned: vi.fn(),
+    onGoalProgress: vi.fn(),
+    onHabitStreak: vi.fn(),
+    onFocusSession: vi.fn(),
+    onReflectionCreated: vi.fn(),
+    onMoodRecorded: vi.fn(),
+    ...overrides,
+  }
+}
 
 describe('AgentChatUI', () => {
   beforeEach(() => {
@@ -79,5 +139,144 @@ describe('AgentChatUI', () => {
     
     const sendButton = screen.getByLabelText('发送消息')
     expect(sendButton).not.toBeDisabled()
+  })
+
+  describe('memory context injection', () => {
+    it('renders with profile and memoryEvents without crashing', () => {
+      const profile = makeProfile()
+      const events = [makeEvent({ id: 'e1' })]
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          profile={profile}
+          memoryEvents={events}
+        />
+      )
+
+      expect(screen.getByText('AI 助手')).toBeInTheDocument()
+    })
+
+    it('renders with memoryObserver without crashing', () => {
+      const observer = makeObserver()
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          memoryObserver={observer}
+        />
+      )
+
+      expect(screen.getByText('AI 助手')).toBeInTheDocument()
+    })
+
+    it('renders with all memory props without crashing', () => {
+      const profile = makeProfile()
+      const events = [makeEvent({ id: 'e1' })]
+      const observer = makeObserver()
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          profile={profile}
+          memoryEvents={events}
+          memoryObserver={observer}
+        />
+      )
+
+      expect(screen.getByText('AI 助手')).toBeInTheDocument()
+    })
+
+    it('uses custom onSendMessage when provided', async () => {
+      const onSendMessage = vi.fn().mockResolvedValue('Custom response')
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          onSendMessage={onSendMessage}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: 'Hello' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(onSendMessage).toHaveBeenCalledWith('Hello')
+      })
+    })
+
+    it('calls memoryObserver.onConversationComplete after send', async () => {
+      const onSendMessage = vi.fn().mockResolvedValue('Response')
+      const observer = makeObserver()
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          onSendMessage={onSendMessage}
+          memoryObserver={observer}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: 'Hello world' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(observer.onConversationComplete).toHaveBeenCalled()
+      })
+    })
+
+    it('calls memoryObserver.onUserPreferenceLearned when response contains MEMORY tags', async () => {
+      const onSendMessage = vi.fn().mockResolvedValue(
+        '好的！[MEMORY: goals.primaryGoal = 通过考试] 我会记住的。'
+      )
+      const observer = makeObserver()
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          onSendMessage={onSendMessage}
+          memoryObserver={observer}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: '我的目标是考试' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(observer.onUserPreferenceLearned).toHaveBeenCalledWith(
+          'goals.primaryGoal=通过考试',
+          expect.any(String)
+        )
+      })
+    })
+
+    it('does not call memoryObserver when not provided', async () => {
+      const onSendMessage = vi.fn().mockResolvedValue('Response')
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          onSendMessage={onSendMessage}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: 'Hello' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(onSendMessage).toHaveBeenCalled()
+      })
+    })
   })
 })
