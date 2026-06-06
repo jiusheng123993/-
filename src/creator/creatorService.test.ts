@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createCreatorService } from './creatorService'
-import type { CreatorService } from './creatorService'
+import type { CreatorWorkbenchService } from './creatorService'
 
-describe('CreatorService', () => {
-  let service: CreatorService
+describe('CreatorWorkbenchService', () => {
+  let service: CreatorWorkbenchService
 
   beforeEach(() => {
     localStorage.clear()

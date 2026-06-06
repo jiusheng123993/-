@@ -40,7 +40,7 @@ export interface CreatorPayout {
   createdAt: string
 }
 
-export interface CreatorService {
+export interface CreatorMarketplaceService {
   applyForCreator(userId: string, realName: string): void
   verifyCreator(userId: string): void
   isCreator(userId: string): boolean
@@ -70,7 +70,7 @@ function generatePayoutId(): string {
   return `payout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
-export function createCreatorService(_entitlementService: EntitlementService): CreatorService {
+export function createCreatorService(_entitlementService: EntitlementService): CreatorMarketplaceService {
   const creatorAccounts = new Map<string, CreatorAccount>()
   const creatorAssets = new Map<string, CreatorAsset>()
   const creatorSales = new Map<string, { assetId: string; amount: number; timestamp: string }[]>()

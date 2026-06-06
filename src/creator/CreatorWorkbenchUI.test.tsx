@@ -2,9 +2,9 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { CreatorWorkbenchUI } from './CreatorWorkbenchUI'
 import { createCreatorService } from './creatorService'
-import type { CreatorService } from './creatorService'
+import type { CreatorWorkbenchService } from './creatorService'
 
-function renderUI(service: CreatorService, compact = false) {
+function renderUI(service: CreatorWorkbenchService, compact = false) {
   return render(<CreatorWorkbenchUI compact={compact} service={service} />)
 }
 

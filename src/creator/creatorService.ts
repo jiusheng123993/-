@@ -36,7 +36,7 @@ export interface ClientProject {
   paidAmount: number
 }
 
-export interface CreatorService {
+export interface CreatorWorkbenchService {
   getIdeas(): IdeaItem[]
   addIdea(title: string, source: string, tags: string[]): IdeaItem
   updateIdeaStatus(id: string, status: IdeaItem['status']): void
@@ -81,7 +81,7 @@ function save<T>(key: string, items: T[]): void {
   localStorage.setItem(key, JSON.stringify(items))
 }
 
-export function createCreatorService(storeKey: string = DEFAULT_STORE_KEY): CreatorService {
+export function createCreatorService(storeKey: string = DEFAULT_STORE_KEY): CreatorWorkbenchService {
   const ideasKey = `${storeKey}-ideas`
   const contentKey = `${storeKey}-content`
   const publishKey = `${storeKey}-publish`

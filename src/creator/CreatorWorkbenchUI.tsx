@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import {
   createCreatorService,
-  type CreatorService,
+  type CreatorWorkbenchService,
   type IdeaItem,
   type ContentPiece,
   type PublishEvent,
@@ -85,7 +85,7 @@ const CLIENT_STATUS_COLORS: Record<ClientProject['status'], string> = {
 
 interface CreatorWorkbenchUIProps {
   compact?: boolean
-  service?: CreatorService
+  service?: CreatorWorkbenchService
 }
 
 function Badge({ label, color }: { label: string; color: string }) {
@@ -123,7 +123,7 @@ function ProgressBar({ value }: { value: number }) {
   )
 }
 
-function CompactMode({ service }: { service: CreatorService }) {
+function CompactMode({ service }: { service: CreatorWorkbenchService }) {
   const [summary, setSummary] = useState(service.getSummary())
 
   useEffect(() => {
@@ -203,7 +203,7 @@ function StatItem({
   )
 }
 
-function IdeasTab({ service }: { service: CreatorService }) {
+function IdeasTab({ service }: { service: CreatorWorkbenchService }) {
   const [ideas, setIdeas] = useState<IdeaItem[]>([])
   const [title, setTitle] = useState('')
   const [source, setSource] = useState('')
@@ -336,7 +336,7 @@ function IdeasTab({ service }: { service: CreatorService }) {
   )
 }
 
-function ContentTab({ service }: { service: CreatorService }) {
+function ContentTab({ service }: { service: CreatorWorkbenchService }) {
   const [pieces, setPieces] = useState<ContentPiece[]>([])
   const [title, setTitle] = useState('')
   const [platform, setPlatform] = useState('')
@@ -469,7 +469,7 @@ function ContentTab({ service }: { service: CreatorService }) {
   )
 }
 
-function PublishTab({ service }: { service: CreatorService }) {
+function PublishTab({ service }: { service: CreatorWorkbenchService }) {
   const [events, setEvents] = useState<PublishEvent[]>([])
   const [title, setTitle] = useState('')
   const [platform, setPlatform] = useState('')
@@ -574,7 +574,7 @@ function PublishTab({ service }: { service: CreatorService }) {
   )
 }
 
-function ClientsTab({ service }: { service: CreatorService }) {
+function ClientsTab({ service }: { service: CreatorWorkbenchService }) {
   const [projects, setProjects] = useState<ClientProject[]>([])
   const [clientName, setClientName] = useState('')
   const [description, setDescription] = useState('')
@@ -719,7 +719,7 @@ function ClientsTab({ service }: { service: CreatorService }) {
   )
 }
 
-function FullMode({ service }: { service: CreatorService }) {
+function FullMode({ service }: { service: CreatorWorkbenchService }) {
   const [activeTab, setActiveTab] = useState<TabKey>('ideas')
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
