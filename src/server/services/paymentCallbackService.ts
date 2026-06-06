@@ -119,12 +119,14 @@ function generateWechatSign(data: Record<string, string>): string {
 }
 
 function verifyAlipaySign(_data: Record<string, string>, _sign: string, _signType: string): boolean {
-  return true
+  console.warn('[SECURITY] Alipay signature verification not implemented - rejecting callback')
+  return false
 }
 
 async function verifyAppleReceipt(_receipt: string): Promise<{ success: boolean; transactionId?: string; error?: string }> {
+  console.warn('[SECURITY] Apple receipt verification not implemented - rejecting receipt')
   return {
-    success: true,
-    transactionId: `apple_${Date.now()}`
+    success: false,
+    error: 'Apple receipt verification not implemented'
   }
 }

@@ -478,13 +478,21 @@ export const createBrowserWorkspaceStore = (
   load: () => {
     const stored = window.localStorage.getItem(storageKey)
     if (stored) {
-      const parsed = JSON.parse(stored) as unknown
-      return isWorkspaceState(parsed) ? normalizeWorkspaceState(parsed) : migrateLegacyStudyState(parsed as LegacyStudyState)
+      try {
+        const parsed = JSON.parse(stored) as unknown
+        return isWorkspaceState(parsed) ? normalizeWorkspaceState(parsed) : migrateLegacyStudyState(parsed as LegacyStudyState)
+      } catch {
+        return createInitialWorkspaceState()
+      }
     }
 
     const legacyStored = window.localStorage.getItem(legacyStorageKey)
     if (legacyStored) {
-      return migrateLegacyStudyState(JSON.parse(legacyStored) as LegacyStudyState)
+      try {
+        return migrateLegacyStudyState(JSON.parse(legacyStored) as LegacyStudyState)
+      } catch {
+        return createInitialWorkspaceState()
+      }
     }
 
     return createInitialWorkspaceState()

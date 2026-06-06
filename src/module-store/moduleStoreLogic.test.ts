@@ -100,4 +100,26 @@ describe('moduleStoreLogic', () => {
     expect(() => importModuleLayout('{"version":3}', defaultModules)).toThrow('布局版本不受支持')
     expect(() => importModuleLayout('not-json', defaultModules)).toThrow('布局文件格式无效')
   })
+
+  it('migrates legacy string size to object size on import', () => {
+    const legacyPayload = JSON.stringify({
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      modules: [],
+      activeModules: [
+        { moduleId: 'today-tasks', position: { x: 0, y: 0 }, size: 'medium' },
+        { moduleId: 'focus-timer', position: { x: 2, y: 0 }, size: 'small' },
+        { moduleId: 'statistics', position: { x: 0, y: 1 }, size: 'large' },
+        { moduleId: 'weather', position: { x: 2, y: 1 }, size: 'full-width' }
+      ]
+    })
+
+    const imported = importModuleLayout(legacyPayload, defaultModules)
+
+    expect(imported.activeModules).toHaveLength(4)
+    expect(imported.activeModules[0].size).toEqual({ columns: 2, rows: 1 })
+    expect(imported.activeModules[1].size).toEqual({ columns: 1, rows: 1 })
+    expect(imported.activeModules[2].size).toEqual({ columns: 2, rows: 2 })
+    expect(imported.activeModules[3].size).toEqual({ columns: 4, rows: 1 })
+  })
 })

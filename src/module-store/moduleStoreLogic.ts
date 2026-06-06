@@ -154,33 +154,61 @@ type LayoutPayload = {
   activeModules: CanvasItem[]
 }
 
+const legacySizeMap: Record<string, ModuleSize> = {
+  small: { columns: 1, rows: 1 },
+  medium: { columns: 2, rows: 1 },
+  wide: { columns: 3, rows: 1 },
+  large: { columns: 2, rows: 2 },
+  'extra-large': { columns: 3, rows: 2 },
+  'full-width': { columns: 4, rows: 1 },
+  tall: { columns: 1, rows: 2 },
+  'full-tall': { columns: 4, rows: 2 }
+}
+
+const migrateSize = (value: unknown): ModuleSize | null => {
+  if (!value) return null
+  if (typeof value === 'object') {
+    const s = value as Record<string, unknown>
+    if (typeof s.columns === 'number' && typeof s.rows === 'number'
+      && s.columns >= 1 && s.columns <= 4
+      && s.rows >= 1 && s.rows <= 6) {
+      return { columns: s.columns, rows: s.rows }
+    }
+  }
+  if (typeof value === 'string' && value in legacySizeMap) {
+    return legacySizeMap[value]
+  }
+  return null
+}
+
 const isModuleSize = (value: unknown): value is ModuleSize => {
-  if (!value || typeof value !== 'object') return false
-  const s = value as Record<string, unknown>
-  return typeof s.columns === 'number' && typeof s.rows === 'number'
-    && s.columns >= 1 && s.columns <= 4
-    && s.rows >= 1 && s.rows <= 6
+  return migrateSize(value) !== null
 }
 
 const isCanvasItem = (value: unknown): value is CanvasItem => {
   if (!value || typeof value !== 'object') return false
   const item = value as CanvasItem
-  return typeof item.moduleId === 'string'
-    && isModuleSize(item.size)
-    && typeof item.position?.x === 'number'
-    && typeof item.position?.y === 'number'
+  const migratedSize = migrateSize(item.size)
+  if (!migratedSize) return false
+  if (typeof item.moduleId !== 'string') return false
+  if (typeof item.position?.x !== 'number' || typeof item.position?.y !== 'number') return false
+  ;(item as { size: ModuleSize }).size = migratedSize
+  return true
 }
 
 const isModule = (value: unknown): value is Module => {
   if (!value || typeof value !== 'object') return false
   const module = value as Module
-  return typeof module.id === 'string'
-    && typeof module.title === 'string'
-    && typeof module.description === 'string'
-    && typeof module.icon === 'string'
-    && isModuleSize(module.size)
-    && typeof module.isDefault === 'boolean'
-    && typeof module.isCustom === 'boolean'
+  const migratedSize = migrateSize(module.size)
+  if (!migratedSize) return false
+  if (typeof module.id !== 'string') return false
+  if (typeof module.title !== 'string') return false
+  if (typeof module.description !== 'string') return false
+  if (typeof module.icon !== 'string') return false
+  if (typeof module.isDefault !== 'boolean') return false
+  if (typeof module.isCustom !== 'boolean') return false
+  ;(module as { size: ModuleSize }).size = migratedSize
+  return true
 }
 
 export const exportModuleLayout = (state: ModuleStoreState): string => JSON.stringify({

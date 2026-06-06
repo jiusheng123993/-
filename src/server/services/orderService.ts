@@ -52,7 +52,7 @@ function generatePaymentParamsSync(
     }
   }
 
-  return {}
+  throw new Error(`Unsupported payment channel: ${channel}`)
 }
 
 export function getOrderById(orderId: string) {

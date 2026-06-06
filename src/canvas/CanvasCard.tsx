@@ -22,6 +22,7 @@ const MIN_COLUMNS = 1
 const MAX_COLUMNS = 4
 const MIN_ROWS = 1
 const MAX_ROWS = 6
+const SNAP_THRESHOLD = 0.3
 
 const sizeLabel = (size: ModuleSize) => `${size.columns}×${size.rows}`
 
@@ -46,6 +47,7 @@ export const CanvasCard = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [visualPosition, setVisualPosition] = useState<{ x: number; y: number } | null>(null)
   const [isResizing, setIsResizing] = useState(false)
+  const [previewSize, setPreviewSize] = useState<ModuleSize | null>(null)
   const cardRef = useRef<HTMLElement>(null)
   const dragStartRef = useRef<{ x: number; y: number; gridX: number; gridY: number } | null>(null)
   const visualPositionRef = useRef<{ x: number; y: number } | null>(null)
@@ -158,6 +160,7 @@ export const CanvasCard = ({
   }, [position.x, position.y, onDragStart])
 
   const displayPosition = visualPosition ?? position
+  const displaySize = previewSize ?? size
 
   const handleResizePointerDown = useCallback((direction: string) => (e: React.PointerEvent) => {
     e.preventDefault()
@@ -180,15 +183,22 @@ export const CanvasCard = ({
       const deltaX = moveEvent.clientX - startX
       const deltaY = moveEvent.clientY - startY
 
+      const rawCols = startCols + deltaX / columnWidth
+      const rawRows = startRows + deltaY / rowHeight
+
       let newCols = startCols
       let newRows = startRows
 
       if (direction === 'e' || direction === 'se') {
-        newCols = Math.max(MIN_COLUMNS, Math.min(MAX_COLUMNS, startCols + Math.round(deltaX / columnWidth)))
+        const snappedCols = Math.abs(rawCols - Math.round(rawCols)) < SNAP_THRESHOLD ? Math.round(rawCols) : rawCols
+        newCols = Math.max(MIN_COLUMNS, Math.min(MAX_COLUMNS, Math.floor(snappedCols)))
       }
       if (direction === 's' || direction === 'se') {
-        newRows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, startRows + Math.round(deltaY / rowHeight)))
+        const snappedRows = Math.abs(rawRows - Math.round(rawRows)) < SNAP_THRESHOLD ? Math.round(rawRows) : rawRows
+        newRows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, Math.floor(snappedRows)))
       }
+
+      setPreviewSize({ columns: newCols, rows: newRows })
 
       if (newCols !== size.columns || newRows !== size.rows) {
         onResize({ columns: newCols, rows: newRows })
@@ -197,6 +207,7 @@ export const CanvasCard = ({
 
     const handleResizeUp = () => {
       setIsResizing(false)
+      setPreviewSize(null)
       window.removeEventListener('pointermove', handleResizeMove)
       window.removeEventListener('pointerup', handleResizeUp)
     }
@@ -232,7 +243,11 @@ export const CanvasCard = ({
       <div className="card-heading compact" onPointerDown={startDrag}>
         <span className="canvas-card-drag-indicator">⠿</span>
         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, flex: 1 }}>{title}</h3>
-        <span className="pill">{sizeLabel(size)}</span>
+        {previewSize ? (
+          <span className="resize-preview-pill">{sizeLabel(previewSize)}</span>
+        ) : (
+          <span className="pill">{sizeLabel(size)}</span>
+        )}
         <button
           aria-label={`关闭 ${title}`}
           className="canvas-card-close-btn"

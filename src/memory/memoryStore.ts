@@ -122,8 +122,12 @@ export const createBrowserMemoryStore = (storage: LocalStorageLike = window.loca
   const loadState = () => {
     const stored = storage.getItem(storageKey)
     if (!stored) return createInitialMemoryState()
-    const parsed = JSON.parse(stored) as unknown
-    return isMemoryState(parsed) ? parsed : createInitialMemoryState()
+    try {
+      const parsed = JSON.parse(stored) as unknown
+      return isMemoryState(parsed) ? parsed : createInitialMemoryState()
+    } catch {
+      return createInitialMemoryState()
+    }
   }
 
   const persistState = (state: MemoryState) => storage.setItem(storageKey, JSON.stringify(state))

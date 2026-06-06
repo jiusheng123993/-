@@ -157,7 +157,11 @@ export const createBrowserStudyStore = (storageKey = 'studyflow-state'): StudySt
       return createInitialStudyState()
     }
 
-    return JSON.parse(stored) as StudyState
+    try {
+      return JSON.parse(stored) as StudyState
+    } catch {
+      return createInitialStudyState()
+    }
   },
   save: (state) => {
     window.localStorage.setItem(storageKey, JSON.stringify(state))

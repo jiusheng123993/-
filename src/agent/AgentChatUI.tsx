@@ -91,6 +91,10 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  function mapMood(mood?: 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'): AvatarMood {
+    return mood ?? 'neutral'
+  }
+
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isLoading) return
 
@@ -196,10 +200,6 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
       }
     }
   }, [inputValue, isLoading, onSendMessage, personaId, aiRole, memoryObserver])
-
-  function mapMood(mood?: 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'): AvatarMood {
-    return mood ?? 'neutral'
-  }
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
