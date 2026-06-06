@@ -1175,6 +1175,10 @@ export default function App() {
           closeAllSidebarPanels()
           setIsKnowledgeGraphOpen(true)
         }}
+        onOpenSchedule={() => {
+          closeAllSidebarPanels()
+          setIsScheduleOpen(true)
+        }}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
@@ -3495,6 +3499,10 @@ export default function App() {
 
       {isKnowledgeGraphOpen && (
         <KnowledgeGraphUI onClose={() => setIsKnowledgeGraphOpen(false)} />
+      )}
+
+      {isScheduleOpen && (
+        <ScheduleUI onClose={() => setIsScheduleOpen(false)} />
       )}
 
       {isAvatarManagerOpen && (

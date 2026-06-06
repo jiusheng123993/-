@@ -43,6 +43,7 @@ const STORAGE_KEYS: BackupModuleInfo[] = [
   { key: 'xinghuanhai-journal-state', name: 'journal', description: '日记数据' },
   { key: 'xinghuanhai-english-state', name: 'english', description: '英语学习数据' },
   { key: 'xinghuanhai-creator-ideas', name: 'creatorIdeas', description: '创作灵感' },
+  { key: 'xinghuanhai-schedule-state', name: 'schedule', description: '日程提醒数据' },
 ]
 
 const SENSITIVE_KEYS = [
