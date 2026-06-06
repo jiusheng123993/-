@@ -17,6 +17,8 @@ interface SidebarProps {
   onOpenRelationshipSpace: () => void
   onOpenAgentChat: () => void
   onSwitchDevAuthRole: () => void
+  onOpenDataBackup: () => void
+  onOpenTemplate: () => void
   devAuthLabel: string
   currentThemeName: string
   membershipTier: string
@@ -40,6 +42,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenRelationshipSpace,
   onOpenAgentChat,
   onSwitchDevAuthRole,
+  onOpenDataBackup,
+  onOpenTemplate,
   devAuthLabel,
   currentThemeName,
   membershipTier,
@@ -57,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'memory', label: '记忆画像', icon: 'Brain' },
     { id: 'cycle', label: '周期追踪', icon: 'Heart' },
     { id: 'avatar', label: '我的角色', icon: 'Smile' },
+    { id: 'template', label: '模板中心', icon: 'Layout' },
     { id: 'settings', label: '设置', icon: 'Settings' },
     { id: 'theme', label: '主题切换', icon: 'Palette' }
   ]
@@ -88,6 +93,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'persona':
         onOpenPersonaSelector()
+        break
+      case 'template':
+        onOpenTemplate()
         break
     }
   }
@@ -227,6 +235,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <span>📤</span>
                 <span>布局分享</span>
+              </button>
+              <button
+                onClick={onOpenDataBackup}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)',
+                  cursor: 'pointer',
+                  marginBottom: '8px'
+                }}
+              >
+                <span>💾</span>
+                <span>数据管理</span>
               </button>
               <button
                 onClick={onOpenIdentitySelector}

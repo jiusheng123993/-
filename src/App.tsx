@@ -78,6 +78,7 @@ import {
 } from './module-store/moduleStoreLogic'
 import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import { CycleTracker } from './cycle'
+import { DataBackupUI } from './data/DataBackupUI'
 import { AvatarManager } from './avatar'
 import { BadgeDisplay } from './badges/BadgeDisplay'
 import { HabitTracker } from './habits/HabitTrackerUI'
@@ -411,6 +412,8 @@ export default function App() {
   const [isCycleTrackerOpen, setIsCycleTrackerOpen] = useState(false)
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
+  const [isDataBackupOpen, setIsDataBackupOpen] = useState(false)
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false)
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
@@ -1150,6 +1153,14 @@ export default function App() {
           })
         }}
         onSwitchDevAuthRole={switchDevAuthRole}
+        onOpenDataBackup={() => {
+          closeAllSidebarPanels()
+          setIsDataBackupOpen(true)
+        }}
+        onOpenTemplate={() => {
+          closeAllSidebarPanels()
+          setIsTemplateOpen(true)
+        }}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
@@ -3454,6 +3465,14 @@ export default function App() {
             </div>
           </section>
         </div>
+      )}
+
+      {isDataBackupOpen && (
+        <DataBackupUI onClose={() => setIsDataBackupOpen(false)} />
+      )}
+
+      {isTemplateOpen && (
+        <TemplateUI onClose={() => setIsTemplateOpen(false)} />
       )}
 
       {isAvatarManagerOpen && (
