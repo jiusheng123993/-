@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { reflectionEngine, isSundayAt21, checkEventThresholds } from './reflectionEngine'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { reflectionEngine, isSundayAt21, checkEventThresholds, countEventsByCategory } from './reflectionEngine'
 import type { MemoryEvent, MemoryProfile } from '../../memory/memoryTypes'
 import type { EventThreshold } from './reflectionEngineTypes'
 
@@ -233,6 +233,248 @@ describe('reflectionEngine', () => {
         { category: 'schedule_anomaly', count: 3, windowDays: 7, description: '凌晨2点后仍在记录' },
       ]
       expect(checkEventThresholds(events, '2026-06-06T00:00:00Z', now, thresholds)).toBe(false)
+    })
+
+    it('detects goal_completed threshold', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-05T10:00:00Z', tags: ['goal_completed'] }),
+      ]
+      const thresholds: EventThreshold[] = [
+        { category: 'goal_completed', count: 1, windowDays: 30, description: '目标达成' },
+      ]
+      expect(checkEventThresholds(events, '2026-06-06T00:00:00Z', now, thresholds)).toBe(true)
+    })
+
+    it('detects no_reflection threshold', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const thresholds: EventThreshold[] = [
+        { category: 'no_reflection', count: 1, windowDays: 7, description: '连续7天无复盘' },
+      ]
+      expect(checkEventThresholds([], '2026-05-30T00:00:00Z', now, thresholds)).toBe(true)
+    })
+
+    it('does not trigger no_reflection when recent reflection exists', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const thresholds: EventThreshold[] = [
+        { category: 'no_reflection', count: 1, windowDays: 7, description: '连续7天无复盘' },
+      ]
+      expect(checkEventThresholds([], '2026-06-05T00:00:00Z', now, thresholds)).toBe(false)
+    })
+
+    it('detects low_focus threshold', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = Array.from({ length: 5 }, (_, i) =>
+        makeEvent({ id: `e${i}`, createdAt: `2026-06-0${i + 2}T10:00:00Z`, tags: ['low_focus'] })
+      )
+      const thresholds: EventThreshold[] = [
+        { category: 'low_focus', count: 5, windowDays: 7, description: '连续5天专注时长低于目标的50%' },
+      ]
+      expect(checkEventThresholds(events, '2026-06-06T00:00:00Z', now, thresholds)).toBe(true)
+    })
+
+    it('detects exam_countdown threshold', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-07T08:00:00Z', tags: ['exam_countdown'] }),
+      ]
+      const thresholds: EventThreshold[] = [
+        { category: 'exam_countdown', count: 1, windowDays: 1, description: '考试倒计时归零' },
+      ]
+      expect(checkEventThresholds(events, '2026-06-06T00:00:00Z', now, thresholds)).toBe(true)
+    })
+
+    it('returns false when no thresholds match', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-05T10:00:00Z', tags: ['other'] }),
+      ]
+      const thresholds: EventThreshold[] = [
+        { category: 'goal_completed', count: 1, windowDays: 7, description: '目标达成' },
+      ]
+      expect(checkEventThresholds(events, '2026-06-06T00:00:00Z', now, thresholds)).toBe(false)
+    })
+  })
+
+  describe('countEventsByCategory', () => {
+    it('counts events with matching category tag within window', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-05T10:00:00Z', tags: ['goal_completed'] }),
+        makeEvent({ id: 'e2', createdAt: '2026-06-04T10:00:00Z', tags: ['goal_completed'] }),
+        makeEvent({ id: 'e3', createdAt: '2026-06-01T10:00:00Z', tags: ['other'] }),
+      ]
+      const count = countEventsByCategory(events, 'goal_completed', now, 7)
+      expect(count).toBe(2)
+    })
+
+    it('excludes events outside window', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-05-20T10:00:00Z', tags: ['goal_completed'] }),
+      ]
+      const count = countEventsByCategory(events, 'goal_completed', now, 7)
+      expect(count).toBe(0)
+    })
+
+    it('returns 0 for empty events', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const count = countEventsByCategory([], 'goal_completed', now, 7)
+      expect(count).toBe(0)
+    })
+  })
+
+  describe('createEntry', () => {
+    it('creates entry with correct structure', () => {
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-01T10:00:00Z' }),
+      ]
+      const entry = reflectionEngine.createEntry('cron', 'Weekly reflection', events, 'u1')
+
+      expect(entry.id).toMatch(/^evo-/)
+      expect(entry.userId).toBe('u1')
+      expect(entry.triggeredBy).toBe('cron')
+      expect(entry.triggerDetail).toBe('Weekly reflection')
+      expect(entry.userDecision).toBe('pending')
+      expect(entry.proposedChanges).toEqual([])
+      expect(entry.finalChanges).toEqual([])
+      expect(entry.reflectionNote).toBe('')
+      expect(entry.createdAt).toBeTruthy()
+    })
+
+    it('creates entry with event_threshold trigger', () => {
+      const entry = reflectionEngine.createEntry('event_threshold', 'Schedule anomaly detected', [], 'u2')
+
+      expect(entry.triggeredBy).toBe('event_threshold')
+      expect(entry.triggerDetail).toBe('Schedule anomaly detected')
+      expect(entry.userId).toBe('u2')
+    })
+
+    it('creates entry with manual trigger', () => {
+      const entry = reflectionEngine.createEntry('manual', 'User requested reflection', [], 'u3')
+
+      expect(entry.triggeredBy).toBe('manual')
+      expect(entry.userId).toBe('u3')
+    })
+
+    it('generates unique IDs', () => {
+      const entry1 = reflectionEngine.createEntry('cron', '', [], 'u1')
+      const entry2 = reflectionEngine.createEntry('cron', '', [], 'u1')
+
+      expect(entry1.id).not.toBe(entry2.id)
+    })
+  })
+
+  describe('executeReflection rule-based fallback', () => {
+    it('returns motivation proposal when many tasks completed', async () => {
+      const profile = makeProfile()
+      const events: MemoryEvent[] = Array.from({ length: 5 }, (_, i) =>
+        makeEvent({
+          id: `task-${i}`,
+          createdAt: `2026-06-0${i + 1}T10:00:00Z`,
+          category: 'task_completed',
+        })
+      )
+
+      const result = await reflectionEngine.executeReflection(profile, events)
+
+      const motivationChange = result.proposedChanges.find(
+        p => p.fieldPath === 'emotional.motivationLevel'
+      )
+      expect(motivationChange).toBeDefined()
+      expect(motivationChange!.newValue).toBe('high')
+      expect(motivationChange!.confidence).toBeGreaterThanOrEqual(0.6)
+    })
+
+    it('returns energyPeak proposal when many focus sessions', async () => {
+      const profile = makeProfile()
+      const events: MemoryEvent[] = Array.from({ length: 3 }, (_, i) =>
+        makeEvent({
+          id: `focus-${i}`,
+          createdAt: `2026-06-0${i + 1}T10:00:00Z`,
+          category: 'focus_completed',
+        })
+      )
+
+      const result = await reflectionEngine.executeReflection(profile, events)
+
+      const energyChange = result.proposedChanges.find(
+        p => p.fieldPath === 'rhythm.energyPeak'
+      )
+      expect(energyChange).toBeDefined()
+      expect(energyChange!.newValue).toBe('morning')
+    })
+
+    it('returns goal review proposal when no goal updates with many events', async () => {
+      const profile = makeProfile()
+      const events: MemoryEvent[] = Array.from({ length: 11 }, (_, i) =>
+        makeEvent({
+          id: `evt-${i}`,
+          createdAt: `2026-06-0${(i % 7) + 1}T10:00:00Z`,
+          category: 'other',
+        })
+      )
+
+      const result = await reflectionEngine.executeReflection(profile, events)
+
+      const goalChange = result.proposedChanges.find(
+        p => p.fieldPath === 'goals.primaryGoal'
+      )
+      expect(goalChange).toBeDefined()
+    })
+
+    it('returns empty proposals when no conditions met', async () => {
+      const profile = makeProfile()
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-01T10:00:00Z', category: 'other' }),
+      ]
+
+      const result = await reflectionEngine.executeReflection(profile, events)
+
+      expect(result.proposedChanges).toEqual([])
+      expect(result.reflectionNote).toContain('近期活动较少')
+    })
+
+    it('returns reflection note with task and focus counts', async () => {
+      const profile = makeProfile()
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-01T10:00:00Z', category: 'task_completed' }),
+        makeEvent({ id: 'e2', createdAt: '2026-06-02T10:00:00Z', category: 'focus_completed' }),
+      ]
+
+      const result = await reflectionEngine.executeReflection(profile, events)
+
+      expect(result.reflectionNote).toContain('1 个任务')
+      expect(result.reflectionNote).toContain('1 次专注')
+    })
+  })
+
+  describe('shouldTrigger with hasEntryThisWeek', () => {
+    it('returns false for cron when hasEntryThisWeek is true', () => {
+      const sunday21 = new Date('2026-06-07T21:00:00Z')
+      const result = reflectionEngine.shouldTrigger(
+        [],
+        '2026-06-01T00:00:00Z',
+        sunday21.toISOString(),
+        true
+      )
+      expect(result).toBe(false)
+    })
+
+    it('still returns true for event_threshold even when hasEntryThisWeek is true', () => {
+      const now = new Date('2026-06-07T10:00:00Z')
+      const events: MemoryEvent[] = [
+        makeEvent({ id: 'e1', createdAt: '2026-06-05T02:30:00Z', tags: ['schedule_anomaly'] }),
+        makeEvent({ id: 'e2', createdAt: '2026-06-04T03:00:00Z', tags: ['schedule_anomaly'] }),
+        makeEvent({ id: 'e3', createdAt: '2026-06-03T02:15:00Z', tags: ['schedule_anomaly'] }),
+      ]
+      const result = reflectionEngine.shouldTrigger(
+        events,
+        '2026-06-06T00:00:00Z',
+        now.toISOString(),
+        true
+      )
+      expect(result).toBe(true)
     })
   })
 })
