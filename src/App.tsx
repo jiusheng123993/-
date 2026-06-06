@@ -113,7 +113,10 @@ import { TemplateUI } from './templates/TemplateUI'
 import { ReviewSchedulerUI } from './study/ReviewSchedulerUI'
 import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
 import { ScheduleUI } from './schedule/ScheduleUI'
+import { createScheduleService } from './schedule/scheduleService'
 import { BacklinkPanel } from './backlink/BacklinkPanel'
+import { createNotificationService } from './notifications/notificationService'
+import { NotificationBanner } from './notifications/NotificationBanner'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -136,6 +139,7 @@ const onboardingDataKey = 'xinghuanhai-onboarding-data'
 const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
 const orderService = createOrderService()
+const notificationService = createNotificationService()
 
 const defaultMiniProgramModules = getDefaultMiniProgramModules()
 
@@ -421,6 +425,7 @@ export default function App() {
   const [isReviewSchedulerOpen, setIsReviewSchedulerOpen] = useState(false)
   const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState(false)
   const [isScheduleOpen, setIsScheduleOpen] = useState(false)
+  const [isBacklinkOpen, setIsBacklinkOpen] = useState(false)
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
@@ -806,6 +811,18 @@ export default function App() {
     return () => window.clearTimeout(handle)
   }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents])
 
+  useEffect(() => {
+    const checkReminders = () => {
+      const scheduleService = createScheduleService()
+      notificationService.checkScheduleReminders(() =>
+        scheduleService.getDueReminders().map(e => ({ id: e.id, title: e.title, time: e.time }))
+      )
+    }
+    checkReminders()
+    const interval = setInterval(checkReminders, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
   const closeAllSidebarPanels = (except?: string) => {
     flushSync(() => {
       setIsThemePickerOpen(false)
@@ -1180,6 +1197,10 @@ export default function App() {
           closeAllSidebarPanels()
           setIsScheduleOpen(true)
         }}
+        onOpenBacklink={() => {
+          closeAllSidebarPanels()
+          setIsBacklinkOpen(true)
+        }}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
@@ -1212,6 +1233,7 @@ export default function App() {
           </div>
           <div className="hero-datetime">
             <ClockDisplay />
+            <NotificationBanner service={notificationService} />
           </div>
           <div className="hero-quote">
             <span className="hero-quote-text">"{getDailyQuote().content}"</span>
@@ -3504,6 +3526,10 @@ export default function App() {
 
       {isScheduleOpen && (
         <ScheduleUI onClose={() => setIsScheduleOpen(false)} />
+      )}
+
+      {isBacklinkOpen && (
+        <BacklinkPanel onClose={() => setIsBacklinkOpen(false)} />
       )}
 
       {isAvatarManagerOpen && (
