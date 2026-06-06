@@ -425,9 +425,8 @@ function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: str
 
 export function getXFYunCodingConfig(): { endpoint: string; apiKey: string; model: string } {
   const fullKey = localStorage.getItem('xfyun_coding_api_key') || import.meta.env.VITE_XFYUN_API_KEY || ''
-  const isDev = import.meta.env.DEV
   return {
-    endpoint: isDev ? '/api/xfyun' : 'https://maas-coding-api.cn-huabei-1.xf-yun.com/v2/chat/completions',
+    endpoint: import.meta.env.VITE_XFYUN_ENDPOINT || '/api/xfyun',
     apiKey: fullKey,
     model: localStorage.getItem('xfyun_coding_model') || 'astron-code-latest'
   }
