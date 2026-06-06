@@ -13,6 +13,7 @@ screenshot-*.png
 
 # 构建产物
 release/
+release2/
 build/
 
 # 支付配置（包含敏感密钥）

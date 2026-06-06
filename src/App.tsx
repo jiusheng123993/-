@@ -76,7 +76,7 @@ import {
   removeModuleFromLayout,
   upsertCustomModule
 } from './module-store/moduleStoreLogic'
-import type { CanvasItem, ModuleSize, ModuleStoreState } from './module-store/types'
+import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import { CycleTracker } from './cycle'
 import { AvatarManager } from './avatar'
 import { BadgeDisplay } from './badges/BadgeDisplay'

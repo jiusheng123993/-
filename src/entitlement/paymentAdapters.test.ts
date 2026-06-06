@@ -19,31 +19,21 @@ describe('paymentAdapters', () => {
     expect(() => getPaymentAdapter('unknown')).toThrow()
   })
 
-  it('wechat createPayment returns qrCode', async () => {
-    const result = await paymentAdapters.wechat.createPayment('order-1', 1800)
-    expect(result.paymentId).toContain('wx-')
-    expect(result.qrCode).toBeTruthy()
+  it('wechat createPayment throws PaymentNotImplementedError', async () => {
+    await expect(paymentAdapters.wechat.createPayment('order-1', 1800)).rejects.toThrow('PaymentAdapter[wechat].createPayment')
   })
 
-  it('alipay createPayment returns paymentUrl', async () => {
-    const result = await paymentAdapters.alipay.createPayment('order-2', 1800)
-    expect(result.paymentId).toContain('ali-')
-    expect(result.paymentUrl).toBeTruthy()
+  it('alipay createPayment throws PaymentNotImplementedError', async () => {
+    await expect(paymentAdapters.alipay.createPayment('order-2', 1800)).rejects.toThrow('PaymentAdapter[alipay].createPayment')
   })
 
-  it('apple createPayment returns paymentId without qrCode', async () => {
-    const result = await paymentAdapters.apple.createPayment('order-3', 1800)
-    expect(result.paymentId).toContain('apple-')
-    expect(result.qrCode).toBeUndefined()
+  it('apple createPayment throws PaymentNotImplementedError', async () => {
+    await expect(paymentAdapters.apple.createPayment('order-3', 1800)).rejects.toThrow('PaymentAdapter[apple].createPayment')
   })
 
-  it('verifyPayment returns success and tradeNo for stub implementations', async () => {
-    const wx = await paymentAdapters.wechat.verifyPayment('wx-1')
-    const apple = await paymentAdapters.apple.verifyPayment('apple-1')
-    const ali = await paymentAdapters.alipay.verifyPayment('ali-1')
-    expect(wx.success).toBe(true)
-    expect(apple.success).toBe(true)
-    expect(ali.success).toBe(true)
-    expect(wx.tradeNo).toBe('wx-1')
+  it('verifyPayment throws PaymentNotImplementedError for all channels', async () => {
+    await expect(paymentAdapters.wechat.verifyPayment('wx-1')).rejects.toThrow('PaymentAdapter[wechat].verifyPayment')
+    await expect(paymentAdapters.apple.verifyPayment('apple-1')).rejects.toThrow('PaymentAdapter[apple].verifyPayment')
+    await expect(paymentAdapters.alipay.verifyPayment('ali-1')).rejects.toThrow('PaymentAdapter[alipay].verifyPayment')
   })
 })
