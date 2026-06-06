@@ -74,7 +74,7 @@ describe('App', () => {
     expect(document.querySelector('.today-panel')).not.toBeInTheDocument()
     expect(screen.queryByText('默认行动建议')).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByText('考试冲刺计划').closest('article')!)
+    await user.dblClick(within(workbench).getByText('考试冲刺计划').closest('article')!)
 
     expect(screen.getByRole('dialog', { name: '考试冲刺计划 · 工作台详情' })).toBeInTheDocument()
     expect(screen.getByText('默认行动建议')).toBeInTheDocument()
@@ -87,7 +87,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '今日行动 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByText('今日行动').closest('article')!)
+    await user.dblClick(within(workbench).getByText('今日行动').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '今日行动 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '今日行动' })).toBeInTheDocument()
@@ -107,7 +107,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '任务专注 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getAllByText('任务专注')[0].closest('article')!)
+    await user.dblClick(within(workbench).getAllByText('任务专注')[0].closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '任务专注 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '任务专注' })).toBeInTheDocument()
@@ -147,7 +147,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '记忆洞察 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByText('记忆洞察').closest('article')!)
+    await user.dblClick(within(workbench).getByText('记忆洞察').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '记忆洞察 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '记忆洞察' })).toBeInTheDocument()
@@ -165,7 +165,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '成长等级 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByText('成长等级').closest('article')!)
+    await user.dblClick(within(workbench).getByText('成长等级').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '成长等级 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '成长等级' })).toBeInTheDocument()
@@ -184,7 +184,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: 'AI 备考教练 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getAllByText('AI 备考教练')[0].closest('article')!)
+    await user.dblClick(within(workbench).getAllByText('AI 备考教练')[0].closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: 'AI 备考教练 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: 'AI 备考教练' })).toBeInTheDocument()
@@ -204,7 +204,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '多端预留 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByText('多端预留').closest('article')!)
+    await user.dblClick(within(workbench).getByText('多端预留').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '多端预留 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '多端预留' })).toBeInTheDocument()
@@ -224,7 +224,7 @@ describe('App', () => {
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(screen.queryByRole('dialog', { name: '小程序试验版 · 工作台详情' })).not.toBeInTheDocument()
 
-    await user.click(within(workbench).getByText('小程序试验版').closest('article')!)
+    await user.dblClick(within(workbench).getByText('小程序试验版').closest('article')!)
 
     const dialog = screen.getByRole('dialog', { name: '小程序试验版 · 工作台详情' })
     expect(within(dialog).getByRole('heading', { name: '小程序试验版' })).toBeInTheDocument()

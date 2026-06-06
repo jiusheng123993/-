@@ -57,6 +57,7 @@ export const CanvasCard = ({
   const onDragMoveRef = useRef(onDragMove)
   const onCollisionRef = useRef(onCollision)
   const isDraggingRef = useRef(false)
+  const didDragRef = useRef(false)
   const handlePointerMoveRef = useRef<((event: PointerEvent) => void) | null>(null)
   const handlePointerUpRef = useRef<(() => void) | null>(null)
 
@@ -85,6 +86,10 @@ export const CanvasCard = ({
     const deltaX = event.clientX - dragStartRef.current.x
     const deltaY = event.clientY - dragStartRef.current.y
 
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      didDragRef.current = true
+    }
+
     const newGridX = dragStartRef.current.gridX + deltaX / columnWidth
     const newGridY = dragStartRef.current.gridY + deltaY / rowHeight
 
@@ -108,7 +113,7 @@ export const CanvasCard = ({
 
   const handlePointerUp = useCallback(() => {
     const finalPos = visualPositionRef.current
-    if (dragStartRef.current && finalPos) {
+    if (dragStartRef.current && finalPos && didDragRef.current) {
       if (collisionEnabled && onCollisionRef.current) {
         onCollisionRef.current(title, finalPos)
       } else {
@@ -117,6 +122,7 @@ export const CanvasCard = ({
     }
     setIsDragging(false)
     isDraggingRef.current = false
+    didDragRef.current = false
     setDragOffset({ x: 0, y: 0 })
     dragStartRef.current = null
     visualPositionRef.current = null
@@ -147,6 +153,7 @@ export const CanvasCard = ({
     const startPos = { x: position.x, y: position.y }
     setIsDragging(true)
     isDraggingRef.current = true
+    didDragRef.current = false
     setVisualPosition(startPos)
     visualPositionRef.current = startPos
 
@@ -227,8 +234,8 @@ export const CanvasCard = ({
       className={`canvas-card ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''} ${isResizing ? 'resizing' : ''} ${isSnapped ? 'snap-indicator' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => !isDragging && setIsHovered(false)}
-      onClick={() => {
-        if (!isDragging && onOpenDetails) onOpenDetails()
+      onDoubleClick={() => {
+        if (!didDragRef.current && onOpenDetails) onOpenDetails()
       }}
       style={{
         gridColumn: `${displayPosition.x + 1} / span ${size.columns}`,
