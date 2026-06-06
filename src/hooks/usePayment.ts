@@ -90,7 +90,6 @@ async function invokeWechatPay(params: PaymentParams) {
         fail: reject
       })
     } else {
-      console.log('[Payment] WeChat Pay params (dev mode):', params)
       resolve(true)
     }
   })
@@ -107,13 +106,11 @@ async function invokeAlipay(params: PaymentParams) {
         }
       })
     } else {
-      console.log('[Payment] Alipay params (dev mode):', params)
       resolve(true)
     }
   })
 }
 
 async function invokeApplePay(_params: PaymentParams) {
-  console.log('[Payment] Apple Pay (dev mode)')
   return true
 }

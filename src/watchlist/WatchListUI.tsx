@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Film, Plus, Trash2, Star, Play, CheckCircle, Circle, Clock } from 'lucide-react'
-import { createWatchListService } from './watchListService'
+import { createWatchListService, type WatchItem } from './watchListService'
 
 interface WatchListUIProps {
   compact?: boolean
@@ -85,7 +85,7 @@ export function WatchListUI({ compact = false, service: externalService }: Watch
           <div style={{ marginBottom: 16, padding: 16, background: colors.inputBg, borderRadius: 8 }}>
             <input type="text" placeholder="影视名称" value={newItem.title} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} style={{ width: '100%', padding: 10, border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 14, marginBottom: 8 }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-              <select value={newItem.type} onChange={(e) => setNewItem({ ...newItem, type: e.target.value as any })} style={{ padding: 10, border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 14 }}>
+              <select value={newItem.type} onChange={(e) => setNewItem({ ...newItem, type: e.target.value as WatchItem['type'] })} style={{ padding: 10, border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 14 }}>
                 <option value="movie">电影</option>
                 <option value="tv">电视剧</option>
                 <option value="documentary">纪录片</option>
@@ -105,7 +105,7 @@ export function WatchListUI({ compact = false, service: externalService }: Watch
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <select value={item.status} onChange={(e) => service.updateStatus(item.id, e.target.value as any)} style={{ padding: '4px 8px', background: colors.cardBg, border: 'none', borderRadius: 4, color: colors.textSecondary, fontSize: 11 }}>
+                <select value={item.status} onChange={(e) => service.updateStatus(item.id, e.target.value as WatchItem['status'])} style={{ padding: '4px 8px', background: colors.cardBg, border: 'none', borderRadius: 4, color: colors.textSecondary, fontSize: 11 }}>
                   <option value="plan">想看</option>
                   <option value="watching">在看</option>
                   <option value="completed">已看</option>

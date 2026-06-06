@@ -392,26 +392,24 @@ async function fetchChatCompletionStream(
 }
 
 function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: string; model: string } {
-  const isDev = import.meta.env.DEV
-  
   const configs: Record<AiProviderId, { endpoint: string; apiKey: string; model: string }> = {
     deepseek: {
-      endpoint: isDev ? '/api/deepseek' : 'https://api.deepseek.com/v1/chat/completions',
+      endpoint: import.meta.env.VITE_DEEPSEEK_ENDPOINT || '/api/deepseek',
       apiKey: localStorage.getItem('deepseek_api_key') || '',
       model: 'deepseek-chat'
     },
     openai: {
-      endpoint: isDev ? '/api/openai' : 'https://api.openai.com/v1/chat/completions',
+      endpoint: import.meta.env.VITE_OPENAI_ENDPOINT || '/api/openai',
       apiKey: localStorage.getItem('openai_api_key') || '',
       model: 'gpt-4o-mini'
     },
     tongyi: {
-      endpoint: isDev ? '/api/tongyi' : 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+      endpoint: import.meta.env.VITE_TONGYI_ENDPOINT || '/api/tongyi',
       apiKey: localStorage.getItem('tongyi_api_key') || '',
       model: 'qwen-turbo'
     },
     doubao: {
-      endpoint: isDev ? '/api/doubao' : 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+      endpoint: import.meta.env.VITE_DOUBAO_ENDPOINT || '/api/doubao',
       apiKey: localStorage.getItem('doubao_api_key') || '',
       model: 'doubao-pro-32k'
     },

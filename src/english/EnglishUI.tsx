@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BookOpen, Plus, Trash2, CheckCircle, Circle, FileText, BookMarked, Lightbulb } from 'lucide-react'
-import { createEnglishService } from './englishService'
+import { createEnglishService, type EnglishNote } from './englishService'
 
 interface EnglishUIProps {
   compact?: boolean
@@ -130,7 +130,7 @@ export function EnglishUI({ compact = false, service: externalService }: English
           {showAdd && (
             <div style={{ marginBottom: 16, padding: 16, background: colors.inputBg, borderRadius: 8 }}>
               <input type="text" placeholder="标题" value={newNote.title} onChange={(e) => setNewNote({ ...newNote, title: e.target.value })} style={{ width: '100%', padding: 10, border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 14, marginBottom: 8 }} />
-              <select value={newNote.type} onChange={(e) => setNewNote({ ...newNote, type: e.target.value as any })} style={{ width: '100%', padding: 10, border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 14, marginBottom: 8 }}>
+              <select value={newNote.type} onChange={(e) => setNewNote({ ...newNote, type: e.target.value as EnglishNote['type'] })} style={{ width: '100%', padding: 10, border: `1px solid ${colors.inputBorder}`, borderRadius: 6, background: colors.inputBg, color: colors.text, fontSize: 14, marginBottom: 8 }}>
                 <option value="vocabulary">词汇</option>
                 <option value="grammar">语法</option>
                 <option value="sentence">句子</option>
