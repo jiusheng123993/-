@@ -21,6 +21,7 @@ interface SidebarProps {
   onOpenTemplate: () => void
   onOpenReviewScheduler: () => void
   onOpenKnowledgeGraph: () => void
+  onOpenSchedule: () => void
   devAuthLabel: string
   currentThemeName: string
   membershipTier: string
@@ -48,6 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenTemplate,
   onOpenReviewScheduler,
   onOpenKnowledgeGraph,
+  onOpenSchedule,
   devAuthLabel,
   currentThemeName,
   membershipTier,
@@ -66,6 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'cycle', label: '周期追踪', icon: 'Heart' },
     { id: 'avatar', label: '我的角色', icon: 'Smile' },
     { id: 'knowledge-graph', label: '知识图谱', icon: 'Sparkles' },
+    { id: 'schedule', label: '日程提醒', icon: 'Calendar' },
     { id: 'template', label: '模板中心', icon: 'Layout' },
     { id: 'review', label: '复习提醒', icon: 'Brain' },
     { id: 'settings', label: '设置', icon: 'Settings' },
@@ -108,6 +111,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'knowledge-graph':
         onOpenKnowledgeGraph()
+        break
+      case 'schedule':
+        onOpenSchedule()
         break
     }
   }

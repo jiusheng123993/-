@@ -112,6 +112,7 @@ import { WatchListUI } from './watchlist/WatchListUI'
 import { TemplateUI } from './templates/TemplateUI'
 import { ReviewSchedulerUI } from './study/ReviewSchedulerUI'
 import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
+import { ScheduleUI } from './schedule/ScheduleUI'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -418,6 +419,7 @@ export default function App() {
   const [isTemplateOpen, setIsTemplateOpen] = useState(false)
   const [isReviewSchedulerOpen, setIsReviewSchedulerOpen] = useState(false)
   const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState(false)
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false)
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
