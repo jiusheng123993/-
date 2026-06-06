@@ -55,6 +55,18 @@ describe('PaymentCallbackService', () => {
   })
 
   describe('handleAlipayCallback', () => {
+    it('should reject callback when signature verification is not implemented', async () => {
+      const result = await handleAlipayCallback('order-1', {
+        trade_status: 'TRADE_SUCCESS',
+        trade_no: 'ali-tx-123',
+        sign: 'mock-sign',
+        sign_type: 'RSA2'
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Invalid signature')
+    })
+
     it('should reject invalid trade status', async () => {
       const result = await handleAlipayCallback('order-1', {
         trade_status: 'TRADE_CLOSED',
@@ -64,41 +76,17 @@ describe('PaymentCallbackService', () => {
       })
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('TRADE_CLOSED')
-    })
-
-    it('should accept TRADE_SUCCESS status', async () => {
-      const result = await handleAlipayCallback('order-1', {
-        trade_status: 'TRADE_SUCCESS',
-        trade_no: 'ali-tx-123',
-        sign: 'mock-sign',
-        sign_type: 'RSA2'
-      })
-
-      expect(result.success).toBe(true)
-      expect(result.tradeNo).toBe('ali-tx-123')
-    })
-
-    it('should accept TRADE_FINISHED status', async () => {
-      const result = await handleAlipayCallback('order-1', {
-        trade_status: 'TRADE_FINISHED',
-        trade_no: 'ali-tx-456',
-        sign: 'mock-sign',
-        sign_type: 'RSA2'
-      })
-
-      expect(result.success).toBe(true)
-      expect(result.tradeNo).toBe('ali-tx-456')
+      expect(result.error).toBe('Invalid signature')
     })
   })
 
   describe('handleAppleVerify', () => {
-    it('should verify apple receipt successfully', async () => {
+    it('should reject apple receipt when verification is not implemented', async () => {
       const result = await handleAppleVerify('order-1', 'mock-receipt-data')
 
-      expect(result.success).toBe(true)
+      expect(result.success).toBe(false)
       expect(result.orderId).toBe('order-1')
-      expect(result.tradeNo).toMatch(/^apple_/)
+      expect(result.error).toBe('Apple receipt verification not implemented')
     })
   })
 })

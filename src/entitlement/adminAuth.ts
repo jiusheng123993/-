@@ -22,9 +22,14 @@ export interface AdminUser {
 }
 
 const ADMIN_STORAGE_KEY = 'growthos-admin-session'
-const ADMIN_CREDENTIALS: Record<string, { password: string; role: AdminRole }> = {
-  admin: { password: 'admin123', role: 'admin' },
-  superadmin: { password: 'super123', role: 'superadmin' }
+
+function getAdminCredentials(): Record<string, { password: string; role: AdminRole }> {
+  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || ''
+  const superadminPassword = import.meta.env.VITE_SUPERADMIN_PASSWORD || ''
+  return {
+    admin: { password: adminPassword, role: 'admin' },
+    superadmin: { password: superadminPassword, role: 'superadmin' }
+  }
 }
 
 export interface AdminAuth {
@@ -72,7 +77,8 @@ export function createAdminAuth(): AdminAuth {
     },
 
     login(username: string, password: string): { success: boolean; error?: string } {
-      const cred = ADMIN_CREDENTIALS[username]
+      const credentials = getAdminCredentials()
+      const cred = credentials[username]
       if (!cred) {
         return { success: false, error: '用户名不存在' }
       }

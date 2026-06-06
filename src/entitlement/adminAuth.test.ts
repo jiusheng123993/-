@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createAdminAuth, adminAuth, type AdminRole } from './adminAuth'
 
 describe('AdminAuth', () => {
@@ -10,11 +10,14 @@ describe('AdminAuth', () => {
       setItem: vi.fn(),
       removeItem: vi.fn()
     })
+    vi.stubEnv('VITE_ADMIN_PASSWORD', 'admin123')
+    vi.stubEnv('VITE_SUPERADMIN_PASSWORD', 'super123')
     adminAuthInstance = createAdminAuth()
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   describe('login', () => {
