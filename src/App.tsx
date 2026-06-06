@@ -113,6 +113,7 @@ import { TemplateUI } from './templates/TemplateUI'
 import { ReviewSchedulerUI } from './study/ReviewSchedulerUI'
 import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
 import { ScheduleUI } from './schedule/ScheduleUI'
+import { BacklinkPanel } from './backlink/BacklinkPanel'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
