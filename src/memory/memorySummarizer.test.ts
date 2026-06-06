@@ -235,4 +235,314 @@ describe('memorySummarizer', () => {
     )
     expect(burnoutChange).toBeDefined()
   })
+
+  it('detects goal changes from goal_completed events', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.goals.primaryGoal = '旧目标'
+
+    const events = [
+      createEvent({
+        id: 'goal-1',
+        content: '通过高数考试',
+        tags: ['goal_completed'],
+        createdAt: '2026-06-05T10:00:00.000Z'
+      })
+    ]
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const goalChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'goals.primaryGoal'
+    )
+    expect(goalChange).toBeDefined()
+    expect(goalChange?.newValue).toBe('通过高数考试')
+  })
+
+  it('detects learning subject changes from subject_strong events', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.learning.strongSubjects = ['数学']
+
+    const events = [
+      createEvent({
+        id: 'subj-1',
+        content: '英语',
+        tags: ['subject_strong'],
+        createdAt: '2026-06-05T10:00:00.000Z'
+      })
+    ]
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const learningChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'learning.strongSubjects'
+    )
+    expect(learningChange).toBeDefined()
+    expect(learningChange?.newValue).toContain('英语')
+  })
+
+  it('detects learning subject changes from subject_weak events', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.learning.weakSubjects = []
+
+    const events = [
+      createEvent({
+        id: 'subj-1',
+        content: '物理',
+        tags: ['subject_weak'],
+        createdAt: '2026-06-05T10:00:00.000Z'
+      })
+    ]
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const learningChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'learning.weakSubjects'
+    )
+    expect(learningChange).toBeDefined()
+    expect(learningChange?.newValue).toContain('物理')
+  })
+
+  it('detects preference changes from task completion patterns', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.preferences.planningStyle = 'flexible'
+
+    const events = Array.from({ length: 10 }, (_, i) =>
+      createEvent({
+        id: `task-${i}`,
+        content: `完成任务${i}`,
+        category: 'task_completed',
+        createdAt: `2026-06-0${(i % 7) + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const prefChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'preferences.planningStyle'
+    )
+    expect(prefChange).toBeDefined()
+    expect(prefChange?.newValue).toBe('structured')
+  })
+
+  it('detects work style changes from focus patterns', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.preferences.workStyle = 'flexible'
+
+    const events = Array.from({ length: 5 }, (_, i) =>
+      createEvent({
+        id: `focus-${i}`,
+        content: `专注${i}`,
+        category: 'focus_completed',
+        createdAt: `2026-06-0${i + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const workChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'preferences.workStyle'
+    )
+    expect(workChange).toBeDefined()
+    expect(workChange?.newValue).toBe('deep_work')
+  })
+
+  it('detects reflection frequency changes from journal patterns', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.preferences.reflectionFrequency = 'weekly'
+
+    const events = Array.from({ length: 3 }, (_, i) =>
+      createEvent({
+        id: `journal-${i}`,
+        content: `日记${i}`,
+        category: 'journal_created',
+        createdAt: `2026-06-0${i + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const reflectionChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'preferences.reflectionFrequency'
+    )
+    expect(reflectionChange).toBeDefined()
+    expect(reflectionChange?.newValue).toBe('daily')
+  })
+
+  it('detects personality trait changes from task completion', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.personality.traits = []
+
+    const events = Array.from({ length: 8 }, (_, i) =>
+      createEvent({
+        id: `task-${i}`,
+        content: `完成任务${i}`,
+        category: 'task_completed',
+        createdAt: `2026-06-0${(i % 7) + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const traitChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'personality.traits' && p.newValue.includes('执行力强')
+    )
+    expect(traitChange).toBeDefined()
+  })
+
+  it('detects personality trait changes from focus patterns', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.personality.traits = []
+
+    const events = Array.from({ length: 5 }, (_, i) =>
+      createEvent({
+        id: `focus-${i}`,
+        content: `专注${i}`,
+        category: 'focus_completed',
+        createdAt: `2026-06-0${i + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const traitChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'personality.traits' && p.newValue.includes('专注力强')
+    )
+    expect(traitChange).toBeDefined()
+  })
+
+  it('detects personality trait changes from goal updates', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+    profile.personality.traits = []
+
+    const events = Array.from({ length: 3 }, (_, i) =>
+      createEvent({
+        id: `goal-${i}`,
+        content: `目标${i}`,
+        category: 'goal_updated',
+        createdAt: `2026-06-0${i + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    const traitChange = result.proposedChanges.find((p) =>
+      p.fieldPath === 'personality.traits' && p.newValue.includes('目标导向')
+    )
+    expect(traitChange).toBeDefined()
+  })
+
+  it('includes milestone congratulations in reflection note', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+
+    const events = [
+      createEvent({
+        id: 'milestone-1',
+        content: '完成100天连续学习',
+        tags: ['milestone'],
+        createdAt: '2026-06-05T10:00:00.000Z'
+      })
+    ]
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    expect(result.reflectionNote).toContain('恭喜')
+  })
+
+  it('includes stress warning in reflection note', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+
+    const events = Array.from({ length: 3 }, (_, i) =>
+      createEvent({
+        id: `stress-${i}`,
+        content: '压力事件',
+        tags: ['stress'],
+        createdAt: `2026-06-0${i + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    expect(result.reflectionNote).toContain('身心健康')
+  })
+
+  it('sorts events by createdAt descending', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+
+    const events = [
+      createEvent({ id: 'old', content: '旧事件', createdAt: '2026-01-01T10:00:00.000Z' }),
+      createEvent({ id: 'new', content: '新事件', createdAt: '2026-06-05T10:00:00.000Z' }),
+    ]
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    expect(result.reflectionNote).toContain('分析了最近')
+  })
+
+  it('limits events to 50 most recent', async () => {
+    const summarizer = createMemorySummarizer()
+    const profile = createBaseProfile()
+
+    const events = Array.from({ length: 100 }, (_, i) =>
+      createEvent({
+        id: `event-${i}`,
+        content: `事件${i}`,
+        createdAt: `2026-06-0${(i % 7) + 1}T10:00:00.000Z`
+      })
+    )
+
+    const result = await summarizer.summarize({
+      events,
+      currentProfile: profile
+    } as SummarizeRequest)
+
+    expect(result.reflectionNote).toContain('分析了最近')
+  })
 })
