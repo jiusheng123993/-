@@ -5,6 +5,7 @@ import { createTemplateService } from './templateService'
 interface TemplateUIProps {
   compact?: boolean
   service?: ReturnType<typeof createTemplateService>
+  onClose?: () => void
 }
 
 const colors = {
@@ -26,7 +27,7 @@ const categoryLabels: Record<string, string> = {
   other: '其他'
 }
 
-export function TemplateUI({ compact = false, service: externalService }: TemplateUIProps) {
+export function TemplateUI({ compact = false, service: externalService, onClose }: TemplateUIProps) {
   const [service] = useState(() => externalService ?? createTemplateService())
   const [showCreate, setShowCreate] = useState(false)
   const [newTemplate, setNewTemplate] = useState({ name: '', category: 'daily', tasks: '' })
@@ -63,9 +64,27 @@ export function TemplateUI({ compact = false, service: externalService }: Templa
 
   return (
     <div style={{ background: colors.bg, color: colors.text, fontFamily: 'system-ui, sans-serif', minHeight: '100vh', padding: 24, overflowY: 'auto' }}>
-      <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <LayoutTemplate size={24} style={{ color: colors.accent }} />模板中心
-      </h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <LayoutTemplate size={24} style={{ color: colors.accent }} />模板中心
+        </h2>
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 12px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: colors.textSecondary,
+              fontSize: 20,
+              lineHeight: 1
+            }}
+          >
+            ×
+          </button>
+        )}
+      </div>
 
       <div style={{ background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: 12, padding: 20, marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

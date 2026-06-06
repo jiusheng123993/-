@@ -19,6 +19,8 @@ interface SidebarProps {
   onSwitchDevAuthRole: () => void
   onOpenDataBackup: () => void
   onOpenTemplate: () => void
+  onOpenReviewScheduler: () => void
+  onOpenKnowledgeGraph: () => void
   devAuthLabel: string
   currentThemeName: string
   membershipTier: string
@@ -44,6 +46,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSwitchDevAuthRole,
   onOpenDataBackup,
   onOpenTemplate,
+  onOpenReviewScheduler,
+  onOpenKnowledgeGraph,
   devAuthLabel,
   currentThemeName,
   membershipTier,
@@ -61,7 +65,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'memory', label: '记忆画像', icon: 'Brain' },
     { id: 'cycle', label: '周期追踪', icon: 'Heart' },
     { id: 'avatar', label: '我的角色', icon: 'Smile' },
+    { id: 'knowledge-graph', label: '知识图谱', icon: 'Sparkles' },
     { id: 'template', label: '模板中心', icon: 'Layout' },
+    { id: 'review', label: '复习提醒', icon: 'Brain' },
     { id: 'settings', label: '设置', icon: 'Settings' },
     { id: 'theme', label: '主题切换', icon: 'Palette' }
   ]
@@ -96,6 +102,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'template':
         onOpenTemplate()
+        break
+      case 'review':
+        onOpenReviewScheduler()
+        break
+      case 'knowledge-graph':
+        onOpenKnowledgeGraph()
         break
     }
   }

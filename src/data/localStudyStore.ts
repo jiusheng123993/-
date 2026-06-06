@@ -30,6 +30,10 @@ export type ReviewItem = {
   subject: string
   dueDate: string
   level: 'easy' | 'medium' | 'hard'
+  interval: number
+  easeFactor: number
+  reviewCount: number
+  lastReviewDate: string | null
 }
 
 export type GrowthState = {

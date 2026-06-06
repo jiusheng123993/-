@@ -110,6 +110,8 @@ import { QuoteUI } from './quotes/QuoteUI'
 import { EnglishUI } from './english/EnglishUI'
 import { WatchListUI } from './watchlist/WatchListUI'
 import { TemplateUI } from './templates/TemplateUI'
+import { ReviewSchedulerUI } from './study/ReviewSchedulerUI'
+import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -414,6 +416,8 @@ export default function App() {
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
   const [isDataBackupOpen, setIsDataBackupOpen] = useState(false)
   const [isTemplateOpen, setIsTemplateOpen] = useState(false)
+  const [isReviewSchedulerOpen, setIsReviewSchedulerOpen] = useState(false)
+  const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState(false)
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
@@ -1160,6 +1164,14 @@ export default function App() {
         onOpenTemplate={() => {
           closeAllSidebarPanels()
           setIsTemplateOpen(true)
+        }}
+        onOpenReviewScheduler={() => {
+          closeAllSidebarPanels()
+          setIsReviewSchedulerOpen(true)
+        }}
+        onOpenKnowledgeGraph={() => {
+          closeAllSidebarPanels()
+          setIsKnowledgeGraphOpen(true)
         }}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
@@ -3473,6 +3485,14 @@ export default function App() {
 
       {isTemplateOpen && (
         <TemplateUI onClose={() => setIsTemplateOpen(false)} />
+      )}
+
+      {isReviewSchedulerOpen && (
+        <ReviewSchedulerUI onClose={() => setIsReviewSchedulerOpen(false)} />
+      )}
+
+      {isKnowledgeGraphOpen && (
+        <KnowledgeGraphUI onClose={() => setIsKnowledgeGraphOpen(false)} />
       )}
 
       {isAvatarManagerOpen && (

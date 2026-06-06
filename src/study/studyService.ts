@@ -7,6 +7,7 @@ import type {
   StudyStore
 } from '../data/localStudyStore'
 import { createInitialStudyState, createBrowserStudyStore } from '../data/localStudyStore'
+import { calculateNextReview, DEFAULT_EASE_FACTOR } from './spacedRepetition'
 
 export interface StudyService {
   getState(): StudyState
@@ -20,6 +21,7 @@ export interface StudyService {
   removeNote(noteId: string): void
   addReviewItem(title: string, subject: string, dueDate: string, level: 'easy' | 'medium' | 'hard'): ReviewItem
   removeReviewItem(reviewId: string): void
+  reviewItem(reviewId: string, quality: 0 | 1 | 2 | 3 | 4 | 5): void
   getOverallProgress(): { totalGoals: number; avgProgress: number; completedTasks: number; totalTasks: number; reviewDueCount: number }
 }
 
@@ -113,7 +115,11 @@ export function createStudyService(store?: StudyStore): StudyService {
       title,
       subject,
       dueDate,
-      level
+      level,
+      interval: 1,
+      easeFactor: DEFAULT_EASE_FACTOR,
+      reviewCount: 0,
+      lastReviewDate: null
     }
     saveState({ ...state, reviews: [...state.reviews, item] })
     return item
@@ -122,6 +128,24 @@ export function createStudyService(store?: StudyStore): StudyService {
   const removeReviewItem = (reviewId: string): void => {
     const state = getState()
     const reviews = state.reviews.filter((r) => r.id !== reviewId)
+    saveState({ ...state, reviews })
+  }
+
+  const reviewItem = (reviewId: string, quality: 0 | 1 | 2 | 3 | 4 | 5): void => {
+    const state = getState()
+    const reviews = state.reviews.map((r) => {
+      if (r.id !== reviewId) return r
+      
+      const result = calculateNextReview(r, quality)
+      return {
+        ...r,
+        interval: result.nextInterval,
+        dueDate: result.nextDueDate,
+        easeFactor: result.easeFactor,
+        reviewCount: (r.reviewCount || 0) + 1,
+        lastReviewDate: new Date().toISOString().slice(0, 10)
+      }
+    })
     saveState({ ...state, reviews })
   }
 
@@ -151,6 +175,7 @@ export function createStudyService(store?: StudyStore): StudyService {
     removeNote,
     addReviewItem,
     removeReviewItem,
+    reviewItem,
     getOverallProgress
   }
 }
