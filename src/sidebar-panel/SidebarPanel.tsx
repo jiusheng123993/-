@@ -19,6 +19,7 @@ interface SidebarPanelProps {
   onPauseFocus: () => void
   onResetFocus: () => void
   onAdjustFocus: (delta: number) => void
+  onOpenSchedule?: () => void
 }
 
 export function SidebarPanel({
@@ -35,7 +36,8 @@ export function SidebarPanel({
   onStartFocus,
   onPauseFocus,
   onResetFocus,
-  onAdjustFocus
+  onAdjustFocus,
+  onOpenSchedule
 }: SidebarPanelProps) {
   const [activeIds, setActiveIds] = useState<SidebarPanelModuleId[]>(() =>
     loadSidebarPanelState(personaId)
@@ -111,6 +113,7 @@ export function SidebarPanel({
             onPauseFocus={onPauseFocus}
             onResetFocus={onResetFocus}
             onAdjustFocus={onAdjustFocus}
+            onOpenSchedule={onOpenSchedule}
             onRemove={() => removeModule(moduleId)}
           />
         ))}

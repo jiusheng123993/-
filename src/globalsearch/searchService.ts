@@ -5,10 +5,28 @@ export interface SearchResult {
   description: string
   date: string
   matchedText: string
+  snippet?: string
 }
 
 export interface SearchService {
   search(query: string): SearchResult[]
+}
+
+function matchField(value: string | undefined | null, lowerQuery: string): boolean {
+  if (!value) return false
+  return value.toLowerCase().includes(lowerQuery)
+}
+
+function extractMatchSnippet(text: string, query: string, maxLen = 80): string {
+  const lower = text.toLowerCase()
+  const idx = lower.indexOf(query.toLowerCase())
+  if (idx === -1) return text.slice(0, maxLen)
+  const start = Math.max(0, idx - 20)
+  const end = Math.min(text.length, idx + query.length + 30)
+  let snippet = text.slice(start, end)
+  if (start > 0) snippet = '...' + snippet
+  if (end < text.length) snippet = snippet + '...'
+  return snippet
 }
 
 export function createSearchService(getWorkspaceState: () => any, getStudyState: () => any, getHabitState: () => any, getFinanceState: () => any, getReadingState: () => any, getJournalState: () => any, getGoalsState: () => any, getProjectState: () => any): SearchService {
@@ -19,112 +37,120 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
 
     const workspaceState = getWorkspaceState()
     ;(workspaceState.tasks || []).forEach((task: any) => {
-      if (task.title?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(task.title, lowerQuery) || matchField(task.description, lowerQuery) || matchField(task.tags?.join(' '), lowerQuery)) {
         results.push({
           type: 'task',
           id: task.id,
           title: task.title,
           description: `${task.dueLabel || ''} · ${task.minutes || 0}分钟`,
           date: task.createdAt?.split('T')[0] || '',
-          matchedText: task.title
+          matchedText: task.title,
+          snippet: extractMatchSnippet(task.description || task.title, query)
         })
       }
     })
 
     const studyState = getStudyState()
     ;(studyState.notes || []).forEach((note: any) => {
-      if (note.title?.toLowerCase().includes(lowerQuery) || note.content?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(note.title, lowerQuery) || matchField(note.content, lowerQuery)) {
         results.push({
           type: 'note',
           id: note.id,
           title: note.title,
-          description: note.content?.slice(0, 50) || '',
+          description: note.content?.slice(0, 100) || '',
           date: note.createdAt?.split('T')[0] || '',
-          matchedText: note.title
+          matchedText: note.title,
+          snippet: extractMatchSnippet(note.content || note.title, query)
         })
       }
     })
 
     const goalsState = getGoalsState()
     ;(goalsState.goals || []).forEach((goal: any) => {
-      if (goal.title?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(goal.title, lowerQuery) || matchField(goal.description, lowerQuery)) {
         results.push({
           type: 'goal',
           id: goal.id,
           title: goal.title,
           description: `${goal.progress || 0}% 进度`,
           date: goal.createdAt?.split('T')[0] || '',
-          matchedText: goal.title
+          matchedText: goal.title,
+          snippet: extractMatchSnippet(goal.description || goal.title, query)
         })
       }
     })
 
     const readingState = getReadingState()
     ;(readingState.books || []).forEach((book: any) => {
-      if (book.title?.toLowerCase().includes(lowerQuery) || book.author?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(book.title, lowerQuery) || matchField(book.author, lowerQuery) || matchField(book.notes, lowerQuery)) {
         results.push({
           type: 'book',
           id: book.id,
           title: book.title,
           description: `${book.author} · ${book.status}`,
           date: book.addedAt?.split('T')[0] || '',
-          matchedText: book.title
+          matchedText: book.title,
+          snippet: extractMatchSnippet(book.notes || book.title, query)
         })
       }
     })
 
     const projectState = getProjectState()
     ;(projectState.projects || []).forEach((project: any) => {
-      if (project.name?.toLowerCase().includes(lowerQuery) || project.description?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(project.name, lowerQuery) || matchField(project.description, lowerQuery)) {
         results.push({
           type: 'project',
           id: project.id,
           title: project.name,
           description: project.description || '',
           date: project.createdAt?.split('T')[0] || '',
-          matchedText: project.name
+          matchedText: project.name,
+          snippet: extractMatchSnippet(project.description || project.name, query)
         })
       }
     })
 
     const habitState = getHabitState()
     ;(habitState.habits || []).forEach((habit: any) => {
-      if (habit.name?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(habit.name, lowerQuery) || matchField(habit.description, lowerQuery)) {
         results.push({
           type: 'habit',
           id: habit.id,
           title: habit.name,
           description: `${habit.streak || 0}天连续`,
           date: habit.createdAt?.split('T')[0] || '',
-          matchedText: habit.name
+          matchedText: habit.name,
+          snippet: extractMatchSnippet(habit.description || habit.name, query)
         })
       }
     })
 
     const journalState = getJournalState()
     ;(journalState.entries || []).forEach((entry: any) => {
-      if (entry.content?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(entry.content, lowerQuery) || matchField(entry.title, lowerQuery) || matchField(entry.mood, lowerQuery)) {
         results.push({
           type: 'journal',
           id: entry.id,
           title: entry.date,
-          description: entry.content?.slice(0, 50) || '',
+          description: entry.content?.slice(0, 100) || '',
           date: entry.date,
-          matchedText: entry.content
+          matchedText: entry.content,
+          snippet: extractMatchSnippet(entry.content || '', query)
         })
       }
     })
 
     const financeState = getFinanceState()
     ;(financeState.transactions || []).forEach((tx: any) => {
-      if (tx.description?.toLowerCase().includes(lowerQuery) || tx.category?.toLowerCase().includes(lowerQuery)) {
+      if (matchField(tx.description, lowerQuery) || matchField(tx.category, lowerQuery) || matchField(tx.note, lowerQuery)) {
         results.push({
           type: 'finance',
           id: tx.id,
           title: `${tx.type === 'income' ? '+' : '-'}¥${tx.amount}`,
           description: `${tx.category} · ${tx.description || ''}`,
           date: tx.date?.split('T')[0] || '',
-          matchedText: tx.description || tx.category
+          matchedText: tx.description || tx.category,
+          snippet: extractMatchSnippet(tx.note || tx.description || '', query)
         })
       }
     })

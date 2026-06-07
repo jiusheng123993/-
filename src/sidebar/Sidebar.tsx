@@ -23,6 +23,7 @@ interface SidebarProps {
   onOpenKnowledgeGraph: () => void
   onOpenSchedule: () => void
   onOpenBacklink: () => void
+  onOpenFocusMode: () => void
   devAuthLabel: string
   currentThemeName: string
   membershipTier: string
@@ -52,6 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenKnowledgeGraph,
   onOpenSchedule,
   onOpenBacklink,
+  onOpenFocusMode,
   devAuthLabel,
   currentThemeName,
   membershipTier,
@@ -72,6 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'knowledge-graph', label: '知识图谱', icon: 'Sparkles' },
     { id: 'schedule', label: '日程提醒', icon: 'Calendar' },
     { id: 'backlink', label: '双向链接', icon: 'Link' },
+    { id: 'focus-mode', label: '专注模式', icon: 'Target' },
     { id: 'template', label: '模板中心', icon: 'Layout' },
     { id: 'review', label: '复习提醒', icon: 'Brain' },
     { id: 'settings', label: '设置', icon: 'Settings' },
@@ -120,6 +123,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'backlink':
         onOpenBacklink()
+        break
+      case 'focus-mode':
+        onOpenFocusMode()
         break
     }
   }

@@ -4,81 +4,39 @@ const STORAGE_KEY = 'xinghuanhai-sidebar-panel'
 
 export const SIDEBAR_PANEL_MODULES: SidebarPanelModule[] = [
   {
-    id: 'side-pomodoro',
-    title: '番茄钟',
+    id: 'side-focus-dashboard',
+    title: '专注仪表',
     icon: '⏱️',
-    description: '专注计时器，大字号倒计时',
+    description: '环形进度条 + 番茄钟计时',
     personaIds: ['exam-student', 'office-worker', 'creator', 'self-growth', 'grad-exam', 'civil-service', 'cert-exam', 'english-cet']
   },
   {
-    id: 'side-todo',
-    title: '今日待办',
-    icon: '📝',
-    description: '可勾选待办列表，快速添加',
-    personaIds: ['exam-student', 'office-worker', 'creator', 'self-growth', 'grad-exam', 'civil-service', 'cert-exam', 'english-cet']
-  },
-  {
-    id: 'side-streak',
-    title: '今日数据',
+    id: 'side-daily-pulse',
+    title: '今日脉搏',
     icon: '📊',
-    description: '今日专注时长、完成任务数',
+    description: '今日关键数据聚合卡片',
     personaIds: ['exam-student', 'office-worker', 'creator', 'self-growth', 'grad-exam', 'civil-service', 'cert-exam', 'english-cet']
-  },
-  {
-    id: 'side-countdown',
-    title: '考试倒计时',
-    icon: '📅',
-    description: '距离考试还有 X 天',
-    personaIds: ['exam-student', 'grad-exam', 'civil-service', 'cert-exam', 'english-cet']
-  },
-  {
-    id: 'side-subject-progress',
-    title: '科目进度',
-    icon: '📚',
-    description: '各科目学习进度条',
-    personaIds: ['exam-student', 'grad-exam', 'civil-service', 'cert-exam', 'english-cet']
-  },
-  {
-    id: 'side-meeting-actions',
-    title: '会议行动项',
-    icon: '💼',
-    description: '待跟进行动项列表',
-    personaIds: ['office-worker']
-  },
-  {
-    id: 'side-weekly-materials',
-    title: '周报素材',
-    icon: '📋',
-    description: '本周工作素材计数',
-    personaIds: ['office-worker']
-  },
-  {
-    id: 'side-idea-inbox',
-    title: '灵感速记',
-    icon: '💡',
-    description: '快速记录灵感',
-    personaIds: ['creator']
-  },
-  {
-    id: 'side-publish-calendar',
-    title: '发布日历',
-    icon: '📆',
-    description: '最近发布计划',
-    personaIds: ['creator']
   },
   {
     id: 'side-habits',
-    title: '今日习惯',
+    title: '微习惯打卡',
     icon: '✅',
-    description: '今日待打卡习惯列表',
+    description: '今日待打卡习惯，点击即打卡',
     personaIds: ['self-growth']
   },
   {
-    id: 'side-mood',
-    title: '心情打卡',
-    icon: '😊',
-    description: '快捷心情选择',
-    personaIds: ['self-growth']
+    id: 'side-quick-notes',
+    title: '灵感一闪',
+    icon: '💡',
+    description: '快速记录想法，输入即保存',
+    personaIds: ['creator']
+  },
+  {
+    id: 'side-schedule',
+    title: '今日日程条',
+    icon: '📅',
+    description: '时间线式日程预览',
+    personaIds: ['exam-student', 'office-worker', 'creator', 'self-growth', 'grad-exam', 'civil-service', 'cert-exam', 'english-cet']
   },
   {
     id: 'side-daily-quote',
@@ -90,18 +48,18 @@ export const SIDEBAR_PANEL_MODULES: SidebarPanelModule[] = [
 ]
 
 export const PERSONA_DEFAULT_SIDEBAR_MODULES: Record<string, SidebarPanelModuleId[]> = {
-  'exam-student': ['side-pomodoro', 'side-countdown', 'side-todo', 'side-subject-progress'],
-  'grad-exam': ['side-pomodoro', 'side-countdown', 'side-todo', 'side-subject-progress'],
-  'civil-service': ['side-pomodoro', 'side-countdown', 'side-todo', 'side-subject-progress'],
-  'cert-exam': ['side-pomodoro', 'side-countdown', 'side-todo', 'side-subject-progress'],
-  'english-cet': ['side-pomodoro', 'side-countdown', 'side-todo', 'side-subject-progress'],
-  'office-worker': ['side-pomodoro', 'side-todo', 'side-meeting-actions', 'side-weekly-materials'],
-  'creator': ['side-pomodoro', 'side-todo', 'side-idea-inbox', 'side-publish-calendar'],
-  'self-growth': ['side-pomodoro', 'side-habits', 'side-mood', 'side-streak']
+  'exam-student': ['side-focus-dashboard', 'side-daily-pulse', 'side-daily-quote'],
+  'grad-exam': ['side-focus-dashboard', 'side-daily-pulse', 'side-daily-quote'],
+  'civil-service': ['side-focus-dashboard', 'side-daily-pulse', 'side-daily-quote'],
+  'cert-exam': ['side-focus-dashboard', 'side-daily-pulse', 'side-daily-quote'],
+  'english-cet': ['side-focus-dashboard', 'side-daily-pulse', 'side-daily-quote'],
+  'office-worker': ['side-focus-dashboard', 'side-daily-pulse', 'side-daily-quote'],
+  'creator': ['side-focus-dashboard', 'side-daily-pulse', 'side-quick-notes', 'side-daily-quote'],
+  'self-growth': ['side-focus-dashboard', 'side-daily-pulse', 'side-habits', 'side-daily-quote']
 }
 
 export function loadSidebarPanelState(personaId: string): SidebarPanelModuleId[] {
-  if (typeof window === 'undefined') return PERSONA_DEFAULT_SIDEBAR_MODULES[personaId] ?? ['side-pomodoro', 'side-todo']
+  if (typeof window === 'undefined') return PERSONA_DEFAULT_SIDEBAR_MODULES[personaId] ?? ['side-focus-dashboard', 'side-daily-pulse']
   try {
     const raw = window.localStorage.getItem(`${STORAGE_KEY}-${personaId}`)
     if (raw) {
@@ -109,7 +67,7 @@ export function loadSidebarPanelState(personaId: string): SidebarPanelModuleId[]
       if (ids.length > 0) return ids
     }
   } catch { /* ignore */ }
-  return PERSONA_DEFAULT_SIDEBAR_MODULES[personaId] ?? ['side-pomodoro', 'side-todo']
+  return PERSONA_DEFAULT_SIDEBAR_MODULES[personaId] ?? ['side-focus-dashboard', 'side-daily-pulse']
 }
 
 export function saveSidebarPanelState(personaId: string, moduleIds: SidebarPanelModuleId[]): void {

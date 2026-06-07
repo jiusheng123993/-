@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { createSearchService } from './searchService'
-import type { SearchService } from './searchService'
 
 function mockState(overrides: Record<string, any> = {}) {
   return () => ({
@@ -192,6 +191,69 @@ describe('searchService', () => {
       )
       expect(() => service.search('test')).not.toThrow()
       expect(service.search('test')).toEqual([])
+    })
+
+    it('should search within note content', () => {
+      const service = createSearchService(
+        mockState(),
+        mockState({
+          notes: [{ id: '1', title: 'Meeting Notes', content: 'Discussed Q3 roadmap and budget allocation', createdAt: '2026-06-05T10:00:00.000Z' }]
+        }),
+        mockState(), mockState(), mockState(), mockState(), mockState(), mockState()
+      )
+      const results = service.search('budget')
+      expect(results).toHaveLength(1)
+      expect(results[0].title).toBe('Meeting Notes')
+    })
+
+    it('should search within journal content', () => {
+      const service = createSearchService(
+        mockState(), mockState(), mockState(), mockState(), mockState(),
+        mockState({
+          entries: [{ id: 'j1', date: '2026-06-01', content: '今天学习了 React 18 的新特性，包括 Suspense 和 Concurrent Mode', mood: 'productive' }]
+        }),
+        mockState(), mockState()
+      )
+      const results = service.search('Suspense')
+      expect(results).toHaveLength(1)
+      expect(results[0].type).toBe('journal')
+    })
+
+    it('should return snippet with match context', () => {
+      const service = createSearchService(
+        mockState(),
+        mockState({
+          notes: [{ id: '1', title: 'Notes', content: 'This is a very long content that contains the keyword somewhere in the middle of the text', createdAt: '2026-06-05T10:00:00.000Z' }]
+        }),
+        mockState(), mockState(), mockState(), mockState(), mockState(), mockState()
+      )
+      const results = service.search('keyword')
+      expect(results).toHaveLength(1)
+      expect(results[0].snippet).toContain('keyword')
+    })
+
+    it('should search habits by name and description', () => {
+      const service = createSearchService(
+        mockState(), mockState(),
+        mockState({
+          habits: [{ id: '1', name: '晨跑', description: '每天早上跑步30分钟', createdAt: '2026-06-01T00:00:00.000Z' }]
+        }),
+        mockState(), mockState(), mockState(), mockState(), mockState()
+      )
+      const results = service.search('跑步')
+      expect(results).toHaveLength(1)
+    })
+
+    it('should search goals by description', () => {
+      const service = createSearchService(
+        mockState(), mockState(), mockState(), mockState(), mockState(), mockState(),
+        mockState({
+          goals: [{ id: '1', title: 'Q3 目标', description: '完成 React 项目重构', createdAt: '2026-06-01T00:00:00.000Z' }]
+        }),
+        mockState()
+      )
+      const results = service.search('重构')
+      expect(results).toHaveLength(1)
     })
   })
 })

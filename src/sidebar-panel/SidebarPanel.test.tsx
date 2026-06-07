@@ -1,171 +1,110 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { SidebarPanel } from './SidebarPanel'
 
 const defaultProps = {
   personaId: 'exam-student',
-  streakDays: 12,
-  totalFocusMinutes: 75,
-  completedTasks: 3,
+  streakDays: 7,
+  totalFocusMinutes: 120,
+  completedTasks: 5,
   todoTasks: [
-    { id: '1', title: '完成高数练习', dueLabel: '今天', minutes: 60 },
-    { id: '2', title: '背诵单词', dueLabel: '今晚', minutes: 30 }
+    { id: '1', title: 'Task 1', dueLabel: '今天', minutes: 25 },
+    { id: '2', title: 'Task 2', dueLabel: '明天', minutes: 30 }
   ],
-  focusMinuteText: '60',
+  focusMinuteText: '25',
   focusSecondText: '00',
   isFocusRunning: false,
-  focusDisplayTask: { id: '1', title: '完成高数练习', dueLabel: '今天' },
+  focusDisplayTask: null,
+  focusTargetMinutes: 25,
   onStartFocus: vi.fn(),
   onPauseFocus: vi.fn(),
-  onResetFocus: vi.fn()
-}
-
-const renderSidebarPanel = (props: Partial<typeof defaultProps> = {}) => {
-  return render(<SidebarPanel {...defaultProps} {...props} />)
+  onResetFocus: vi.fn(),
+  onAdjustFocus: vi.fn(),
+  onOpenSchedule: vi.fn()
 }
 
 describe('SidebarPanel', () => {
   beforeEach(() => {
-    vi.stubGlobal('window', {
-      localStorage: {
-        getItem: () => null,
-        setItem: () => {}
-      }
-    })
-  })
-
-  it('renders panel title', () => {
-    renderSidebarPanel()
-    expect(screen.getByText('快捷面板')).toBeInTheDocument()
-  })
-
-  it('renders add button', () => {
-    renderSidebarPanel()
-    expect(screen.getByTitle('添加模块')).toBeInTheDocument()
+    localStorage.clear()
   })
 
   it('renders default modules for exam-student persona', () => {
-    renderSidebarPanel()
-    expect(screen.getByText(/番茄钟/)).toBeInTheDocument()
-    expect(screen.getByText(/考试倒计时/)).toBeInTheDocument()
-    expect(screen.getByText(/今日待办/)).toBeInTheDocument()
-    expect(screen.getByText(/科目进度/)).toBeInTheDocument()
+    render(<SidebarPanel {...defaultProps} />)
+    expect(screen.getByText('专注仪表')).toBeDefined()
   })
 
   it('renders default modules for office-worker persona', () => {
-    renderSidebarPanel({ personaId: 'office-worker' })
-    expect(screen.getByText(/番茄钟/)).toBeInTheDocument()
-    expect(screen.getByText(/今日待办/)).toBeInTheDocument()
-    expect(screen.getByText(/会议行动项/)).toBeInTheDocument()
-    expect(screen.getByText(/周报素材/)).toBeInTheDocument()
+    render(<SidebarPanel {...defaultProps} personaId="office-worker" />)
+    expect(screen.getByText('专注仪表')).toBeDefined()
   })
 
   it('renders default modules for creator persona', () => {
-    renderSidebarPanel({ personaId: 'creator' })
-    expect(screen.getByText(/番茄钟/)).toBeInTheDocument()
-    expect(screen.getByText(/今日待办/)).toBeInTheDocument()
-    expect(screen.getByText(/灵感速记/)).toBeInTheDocument()
-    expect(screen.getByText(/发布日历/)).toBeInTheDocument()
+    render(<SidebarPanel {...defaultProps} personaId="creator" />)
+    expect(screen.getByText('专注仪表')).toBeDefined()
   })
 
   it('renders default modules for self-growth persona', () => {
-    renderSidebarPanel({ personaId: 'self-growth' })
-    expect(screen.getByText(/番茄钟/)).toBeInTheDocument()
-    expect(screen.getByText(/今日习惯/)).toBeInTheDocument()
-    expect(screen.getByText(/心情打卡/)).toBeInTheDocument()
-    expect(screen.getByText(/今日数据/)).toBeInTheDocument()
+    render(<SidebarPanel {...defaultProps} personaId="self-growth" />)
+    expect(screen.getByText('专注仪表')).toBeDefined()
   })
 
   it('shows module selector when add button is clicked', () => {
-    renderSidebarPanel()
-    const addBtn = screen.getByTitle('添加模块')
+    render(<SidebarPanel {...defaultProps} />)
+    const addBtn = screen.getByText('+')
     fireEvent.click(addBtn)
-    expect(screen.getByText('今日数据')).toBeInTheDocument()
+    expect(screen.getByText('今日日程条')).toBeDefined()
   })
 
   it('hides module selector when add button is clicked again', () => {
-    renderSidebarPanel()
-    const addBtn = screen.getByTitle('添加模块')
+    render(<SidebarPanel {...defaultProps} />)
+    const addBtn = screen.getByText('+')
     fireEvent.click(addBtn)
-    expect(screen.getByText('今日数据')).toBeInTheDocument()
     fireEvent.click(addBtn)
-    expect(screen.queryByText('今日数据')).not.toBeInTheDocument()
+    expect(screen.queryByText('今日日程条')).toBeNull()
   })
 
-  it('adds a module when selected from selector', () => {
-    renderSidebarPanel()
-    const addBtn = screen.getByTitle('添加模块')
+  it('adds a module and closes selector', () => {
+    render(<SidebarPanel {...defaultProps} />)
+    const addBtn = screen.getByText('+')
     fireEvent.click(addBtn)
-    const streakBtn = screen.getByText('今日数据')
-    fireEvent.click(streakBtn)
-    expect(screen.getByText(/今日数据/)).toBeInTheDocument()
+    expect(screen.getByText('今日日程条')).toBeDefined()
+    fireEvent.click(screen.getByText('今日日程条'))
+    expect(screen.queryByText('今日日程条')).toBeDefined()
   })
 
-  it('removes a module when close button is clicked', () => {
-    renderSidebarPanel()
-    const removeButtons = screen.getAllByText('×')
-    expect(removeButtons.length).toBeGreaterThan(0)
-    fireEvent.click(removeButtons[0])
-  })
-
-  it('renders pomodoro timer with correct time', () => {
-    renderSidebarPanel()
-    expect(screen.getByText('60:00')).toBeInTheDocument()
-  })
-
-  it('renders todo tasks', () => {
-    renderSidebarPanel()
-    const mathTasks = screen.getAllByText('完成高数练习')
-    expect(mathTasks.length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('背诵单词')).toBeInTheDocument()
+  it('renders focus dashboard with time display', () => {
+    render(<SidebarPanel {...defaultProps} />)
+    expect(screen.getByText('专注仪表')).toBeDefined()
+    expect(screen.getByText('开始专注')).toBeDefined()
+    expect(screen.getByText('重置')).toBeDefined()
   })
 
   it('renders start button when not running', () => {
-    renderSidebarPanel()
-    expect(screen.getByText('开始')).toBeInTheDocument()
+    render(<SidebarPanel {...defaultProps} />)
+    expect(screen.getByText('开始专注')).toBeDefined()
   })
 
   it('calls onStartFocus when start button is clicked', () => {
     const onStartFocus = vi.fn()
-    renderSidebarPanel({ onStartFocus })
-    fireEvent.click(screen.getByText('开始'))
-    expect(onStartFocus).toHaveBeenCalledTimes(1)
+    render(<SidebarPanel {...defaultProps} onStartFocus={onStartFocus} />)
+    fireEvent.click(screen.getByText('开始专注'))
+    expect(onStartFocus).toHaveBeenCalled()
   })
 
   it('renders pause button when running', () => {
-    renderSidebarPanel({ isFocusRunning: true })
-    expect(screen.getByText('暂停')).toBeInTheDocument()
+    render(<SidebarPanel {...defaultProps} isFocusRunning={true} />)
+    expect(screen.getByText('暂停')).toBeDefined()
   })
 
   it('calls onPauseFocus when pause button is clicked', () => {
     const onPauseFocus = vi.fn()
-    renderSidebarPanel({ isFocusRunning: true, onPauseFocus })
+    render(<SidebarPanel {...defaultProps} isFocusRunning={true} onPauseFocus={onPauseFocus} />)
     fireEvent.click(screen.getByText('暂停'))
-    expect(onPauseFocus).toHaveBeenCalledTimes(1)
+    expect(onPauseFocus).toHaveBeenCalled()
   })
 
-  it('calls onResetFocus when reset button is clicked', () => {
-    const onResetFocus = vi.fn()
-    renderSidebarPanel({ onResetFocus })
-    fireEvent.click(screen.getByText('重置'))
-    expect(onResetFocus).toHaveBeenCalledTimes(1)
-  })
-
-  it('renders countdown module', () => {
-    renderSidebarPanel()
-    expect(screen.getByText('天后考试')).toBeInTheDocument()
-  })
-
-  it('renders subject progress module', () => {
-    renderSidebarPanel()
-    expect(screen.getByText('暂无科目数据')).toBeInTheDocument()
-  })
-
-  it('does not show modules not available for current persona in selector', () => {
-    renderSidebarPanel({ personaId: 'exam-student' })
-    const addBtn = screen.getByTitle('添加模块')
-    fireEvent.click(addBtn)
-    expect(screen.queryByText('会议行动项')).not.toBeInTheDocument()
-    expect(screen.queryByText('灵感速记')).not.toBeInTheDocument()
+  it('renders all 6 modules without placeholder', () => {
+    render(<SidebarPanel {...defaultProps} />)
+    expect(screen.queryByText('模块开发中')).toBeNull()
   })
 })

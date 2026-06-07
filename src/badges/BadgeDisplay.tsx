@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { Badge, BadgeCollection } from './badgeTypes'
 import { TIER_COLORS, TIER_LABELS } from './badgeTypes'
 import { evaluateBadges, type BadgeProgressInput } from './badgeEngine'
+import './badges.css'
 
 interface BadgeDisplayProps {
   progress: BadgeProgressInput

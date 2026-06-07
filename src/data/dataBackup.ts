@@ -138,7 +138,7 @@ export function importFromJSON(jsonString: string, options?: {
   
   try {
     data = JSON.parse(jsonString)
-  } catch (e) {
+  } catch {
     return {
       success: false,
       imported: 0,
@@ -253,4 +253,81 @@ export function formatBytes(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+}
+
+export interface SyncManifest {
+  exportedAt: string
+  version: string
+  modules: Record<string, { size: number; hash: string }>
+}
+
+function simpleHash(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0')
+}
+
+export function generateSyncManifest(): SyncManifest {
+  const modules: Record<string, { size: number; hash: string }> = {}
+
+  for (const moduleInfo of STORAGE_KEYS) {
+    const raw = window.localStorage.getItem(moduleInfo.key)
+    if (raw) {
+      modules[moduleInfo.key] = {
+        size: new Blob([raw]).size,
+        hash: simpleHash(raw)
+      }
+    }
+  }
+
+  return {
+    exportedAt: new Date().toISOString(),
+    version: '1.0.0',
+    modules
+  }
+}
+
+export function compareManifests(local: SyncManifest, remote: SyncManifest): {
+  localOnly: string[]
+  remoteOnly: string[]
+  changed: string[]
+  unchanged: string[]
+} {
+  const localOnly: string[] = []
+  const remoteOnly: string[] = []
+  const changed: string[] = []
+  const unchanged: string[] = []
+
+  const allKeys = new Set([...Object.keys(local.modules), ...Object.keys(remote.modules)])
+
+  for (const key of allKeys) {
+    const localMod = local.modules[key]
+    const remoteMod = remote.modules[key]
+
+    if (localMod && !remoteMod) {
+      localOnly.push(key)
+    } else if (!localMod && remoteMod) {
+      remoteOnly.push(key)
+    } else if (localMod && remoteMod) {
+      if (localMod.hash !== remoteMod.hash) {
+        changed.push(key)
+      } else {
+        unchanged.push(key)
+      }
+    }
+  }
+
+  return { localOnly, remoteOnly, changed, unchanged }
+}
+
+export function exportAllData(): void {
+  downloadBackup()
+}
+
+export function importAllData(data: BackupData): { success: boolean; imported: number; failed: number; errors: string[] } {
+  return importFromJSON(JSON.stringify(data))
 }

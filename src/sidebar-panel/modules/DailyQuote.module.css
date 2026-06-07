@@ -1,0 +1,158 @@
+.card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--surface) 0%, color-mix(in srgb, var(--surface), #8b5cf6 4%) 100%);
+  backdrop-filter: blur(12px);
+  padding: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, #8b5cf6, transparent 60%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.favBtn,
+.refreshBtn,
+.removeBtn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.card:hover .favBtn,
+.card:hover .refreshBtn,
+.card:hover .removeBtn {
+  opacity: 1;
+}
+
+.favBtn:hover,
+.refreshBtn:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.favBtn[data-favorited="true"] {
+  opacity: 1;
+  color: #f59e0b;
+}
+
+.favBtn[data-favorited="true"]:hover {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.removeBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.quoteBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 4px;
+  position: relative;
+}
+
+.quoteMark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 48px;
+  line-height: 1;
+  color: color-mix(in srgb, #8b5cf6, transparent 75%);
+  margin-bottom: -8px;
+  user-select: none;
+}
+
+.quoteText {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  text-align: center;
+  margin: 0;
+  padding: 0 8px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.quoteDivider {
+  width: 32px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, #8b5cf6, transparent 60%), transparent);
+  margin: 12px 0;
+}
+
+.quoteAuthor {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+  font-style: italic;
+  letter-spacing: 0.03em;
+}
+
+.favoritesSection {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border), transparent 50%);
+}
+
+.favoritesLabel {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.favoritesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.favChip {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #8b5cf6, transparent 90%);
+  color: color-mix(in srgb, #8b5cf6, var(--text) 30%);
+  border: 1px solid color-mix(in srgb, #8b5cf6, transparent 80%);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

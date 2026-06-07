@@ -1,0 +1,106 @@
+.journal-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle, #2a2a3a);
+  margin-bottom: 8px;
+}
+
+.journal-mode-toggle {
+  background: var(--surface-raised, #2a2a3a);
+  border: 1px solid var(--border, #333);
+  color: var(--text, #e0e0e0);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.journal-mode-toggle:hover {
+  background: var(--surface-hover, #333);
+}
+
+.journal-mode-toggle.active {
+  background: var(--accent, #6366f1);
+  border-color: var(--accent, #6366f1);
+  color: white;
+}
+
+.journal-textarea {
+  width: 100%;
+  min-height: 200px;
+  background: var(--surface-inset, #1a1a2e);
+  border: 1px solid var(--border, #333);
+  border-radius: 8px;
+  color: var(--text, #e0e0e0);
+  padding: 12px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.journal-textarea:focus {
+  outline: none;
+  border-color: var(--accent, #6366f1);
+}
+
+.markdown-renderer {
+  padding: 12px;
+  line-height: 1.7;
+  color: var(--text, #e0e0e0);
+  font-size: 0.875rem;
+}
+
+.markdown-renderer h1 { font-size: 1.5rem; margin: 16px 0 8px; }
+.markdown-renderer h2 { font-size: 1.25rem; margin: 14px 0 6px; }
+.markdown-renderer h3 { font-size: 1.0625rem; margin: 12px 0 4px; }
+.markdown-renderer p { margin: 8px 0; }
+.markdown-renderer ul, .markdown-renderer ol { padding-left: 20px; margin: 8px 0; }
+.markdown-renderer li { margin: 4px 0; }
+.markdown-renderer code {
+  background: var(--surface-raised, #2a2a3a);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+}
+.markdown-renderer pre {
+  background: var(--surface-raised, #2a2a3a);
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.markdown-renderer pre code {
+  background: none;
+  padding: 0;
+}
+.markdown-renderer blockquote {
+  border-left: 3px solid var(--accent, #6366f1);
+  padding-left: 12px;
+  margin: 8px 0;
+  color: var(--muted, #888);
+}
+.markdown-renderer hr {
+  border: none;
+  border-top: 1px solid var(--border, #333);
+  margin: 16px 0;
+}
+.markdown-renderer a {
+  color: var(--accent, #6366f1);
+  text-decoration: none;
+}
+.markdown-renderer a:hover {
+  text-decoration: underline;
+}
+.markdown-renderer .wiki-link {
+  color: var(--accent, #6366f1);
+  cursor: pointer;
+}
+.markdown-renderer img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+}

@@ -14,6 +14,8 @@ import {
   MOOD_OPTIONS
 } from './journalService'
 import { createAiPromptDraft } from '../ai/aiProvider'
+import { MarkdownRenderer } from './MarkdownRenderer'
+import './journal.css'
 
 const journalStore = createJournalBrowserStore()
 
@@ -27,6 +29,7 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
   const [state, setState] = useState<JournalState>(() => journalStore.load())
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'history'>('daily')
   const [isEditing, setIsEditing] = useState(false)
+  const [previewMode, setPreviewMode] = useState(false)
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [editForm, setEditForm] = useState({
@@ -259,6 +262,24 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
         <div className="journal-daily">
           {isEditing ? (
             <div className="journal-edit-form">
+              <div className="journal-editor-toolbar">
+                <button
+                  className={`journal-mode-toggle ${!previewMode ? 'active' : ''}`}
+                  onClick={() => setPreviewMode(false)}
+                  type="button"
+                >
+                  编辑
+                </button>
+                <button
+                  className={`journal-mode-toggle ${previewMode ? 'active' : ''}`}
+                  onClick={() => setPreviewMode(true)}
+                  type="button"
+                >
+                  预览
+                </button>
+              </div>
+
+              {!previewMode && (<>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: 'block', marginBottom: 4, fontSize: 13, color: 'var(--muted)' }}>今日心情</label>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -460,6 +481,11 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
                   取消
                 </button>
               </div>
+              </>)}
+
+              {previewMode && (
+                <MarkdownRenderer content={editForm.content || '*暂无内容*'} />
+              )}
             </div>
           ) : todayEntry ? (
             <div className="journal-today-view">

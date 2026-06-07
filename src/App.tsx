@@ -21,7 +21,6 @@ import { IdentitySelector } from './identity/IdentitySelector'
 import { Sidebar } from './sidebar/Sidebar'
 import { SidebarToggle } from './sidebar/SidebarToggle'
 import { getPersonaTemplateById } from './personas/personaTemplates'
-import { getDefaultMiniProgramModules, miniProgramBlueprint } from './platforms/miniProgramBlueprint'
 import {
   getThemeById,
   materialLabels,
@@ -116,6 +115,7 @@ import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
 import { ScheduleUI } from './schedule/ScheduleUI'
 import { createScheduleService } from './schedule/scheduleService'
 import { BacklinkPanel } from './backlink/BacklinkPanel'
+import { FocusModeUI } from './focus-mode'
 import { createNotificationService } from './notifications/notificationService'
 import { NotificationBanner } from './notifications/NotificationBanner'
 import styles from './components/membership/MembershipPage.module.css'
@@ -400,7 +400,6 @@ export default function App() {
   const [focusDurationDraft, setFocusDurationDraft] = useState<Record<string, number>>({})
   const [growthRewardClaimed, setGrowthRewardClaimed] = useState(false)
   const [aiCoachDraft, setAiCoachDraft] = useState<string | null>(null)
-  const [miniProgramPreviewMode, setMiniProgramPreviewMode] = useState<'home' | 'modules'>('home')
   const focusIntervalRef = useRef<number | null>(null)
   const savedWorkspaceStateRef = useRef<WorkspaceState | null>(null)
   const isFocusRunning = focusEndsAt !== null
@@ -428,6 +427,7 @@ export default function App() {
   const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState(false)
   const [isScheduleOpen, setIsScheduleOpen] = useState(false)
   const [isBacklinkOpen, setIsBacklinkOpen] = useState(false)
+  const [isFocusModeOpen, setIsFocusModeOpen] = useState(false)
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
@@ -1209,6 +1209,10 @@ export default function App() {
           closeAllSidebarPanels()
           setIsBacklinkOpen(true)
         }}
+        onOpenFocusMode={() => {
+          closeAllSidebarPanels()
+          setIsFocusModeOpen(true)
+        }}
         devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
@@ -1476,31 +1480,6 @@ export default function App() {
                       <span>iOS</span>
                       <span>HarmonyOS</span>
                     </div>
-                  </section>
-                ),
-                'mini-program-preview': (
-                  <section className="panel side-card mini-program-card">
-                    <p>{miniProgramBlueprint.positioning}</p>
-                    <span className="implementation-pill">微信小程序原生</span>
-                    <div className="boundary-grid">
-                      <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-                      <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-                    </div>
-                    <div className="phone-preview" aria-label="小程序首页预览">
-                      <div className="phone-preview-top"><strong>今天</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-                      <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle}</small></div>
-                      <div className="phone-module-grid">
-                        {defaultMiniProgramModules.slice(0, 4).map((mod) => (
-                          <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
-                        ))}
-                      </div>
-                      <div className="phone-tabbar">
-                        {miniProgramBlueprint.navigation.map((nav) => (
-                          <span key={nav.id}>{nav.label}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <small className="sync-note">{miniProgramBlueprint.syncStrategy}</small>
                   </section>
                 ),
                 'theme-center': (
@@ -1843,6 +1822,7 @@ export default function App() {
         onPauseFocus={pauseFocusTimer}
         onResetFocus={resetFocusTimer}
         onAdjustFocus={adjustFocusDuration}
+        onOpenSchedule={() => setIsScheduleOpen(true)}
       />
       </div>
 
@@ -1861,66 +1841,10 @@ export default function App() {
       </DraggableModal>
 
       <DraggableModal
-        isOpen={openWorkbenchDetail === 'mini-program-preview'}
-        onClose={() => setOpenWorkbenchDetail(null)}
-        title="小程序试验版"
-        subtitle={`${miniProgramBlueprint.positioning} · ${getThemeById(miniProgramBlueprint.recommendedThemeId).name}`}
-        ariaLabel="小程序试验版 · 工作台详情"
-        className="mini-program-detail-modal"
-      >
-        <div className="mini-program-detail-grid">
-          <section className="workbench-detail-panel mini-program-phone-panel" aria-label="小程序交互预览">
-            <div className="card-heading compact">
-              <h3>微信小程序原生</h3>
-              <button
-                className="mini-program-mode-button"
-                onClick={() => setMiniProgramPreviewMode((mode) => mode === 'home' ? 'modules' : 'home')}
-                type="button"
-              >
-                {miniProgramPreviewMode === 'home' ? '切换到模块页' : '切换到首页预览'}
-              </button>
-            </div>
-            <div className="phone-preview large" aria-label="小程序详情预览">
-              <div className="phone-preview-top"><strong>{miniProgramPreviewMode === 'home' ? '今天' : '模块'}</strong><span>{getThemeById(miniProgramBlueprint.recommendedThemeId).name}</span></div>
-              {miniProgramPreviewMode === 'home' ? (
-                <>
-                  <div className="phone-priority"><strong>优先做 3 件事</strong><small>{activePersona.name} · {activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle}</small></div>
-                  <div className="phone-module-grid">
-                    {defaultMiniProgramModules.slice(0, 4).map((mod) => (
-                      <article key={mod.id}><strong>{mod.title}</strong><small>{mod.privacyLevel}</small></article>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="phone-module-grid detail">
-                  {miniProgramBlueprint.modules.map((mod) => (
-                    <article key={mod.id}><strong>{mod.title}</strong><small>{mod.description}</small></article>
-                  ))}
-                </div>
-              )}
-              <div className="phone-tabbar">
-                {miniProgramBlueprint.navigation.map((nav) => (
-                  <span key={nav.id}>{nav.label}</span>
-                ))}
-              </div>
-            </div>
-          </section>
-          <aside className="workbench-detail-panel mini-program-boundary-panel" aria-label="小程序边界说明">
-            <h3>边界与同步</h3>
-            <div className="boundary-grid">
-              <article><span>桌面端</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-              <article><span>小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-            </div>
-            <p>{miniProgramBlueprint.syncStrategy}</p>
-          </aside>
-        </div>
-      </DraggableModal>
-
-      <DraggableModal
         isOpen={openWorkbenchDetail === 'platform-matrix'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="多端预留"
-        subtitle={`${workspaceState.sync.mode} · ${workspaceState.sync.status} · ${miniProgramBlueprint.implementationRoute.framework}`}
+        subtitle={`${workspaceState.sync.mode} · ${workspaceState.sync.status}`}
         ariaLabel="多端预留 · 工作台详情"
         className="platform-matrix-detail-modal"
       >
@@ -1928,13 +1852,12 @@ export default function App() {
           <section className="workbench-detail-panel platform-matrix-route" aria-label="多端实现路线">
             <div className="card-heading compact">
               <h3>实现路线</h3>
-              <span className="implementation-pill">{miniProgramBlueprint.implementationRoute.platform}</span>
+              <span className="implementation-pill">Web + Electron</span>
             </div>
-            <p>{miniProgramBlueprint.implementationRoute.reason}</p>
+            <p>桌面端与 Web 端共享数据契约与 Provider 接口</p>
             <div className="platform-stage-list">
-              <article><span>Desktop</span><strong>{miniProgramBlueprint.desktopBoundary}</strong></article>
-              <article><span>微信小程序</span><strong>{miniProgramBlueprint.mobileBoundary}</strong></article>
-              <article><span>Web/PWA</span><strong>复用数据契约与 Provider 接口</strong></article>
+              <article><span>Desktop</span><strong>深度规划、长文复盘、模块配置和长期数据管理</strong></article>
+              <article><span>Web/PWA</span><strong>计划执行、快速记录、专注打卡、状态查看</strong></article>
               <article><span>iOS</span><strong>保留原生容器与同步适配层</strong></article>
               <article><span>HarmonyOS</span><strong>保留跨端流转与主题一致性</strong></article>
             </div>
@@ -1944,9 +1867,8 @@ export default function App() {
             <div className="metric-grid compact">
               <article><strong>{workspaceState.sync.mode}</strong><span>同步模式</span></article>
               <article><strong>{workspaceState.sync.status}</strong><span>接口状态</span></article>
-              <article><strong>{miniProgramBlueprint.modules.length}</strong><span>移动模块</span></article>
             </div>
-            <p>{miniProgramBlueprint.syncStrategy}</p>
+            <p>本地优先 + 可选云同步，数据存储在用户设备本地</p>
             <button
               className="platform-sync-button"
               disabled={workspaceState.sync.status === 'sync-ready'}
@@ -3573,6 +3495,10 @@ export default function App() {
       >
         <BacklinkPanel onClose={() => setIsBacklinkOpen(false)} />
       </DraggableModal>
+
+      {isFocusModeOpen && (
+        <FocusModeUI onClose={() => setIsFocusModeOpen(false)} />
+      )}
 
       {isAvatarManagerOpen && (
         <div className="membership-modal-backdrop" onClick={() => setIsAvatarManagerOpen(false)} role="presentation">
