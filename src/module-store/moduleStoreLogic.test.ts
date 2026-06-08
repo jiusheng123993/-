@@ -17,18 +17,18 @@ const initialState = () => createInitialModuleStoreState(defaultModules)
 describe('moduleStoreLogic', () => {
   it('adds a module to the next aligned canvas slot without duplicating it', () => {
     const state = initialState()
-    const withTasks = addModuleToLayout(state, 'today-tasks')
-    const withDuplicate = addModuleToLayout(withTasks, 'today-tasks')
-    const withTimer = addModuleToLayout(withDuplicate, 'focus-timer')
+    const withTasks = addModuleToLayout(state, 'habit-tracker')
+    const withDuplicate = addModuleToLayout(withTasks, 'habit-tracker')
+    const withJournal = addModuleToLayout(withDuplicate, 'journal')
 
     expect(withTasks.activeModules).toEqual([
-      { moduleId: 'today-tasks', position: { x: 0, y: 0 }, size: { columns: 2, rows: 1 } }
+      { moduleId: 'habit-tracker', position: { x: 0, y: 0 }, size: { columns: 2, rows: 1 } }
     ])
     expect(withDuplicate.activeModules).toHaveLength(1)
-    expect(withTimer.activeModules[1]).toEqual({
-      moduleId: 'focus-timer',
+    expect(withJournal.activeModules[1]).toEqual({
+      moduleId: 'journal',
       position: { x: 2, y: 0 },
-      size: { columns: 1, rows: 1 }
+      size: { columns: 2, rows: 2 }
     })
   })
 
@@ -55,10 +55,10 @@ describe('moduleStoreLogic', () => {
   })
 
   it('snaps dragged module positions to the canvas grid and clamps negative values', () => {
-    const state = addModuleToLayout(initialState(), 'statistics')
+    const state = addModuleToLayout(initialState(), 'error-book')
 
-    const moved = moveModuleInLayout(state, 'statistics', { x: 2.7, y: -1.2 })
-    const resized = resizeModuleInLayout(moved, 'statistics', { columns: 4, rows: 1 })
+    const moved = moveModuleInLayout(state, 'error-book', { x: 2.7, y: -1.2 })
+    const resized = resizeModuleInLayout(moved, 'error-book', { columns: 4, rows: 1 })
 
     expect(moved.activeModules[0].position).toEqual({ x: 2, y: 0 })
     expect(resized.activeModules[0].size).toEqual({ columns: 4, rows: 1 })
@@ -71,7 +71,7 @@ describe('moduleStoreLogic', () => {
     })
 
     expect(recommended.map(module => module.id)).toEqual(
-      expect.arrayContaining(['notes', 'calendar', 'statistics', 'persona-plan', 'today-actions'])
+      expect.arrayContaining(['journal', 'reading-list', 'error-book'])
     )
   })
 
@@ -107,10 +107,10 @@ describe('moduleStoreLogic', () => {
       exportedAt: new Date().toISOString(),
       modules: [],
       activeModules: [
-        { moduleId: 'today-tasks', position: { x: 0, y: 0 }, size: 'medium' },
-        { moduleId: 'focus-timer', position: { x: 2, y: 0 }, size: 'small' },
-        { moduleId: 'statistics', position: { x: 0, y: 1 }, size: 'large' },
-        { moduleId: 'weather', position: { x: 2, y: 1 }, size: 'full-width' }
+        { moduleId: 'habit-tracker', position: { x: 0, y: 0 }, size: 'medium' },
+        { moduleId: 'journal', position: { x: 2, y: 0 }, size: 'large' },
+        { moduleId: 'reading-list', position: { x: 0, y: 2 }, size: 'large' },
+        { moduleId: 'error-book', position: { x: 2, y: 2 }, size: 'large' }
       ]
     })
 
@@ -118,8 +118,8 @@ describe('moduleStoreLogic', () => {
 
     expect(imported.activeModules).toHaveLength(4)
     expect(imported.activeModules[0].size).toEqual({ columns: 2, rows: 1 })
-    expect(imported.activeModules[1].size).toEqual({ columns: 1, rows: 1 })
+    expect(imported.activeModules[1].size).toEqual({ columns: 2, rows: 2 })
     expect(imported.activeModules[2].size).toEqual({ columns: 2, rows: 2 })
-    expect(imported.activeModules[3].size).toEqual({ columns: 4, rows: 1 })
+    expect(imported.activeModules[3].size).toEqual({ columns: 2, rows: 2 })
   })
 })

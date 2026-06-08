@@ -5,12 +5,12 @@ const CANVAS_COLUMNS = 4
 const LAYOUT_VERSION = 2
 
 const keywordModuleMap: Array<{ keywords: string[]; moduleIds: ModuleId[] }> = [
-  { keywords: ['任务', '待办', '行动', '计划', '项目', '交付', '看板', '冲刺', '生产线', '创作'], moduleIds: ['today-actions', 'statistics', 'persona-plan'] },
-  { keywords: ['专注', '番茄', '自律', '习惯', '打卡'], moduleIds: ['focus-session', 'today-actions'] },
-  { keywords: ['日历', '日程', '发布', '会议', '截止', '排期'], moduleIds: ['calendar'] },
-  { keywords: ['笔记', '灵感', '记录', '复盘', '素材', '错题'], moduleIds: ['notes'] },
-  { keywords: ['天气', '出行', '生活'], moduleIds: ['weather'] },
-  { keywords: ['统计', '数据', '指标', '趋势', '成长'], moduleIds: ['statistics'] }
+  { keywords: ['任务', '待办', '行动', '计划', '项目', '交付', '看板', '冲刺', '生产线', '创作'], moduleIds: ['journal', 'error-book'] },
+  { keywords: ['专注', '番茄', '自律', '习惯', '打卡'], moduleIds: ['habit-tracker'] },
+  { keywords: ['日历', '日程', '发布', '会议', '截止', '排期'], moduleIds: ['journal'] },
+  { keywords: ['笔记', '灵感', '记录', '复盘', '素材', '错题'], moduleIds: ['error-book', 'journal'] },
+  { keywords: ['天气', '出行', '生活'], moduleIds: ['habit-tracker'] },
+  { keywords: ['统计', '数据', '指标', '趋势', '成长'], moduleIds: ['journal', 'reading-list'] }
 ]
 
 const safeText = (value: string, fallback: string) => {
@@ -141,7 +141,7 @@ export const recommendModulesForIdentity = ({
   })
 
   if (moduleIds.size === 0) {
-    ;['today-actions', 'focus-session', 'notes'].forEach((id) => moduleIds.add(id))
+    ;['habit-tracker', 'journal', 'error-book'].forEach((id) => moduleIds.add(id))
   }
 
   return defaultModules.filter((module) => moduleIds.has(module.id))
