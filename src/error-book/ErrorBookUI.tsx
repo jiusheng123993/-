@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   getErrorItems,
   getSubjects,
@@ -9,9 +9,15 @@ import {
 } from './errorBookService'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
+import { createEntitlementService } from '../entitlement/entitlementService'
+import { loadState as loadMCState, saveState as saveMCState, addCard } from '../memory-cards/memoryCardsService'
 import styles from './ErrorBookUI.module.css'
 
 const SUBJECTS = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '其他']
+const MAX_IMAGE_SIZE = 800
+const MAX_IMAGE_BYTES = 500 * 1024
+
+type SortMode = 'time-desc' | 'time-asc' | 'subject' | 'mastered'
 
 interface AIResult {
   analysis: string
@@ -19,7 +25,11 @@ interface AIResult {
   similarQuestions: { question: string; answer: string }[]
 }
 
-export function ErrorBookUI() {
+interface ErrorBookUIProps {
+  userId?: string
+}
+
+export function ErrorBookUI({ userId }: ErrorBookUIProps) {
   const [items, setItems] = useState<ErrorItem[]>([])
   const [subjects, setSubjects] = useState<string[]>([])
   const [selectedSubject, setSelectedSubject] = useState<string>('全部')
@@ -27,13 +37,37 @@ export function ErrorBookUI() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [aiLoadingId, setAiLoadingId] = useState<string | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
-  
+  const [searchQuery, setSearchQuery] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrError, setOcrError] = useState<string | null>(null)
+  const [sortMode, setSortMode] = useState<SortMode>('time-desc')
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const [convertLoadingId, setConvertLoadingId] = useState<string | null>(null)
+  const [convertSuccessId, setConvertSuccessId] = useState<string | null>(null)
+
   const [newQuestion, setNewQuestion] = useState('')
+  const [newQuestionImage, setNewQuestionImage] = useState<string | null>(null)
   const [newWrongAnswer, setNewWrongAnswer] = useState('')
+  const [newCorrectAnswer, setNewCorrectAnswer] = useState('')
   const [newSubject, setNewSubject] = useState('数学')
   const [newTags, setNewTags] = useState('')
-  
+
+  const [editQuestion, setEditQuestion] = useState('')
+  const [editWrongAnswer, setEditWrongAnswer] = useState('')
+  const [editCorrectAnswer, setEditCorrectAnswer] = useState('')
+  const [editSubject, setEditSubject] = useState('数学')
+  const [editTags, setEditTags] = useState('')
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { hasAnyKey } = useApiKeyStatus()
+
+  const entitlementService = createEntitlementService()
+  const isMember = userId ? (
+    entitlementService.has(userId, 'study') ||
+    entitlementService.has(userId, 'agent') ||
+    entitlementService.has(userId, 'agent_plus')
+  ) : false
 
   const loadData = useCallback(() => {
     const allItems = getErrorItems()
@@ -46,28 +80,133 @@ export function ErrorBookUI() {
     loadData()
   }, [loadData])
 
-  const filteredItems = selectedSubject === '全部'
-    ? items
-    : items.filter(item => item.subject === selectedSubject)
+  const filteredItems = (() => {
+    let result = selectedSubject === '全部' ? [...items] : items.filter(item => item.subject === selectedSubject)
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(item =>
+        item.question.toLowerCase().includes(q) ||
+        item.tags.some(t => t.toLowerCase().includes(q)) ||
+        item.subject.toLowerCase().includes(q)
+      )
+    }
+    switch (sortMode) {
+      case 'time-desc':
+        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        break
+      case 'time-asc':
+        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        break
+      case 'subject':
+        result.sort((a, b) => a.subject.localeCompare(b.subject, 'zh'))
+        break
+      case 'mastered':
+        result.sort((a, b) => {
+          if (a.mastered === b.mastered) return 0
+          return a.mastered ? 1 : -1
+        })
+        break
+    }
+    return result
+  })()
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let { width, height } = img
+          if (width > height && width > MAX_IMAGE_SIZE) {
+            height = Math.round((height * MAX_IMAGE_SIZE) / width)
+            width = MAX_IMAGE_SIZE
+          } else if (height > MAX_IMAGE_SIZE) {
+            width = Math.round((width * MAX_IMAGE_SIZE) / height)
+            height = MAX_IMAGE_SIZE
+          }
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')!
+          ctx.drawImage(img, 0, 0, width, height)
+          let quality = 0.7
+          let dataUrl = canvas.toDataURL('image/jpeg', quality)
+          while (dataUrl.length > MAX_IMAGE_BYTES && quality > 0.2) {
+            quality -= 0.1
+            dataUrl = canvas.toDataURL('image/jpeg', quality)
+          }
+          resolve(dataUrl)
+        }
+        img.onerror = () => reject(new Error('图片加载失败'))
+        img.src = reader.result as string
+      }
+      reader.onerror = () => reject(new Error('文件读取失败'))
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setOcrLoading(true)
+      setOcrError(null)
+      const dataUrl = await compressImage(file)
+      setNewQuestionImage(dataUrl)
+
+      if (hasAnyKey) {
+        try {
+          const systemPrompt = `你是一个OCR识别助手。用户上传了一张题目图片，请识别图片中的文字内容，只返回题目原文，不要添加任何解释。如果图片中没有题目文字，返回空字符串。`
+          const userPrompt = `请识别这张图片中的题目文字内容。`
+
+          let fullResponse = ''
+          await sendAgentChatMessageStream({
+            message: userPrompt,
+            personaId: 'exam-student',
+            useXFYunCoding: true,
+            onChunk: (chunk) => {
+              fullResponse += chunk
+            }
+          })
+
+          const recognized = fullResponse.trim()
+          if (recognized && recognized.length > 2) {
+            setNewQuestion(recognized)
+          }
+        } catch {
+          setOcrError('OCR 识别失败，请手动输入题目')
+        }
+      }
+    } catch {
+      setOcrError('图片处理失败')
+    } finally {
+      setOcrLoading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const handleAdd = () => {
     if (!newQuestion.trim()) return
-    
+
     const tags = newTags.split(',').map(t => t.trim()).filter(Boolean)
     const newItem = addErrorItem({
       question: newQuestion.trim(),
+      questionImage: newQuestionImage || undefined,
       wrongAnswer: newWrongAnswer.trim(),
+      correctAnswer: newCorrectAnswer.trim() || undefined,
       subject: newSubject,
       tags
     })
-    
+
     setItems(prev => [newItem, ...prev])
     if (!subjects.includes(newSubject)) {
       setSubjects(prev => [...prev, newSubject].sort())
     }
-    
+
     setNewQuestion('')
+    setNewQuestionImage(null)
     setNewWrongAnswer('')
+    setNewCorrectAnswer('')
     setNewTags('')
     setShowAddForm(false)
   }
@@ -78,13 +217,50 @@ export function ErrorBookUI() {
     setExpandedId(null)
   }
 
+  const handleToggleMastered = (id: string, currentMastered?: boolean) => {
+    updateErrorItem(id, { mastered: !currentMastered })
+    setItems(prev => prev.map(i =>
+      i.id === id ? { ...i, mastered: !currentMastered } : i
+    ))
+  }
+
+  const startEdit = (item: ErrorItem) => {
+    setEditingId(item.id)
+    setEditQuestion(item.question)
+    setEditWrongAnswer(item.wrongAnswer)
+    setEditCorrectAnswer(item.correctAnswer || '')
+    setEditSubject(item.subject)
+    setEditTags(item.tags.join(', '))
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingId || !editQuestion.trim()) return
+    const tags = editTags.split(',').map(t => t.trim()).filter(Boolean)
+    updateErrorItem(editingId, {
+      question: editQuestion.trim(),
+      wrongAnswer: editWrongAnswer.trim(),
+      correctAnswer: editCorrectAnswer.trim() || undefined,
+      subject: editSubject,
+      tags
+    })
+    setItems(prev => prev.map(i =>
+      i.id === editingId
+        ? { ...i, question: editQuestion.trim(), wrongAnswer: editWrongAnswer.trim(), correctAnswer: editCorrectAnswer.trim() || undefined, subject: editSubject, tags }
+        : i
+    ))
+    setEditingId(null)
+    if (!subjects.includes(editSubject)) {
+      setSubjects(prev => [...prev, editSubject].sort())
+    }
+  }
+
   const handleAIAnalyze = async (item: ErrorItem) => {
     setExpandedId(item.id)
     setAiLoadingId(item.id)
     setAiError(null)
-    
+
     const controller = new AbortController()
-    
+
     try {
       const systemPrompt = `你是备考教练。用户给你一道做错的题目，你需要：
 1. 分析可能的错因
@@ -94,11 +270,12 @@ export function ErrorBookUI() {
 
       const userPrompt = `题目：${item.question}
 错误答案：${item.wrongAnswer}
+${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}
 科目：${item.subject}
 标签：${item.tags.join(', ')}`
 
       let fullResponse = ''
-      
+
       await sendAgentChatMessageStream({
         message: userPrompt,
         personaId: 'exam-student',
@@ -117,8 +294,8 @@ export function ErrorBookUI() {
           aiSolution: result.solution,
           aiSimilarQuestions: result.similarQuestions
         })
-        setItems(prev => prev.map(i => 
-          i.id === item.id 
+        setItems(prev => prev.map(i =>
+          i.id === item.id
             ? { ...i, aiAnalysis: result.analysis, aiSolution: result.solution, aiSimilarQuestions: result.similarQuestions }
             : i
         ))
@@ -134,6 +311,81 @@ export function ErrorBookUI() {
     }
   }
 
+  const handleExportJSON = () => {
+    const data = JSON.stringify(items, null, 2)
+    const blob = new Blob([data], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `错题本_${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    setShowExportMenu(false)
+  }
+
+  const handleExportCSV = () => {
+    const headers = ['题目', '错误答案', '正确答案', '科目', '标签', '已掌握', '创建时间']
+    const rows = items.map(item => [
+      item.question.replace(/"/g, '""'),
+      item.wrongAnswer.replace(/"/g, '""'),
+      (item.correctAnswer || '').replace(/"/g, '""'),
+      item.subject,
+      item.tags.join(';'),
+      item.mastered ? '是' : '否',
+      new Date(item.createdAt).toLocaleDateString('zh-CN')
+    ])
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => `"${row.join('","')}"`)
+    ].join('\n')
+    const bom = '\uFEFF'
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `错题本_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    setShowExportMenu(false)
+  }
+
+  const handleConvertToMemoryCard = (item: ErrorItem) => {
+    setConvertLoadingId(item.id)
+    setConvertSuccessId(null)
+
+    try {
+      const mcState = loadMCState()
+      const deckId = mcState.activeDeckId || mcState.decks[0]?.id
+      if (!deckId) {
+        setConvertLoadingId(null)
+        return
+      }
+
+      const front = item.question
+      const backParts: string[] = []
+      if (item.correctAnswer) {
+        backParts.push(`正确答案：${item.correctAnswer}`)
+      }
+      if (item.wrongAnswer) {
+        backParts.push(`错误答案：${item.wrongAnswer}`)
+      }
+      if (item.aiSolution) {
+        backParts.push(`解法：${item.aiSolution}`)
+      }
+      const back = backParts.join('\n') || item.wrongAnswer
+
+      const newState = addCard(mcState, deckId, front, back, [...item.tags, item.subject])
+      saveMCState(newState)
+
+      setConvertSuccessId(item.id)
+      setTimeout(() => setConvertSuccessId(null), 2000)
+    } catch {
+      /* ignore */
+    } finally {
+      setConvertLoadingId(null)
+    }
+  }
+
   const allSubjectsList = subjects.length > 0 ? subjects : SUBJECTS.slice(0, 5)
 
   return (
@@ -141,6 +393,64 @@ export function ErrorBookUI() {
       <div className={styles.header}>
         <h3 className={styles.title}>错题本</h3>
         <span className={styles.count}>{filteredItems.length} 道错题</span>
+      </div>
+
+      <div className={styles.searchBar}>
+        <input
+          className={styles.searchInput}
+          type="text"
+          placeholder="搜索题目、标签..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.toolbar}>
+        <div className={styles.sortGroup}>
+          <span className={styles.toolbarLabel}>排序：</span>
+          <button
+            className={`${styles.sortButton} ${sortMode === 'time-desc' ? styles.sortButtonActive : ''}`}
+            onClick={() => setSortMode('time-desc')}
+          >
+            ⏱ 最新
+          </button>
+          <button
+            className={`${styles.sortButton} ${sortMode === 'time-asc' ? styles.sortButtonActive : ''}`}
+            onClick={() => setSortMode('time-asc')}
+          >
+            🕐 最早
+          </button>
+          <button
+            className={`${styles.sortButton} ${sortMode === 'subject' ? styles.sortButtonActive : ''}`}
+            onClick={() => setSortMode('subject')}
+          >
+            📚 科目
+          </button>
+          <button
+            className={`${styles.sortButton} ${sortMode === 'mastered' ? styles.sortButtonActive : ''}`}
+            onClick={() => setSortMode('mastered')}
+          >
+            ✅ 掌握
+          </button>
+        </div>
+        <div className={styles.exportGroup}>
+          <button
+            className={styles.exportButton}
+            onClick={() => setShowExportMenu(!showExportMenu)}
+          >
+            📤 导出
+          </button>
+          {showExportMenu && (
+            <div className={styles.exportMenu}>
+              <button className={styles.exportMenuItem} onClick={handleExportJSON}>
+                📄 导出 JSON
+              </button>
+              <button className={styles.exportMenuItem} onClick={handleExportCSV}>
+                📊 导出 CSV
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={styles.tabs}>
@@ -170,20 +480,29 @@ export function ErrorBookUI() {
           </div>
         ) : (
           filteredItems.map(item => (
-            <div 
-              key={item.id} 
-              className={`${styles.item} ${expandedId === item.id ? styles.itemExpanded : ''}`}
+            <div
+              key={item.id}
+              className={`${styles.item} ${expandedId === item.id ? styles.itemExpanded : ''} ${item.mastered ? styles.itemMastered : ''}`}
               onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
             >
               <div className={styles.itemMain}>
                 <div className={styles.itemHeader}>
                   <span className={styles.subjectTag}>{item.subject}</span>
+                  {item.mastered && <span className={styles.masteredBadge}>✓ 已掌握</span>}
                   <span className={styles.date}>
                     {new Date(item.createdAt).toLocaleDateString('zh-CN')}
                   </span>
                 </div>
+                {item.questionImage && (
+                  <div className={styles.questionImage}>
+                    <img src={item.questionImage} alt="题目图片" />
+                  </div>
+                )}
                 <div className={styles.question}>{item.question}</div>
-                <div className={styles.wrongAnswer}>错误答案：{item.wrongAnswer || '未填写'}</div>
+                <div className={styles.wrongAnswer}>❌ 错误答案：{item.wrongAnswer || '未填写'}</div>
+                {item.correctAnswer && (
+                  <div className={styles.correctAnswer}>✅ 正确答案：{item.correctAnswer}</div>
+                )}
                 {item.tags.length > 0 && (
                   <div className={styles.tags}>
                     {item.tags.map(tag => (
@@ -193,7 +512,7 @@ export function ErrorBookUI() {
                 )}
               </div>
 
-              {expandedId === item.id && (
+              {expandedId === item.id && editingId !== item.id && (
                 <div className={styles.itemDetail}>
                   {item.aiAnalysis ? (
                     <div className={styles.aiResult}>
@@ -226,18 +545,22 @@ export function ErrorBookUI() {
                         </div>
                       ) : (
                         <>
-                          {!hasAnyKey && (
+                          {!isMember ? (
+                            <div className={styles.aiHint}>
+                              🔒 AI 分析为会员功能，升级会员即可使用
+                            </div>
+                          ) : !hasAnyKey ? (
                             <div className={styles.aiHint}>
                               配置 API Key 解锁 AI 分析
                             </div>
-                          )}
+                          ) : null}
                           <button
                             className={styles.aiButton}
                             onClick={(e) => {
                               e.stopPropagation()
                               handleAIAnalyze(item)
                             }}
-                            disabled={!hasAnyKey}
+                            disabled={!isMember || !hasAnyKey}
                           >
                             🤖 AI 分析
                           </button>
@@ -246,16 +569,112 @@ export function ErrorBookUI() {
                       )}
                     </div>
                   )}
-                  
-                  <button
-                    className={styles.deleteButton}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete(item.id)
-                    }}
-                  >
-                    🗑️ 删除
-                  </button>
+
+                  <div className={styles.detailActions}>
+                    <button
+                      className={styles.masteredButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleMastered(item.id, item.mastered)
+                      }}
+                    >
+                      {item.mastered ? '↩ 标记未掌握' : '✅ 标记已掌握'}
+                    </button>
+                    <button
+                      className={styles.editButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        startEdit(item)
+                      }}
+                    >
+                      ✏️ 编辑
+                    </button>
+                    <button
+                      className={styles.convertButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleConvertToMemoryCard(item)
+                      }}
+                      disabled={convertLoadingId === item.id}
+                    >
+                      {convertLoadingId === item.id ? '⏳ 转换中...' : convertSuccessId === item.id ? '✅ 已转换' : '🔄 转记忆卡'}
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDelete(item.id)
+                      }}
+                    >
+                      🗑️ 删除
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {expandedId === item.id && editingId === item.id && (
+                <div className={styles.itemDetail}>
+                  <div className={styles.editForm}>
+                    <div className={styles.formTitle}>编辑错题</div>
+                    <textarea
+                      className={styles.textarea}
+                      placeholder="题目内容"
+                      value={editQuestion}
+                      onChange={(e) => setEditQuestion(e.target.value)}
+                      rows={3}
+                    />
+                    <input
+                      className={styles.input}
+                      type="text"
+                      placeholder="错误答案"
+                      value={editWrongAnswer}
+                      onChange={(e) => setEditWrongAnswer(e.target.value)}
+                    />
+                    <input
+                      className={styles.input}
+                      type="text"
+                      placeholder="正确答案"
+                      value={editCorrectAnswer}
+                      onChange={(e) => setEditCorrectAnswer(e.target.value)}
+                    />
+                    <select
+                      className={styles.select}
+                      value={editSubject}
+                      onChange={(e) => setEditSubject(e.target.value)}
+                    >
+                      {SUBJECTS.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <input
+                      className={styles.input}
+                      type="text"
+                      placeholder="标签（用逗号分隔）"
+                      value={editTags}
+                      onChange={(e) => setEditTags(e.target.value)}
+                    />
+                    <div className={styles.formActions}>
+                      <button
+                        className={styles.cancelButton}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditingId(null)
+                        }}
+                      >
+                        取消
+                      </button>
+                      <button
+                        className={styles.submitButton}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSaveEdit()
+                        }}
+                        disabled={!editQuestion.trim()}
+                      >
+                        保存
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -266,9 +685,41 @@ export function ErrorBookUI() {
       {showAddForm ? (
         <div className={styles.addForm}>
           <div className={styles.formTitle}>添加错题</div>
+
+          <div className={styles.imageUploadArea}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageUpload}
+              className={styles.fileInput}
+              id="error-book-image-upload"
+            />
+            <label htmlFor="error-book-image-upload" className={styles.uploadLabel}>
+              {ocrLoading ? (
+                <span className={styles.uploadLoading}>⏳ 识别中...</span>
+              ) : newQuestionImage ? (
+                <img src={newQuestionImage} alt="已上传题目" className={styles.uploadPreview} />
+              ) : (
+                <span className={styles.uploadPlaceholder}>📷 拍照或上传题目图片</span>
+              )}
+            </label>
+            {newQuestionImage && (
+              <button
+                className={styles.removeImageButton}
+                onClick={() => setNewQuestionImage(null)}
+                type="button"
+              >
+                ✕ 移除图片
+              </button>
+            )}
+            {ocrError && <div className={styles.ocrError}>{ocrError}</div>}
+          </div>
+
           <textarea
             className={styles.textarea}
-            placeholder="请输入题目内容..."
+            placeholder="请输入题目内容（拍照可自动识别）..."
             value={newQuestion}
             onChange={(e) => setNewQuestion(e.target.value)}
             rows={3}
@@ -276,9 +727,16 @@ export function ErrorBookUI() {
           <input
             className={styles.input}
             type="text"
-            placeholder="错误答案（选填）"
+            placeholder="错误答案"
             value={newWrongAnswer}
             onChange={(e) => setNewWrongAnswer(e.target.value)}
+          />
+          <input
+            className={styles.input}
+            type="text"
+            placeholder="正确答案"
+            value={newCorrectAnswer}
+            onChange={(e) => setNewCorrectAnswer(e.target.value)}
           />
           <select
             className={styles.select}
@@ -297,13 +755,16 @@ export function ErrorBookUI() {
             onChange={(e) => setNewTags(e.target.value)}
           />
           <div className={styles.formActions}>
-            <button 
+            <button
               className={styles.cancelButton}
-              onClick={() => setShowAddForm(false)}
+              onClick={() => {
+                setShowAddForm(false)
+                setNewQuestionImage(null)
+              }}
             >
               取消
             </button>
-            <button 
+            <button
               className={styles.submitButton}
               onClick={handleAdd}
               disabled={!newQuestion.trim()}
@@ -313,7 +774,7 @@ export function ErrorBookUI() {
           </div>
         </div>
       ) : (
-        <button 
+        <button
           className={styles.addButton}
           onClick={() => setShowAddForm(true)}
         >

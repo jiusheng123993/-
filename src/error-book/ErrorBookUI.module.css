@@ -454,3 +454,297 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.searchBar {
+  margin-bottom: 12px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.searchInput::placeholder {
+  color: var(--muted);
+}
+
+.questionImage {
+  margin-bottom: 4px;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 160px;
+}
+
+.questionImage img {
+  width: 100%;
+  height: auto;
+  max-height: 160px;
+  object-fit: contain;
+  background: var(--surface);
+}
+
+.correctAnswer {
+  font-size: 12px;
+  color: #10b981;
+}
+
+.masteredBadge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.itemMastered {
+  opacity: 0.75;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.detailActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.masteredButton {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.masteredButton:hover {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.editButton {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editButton:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.imageUploadArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.uploadLabel:hover {
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.03);
+}
+
+.uploadPlaceholder {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.uploadLoading {
+  font-size: 14px;
+  color: var(--primary);
+}
+
+.uploadPreview {
+  width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+}
+
+.removeImageButton {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #ef4444;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.removeImageButton:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.ocrError {
+  font-size: 12px;
+  color: #ef4444;
+  text-align: center;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.sortGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.toolbarLabel {
+  font-size: 12px;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.sortButton {
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.sortButton:hover {
+  background: var(--border);
+}
+
+.sortButtonActive {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.exportGroup {
+  position: relative;
+}
+
+.exportButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.exportButton:hover {
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.exportMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.exportMenuItem {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.exportMenuItem:hover {
+  background: var(--border);
+}
+
+.exportMenuItem + .exportMenuItem {
+  border-top: 1px solid var(--border);
+}
+
+.convertButton {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.convertButton:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.convertButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
