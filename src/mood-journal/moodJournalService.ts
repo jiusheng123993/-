@@ -220,3 +220,93 @@ export const MOOD_TAGS = [
   '烦躁', '迷茫', '自信', '感恩', '孤独', '期待',
   '考试', '学习', '运动', '社交', '休息', '阅读',
 ]
+
+export interface MoodTrend {
+  direction: 'up' | 'down' | 'stable'
+  change: number
+  recentScores: number[]
+}
+
+export interface MoodInsights {
+  averageScore: number
+  trend: MoodTrend
+  dominantTags: string[]
+  lowMoodDays: number
+  streakDays: number
+  needsCare: boolean
+  encouragementMessage?: string
+}
+
+export function getRecentMoods(days: number = 7): MoodEntry[] {
+  const entries = loadState().entries
+  const now = new Date()
+  const startDate = new Date(now)
+  startDate.setDate(now.getDate() - days + 1)
+  startDate.setHours(0, 0, 0, 0)
+
+  return entries
+    .filter((e) => new Date(e.date) >= startDate)
+    .sort((a, b) => a.date.localeCompare(b.date))
+}
+
+export function getMoodTrend(days: number = 7): MoodTrend {
+  const recentMoods = getRecentMoods(days)
+  if (recentMoods.length < 2) {
+    return { direction: 'stable', change: 0, recentScores: recentMoods.map((e) => e.score) }
+  }
+
+  const firstHalf = recentMoods.slice(0, Math.floor(recentMoods.length / 2))
+  const secondHalf = recentMoods.slice(Math.floor(recentMoods.length / 2))
+
+  const firstAvg = firstHalf.reduce((sum, e) => sum + e.score, 0) / firstHalf.length
+  const secondAvg = secondHalf.reduce((sum, e) => sum + e.score, 0) / secondHalf.length
+
+  const change = Math.round((secondAvg - firstAvg) * 10) / 10
+
+  let direction: 'up' | 'down' | 'stable' = 'stable'
+  if (change > 1) direction = 'up'
+  else if (change < -1) direction = 'down'
+
+  return {
+    direction,
+    change,
+    recentScores: recentMoods.map((e) => e.score),
+  }
+}
+
+export function hasLowMoodWarning(): boolean {
+  const stats = getMoodStats()
+  return stats.lowStreakDays >= 3
+}
+
+export function getMoodInsights(): MoodInsights {
+  const stats = getMoodStats()
+  const trend = getMoodTrend(7)
+  const needsCare = hasLowMoodWarning()
+
+  let encouragementMessage: string | undefined
+  if (needsCare) {
+    const messages = [
+      '我注意到你最近情绪有点低落，记得照顾好自己。如果需要倾诉，我随时在这里。',
+      '连续几天情绪较低迷了，建议适当休息一下，做一些让自己放松的事情。',
+      '无论学习多忙，都要记得关注自己的情绪健康。你已经很努力了。',
+    ]
+    encouragementMessage = messages[Math.floor(Math.random() * messages.length)]
+  }
+
+  return {
+    averageScore: stats.averageScore,
+    trend,
+    dominantTags: stats.tagStats.slice(0, 3).map((t) => t.tag),
+    lowMoodDays: stats.lowStreakDays,
+    streakDays: stats.streakDays,
+    needsCare,
+    encouragementMessage,
+  }
+}
+
+export function getEncouragementMessage(): string | null {
+  const insights = getMoodInsights()
+  if (!insights.needsCare) return null
+  return insights.encouragementMessage || null
+}
