@@ -10,8 +10,11 @@ interface DraggableModalProps {
   className?: string
 }
 
-const MIN_WIDTH = 420
-const MIN_HEIGHT = 320
+const MIN_WIDTH = 480
+const MIN_HEIGHT = 360
+const DEFAULT_WIDTH = 1100
+const DEFAULT_HEIGHT = 700
+const MAXIMIZED_PADDING = 16
 
 export const DraggableModal = ({
   isOpen,
@@ -26,12 +29,15 @@ export const DraggableModal = ({
   const [isDragging, setIsDragging] = useState(false)
   const [modalSize, setModalSize] = useState<{ width: number; height: number } | null>(null)
   const [isResizing, setIsResizing] = useState(false)
+  const [isMaximized, setIsMaximized] = useState(false)
+  const savedStateRef = useRef<{ position: { x: number; y: number }; size: { width: number; height: number } | null } | null>(null)
   const dragStartRef = useRef<{ x: number; y: number; posX: number; posY: number } | null>(null)
   const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null)
   const modalRef = useRef<HTMLElement>(null)
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (!modalRef.current) return
+    if (isMaximized) return
     e.preventDefault()
     setIsDragging(true)
     dragStartRef.current = {
@@ -40,7 +46,7 @@ export const DraggableModal = ({
       posX: position.x,
       posY: position.y
     }
-  }, [position])
+  }, [position, isMaximized])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging || !dragStartRef.current) return
@@ -60,7 +66,7 @@ export const DraggableModal = ({
   const handleResizePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!modalRef.current) return
+    if (!modalRef.current || isMaximized) return
 
     const rect = modalRef.current.getBoundingClientRect()
     setIsResizing(true)
@@ -90,9 +96,39 @@ export const DraggableModal = ({
 
     window.addEventListener('pointermove', handleMove)
     window.addEventListener('pointerup', handleUp)
-  }, [])
+  }, [isMaximized])
+
+  const handleMaximize = useCallback(() => {
+    if (isMaximized) {
+      const saved = savedStateRef.current
+      if (saved) {
+        setPosition(saved.position)
+        setModalSize(saved.size)
+      }
+      savedStateRef.current = null
+      setIsMaximized(false)
+    } else {
+      savedStateRef.current = {
+        position: { ...position },
+        size: modalSize ? { ...modalSize } : null
+      }
+      setPosition({ x: 0, y: 0 })
+      setModalSize({
+        width: window.innerWidth - MAXIMIZED_PADDING * 2,
+        height: window.innerHeight - MAXIMIZED_PADDING * 2
+      })
+      setIsMaximized(true)
+    }
+  }, [isMaximized, position, modalSize])
+
+  const handleHeaderDoubleClick = useCallback(() => {
+    handleMaximize()
+  }, [handleMaximize])
 
   if (!isOpen) return null
+
+  const currentWidth = modalSize ? modalSize.width : DEFAULT_WIDTH
+  const currentHeight = modalSize ? modalSize.height : DEFAULT_HEIGHT
 
   return (
     <div
@@ -103,18 +139,19 @@ export const DraggableModal = ({
       <section
         ref={modalRef}
         aria-modal="true"
-        className={`theme-modal workbench-detail-modal ${className}`}
+        className={`theme-modal workbench-detail-modal ${isMaximized ? 'modal-maximized' : ''} ${className}`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-label={ariaLabel}
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
-          transition: isDragging || isResizing ? 'none' : 'transform 0.2s ease',
+          transform: isMaximized ? 'none' : `translate(${position.x}px, ${position.y}px)`,
+          transition: isDragging || isResizing ? 'none' : 'transform 0.2s ease, width 0.25s ease, height 0.25s ease',
           cursor: isDragging ? 'grabbing' : undefined,
-          width: modalSize ? `${modalSize.width}px` : undefined,
-          height: modalSize ? `${modalSize.height}px` : undefined,
-          maxWidth: modalSize ? '9999px' : undefined,
-          maxHeight: modalSize ? '9999px' : undefined
+          width: `${currentWidth}px`,
+          height: `${currentHeight}px`,
+          maxWidth: isMaximized ? 'none' : (modalSize ? '9999px' : undefined),
+          maxHeight: isMaximized ? 'none' : (modalSize ? '9999px' : undefined),
+          borderRadius: isMaximized ? '0' : undefined
         }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -123,12 +160,22 @@ export const DraggableModal = ({
         <header
           className="theme-modal-hero"
           onPointerDown={handlePointerDown}
+          onDoubleClick={handleHeaderDoubleClick}
         >
           <div className="theme-modal-hero-text">
             <p className="eyebrow">Workbench Detail · 按需加载</p>
             <h2>{title}</h2>
             {subtitle && <small>{subtitle}</small>}
           </div>
+          <button
+            className="theme-modal-maximize"
+            onClick={handleMaximize}
+            type="button"
+            aria-label={isMaximized ? '还原窗口' : '最大化窗口'}
+            title={isMaximized ? '还原' : '最大化'}
+          >
+            {isMaximized ? '🗗' : '🗖'}
+          </button>
           <button
             className="theme-modal-close"
             onClick={onClose}
@@ -139,10 +186,12 @@ export const DraggableModal = ({
           </button>
         </header>
         {children}
-        <div
-          className="modal-resize-handle"
-          onPointerDown={handleResizePointerDown}
-        />
+        {!isMaximized && (
+          <div
+            className="modal-resize-handle"
+            onPointerDown={handleResizePointerDown}
+          />
+        )}
       </section>
     </div>
   )

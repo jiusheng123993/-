@@ -5,8 +5,11 @@ import {
   addErrorItem,
   deleteErrorItem,
   updateErrorItem,
-  type ErrorItem
+  getErrorStats,
+  type ErrorItem,
+  type ErrorBookStats
 } from './errorBookService'
+import { getExamRecords, type ExamRecord } from '../exam-tracker/examTrackerService'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
@@ -45,6 +48,14 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [convertLoadingId, setConvertLoadingId] = useState<string | null>(null)
   const [convertSuccessId, setConvertSuccessId] = useState<string | null>(null)
+  const [showStats, setShowStats] = useState(false)
+  const [stats, setStats] = useState<ErrorBookStats | null>(null)
+  const [reviewMode, setReviewMode] = useState(false)
+  const [reviewIndex, setReviewIndex] = useState(0)
+  const [reviewAnswer, setReviewAnswer] = useState('')
+  const [reviewRevealed, setReviewRevealed] = useState(false)
+  const [reviewResults, setReviewResults] = useState<Record<string, 'correct' | 'wrong' | null>>({})
+  const [examRecords, setExamRecords] = useState<ExamRecord[]>([])
 
   const [newQuestion, setNewQuestion] = useState('')
   const [newQuestionImage, setNewQuestionImage] = useState<string | null>(null)
@@ -74,6 +85,7 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
     const allSubjects = getSubjects()
     setItems(allItems)
     setSubjects(allSubjects)
+    setExamRecords(getExamRecords())
   }, [])
 
   useEffect(() => {
@@ -386,13 +398,79 @@ ${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}
     }
   }
 
+  const handleOpenStats = () => {
+    setStats(getErrorStats())
+    setShowStats(true)
+  }
+
+  const handleStartReview = () => {
+    const unmastered = items.filter(i => !i.mastered)
+    if (unmastered.length === 0) return
+    setReviewMode(true)
+    setReviewIndex(0)
+    setReviewAnswer('')
+    setReviewRevealed(false)
+    setReviewResults({})
+  }
+
+  const reviewItems = items.filter(i => !i.mastered)
+
+  const handleReviewSubmit = () => {
+    const item = reviewItems[reviewIndex]
+    if (!item) return
+    const isCorrect = reviewAnswer.trim().toLowerCase() === (item.correctAnswer || '').trim().toLowerCase()
+    setReviewResults(prev => ({ ...prev, [item.id]: isCorrect ? 'correct' : 'wrong' }))
+    setReviewRevealed(true)
+  }
+
+  const handleReviewNext = () => {
+    const item = reviewItems[reviewIndex]
+    if (!item) return
+    const result = reviewResults[item.id]
+    if (result === 'correct') {
+      updateErrorItem(item.id, { mastered: true })
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, mastered: true } : i))
+    }
+    const remainingItems = reviewItems.filter(i => i.id !== item.id)
+    if (remainingItems.length > 0) {
+      if (result !== 'correct') {
+        setReviewIndex(prev => prev + 1)
+      }
+      setReviewAnswer('')
+      setReviewRevealed(false)
+    } else {
+      setReviewMode(false)
+      setReviewIndex(0)
+    }
+  }
+
+  const handleExitReview = () => {
+    setReviewMode(false)
+    setReviewIndex(0)
+    setReviewAnswer('')
+    setReviewRevealed(false)
+    setReviewResults({})
+  }
+
   const allSubjectsList = subjects.length > 0 ? subjects : SUBJECTS.slice(0, 5)
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.title}>错题本</h3>
-        <span className={styles.count}>{filteredItems.length} 道错题</span>
+        <div className={styles.headerActions}>
+          <button className={styles.statsButton} onClick={handleOpenStats}>
+            📊 统计
+          </button>
+          <button
+            className={styles.reviewButton}
+            onClick={handleStartReview}
+            disabled={items.filter(i => !i.mastered).length === 0}
+          >
+            📝 复习 ({items.filter(i => !i.mastered).length})
+          </button>
+          <span className={styles.count}>{filteredItems.length} 道错题</span>
+        </div>
       </div>
 
       <div className={styles.searchBar}>
@@ -404,6 +482,140 @@ ${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
+
+      {reviewMode && reviewItems.length > 0 && (
+        <div className={styles.reviewPanel}>
+          <div className={styles.reviewHeader}>
+            <span className={styles.reviewTitle}>
+              📝 错题复习 ({reviewIndex + 1}/{reviewItems.length})
+            </span>
+            <button className={styles.reviewExitButton} onClick={handleExitReview}>
+              ✕ 退出
+            </button>
+          </div>
+          <div className={styles.reviewProgress}>
+            <div
+              className={styles.reviewProgressBar}
+              style={{ width: `${((reviewIndex + (reviewRevealed ? 1 : 0)) / reviewItems.length) * 100}%` }}
+            />
+          </div>
+          <div className={styles.reviewCard}>
+            <div className={styles.reviewSubject}>{reviewItems[reviewIndex].subject}</div>
+            <div className={styles.reviewQuestion}>{reviewItems[reviewIndex].question}</div>
+            {reviewItems[reviewIndex].questionImage && (
+              <div className={styles.reviewImage}>
+                <img src={reviewItems[reviewIndex].questionImage} alt="题目图片" />
+              </div>
+            )}
+            <div className={styles.reviewWrongAnswer}>
+              你的错误答案：{reviewItems[reviewIndex].wrongAnswer}
+            </div>
+            {!reviewRevealed ? (
+              <div className={styles.reviewInputArea}>
+                <input
+                  className={styles.reviewInput}
+                  type="text"
+                  placeholder="请输入正确答案..."
+                  value={reviewAnswer}
+                  onChange={(e) => setReviewAnswer(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleReviewSubmit() }}
+                />
+                <button
+                  className={styles.reviewSubmitButton}
+                  onClick={handleReviewSubmit}
+                  disabled={!reviewAnswer.trim()}
+                >
+                  提交
+                </button>
+              </div>
+            ) : (
+              <div className={styles.reviewResult}>
+                <div className={`${styles.reviewResultBadge} ${reviewResults[reviewItems[reviewIndex].id] === 'correct' ? styles.reviewCorrect : styles.reviewWrong}`}>
+                  {reviewResults[reviewItems[reviewIndex].id] === 'correct' ? '✅ 回答正确！' : '❌ 回答错误'}
+                </div>
+                {reviewItems[reviewIndex].correctAnswer && (
+                  <div className={styles.reviewCorrectAnswer}>
+                    正确答案：{reviewItems[reviewIndex].correctAnswer}
+                  </div>
+                )}
+                {reviewItems[reviewIndex].aiSolution && (
+                  <div className={styles.reviewAiSolution}>
+                    <div className={styles.reviewAiLabel}>💡 解法：</div>
+                    <div>{reviewItems[reviewIndex].aiSolution}</div>
+                  </div>
+                )}
+                <button className={styles.reviewNextButton} onClick={handleReviewNext}>
+                  {reviewIndex + 1 < reviewItems.length ? '下一题 →' : '✅ 完成复习'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showStats && stats && (
+        <div className={styles.statsPanel}>
+          <div className={styles.statsHeader}>
+            <span className={styles.statsTitle}>📊 错题统计</span>
+            <button className={styles.statsCloseButton} onClick={() => setShowStats(false)}>
+              ✕
+            </button>
+          </div>
+          <div className={styles.statsOverview}>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{stats.total}</div>
+              <div className={styles.statLabel}>总错题</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{stats.mastered}</div>
+              <div className={styles.statLabel}>已掌握</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{stats.unmastered}</div>
+              <div className={styles.statLabel}>未掌握</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{stats.masteryRate}%</div>
+              <div className={styles.statLabel}>掌握率</div>
+            </div>
+          </div>
+          {stats.bySubject.length > 0 && (
+            <div className={styles.statsSection}>
+              <div className={styles.statsSectionTitle}>按科目分布</div>
+              <div className={styles.statsSubjectList}>
+                {stats.bySubject.map(s => (
+                  <div key={s.subject} className={styles.statsSubjectRow}>
+                    <span className={styles.statsSubjectName}>{s.subject}</span>
+                    <div className={styles.statsSubjectBar}>
+                      <div
+                        className={styles.statsSubjectBarFill}
+                        style={{ width: `${s.masteryRate}%` }}
+                      />
+                    </div>
+                    <span className={styles.statsSubjectCount}>
+                      {s.mastered}/{s.total} ({s.masteryRate}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {stats.topTags.length > 0 && (
+            <div className={styles.statsSection}>
+              <div className={styles.statsSectionTitle}>高频错误标签 Top 5</div>
+              <div className={styles.statsTagList}>
+                {stats.topTags.map((t, idx) => (
+                  <div key={t.tag} className={styles.statsTagRow}>
+                    <span className={styles.statsTagRank}>#{idx + 1}</span>
+                    <span className={styles.statsTagName}>{t.tag}</span>
+                    <span className={styles.statsTagCount}>{t.count} 次</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className={styles.toolbar}>
         <div className={styles.sortGroup}>

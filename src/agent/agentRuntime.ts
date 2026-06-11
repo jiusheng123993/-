@@ -2,6 +2,13 @@ import { createAiPromptDraft, getAiProviderById, type AiProviderId } from '../ai
 import type { PersonaId } from '../personas/personaRegistry'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 
+const AI_CHAT_PROVIDERS: Array<{ id: AiProviderId; name: string }> = [
+  { id: 'deepseek', name: 'DeepSeek' },
+  { id: 'openai', name: 'OpenAI' },
+  { id: 'tongyi', name: '通义千问' },
+  { id: 'doubao', name: '豆包' }
+]
+
 export interface AgentChatRequest {
   message: string
   personaId?: PersonaId
@@ -118,13 +125,6 @@ export async function sendAgentChatMessageStream(request: AgentChatStreamRequest
   const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
-  const providers: Array<{ id: AiProviderId; name: string }> = [
-    { id: 'deepseek', name: 'DeepSeek' },
-    { id: 'openai', name: 'OpenAI' },
-    { id: 'tongyi', name: '通义千问' },
-    { id: 'doubao', name: '豆包' }
-  ]
-  
   if (useXFYunCoding) {
     try {
       await fetchXFYunCodingCompletionStream(systemPrompt, userPrompt, conversationHistory, onChunk, signal)
@@ -155,7 +155,7 @@ export async function sendAgentChatMessageStream(request: AgentChatStreamRequest
     if (signal?.aborted) return
     console.error('Primary provider stream failed:', primaryError)
     
-    for (const provider of providers) {
+    for (const provider of AI_CHAT_PROVIDERS) {
       if (provider.id === providerId) continue
       
       const altProvider = getAiProviderById(provider.id)
@@ -186,13 +186,6 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
   
   const systemPrompt = buildChatSystemPrompt(personaId, profile)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
-  
-  const providers: Array<{ id: AiProviderId; name: string }> = [
-    { id: 'deepseek', name: 'DeepSeek' },
-    { id: 'openai', name: 'OpenAI' },
-    { id: 'tongyi', name: '通义千问' },
-    { id: 'doubao', name: '豆包' }
-  ]
   
   if (useXFYunCoding) {
     try {
@@ -233,7 +226,7 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
   } catch (primaryError) {
     console.error('Primary provider failed:', primaryError)
     
-    for (const provider of providers) {
+    for (const provider of AI_CHAT_PROVIDERS) {
       if (provider.id === providerId) continue
       
       const altProvider = getAiProviderById(provider.id)

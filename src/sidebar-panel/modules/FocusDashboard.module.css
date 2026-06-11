@@ -6,6 +6,9 @@
   padding: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .card:hover {
@@ -18,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 
 .title {
@@ -60,7 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .ring {
@@ -119,7 +122,7 @@
   text-align: center;
   font-size: 12px;
   color: var(--muted);
-  margin-bottom: 12px;
+  margin-bottom: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -131,7 +134,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .adjustBtn {
@@ -178,7 +181,7 @@
 .actions {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .mainBtn {
@@ -252,4 +255,225 @@
   color: var(--text);
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
+}
+
+.dashboardSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 4px;
+  background: color-mix(in srgb, var(--surface), var(--primary) 3%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.statValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.chartSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chartTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.trendCanvas {
+  width: 100%;
+  height: 100px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface), var(--primary) 3%);
+  border: 1px solid var(--border);
+}
+
+.subjectSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subjectList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subjectItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.subjectName {
+  font-size: 11px;
+  color: var(--text);
+  min-width: 36px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subjectBar {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.subjectBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subjectTime {
+  font-size: 10px;
+  color: var(--muted);
+  min-width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.historyToggle {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface), var(--primary) 3%);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.historyToggle:hover {
+  border-color: var(--primary);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emptyHistory {
+  padding: 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--surface), var(--primary) 3%);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.historyItem:hover {
+  border-color: var(--primary);
+}
+
+.historyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.historySubject {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyTime {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.historyMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.historyDuration {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.historyStatus {
+  font-size: 12px;
+}
+
+.completed {
+  opacity: 1;
+}
+
+.incomplete {
+  opacity: 0.5;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

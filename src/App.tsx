@@ -1828,7 +1828,7 @@ export default function App() {
         isOpen={openWorkbenchDetail === 'focus-timer'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="专注计时"
-        subtitle="番茄钟专注计时，科目分布统计，专注趋势追踪"
+        subtitle="专注数据看板，科目分布统计，专注趋势追踪"
         ariaLabel="专注计时 · 工作台详情"
         className="focus-timer-detail-modal"
       >

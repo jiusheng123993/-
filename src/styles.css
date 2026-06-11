@@ -2536,6 +2536,26 @@ small,
   letter-spacing: 0.06em;
 }
 
+.theme-modal-maximize {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary), transparent 78%);
+  border-radius: 999px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface-strong), transparent 8%);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.theme-modal-maximize:hover {
+  background: var(--card-gradient);
+  transform: scale(1.08);
+}
+
 .theme-modal-close {
   display: grid;
   width: 44px;
@@ -2555,6 +2575,15 @@ small,
 .theme-modal-close:hover {
   background: var(--card-gradient);
   transform: rotate(90deg);
+}
+
+.modal-maximized {
+  border-radius: 0 !important;
+  animation: none !important;
+}
+
+.modal-maximized .theme-modal-hero {
+  cursor: default;
 }
 
 .membership-modal-backdrop {

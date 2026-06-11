@@ -83,6 +83,27 @@ describe('App', () => {
     expect(screen.getByRole('dialog', { name: '错题本 · 工作台详情' })).toBeInTheDocument()
   })
 
+  it('opens reading list as a workbench detail', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    await user.dblClick(within(workbench).getByText('阅读清单').closest('article')!)
+
+    expect(screen.getByRole('dialog', { name: '阅读清单 · 工作台详情' })).toBeInTheDocument()
+  })
+
+  it('opens memory cards as a workbench detail', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const memoryCard = within(workbench).getAllByText('记忆卡')[0].closest('article')!
+    await user.dblClick(memoryCard)
+
+    expect(screen.getByRole('dialog', { name: '记忆卡 · 工作台详情' })).toBeInTheDocument()
+  })
+
   it('opens a searchable theme library from the theme center button', async () => {
     const user = userEvent.setup()
     renderApp()
