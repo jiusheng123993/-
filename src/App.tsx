@@ -83,6 +83,13 @@ import { HabitTracker } from './habits/HabitTrackerUI'
 import { JournalUI } from './journal/JournalUI'
 import { ReadingUI } from './reading/ReadingUI'
 import { ErrorBookUI } from './error-book/ErrorBookUI'
+import { MemoryCardsUI } from './memory-cards/MemoryCardsUI'
+import { ExamTrackerUI } from './exam-tracker/ExamTrackerUI'
+import { StudyPlannerUI } from './study-planner/StudyPlannerUI'
+import { FocusTimerUI } from './focus-timer/FocusTimerUI'
+import { StudyCompanionUI } from './study-companion/StudyCompanionUI'
+import { MoodJournalUI } from './mood-journal/MoodJournalUI'
+import { OnboardingUI } from './onboarding/OnboardingUI'
 import { BacklinkPanel } from './backlink/BacklinkPanel'
 import { FocusModeUI } from './focus-mode'
 import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
@@ -1627,7 +1634,37 @@ export default function App() {
                 ),
                 'error-book': (
                   <section className="panel side-card error-book-card" role="region" aria-label="错题本">
-                    <ErrorBookUI />
+                    <ErrorBookUI userId={userId} />
+                  </section>
+                ),
+                'memory-cards': (
+                  <section className="panel side-card memory-cards-card" role="region" aria-label="记忆卡">
+                    <MemoryCardsUI />
+                  </section>
+                ),
+                'exam-tracker': (
+                  <section className="panel side-card exam-tracker-card" role="region" aria-label="考试记录">
+                    <ExamTrackerUI userId={userId} />
+                  </section>
+                ),
+                'study-planner': (
+                  <section className="panel side-card study-planner-card" role="region" aria-label="学习计划">
+                    <StudyPlannerUI userId={userId} />
+                  </section>
+                ),
+                'focus-timer': (
+                  <section className="panel side-card focus-timer-card" role="region" aria-label="专注计时">
+                    <FocusTimerUI userId={userId} />
+                  </section>
+                ),
+                'study-companion': (
+                  <section className="panel side-card study-companion-card" role="region" aria-label="备考陪伴">
+                    <StudyCompanionUI userId={userId} />
+                  </section>
+                ),
+                'mood-journal': (
+                  <section className="panel side-card mood-journal-card" role="region" aria-label="情绪日记">
+                    <MoodJournalUI userId={userId} />
                   </section>
                 )
               }
@@ -1723,6 +1760,19 @@ export default function App() {
       </DraggableModal>
 
       <DraggableModal
+        isOpen={openWorkbenchDetail === 'reading-list'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="阅读清单"
+        subtitle="书籍管理、阅读进度追踪、读书笔记"
+        ariaLabel="阅读清单 · 工作台详情"
+        className="reading-list-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <ReadingUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
         isOpen={openWorkbenchDetail === 'error-book'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="错题本"
@@ -1731,7 +1781,85 @@ export default function App() {
         className="error-book-detail-modal"
       >
         <div className="membership-modal-content">
-          <ErrorBookUI />
+          <ErrorBookUI userId={userId} />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'memory-cards'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="记忆卡"
+        subtitle="间隔重复记忆，AI 自动提取知识点"
+        ariaLabel="记忆卡 · 工作台详情"
+        className="memory-cards-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <MemoryCardsUI />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'exam-tracker'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="考试记录"
+        subtitle="记录每次考试各科分数，AI 对比分析进退步"
+        ariaLabel="考试记录 · 工作台详情"
+        className="exam-tracker-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <ExamTrackerUI userId={userId} />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'study-planner'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="学习计划"
+        subtitle="AI 驱动的备考规划，分阶段高效复习"
+        ariaLabel="学习计划 · 工作台详情"
+        className="study-planner-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <StudyPlannerUI userId={userId} />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'focus-timer'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="专注计时"
+        subtitle="番茄钟专注计时，科目分布统计，专注趋势追踪"
+        ariaLabel="专注计时 · 工作台详情"
+        className="focus-timer-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <FocusTimerUI userId={userId} />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'study-companion'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="备考陪伴"
+        subtitle="AI 备考陪伴伙伴，情绪支持、呼吸放松、正念练习"
+        ariaLabel="备考陪伴 · 工作台详情"
+        className="study-companion-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <StudyCompanionUI userId={userId} />
+        </div>
+      </DraggableModal>
+
+      <DraggableModal
+        isOpen={openWorkbenchDetail === 'mood-journal'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="情绪日记"
+        subtitle="每日情绪记录，趋势追踪，低情绪预警关怀"
+        ariaLabel="情绪日记 · 工作台详情"
+        className="mood-journal-detail-modal"
+      >
+        <div className="membership-modal-content">
+          <MoodJournalUI userId={userId} />
         </div>
       </DraggableModal>
 

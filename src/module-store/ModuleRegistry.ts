@@ -40,6 +40,66 @@ export const defaultModules: Module[] = [
     size: { columns: 2, rows: 2 },
     isDefault: true,
     isCustom: false
+  },
+  {
+    id: 'memory-cards',
+    title: '记忆卡',
+    description: '间隔重复记忆卡，AI 自动提取知识点',
+    icon: 'Layers',
+    category: 'learning',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'exam-tracker',
+    title: '考试记录',
+    description: '记录每次考试各科分数，AI 对比分析进退步',
+    icon: 'BarChart3',
+    category: 'learning',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'study-planner',
+    title: '学习计划',
+    description: 'AI 驱动的备考规划，分阶段高效复习',
+    icon: 'Calendar',
+    category: 'learning',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'focus-timer',
+    title: '专注计时',
+    description: '番茄钟专注计时，科目分布统计，专注趋势追踪',
+    icon: 'Timer',
+    category: 'learning',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'study-companion',
+    title: '备考陪伴',
+    description: 'AI 备考陪伴伙伴，情绪支持、呼吸放松、正念练习',
+    icon: 'Heart',
+    category: 'learning',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'mood-journal',
+    title: '情绪日记',
+    description: '每日情绪记录，趋势追踪，低情绪预警关怀',
+    icon: 'Smile',
+    category: 'health',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
   }
 ]
 
