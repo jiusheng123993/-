@@ -25,6 +25,7 @@ import { IdentityProvider } from './identity/IdentityProvider'
 import { IdentitySelector } from './identity/IdentitySelector'
 import { Sidebar } from './sidebar/Sidebar'
 import { SidebarToggle } from './sidebar/SidebarToggle'
+import { AdaptiveSidebar } from './platforms'
 import { getPersonaTemplateById } from './personas/personaTemplates'
 import {
   getThemeById,
@@ -1249,6 +1250,7 @@ export default function App() {
     <PlatformContext.Provider value={PlatformContext}>
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <AdaptiveSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(false)}>
       <Sidebar 
         isOpen={sidebarOpen} 
         onToggle={() => setSidebarOpen(false)}
@@ -1341,6 +1343,7 @@ export default function App() {
         aiQuota={totalQuota}
         streakDays={workspaceState.growth.streakDays}
       />
+      </AdaptiveSidebar>
     <main className="app-shell">
       <svg className="liquid-glass-svg-defs" aria-hidden="true" focusable="false" width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
         <defs>

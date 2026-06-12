@@ -3,7 +3,9 @@ import type { PersonaId } from '../personas/personaRegistry'
 import type { AvatarMood } from '../avatar/avatarTypes'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 import type { MemoryObserver } from '../memory/memoryObserver'
+import type { RelationshipHealthMonitor } from '../personas/relationshipHealthMonitor'
 import { agentRuntime } from './agentRuntime'
+import { getMoodEmoji } from '../avatar/animator'
 
 export interface AgentMessage {
   id: string
@@ -23,22 +25,13 @@ export interface AgentChatUIProps {
   memoryEvents?: MemoryEvent[]
   memoryObserver?: MemoryObserver | null
   onSendMessage?: (message: string) => Promise<string>
+  healthMonitor?: RelationshipHealthMonitor | null
+  onConversationComplete?: (userMessage: string, agentResponse: string) => void
 }
 
 function getGreeting(aiRole?: string): string {
   const role = aiRole || 'AI 助手'
   return `你好！我是你的${role}，有什么可以帮你的吗？`
-}
-
-function getMoodEmoji(mood?: AvatarMood): string {
-  switch (mood) {
-    case 'happy': return '😊'
-    case 'encouraging': return '💪'
-    case 'thinking': return '🤔'
-    case 'concerned': return '😟'
-    case 'celebrating': return '🎉'
-    default: return '👋'
-  }
 }
 
 const TOPIC_KEYWORDS: Record<string, string[]> = {
@@ -63,7 +56,7 @@ function extractTopics(content: string): string[] {
   return topics.length > 0 ? topics : ['general']
 }
 
-export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memoryEvents, memoryObserver, onSendMessage }: AgentChatUIProps) {
+export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memoryEvents, memoryObserver, onSendMessage, healthMonitor, onConversationComplete }: AgentChatUIProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -91,17 +84,17 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  function mapMood(mood?: 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'): AvatarMood {
-    return mood ?? 'neutral'
-  }
-
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || isLoading) return
+
+    const userContent = inputValue.trim()
+
+    const crisisResult = healthMonitor?.checkCrisis('current-user', userContent)
 
     const userMessage: AgentMessage = {
       id: `msg-${Date.now()}`,
       role: 'user',
-      content: inputValue.trim(),
+      content: userContent,
       timestamp: new Date().toISOString()
     }
 
@@ -123,11 +116,18 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
     setMessages(prev => [...prev, streamingMessage])
 
     try {
-      if (onSendMessage) {
+      if (crisisResult?.isCrisis) {
+        setMessages(prev => prev.map(m =>
+          m.id === streamingId
+            ? { ...m, content: crisisResult.recommendedAction, mood: 'concerned' }
+            : m
+        ))
+        conversationHistoryRef.current.push({ role: 'agent', content: crisisResult.recommendedAction })
+      } else if (onSendMessage) {
         const responseContent = await onSendMessage(userMessage.content)
         setMessages(prev => prev.map(m =>
           m.id === streamingId
-            ? { ...m, content: responseContent, mood: mapMood(undefined) }
+            ? { ...m, content: responseContent, mood: 'neutral' }
             : m
         ))
         conversationHistoryRef.current.push({ role: 'agent', content: responseContent })
@@ -160,7 +160,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
           if (streamMsg) {
             return prev.map(m =>
               m.id === streamingId
-                ? { ...m, mood: mapMood(undefined) }
+                ? { ...m, mood: 'neutral' }
                 : m
             )
           }
@@ -196,10 +196,12 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
               `用户在对话中说："${lastUserMsg.content.slice(0, 50)}"`
             )
           }
+
+          onConversationComplete?.(lastUserMsg.content, lastAgentMsg.content)
         }
       }
     }
-  }, [inputValue, isLoading, onSendMessage, personaId, aiRole, memoryObserver])
+  }, [inputValue, isLoading, onSendMessage, personaId, aiRole, memoryObserver, healthMonitor, onConversationComplete])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
