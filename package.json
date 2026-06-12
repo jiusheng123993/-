@@ -18,7 +18,11 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "server": "npx tsx src/server/index.ts",
-    "server:dev": "concurrently \"npm run dev\" \"npm run server\""
+    "server:dev": "concurrently \"npm run dev\" \"npm run server\"",
+    "capacitor:sync": "npx cap sync",
+    "capacitor:open:android": "npx cap open android",
+    "capacitor:build:android": "npm run build && npx cap sync android && npx cap build android",
+    "capacitor:dev": "npm run build && npx cap sync android && npx cap run android"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
@@ -34,6 +38,9 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
     "@eslint/js": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
