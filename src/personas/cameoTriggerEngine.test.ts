@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import {
   createCameoTriggerEngine,
+  buildTriggerContextFromMemoryObserver,
   DEFAULT_RULES,
   HOLIDAY_DATES,
   EXAM_SEASONS,
@@ -9,6 +10,8 @@ import {
   type CameoTriggerRule,
 } from './cameoTriggerEngine'
 import { PRESET_PERSONAS, type PersonaDefinition } from './personaScheduler'
+import { createInMemoryMemoryStore } from '../memory/memoryStore'
+import type { MemoryStore, MemoryScope } from '../memory/memoryTypes'
 
 function makeContext(overrides: Partial<CameoTriggerContext> = {}): CameoTriggerContext {
   return {
@@ -404,5 +407,170 @@ describe('DEFAULT_RULES', () => {
     for (const rule of DEFAULT_RULES) {
       expect(rule.priority).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('buildTriggerContextFromMemoryObserver', () => {
+  let store: MemoryStore
+  let scope: MemoryScope
+
+  beforeEach(() => {
+    store = createInMemoryMemoryStore()
+    scope = { userId: 'test-user', projectId: 'test-project' }
+  })
+
+  it('returns all false when no memoryStore provided', () => {
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, null, undefined)
+    expect(result.memoryEvents).toEqual({
+      recentMoodLow: false,
+      recentTaskCompleted: false,
+      recentFocusCompleted: false,
+    })
+  })
+
+  it('returns all false when no scope provided', () => {
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, undefined)
+    expect(result.memoryEvents).toEqual({
+      recentMoodLow: false,
+      recentTaskCompleted: false,
+      recentFocusCompleted: false,
+    })
+  })
+
+  it('returns all false when store has no matching events', () => {
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.memoryEvents).toEqual({
+      recentMoodLow: false,
+      recentTaskCompleted: false,
+      recentFocusCompleted: false,
+    })
+  })
+
+  it('detects recent mood_low event', () => {
+    store.appendEvent({
+      id: 'evt-1',
+      scope,
+      kind: 'observation',
+      content: 'feeling down',
+      source: 'user_input',
+      confidence: 0.9,
+      status: 'active',
+      tags: ['mood'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      expiresAt: null,
+      category: 'mood_low',
+    })
+
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.memoryEvents!.recentMoodLow).toBe(true)
+    expect(result.memoryEvents!.recentTaskCompleted).toBe(false)
+    expect(result.memoryEvents!.recentFocusCompleted).toBe(false)
+  })
+
+  it('detects recent task_completed event', () => {
+    store.appendEvent({
+      id: 'evt-2',
+      scope,
+      kind: 'event',
+      content: 'task done',
+      source: 'system',
+      confidence: 1,
+      status: 'active',
+      tags: ['task'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      expiresAt: null,
+      category: 'task_completed',
+    })
+
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.memoryEvents!.recentMoodLow).toBe(false)
+    expect(result.memoryEvents!.recentTaskCompleted).toBe(true)
+    expect(result.memoryEvents!.recentFocusCompleted).toBe(false)
+  })
+
+  it('detects recent focus_completed event', () => {
+    store.appendEvent({
+      id: 'evt-3',
+      scope,
+      kind: 'event',
+      content: 'focus done',
+      source: 'system',
+      confidence: 1,
+      status: 'active',
+      tags: ['focus'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      expiresAt: null,
+      category: 'focus_completed',
+    })
+
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.memoryEvents!.recentMoodLow).toBe(false)
+    expect(result.memoryEvents!.recentTaskCompleted).toBe(false)
+    expect(result.memoryEvents!.recentFocusCompleted).toBe(true)
+  })
+
+  it('ignores events older than 24 hours', () => {
+    const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString()
+    store.appendEvent({
+      id: 'evt-old',
+      scope,
+      kind: 'observation',
+      content: 'old mood',
+      source: 'user_input',
+      confidence: 0.9,
+      status: 'active',
+      tags: ['mood'],
+      createdAt: oldDate,
+      updatedAt: oldDate,
+      expiresAt: null,
+      category: 'mood_low',
+    })
+
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.memoryEvents!.recentMoodLow).toBe(false)
+  })
+
+  it('ignores inactive events', () => {
+    store.appendEvent({
+      id: 'evt-inactive',
+      scope,
+      kind: 'observation',
+      content: 'forgotten mood',
+      source: 'user_input',
+      confidence: 0.9,
+      status: 'forgotten',
+      tags: ['mood'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      expiresAt: null,
+      category: 'mood_low',
+    })
+
+    const baseContext = makeContext()
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.memoryEvents!.recentMoodLow).toBe(false)
+  })
+
+  it('preserves baseContext fields', () => {
+    const baseContext = makeContext({
+      schedule: {
+        cameoFrequency: 'daily',
+        lastFocusMinutes: 120,
+      },
+    })
+
+    const result = buildTriggerContextFromMemoryObserver(null, baseContext, store, scope)
+    expect(result.schedule.cameoFrequency).toBe('daily')
+    expect(result.schedule.lastFocusMinutes).toBe(120)
   })
 })

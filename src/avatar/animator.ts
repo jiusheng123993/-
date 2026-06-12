@@ -9,6 +9,33 @@ export const MOOD_TO_ANIMATION: Record<AvatarMood, AnimationState> = {
   celebrating: 'celebrating'
 }
 
+export const ANIMATION_CSS_KEYFRAMES: Record<AnimationState, string> = {
+  idle: 'avatar-idle 3s ease-in-out infinite',
+  talking: 'avatar-talking 0.6s ease-in-out infinite',
+  thinking: 'avatar-thinking 2s ease-in-out',
+  encouraging: 'avatar-encouraging 1s ease-out',
+  celebrating: 'avatar-celebrating 1.5s ease-out',
+  waving: 'avatar-waving 0.8s ease-in-out'
+}
+
+const MOOD_EMOJI_MAP: Record<AvatarMood, string> = {
+  neutral: '👋',
+  happy: '😊',
+  encouraging: '💪',
+  thinking: '🤔',
+  concerned: '😟',
+  celebrating: '🎉'
+}
+
+const MOOD_KEYWORDS: Record<AvatarMood, string[]> = {
+  celebrating: ['恭喜', '太棒了', '做得很好', '成功'],
+  encouraging: ['加油', '你可以的', '相信你', '别放弃'],
+  concerned: ['抱歉', '对不起', '困难', '挑战'],
+  thinking: ['让我想想', '分析', '考虑'],
+  happy: ['好', '没问题', '当然', '好的'],
+  neutral: []
+}
+
 export const ANIMATION_DURATIONS: Record<AnimationState, number> = {
   idle: 0,
   talking: 3000,
@@ -120,4 +147,43 @@ export function getCrossfadeAlpha(
   const t = state.transitionProgress
   const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
   return layer === 'to' ? eased : 1 - eased
+}
+
+export function analyzeResponseMood(response: string): AvatarMood {
+  const lowerResponse = response.toLowerCase()
+
+  const moodOrder: AvatarMood[] = ['celebrating', 'encouraging', 'concerned', 'thinking', 'happy']
+
+  for (const mood of moodOrder) {
+    const keywords = MOOD_KEYWORDS[mood]
+    if (keywords.some(kw => lowerResponse.includes(kw))) {
+      return mood
+    }
+  }
+
+  return 'neutral'
+}
+
+export function getMoodEmoji(mood: AvatarMood): string {
+  return MOOD_EMOJI_MAP[mood] ?? '👋'
+}
+
+export function getAnimationCSS(state: AnimatorState): { animation: string; opacity: number } {
+  const animName = getActiveAnimationName(state)
+  const keyframe = ANIMATION_CSS_KEYFRAMES[animName]
+
+  if (!keyframe) return { animation: '', opacity: 1 }
+
+  if (state.isTransitioning) {
+    const fromAlpha = getCrossfadeAlpha(state, 'from')
+    return {
+      animation: keyframe,
+      opacity: fromAlpha > 0.5 ? fromAlpha : 1
+    }
+  }
+
+  return {
+    animation: keyframe,
+    opacity: 1
+  }
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { getSupabaseConfig, saveSupabaseConfig, getSupabase } from '../../infrastructure/supabase'
+import { getSupabaseConfig, saveSupabaseConfig, getSupabase } from '../infrastructure/supabase'
 
 interface SupabaseConfigUIProps {
   onConfigured: () => void
+  onBack?: () => void
 }
 
-export function SupabaseConfigUI({ onConfigured }: SupabaseConfigUIProps) {
+export function SupabaseConfigUI({ onConfigured, onBack }: SupabaseConfigUIProps) {
   const existing = getSupabaseConfig()
   const [url, setUrl] = useState(existing?.url || '')
   const [anonKey, setAnonKey] = useState(existing?.anonKey || '')
@@ -110,11 +111,31 @@ export function SupabaseConfigUI({ onConfigured }: SupabaseConfigUIProps) {
           borderRadius: 8,
           cursor: testing ? 'not-allowed' : 'pointer',
           fontSize: 15,
-          fontWeight: 500
+          fontWeight: 500,
+          marginBottom: 12
         }}
       >
         {testing ? '测试连接中...' : '保存并连接'}
       </button>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          disabled={testing}
+          style={{
+            width: '100%',
+            padding: '10px',
+            background: 'transparent',
+            color: '#666',
+            border: '1px solid #ddd',
+            borderRadius: 8,
+            cursor: testing ? 'not-allowed' : 'pointer',
+            fontSize: 14
+          }}
+        >
+          返回
+        </button>
+      )}
     </div>
   )
 }

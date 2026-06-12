@@ -12,6 +12,10 @@ export interface PersonaSchedule {
   }
   cameoFrequency: 'daily' | 'weekly' | 'event_threshold' | 'off'
   lastFocusMinutes?: number
+  completedTaskCount?: number
+  consecutiveFocusDays?: number
+  userBirthday?: string
+  userAnniversary?: string
 }
 
 export interface PersonaScheduleStorage {

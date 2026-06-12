@@ -1,6 +1,7 @@
 import { createAiPromptDraft, getAiProviderById, type AiProviderId } from '../ai/aiProvider'
 import type { PersonaId } from '../personas/personaRegistry'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
+import { analyzeResponseMood } from '../avatar/animator'
 
 const AI_CHAT_PROVIDERS: Array<{ id: AiProviderId; name: string }> = [
   { id: 'deepseek', name: 'DeepSeek' },
@@ -193,7 +194,7 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
       if (response && !response.includes('AI 服务暂时不可用') && !response.includes('空响应')) {
         return {
           content: response,
-          mood: determineMood(response)
+          mood: analyzeResponseMood(response)
         }
       }
     } catch (error) {
@@ -221,7 +222,7 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
     
     return {
       content: response,
-      mood: determineMood(response)
+      mood: analyzeResponseMood(response)
     }
   } catch (primaryError) {
     console.error('Primary provider failed:', primaryError)
@@ -243,7 +244,7 @@ export async function sendAgentChatMessage(request: AgentChatRequest): Promise<A
         
         return {
           content: response,
-          mood: determineMood(response)
+          mood: analyzeResponseMood(response)
         }
       } catch (altError) {
         console.error(`${provider.name} failed:`, altError)
@@ -701,32 +702,6 @@ function getFallbackResponse(userPrompt: string): string {
   }
   
   return '收到你的消息了！虽然我现在还在学习阶段，但我会尽力帮助你。如果有具体的学习问题，欢迎随时问我！让我们一起进步 💪'
-}
-
-function determineMood(response: string): 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating' {
-  const lowerResponse = response.toLowerCase()
-  
-  if (lowerResponse.includes('恭喜') || lowerResponse.includes('太棒了') || lowerResponse.includes('做得很好') || lowerResponse.includes('成功')) {
-    return 'celebrating'
-  }
-  
-  if (lowerResponse.includes('加油') || lowerResponse.includes('你可以的') || lowerResponse.includes('相信你') || lowerResponse.includes('别放弃')) {
-    return 'encouraging'
-  }
-  
-  if (lowerResponse.includes('抱歉') || lowerResponse.includes('对不起') || lowerResponse.includes('困难') || lowerResponse.includes('挑战')) {
-    return 'concerned'
-  }
-  
-  if (lowerResponse.includes('让我想想') || lowerResponse.includes('分析') || lowerResponse.includes('考虑')) {
-    return 'thinking'
-  }
-  
-  if (lowerResponse.includes('好') || lowerResponse.includes('没问题') || lowerResponse.includes('当然') || lowerResponse.includes('好的')) {
-    return 'happy'
-  }
-  
-  return 'neutral'
 }
 
 export const agentRuntime = {

@@ -30,6 +30,8 @@ interface SidebarProps {
   membershipTier: string
   aiQuota: number
   streakDays: number
+  dataSource: 'local' | 'supabase'
+  onSwitchDataSource: () => void
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
@@ -60,7 +62,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentThemeName,
   membershipTier,
   aiQuota,
-  streakDays
+  streakDays,
+  dataSource,
+  onSwitchDataSource
 }) => {
   const [activeSection, setActiveSection] = useState<string>('identity')
 
@@ -305,6 +309,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <span>🔑</span>
                 <span>AI 服务配置</span>
+              </button>
+              <button
+                onClick={onSwitchDataSource}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)',
+                  cursor: 'pointer',
+                  marginBottom: '8px'
+                }}
+              >
+                <span>☁️</span>
+                <span>数据源：{dataSource === 'supabase' ? '云端 (Supabase)' : '本地存储'}</span>
               </button>
               <button
                 onClick={onOpenIdentitySelector}

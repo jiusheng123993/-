@@ -22,3 +22,8 @@ config/payment/
 *.key
 *.p12
 *.cer
+
+# 环境变量（包含密钥）
+.env
+.env.local
+.env.*.local

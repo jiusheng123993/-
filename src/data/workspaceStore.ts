@@ -108,6 +108,9 @@ export type WorkspaceState = {
 export type WorkspaceStore = {
   load: () => WorkspaceState
   save: (state: WorkspaceState) => void
+  setDataSource?: (source: 'local' | 'supabase') => void
+  getDataSource?: () => 'local' | 'supabase'
+  loadAsync?: () => Promise<WorkspaceState>
 }
 
 type LegacyStudyState = {
@@ -474,8 +477,8 @@ export const createMemoryWorkspaceStore = (initialState = createInitialWorkspace
 export const createBrowserWorkspaceStore = (
   storageKey = 'growth-workbench-state',
   legacyStorageKey = 'studyflow-state'
-): WorkspaceStore => ({
-  load: () => {
+): WorkspaceStore => {
+  const loadFromLocal = (): WorkspaceState => {
     const stored = window.localStorage.getItem(storageKey)
     if (stored) {
       try {
@@ -496,8 +499,83 @@ export const createBrowserWorkspaceStore = (
     }
 
     return createInitialWorkspaceState()
-  },
-  save: (state) => {
+  }
+
+  const saveToLocal = (state: WorkspaceState) => {
     window.localStorage.setItem(storageKey, JSON.stringify(state))
   }
-})
+
+  const loadFromSupabase = async (): Promise<WorkspaceState> => {
+    const { getSupabase } = await import('../infrastructure/supabase')
+    const supabase = getSupabase()
+    if (!supabase) return loadFromLocal()
+
+    const { data, error } = await supabase
+      .from('workspace_state')
+      .select('data')
+      .single()
+
+    if (error || !data) return loadFromLocal()
+
+    try {
+      const parsed = JSON.parse(data.data) as unknown
+      return isWorkspaceState(parsed) ? normalizeWorkspaceState(parsed) : createInitialWorkspaceState()
+    } catch {
+      return createInitialWorkspaceState()
+    }
+  }
+
+  const saveToSupabase = async (state: WorkspaceState) => {
+    const { getSupabase } = await import('../infrastructure/supabase')
+    const supabase = getSupabase()
+    if (!supabase) {
+      saveToLocal(state)
+      return
+    }
+
+    const { error } = await supabase
+      .from('workspace_state')
+      .upsert({ id: 'default', data: JSON.stringify(state), updated_at: new Date().toISOString() })
+
+    if (error) {
+      saveToLocal(state)
+    }
+  }
+
+  let currentDataSource: 'local' | 'supabase' = 'local'
+  let supabaseLoadPromise: Promise<WorkspaceState> | null = null
+
+  return {
+    load: () => {
+      if (currentDataSource === 'supabase') {
+        if (!supabaseLoadPromise) {
+          supabaseLoadPromise = loadFromSupabase()
+        }
+        return loadFromLocal()
+      }
+      return loadFromLocal()
+    },
+    save: (state) => {
+      saveToLocal(state)
+      if (currentDataSource === 'supabase') {
+        saveToSupabase(state)
+      }
+    },
+    setDataSource: (source: 'local' | 'supabase') => {
+      currentDataSource = source
+      if (source === 'supabase') {
+        supabaseLoadPromise = loadFromSupabase()
+      }
+    },
+    getDataSource: () => currentDataSource,
+    loadAsync: async (): Promise<WorkspaceState> => {
+      if (currentDataSource === 'supabase') {
+        if (!supabaseLoadPromise) {
+          supabaseLoadPromise = loadFromSupabase()
+        }
+        return supabaseLoadPromise
+      }
+      return loadFromLocal()
+    }
+  }
+}

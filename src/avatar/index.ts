@@ -16,6 +16,7 @@ export {
   MOOD_TO_ANIMATION,
   ANIMATION_DURATIONS,
   ANIMATION_LOOP,
+  ANIMATION_CSS_KEYFRAMES,
   createAnimatorState,
   moodToAnimationState,
   getAnimationDuration,
@@ -25,7 +26,10 @@ export {
   advanceTransition,
   completeTransition,
   getActiveAnimationName,
-  getCrossfadeAlpha
+  getCrossfadeAlpha,
+  analyzeResponseMood,
+  getMoodEmoji,
+  getAnimationCSS
 } from './animator'
 export type { AvatarService } from './avatarService'
 export type { IAvatarAIProvider, IRPMProvider } from './avatarAIProvider'

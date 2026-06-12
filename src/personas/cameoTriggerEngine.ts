@@ -1,5 +1,6 @@
 import type { PersonaDefinition } from './personaScheduler'
 import type { MemoryObserver } from '../memory/memoryObserver'
+import type { MemoryStore } from '../memory/memoryTypes'
 
 export type CameoTriggerType = 'holiday' | 'exam_season' | 'birthday' | 'anniversary' | 'daily_evening' | 'weekend' | 'focus_streak' | 'task_milestone' | 'mood_low'
 
@@ -266,16 +267,47 @@ export function createCameoTriggerEngine(
   }
 }
 
+const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000
+
+function hasRecentEvent(
+  store: MemoryStore,
+  scope: { userId: string; projectId: string },
+  category: string,
+  windowMs: number = RECENT_WINDOW_MS
+): boolean {
+  const now = Date.now()
+  const events = store.listEvents(scope)
+  return events.some(
+    (e) =>
+      e.category === category &&
+      e.status === 'active' &&
+      now - new Date(e.createdAt).getTime() < windowMs
+  )
+}
+
 export function buildTriggerContextFromMemoryObserver(
   observer: MemoryObserver | null,
-  baseContext: CameoTriggerContext
+  baseContext: CameoTriggerContext,
+  memoryStore?: MemoryStore | null,
+  scope?: { userId: string; projectId: string }
 ): CameoTriggerContext {
+  if (!memoryStore || !scope) {
+    return {
+      ...baseContext,
+      memoryEvents: {
+        recentMoodLow: false,
+        recentTaskCompleted: false,
+        recentFocusCompleted: false,
+      },
+    }
+  }
+
   return {
     ...baseContext,
     memoryEvents: {
-      recentMoodLow: false,
-      recentTaskCompleted: false,
-      recentFocusCompleted: false,
+      recentMoodLow: hasRecentEvent(memoryStore, scope, 'mood_low'),
+      recentTaskCompleted: hasRecentEvent(memoryStore, scope, 'task_completed'),
+      recentFocusCompleted: hasRecentEvent(memoryStore, scope, 'focus_completed'),
     },
   }
 }

@@ -1,4 +1,5 @@
 import type { PersonaScheduleStorage } from './personaScheduleStore'
+import type { CameoTriggerEngine, CameoTriggerContext } from './cameoTriggerEngine'
 
 export interface PersonaDefinition {
   id: string
@@ -116,7 +117,8 @@ export interface EntitlementService {
 
 export function createPersonaScheduler(
   storage: PersonaScheduleStorage,
-  entitlementService: EntitlementService
+  entitlementService: EntitlementService,
+  cameoEngine?: CameoTriggerEngine
 ): PersonaScheduler {
   return {
     getCurrentPersona(userId: string): PersonaDefinition | null {
@@ -174,6 +176,26 @@ export function createPersonaScheduler(
     checkAutoCameoTriggers(userId: string): PersonaDefinition | null {
       const schedule = storage.get(userId)
       if (!schedule || schedule.cameoFrequency === 'off') return null
+
+      if (cameoEngine) {
+        const context: CameoTriggerContext = {
+          now: new Date(),
+          schedule: {
+            cameoFrequency: schedule.cameoFrequency,
+            lastFocusMinutes: schedule.lastFocusMinutes,
+            completedTaskCount: schedule.completedTaskCount,
+            consecutiveFocusDays: schedule.consecutiveFocusDays,
+            userBirthday: schedule.userBirthday,
+            userAnniversary: schedule.userAnniversary,
+          },
+        }
+
+        const result = cameoEngine.evaluate(context, PRESET_PERSONAS)
+        if (result.triggered && result.persona) {
+          return result.persona
+        }
+        return null
+      }
 
       const now = new Date()
       const month = now.getMonth() + 1

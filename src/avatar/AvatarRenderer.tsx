@@ -7,8 +7,7 @@ import {
   completeTransition,
   getAnimationDuration,
   isAnimationLooping,
-  getCrossfadeAlpha,
-  getActiveAnimationName
+  getAnimationCSS
 } from './animator'
 import { ThreeDRenderer } from './renderers/ThreeDRenderer'
 
@@ -19,15 +18,6 @@ type AvatarRendererProps = {
   activeAnimation?: string
   onAnimationEnd?: () => void
   fallbackMode?: AvatarRenderMode
-}
-
-const ANIMATION_CSS_KEYFRAMES: Record<string, string> = {
-  idle: 'avatar-idle 3s ease-in-out infinite',
-  talking: 'avatar-talking 0.6s ease-in-out infinite',
-  thinking: 'avatar-thinking 2s ease-in-out',
-  encouraging: 'avatar-encouraging 1s ease-out',
-  celebrating: 'avatar-celebrating 1.5s ease-out',
-  waving: 'avatar-waving 0.8s ease-in-out'
 }
 
 export function AvatarRenderer({
@@ -95,23 +85,14 @@ export function AvatarRenderer({
 
   const getAnimationStyle = (): React.CSSProperties => {
     const state = animatorRef.current
-    const animName = getActiveAnimationName(state)
-    const keyframe = ANIMATION_CSS_KEYFRAMES[animName]
+    const css = getAnimationCSS(state)
 
-    if (!keyframe) return {}
-
-    if (state.isTransitioning) {
-      const fromAlpha = getCrossfadeAlpha(state, 'from')
-      return {
-        animation: keyframe,
-        opacity: fromAlpha > 0.5 ? fromAlpha : 1,
-        transition: 'opacity 0.3s ease'
-      }
-    }
+    if (!css.animation) return {}
 
     return {
-      animation: keyframe,
-      opacity: 1
+      animation: css.animation,
+      opacity: css.opacity,
+      transition: state.isTransitioning ? 'opacity 0.3s ease' : undefined
     }
   }
 
