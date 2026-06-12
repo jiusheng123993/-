@@ -14,6 +14,7 @@ interface SidebarProps {
   onOpenAvatarManager: () => void
   onOpenMemoryProfile: () => void
   onOpenPersonaSelector: () => void
+  onOpenCustomPersonaEditor: () => void
   onOpenRelationshipSpace: () => void
   onOpenAgentChat: () => void
   onSwitchRole: () => void
@@ -47,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAvatarManager,
   onOpenMemoryProfile,
   onOpenPersonaSelector,
+  onOpenCustomPersonaEditor,
   onOpenRelationshipSpace,
   onOpenAgentChat,
   onSwitchRole,
@@ -73,6 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'modules', label: '模块商店', icon: 'Grid' },
     { id: 'ai', label: 'AI 助手', icon: 'Bot' },
     { id: 'persona', label: '人格切换', icon: 'Sparkles' },
+    { id: 'custom-persona', label: '自定义角色', icon: 'Edit' },
     { id: 'relationship', label: '关系空间', icon: 'Users' },
     { id: 'memory', label: '记忆画像', icon: 'Brain' },
     { id: 'cycle', label: '周期追踪', icon: 'Heart' },
@@ -114,6 +117,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'persona':
         onOpenPersonaSelector()
+        break
+      case 'custom-persona':
+        onOpenCustomPersonaEditor()
         break
       case 'template':
         onOpenTemplate()

@@ -21,6 +21,8 @@ import { createPersonaScheduler, PRESET_PERSONAS } from './personas/personaSched
 import { createPersonaScheduleStorage } from './personas/personaScheduleStore'
 import { createSafetyIncidentLog } from './personas/safetyIncidentLog'
 import { createRelationshipHealthMonitor } from './personas/relationshipHealthMonitor'
+import { CustomPersonaEditorUI } from './personas/CustomPersonaEditorUI'
+import { createPersonaSafetyGate } from './personas/personaSafetyGate'
 import { IdentityProvider } from './identity/IdentityProvider'
 import { IdentitySelector } from './identity/IdentitySelector'
 import { Sidebar } from './sidebar/Sidebar'
@@ -137,6 +139,7 @@ const cameoEngine = createCameoTriggerEngine()
 const personaScheduleStorage = createPersonaScheduleStorage()
 const personaScheduler = createPersonaScheduler(personaScheduleStorage, entitlementService, cameoEngine)
 const safetyIncidentLog = createSafetyIncidentLog()
+const personaSafetyGate = createPersonaSafetyGate(safetyIncidentLog)
 const relationshipHealthMonitor = createRelationshipHealthMonitor(safetyIncidentLog, personaScheduleStorage, personaScheduler)
 
 if (import.meta.env.DEV) {
@@ -447,6 +450,7 @@ export default function App() {
   const [isCycleTrackerOpen, setIsCycleTrackerOpen] = useState(false)
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
+  const [isCustomPersonaEditorOpen, setIsCustomPersonaEditorOpen] = useState(false)
   const [isDataBackupOpen, setIsDataBackupOpen] = useState(false)
   const [isApiKeySettingsOpen, setIsApiKeySettingsOpen] = useState(false)
   const [isSyncOpen, setIsSyncOpen] = useState(false)
@@ -1293,6 +1297,10 @@ export default function App() {
         onOpenPersonaSelector={() => {
           closeAllSidebarPanels()
           setIsPersonaSelectorOpen(true)
+        }}
+        onOpenCustomPersonaEditor={() => {
+          closeAllSidebarPanels()
+          setIsCustomPersonaEditorOpen(true)
         }}
         onOpenRelationshipSpace={() => {
           closeAllSidebarPanels()
@@ -2986,6 +2994,20 @@ export default function App() {
             </div>
           </section>
         </div>
+      )}
+
+      {isCustomPersonaEditorOpen && (
+        <CustomPersonaEditorUI
+          userId={userId}
+          onClose={() => setIsCustomPersonaEditorOpen(false)}
+          onCreate={(persona) => {
+            setCurrentPersonaId(persona.id)
+            setIsCustomPersonaEditorOpen(false)
+          }}
+          entitlementService={entitlementService}
+          safetyGate={personaSafetyGate}
+          incidentLog={safetyIncidentLog}
+        />
       )}
 
       {pendingEntry && (
