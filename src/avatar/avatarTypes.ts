@@ -6,6 +6,10 @@ export type EvolutionTriggerType = 'focus_minutes' | 'tasks_completed' | 'streak
 export type EvolutionRewardType = 'decoration' | 'effect' | 'animation'
 export type AvatarStyle = 'realistic' | 'anime' | 'cartoon' | 'chibi'
 
+export type AvatarMood = 'neutral' | 'happy' | 'encouraging' | 'thinking' | 'concerned' | 'celebrating'
+
+export type AnimationState = 'idle' | 'talking' | 'thinking' | 'encouraging' | 'celebrating' | 'waving'
+
 export type AvatarAnimation = {
   name: string
   url?: string

@@ -43,14 +43,15 @@ describe('App', () => {
     expect(document.querySelector('.draggable-canvas')).toBeInTheDocument()
   })
 
-  it('shows the 4 default modules on the workbench canvas', () => {
+  it('shows the 5 default modules on the workbench canvas', () => {
     renderApp()
 
     const workbench = screen.getByRole('region', { name: '工作台画布' })
     expect(within(workbench).getByText('习惯追踪')).toBeInTheDocument()
     expect(within(workbench).getByText('复盘日记')).toBeInTheDocument()
     expect(within(workbench).getByText('阅读清单')).toBeInTheDocument()
-    expect(within(workbench).getByText('错题本')).toBeInTheDocument()
+    expect(within(workbench).getAllByText('错题本').length).toBeGreaterThanOrEqual(1)
+    expect(within(workbench).getAllByText('记忆卡').length).toBeGreaterThanOrEqual(1)
   })
 
   it('opens habit tracker as a workbench detail', async () => {
@@ -78,7 +79,8 @@ describe('App', () => {
     renderApp()
 
     const workbench = screen.getByRole('region', { name: '工作台画布' })
-    await user.dblClick(within(workbench).getByText('错题本').closest('article')!)
+    const errorBookHeading = within(workbench).getAllByText('错题本')[0]
+    await user.dblClick(errorBookHeading.closest('article')!)
 
     expect(screen.getByRole('dialog', { name: '错题本 · 工作台详情' })).toBeInTheDocument()
   })

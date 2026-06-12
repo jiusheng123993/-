@@ -2,6 +2,146 @@ import type { Module } from './types'
 
 export const defaultModules: Module[] = [
   {
+    id: 'persona-plan',
+    title: '场景计划',
+    description: '当前场景的主模块，展示场景模板和行动建议',
+    icon: 'Target',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'today-actions',
+    title: '今日行动',
+    description: '今日待办任务列表',
+    icon: 'ListChecks',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'focus-session',
+    title: '专注计时',
+    description: '番茄钟专注计时器，支持自定义时长',
+    icon: 'Timer',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'focus-overview',
+    title: '专注概览',
+    description: '桌面专注概览，展示进度和统计',
+    icon: 'BarChart3',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'growth-rpg',
+    title: '成长等级',
+    description: 'RPG 风格成长系统，展示等级、成就和积分',
+    icon: 'Trophy',
+    category: 'health',
+    size: { columns: 2, rows: 1 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'key-metrics',
+    title: '关键指标',
+    description: '当前场景的关键指标展示',
+    icon: 'Gauge',
+    category: 'productivity',
+    size: { columns: 2, rows: 1 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'focus-history',
+    title: '专注历史',
+    description: '最近专注会话记录',
+    icon: 'History',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'memory-insights',
+    title: '记忆洞察',
+    description: '近期上下文和记忆事件',
+    icon: 'Brain',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'ai-coach',
+    title: 'AI 教练',
+    description: 'AI 驱动的场景教练和建议',
+    icon: 'Bot',
+    category: 'learning',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'platform-matrix',
+    title: '多端矩阵',
+    description: '多平台支持概览',
+    icon: 'Monitor',
+    category: 'productivity',
+    size: { columns: 2, rows: 1 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'theme-center',
+    title: '主题中心',
+    description: '主题切换、壁纸设置和视觉风格管理',
+    icon: 'Palette',
+    category: 'life',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'statistics',
+    title: '数据统计',
+    description: '任务、专注和连续天数统计',
+    icon: 'PieChart',
+    category: 'productivity',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'cycle-today',
+    title: '今日周期',
+    description: '查看今日周期阶段和能量建议',
+    icon: 'Activity',
+    category: 'health',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
+    id: 'memory-profile',
+    title: '记忆画像',
+    description: '个人记忆画像，MBTI 倾向和学习风格',
+    icon: 'User',
+    category: 'health',
+    size: { columns: 2, rows: 2 },
+    isDefault: true,
+    isCustom: false
+  },
+  {
     id: 'habit-tracker',
     title: '习惯追踪',
     description: '每日习惯打卡和进度追踪',

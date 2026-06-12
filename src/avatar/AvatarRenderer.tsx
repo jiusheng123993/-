@@ -1,5 +1,16 @@
-import { useRef, useEffect, useState } from 'react'
-import type { AvatarDefinition, AvatarRenderMode } from './avatarTypes'
+import { useRef, useEffect, useState, useCallback } from 'react'
+import type { AvatarDefinition, AvatarRenderMode, AnimationState } from './avatarTypes'
+import {
+  createAnimatorState,
+  transitionAnimation,
+  advanceTransition,
+  completeTransition,
+  getAnimationDuration,
+  isAnimationLooping,
+  getCrossfadeAlpha,
+  getActiveAnimationName
+} from './animator'
+import { ThreeDRenderer } from './renderers/ThreeDRenderer'
 
 type AvatarRendererProps = {
   avatar: AvatarDefinition
@@ -10,17 +21,66 @@ type AvatarRendererProps = {
   fallbackMode?: AvatarRenderMode
 }
 
+const ANIMATION_CSS_KEYFRAMES: Record<string, string> = {
+  idle: 'avatar-idle 3s ease-in-out infinite',
+  talking: 'avatar-talking 0.6s ease-in-out infinite',
+  thinking: 'avatar-thinking 2s ease-in-out',
+  encouraging: 'avatar-encouraging 1s ease-out',
+  celebrating: 'avatar-celebrating 1.5s ease-out',
+  waving: 'avatar-waving 0.8s ease-in-out'
+}
+
 export function AvatarRenderer({
   avatar,
   width = 200,
   height = 200,
-  activeAnimation: _activeAnimation,
-  onAnimationEnd: _onAnimationEnd,
+  activeAnimation,
+  onAnimationEnd,
   fallbackMode = '2d_sticker'
 }: AvatarRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [renderError, setRenderError] = useState(false)
   const [currentMode, setCurrentMode] = useState<AvatarRenderMode>(avatar.renderMode)
+  const animatorRef = useRef(createAnimatorState())
+  const animFrameRef = useRef<number>(0)
+  const lastTimeRef = useRef<number>(0)
+  const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearAnimationTimer = useCallback(() => {
+    if (animationTimerRef.current !== null) {
+      clearTimeout(animationTimerRef.current)
+      animationTimerRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      clearAnimationTimer()
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current)
+      }
+    }
+  }, [clearAnimationTimer])
+
+  useEffect(() => {
+    if (!activeAnimation) return
+
+    const target = activeAnimation as AnimationState
+    animatorRef.current = transitionAnimation(animatorRef.current, target)
+
+    const duration = getAnimationDuration(target)
+    const looping = isAnimationLooping(target)
+
+    clearAnimationTimer()
+
+    if (!looping && duration > 0) {
+      animationTimerRef.current = setTimeout(() => {
+        animatorRef.current = completeTransition(animatorRef.current)
+        animatorRef.current = transitionAnimation(animatorRef.current, 'idle')
+        onAnimationEnd?.()
+      }, duration)
+    }
+  }, [activeAnimation, onAnimationEnd, clearAnimationTimer])
 
   useEffect(() => {
     if (renderError && currentMode !== fallbackMode) {
@@ -29,35 +89,41 @@ export function AvatarRenderer({
     }
   }, [renderError, currentMode, fallbackMode])
 
-  useEffect(() => {
-    if (currentMode === '3d_gltf' && canvasRef.current) {
-      try {
-        const canvas = canvasRef.current
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.clearRect(0, 0, width, height)
-          ctx.fillStyle = '#f0f0f0'
-          ctx.fillRect(0, 0, width, height)
-          ctx.fillStyle = '#666'
-          ctx.font = '14px sans-serif'
-          ctx.textAlign = 'center'
-          ctx.fillText('3D渲染区域', width / 2, height / 2 - 10)
-          ctx.fillText(avatar.name, width / 2, height / 2 + 10)
-        }
-      } catch {
-        setRenderError(true)
+  const handle3DError = useCallback((_error: Error) => {
+    setRenderError(true)
+  }, [])
+
+  const getAnimationStyle = (): React.CSSProperties => {
+    const state = animatorRef.current
+    const animName = getActiveAnimationName(state)
+    const keyframe = ANIMATION_CSS_KEYFRAMES[animName]
+
+    if (!keyframe) return {}
+
+    if (state.isTransitioning) {
+      const fromAlpha = getCrossfadeAlpha(state, 'from')
+      return {
+        animation: keyframe,
+        opacity: fromAlpha > 0.5 ? fromAlpha : 1,
+        transition: 'opacity 0.3s ease'
       }
     }
-  }, [currentMode, avatar, width, height])
+
+    return {
+      animation: keyframe,
+      opacity: 1
+    }
+  }
 
   if (currentMode === '3d_gltf' && !renderError) {
     return (
       <div className="avatar-renderer-3d" style={{ width, height }}>
-        <canvas
-          ref={canvasRef}
+        <ThreeDRenderer
+          avatar={avatar}
           width={width}
           height={height}
-          className="avatar-canvas"
+          autoRotate={true}
+          onError={handle3DError}
         />
         <div className="avatar-renderer-label">
           3D · {avatar.name}
@@ -83,7 +149,7 @@ export function AvatarRenderer({
   }
 
   return (
-    <div className="avatar-renderer-sticker" style={{ width, height }}>
+    <div className="avatar-renderer-sticker" style={{ width, height, ...getAnimationStyle() }}>
       {avatar.stickerUrl ? (
         <img
           src={avatar.stickerUrl}

@@ -1,19 +1,28 @@
 import type { Response, NextFunction } from 'express'
 import type { AuthContext, AuthenticatedRequest } from './authTypes'
+import { verifyToken } from './jwtService'
 
-const TOKEN_PATTERN = /^dev-(user|admin):([a-zA-Z0-9_-]{1,64})$/
+const DEV_TOKEN_PATTERN = /^dev-(user|admin):([a-zA-Z0-9_-]{1,64})$/
 
 export function parseBearerToken(header: string | undefined): AuthContext | undefined {
   if (!header || typeof header !== 'string') return undefined
   const [scheme, token] = header.split(' ')
   if (scheme !== 'Bearer' || !token) return undefined
 
-  const match = TOKEN_PATTERN.exec(token)
-  if (!match) return undefined
+  const devMatch = DEV_TOKEN_PATTERN.exec(token)
+  if (devMatch) {
+    return {
+      role: devMatch[1] === 'admin' ? 'admin' : 'user',
+      userId: devMatch[2]
+    }
+  }
+
+  const payload = verifyToken(token)
+  if (!payload) return undefined
 
   return {
-    role: match[1] === 'admin' ? 'admin' : 'user',
-    userId: match[2]
+    role: (payload.role as AuthContext['role']) || 'user',
+    userId: payload.sub
   }
 }
 

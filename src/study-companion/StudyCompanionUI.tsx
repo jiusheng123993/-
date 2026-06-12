@@ -99,6 +99,8 @@ export function StudyCompanionUI({ userId }: StudyCompanionUIProps) {
   }, [messages, streamingContent])
 
   const canUseAI = hasAnyKey && isMember
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false)
+  const [showFallbackNotice, setShowFallbackNotice] = useState(false)
 
   const handleSend = useCallback(async (text: string) => {
     const trimmed = text.trim()
@@ -110,6 +112,8 @@ export function StudyCompanionUI({ userId }: StudyCompanionUIProps) {
     setShowQuickActions(false)
 
     if (!canUseAI) {
+      setShowPermissionBanner(true)
+      setShowFallbackNotice(true)
       const fallbackMsg = addMessage({
         role: 'assistant',
         content: getFallbackResponse(trimmed),
@@ -118,6 +122,9 @@ export function StudyCompanionUI({ userId }: StudyCompanionUIProps) {
       setMessages((prev) => [...prev, fallbackMsg])
       return
     }
+
+    setShowPermissionBanner(false)
+    setShowFallbackNotice(false)
 
     setIsLoading(true)
     setStreamingContent('')
@@ -367,11 +374,61 @@ export function StudyCompanionUI({ userId }: StudyCompanionUIProps) {
       </div>
 
       <div className={styles.inputArea}>
-        {!canUseAI && (
-          <div className={styles.permissionHint}>
-            {!hasAnyKey
-              ? '💡 配置 API Key 后可使用 AI 陪伴功能'
-              : '🔒 AI 陪伴为会员功能，升级后可使用'}
+        {!canUseAI && showPermissionBanner && (
+          <div className={styles.permissionBanner}>
+            <span className={styles.permissionBannerIcon}>
+              {!hasAnyKey ? '🔑' : '🔒'}
+            </span>
+            <span className={styles.permissionBannerText}>
+              {!hasAnyKey
+                ? '尚未配置 AI API Key，小寰无法使用 AI 回复'
+                : 'AI 陪伴是会员专属功能，升级后即可使用'}
+            </span>
+            <span className={styles.permissionBannerSub}>
+              {!hasAnyKey
+                ? '前往设置页面配置讯飞星火或其他 AI 服务商的 API Key'
+                : '当前使用离线模式回复，内容为预设模板'}
+            </span>
+            <div className={styles.permissionBannerActions}>
+              {!hasAnyKey ? (
+                <button
+                  className={styles.permissionBannerBtnPrimary}
+                  onClick={() => {
+                    const event = new CustomEvent('navigate', { detail: { page: 'settings' } })
+                    window.dispatchEvent(event)
+                  }}
+                  type="button"
+                >
+                  前往配置
+                </button>
+              ) : (
+                <>
+                  <button
+                    className={styles.permissionBannerBtnPrimary}
+                    onClick={() => {
+                      const event = new CustomEvent('navigate', { detail: { page: 'membership' } })
+                      window.dispatchEvent(event)
+                    }}
+                    type="button"
+                  >
+                    了解会员
+                  </button>
+                  <button
+                    className={styles.permissionBannerBtn}
+                    onClick={() => setShowPermissionBanner(false)}
+                    type="button"
+                  >
+                    知道了
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+        {!canUseAI && showFallbackNotice && messages.length > 0 && (
+          <div className={styles.fallbackNotice}>
+            <span className={styles.fallbackNoticeIcon}>⚠️</span>
+            <span>当前为离线模式，回复内容为预设模板，非 AI 生成</span>
           </div>
         )}
         <div className={styles.inputRow}>

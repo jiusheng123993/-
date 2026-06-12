@@ -21,11 +21,14 @@
     "server:dev": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.1",
+    "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "latest",
     "express": "^5.2.1",
     "lucide-react": "^1.17.0",
     "react": "latest",
     "react-dom": "latest",
+    "three": "^0.184.0",
     "typescript": "latest",
     "vite": "latest",
     "ws": "^8.21.0"

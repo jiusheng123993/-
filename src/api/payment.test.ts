@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createOrder, getOrder, getUserOrders, refundOrder } from './payment'
-import { defaultDevUserSession } from '../auth/devAuthSession'
+import { devSessionToAuthSession, defaultDevUserSession } from '../auth/devAuthSession'
+
+const defaultAuthSession = devSessionToAuthSession(defaultDevUserSession)
 
 describe('Payment API', () => {
   let mockFetch: ReturnType<typeof vi.fn>
@@ -31,7 +33,7 @@ describe('Payment API', () => {
         userId: 'dev-user-001',
         productId: 'study_monthly',
         channel: 'wechat'
-      }, defaultDevUserSession)
+      }, defaultAuthSession)
 
       expect(result).toEqual(mockResponse)
       expect(mockFetch).toHaveBeenCalledWith(
@@ -56,7 +58,7 @@ describe('Payment API', () => {
         userId: 'dev-user-001',
         productId: 'invalid',
         channel: 'wechat'
-      }, defaultDevUserSession)).rejects.toThrow('Invalid product')
+      }, defaultAuthSession)).rejects.toThrow('Invalid product')
     })
   })
 
@@ -71,7 +73,7 @@ describe('Payment API', () => {
         json: async () => mockOrder
       })
 
-      const result = await getOrder('order-123', defaultDevUserSession)
+      const result = await getOrder('order-123', defaultAuthSession)
       expect(result).toEqual(mockOrder)
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/orders/order-123'),
@@ -87,7 +89,7 @@ describe('Payment API', () => {
         json: async () => ({ error: 'Order not found' })
       })
 
-      await expect(getOrder('invalid', defaultDevUserSession)).rejects.toThrow('Order not found')
+      await expect(getOrder('invalid', defaultAuthSession)).rejects.toThrow('Order not found')
     })
   })
 
@@ -102,7 +104,7 @@ describe('Payment API', () => {
         json: async () => mockOrders
       })
 
-      const result = await getUserOrders('dev-user-001', defaultDevUserSession)
+      const result = await getUserOrders('dev-user-001', defaultAuthSession)
       expect(result).toEqual(mockOrders)
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/orders/user/dev-user-001'),
@@ -118,7 +120,7 @@ describe('Payment API', () => {
         json: async () => ({ error: 'Forbidden' })
       })
 
-      await expect(getUserOrders('dev-user-002', defaultDevUserSession)).rejects.toThrow('Forbidden')
+      await expect(getUserOrders('dev-user-002', defaultAuthSession)).rejects.toThrow('Forbidden')
     })
   })
 
@@ -130,7 +132,7 @@ describe('Payment API', () => {
         json: async () => mockOrder
       })
 
-      const result = await refundOrder('order-123', defaultDevUserSession)
+      const result = await refundOrder('order-123', defaultAuthSession)
 
       expect(result).toEqual(mockOrder)
       expect(mockFetch).toHaveBeenCalledWith(

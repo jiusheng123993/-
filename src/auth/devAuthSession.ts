@@ -1,3 +1,6 @@
+import type { AuthSession, AuthRole, AuthProviderKind } from './authTypes'
+import { AUTH_STORAGE_KEY } from './authTypes'
+
 export type DevAuthRole = 'user' | 'admin'
 
 export interface DevAuthSession {
@@ -67,6 +70,62 @@ export function saveDevAuthSession(session: DevAuthSession, storage: Storage | u
 
 export function createRoleSession(role: DevAuthRole): DevAuthSession {
   return role === 'admin' ? defaultDevAdminSession : defaultDevUserSession
+}
+
+export function devSessionToAuthSession(dev: DevAuthSession): AuthSession {
+  return {
+    userId: dev.userId,
+    role: dev.role as AuthRole,
+    displayName: dev.displayName,
+    provider: 'dev',
+    accessToken: createDevAuthToken(dev),
+    refreshToken: '',
+    expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000
+  }
+}
+
+export function loadAuthSession(): AuthSession {
+  if (typeof window === 'undefined') {
+    return devSessionToAuthSession(defaultDevUserSession)
+  }
+
+  const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as AuthSession
+      if (parsed.userId && parsed.accessToken) {
+        return parsed
+      }
+    } catch {
+      // fall through to dev session
+    }
+  }
+
+  const devSession = loadDevAuthSession()
+  return devSessionToAuthSession(devSession)
+}
+
+export function saveAuthSession(session: AuthSession): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session))
+}
+
+export function clearAuthSession(): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(AUTH_STORAGE_KEY)
+}
+
+export function createAuthHeaders(session: AuthSession): Record<string, string> {
+  if (session.provider === 'dev') {
+    return createDevAuthHeaders({
+      userId: session.userId,
+      role: session.role as DevAuthRole,
+      displayName: session.displayName
+    })
+  }
+  return {
+    Authorization: `Bearer ${session.accessToken}`
+  }
 }
 
 function getBrowserStorage(): Storage | undefined {

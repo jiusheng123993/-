@@ -16,15 +16,16 @@ interface SidebarProps {
   onOpenPersonaSelector: () => void
   onOpenRelationshipSpace: () => void
   onOpenAgentChat: () => void
-  onSwitchDevAuthRole: () => void
+  onSwitchRole: () => void
   onOpenDataBackup: () => void
+  onOpenApiKeySettings: () => void
   onOpenTemplate: () => void
   onOpenReviewScheduler: () => void
   onOpenKnowledgeGraph: () => void
   onOpenSchedule: () => void
   onOpenBacklink: () => void
   onOpenFocusMode: () => void
-  devAuthLabel: string
+  authLabel: string
   currentThemeName: string
   membershipTier: string
   aiQuota: number
@@ -46,15 +47,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenPersonaSelector,
   onOpenRelationshipSpace,
   onOpenAgentChat,
-  onSwitchDevAuthRole,
+  onSwitchRole,
   onOpenDataBackup,
+  onOpenApiKeySettings,
   onOpenTemplate,
   onOpenReviewScheduler,
   onOpenKnowledgeGraph,
   onOpenSchedule,
   onOpenBacklink,
   onOpenFocusMode,
-  devAuthLabel,
+  authLabel,
   currentThemeName,
   membershipTier,
   aiQuota,
@@ -286,6 +288,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span>数据管理</span>
               </button>
               <button
+                onClick={onOpenApiKeySettings}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)',
+                  cursor: 'pointer',
+                  marginBottom: '8px'
+                }}
+              >
+                <span>🔑</span>
+                <span>AI 服务配置</span>
+              </button>
+              <button
                 onClick={onOpenIdentitySelector}
                 style={{
                   display: 'flex',
@@ -305,7 +326,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span>创建身份</span>
               </button>
               <button
-                onClick={onSwitchDevAuthRole}
+                onClick={onSwitchRole}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -320,7 +341,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
               >
                 <span>🔑</span>
-                <span>{devAuthLabel}</span>
+                <span>{authLabel}</span>
               </button>
             </div>
           )}

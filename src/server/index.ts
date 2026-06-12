@@ -3,13 +3,14 @@ import { createServer } from 'http'
 import { WebSocketServer } from 'ws'
 import { createOrdersRouter } from './routes/orders'
 import { createPaymentRouter } from './routes/payment'
+import { createAuthRouter } from './auth/authRoutes'
 import { addClient, removeClient } from './websocket'
 
 /**
- * Express Server - 支付与订单后端服务
+ * Express Server - 星寰海后端服务
  *
  * 职责：
- * - 提供 RESTful API（订单、支付回调）
+ * - 提供 RESTful API（认证、订单、支付回调）
  * - 提供 WebSocket 实时推送（支付状态通知）
  * - 全局 CORS 跨域支持（白名单）
  * - 全局异常处理与请求体大小限制
@@ -45,6 +46,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next()
 })
 
+app.use('/api/auth', createAuthRouter())
 app.use('/api/orders', createOrdersRouter())
 app.use('/api/payment', createPaymentRouter())
 
@@ -130,6 +132,13 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`📡 WebSocket available at ws://localhost:${PORT}/ws/payment`)
     console.log(`🔗 API endpoints:`)
     console.log(`   - GET  /health`)
+    console.log(`   - POST /api/auth/register`)
+    console.log(`   - POST /api/auth/login`)
+    console.log(`   - POST /api/auth/refresh`)
+    console.log(`   - POST /api/auth/logout`)
+    console.log(`   - GET  /api/auth/session`)
+    console.log(`   - POST /api/auth/bind-device`)
+    console.log(`   - GET  /api/auth/devices`)
     console.log(`   - POST /api/orders`)
     console.log(`   - GET  /api/orders/:id`)
     console.log(`   - GET  /api/orders/user/:userId`)

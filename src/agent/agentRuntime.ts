@@ -384,7 +384,66 @@ async function fetchChatCompletionStream(
   }
 }
 
+export function getActiveApiConfig(): { endpoint: string; apiKey: string; model: string; providerId: string } {
+  const xfyunKey = localStorage.getItem('xfyun_coding_api_key') || import.meta.env.VITE_XFYUN_API_KEY || ''
+  if (xfyunKey) {
+    return {
+      endpoint: import.meta.env.VITE_XFYUN_ENDPOINT || '/api/xfyun',
+      apiKey: xfyunKey,
+      model: localStorage.getItem('xfyun_coding_model') || 'astron-code-latest',
+      providerId: 'xfyun'
+    }
+  }
+
+  const deepseekKey = localStorage.getItem('deepseek_api_key') || ''
+  if (deepseekKey) {
+    return {
+      endpoint: import.meta.env.VITE_DEEPSEEK_ENDPOINT || '/api/deepseek',
+      apiKey: deepseekKey,
+      model: 'deepseek-chat',
+      providerId: 'deepseek'
+    }
+  }
+
+  const openaiKey = localStorage.getItem('openai_api_key') || ''
+  if (openaiKey) {
+    return {
+      endpoint: import.meta.env.VITE_OPENAI_ENDPOINT || '/api/openai',
+      apiKey: openaiKey,
+      model: 'gpt-4o-mini',
+      providerId: 'openai'
+    }
+  }
+
+  const tongyiKey = localStorage.getItem('tongyi_api_key') || ''
+  if (tongyiKey) {
+    return {
+      endpoint: import.meta.env.VITE_TONGYI_ENDPOINT || '/api/tongyi',
+      apiKey: tongyiKey,
+      model: 'qwen-turbo',
+      providerId: 'tongyi'
+    }
+  }
+
+  const doubaoKey = localStorage.getItem('doubao_api_key') || ''
+  if (doubaoKey) {
+    return {
+      endpoint: import.meta.env.VITE_DOUBAO_ENDPOINT || '/api/doubao',
+      apiKey: doubaoKey,
+      model: 'doubao-pro-32k',
+      providerId: 'doubao'
+    }
+  }
+
+  return { endpoint: '', apiKey: '', model: '', providerId: '' }
+}
+
 function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: string; model: string } {
+  const active = getActiveApiConfig()
+  if (active.apiKey) {
+    return { endpoint: active.endpoint, apiKey: active.apiKey, model: active.model }
+  }
+
   const configs: Record<AiProviderId, { endpoint: string; apiKey: string; model: string }> = {
     deepseek: {
       endpoint: import.meta.env.VITE_DEEPSEEK_ENDPOINT || '/api/deepseek',
@@ -412,7 +471,7 @@ function getApiConfig(providerId: AiProviderId): { endpoint: string; apiKey: str
       model: ''
     }
   }
-  
+
   return configs[providerId] ?? configs.deepseek
 }
 

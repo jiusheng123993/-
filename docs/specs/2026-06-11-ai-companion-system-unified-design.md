@@ -673,6 +673,55 @@ interface CommunityPersonaService {
 
 **处罚阶梯：** 审核员判定违规 → Persona 下架 + 通知创作者 → 累计 3 次封创作者权限。
 
+### 4.9 两套 Persona 体系说明
+
+> 本节说明代码库中实际存在的两套 Persona 相关体系及其关系。
+
+#### 4.9.1 陪伴人格 Persona（本文档定义）
+
+本文档 §四 定义的 **6 个陪伴人格** 是真正的 Persona 体系，决定 AI "以什么性格陪伴你"：
+
+| ID | 称谓 | 语气 |
+|------|------|------|
+| `senior_buddy` | 学长/学姐 | 专业不腻人 |
+| `gentle_sister` | 温柔姐姐 | 治愈/共情 |
+| `strict_coach` | 严格教练 | 直接/高压 |
+| `wise_elder` | 智者长者 | 深度/反思 |
+| `energetic_pal` | 元气玩伴 | 高能/欢乐 |
+| `pro_secretary` | 专业秘书 | 高效/精准 |
+
+#### 4.9.2 场景身份 Scenario（代码实现）
+
+代码中 `src/personas/personaRegistry.ts` 实际定义的是 **8 个场景身份**，决定 "用户在什么场景下使用系统"：
+
+| ID | 名称 | AI 角色 |
+|------|------|------|
+| `exam-student` | 学生备考 | AI 备考教练 |
+| `office-worker` | 职场办公 | AI 项目助理 |
+| `creator` | 内容创作 | AI 选题策划 |
+| `self-growth` | 自律成长 | AI 成长陪伴 |
+| `grad-exam` | 考研冲刺 | AI 考研导师 |
+| `civil-service` | 考公备战 | AI 考公教练 |
+| `cert-exam` | 考证达人 | AI 考证顾问 |
+| `english-cet` | 四六级备考 | AI 英语教练 |
+
+#### 4.9.3 两套体系的关系
+
+两套体系是**正交互补**关系，不是替代关系：
+
+```
+用户 = 场景身份（Scenario） × 陪伴人格（Persona）
+```
+
+例如：一个考研学生可以选择「考研冲刺」场景 + 「严格教练」人格，也可以选择「考研冲刺」场景 + 「温柔姐姐」人格。
+
+#### 4.9.4 统一方案
+
+- **保留两套体系**，各自独立发展
+- 代码中的 `personaRegistry.ts` 后续应重命名为 `scenarioRegistry.ts`，类型 `PersonaId` 重命名为 `ScenarioId`
+- 设计文档的 6 个陪伴人格作为真正的 Persona 体系，按 CP1-CP17 模块规划逐步实现
+- 场景选择器和人格选择器各自独立，用户可自由组合
+
 ---
 
 ## 五、角色建模子系统（Avatar）
@@ -1294,32 +1343,117 @@ type AiTaskKind =
 
 ## 十二、当前实现状态
 
-### 12.1 已完成
+> 最后更新：2026-06-12，基于代码库深度审计。
 
-| 功能 | 状态 | 说明 |
-|---|---|---|
-| AI 对话聊天 | ✅ 已完成 | `src/study-companion/`，流式响应，多 Provider 支持 |
-| 6 个快速入口 | ✅ 已完成 | 考前焦虑/学习复盘/需要鼓励/呼吸放松/正念练习/找回动力 |
-| 4-7-8 呼吸法引导 | ✅ 已完成 | 带动画圆圈，4 轮循环 |
-| 情绪日记 | ✅ 已完成 | `src/mood-journal/`，记录/趋势/标签/预警 |
-| 情绪日记 AI 接口 | ✅ 已完成 | getMoodStats/getRecentMoods/getMoodTrend/getMoodInsights |
-| 基础 Persona 框架 | ⚠️ 部分完成 | `src/personas/` 有基础注册表和模板 |
-| 基础记忆框架 | ⚠️ 部分完成 | 有基础画像存储和行为观察 |
+### 12.1 已完成模块（45/56+）
 
-### 12.2 待实现
+#### 备考工具（7/7 ✅）
+| 模块 | 路径 | 测试 |
+|------|------|------|
+| 错题本（ErrorBook） | `src/error-book/` | ✅ |
+| 记忆卡（MemoryCards） | `src/memory-cards/` | ✅ |
+| 考试记录（ExamTracker） | `src/exam-tracker/` | ✅ |
+| 学习计划（StudyPlanner） | `src/study-planner/` | ✅ |
+| 专注计时（FocusTimer） | `src/focus-timer/` | ✅ |
+| 备考陪伴（StudyCompanion） | `src/study-companion/` | ✅ |
+| 情绪日记（MoodJournal） | `src/mood-journal/` | ✅ |
 
-| 功能 | 状态 | 优先级 |
-|---|---|---|
-| 完整记忆系统（M1-M6） | ❌ 未实现 | P0 |
-| 自我进化机制（M7-M9） | ❌ 未实现 | P1 |
-| 完整 Persona 系统（CP1-CP17） | ❌ 未实现 | P0 |
-| 角色建模系统（M13-M18） | ❌ 未实现 | P1 |
-| 3D 角色生成 | ❌ 未实现 | P2 |
-| 数据感知与主动关怀 | ❌ 未实现 | P1 |
-| 静默建议系统 | ❌ 未实现 | P2 |
-| 云同步 | ❌ 未实现 | P3 |
-| Persona 社区 | ❌ 未实现 | P2 |
-| 实人搭子匹配 | ❌ 未实现 | 远期 |
+#### 记忆系统 M1-M6（6/6 ✅）
+| 模块 | 路径 | 测试 |
+|------|------|------|
+| M1 记忆事件 | `src/memory/memoryEvents.ts` | ✅ |
+| M2 记忆观察者 | `src/memory/memoryObserver.ts` | ✅ |
+| M3 记忆存储 | `src/memory/memoryStore.ts` | ✅ |
+| M4 记忆档案 | `src/memory/memoryProfile.ts` | ✅ |
+| M5 记忆摘要器 | `src/memory/memorySummarizer.ts` | ✅ |
+| M6 记忆注入器 | `src/memory/memoryInjector.ts` | ✅ |
+
+#### 自我进化 M7-M9（3/3 ✅）
+| 模块 | 路径 | 测试 |
+|------|------|------|
+| M7 反思引擎 | `src/agent/evolution/reflectionEngine.ts` | ✅ |
+| M8 进化存储 | `src/agent/evolution/evolutionStorage.ts` | ✅ |
+| M9 进化仪式 | `src/agent/evolution/EvolutionRitualUI.tsx` | ✅ |
+
+#### Agent Runtime M10-M12（3/3 ✅）
+| 模块 | 路径 | 测试 |
+|------|------|------|
+| M10 Agent 运行时 | `src/agent/agentRuntime.ts` | ✅ |
+| M11 Agent 聊天 UI | `src/agent/AgentChatUI.tsx` | ✅ |
+| M12 静默建议 | `src/agent/SilentSuggestionUI.tsx` | ✅ |
+
+#### 角色建模 M13-M18（6/6 ✅）
+| 模块 | 路径 | 测试 | 状态 |
+|------|------|------|------|
+| M13 AvatarRegistry | `src/avatar/avatarRegistry.ts` | ✅ | ✅ 已完成 |
+| M14 AvatarRenderer | `src/avatar/AvatarRenderer.tsx` | ✅ | ✅ 已完成（Three.js 3D渲染+Live2D+2D贴纸） |
+| M15 AvatarAnimator | `src/avatar/animator.ts` | ✅ | ✅ 已完成 |
+| M16 AvatarGenerator | `src/avatar/avatarGenerator.ts` | ✅ | ✅ 已完成 |
+| M17 AvatarCustomizer | `src/avatar/AvatarCustomizer.tsx` | ✅ | ✅ 已完成 |
+| M18 EvolutionEngine | `src/avatar/evolutionEngine.ts` | ✅ | ✅ 已完成 |
+
+#### Persona CP1-CP17（12/17 ⚠️）
+| 模块 | 路径 | 测试 | 状态 |
+|------|------|------|------|
+| CP1 PersonaRegistry | `src/personas/personaRegistry.ts` | ✅ | ✅ 已完成 |
+| CP2 PersonaTemplates | `src/personas/personaTemplates.ts` | ✅ | ✅ 已完成 |
+| CP3 PersonaScheduler | `src/personas/personaScheduler.ts` | ✅ | ✅ 已完成 |
+| CP4 PersonaSelectorUI | `src/personas/PersonaSelectorUI.tsx` | ✅ | ✅ 已完成 |
+| CP5 CustomPersonaService | `src/personas/customPersona.ts` | ✅ | ⚠️ 部分完成（审核集成未完成） |
+| CP6 PersonaSafetyGate | `src/personas/personaSafetyGate.ts` | ✅ | ✅ 已完成 |
+| CP7 PersonaAvatarGen | — | — | ❌ 未实现 |
+| CP8 CommunityPersonaService | — | — | ❌ 未实现 |
+| CP9 SafetyIncidentLog | `src/personas/safetyIncidentLog.ts` | ✅ | ✅ 已完成 |
+| CP10 CameoTriggerEngine | `src/personas/cameoTriggerEngine.ts` | ✅ | ✅ 已完成 |
+| CP11 PersonaSwitcher | `src/personas/PersonaSwitcher.tsx` | ✅ | ✅ 已完成 |
+| CP12 RelationshipHealthMonitor | `src/personas/relationshipHealthMonitor.ts` | ✅ | ✅ 已完成 |
+| CP13 PersonaScheduleStore | `src/personas/personaScheduleStore.ts` | ✅ | ✅ 已完成 |
+| CP14 CustomPersonaEditorUI | — | — | ❌ 未实现 |
+| CP15 CameoStorefrontUI | — | — | ❌ 未实现 |
+| CP16 CommunityPersonaUI | — | — | ❌ 未实现 |
+| CP17 ReflectionTierIntegration | `src/personas/ReflectionTierIntegration.tsx` | ✅ | ✅ 已完成 |
+
+#### 扩展功能 Phase3（3/4 ⚠️）
+| 模块 | 路径 | 测试 | 状态 |
+|------|------|------|------|
+| 关系空间 | `src/relationship/` | ✅ | ✅ 已完成 |
+| 女性周期 | `src/cycle/` | ✅ | ✅ 已完成 |
+| 壁纸系统 | `src/wallpaper/` | ✅ | ✅ 已完成 |
+| 3D 角色生成 | — | — | ❌ 未实现 |
+
+#### 基础设施（8/10+ ⚠️）
+| 模块 | 路径 | 测试 | 状态 |
+|------|------|------|------|
+| 权益服务 | `src/entitlement/` | ✅ | ✅ 已完成 |
+| 支付适配器 | `src/entitlement/paymentAdapters.ts` | ✅ | ✅ 已完成 |
+| 订单服务 | `src/entitlement/orderService.ts` | ✅ | ✅ 已完成 |
+| 产品目录 | `src/entitlement/productCatalog.ts` | ✅ | ✅ 已完成 |
+| 徽章系统 | `src/badges/` | ✅ | ✅ 已完成 |
+| 身份系统 | `src/identity/` | ✅ | ✅ 已完成 |
+| 知识图谱 | `src/knowledge-graph/` | — | ✅ 已完成 |
+| 模块商店 | `src/module-store/` | ✅ | ✅ 已完成 |
+| 侧边栏面板 | `src/sidebar-panel/` | ✅ | ✅ 已完成 |
+| 专注模式 | `src/focus-mode/` | — | ✅ 已完成 |
+| 年龄门控 | `src/auth/` | ✅ | ✅ 已完成 |
+| 云同步 | `src/memory/sync/cloudSyncAdapter.ts` | ✅ | ⚠️ 部分完成（适配器已实现，服务端未完成） |
+
+### 12.2 待实现模块（5个）
+
+| 模块 | 设计编号 | 优先级 | 说明 |
+|------|----------|--------|------|
+| PersonaAvatarGen AI头像生成 | CP7 | P2 | AI生成Persona专属头像 |
+| CommunityPersonaService 社区服务 | CP8 | P2 | 分享/浏览/搜索/导入/举报 |
+| CustomPersonaEditorUI 自定义编辑器 | CP14 | P2 | 3步创建流程 |
+| CommunityPersonaUI 社区前台 | CP16 | P2 | 热门排行/分类浏览/搜索 |
+| CameoStorefrontUI 客串商店 | CP15 | P2 | 客串列表/购买/管理 |
+
+### 12.3 部分完成模块（3个）
+
+| 模块 | 设计编号 | 缺失内容 |
+|------|----------|----------|
+| CustomPersonaService 审核集成 | CP5 | 审核流程未完整集成 |
+| 云同步服务端 | — | 适配器已实现，服务端WebSocket/数据库未完成 |
+| 用户认证系统 | — | 年龄门控已实现，完整注册/登录/Token管理未完成 |
 
 ---
 
@@ -2682,6 +2816,121 @@ src/
 6. 布局管理（保存/分享/导入）
 7. AI 助手集成
 8. 动画优化
+
+---
+
+## 十七-A、已实现模块补充设计
+
+> 本节为代码库中已实现但设计文档未覆盖的模块补充基本设计说明。
+> 最后更新：2026-06-12
+
+### 17A.1 知识图谱（Knowledge Graph）
+
+**路径：** `src/knowledge-graph/`
+
+**功能概述：**
+- 可视化展示知识点之间的关联关系
+- 支持节点拖拽、缩放、连线查看
+- 基于用户学习数据自动构建知识网络
+
+**核心文件：**
+| 文件 | 职责 |
+|------|------|
+| `KnowledgeGraphUI.tsx` | 知识图谱可视化组件 |
+| `knowledgeGraphService.ts` | 图谱数据服务 |
+| `knowledgeGraph.css` | 样式 |
+
+**数据流：** 各备考模块（错题本、记忆卡、考试记录）→ 知识图谱服务 → 可视化渲染
+
+**当前状态：** ✅ 已完成，无测试文件（待补充）
+
+---
+
+### 17A.2 徽章系统（Badges）
+
+**路径：** `src/badges/`
+
+**功能概述：**
+- 基于用户行为自动发放成就徽章
+- 支持多种徽章类型（连续打卡、任务完成、里程碑等）
+- 徽章展示与收集进度
+
+**核心文件：**
+| 文件 | 职责 |
+|------|------|
+| `badgeEngine.ts` | 徽章触发引擎，定义徽章条件和发放逻辑 |
+| `BadgeDisplay.tsx` | 徽章展示组件 |
+| `badgeTypes.ts` | 徽章类型定义 |
+| `badges.css` | 样式 |
+
+**徽章类型示例：**
+- 连续打卡徽章（7天/30天/100天）
+- 任务完成徽章（10个/50个/100个）
+- 专注时长徽章（10h/50h/100h）
+- 里程碑徽章（首次使用/周年纪念）
+
+**当前状态：** ✅ 已完成，有测试覆盖
+
+---
+
+### 17A.3 专注模式（Focus Mode）
+
+**路径：** `src/focus-mode/`
+
+**功能概述：**
+- 全屏沉浸式专注环境
+- 支持多种背景主题（森林、海洋、星空等）
+- 白噪音/环境音播放
+- 专注树动画（专注时长越长树越茂盛）
+
+**核心文件：**
+| 文件 | 职责 |
+|------|------|
+| `FocusModeUI.tsx` | 专注模式主界面 |
+| `focusModeService.ts` | 专注模式服务 |
+| `audioManager.ts` | 音频管理器 |
+| `audioOptions.ts` | 音频选项配置 |
+| `backgroundThemes.ts` | 背景主题配置 |
+| `treeAnimation.ts` | 专注树动画 |
+| `types.ts` | 类型定义 |
+
+**与 FocusTimer 的关系：**
+- `focus-mode/`：全屏沉浸式专注体验（背景、音频、动画）
+- `focus-timer/`：番茄钟计时器 + 数据统计看板
+- 两者数据互通，共享 `xinghuanhai-focus-records` 存储
+
+**当前状态：** ✅ 已完成，无测试文件（待补充）
+
+---
+
+### 17A.4 侧边栏面板（Sidebar Panel）
+
+**路径：** `src/sidebar-panel/`
+
+**功能概述：**
+- 右侧可展开面板，展示辅助信息模块
+- 支持模块添加/移除/排序
+- 与主画布独立，不干扰主工作区
+
+**子模块列表：**
+| 模块 | 文件 | 功能 |
+|------|------|------|
+| 每日脉搏 | `DailyPulse.tsx` | 今日学习/工作数据摘要 |
+| 每日一言 | `DailyQuote.tsx` | 励志/治愈语录 |
+| 专注仪表 | `FocusDashboard.tsx` | 番茄钟 + 专注数据看板 |
+| 习惯追踪 | `HabitsModule.tsx` | 习惯打卡快捷入口 |
+| 快速笔记 | `QuickNotesModule.tsx` | 快速记录想法 |
+| 日程概览 | `ScheduleModule.tsx` | 今日日程摘要 |
+
+**核心文件：**
+| 文件 | 职责 |
+|------|------|
+| `SidebarPanel.tsx` | 面板主组件 |
+| `SidebarPanelModuleRenderer.tsx` | 模块渲染器 |
+| `sidebarPanelStore.ts` | 面板状态管理 |
+| `types.ts` | 类型定义 |
+
+**当前状态：** ✅ 已完成，有测试覆盖
 
 ---
 

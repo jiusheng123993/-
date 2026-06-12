@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { StudyCompanionUI } from './StudyCompanionUI'
 
 function clearStorage() {
@@ -70,9 +71,13 @@ describe('StudyCompanionUI', () => {
     expect(screen.getByText(/我能感受到你的焦虑/)).toBeTruthy()
   })
 
-  it('shows permission hint when no API key', () => {
+  it('shows permission hint when no API key', async () => {
+    const user = userEvent.setup()
     render(<StudyCompanionUI />)
-    expect(screen.getByText(/配置 API Key 后可使用 AI 陪伴功能/)).toBeTruthy()
+    const input = screen.getByPlaceholderText('和小寰说说你的心情...')
+    await user.type(input, '你好')
+    await user.click(screen.getByRole('button', { name: '发送' }))
+    expect(screen.getByText(/尚未配置 AI API Key/)).toBeTruthy()
   })
 
   it('renders check-in button when not checked in today', () => {

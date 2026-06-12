@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
+import { getActiveApiConfig } from './agentRuntime'
 
 export interface SilentSuggestion {
   id: string
@@ -157,7 +158,8 @@ export function useSilentSuggestions(profile?: MemoryProfile, memoryEvents?: Mem
     if (!profile && (!memoryEvents || memoryEvents.length === 0)) return
     
     try {
-      const apiKey = localStorage.getItem('deepseek_api_key') || ''
+      const config = getActiveApiConfig()
+      const apiKey = config.apiKey
       if (!apiKey) return
 
       const nickname = profile?.identity?.nickname || '用户'
@@ -171,21 +173,21 @@ export function useSilentSuggestions(profile?: MemoryProfile, memoryEvents?: Mem
       }).join('\n')
 
       const prompt = `你是一个个人成长工作台的智能建议引擎。请基于以下用户信息，生成1-2条个性化建议。
-
+	
 用户昵称：${nickname}
 主要目标：${primaryGoal}
 动力水平：${motivationLevel}
-
+	
 近期活动：
 ${eventLines || '暂无活动记录'}
-
+	
 请输出JSON格式的建议列表：
 [{"message": "建议内容（30字以内，温暖鼓励的语气）", "priority": "high/medium/low"}]
-
+	
 只输出JSON数组，不要其他内容。`
 
       const isDev = import.meta.env.DEV
-      const endpoint = isDev ? '/api/deepseek' : 'https://api.deepseek.com/v1/chat/completions'
+      const endpoint = isDev ? config.endpoint : config.endpoint
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -194,7 +196,7 @@ ${eventLines || '暂无活动记录'}
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model: config.model,
           messages: [
             { role: 'system', content: '你是一个个人成长工作台的智能建议引擎。只输出JSON格式。' },
             { role: 'user', content: prompt }

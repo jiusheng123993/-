@@ -1,12 +1,12 @@
 import type { CreateOrderRequest, CreateOrderResponse, OrderDetailResponse } from '../server/types'
-import { createDevAuthHeaders, type DevAuthSession } from '../auth/devAuthSession'
+import { createAuthHeaders, type AuthSession } from '../auth/devAuthSession'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
-function createJsonHeaders(authSession: DevAuthSession): Record<string, string> {
+function createJsonHeaders(authSession: AuthSession): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    ...createDevAuthHeaders(authSession)
+    ...createAuthHeaders(authSession)
   }
 }
 
@@ -17,7 +17,7 @@ async function readError(response: Response, fallback: string): Promise<string> 
 
 export async function createOrder(
   request: CreateOrderRequest,
-  authSession: DevAuthSession
+  authSession: AuthSession
 ): Promise<CreateOrderResponse> {
   const response = await fetch(`${API_BASE}/api/orders`, {
     method: 'POST',
@@ -34,10 +34,10 @@ export async function createOrder(
 
 export async function getOrder(
   orderId: string,
-  authSession: DevAuthSession
+  authSession: AuthSession
 ): Promise<OrderDetailResponse> {
   const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
-    headers: createDevAuthHeaders(authSession)
+    headers: createAuthHeaders(authSession)
   })
   if (!response.ok) {
     throw new Error(await readError(response, 'Failed to get order'))
@@ -47,10 +47,10 @@ export async function getOrder(
 
 export async function getUserOrders(
   userId: string,
-  authSession: DevAuthSession
+  authSession: AuthSession
 ): Promise<OrderDetailResponse[]> {
   const response = await fetch(`${API_BASE}/api/orders/user/${userId}`, {
-    headers: createDevAuthHeaders(authSession)
+    headers: createAuthHeaders(authSession)
   })
   if (!response.ok) {
     throw new Error(await readError(response, 'Failed to get orders'))
@@ -60,7 +60,7 @@ export async function getUserOrders(
 
 export async function refundOrder(
   orderId: string,
-  authSession: DevAuthSession
+  authSession: AuthSession
 ): Promise<OrderDetailResponse> {
   const response = await fetch(`${API_BASE}/api/orders/${orderId}/refund`, {
     method: 'POST',

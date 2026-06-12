@@ -26,7 +26,7 @@ export type CustomPersonaInput = {
 
 const STORAGE_KEY = 'growth-workbench-custom-personas'
 
-export const createCustomPersonaId = (): CustomPersonaId => `custom-${Date.now()}`
+export const createCustomPersonaId = (): CustomPersonaId => `custom-${crypto.randomUUID()}`
 
 export const createCustomPersona = (input: CustomPersonaInput): CustomPersona => ({
   ...input,

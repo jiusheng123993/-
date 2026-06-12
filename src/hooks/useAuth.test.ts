@@ -9,10 +9,14 @@ describe('useAuth', () => {
   })
 
   it('loads session from localStorage on mount', () => {
-    localStorage.setItem('dev-auth-session', JSON.stringify({
+    localStorage.setItem('growthos-auth-session', JSON.stringify({
       userId: 'dev-user-001',
       role: 'user',
-      displayName: '开发用户'
+      displayName: '开发用户',
+      provider: 'dev',
+      accessToken: 'dev-user:dev-user-001',
+      refreshToken: '',
+      expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000
     }))
 
     const { result } = renderHook(() => useAuth())
@@ -31,14 +35,15 @@ describe('useAuth', () => {
     expect(result.current.role).toBe('admin')
   })
 
-  it('sets user_id in localStorage when session changes', () => {
+  it('switches role and updates session', () => {
     const { result } = renderHook(() => useAuth())
 
     act(() => {
       result.current.switchRole()
     })
 
-    expect(localStorage.getItem('user_id')).toBe(result.current.userId)
+    expect(result.current.role).toBe('admin')
+    expect(result.current.userId).toBe('dev-admin-001')
   })
 
   it('switches role from user to admin', () => {

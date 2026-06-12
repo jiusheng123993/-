@@ -8,6 +8,7 @@ import type {
   ProfileChangeProposal,
   ReflectionTriggerType,
 } from './reflectionEngineTypes'
+import { getActiveApiConfig } from '../agentRuntime'
 import { EvolutionEntry } from './evolutionRitualTypes'
 
 const DEFAULT_TRIGGERS: ReflectionTrigger[] = [
@@ -248,15 +249,15 @@ function parseReflectionResponse(responseText: string): SummarizeResult {
 }
 
 async function callAiForReflection(prompt: string): Promise<string> {
-  const providerId = 'deepseek'
-  const apiKey = localStorage.getItem('deepseek_api_key') || ''
-  
+  const config = getActiveApiConfig()
+  const apiKey = config.apiKey
+
   if (!apiKey) {
     throw new Error('AI API key not configured')
   }
 
   const isDev = import.meta.env.DEV
-  const endpoint = isDev ? '/api/deepseek' : 'https://api.deepseek.com/v1/chat/completions'
+  const endpoint = isDev ? config.endpoint : config.endpoint
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -265,7 +266,7 @@ async function callAiForReflection(prompt: string): Promise<string> {
       'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: 'deepseek-chat',
+      model: config.model,
       messages: [
         { role: 'system', content: '你是一个个人成长工作台的反思引擎。你只输出 JSON 格式的分析结果。' },
         { role: 'user', content: prompt }

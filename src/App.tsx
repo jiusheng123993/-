@@ -45,6 +45,10 @@ import { WallpaperPicker } from './wallpaper/WallpaperPicker'
 import { deriveWallpaperFromTheme } from './wallpaper/wallpaperConfig'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
 import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
+import { useAuth } from './hooks/useAuth'
+import { LoginPage } from './auth/LoginPage'
+import { RegisterPage } from './auth/RegisterPage'
+import type { AuthSession } from './auth/authTypes'
 import { SpaceList, SpaceDetail, RelationshipSpaceProvider } from './relationship'
 import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
@@ -77,6 +81,7 @@ import {
 import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import { CycleTracker } from './cycle'
 import { DataBackupUI } from './data/DataBackupUI'
+import { ApiKeySettingsUI } from './settings/ApiKeySettingsUI'
 import { SyncUI } from './data/SyncUI'
 import { AvatarManager } from './avatar'
 import { HabitTracker } from './habits/HabitTrackerUI'
@@ -121,6 +126,37 @@ const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
 const orderService = createOrderService()
 const notificationService = createNotificationService()
+
+if (import.meta.env.DEV) {
+  const devUserId = 'dev-user-001'
+  const devAdminId = 'dev-admin-001'
+  const devEntitlements: Array<{ code: string; source: string; expireAt: null; remaining?: number }> = [
+    { code: 'agent_plus', source: 'early_bird_gift', expireAt: null },
+    { code: 'agent', source: 'early_bird_gift', expireAt: null },
+    { code: 'study', source: 'early_bird_gift', expireAt: null },
+    { code: 'avatar_rpm', source: 'early_bird_gift', expireAt: null },
+    { code: 'avatar_ai_gen', source: 'early_bird_gift', expireAt: null, remaining: 999 },
+    { code: 'memory_sync', source: 'early_bird_gift', expireAt: null },
+    { code: 'evolution_ritual', source: 'early_bird_gift', expireAt: null },
+    { code: 'evolution_realtime', source: 'early_bird_gift', expireAt: null },
+    { code: 'avatar_evolution', source: 'early_bird_gift', expireAt: null },
+    { code: 'agent_tool_call', source: 'early_bird_gift', expireAt: null },
+    { code: 'ai_quota', source: 'early_bird_gift', expireAt: null, remaining: 9999 },
+    { code: 'persona_cameo', source: 'early_bird_gift', expireAt: null },
+    { code: 'persona_custom_slot', source: 'early_bird_gift', expireAt: null },
+    { code: 'persona_avatar_ai_gen', source: 'early_bird_gift', expireAt: null, remaining: 999 },
+    { code: 'reflection_realtime', source: 'early_bird_gift', expireAt: null },
+    { code: 'reflection_weekly', source: 'early_bird_gift', expireAt: null },
+    { code: 'reflection_teaser', source: 'early_bird_gift', expireAt: null },
+    { code: 'space', source: 'early_bird_gift', expireAt: null },
+    { code: 'org', source: 'early_bird_gift', expireAt: null }
+  ]
+  for (const userId of [devUserId, devAdminId]) {
+    for (const e of devEntitlements) {
+      entitlementService.grant(userId, e as Parameters<typeof entitlementService.grant>[1])
+    }
+  }
+}
 
 const defaultMiniProgramModules = getDefaultMiniProgramModules()
 
@@ -208,32 +244,15 @@ const defaultWorkbenchModuleIds = [
   'memory-insights',
   'ai-coach',
   'platform-matrix',
-  'mini-program-preview',
   'theme-center',
   'statistics',
   'cycle-today',
   'memory-profile',
-  'badge-display',
   'habit-tracker',
   'journal',
-  'goal-tracker',
-  'study-dashboard',
-  'creator-workbench',
-  'finance-tracker',
   'reading-list',
-  'project-manager',
-  'wellness-life',
-  'quick-notes',
-  'report-center',
-  'global-search',
-  'mood-tracker',
-  'time-block',
-  'focus-stats',
-  'focus-history',
-  'quote-collection',
-  'english-learning',
-  'watch-list',
-  'template-center'
+  'error-book',
+  'memory-cards'
 ]
 
 const createDefaultWorkbenchState = () =>
@@ -389,7 +408,23 @@ export default function App() {
   const activeFocusTask =
     candidateFocusTask && candidateFocusTask.status === 'todo' ? candidateFocusTask : null
   const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
-  const [authSession, setAuthSession] = useState<DevAuthSession>(() => loadDevAuthSession())
+  const {
+    session,
+    login,
+    register,
+    logout,
+    switchRole,
+    isLoggingIn,
+    loginError,
+    userId,
+    role,
+    displayName,
+    provider,
+    isRealAuth,
+    isAuthenticated
+  } = useAuth()
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isMembershipOpen, setIsMembershipOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -401,6 +436,7 @@ export default function App() {
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
   const [isDataBackupOpen, setIsDataBackupOpen] = useState(false)
+  const [isApiKeySettingsOpen, setIsApiKeySettingsOpen] = useState(false)
   const [isSyncOpen, setIsSyncOpen] = useState(false)
   const [isKnowledgeGraphOpen, setIsKnowledgeGraphOpen] = useState(false)
   const [isScheduleOpen, setIsScheduleOpen] = useState(false)
@@ -454,11 +490,9 @@ export default function App() {
   })
 
   useEffect(() => {
-    saveDevAuthSession(authSession)
-    localStorage.setItem('user_id', authSession.userId)
-  }, [authSession])
+    localStorage.setItem('user_id', userId)
+  }, [userId])
 
-  const userId = authSession.userId
   const quotaStatus = useMemo(() => aiQuotaProvider.getQuotaStatus(userId), [userId])
   const totalQuota = useMemo(() => 
     (quotaStatus.free?.remaining || 0) + 
@@ -499,15 +533,15 @@ export default function App() {
     handleReject: handleEvolutionReject,
     handleModify: handleEvolutionModify,
     handleClose: handleEvolutionClose
-  } = useEvolutionRitual(authSession?.userId, memoryEvents, memoryProfile, (updatedProfile) => {
+  } = useEvolutionRitual(userId, memoryEvents, memoryProfile, (updatedProfile) => {
     setMemoryProfile(updatedProfile)
     setWorkspaceState((prev) => ({ ...prev, memoryProfile: updatedProfile }))
   })
 
   const { suggestions: silentSuggestions } = useSilentSuggestions(memoryProfile, memoryEvents)
   
-  const switchDevAuthRole = () => {
-    setAuthSession((current) => createRoleSession(current.role === 'admin' ? 'user' : 'admin'))
+  const handleSwitchRole = () => {
+    switchRole()
   }
   
   const handleSubscribe = (product: Product) => {
@@ -519,7 +553,7 @@ export default function App() {
     if (!selectedProduct) return
     
     const order = orderService.createOrder({
-      userId: authSession.userId,
+      userId,
       productId: selectedProduct.id,
       amount: selectedProduct.price,
       channel
@@ -544,8 +578,8 @@ export default function App() {
   }
   
   const userOrders = useMemo(() => {
-    return orderService.getOrdersByUser(authSession.userId).slice(0, 5)
-  }, [authSession.userId])
+    return orderService.getOrdersByUser(userId).slice(0, 5)
+  }, [userId])
   
   const hasActiveTrial = (code: string) => {
     return userTrials.some(t => t.code === code && !t.used)
@@ -820,12 +854,28 @@ export default function App() {
       setIsAvatarManagerOpen(false)
       setIsPersonaSelectorOpen(false)
       setIsDataBackupOpen(false)
+      setIsApiKeySettingsOpen(false)
       setIsKnowledgeGraphOpen(false)
       setIsScheduleOpen(false)
       setIsBacklinkOpen(false)
       setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
     })
   }
+
+  useEffect(() => {
+    const handleNavigate = (event: Event) => {
+      const { page } = (event as CustomEvent<{ page: string }>).detail || {}
+      closeAllSidebarPanels()
+      if (page === 'membership') {
+        setIsMembershipOpen(true)
+      } else if (page === 'settings') {
+        setIsApiKeySettingsOpen(true)
+      }
+    }
+
+    window.addEventListener('navigate', handleNavigate)
+    return () => window.removeEventListener('navigate', handleNavigate)
+  }, [])
 
   const openThemePicker = () => {
     setThemeSearchQuery('')
@@ -1104,6 +1154,44 @@ export default function App() {
     )
   }
 
+  if (isLoginOpen) {
+    return (
+      <LoginPage
+        onLogin={async (provider, phoneNumber) => {
+          const result = await login({ provider, code: '', phoneNumber })
+          if (result.success) {
+            setIsLoginOpen(false)
+          }
+        }}
+        onRegister={() => {
+          setIsLoginOpen(false)
+          setIsRegisterOpen(true)
+        }}
+        isLoggingIn={isLoggingIn}
+        error={loginError}
+      />
+    )
+  }
+
+  if (isRegisterOpen) {
+    return (
+      <RegisterPage
+        onRegister={async (provider, phoneNumber, displayName, age) => {
+          const result = await register({ provider, code: '', phoneNumber, displayName, age })
+          if (result.success) {
+            setIsRegisterOpen(false)
+          }
+        }}
+        onBack={() => {
+          setIsRegisterOpen(false)
+          setIsLoginOpen(true)
+        }}
+        isLoggingIn={isLoggingIn}
+        error={loginError}
+      />
+    )
+  }
+
   return (
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
@@ -1160,10 +1248,14 @@ export default function App() {
             setIsAgentChatOpen(true)
           })
         }}
-        onSwitchDevAuthRole={switchDevAuthRole}
+        onSwitchRole={handleSwitchRole}
         onOpenDataBackup={() => {
           closeAllSidebarPanels()
           setIsDataBackupOpen(true)
+        }}
+        onOpenApiKeySettings={() => {
+          closeAllSidebarPanels()
+          setIsApiKeySettingsOpen(true)
         }}
         onOpenTemplate={() => {
           closeAllSidebarPanels()
@@ -1189,7 +1281,7 @@ export default function App() {
           closeAllSidebarPanels()
           setIsFocusModeOpen(true)
         }}
-        devAuthLabel={`${authSession.role === 'admin' ? '管理员' : '用户'} · ${authSession.userId}`}
+        authLabel={`${role === 'admin' ? '管理员' : '用户'} · ${userId}`}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
         aiQuota={totalQuota}
@@ -2644,6 +2736,10 @@ export default function App() {
         <DataBackupUI onClose={() => setIsDataBackupOpen(false)} />
       )}
 
+      {isApiKeySettingsOpen && (
+        <ApiKeySettingsUI onClose={() => setIsApiKeySettingsOpen(false)} />
+      )}
+
       {isSyncOpen && (
         <SyncUI onClose={() => setIsSyncOpen(false)} />
       )}
@@ -2709,7 +2805,7 @@ export default function App() {
             </header>
             <div className="membership-modal-content">
               <AvatarManager
-                userId={authSession.userId}
+                userId={userId}
                 onAvatarSelect={(avatarId) => {
                   setWorkspaceState((prev) => ({
                     ...prev,
@@ -2747,12 +2843,12 @@ export default function App() {
                 {selectedSpaceId ? (
                   <SpaceDetail
                     spaceId={selectedSpaceId}
-                    userId={authSession.userId}
+                    userId={userId}
                     onBack={() => setSelectedSpaceId(null)}
                   />
                 ) : (
                   <SpaceList
-                    userId={authSession.userId}
+                    userId={userId}
                     onSelectSpace={setSelectedSpaceId}
                     onCreateSpace={() => {}}
                   />
@@ -2823,7 +2919,7 @@ export default function App() {
             </header>
             <div className="membership-modal-content">
               <PersonaSelectorUI
-                userId={authSession.userId}
+                userId={userId}
                 currentPersonaId={currentPersonaId}
                 onSelect={(personaId) => {
                   setCurrentPersonaId(personaId)
