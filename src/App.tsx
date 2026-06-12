@@ -16,6 +16,11 @@ import {
 import { getPersonaById, type PersonaId } from './personas/personaRegistry'
 import { PersonaSelectorUI } from './personas/PersonaSelectorUI'
 import { PersonaSwitcher } from './personas/PersonaSwitcher'
+import { createCameoTriggerEngine, buildTriggerContextFromMemoryObserver } from './personas/cameoTriggerEngine'
+import { createPersonaScheduler, PRESET_PERSONAS } from './personas/personaScheduler'
+import { createPersonaScheduleStorage } from './personas/personaScheduleStore'
+import { createSafetyIncidentLog } from './personas/safetyIncidentLog'
+import { createRelationshipHealthMonitor } from './personas/relationshipHealthMonitor'
 import { IdentityProvider } from './identity/IdentityProvider'
 import { IdentitySelector } from './identity/IdentitySelector'
 import { Sidebar } from './sidebar/Sidebar'
@@ -65,6 +70,7 @@ import { useApiKeyStatus } from './hooks/useApiKeyStatus'
 import { CanvasCard } from './canvas/CanvasCard'
 import { SidebarPanel } from './sidebar-panel'
 import { DraggableModal } from './canvas/DraggableModal'
+import { PlatformContext, AdaptiveModal } from './platforms'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
 import { ModuleStoreUI } from './module-store/ModuleStoreUI'
@@ -126,6 +132,11 @@ const entitlementService = createEntitlementService()
 const aiQuotaProvider = createAiQuotaProvider(entitlementService)
 const orderService = createOrderService()
 const notificationService = createNotificationService()
+const cameoEngine = createCameoTriggerEngine()
+const personaScheduleStorage = createPersonaScheduleStorage()
+const personaScheduler = createPersonaScheduler(personaScheduleStorage, entitlementService, cameoEngine)
+const safetyIncidentLog = createSafetyIncidentLog()
+const relationshipHealthMonitor = createRelationshipHealthMonitor(safetyIncidentLog, personaScheduleStorage, personaScheduler)
 
 if (import.meta.env.DEV) {
   const devUserId = 'dev-user-001'
@@ -527,6 +538,46 @@ export default function App() {
     setMemoryEvents(memoryStore.listEvents(memoryScope))
   }, [memoryScope])
 
+  const checkCameoTrigger = useCallback(() => {
+    const schedule = personaScheduleStorage.get(userId)
+    if (!schedule || schedule.cameoFrequency === 'off') return
+
+    const baseContext = {
+      now: new Date(),
+      schedule: {
+        cameoFrequency: schedule.cameoFrequency,
+        lastFocusMinutes: schedule.lastFocusMinutes,
+        completedTaskCount: schedule.completedTaskCount,
+        consecutiveFocusDays: schedule.consecutiveFocusDays,
+        userBirthday: schedule.userBirthday,
+        userAnniversary: schedule.userAnniversary,
+      },
+    }
+    const context = buildTriggerContextFromMemoryObserver(
+      memoryObserver, baseContext, memoryStore, memoryScope
+    )
+    const result = cameoEngine.evaluate(context, PRESET_PERSONAS)
+    if (result.triggered && result.persona) {
+      personaScheduler.activateCameo(userId, result.persona.id, 1, result.triggerDetail)
+    }
+  }, [userId, memoryObserver, memoryScope])
+
+  const handleConversationComplete = useCallback((userMessage: string, agentResponse: string) => {
+    const metrics = {
+      userId,
+      dailyMinutes: 0,
+      weeklyMinutes: 0,
+      monthlyMinutes: 0,
+      consecutiveDays: 0,
+      averageSessionMinutes: 0,
+      lateNightSessions: 0,
+      emotionalKeywords: [],
+      dependencyKeywords: [],
+      crisisKeywords: [],
+    }
+    relationshipHealthMonitor.assess(userId, metrics)
+  }, [userId])
+
   const { 
     pendingEntry, 
     handleAccept: handleEvolutionAccept,
@@ -798,6 +849,7 @@ export default function App() {
         memoryObserver?.onFocusSessionCompleted(session)
         memoryObserver?.onTaskCompleted(target)
         refreshMemoryEvents()
+        checkCameoTrigger()
 
         return {
           ...state,
@@ -823,7 +875,7 @@ export default function App() {
 
     const handle = window.setTimeout(finish, 0)
     return () => window.clearTimeout(handle)
-  }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents])
+  }, [focusEndsAt, remainingMsFromEnds, focusTaskId, memoryObserver, refreshMemoryEvents, checkCameoTrigger])
 
   useEffect(() => {
     const checkReminders = () => {
@@ -951,6 +1003,7 @@ export default function App() {
 
       memoryObserver?.onTaskCompleted(target)
       refreshMemoryEvents()
+      checkCameoTrigger()
 
       return {
         ...state,
@@ -1193,6 +1246,7 @@ export default function App() {
   }
 
   return (
+    <PlatformContext.Provider value={PlatformContext}>
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar 
@@ -1825,7 +1879,7 @@ export default function App() {
       />
       </div>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'habit-tracker'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="习惯追踪"
@@ -1836,9 +1890,9 @@ export default function App() {
         <div className="membership-modal-content">
           <HabitTracker />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'journal'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="复盘日记"
@@ -1849,9 +1903,9 @@ export default function App() {
         <div className="membership-modal-content">
           <JournalUI />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'reading-list'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="阅读清单"
@@ -1862,9 +1916,9 @@ export default function App() {
         <div className="membership-modal-content">
           <ReadingUI />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'error-book'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="错题本"
@@ -1875,9 +1929,9 @@ export default function App() {
         <div className="membership-modal-content">
           <ErrorBookUI userId={userId} />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'memory-cards'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="记忆卡"
@@ -1888,9 +1942,9 @@ export default function App() {
         <div className="membership-modal-content">
           <MemoryCardsUI />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'exam-tracker'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="考试记录"
@@ -1901,9 +1955,9 @@ export default function App() {
         <div className="membership-modal-content">
           <ExamTrackerUI userId={userId} />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'study-planner'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="学习计划"
@@ -1914,9 +1968,9 @@ export default function App() {
         <div className="membership-modal-content">
           <StudyPlannerUI userId={userId} />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'focus-timer'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="专注计时"
@@ -1927,9 +1981,9 @@ export default function App() {
         <div className="membership-modal-content">
           <FocusTimerUI userId={userId} />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'study-companion'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="备考陪伴"
@@ -1940,9 +1994,9 @@ export default function App() {
         <div className="membership-modal-content">
           <StudyCompanionUI userId={userId} />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'mood-journal'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="情绪日记"
@@ -1953,9 +2007,9 @@ export default function App() {
         <div className="membership-modal-content">
           <MoodJournalUI userId={userId} />
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={openWorkbenchDetail === 'focus-history'}
         onClose={() => setOpenWorkbenchDetail(null)}
         title="最近专注"
@@ -2002,7 +2056,7 @@ export default function App() {
             </article>
           </div>
         </div>
-      </DraggableModal>
+      </AdaptiveModal>
 
       {isThemePickerOpen && (
         <div className="theme-modal-backdrop" onClick={closeThemePicker} role="presentation">
@@ -2744,7 +2798,7 @@ export default function App() {
         <SyncUI onClose={() => setIsSyncOpen(false)} />
       )}
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={isKnowledgeGraphOpen}
         onClose={() => setIsKnowledgeGraphOpen(false)}
         title="知识图谱"
@@ -2754,9 +2808,9 @@ export default function App() {
         height={700}
       >
         <KnowledgeGraphUI onClose={() => setIsKnowledgeGraphOpen(false)} />
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={isScheduleOpen}
         onClose={() => setIsScheduleOpen(false)}
         title="日程管理"
@@ -2766,9 +2820,9 @@ export default function App() {
         height={600}
       >
         <ScheduleUI onClose={() => setIsScheduleOpen(false)} />
-      </DraggableModal>
+      </AdaptiveModal>
 
-      <DraggableModal
+      <AdaptiveModal
         isOpen={isBacklinkOpen}
         onClose={() => setIsBacklinkOpen(false)}
         title="双向链接"
@@ -2778,7 +2832,7 @@ export default function App() {
         height={600}
       >
         <BacklinkPanel onClose={() => setIsBacklinkOpen(false)} />
-      </DraggableModal>
+      </AdaptiveModal>
 
       {isFocusModeOpen && (
         <FocusModeUI onClose={() => setIsFocusModeOpen(false)} />
@@ -3109,6 +3163,8 @@ export default function App() {
           profile={memoryProfile}
           memoryEvents={memoryEvents}
           memoryObserver={memoryObserver}
+          healthMonitor={relationshipHealthMonitor}
+          onConversationComplete={handleConversationComplete}
         />
       )}
       {!isAgentChatOpen && (
@@ -3118,5 +3174,6 @@ export default function App() {
       <SilentSuggestionUI suggestions={silentSuggestions} />
     </main>
     </IdentityProvider>
+    </PlatformContext.Provider>
   )
 }
