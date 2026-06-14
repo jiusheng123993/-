@@ -32,16 +32,6 @@ export const defaultModules: Module[] = [
     isCustom: false
   },
   {
-    id: 'focus-overview',
-    title: '专注概览',
-    description: '桌面专注概览，展示进度和统计',
-    icon: 'BarChart3',
-    category: 'productivity',
-    size: { columns: 2, rows: 2 },
-    isDefault: true,
-    isCustom: false
-  },
-  {
     id: 'growth-rpg',
     title: '成长等级',
     description: 'RPG 风格成长系统，展示等级、成就和积分',

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { X, ChevronLeft, ChevronRight, Sparkles, Shield, AlertTriangle, Check, User, MessageCircle, Ban, Image } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Sparkles, Shield, AlertTriangle, Check, User, MessageCircle, Ban, Image, Wand2, Loader2 } from 'lucide-react'
 import type { PersonaDefinition } from './personaScheduler'
 import { PRESET_PERSONAS } from './personaScheduler'
 import type { PersonaSafetyGate, SafetyCheckResult, IdentityRoleAllowed } from './personaSafetyGate'
@@ -11,6 +11,7 @@ import { loadCustomPersonas, type CustomPersonaInput } from './customPersona'
 import { createCustomPersonaService, type CustomPersonaService } from './customPersonaService'
 import type { SafetyIncidentLog } from './safetyIncidentLog'
 import { createSafetyIncidentLog } from './safetyIncidentLog'
+import type { IPersonaAvatarGen } from './personaAvatarGen'
 
 type ToneKeyword =
   | 'gentle' | 'sharp' | 'humorous' | 'rational' | 'energetic' | 'lazy'
@@ -144,6 +145,7 @@ export interface CustomPersonaEditorUIProps {
   safetyGate?: PersonaSafetyGate
   incidentLog?: SafetyIncidentLog
   customPersonaService?: CustomPersonaService
+  avatarGen?: IPersonaAvatarGen
 }
 
 export function CustomPersonaEditorUI({
@@ -154,6 +156,7 @@ export function CustomPersonaEditorUI({
   safetyGate: externalSafetyGate,
   incidentLog: externalIncidentLog,
   customPersonaService: externalCustomPersonaService,
+  avatarGen: externalAvatarGen,
 }: CustomPersonaEditorUIProps) {
   const [step, setStep] = useState(1)
   const [draft, setDraft] = useState<CustomPersonaDraft>(createEmptyDraft)
@@ -161,6 +164,11 @@ export function CustomPersonaEditorUI({
   const [safetyResults, setSafetyResults] = useState<Record<string, SafetyCheckResult>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false)
+  const [avatarGenError, setAvatarGenError] = useState('')
+  const [aiGeneratedAvatarUrl, setAiGeneratedAvatarUrl] = useState('')
+
+  const avatarGen = externalAvatarGen
 
   const entitlementService = useMemo(
     () => externalEntitlementService || createEntitlementService(),
@@ -342,6 +350,31 @@ export function CustomPersonaEditorUI({
       setSubmitError(err instanceof Error ? err.message : '创建失败，请重试')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleGenerateAvatar = async () => {
+    if (!avatarGen || !selectedTemplate) return
+
+    setIsGeneratingAvatar(true)
+    setAvatarGenError('')
+    setAiGeneratedAvatarUrl('')
+
+    try {
+      const result = await avatarGen.generate(selectedTemplate.id, userId, 'anime')
+
+      if (result.success && result.avatarUrl) {
+        setAiGeneratedAvatarUrl(result.avatarUrl)
+        updateDraft('avatarSource', 'ai_generated')
+        updateDraft('avatarAssetId', `ai-gen-${Date.now()}`)
+        updateDraft('aiAvatarPrompt', result.prompt || '')
+      } else {
+        setAvatarGenError(result.error || 'AI 头像生成失败，请重试')
+      }
+    } catch (err) {
+      setAvatarGenError(err instanceof Error ? err.message : 'AI 头像生成异常')
+    } finally {
+      setIsGeneratingAvatar(false)
     }
   }
 
@@ -647,14 +680,38 @@ export function CustomPersonaEditorUI({
                     <button
                       key={avatar.id}
                       className={`custom-persona-editor-avatar-card ${draft.avatarAssetId === avatar.id ? 'selected' : ''}`}
-                      onClick={() => updateDraft('avatarAssetId', avatar.id)}
+                      onClick={() => {
+                        updateDraft('avatarAssetId', avatar.id)
+                        updateDraft('avatarSource', 'preset')
+                        setAiGeneratedAvatarUrl('')
+                      }}
                       type="button"
                     >
                       <span className="custom-persona-editor-avatar-emoji">{avatar.emoji}</span>
                       <span className="custom-persona-editor-avatar-label">{avatar.label}</span>
                     </button>
                   ))}
+                  {avatarGen && (
+                    <button
+                      className={`custom-persona-editor-avatar-card custom-persona-editor-avatar-ai ${draft.avatarSource === 'ai_generated' ? 'selected' : ''}`}
+                      onClick={handleGenerateAvatar}
+                      disabled={isGeneratingAvatar}
+                      type="button"
+                    >
+                      {isGeneratingAvatar ? (
+                        <Loader2 size={24} className="custom-persona-editor-avatar-spinner" />
+                      ) : aiGeneratedAvatarUrl ? (
+                        <img src={aiGeneratedAvatarUrl} alt="AI生成头像" className="custom-persona-editor-avatar-ai-img" />
+                      ) : (
+                        <Wand2 size={24} />
+                      )}
+                      <span className="custom-persona-editor-avatar-label">
+                        {isGeneratingAvatar ? '生成中...' : aiGeneratedAvatarUrl ? 'AI 头像' : 'AI 生成'}
+                      </span>
+                    </button>
+                  )}
                 </div>
+                {avatarGenError && <span className="custom-persona-editor-field-error">{avatarGenError}</span>}
                 {validationErrors.avatarAssetId && <span className="custom-persona-editor-field-error">{validationErrors.avatarAssetId}</span>}
               </div>
             </div>

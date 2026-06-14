@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useAdaptiveTooltip } from '../../platforms'
 import { loadRecords, getTodayRecords, getTodayFocusMinutes, getTodayPomodoroCount } from '../../focus-mode/focusModeService'
 import type { PomodoroRecord } from '../../focus-mode/types'
 import { computeStats, drawTrendChart, type DashboardStats } from '../../focus-timer/focusChartUtils'
@@ -46,6 +47,7 @@ export function FocusDashboard({
 }: FocusDashboardProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const taskTooltip = useAdaptiveTooltip(focusDisplayTask?.title || '')
   const [todayRecords, setTodayRecords] = useState<PomodoroRecord[]>([])
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -118,10 +120,11 @@ export function FocusDashboard({
       </div>
 
       {focusDisplayTask && (
-        <div className={styles.taskLabel} title={focusDisplayTask.title}>
+        <div className={styles.taskLabel} {...taskTooltip.tooltipProps}>
           {focusDisplayTask.title}
         </div>
       )}
+      {taskTooltip.tooltipElement}
 
       {!isFocusRunning && (
         <div className={styles.durationRow}>

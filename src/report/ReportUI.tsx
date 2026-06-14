@@ -5,6 +5,13 @@ import type { ReportData } from './reportService'
 
 interface ReportUIProps {
   compact?: boolean
+  getWorkspaceState?: () => any
+  getStudyState?: () => any
+  getHabitState?: () => any
+  getFinanceState?: () => any
+  getReadingState?: () => any
+  getWellnessState?: () => any
+  getJournalState?: () => any
 }
 
 const colors = {
@@ -20,21 +27,30 @@ const colors = {
   progressBg: 'var(--border, #2a2a4a)',
 }
 
-export function ReportUI({ compact = false }: ReportUIProps) {
+export function ReportUI({
+  compact = false,
+  getWorkspaceState: externalGetWorkspaceState,
+  getStudyState: externalGetStudyState,
+  getHabitState: externalGetHabitState,
+  getFinanceState: externalGetFinanceState,
+  getReadingState: externalGetReadingState,
+  getWellnessState: externalGetWellnessState,
+  getJournalState: externalGetJournalState,
+}: ReportUIProps) {
   const [reportPeriod, setReportPeriod] = useState<'weekly' | 'monthly'>('weekly')
   const [weekOffset, setWeekOffset] = useState(0)
   const [monthYear, setMonthYear] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() + 1 })
 
   const reportService = useMemo(() => {
-    const getWorkspaceState = () => ({ focusSessions: [], tasks: [] })
-    const getStudyState = () => ({})
-    const getHabitState = () => ({ checkIns: [], currentStreak: 0 })
-    const getFinanceState = () => ({ transactions: [] })
-    const getReadingState = () => ({ books: [] })
-    const getWellnessState = () => ({ water: [], exercises: [], meals: [] })
-    const getJournalState = () => ({ entries: [] })
+    const getWorkspaceState = externalGetWorkspaceState || (() => ({ focusSessions: [], tasks: [] }))
+    const getStudyState = externalGetStudyState || (() => ({}))
+    const getHabitState = externalGetHabitState || (() => ({ checkIns: [], currentStreak: 0 }))
+    const getFinanceState = externalGetFinanceState || (() => ({ transactions: [] }))
+    const getReadingState = externalGetReadingState || (() => ({ books: [] }))
+    const getWellnessState = externalGetWellnessState || (() => ({ water: [], exercises: [], meals: [] }))
+    const getJournalState = externalGetJournalState || (() => ({ entries: [] }))
     return createReportService(getWorkspaceState, getStudyState, getHabitState, getFinanceState, getReadingState, getWellnessState, getJournalState)
-  }, [])
+  }, [externalGetWorkspaceState, externalGetStudyState, externalGetHabitState, externalGetFinanceState, externalGetReadingState, externalGetWellnessState, externalGetJournalState])
 
   const report: ReportData = useMemo(() => {
     if (reportPeriod === 'weekly') {

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useAdaptiveTooltip, usePlatform } from '../../platforms'
 import type { Habit, HabitState } from '../../habits/habitService'
 import { getTodayDateString, toggleHabit } from '../../habits/habitService'
 import styles from './HabitsModule.module.css'
@@ -24,6 +25,9 @@ function saveHabitState(state: HabitState): void {
 export function HabitsModule({ onRemove }: HabitsModuleProps) {
   const state = useMemo(() => loadHabitState(), [])
   const today = getTodayDateString()
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
+  const removeTooltip = useAdaptiveTooltip('移除')
   const activeHabits = state.habits.filter((h) => h.isActive)
   const todayRecords = state.records.filter((r) => r.date === today)
   const completedIds = new Set(todayRecords.filter((r) => r.completed).map((r) => r.habitId))
@@ -39,12 +43,13 @@ export function HabitsModule({ onRemove }: HabitsModuleProps) {
       <div className={styles.card}>
         <div className={styles.header}>
           <span className={styles.title}>微习惯打卡</span>
-          <button className={styles.removeBtn} onClick={onRemove} type="button" title="移除">×</button>
+          <button className={styles.removeBtn} onClick={onRemove} type="button" {...removeTooltip.tooltipProps}>×</button>
         </div>
         <div className={styles.empty}>
           <span className={styles.emptyIcon}>🌱</span>
           <span className={styles.emptyText}>还没有习惯，去添加吧</span>
         </div>
+        {removeTooltip.tooltipElement}
       </div>
     )
   }
@@ -103,7 +108,7 @@ export function HabitsModule({ onRemove }: HabitsModuleProps) {
                 {habit.target}{habit.unit}
               </span>
               {streak > 0 && (
-                <span className={styles.habitStreak} title={`连续 ${streak} 天`}>
+                <span className={styles.habitStreak} title={isMobile ? undefined : `连续 ${streak} 天`}>
                   {streak}🔥
                 </span>
               )}
@@ -114,6 +119,7 @@ export function HabitsModule({ onRemove }: HabitsModuleProps) {
           )
         })}
       </div>
+      {removeTooltip.tooltipElement}
     </div>
   )
 }

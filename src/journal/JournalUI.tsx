@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { usePlatform } from '../platforms'
 import type { JournalState, JournalEntry } from './journalService'
 import {
   createJournalBrowserStore,
@@ -22,11 +23,13 @@ const journalStore = createJournalBrowserStore()
 interface JournalUIProps {
   onClose?: () => void
   compact?: boolean
-  getWorkspaceState?: () => any
+  getWorkspaceState?: () => Record<string, unknown>
 }
 
 export function JournalUI({ onClose, compact = false, getWorkspaceState }: JournalUIProps) {
   const [state, setState] = useState<JournalState>(() => journalStore.load())
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'history'>('daily')
   const [isEditing, setIsEditing] = useState(false)
   const [previewMode, setPreviewMode] = useState(false)
@@ -123,32 +126,32 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
     setAiLoading(true)
     setAiSuggestion(null)
     try {
-      const ws = getWorkspaceState?.()
-      const todayTasks = ws?.tasks?.filter((t: any) => {
+      const ws = getWorkspaceState?.() as Record<string, unknown> | undefined
+      const todayTasks = (ws?.tasks as Array<Record<string, unknown>>)?.filter((t) => {
         if (!t.createdAt) return false
-        const d = new Date(t.createdAt)
+        const d = new Date(t.createdAt as string)
         const tdy = new Date()
         return d.toDateString() === tdy.toDateString()
       }) || []
-      const todayFocus = ws?.focusSessions?.filter((s: any) => {
+      const todayFocus = (ws?.focusSessions as Array<Record<string, unknown>>)?.filter((s) => {
         if (!s.completedAt) return false
-        const d = new Date(s.completedAt)
+        const d = new Date(s.completedAt as string)
         const tdy = new Date()
         return d.toDateString() === tdy.toDateString()
       }) || []
-      const todayHabits = ws?.habitState?.records?.filter((r: any) => r.date === today) || []
-      const todayMood = ws?.moodState?.records?.filter((r: any) => r.date === today) || []
+      const todayHabits = (ws?.habitState as Record<string, unknown>)?.records as Array<Record<string, unknown>> || []
+      const todayMood = (ws?.moodState as Record<string, unknown>)?.records as Array<Record<string, unknown>> || []
 
       const contextParts: string[] = []
       if (todayTasks.length > 0) {
-        contextParts.push(`今日任务：${todayTasks.map((t: any) => `${t.title}(${t.completed ? '已完成' : '未完成'})`).join('、')}`)
+        contextParts.push(`今日任务：${todayTasks.map((t) => `${t.title}(${t.completed ? '已完成' : '未完成'})`).join('、')}`)
       }
       if (todayFocus.length > 0) {
-        const totalMin = todayFocus.reduce((s: number, f: any) => s + (f.minutes || 0), 0)
+        const totalMin = todayFocus.reduce((s, f) => s + ((f.minutes as number) || 0), 0)
         contextParts.push(`今日专注：${todayFocus.length}次，共${totalMin}分钟`)
       }
       if (todayHabits.length > 0) {
-        const done = todayHabits.filter((r: any) => r.completed).length
+        const done = todayHabits.filter((r) => r.completed).length
         contextParts.push(`今日习惯：${done}/${todayHabits.length} 完成`)
       }
       if (todayMood.length > 0) {
@@ -185,8 +188,8 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
       const data = await response.json()
       const content = data.choices?.[0]?.message?.content || '无法生成建议，请稍后重试'
       setAiSuggestion(content)
-    } catch (err: any) {
-      setAiSuggestion(`AI 辅助暂不可用：${err.message || '请检查 API Key 配置'}`)
+    } catch (err) {
+      setAiSuggestion(`AI 辅助暂不可用：${err instanceof Error ? err.message : '请检查 API Key 配置'}`)
     } finally {
       setAiLoading(false)
     }
@@ -296,7 +299,7 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
                         cursor: 'pointer',
                         fontSize: 18
                       }}
-                      title={m.label}
+                      title={isMobile ? undefined : m.label}
                     >
                       {m.emoji}
                     </button>
@@ -721,7 +724,7 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
                 {moodStats.map((stat) => (
                   <div
                     key={stat.date}
-                    title={`${stat.date}: ${stat.score}/5`}
+                    title={isMobile ? undefined : `${stat.date}: ${stat.score}/5`}
                     style={{
                       flex: 1,
                       height: `${(stat.score / 5) * 100}%`,
@@ -827,7 +830,6 @@ export function JournalUI({ onClose, compact = false, getWorkspaceState }: Journ
 
 function CompactJournalView({
   todayEntry,
-  avgMood,
   streak,
   onStartEdit
 }: {

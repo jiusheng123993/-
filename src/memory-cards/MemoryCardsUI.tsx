@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
+import { usePlatform } from '../platforms'
 import {
   loadState,
   saveState,
@@ -47,6 +48,8 @@ export function MemoryCardsUI() {
   const [showStats, setShowStats] = useState(false)
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null)
   const [editingCardId, setEditingCardId] = useState<string | null>(null)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const [reviewingCardId, setReviewingCardId] = useState<string | null>(null)
   const [flippedCardId, setFlippedCardId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -189,14 +192,6 @@ export function MemoryCardsUI() {
     const controller = new AbortController()
 
     try {
-      const deckContext = activeDeck ? `当前牌组：${activeDeck.name}` : ''
-
-      const systemPrompt = `你是知识提取助手。用户给你一段课文或笔记内容，你需要从中提取关键概念，生成问答卡片。
-${deckContext}
-每张卡片包含一个"问题/概念"（front）和一个"答案/解释"（back）。
-提取3-8张卡片，覆盖最重要的知识点。
-用 JSON 数组格式返回，不要有其他内容。格式：[{"front":"问题或概念","back":"答案或解释"}]`
-
       let fullResponse = ''
 
       await sendAgentChatMessageStream({
@@ -255,11 +250,6 @@ ${deckContext}
       }
       return next
     })
-  }
-
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr)
-    return `${d.getMonth() + 1}月${d.getDate()}日`
   }
 
   const renderCard = (card: MemoryCard) => {
@@ -346,7 +336,7 @@ ${deckContext}
                   key={q}
                   className={`${styles.ratingButton} ${q >= 4 ? styles.ratingGood : q >= 2 ? styles.ratingMedium : styles.ratingBad}`}
                   onClick={() => handleReview(card.id, q)}
-                  title={QUALITY_LABELS[q]}
+                  title={isMobile ? undefined : QUALITY_LABELS[q]}
                 >
                   {q}
                 </button>
@@ -582,7 +572,7 @@ ${deckContext}
                   const height = Math.max((log.count / maxCount) * 100, 4)
                   const dateLabel = log.date.slice(5)
                   return (
-                    <div key={i} className={styles.statsChartBar} title={`${log.date}: ${log.count} 次`}>
+                    <div key={i} className={styles.statsChartBar} title={isMobile ? undefined : `${log.date}: ${log.count} 次`}>
                       <div
                         className={styles.statsChartBarFill}
                         style={{ height: `${height}%` }}

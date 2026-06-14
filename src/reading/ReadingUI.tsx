@@ -2,13 +2,15 @@ import { useState, useCallback } from 'react'
 import { BookOpen, Plus, Trash2, Star, Target, Library, BookMarked, ChevronRight } from 'lucide-react'
 import { createReadingService, readingCategories } from './readingService'
 import type { ReadingService, Book } from './readingService'
+import type { StudyTheme } from '../themes/themeRegistry'
 
 interface ReadingUIProps {
   compact?: boolean
   service?: ReadingService
+  theme?: StudyTheme
 }
 
-const colors = {
+const defaultColors = {
   bg: '#0f0f1a',
   cardBg: '#1a1a2e',
   cardBorder: '#2a2a4a',
@@ -23,7 +25,29 @@ const colors = {
   hoverBg: '#222240',
 }
 
-export function ReadingUI({ compact = false, service: externalService }: ReadingUIProps) {
+function getColors(theme?: StudyTheme) {
+  if (!theme?.tokens?.colors) {
+    return defaultColors
+  }
+  const c = theme.tokens.colors
+  return {
+    bg: c.surface || c.background || defaultColors.bg,
+    cardBg: c.surface || defaultColors.cardBg,
+    cardBorder: c.border || defaultColors.cardBorder,
+    text: c.text || defaultColors.text,
+    textSecondary: c.muted || defaultColors.textSecondary,
+    accent: c.accent || defaultColors.accent,
+    accentLight: c.secondary || defaultColors.accentLight,
+    income: c.secondary || defaultColors.income,
+    progressBg: c.border || defaultColors.progressBg,
+    inputBg: c.surfaceStrong || c.surface || defaultColors.inputBg,
+    inputBorder: c.border || defaultColors.inputBorder,
+    hoverBg: c.surfaceStrong || defaultColors.hoverBg,
+  }
+}
+
+export function ReadingUI({ compact = false, service: externalService, theme }: ReadingUIProps) {
+  const colors = getColors(theme)
   const [service] = useState<ReadingService>(() => externalService ?? createReadingService())
   const [activeTab, setActiveTab] = useState<'library' | 'reading' | 'notes' | 'goals'>('library')
   const [bookTitle, setBookTitle] = useState('')

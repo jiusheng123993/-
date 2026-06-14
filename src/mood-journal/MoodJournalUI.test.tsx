@@ -1,6 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MoodJournalUI } from './MoodJournalUI'
+import { PlatformContext } from '../platforms/usePlatform'
+
+const desktopPlatform = {
+  platform: 'windows' as const,
+  deviceCategory: 'desktop' as const,
+  isElectron: false,
+  isCapacitor: false,
+  isTouchDevice: false
+}
+
+function renderWithPlatform(ui: React.ReactElement) {
+  return render(
+    <PlatformContext.Provider value={desktopPlatform}>
+      {ui}
+    </PlatformContext.Provider>
+  )
+}
 
 function clearStorage() {
   window.localStorage.removeItem('xinghuanhai-moodjournal-state')
@@ -12,14 +29,14 @@ describe('MoodJournalUI', () => {
   })
 
   it('renders the today section with empty state', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     expect(screen.getByText(/今天还没有记录心情/)).toBeTruthy()
     const addBtn = screen.getByRole('button', { name: /记录今日心情/ })
     expect(addBtn).toBeTruthy()
   })
 
   it('renders stats section with zero values initially', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     expect(screen.getByText(/平均情绪/)).toBeTruthy()
     expect(screen.getByText(/记录天数/)).toBeTruthy()
     expect(screen.getByText(/连续记录/)).toBeTruthy()
@@ -27,7 +44,7 @@ describe('MoodJournalUI', () => {
   })
 
   it('opens add form when clicking record button', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     expect(screen.getByText(/记录今日心情/)).toBeTruthy()
     expect(screen.getByText(/情绪评分/)).toBeTruthy()
@@ -36,7 +53,7 @@ describe('MoodJournalUI', () => {
   })
 
   it('renders score slider and emoji marks', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     const slider = document.querySelector('input[type="range"]')
     expect(slider).toBeTruthy()
@@ -46,7 +63,7 @@ describe('MoodJournalUI', () => {
   })
 
   it('renders mood tags in add form', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     expect(screen.getByText('焦虑')).toBeTruthy()
     expect(screen.getByText('开心')).toBeTruthy()
@@ -54,7 +71,7 @@ describe('MoodJournalUI', () => {
   })
 
   it('toggles tag selection', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     const anxietyBtn = screen.getByText('焦虑')
     fireEvent.click(anxietyBtn)
@@ -64,28 +81,28 @@ describe('MoodJournalUI', () => {
   })
 
   it('submits a mood entry', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     fireEvent.click(screen.getByRole('button', { name: /记录心情/ }))
     expect(screen.queryByText(/今天还没有记录心情/)).toBeFalsy()
   })
 
   it('cancels add form', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     fireEvent.click(screen.getByRole('button', { name: /取消/ }))
     expect(screen.getByText(/今天还没有记录心情/)).toBeTruthy()
   })
 
   it('renders trend chart canvas', () => {
-    const { container } = render(<MoodJournalUI />)
+    const { container } = renderWithPlatform(<MoodJournalUI />)
     expect(screen.getByText(/近7天情绪趋势/)).toBeTruthy()
     const canvas = container.querySelector('canvas')
     expect(canvas).toBeTruthy()
   })
 
   it('toggles history panel', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     const toggleBtn = screen.getByRole('button', { name: /历史记录/ })
     expect(toggleBtn).toBeTruthy()
     fireEvent.click(toggleBtn)
@@ -109,13 +126,13 @@ describe('MoodJournalUI', () => {
       ],
     }))
 
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     expect(screen.getByText(/你已经连续/)).toBeTruthy()
     expect(screen.getByText(/天情绪较低/)).toBeTruthy()
   })
 
   it('shows today entry after submission', () => {
-    render(<MoodJournalUI />)
+    renderWithPlatform(<MoodJournalUI />)
     fireEvent.click(screen.getByRole('button', { name: /记录今日心情/ }))
     fireEvent.click(screen.getByRole('button', { name: /记录心情/ }))
 

@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
+import { useAdaptiveTooltip } from '../../platforms'
 import styles from './DailyQuote.module.css'
 
 interface DailyQuoteProps {
@@ -74,6 +75,7 @@ export function DailyQuote({ onRemove }: DailyQuoteProps) {
 
   const quote = QUOTES[todayIndex]
   const isFavorited = favorites.includes(todayIndex)
+  const favTooltip = useAdaptiveTooltip(isFavorited ? '取消收藏' : '收藏')
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1)
@@ -98,7 +100,7 @@ export function DailyQuote({ onRemove }: DailyQuoteProps) {
             className={styles.favBtn}
             onClick={handleToggleFavorite}
             type="button"
-            title={isFavorited ? '取消收藏' : '收藏'}
+            {...favTooltip.tooltipProps}
             data-favorited={isFavorited}
           >
             {isFavorited ? '★' : '☆'}
@@ -138,6 +140,7 @@ export function DailyQuote({ onRemove }: DailyQuoteProps) {
           </div>
         </div>
       )}
+      {favTooltip.tooltipElement}
     </div>
   )
 }

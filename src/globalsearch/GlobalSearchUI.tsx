@@ -5,6 +5,14 @@ import type { SearchResult } from './searchService'
 
 interface GlobalSearchUIProps {
   compact?: boolean
+  getWorkspaceState?: () => Record<string, unknown>
+  getStudyState?: () => Record<string, unknown>
+  getHabitState?: () => Record<string, unknown>
+  getFinanceState?: () => Record<string, unknown>
+  getReadingState?: () => Record<string, unknown>
+  getJournalState?: () => Record<string, unknown>
+  getGoalsState?: () => Record<string, unknown>
+  getProjectState?: () => Record<string, unknown>
 }
 
 const colors = {
@@ -18,7 +26,7 @@ const colors = {
   inputBorder: '#2a2a4a',
 }
 
-const typeIcons: Record<string, any> = {
+const typeIcons: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = {
   task: CheckCircle,
   note: FileText,
   goal: Target,
@@ -40,21 +48,31 @@ const typeLabels: Record<string, string> = {
   finance: '财务'
 }
 
-export function GlobalSearchUI({ compact = false }: GlobalSearchUIProps) {
+export function GlobalSearchUI({
+  compact = false,
+  getWorkspaceState: externalGetWorkspaceState,
+  getStudyState: externalGetStudyState,
+  getHabitState: externalGetHabitState,
+  getFinanceState: externalGetFinanceState,
+  getReadingState: externalGetReadingState,
+  getJournalState: externalGetJournalState,
+  getGoalsState: externalGetGoalsState,
+  getProjectState: externalGetProjectState,
+}: GlobalSearchUIProps) {
   const [query, setQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
 
   const searchService = useMemo(() => {
-    const getWorkspaceState = () => ({ tasks: [] })
-    const getStudyState = () => ({ notes: [] })
-    const getHabitState = () => ({ habits: [] })
-    const getFinanceState = () => ({ transactions: [] })
-    const getReadingState = () => ({ books: [] })
-    const getJournalState = () => ({ entries: [] })
-    const getGoalsState = () => ({ goals: [] })
-    const getProjectState = () => ({ projects: [] })
+    const getWorkspaceState = externalGetWorkspaceState || (() => ({ tasks: [] }))
+    const getStudyState = externalGetStudyState || (() => ({ notes: [] }))
+    const getHabitState = externalGetHabitState || (() => ({ habits: [] }))
+    const getFinanceState = externalGetFinanceState || (() => ({ transactions: [] }))
+    const getReadingState = externalGetReadingState || (() => ({ books: [] }))
+    const getJournalState = externalGetJournalState || (() => ({ entries: [] }))
+    const getGoalsState = externalGetGoalsState || (() => ({ goals: [] }))
+    const getProjectState = externalGetProjectState || (() => ({ projects: [] }))
     return createSearchService(getWorkspaceState, getStudyState, getHabitState, getFinanceState, getReadingState, getJournalState, getGoalsState, getProjectState)
-  }, [])
+  }, [externalGetWorkspaceState, externalGetStudyState, externalGetHabitState, externalGetFinanceState, externalGetReadingState, externalGetJournalState, externalGetGoalsState, externalGetProjectState])
 
   const results: SearchResult[] = useMemo(() => {
     if (!query.trim()) return []

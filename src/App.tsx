@@ -23,6 +23,15 @@ import { createSafetyIncidentLog } from './personas/safetyIncidentLog'
 import { createRelationshipHealthMonitor } from './personas/relationshipHealthMonitor'
 import { CustomPersonaEditorUI } from './personas/CustomPersonaEditorUI'
 import { createPersonaSafetyGate } from './personas/personaSafetyGate'
+import { createPersonaAvatarGen } from './personas/personaAvatarGen'
+import { createAvatarAiGenQuotaProvider } from './entitlement/avatarAiGenProvider'
+import { avatarAIProvider } from './avatar'
+import { createCommunityPersonaService } from './personas/community/communityPersonaService'
+import { addCustomPersona, loadCustomPersonas } from './personas/customPersona'
+import { CommunityPersonaUI } from './personas/community/CommunityPersonaUI'
+import { CameoStorefrontUI } from './personas/CameoStorefrontUI'
+import { createPersonaProvider } from './entitlement/personaProvider'
+import { createCustomPersonaService } from './personas/customPersonaService'
 import { IdentityProvider } from './identity/IdentityProvider'
 import { IdentitySelector } from './identity/IdentitySelector'
 import { Sidebar } from './sidebar/Sidebar'
@@ -38,9 +47,6 @@ import {
   type ThemeFamilyId,
   type ThemeId
 } from './themes/themeRegistry'
-import { getFocusBriefStyleById } from './components/focusBrief/focusBriefRegistry'
-import type { FocusBriefStyleId } from './components/focusBrief/types'
-import { FocusBriefStylePicker } from './components/focusBrief/FocusBriefStylePicker'
 import { createEntitlementService } from './entitlement/entitlementService'
 import { createAiQuotaProvider } from './entitlement/aiQuotaProvider'
 import { getActiveProducts } from './entitlement/productCatalog'
@@ -51,13 +57,12 @@ import type { Order } from './entitlement/orderTypes'
 import { themeFamilyLabels, applyThemeToDOM } from './hooks/useTheme'
 import { WallpaperPicker } from './wallpaper/WallpaperPicker'
 import { deriveWallpaperFromTheme } from './wallpaper/wallpaperConfig'
+import { wallpaperService } from './wallpaper/wallpaperService'
 import { AdminConsolePage } from './components/membership/AdminConsolePage'
-import { createRoleSession, loadDevAuthSession, saveDevAuthSession, type DevAuthSession } from './auth/devAuthSession'
 import { useAuth } from './hooks/useAuth'
 import { LoginPage } from './auth/LoginPage'
 import { RegisterPage } from './auth/RegisterPage'
-import type { AuthSession } from './auth/authTypes'
-import { SpaceList, SpaceDetail, RelationshipSpaceProvider } from './relationship'
+import { SpaceList, SpaceDetail, CreateSpaceForm, RelationshipSpaceProvider } from './relationship'
 import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createMemoryObserver } from './memory/memoryObserver'
 import { withWorkspaceMemoryObserver } from './memory/workspaceMemoryMiddleware'
@@ -72,8 +77,7 @@ import { useToast } from './components/toast/Toast'
 import { useApiKeyStatus } from './hooks/useApiKeyStatus'
 import { CanvasCard } from './canvas/CanvasCard'
 import { SidebarPanel } from './sidebar-panel'
-import { DraggableModal } from './canvas/DraggableModal'
-import { PlatformContext, AdaptiveModal } from './platforms'
+import { PlatformContext, AdaptiveModal, getPlatformInfo } from './platforms'
 import { AIRecommendationUI } from './module-store/AIRecommendationUI'
 import { LayoutShareUI } from './module-store/LayoutShareUI'
 import { ModuleStoreUI } from './module-store/ModuleStoreUI'
@@ -91,6 +95,7 @@ import type { CanvasItem, ModuleStoreState } from './module-store/types'
 import { CycleTracker } from './cycle'
 import { DataBackupUI } from './data/DataBackupUI'
 import { ApiKeySettingsUI } from './settings/ApiKeySettingsUI'
+import { SupabaseConfigUI } from './settings/SupabaseConfigUI'
 import { SyncUI } from './data/SyncUI'
 import { AvatarManager } from './avatar'
 import { HabitTracker } from './habits/HabitTrackerUI'
@@ -109,9 +114,25 @@ import { FocusModeUI } from './focus-mode'
 import { KnowledgeGraphUI } from './knowledge-graph/KnowledgeGraphUI'
 import { ScheduleUI } from './schedule/ScheduleUI'
 import { createScheduleService } from './schedule/scheduleService'
-import { getDefaultMiniProgramModules } from './platforms/miniProgramBlueprint'
+import { TemplateUI } from './templates/TemplateUI'
+import { ReviewSchedulerUI } from './review/ReviewSchedulerUI'
+import { ReportUI } from './report/ReportUI'
+import { GlobalSearchUI } from './globalsearch/GlobalSearchUI'
+import { QuickNotesUI } from './quicknotes/QuickNotesUI'
+import { TimeBlockUI } from './timeblock/TimeBlockUI'
+import { FocusStatsUI } from './focusstats/FocusStatsUI'
+import { FocusHistoryUI } from './focushistory/FocusHistoryUI'
+import { MigrationUI } from './data/migration/MigrationUI'
 import { createNotificationService } from './notifications/notificationService'
 import { NotificationBanner } from './notifications/NotificationBanner'
+import { createBrowserStudyStore } from './data/localStudyStore'
+import { createHabitBrowserStore } from './habits/habitService'
+import { createJournalBrowserStore } from './journal/journalService'
+import { createReadingService } from './reading/readingService'
+import { createGoalBrowserStore } from './data/localGoalStore'
+import { createFinanceBrowserStore } from './data/localFinanceStore'
+import { createWellnessBrowserStore } from './data/localWellnessStore'
+import { createProjectBrowserStore } from './data/localProjectStore'
 import styles from './components/membership/MembershipPage.module.css'
 
 const personaWorkspaceMap: Record<PersonaId, WorkspaceType> = {
@@ -141,6 +162,23 @@ const personaScheduler = createPersonaScheduler(personaScheduleStorage, entitlem
 const safetyIncidentLog = createSafetyIncidentLog()
 const personaSafetyGate = createPersonaSafetyGate(safetyIncidentLog)
 const relationshipHealthMonitor = createRelationshipHealthMonitor(safetyIncidentLog, personaScheduleStorage, personaScheduler)
+const avatarGenQuotaProvider = createAvatarAiGenQuotaProvider(entitlementService)
+const personaAvatarGen = createPersonaAvatarGen({
+  quotaProvider: avatarGenQuotaProvider,
+  aiProvider: avatarAIProvider,
+  getPersonaById: (id) => PRESET_PERSONAS.find((p) => p.id === id)
+})
+const communityPersonaService = createCommunityPersonaService({
+  safetyGate: personaSafetyGate,
+  getCustomPersonaById: (id) => loadCustomPersonas().find((p) => p.id === id),
+  getCustomPersonasByUser: (userId) => loadCustomPersonas().filter((p) => p.creatorUserId === userId),
+  addCustomPersona: (input) => addCustomPersona(input)
+})
+const personaProvider = createPersonaProvider(entitlementService)
+const customPersonaService = createCustomPersonaService({
+  safetyGate: personaSafetyGate,
+  incidentLog: safetyIncidentLog
+})
 
 if (import.meta.env.DEV) {
   const devUserId = 'dev-user-001'
@@ -172,8 +210,6 @@ if (import.meta.env.DEV) {
     }
   }
 }
-
-const defaultMiniProgramModules = getDefaultMiniProgramModules()
 
 const themeFamilies = themeFamilyMeta.map((family) => ({
   ...family,
@@ -387,9 +423,9 @@ export default function App() {
   const visibleTasks = workspaceState.tasks.filter((task) => task.workspaceType === activeWorkspaceType)
   const todoTasks = visibleTasks.filter((task) => task.status === 'todo')
   const completedTasks = visibleTasks.filter((task) => task.status === 'done')
-  const totalFocusMinutes = todoTasks.reduce((total, task) => total + task.minutes, 0)
   const nextFocusTask = todoTasks[0]
   const activeProvider = getAiProviderById(workspaceState.integrations.ai.providerId)
+  const platformInfo = useMemo(() => getPlatformInfo(), [])
   const promptDraft = createAiPromptDraft(activeProvider.id, {
     kind: activePersona.aiActions[0],
     input: activePersona.primaryFlow,
@@ -412,8 +448,6 @@ export default function App() {
   const [focusPausedRemainingMs, setFocusPausedRemainingMs] = useState<number | null>(null)
   const [focusNow, setFocusNow] = useState<number>(() => Date.now())
   const [focusDurationDraft, setFocusDurationDraft] = useState<Record<string, number>>({})
-  const [growthRewardClaimed, setGrowthRewardClaimed] = useState(false)
-  const [aiCoachDraft, setAiCoachDraft] = useState<string | null>(null)
   const focusIntervalRef = useRef<number | null>(null)
   const savedWorkspaceStateRef = useRef<WorkspaceState | null>(null)
   const isFocusRunning = focusEndsAt !== null
@@ -424,19 +458,13 @@ export default function App() {
     candidateFocusTask && candidateFocusTask.status === 'todo' ? candidateFocusTask : null
   const normalizedThemeSearch = themeSearchQuery.trim().toLowerCase()
   const {
-    session,
     login,
     register,
-    logout,
     switchRole,
     isLoggingIn,
     loginError,
     userId,
-    role,
-    displayName,
-    provider,
-    isRealAuth,
-    isAuthenticated
+    role
   } = useAuth()
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -451,6 +479,8 @@ export default function App() {
   const [isAvatarManagerOpen, setIsAvatarManagerOpen] = useState(false)
   const [isPersonaSelectorOpen, setIsPersonaSelectorOpen] = useState(false)
   const [isCustomPersonaEditorOpen, setIsCustomPersonaEditorOpen] = useState(false)
+  const [isCommunityPersonaOpen, setIsCommunityPersonaOpen] = useState(false)
+  const [isCameoStorefrontOpen, setIsCameoStorefrontOpen] = useState(false)
   const [isDataBackupOpen, setIsDataBackupOpen] = useState(false)
   const [isApiKeySettingsOpen, setIsApiKeySettingsOpen] = useState(false)
   const [isSyncOpen, setIsSyncOpen] = useState(false)
@@ -458,9 +488,22 @@ export default function App() {
   const [isScheduleOpen, setIsScheduleOpen] = useState(false)
   const [isBacklinkOpen, setIsBacklinkOpen] = useState(false)
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(false)
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false)
+  const [isReviewSchedulerOpen, setIsReviewSchedulerOpen] = useState(false)
+  const [isSupabaseConfigOpen, setIsSupabaseConfigOpen] = useState(false)
+  const [dataSource, setDataSource] = useState<'local' | 'supabase'>('local')
+  const [isReportOpen, setIsReportOpen] = useState(false)
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false)
+  const [isQuickNotesOpen, setIsQuickNotesOpen] = useState(false)
+  const [isTimeBlockOpen, setIsTimeBlockOpen] = useState(false)
+  const [isFocusStatsOpen, setIsFocusStatsOpen] = useState(false)
+  const [isFocusHistoryOpen, setIsFocusHistoryOpen] = useState(false)
+  const [isMigrationOpen, setIsMigrationOpen] = useState(false)
   const [currentPersonaId, setCurrentPersonaId] = useState<string | undefined>(undefined)
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => workspaceState.memoryProfile)
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null)
+  const [isCreatingSpace, setIsCreatingSpace] = useState(false)
+  const [relationshipSpaceWallpaper, setRelationshipSpaceWallpaper] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [userTrials, setUserTrials] = useState<{code: string; expireAt: string; used: boolean}[]>([])
   const [userCoupons, setUserCoupons] = useState<{code: string; type: string; discount: number; used: boolean}[]>([])
@@ -471,6 +514,30 @@ export default function App() {
   })
   
   const getWorkspaceState = useCallback(() => workspaceState, [workspaceState])
+
+  const studyStore = useMemo(() => createBrowserStudyStore(), [])
+  const getStudyState = useCallback(() => studyStore.load(), [studyStore])
+
+  const habitStore = useMemo(() => createHabitBrowserStore(), [])
+  const getHabitState = useCallback(() => habitStore.load(), [habitStore])
+
+  const journalStore = useMemo(() => createJournalBrowserStore(), [])
+  const getJournalState = useCallback(() => journalStore.load(), [journalStore])
+
+  const readingService = useMemo(() => createReadingService(), [])
+  const getReadingState = useCallback(() => readingService.getState(), [readingService])
+
+  const goalStore = useMemo(() => createGoalBrowserStore(), [])
+  const getGoalsState = useCallback(() => goalStore.load(), [goalStore])
+
+  const financeStore = useMemo(() => createFinanceBrowserStore(), [])
+  const getFinanceState = useCallback(() => financeStore.load(), [financeStore])
+
+  const wellnessStore = useMemo(() => createWellnessBrowserStore(), [])
+  const getWellnessState = useCallback(() => wellnessStore.load(), [wellnessStore])
+
+  const projectStore = useMemo(() => createProjectBrowserStore(), [])
+  const getProjectState = useCallback(() => projectStore.load(), [projectStore])
 
   const handleOnboardingComplete = useCallback((data: OnboardingData) => {
     if (typeof window !== 'undefined') {
@@ -567,7 +634,7 @@ export default function App() {
     }
   }, [userId, memoryObserver, memoryScope])
 
-  const handleConversationComplete = useCallback((userMessage: string, agentResponse: string) => {
+  const handleConversationComplete = useCallback((_userMessage: string, _agentResponse: string) => {
     const metrics = {
       userId,
       dailyMinutes: 0,
@@ -598,6 +665,11 @@ export default function App() {
   
   const handleSwitchRole = () => {
     switchRole()
+    addToast({
+      type: 'info',
+      title: '角色已切换',
+      message: `当前角色：${role === 'admin' ? '用户' : '管理员'}`
+    })
   }
   
   const handleSubscribe = (product: Product) => {
@@ -894,6 +966,13 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (openWorkbenchDetail === 'theme-center') {
+      setIsThemePickerOpen(true)
+      setOpenWorkbenchDetail(null)
+    }
+  }, [openWorkbenchDetail])
+
   const closeAllSidebarPanels = (except?: string) => {
     flushSync(() => {
       setIsThemePickerOpen(false)
@@ -915,6 +994,16 @@ export default function App() {
       setIsKnowledgeGraphOpen(false)
       setIsScheduleOpen(false)
       setIsBacklinkOpen(false)
+      setIsTemplateOpen(false)
+      setIsReviewSchedulerOpen(false)
+      setIsSupabaseConfigOpen(false)
+      setIsReportOpen(false)
+      setIsGlobalSearchOpen(false)
+      setIsQuickNotesOpen(false)
+      setIsTimeBlockOpen(false)
+      setIsFocusStatsOpen(false)
+      setIsFocusHistoryOpen(false)
+      setIsMigrationOpen(false)
       setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
     })
   }
@@ -960,16 +1049,6 @@ export default function App() {
     setIsThemePickerOpen(false)
   }
 
-  const focusBriefStyleId: FocusBriefStyleId =
-    workspaceState.preferences.focusBriefStyle ?? 'minimal-arc'
-  const FocusBriefStyleComponent = getFocusBriefStyleById(focusBriefStyleId).Component
-  const switchFocusBriefStyle = (nextStyleId: FocusBriefStyleId) => {
-    setWorkspaceState((current) => ({
-      ...current,
-      preferences: { ...current.preferences, focusBriefStyle: nextStyleId }
-    }))
-  }
-
   const addCanvasModule = (moduleId: string) => {
     setModuleStoreState((current) => addModuleToLayout(current, moduleId))
   }
@@ -999,70 +1078,6 @@ export default function App() {
     } catch (error) {
       setLayoutImportError(error instanceof Error ? error.message : '布局导入失败')
     }
-  }
-
-  const completeTaskFromWorkbench = (taskId: string) => {
-    setWorkspaceState((state) => {
-      const target = state.tasks.find((task) => task.id === taskId)
-      if (!target || target.status === 'done') return state
-
-      memoryObserver?.onTaskCompleted(target)
-      refreshMemoryEvents()
-      checkCameoTrigger()
-
-      return {
-        ...state,
-        tasks: state.tasks.map((task) =>
-          task.id === taskId ? { ...task, status: 'done', dueLabel: '已完成' } : task
-        ),
-        growth: {
-          ...state.growth,
-          experience: state.growth.experience + target.rewardPoints,
-          achievements: state.growth.achievements + 1
-        }
-      }
-    })
-  }
-
-  const forgetFocusSession = (sessionId: string) => {
-    setWorkspaceState((state) => ({
-      ...state,
-      focusSessions: state.focusSessions.filter((session) => session.id !== sessionId)
-    }))
-  }
-
-  const claimGrowthReward = () => {
-    if (growthRewardClaimed) return
-    setWorkspaceState((state) => ({
-      ...state,
-      growth: {
-        ...state.growth,
-        experience: state.growth.experience + 20,
-        streakDays: state.growth.streakDays + 1
-      }
-    }))
-    setGrowthRewardClaimed(true)
-  }
-
-  const generateAiCoachDraft = () => {
-    const targetTask = nextFocusTask ?? visibleTasks[0]
-    setAiCoachDraft(targetTask
-      ? `今日先推进「${targetTask.title}」，用 ${Math.min(25, targetTask.minutes)} 分钟完成第一轮行动，再根据复盘结果拆下一步。`
-      : `今日先推进「${activePersona.modules[0]?.title ?? activePersona.mainModuleTitle}」，用一个 25 分钟行动块建立启动感。`
-    )
-  }
-
-  const markSyncReady = () => {
-    setWorkspaceState((state) => state.sync.status === 'sync-ready'
-      ? state
-      : {
-        ...state,
-        sync: {
-          ...state.sync,
-          status: 'sync-ready'
-        }
-      }
-    )
   }
 
   const moveWorkbenchItem = (moduleId: string, position: { x: number; y: number }) => {
@@ -1251,7 +1266,7 @@ export default function App() {
   }
 
   return (
-    <PlatformContext.Provider value={PlatformContext}>
+    <PlatformContext.Provider value={platformInfo}>
     <IdentityProvider>
       <SidebarToggle isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
       <AdaptiveSidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(false)}>
@@ -1261,10 +1276,6 @@ export default function App() {
         onOpenModuleStore={() => {
           closeAllSidebarPanels()
           setModuleStoreState((current) => ({ ...current, isStoreOpen: true }))
-        }}
-        onOpenAIRecommendation={() => {
-          closeAllSidebarPanels()
-          setIsAIRecommendationOpen(true)
         }}
         onOpenLayoutShare={() => {
           closeAllSidebarPanels()
@@ -1301,6 +1312,14 @@ export default function App() {
         onOpenCustomPersonaEditor={() => {
           closeAllSidebarPanels()
           setIsCustomPersonaEditorOpen(true)
+        }}
+        onOpenCommunityPersona={() => {
+          closeAllSidebarPanels()
+          setIsCommunityPersonaOpen(true)
+        }}
+        onOpenCameoStorefront={() => {
+          closeAllSidebarPanels()
+          setIsCameoStorefrontOpen(true)
         }}
         onOpenRelationshipSpace={() => {
           closeAllSidebarPanels()
@@ -1345,11 +1364,44 @@ export default function App() {
           closeAllSidebarPanels()
           setIsFocusModeOpen(true)
         }}
+        onOpenReport={() => {
+          closeAllSidebarPanels()
+          setIsReportOpen(true)
+        }}
+        onOpenGlobalSearch={() => {
+          closeAllSidebarPanels()
+          setIsGlobalSearchOpen(true)
+        }}
+        onOpenQuickNotes={() => {
+          closeAllSidebarPanels()
+          setIsQuickNotesOpen(true)
+        }}
+        onOpenTimeBlock={() => {
+          closeAllSidebarPanels()
+          setIsTimeBlockOpen(true)
+        }}
+        onOpenFocusStats={() => {
+          closeAllSidebarPanels()
+          setIsFocusStatsOpen(true)
+        }}
+        onOpenFocusHistory={() => {
+          closeAllSidebarPanels()
+          setIsFocusHistoryOpen(true)
+        }}
+        onOpenMigration={() => {
+          closeAllSidebarPanels()
+          setIsMigrationOpen(true)
+        }}
         authLabel={`${role === 'admin' ? '管理员' : '用户'} · ${userId}`}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
         aiQuota={totalQuota}
         streakDays={workspaceState.growth.streakDays}
+        dataSource={dataSource}
+        onSwitchDataSource={() => {
+          closeAllSidebarPanels()
+          setIsSupabaseConfigOpen(true)
+        }}
       />
       </AdaptiveSidebar>
     <main className="app-shell">
@@ -1425,34 +1477,6 @@ export default function App() {
                     <h2>Lv. {workspaceState.growth.level}</h2>
                     <div className="xp-track"><span /></div>
                     <strong>{workspaceState.growth.achievements} 个成就 · {workspaceState.growth.experience} 积分</strong>
-                  </section>
-                ),
-                'focus-overview': (
-                  <section
-                    className="card focus-brief-card"
-                    aria-label="桌面专注概览"
-                    data-style={focusBriefStyleId}
-                    data-aesthetic={activeTheme.aesthetic}
-                    data-material={activeTheme.material}
-                  >
-                    <FocusBriefStyleComponent
-                      data={{
-                        progress: weeklyProgress,
-                        todoCount: todoTasks.length,
-                        totalMinutes: totalFocusMinutes,
-                        completedCount: completedTasks.length
-                      }}
-                      context={{
-                        aesthetic: activeTheme.aesthetic,
-                        material: activeTheme.material
-                      }}
-                    />
-                    <FocusBriefStylePicker currentStyleId={focusBriefStyleId} onStyleChange={switchFocusBriefStyle} />
-                    <div className="focus-brief-legacy-meta" aria-hidden="true">
-                      <span>{todoTasks.length} 个待办</span>
-                      <span>{totalFocusMinutes} 分钟</span>
-                      <span>{completedTasks.length} 个已完成</span>
-                    </div>
                   </section>
                 ),
                 'key-metrics': (
@@ -1786,7 +1810,7 @@ export default function App() {
                 ),
                 'reading-list': (
                   <section className="panel side-card reading-list-card" role="region" aria-label="阅读清单">
-                    <ReadingUI compact />
+                    <ReadingUI compact theme={activeTheme} />
                   </section>
                 ),
                 'error-book': (
@@ -1925,7 +1949,7 @@ export default function App() {
         className="reading-list-detail-modal"
       >
         <div className="membership-modal-content">
-          <ReadingUI />
+          <ReadingUI theme={activeTheme} />
         </div>
       </AdaptiveModal>
 
@@ -2069,6 +2093,277 @@ export default function App() {
         </div>
       </AdaptiveModal>
 
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'persona-plan'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title={activePersona.mainModuleTitle}
+        subtitle={activePersona.description}
+        ariaLabel={`${activePersona.mainModuleTitle} · 工作台详情`}
+      >
+        <div className="membership-modal-content">
+          <p style={{ padding: 20, color: 'var(--muted)' }}>该模块为当前场景的核心展示区域，详细内容请在画布模块中查看。</p>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'growth-rpg'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="成长等级"
+        subtitle={`Lv. ${workspaceState.growth.level} · ${workspaceState.growth.experience} 积分`}
+        ariaLabel="成长等级 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <section style={{ padding: 20 }}>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ 
+                width: 80, height: 80, borderRadius: '50%', 
+                background: 'var(--primary)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 16px', fontSize: 32, fontWeight: 700 
+              }}>
+                {workspaceState.growth.level}
+              </div>
+              <h2 style={{ fontSize: 32, fontWeight: 700, margin: 0 }}>Lv. {workspaceState.growth.level}</h2>
+              <p style={{ color: 'var(--muted)', margin: '8px 0 16px' }}>{workspaceState.growth.experience} 积分</p>
+              <div style={{ height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, (workspaceState.growth.experience % 1000) / 10)}%`, height: '100%', background: 'var(--primary)', borderRadius: 4 }} />
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 0' }}>{1000 - (workspaceState.growth.experience % 1000)} 积分到下一级</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, textAlign: 'center' }}>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12 }}>
+                <strong style={{ fontSize: 24 }}>{workspaceState.growth.achievements}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>成就</p>
+              </div>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12 }}>
+                <strong style={{ fontSize: 24 }}>{workspaceState.growth.streakDays}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>连续天数</p>
+              </div>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12 }}>
+                <strong style={{ fontSize: 24 }}>{workspaceState.growth.totalFocusMinutes}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>专注分钟</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'key-metrics'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="关键指标"
+        subtitle="当前场景的关键指标展示"
+        ariaLabel="关键指标 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+              {activePersona.keyMetrics.map((metric, index) => (
+                <div key={metric} style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12, textAlign: 'center' }}>
+                  <strong style={{ fontSize: 20, color: 'var(--primary)' }}>{index === 0 ? (activePersona.modules[0]?.signal ?? activePersona.mainModuleTitle) : `${70 + index * 6}%`}</strong>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>{metric}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'today-actions'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="今日行动"
+        subtitle={`${todoTasks.length} 个待办 · ${completedTasks.length} 已完成`}
+        ariaLabel="今日行动 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20, maxHeight: 400, overflow: 'auto' }}>
+            {todoTasks.length === 0 && completedTasks.length === 0 ? (
+              <p className="empty-state">暂无任务</p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {todoTasks.map((task) => (
+                  <li key={task.id} style={{ padding: 12, borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <input type="checkbox" disabled />
+                    <span>{task.title}</span>
+                    {task.dueLabel && <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{task.dueLabel}</span>}
+                  </li>
+                ))}
+                {completedTasks.map((task) => (
+                  <li key={task.id} style={{ padding: 12, borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, opacity: 0.6 }}>
+                    <input type="checkbox" checked disabled />
+                    <span style={{ textDecoration: 'line-through' }}>{task.title}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'focus-session'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="任务专注计时器"
+        subtitle={focusDisplayTask ? focusDisplayTask.title : '当前场景暂无待办任务'}
+        ariaLabel="任务专注计时器 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20, textAlign: 'center' }}>
+            <strong style={{ fontSize: 48, fontWeight: 300 }}>{`${focusMinuteText}:${focusSecondText}`}</strong>
+            <p style={{ color: 'var(--muted)', margin: '8px 0' }}>
+              {focusDisplayTask ? `${focusDisplayTask.dueLabel} · ${focusRewardPoints} 积分` : '可先切换场景或新增任务'}
+            </p>
+          </div>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'memory-insights'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="记忆洞察"
+        subtitle="近期上下文和记忆事件"
+        ariaLabel="记忆洞察 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <p style={{ padding: 20, color: 'var(--muted)' }}>记忆洞察模块展示近期的上下文和记忆事件详情。</p>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'ai-coach'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="AI 教练"
+        subtitle={activePersona.aiRole}
+        ariaLabel="AI 教练 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <p style={{ padding: 20, color: 'var(--muted)' }}>AI 教练为当前场景提供智能辅导和建议。</p>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'platform-matrix'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="跨端数据"
+        subtitle="多平台数据同步状态"
+        ariaLabel="跨端数据 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20 }}>
+            <p style={{ marginBottom: 16 }}>当前桌面端优先，数据层已按本地优先和同步预留设计。</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {['Desktop', '微信小程序', 'Web/PWA', 'iOS', 'HarmonyOS'].map((platform) => (
+                <span key={platform} style={{ padding: '8px 16px', background: 'var(--surface-elevated)', borderRadius: 8, fontSize: 14 }}>{platform}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'statistics'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="数据统计"
+        subtitle="综合数据统计"
+        ariaLabel="数据统计 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12, textAlign: 'center' }}>
+                <strong style={{ fontSize: 28 }}>{completedTasks.length}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>已完成任务</p>
+              </div>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12, textAlign: 'center' }}>
+                <strong style={{ fontSize: 28 }}>{todoTasks.length}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>待办任务</p>
+              </div>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12, textAlign: 'center' }}>
+                <strong style={{ fontSize: 28 }}>{workspaceState.focusSessions.reduce((sum, s) => sum + s.minutes, 0)}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>专注分钟</p>
+              </div>
+              <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12, textAlign: 'center' }}>
+                <strong style={{ fontSize: 28 }}>{workspaceState.growth.streakDays}</strong>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted)' }}>连续天数</p>
+              </div>
+            </div>
+            <div style={{ padding: 16, background: 'var(--surface-elevated)', borderRadius: 12 }}>
+              <strong style={{ fontSize: 16, marginBottom: 12, display: 'block' }}>本周进度</strong>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ flex: 1, height: 8, background: 'var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${weeklyProgress}%`, height: '100%', background: 'var(--primary)', borderRadius: 4 }} />
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{weeklyProgress}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'cycle-today'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="今日周期"
+        subtitle="生理周期追踪"
+        ariaLabel="今日周期 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20 }}>
+            <p style={{ color: 'var(--muted)', marginBottom: 20 }}>点击下方按钮打开完整的周期追踪功能。</p>
+            <button
+              className="custom-persona-editor-btn primary"
+              onClick={() => { setOpenWorkbenchDetail(null); setIsCycleTrackerOpen(true); }}
+              style={{ width: '100%' }}
+            >
+              打开周期追踪
+            </button>
+          </div>
+        </div>
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={openWorkbenchDetail === 'memory-profile'}
+        onClose={() => setOpenWorkbenchDetail(null)}
+        title="记忆画像"
+        subtitle="了解你的独特风格"
+        ariaLabel="记忆画像 · 工作台详情"
+      >
+        <div className="membership-modal-content">
+          <div style={{ padding: 20 }}>
+            <div style={{ marginBottom: 16 }}>
+              <strong>MBTI 倾向</strong>
+              <p style={{ color: 'var(--muted)', margin: '4px 0 0' }}>
+                {memoryProfile.personality.mbtiTendency && memoryProfile.personality.mbtiTendency !== 'unknown' ? memoryProfile.personality.mbtiTendency : '未设置'}
+              </p>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <strong>能量节奏</strong>
+              <p style={{ color: 'var(--muted)', margin: '4px 0 0' }}>
+                {memoryProfile.rhythm.energyPeak === 'morning' ? '晨间型' : 
+                 memoryProfile.rhythm.energyPeak === 'afternoon' ? '午后型' : 
+                 memoryProfile.rhythm.energyPeak === 'evening' ? '晚间型' : '未设置'}
+              </p>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <strong>学习风格</strong>
+              <p style={{ color: 'var(--muted)', margin: '4px 0 0' }}>
+                {memoryProfile.learning.learningStyle === 'visual' ? '视觉型' : 
+                 memoryProfile.learning.learningStyle === 'auditory' ? '听觉型' : 
+                 memoryProfile.learning.learningStyle === 'kinesthetic' ? '动觉型' : '未设置'}
+              </p>
+            </div>
+            <button
+              className="custom-persona-editor-btn primary"
+              onClick={() => { setOpenWorkbenchDetail(null); setIsMemoryProfileOpen(true); }}
+              style={{ width: '100%' }}
+            >
+              编辑画像
+            </button>
+          </div>
+        </div>
+      </AdaptiveModal>
+
       {isThemePickerOpen && (
         <div className="theme-modal-backdrop" onClick={closeThemePicker} role="presentation">
           <section
@@ -2104,6 +2399,14 @@ export default function App() {
               </div>
               <button className="theme-modal-close" onClick={closeThemePicker} type="button" aria-label="关闭主题库">
                 ×
+              </button>
+              <button 
+                className="custom-persona-editor-btn secondary" 
+                onClick={() => { setIsThemePickerOpen(false); setIsWallpaperPickerOpen(true); }}
+                style={{ position: 'absolute', top: 16, right: 60, padding: '8px 16px', fontSize: 13 }}
+                type="button"
+              >
+                🖼️ 壁纸设置
               </button>
             </header>
 
@@ -2203,7 +2506,13 @@ export default function App() {
             </header>
             <WallpaperPicker
               currentThemeId={activeTheme.id}
-              onClose={() => setIsWallpaperPickerOpen(false)}
+              onClose={() => {
+                const wallpaper = wallpaperService.getActiveWallpaper()
+                if (wallpaper?.thumbnailDataUrl) {
+                  setRelationshipSpaceWallpaper(wallpaper.thumbnailDataUrl)
+                }
+                setIsWallpaperPickerOpen(false)
+              }}
             />
           </section>
         </div>
@@ -2805,6 +3114,163 @@ export default function App() {
         <ApiKeySettingsUI onClose={() => setIsApiKeySettingsOpen(false)} />
       )}
 
+      {isSupabaseConfigOpen && (
+        <SupabaseConfigUI
+          onConfigured={() => {
+            setDataSource('supabase')
+            setIsSupabaseConfigOpen(false)
+            addToast({ type: 'success', title: 'Supabase 已连接', message: '数据源已切换至云端' })
+          }}
+          onBack={() => setIsSupabaseConfigOpen(false)}
+        />
+      )}
+
+      {isReportOpen && (
+        <AdaptiveModal
+          isOpen={isReportOpen}
+          onClose={() => setIsReportOpen(false)}
+          title="数据报告"
+          subtitle="查看你的成长数据报告"
+          ariaLabel="数据报告"
+          width={800}
+          height={700}
+        >
+          <ReportUI
+            getWorkspaceState={getWorkspaceState}
+            getStudyState={getStudyState}
+            getHabitState={getHabitState}
+            getFinanceState={getFinanceState}
+            getReadingState={getReadingState}
+            getWellnessState={getWellnessState}
+            getJournalState={getJournalState}
+          />
+        </AdaptiveModal>
+      )}
+
+      {isGlobalSearchOpen && (
+        <AdaptiveModal
+          isOpen={isGlobalSearchOpen}
+          onClose={() => setIsGlobalSearchOpen(false)}
+          title="全局搜索"
+          subtitle="搜索你的所有数据"
+          ariaLabel="全局搜索"
+          width={700}
+          height={600}
+        >
+          <GlobalSearchUI
+            getWorkspaceState={getWorkspaceState}
+            getStudyState={getStudyState}
+            getHabitState={getHabitState}
+            getFinanceState={getFinanceState}
+            getReadingState={getReadingState}
+            getJournalState={getJournalState}
+            getGoalsState={getGoalsState}
+            getProjectState={getProjectState}
+          />
+        </AdaptiveModal>
+      )}
+
+      {isQuickNotesOpen && (
+        <AdaptiveModal
+          isOpen={isQuickNotesOpen}
+          onClose={() => setIsQuickNotesOpen(false)}
+          title="快速笔记"
+          subtitle="随时记录灵感"
+          ariaLabel="快速笔记"
+          width={600}
+          height={600}
+        >
+          <QuickNotesUI />
+        </AdaptiveModal>
+      )}
+
+      {isTimeBlockOpen && (
+        <AdaptiveModal
+          isOpen={isTimeBlockOpen}
+          onClose={() => setIsTimeBlockOpen(false)}
+          title="时间块"
+          subtitle="规划你的时间"
+          ariaLabel="时间块"
+          width={600}
+          height={600}
+        >
+          <TimeBlockUI />
+        </AdaptiveModal>
+      )}
+
+      {isFocusStatsOpen && (
+        <AdaptiveModal
+          isOpen={isFocusStatsOpen}
+          onClose={() => setIsFocusStatsOpen(false)}
+          title="专注统计"
+          subtitle="查看你的专注数据"
+          ariaLabel="专注统计"
+          width={800}
+          height={600}
+        >
+          <FocusStatsUI getWorkspaceState={getWorkspaceState} />
+        </AdaptiveModal>
+      )}
+
+      {isFocusHistoryOpen && (
+        <AdaptiveModal
+          isOpen={isFocusHistoryOpen}
+          onClose={() => setIsFocusHistoryOpen(false)}
+          title="专注历史"
+          subtitle="回顾你的专注历程"
+          ariaLabel="专注历史"
+          width={800}
+          height={600}
+        >
+          <FocusHistoryUI getWorkspaceState={getWorkspaceState} />
+        </AdaptiveModal>
+      )}
+
+      {isMigrationOpen && (
+        <AdaptiveModal
+          isOpen={isMigrationOpen}
+          onClose={() => setIsMigrationOpen(false)}
+          title="数据迁移"
+          subtitle="将本地数据迁移到云端"
+          ariaLabel="数据迁移"
+          width={600}
+          height={500}
+        >
+          {dataSource !== 'supabase' ? (
+            <div style={{ padding: 24, textAlign: 'center' }}>
+              <p style={{ marginBottom: 16, color: 'var(--muted)' }}>
+                数据迁移需要先配置 Supabase 云端数据库连接。
+              </p>
+              <button
+                onClick={() => {
+                  setIsMigrationOpen(false)
+                  setIsSupabaseConfigOpen(true)
+                }}
+                style={{
+                  padding: '10px 24px',
+                  background: '#1976d2',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 15
+                }}
+              >
+                前往配置 Supabase
+              </button>
+            </div>
+          ) : (
+            <MigrationUI
+              userId={userId}
+              onComplete={() => {
+                setIsMigrationOpen(false)
+                addToast({ type: 'success', title: '迁移完成', message: '数据已成功迁移' })
+              }}
+            />
+          )}
+        </AdaptiveModal>
+      )}
+
       {isSyncOpen && (
         <SyncUI onClose={() => setIsSyncOpen(false)} />
       )}
@@ -2849,6 +3315,30 @@ export default function App() {
         <FocusModeUI onClose={() => setIsFocusModeOpen(false)} />
       )}
 
+      <AdaptiveModal
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
+        title="模板中心"
+        subtitle="管理你的任务模板"
+        ariaLabel="模板中心"
+        width={800}
+        height={600}
+      >
+        <TemplateUI onClose={() => setIsTemplateOpen(false)} />
+      </AdaptiveModal>
+
+      <AdaptiveModal
+        isOpen={isReviewSchedulerOpen}
+        onClose={() => setIsReviewSchedulerOpen(false)}
+        title="复习提醒"
+        subtitle="间隔重复，高效记忆"
+        ariaLabel="复习提醒"
+        width={800}
+        height={600}
+      >
+        <ReviewSchedulerUI userId={userId} onClose={() => setIsReviewSchedulerOpen(false)} dataSource={dataSource} />
+      </AdaptiveModal>
+
       {isAvatarManagerOpen && (
         <div className="membership-modal-backdrop" onClick={() => setIsAvatarManagerOpen(false)} role="presentation">
           <section
@@ -2885,25 +3375,89 @@ export default function App() {
       )}
 
       {isRelationshipSpaceOpen && (
-        <div className="membership-modal-backdrop" onClick={() => setIsRelationshipSpaceOpen(false)} role="presentation">
-          <section
-            aria-modal="true"
-            className="membership-modal"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-label="关系空间"
-            style={{ maxWidth: 900 }}
-          >
-            <header className="membership-modal-hero">
-              <div className="membership-modal-hero-text">
-                <p className="eyebrow">Relationship Space · 关系空间</p>
-                <h2>与伙伴一起成长</h2>
-              </div>
-              <button className="membership-modal-close" onClick={() => setIsRelationshipSpaceOpen(false)} type="button" aria-label="关闭关系空间">
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            background: relationshipSpaceWallpaper || 'var(--wallpaper-image, var(--background))',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            overflow: 'auto'
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'var(--wallpaper-overlay, rgba(0,0,0,0.3))',
+              opacity: Number('var(--wallpaper-overlay-opacity, 0.3)') || 0.3
+            }}
+          />
+          <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
+            <div style={{
+              position: 'absolute',
+              top: 24,
+              right: 24,
+              display: 'flex',
+              gap: 12,
+              zIndex: 10
+            }}>
+              <button
+                onClick={() => setIsWallpaperPickerOpen(true)}
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#fff',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                aria-label="更换壁纸"
+                title="更换壁纸"
+              >
+                🖼️
+              </button>
+              <button
+                onClick={() => setIsRelationshipSpaceOpen(false)}
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#fff',
+                  fontSize: 28,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                aria-label="关闭关系空间"
+              >
                 ×
               </button>
-            </header>
-            <div className="membership-modal-content">
+            </div>
+            <div style={{ padding: '100px 40px 40px', maxWidth: 1200, margin: '0 auto' }}>
+              <div style={{ marginBottom: 40 }}>
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, margin: 0, letterSpacing: '0.5px' }}>RELATIONSHIP SPACE</p>
+                <h2 style={{ fontSize: 42, fontWeight: 700, margin: '12px 0 0', color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>与伙伴一起成长</h2>
+              </div>
               <RelationshipSpaceProvider>
                 {selectedSpaceId ? (
                   <SpaceDetail
@@ -2911,16 +3465,25 @@ export default function App() {
                     userId={userId}
                     onBack={() => setSelectedSpaceId(null)}
                   />
+                ) : isCreatingSpace ? (
+                  <CreateSpaceForm
+                    userId={userId}
+                    onCreated={(spaceId) => {
+                      setIsCreatingSpace(false)
+                      setSelectedSpaceId(spaceId)
+                    }}
+                    onCancel={() => setIsCreatingSpace(false)}
+                  />
                 ) : (
                   <SpaceList
                     userId={userId}
                     onSelectSpace={setSelectedSpaceId}
-                    onCreateSpace={() => {}}
+                    onCreateSpace={() => setIsCreatingSpace(true)}
                   />
                 )}
               </RelationshipSpaceProvider>
             </div>
-          </section>
+          </div>
         </div>
       )}
 
@@ -3007,6 +3570,33 @@ export default function App() {
           entitlementService={entitlementService}
           safetyGate={personaSafetyGate}
           incidentLog={safetyIncidentLog}
+          avatarGen={personaAvatarGen}
+          customPersonaService={customPersonaService}
+        />
+      )}
+
+      {isCommunityPersonaOpen && (
+        <CommunityPersonaUI
+          userId={userId}
+          communityService={communityPersonaService}
+          onImportPersona={(persona) => {
+            setCurrentPersonaId(persona.id)
+            setIsCommunityPersonaOpen(false)
+          }}
+          onClose={() => setIsCommunityPersonaOpen(false)}
+        />
+      )}
+
+      {isCameoStorefrontOpen && (
+        <CameoStorefrontUI
+          userId={userId}
+          personaProvider={personaProvider}
+          entitlementService={entitlementService}
+          onClose={() => setIsCameoStorefrontOpen(false)}
+          onPurchase={(personaId) => {
+            setCurrentPersonaId(personaId)
+            setIsCameoStorefrontOpen(false)
+          }}
         />
       )}
 

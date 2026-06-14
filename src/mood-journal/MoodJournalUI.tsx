@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { usePlatform } from '../platforms'
 import {
   getEntries,
   addEntry,
@@ -41,6 +42,8 @@ export function MoodJournalUI({ userId: _userId }: MoodJournalUIProps) {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
 
   const [score, setScore] = useState(5)
   const [note, setNote] = useState('')
@@ -58,13 +61,7 @@ export function MoodJournalUI({ userId: _userId }: MoodJournalUIProps) {
     loadData()
   }, [loadData])
 
-  useEffect(() => {
-    if (stats && canvasRef.current) {
-      drawTrendChart(canvasRef.current, stats.weeklyStats)
-    }
-  }, [stats])
-
-  const drawTrendChart = (canvas: HTMLCanvasElement, weeklyStats: { date: string; score: number }[]) => {
+  const drawTrendChart = useCallback((canvas: HTMLCanvasElement, weeklyStats: { date: string; score: number }[]) => {
     let ctx: CanvasRenderingContext2D | null = null
     try {
       ctx = canvas.getContext('2d')
@@ -293,7 +290,7 @@ export function MoodJournalUI({ userId: _userId }: MoodJournalUIProps) {
                     key={n}
                     className={`${styles.scoreMark} ${score === n ? styles.scoreMarkActive : ''}`}
                     onClick={() => setScore(n)}
-                    title={MOOD_LABELS[n]}
+                    title={isMobile ? undefined : MOOD_LABELS[n]}
                   >
                     {MOOD_EMOJIS[n]}
                   </button>

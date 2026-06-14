@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { IdentitySelector } from '../identity/IdentitySelector'
 
 interface SidebarProps {
   isOpen: boolean
   onToggle: () => void
   onOpenModuleStore: () => void
-  onOpenAIRecommendation: () => void
   onOpenLayoutShare: () => void
   onOpenThemePicker: () => void
   onOpenMembership: () => void
@@ -15,6 +13,8 @@ interface SidebarProps {
   onOpenMemoryProfile: () => void
   onOpenPersonaSelector: () => void
   onOpenCustomPersonaEditor: () => void
+  onOpenCommunityPersona: () => void
+  onOpenCameoStorefront: () => void
   onOpenRelationshipSpace: () => void
   onOpenAgentChat: () => void
   onSwitchRole: () => void
@@ -26,6 +26,13 @@ interface SidebarProps {
   onOpenSchedule: () => void
   onOpenBacklink: () => void
   onOpenFocusMode: () => void
+  onOpenReport: () => void
+  onOpenGlobalSearch: () => void
+  onOpenQuickNotes: () => void
+  onOpenTimeBlock: () => void
+  onOpenFocusStats: () => void
+  onOpenFocusHistory: () => void
+  onOpenMigration: () => void
   authLabel: string
   currentThemeName: string
   membershipTier: string
@@ -39,7 +46,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen, 
   onToggle,
   onOpenModuleStore,
-  onOpenAIRecommendation,
   onOpenLayoutShare,
   onOpenThemePicker,
   onOpenMembership,
@@ -49,6 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenMemoryProfile,
   onOpenPersonaSelector,
   onOpenCustomPersonaEditor,
+  onOpenCommunityPersona,
+  onOpenCameoStorefront,
   onOpenRelationshipSpace,
   onOpenAgentChat,
   onSwitchRole,
@@ -60,6 +68,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenSchedule,
   onOpenBacklink,
   onOpenFocusMode,
+  onOpenReport,
+  onOpenGlobalSearch,
+  onOpenQuickNotes,
+  onOpenTimeBlock,
+  onOpenFocusStats,
+  onOpenFocusHistory,
+  onOpenMigration,
   authLabel,
   currentThemeName,
   membershipTier,
@@ -76,6 +91,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'ai', label: 'AI 助手', icon: 'Bot' },
     { id: 'persona', label: '人格切换', icon: 'Sparkles' },
     { id: 'custom-persona', label: '自定义角色', icon: 'Edit' },
+    { id: 'community-persona', label: '社区', icon: 'Users' },
+    { id: 'cameo-storefront', label: 'Cameo 商店', icon: 'ShoppingBag' },
     { id: 'relationship', label: '关系空间', icon: 'Users' },
     { id: 'memory', label: '记忆画像', icon: 'Brain' },
     { id: 'cycle', label: '周期追踪', icon: 'Heart' },
@@ -86,6 +103,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'focus-mode', label: '专注模式', icon: 'Target' },
     { id: 'template', label: '模板中心', icon: 'Layout' },
     { id: 'review', label: '复习提醒', icon: 'Brain' },
+    { id: 'report', label: '数据报告', icon: 'BarChart3' },
+    { id: 'search', label: '全局搜索', icon: 'Search' },
+    { id: 'quicknotes', label: '快速笔记', icon: 'StickyNote' },
+    { id: 'timeblock', label: '时间块', icon: 'Clock' },
+    { id: 'focusstats', label: '专注统计', icon: 'TrendingUp' },
+    { id: 'focushistory', label: '专注历史', icon: 'Calendar' },
     { id: 'settings', label: '设置', icon: 'Settings' },
     { id: 'theme', label: '主题切换', icon: 'Palette' }
   ]
@@ -94,6 +117,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setActiveSection(sectionId)
     
     switch (sectionId) {
+      case 'identity':
+        onOpenIdentitySelector()
+        break
       case 'modules':
         onOpenModuleStore()
         break
@@ -121,6 +147,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'custom-persona':
         onOpenCustomPersonaEditor()
         break
+      case 'community-persona':
+        onOpenCommunityPersona()
+        break
+      case 'cameo-storefront':
+        onOpenCameoStorefront()
+        break
       case 'template':
         onOpenTemplate()
         break
@@ -138,6 +170,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'focus-mode':
         onOpenFocusMode()
+        break
+      case 'report':
+        onOpenReport()
+        break
+      case 'search':
+        onOpenGlobalSearch()
+        break
+      case 'quicknotes':
+        onOpenQuickNotes()
+        break
+      case 'timeblock':
+        onOpenTimeBlock()
+        break
+      case 'focusstats':
+        onOpenFocusStats()
+        break
+      case 'focushistory':
+        onOpenFocusHistory()
         break
     }
   }
@@ -236,8 +286,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         <div style={{ flex: 1, overflow: 'auto', marginTop: '16px' }}>
-          {activeSection === 'identity' && <IdentitySelector />}
-          
           {activeSection === 'settings' && (
             <div style={{ padding: '8px 0' }}>
               <button
@@ -334,6 +382,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <span>☁️</span>
                 <span>数据源：{dataSource === 'supabase' ? '云端 (Supabase)' : '本地存储'}</span>
+              </button>
+              <button
+                onClick={onOpenMigration}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text)',
+                  cursor: 'pointer',
+                  marginBottom: '8px'
+                }}
+              >
+                <span>📦</span>
+                <span>数据迁移</span>
               </button>
               <button
                 onClick={onOpenIdentitySelector}

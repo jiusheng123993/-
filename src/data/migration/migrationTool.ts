@@ -1,5 +1,5 @@
-import { getSupabase } from '../infrastructure/supabase'
-import { dataBackupKeys, SENSITIVE_KEYS } from '../data/dataBackup'
+import { getSupabase } from '../../infrastructure/supabase'
+import { dataBackupKeys, SENSITIVE_KEYS } from '../dataBackup'
 
 export interface MigrationModule {
   key: string

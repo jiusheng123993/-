@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { usePlatform, useAdaptiveTooltip } from '../platforms'
 import {
   buildKnowledgeGraph,
   getNodeColor,
   initializeNodePositions,
   simulateForces,
   type GraphNode,
-  type GraphEdge,
-  type KnowledgeGraphData
+  type GraphEdge
 } from './knowledgeGraphService'
 import './knowledgeGraph.css'
 
@@ -25,15 +25,20 @@ const TYPE_LABELS: Record<GraphNode['type'], string> = {
   persona: '人格'
 }
 
-export function KnowledgeGraphUI({ onClose }: KnowledgeGraphUIProps) {
+export function KnowledgeGraphUI({ onClose: _onClose }: KnowledgeGraphUIProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [graphData, setGraphData] = useState<KnowledgeGraphData | null>(null)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const [nodes, setNodes] = useState<GraphNode[]>([])
   const [edges, setEdges] = useState<GraphEdge[]>([])
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
   const [isSimulating, setIsSimulating] = useState(true)
+  const zoomInTooltip = useAdaptiveTooltip('放大')
+  const zoomOutTooltip = useAdaptiveTooltip('缩小')
+  const resetTooltip = useAdaptiveTooltip('重置')
+  const simTooltip = useAdaptiveTooltip(isSimulating ? '暂停' : '继续')
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
@@ -42,7 +47,6 @@ export function KnowledgeGraphUI({ onClose }: KnowledgeGraphUIProps) {
 
   useEffect(() => {
     const data = buildKnowledgeGraph()
-    setGraphData(data)
     if (data.nodes.length > 0 && containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect()
       const positionedNodes = initializeNodePositions([...data.nodes], width, height)
@@ -102,7 +106,7 @@ export function KnowledgeGraphUI({ onClose }: KnowledgeGraphUIProps) {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [isSimulating])
+  }, [isSimulating, nodes.length])
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
@@ -273,7 +277,6 @@ export function KnowledgeGraphUI({ onClose }: KnowledgeGraphUIProps) {
             if (node.x === undefined || node.y === undefined) return null
 
             const isHovered = hoveredNode?.id === node.id
-            const isSelected = selectedNode?.id === node.id
             const connectedEdges = getConnectedEdges(node.id)
             const isConnected = connectedEdges.length > 0
 
@@ -283,8 +286,10 @@ export function KnowledgeGraphUI({ onClose }: KnowledgeGraphUIProps) {
                 className="graph-node"
                 transform={`translate(${node.x}, ${node.y})`}
                 onClick={(e) => handleNodeClick(node, e)}
-                onMouseEnter={(e) => handleNodeHover(node, e)}
-                onMouseLeave={() => handleNodeHover(null)}
+                onMouseEnter={isMobile ? undefined : (e) => handleNodeHover(node, e)}
+                onMouseLeave={isMobile ? undefined : () => handleNodeHover(null)}
+                onTouchStart={isMobile ? () => handleNodeHover(node) : undefined}
+                onTouchEnd={isMobile ? () => handleNodeHover(null) : undefined}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <circle
@@ -353,13 +358,17 @@ export function KnowledgeGraphUI({ onClose }: KnowledgeGraphUIProps) {
       )}
 
       <div className="graph-controls">
-        <button className="control-btn" onClick={handleZoomIn} title="放大">+</button>
-        <button className="control-btn" onClick={handleZoomOut} title="缩小">−</button>
-        <button className="control-btn" onClick={handleReset} title="重置">⟲</button>
-        <button className="control-btn" onClick={() => setIsSimulating(!isSimulating)} title={isSimulating ? '暂停' : '继续'}>
+        <button className="control-btn" onClick={handleZoomIn} {...zoomInTooltip.tooltipProps}>+</button>
+        <button className="control-btn" onClick={handleZoomOut} {...zoomOutTooltip.tooltipProps}>−</button>
+        <button className="control-btn" onClick={handleReset} {...resetTooltip.tooltipProps}>⟲</button>
+        <button className="control-btn" onClick={() => setIsSimulating(!isSimulating)} {...simTooltip.tooltipProps}>
           {isSimulating ? '⏸' : '▶'}
         </button>
       </div>
+      {zoomInTooltip.tooltipElement}
+      {zoomOutTooltip.tooltipElement}
+      {resetTooltip.tooltipElement}
+      {simTooltip.tooltipElement}
     </div>
   )
 }

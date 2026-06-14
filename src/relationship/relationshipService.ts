@@ -49,14 +49,14 @@ function isOwner(space: RelationshipSpace, userId: string): boolean {
 function getEntitlementLimit(_userId: string, entitlement: string): number {
   try {
     const raw = localStorage.getItem('xinghuanhai_entitlements')
-    if (!raw) return entitlement === 'space_member_limit' ? 2 : 0
+    if (!raw) return 0
     const entitlements = JSON.parse(raw) as Record<string, unknown>
     if (entitlement === 'space_member_limit') {
       return typeof entitlements[entitlement] === 'number' ? entitlements[entitlement] as number : 2
     }
     return entitlements[entitlement] ? 1 : 0
   } catch {
-    return entitlement === 'space_member_limit' ? 2 : 0
+    return 0
   }
 }
 

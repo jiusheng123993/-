@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
+import { usePlatform } from '../platforms'
 import type { HabitState, Habit } from './habitService'
 import {
   createHabitBrowserStore,
@@ -65,6 +66,8 @@ export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
   const [newHabitTarget, setNewHabitTarget] = useState(1)
   const [newHabitUnit, setNewHabitUnit] = useState('次')
   const [viewMode, setViewMode] = useState<'list' | 'heatmap'>('list')
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const today = getTodayDateString()
   const todayRecords = getTodayHabitRecords(state, today)
   const completionRate = getHabitCompletionRate(state, today)
@@ -187,7 +190,7 @@ export function HabitTracker({ onClose, compact = false }: HabitTrackerProps) {
                   return (
                     <div
                       key={d}
-                      title={`${cell.date}: ${cell.count}/${cell.total} 完成`}
+                      title={isMobile ? undefined : `${cell.date}: ${cell.count}/${cell.total} 完成`}
                       style={{
                         width: 24,
                         height: 24,

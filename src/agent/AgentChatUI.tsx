@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { usePlatform } from '../platforms'
 import type { PersonaId } from '../personas/personaRegistry'
 import type { AvatarMood } from '../avatar/avatarTypes'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
@@ -78,7 +79,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
       setMessages([greeting])
       conversationHistoryRef.current = []
     }
-  }, [isOpen, aiRole])
+  }, [isOpen, aiRole, messages.length])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -201,7 +202,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
         }
       }
     }
-  }, [inputValue, isLoading, onSendMessage, personaId, aiRole, memoryObserver, healthMonitor, onConversationComplete])
+  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, onConversationComplete, memoryEvents, profile])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -402,20 +403,23 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
 }
 
 export function AgentChatToggle({ onClick }: { onClick: () => void }) {
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
+
   return (
     <button
       onClick={onClick}
       style={{
         position: 'fixed',
-        right: '24px',
-        bottom: '24px',
-        width: '60px',
-        height: '60px',
+        right: isMobile ? '16px' : '24px',
+        bottom: isMobile ? '16px' : '24px',
+        width: isMobile ? '56px' : '60px',
+        height: isMobile ? '56px' : '60px',
         borderRadius: '50%',
         border: 'none',
         background: 'var(--primary)',
         color: '#fff',
-        fontSize: '28px',
+        fontSize: isMobile ? '26px' : '28px',
         cursor: 'pointer',
         boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)',
         display: 'flex',
@@ -425,11 +429,11 @@ export function AgentChatToggle({ onClick }: { onClick: () => void }) {
         transition: 'transform 200ms, box-shadow 200ms'
       }}
       aria-label="打开 AI 聊天"
-      onMouseEnter={e => {
+      onMouseEnter={isMobile ? undefined : e => {
         e.currentTarget.style.transform = 'scale(1.1)'
         e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.5)'
       }}
-      onMouseLeave={e => {
+      onMouseLeave={isMobile ? undefined : e => {
         e.currentTarget.style.transform = 'scale(1)'
         e.currentTarget.style.boxShadow = '0 4px 16px rgba(99, 102, 241, 0.4)'
       }}

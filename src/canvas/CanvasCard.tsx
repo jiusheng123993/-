@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ModuleSize } from '../module-store/types'
+import { usePlatform, useLongPress } from '../platforms'
 
 interface CanvasCardProps {
   title: string
@@ -44,6 +45,20 @@ export const CanvasCard = ({
 }: CanvasCardProps) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
+
+  const longPress = useLongPress({
+    duration: 500,
+    onLongPress: () => {
+      if (isMobile && onOpenDetails) {
+        onOpenDetails()
+      } else {
+        setIsHovered((prev) => !prev)
+      }
+    },
+    onClick: isMobile ? undefined : undefined
+  })
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [visualPosition, setVisualPosition] = useState<{ x: number; y: number } | null>(null)
   const [isResizing, setIsResizing] = useState(false)
@@ -86,7 +101,9 @@ export const CanvasCard = ({
     const deltaX = event.clientX - dragStartRef.current.x
     const deltaY = event.clientY - dragStartRef.current.y
 
-    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+    const dragThreshold = isMobile ? 8 : 3
+
+    if (Math.abs(deltaX) > dragThreshold || Math.abs(deltaY) > dragThreshold) {
       didDragRef.current = true
     }
 
@@ -107,7 +124,7 @@ export const CanvasCard = ({
     if (onDragMoveRef.current) {
       onDragMoveRef.current(newPos)
     }
-  }, [size.columns])
+  }, [size.columns, isMobile])
 
   handlePointerMoveRef.current = handlePointerMove
 
@@ -168,7 +185,6 @@ export const CanvasCard = ({
   }, [position.x, position.y, onDragStart])
 
   const displayPosition = visualPosition ?? position
-  const displaySize = previewSize ?? size
 
   const handleResizePointerDown = useCallback((direction: string) => (e: React.PointerEvent) => {
     e.preventDefault()
@@ -232,11 +248,13 @@ export const CanvasCard = ({
     <article
       ref={cardRef}
       className={`canvas-card ${isDragging ? 'dragging' : ''} ${isHovered ? 'hovered' : ''} ${isResizing ? 'resizing' : ''} ${isSnapped ? 'snap-indicator' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => !isDragging && setIsHovered(false)}
+      onMouseEnter={isMobile ? undefined : () => setIsHovered(true)}
+      onMouseLeave={isMobile ? undefined : () => !isDragging && setIsHovered(false)}
+      {...(isMobile ? longPress.handlers : {})}
       onDoubleClick={() => {
         if (!didDragRef.current && onOpenDetails) onOpenDetails()
       }}
+      title={isMobile ? '长按打开详情' : '双击打开详情'}
       style={{
         gridColumn: `${displayPosition.x + 1} / span ${size.columns}`,
         gridRow: `${displayPosition.y + 1} / span ${size.rows}`,

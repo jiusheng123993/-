@@ -47,7 +47,9 @@ const STORAGE_KEYS: BackupModuleInfo[] = [
   { key: 'xinghuanhai-schedule-state', name: 'schedule', description: '日程提醒数据' },
 ]
 
-const SENSITIVE_KEYS = [
+export const dataBackupKeys = STORAGE_KEYS.map(m => m.key)
+
+export const SENSITIVE_KEYS = [
   'dev_auth_session',
   'growthos-admin-session',
   'xinghuanhai_entitlements',

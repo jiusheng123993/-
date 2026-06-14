@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { usePlatform } from '../platforms'
 import type { Badge, BadgeCollection } from './badgeTypes'
 import { TIER_COLORS, TIER_LABELS } from './badgeTypes'
 import { evaluateBadges, type BadgeProgressInput } from './badgeEngine'
@@ -124,6 +125,8 @@ function BadgeCard({ badge, size = 'normal' }: { badge: Badge; size?: 'normal' |
 
 function CompactBadgeView({ collection }: { collection: BadgeCollection }) {
   const unlockedBadges = collection.badges.filter((b) => b.isUnlocked)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
 
   return (
     <div className="badge-compact" role="region" aria-label="成就徽章概览">
@@ -141,7 +144,7 @@ function CompactBadgeView({ collection }: { collection: BadgeCollection }) {
             <span
               key={badge.id}
               className="badge-compact-icon"
-              title={`${badge.name} - ${TIER_LABELS[badge.tier]}`}
+              title={isMobile ? undefined : `${badge.name} - ${TIER_LABELS[badge.tier]}`}
               style={{ fontSize: 24 }}
             >
               {badge.icon}

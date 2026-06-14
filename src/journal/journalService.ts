@@ -72,7 +72,9 @@ export function getTodayDateString(): string {
 
 export function getWeekStartDate(): string {
   const d = new Date()
-  d.setDate(d.getDate() - d.getDay() + 1)
+  const dayOfWeek = d.getDay()
+  const offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  d.setDate(d.getDate() - offset)
   return d.toISOString().slice(0, 10)
 }
 

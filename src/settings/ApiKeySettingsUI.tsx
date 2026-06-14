@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { usePlatform, useAdaptiveTooltip } from '../platforms'
 
 type ProviderKeyInfo = {
   id: string
@@ -61,6 +62,9 @@ export function ApiKeySettingsUI({ onClose }: ApiKeySettingsUIProps) {
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({})
   const [savedStatus, setSavedStatus] = useState<Record<string, 'idle' | 'saved' | 'cleared'>>({})
   const [activeProvider, setActiveProvider] = useState<string>(PROVIDER_KEYS[0].id)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
+  const visibilityTooltip = useAdaptiveTooltip(visibleKeys[activeProvider] ? '隐藏' : '显示')
 
   useEffect(() => {
     const initial: Record<string, string> = {}
@@ -192,11 +196,11 @@ export function ApiKeySettingsUI({ onClose }: ApiKeySettingsUIProps) {
               color: 'var(--text-secondary, #64748b)',
               transition: 'all 200ms ease'
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={isMobile ? undefined : (e) => {
               e.currentTarget.style.backgroundColor = 'var(--surface-hover, #f1f5f9)'
               e.currentTarget.style.color = 'var(--text, #0f172a)'
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={isMobile ? undefined : (e) => {
               e.currentTarget.style.backgroundColor = 'var(--surface-elevated, #f8fafc)'
               e.currentTarget.style.color = 'var(--text-secondary, #64748b)'
             }}
@@ -373,10 +377,11 @@ export function ApiKeySettingsUI({ onClose }: ApiKeySettingsUIProps) {
                     justifyContent: 'center',
                     transition: 'color 200ms ease'
                   }}
-                  title={visibleKeys[activeProvider] ? '隐藏' : '显示'}
+                  {...visibilityTooltip.tooltipProps}
                 >
                   {visibleKeys[activeProvider] ? '🙈' : '👁️'}
                 </button>
+                {visibilityTooltip.tooltipElement}
               </div>
             </div>
 
@@ -577,10 +582,10 @@ export function ApiKeySettingsUI({ onClose }: ApiKeySettingsUIProps) {
               cursor: 'pointer',
               transition: 'all 200ms ease'
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={isMobile ? undefined : (e) => {
               e.currentTarget.style.backgroundColor = 'var(--surface-hover, #f1f5f9)'
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={isMobile ? undefined : (e) => {
               e.currentTarget.style.backgroundColor = 'var(--surface-elevated, #f8fafc)'
             }}
           >

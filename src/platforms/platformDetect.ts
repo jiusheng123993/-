@@ -22,6 +22,7 @@ function detectPlatform(): Platform {
 
 function detectDeviceCategory(platform: Platform): DeviceCategory {
   if (platform === 'windows') return 'desktop'
+  if (platform === 'web' && !detectIsTouchDevice()) return 'desktop'
   return 'mobile'
 }
 

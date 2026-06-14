@@ -1,10 +1,19 @@
 import { useState, useMemo } from 'react'
-import { Clock, Calendar, TrendingUp, Flame, BarChart3, Activity } from 'lucide-react'
+import { usePlatform } from '../platforms'
+import { Clock, TrendingUp, Flame, BarChart3, Activity } from 'lucide-react'
 import { createFocusHistoryService } from './focusHistoryService'
 
 interface FocusHistoryUIProps {
   compact?: boolean
-  getWorkspaceState?: () => any
+  getWorkspaceState?: () => { focusSessions: FocusSession[] }
+}
+
+interface FocusSession {
+  id: string
+  taskTitle: string
+  minutes: number
+  rewardPoints: number
+  completedAt: string
 }
 
 const colors = {
@@ -23,6 +32,8 @@ const dayLabels = ['周日', '周一', '周二', '周三', '周四', '周五', '
 
 export function FocusHistoryUI({ compact = false, getWorkspaceState }: FocusHistoryUIProps) {
   const [days, setDays] = useState(30)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
 
   const service = useMemo(() => {
     const getState = getWorkspaceState || (() => ({ focusSessions: [] }))
@@ -32,8 +43,6 @@ export function FocusHistoryUI({ compact = false, getWorkspaceState }: FocusHist
   const history = service.getHistory(days)
   const heatmap = service.getHeatmapData(days)
   const dayStats = service.getDayOfWeekStats()
-  const hourStats = service.getHourOfDayStats()
-  const streakData = service.getStreakData()
 
   const totalMinutes = history.reduce((sum, e) => sum + e.minutes, 0)
   const totalSessions = history.length
@@ -146,7 +155,7 @@ export function FocusHistoryUI({ compact = false, getWorkspaceState }: FocusHist
           {heatmap.map((h, i) => (
             <div
               key={i}
-              title={`${h.hour}:00 - ${dayLabels[h.day]} (${h.count}次)`}
+              title={isMobile ? undefined : `${h.hour}:00 - ${dayLabels[h.day]} (${h.count}次)`}
               style={{
                 height: 16,
                 background: h.count > 0 ? `rgba(239, 68, 68, ${h.count / maxHeatmap})` : colors.cardBorder,
@@ -170,7 +179,7 @@ export function FocusHistoryUI({ compact = false, getWorkspaceState }: FocusHist
           <p style={{ color: colors.textSecondary, textAlign: 'center', padding: 20 }}>暂无记录</p>
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
-            {history.slice(0, 10).map((entry: any) => (
+            {history.slice(0, 10).map((entry) => (
               <div key={entry.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: colors.inputBg, borderRadius: 8 }}>
                 <div>
                   <div style={{ fontWeight: 500 }}>{entry.taskTitle}</div>
