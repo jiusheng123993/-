@@ -338,7 +338,7 @@ describe('ThreeDRenderer', () => {
 
     mockGLTFLoaderInstance.load = vi.fn((_url: string, onLoadFn: (gltf: { scene: typeof mockScene; animations: { name: string }[] }) => void) => {
       onLoadFn({
-        scene: mockScene as any,
+        scene: mockScene as Record<string, unknown>,
         animations: [{ name: 'walk' }, { name: 'idle' }]
       })
     })
@@ -363,7 +363,7 @@ describe('ThreeDRenderer', () => {
 
     mockGLTFLoaderInstance.load = vi.fn((_url: string, onLoadFn: (gltf: { scene: typeof mockScene; animations: never[] }) => void) => {
       onLoadFn({
-        scene: mockScene as any,
+        scene: mockScene as Record<string, unknown>,
         animations: []
       })
     })

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Clock, Plus, Trash2, CheckCircle, Circle, Calendar } from 'lucide-react'
 import { createTimeBlockService, categoryColors } from './timeBlockService'
 import type { TimeBlock } from './timeBlockService'

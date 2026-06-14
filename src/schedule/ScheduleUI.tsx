@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useReducer } from 'react'
 import {
   Calendar, Clock, Plus, X, ChevronLeft, ChevronRight,
   Bell, Repeat, Palette, CheckCircle, Circle, Trash2, Edit3,
-  List, Grid3X3, AlertCircle
+  AlertCircle
 } from 'lucide-react'
 import {
   createScheduleService,
@@ -11,7 +11,6 @@ import {
   formatTime,
   getWeekdayLabel,
   isToday,
-  isPast,
   type ScheduleEvent,
   type ScheduleService
 } from './scheduleService'
@@ -48,12 +47,11 @@ const EVENT_COLORS = [
 
 export function ScheduleUI({ compact = false, onClose }: ScheduleUIProps) {
   const [service] = useState<ScheduleService>(() => createScheduleService())
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [, refresh] = useReducer((x: number) => x + 1, 0)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -66,14 +64,10 @@ export function ScheduleUI({ compact = false, onClose }: ScheduleUIProps) {
     color: EVENT_COLORS[0]
   })
 
-  const refresh = () => setRefreshKey(k => k + 1)
-  const state = useMemo(() => service.getState(), [refreshKey])
-
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const todayEvents = useMemo(() => service.getTodayEvents(), [refreshKey])
-  const upcomingEvents = useMemo(() => service.getUpcomingEvents(7), [refreshKey])
-  const selectedEvents = useMemo(() => service.getEventsByDate(selectedDate), [refreshKey, selectedDate])
-  const stats = useMemo(() => service.getStats(), [refreshKey])
+  const todayEvents = useMemo(() => service.getTodayEvents(), [service])
+  const upcomingEvents = useMemo(() => service.getUpcomingEvents(7), [service])
+  const selectedEvents = useMemo(() => service.getEventsByDate(selectedDate), [selectedDate, service])
+  const stats = useMemo(() => service.getStats(), [service])
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -115,7 +109,7 @@ export function ScheduleUI({ compact = false, onClose }: ScheduleUIProps) {
     return days
   }, [year, month])
 
-  const monthEvents = useMemo(() => service.getEventsForMonth(year, month + 1), [refreshKey, year, month])
+  const monthEvents = useMemo(() => service.getEventsForMonth(year, month + 1), [year, month, service])
 
   const getEventsForDate = (dateStr: string) => {
     return monthEvents.filter(e => e.date === dateStr)

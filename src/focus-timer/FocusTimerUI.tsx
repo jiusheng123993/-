@@ -15,7 +15,7 @@ function formatMinutes(minutes: number): string {
   return m > 0 ? `${h}小时${m}分钟` : `${h}小时`
 }
 
-export function FocusTimerUI({ userId }: FocusTimerUIProps) {
+export function FocusTimerUI({ userId: _userId }: FocusTimerUIProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [showHistory, setShowHistory] = useState(false)
   const [todayRecords, setTodayRecords] = useState<PomodoroRecord[]>([])

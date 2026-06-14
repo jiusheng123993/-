@@ -182,7 +182,7 @@ describe('CustomPersonaService', () => {
     })
 
     it('should return null data for non-existent persona', () => {
-      const result = service.updateWithAudit('user-1', 'custom-nonexistent' as any, { name: '新名字' })
+      const result = service.updateWithAudit('user-1', 'custom-nonexistent', { name: '新名字' })
 
       expect(result.success).toBe(true)
       expect(result.data).toBeNull()
@@ -206,7 +206,7 @@ describe('CustomPersonaService', () => {
     })
 
     it('should return false for non-existent persona', () => {
-      const result = service.deleteWithAudit('user-1', 'custom-nonexistent' as any)
+      const result = service.deleteWithAudit('user-1', 'custom-nonexistent')
 
       expect(result.success).toBe(false)
       expect(result.data).toBe(false)

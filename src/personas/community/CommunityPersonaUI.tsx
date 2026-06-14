@@ -13,14 +13,11 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  Shield,
   AlertTriangle,
   Check,
   MessageSquare,
   BarChart3,
-  Filter,
   RefreshCw,
-  Plus,
   Heart,
   Zap,
   Crown,
@@ -93,7 +90,7 @@ function getHotBadge(index: number): React.ReactNode {
 export function CommunityPersonaUI({
   userId,
   communityService,
-  onImportPersona,
+  onImportPersona: _onImportPersona,
   onClose,
 }: CommunityPersonaUIProps) {
   const [view, setView] = useState<ViewMode>('browse')
@@ -136,7 +133,7 @@ export function CommunityPersonaUI({
         offset: page * PAGE_SIZE,
       })
       setEntries(result)
-    } catch (err) {
+    } catch {
       setError('加载失败，请重试')
     } finally {
       setLoading(false)
@@ -154,11 +151,6 @@ export function CommunityPersonaUI({
 
   const selectedEntryRatings = useMemo(
     () => (selectedEntryId ? communityService.getRatings(selectedEntryId) : []),
-    [communityService, selectedEntryId]
-  )
-
-  const selectedEntryReports = useMemo(
-    () => (selectedEntryId ? communityService.getReports(selectedEntryId) : []),
     [communityService, selectedEntryId]
   )
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { WallpaperPicker } from './WallpaperPicker'
-import type { WallpaperConfig, PresetWallpaper } from './wallpaperTypes'
+import type { PresetWallpaper } from './wallpaperTypes'
 
 vi.mock('./wallpaperService', () => ({
   wallpaperService: {

@@ -8,7 +8,7 @@ vi.mock('./memoryInjector', () => ({
     if (!profile || !events || events.length === 0) return ''
     return '=== 用户画像 ===\n身份\n  - 昵称: 测试用户\n\n=== 相关记忆 ===\n- 用户表达了想要提高学习效率的愿望'
   }),
-  buildMemoryEventContext: vi.fn((events, query) => {
+  buildMemoryEventContext: vi.fn((events, _query) => {
     if (!events || events.length === 0) return ''
     return '相关记忆事件\n- 用户表达了想要提高学习效率的愿望'
   })

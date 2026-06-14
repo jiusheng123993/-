@@ -13,8 +13,7 @@ import {
 import type {
   RelationshipHealthMonitor,
   ConversationMetrics,
-  HealthAssessment,
-  CrisisCheckResult
+  HealthAssessment
 } from './relationshipHealthMonitor'
 import type { SafetyIncidentLog } from './safetyIncidentLog'
 import type { PersonaScheduleStorage } from './personaScheduleStore'

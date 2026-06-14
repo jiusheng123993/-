@@ -99,7 +99,7 @@ describe('journalService', () => {
 
   it('finds entry by date and type', () => {
     const today = getTodayDateString()
-    let s = createJournalEntry(state, {
+    const s = createJournalEntry(state, {
       date: today,
       type: 'weekly',
       mood: 'good',
@@ -195,7 +195,7 @@ describe('journalService', () => {
 
   it('calculates mood stats', () => {
     const today = getTodayDateString()
-    let s = createJournalEntry(state, {
+    const s = createJournalEntry(state, {
       date: today,
       type: 'daily',
       mood: 'great',
@@ -217,7 +217,7 @@ describe('journalService', () => {
 
   it('calculates average mood score', () => {
     const today = getTodayDateString()
-    let s = createJournalEntry(state, {
+    const s = createJournalEntry(state, {
       date: today,
       type: 'daily',
       mood: 'great',
@@ -236,7 +236,7 @@ describe('journalService', () => {
 
   it('generates weekly reflection summary', () => {
     const today = getTodayDateString()
-    let s = createJournalEntry(state, {
+    const s = createJournalEntry(state, {
       date: today,
       type: 'daily',
       mood: 'good',
@@ -258,7 +258,7 @@ describe('journalService', () => {
 
   it('calculates journal streak', () => {
     const today = getTodayDateString()
-    let s = createJournalEntry(state, {
+    const s = createJournalEntry(state, {
       date: today,
       type: 'daily',
       mood: 'good',

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { BookOpen, Plus, Trash2, Star, Target, Library, BookMarked, ChevronRight } from 'lucide-react'
+import { BookOpen, Trash2, Star, Target, Library, BookMarked } from 'lucide-react'
 import { createReadingService, readingCategories } from './readingService'
 import type { ReadingService, Book } from './readingService'
 import type { StudyTheme } from '../themes/themeRegistry'
@@ -76,9 +76,9 @@ export function ReadingUI({ compact = false, service: externalService, theme }: 
 
   const handleSetGoal = useCallback(() => {
     if (!goalTarget) return
-    service.setReadingGoal(now.getFullYear(), parseInt(goalTarget))
+    service.setReadingGoal(new Date().getFullYear(), parseInt(goalTarget))
     setGoalTarget('')
-  }, [service, goalTarget, now])
+  }, [service, goalTarget])
 
   const getStatusLabel = (status: Book['status']) => {
     switch (status) {

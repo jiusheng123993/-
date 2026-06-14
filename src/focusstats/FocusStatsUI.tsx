@@ -1,9 +1,16 @@
 import { useState, useMemo } from 'react'
 import { Clock, TrendingUp, BarChart3, Target, Flame, Award, Zap } from 'lucide-react'
 
+interface FocusSession {
+  completedAt?: string
+  minutes?: number
+  taskTitle?: string
+  rewardPoints?: number
+}
+
 interface FocusStatsUIProps {
   compact?: boolean
-  getWorkspaceState?: () => any
+  getWorkspaceState?: () => { focusSessions: FocusSession[]; tasks: unknown[] }
 }
 
 const colors = {
@@ -25,7 +32,7 @@ const CHART_PAD_R = 20
 const CHART_PAD_T = 20
 const CHART_PAD_B = 30
 
-function buildTrendData(sessions: any[], period: 'week' | 'month' | 'year') {
+function buildTrendData(sessions: FocusSession[], period: 'week' | 'month' | 'year') {
   const now = new Date()
   const days = period === 'week' ? 7 : period === 'month' ? 30 : 365
   const dailyMap: Record<string, number> = {}
@@ -37,7 +44,7 @@ function buildTrendData(sessions: any[], period: 'week' | 'month' | 'year') {
     dailyMap[key] = 0
   }
 
-  sessions.forEach((s: any) => {
+  sessions.forEach((s) => {
     const key = s.completedAt?.split('T')[0]
     if (key && dailyMap[key] !== undefined) {
       dailyMap[key] += s.minutes || 0
@@ -49,12 +56,12 @@ function buildTrendData(sessions: any[], period: 'week' | 'month' | 'year') {
     .map(([date, minutes]) => ({ date, minutes }))
 }
 
-function computeStreak(sessions: any[]): { current: number; longest: number } {
+function computeStreak(sessions: FocusSession[]): { current: number; longest: number } {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   const focusedDays = new Set<string>()
-  sessions.forEach((s: any) => {
+  sessions.forEach((s) => {
     if (s.completedAt) {
       focusedDays.add(s.completedAt.split('T')[0])
     }
@@ -97,7 +104,7 @@ export function FocusStatsUI({ compact = false, getWorkspaceState }: FocusStatsU
     return { focusSessions: [], tasks: [] }
   }, [getWorkspaceState])
 
-  const sessions = workspaceState.focusSessions || []
+  const sessions = useMemo(() => workspaceState.focusSessions || [], [workspaceState.focusSessions])
 
   const filteredSessions = useMemo(() => {
     const now = new Date()
@@ -112,19 +119,19 @@ export function FocusStatsUI({ compact = false, getWorkspaceState }: FocusStatsU
       startDate = new Date(now)
       startDate.setFullYear(now.getFullYear() - 1)
     }
-    return sessions.filter((s: any) => new Date(s.completedAt) >= startDate)
+    return sessions.filter((s) => new Date(s.completedAt!) >= startDate)
   }, [sessions, period])
 
   const trendData = useMemo(() => buildTrendData(filteredSessions, period), [filteredSessions, period])
   const streak = useMemo(() => computeStreak(sessions), [sessions])
 
   const stats = useMemo(() => {
-    const totalMinutes = filteredSessions.reduce((sum: number, s: any) => sum + (s.minutes || 0), 0)
+    const totalMinutes = filteredSessions.reduce((sum, s) => sum + (s.minutes || 0), 0)
     const totalSessions = filteredSessions.length
     const avgPerDay = totalMinutes / (period === 'week' ? 7 : period === 'month' ? 30 : 365)
     
     const taskMinutes: Record<string, number> = {}
-    filteredSessions.forEach((s: any) => {
+    filteredSessions.forEach((s) => {
       const task = s.taskTitle || '未知任务'
       taskMinutes[task] = (taskMinutes[task] || 0) + (s.minutes || 0)
     })
@@ -134,14 +141,14 @@ export function FocusStatsUI({ compact = false, getWorkspaceState }: FocusStatsU
       .slice(0, 5)
 
     const dailyData: Record<string, number> = {}
-    filteredSessions.forEach((s: any) => {
+    filteredSessions.forEach((s) => {
       const date = s.completedAt?.split('T')[0]
       if (date) dailyData[date] = (dailyData[date] || 0) + (s.minutes || 0)
     })
     const dailyMinutes = Object.values(dailyData).filter(Boolean)
     const bestDay = Object.entries(dailyData).sort((a, b) => b[1] - a[1])[0]
 
-    const totalPoints = filteredSessions.reduce((sum: number, s: any) => sum + (s.rewardPoints || 0), 0)
+    const totalPoints = filteredSessions.reduce((sum, s) => sum + (s.rewardPoints || 0), 0)
 
     return {
       totalMinutes,
@@ -324,9 +331,7 @@ export function FocusStatsUI({ compact = false, getWorkspaceState }: FocusStatsU
               })}
               {trendLabels.map((d) => {
                 const idx = trendData.indexOf(d)
-                const maxVal = Math.max(...trendData.map((t) => t.minutes), 1)
                 const plotW = CHART_W - CHART_PAD_L - CHART_PAD_R
-                const plotH = CHART_H - CHART_PAD_T - CHART_PAD_B
                 const x = CHART_PAD_L + (idx / Math.max(trendData.length - 1, 1)) * plotW
                 const label = d.date.slice(5)
                 return (

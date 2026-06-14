@@ -31,25 +31,14 @@ export interface BacklinkState {
 
 const STORAGE_KEY = 'xinghuanhai-backlink-state'
 
-const STORAGE_KEYS_MAP: Record<string, Backlink['sourceType']> = {
-  'xinghuanhai-journal-state': 'journal',
-  'xinghuanhai-quicknotes-state': 'quicknote',
-  'xinghuanhai-goals-state': 'goal',
-  'xinghuanhai-habits-state': 'habit',
-  'xinghuanhai-reading-state': 'reading',
-  'xinghuanhai-project-state': 'project',
-  'xinghuanhai-wellness-state': 'wellness',
-  'xinghuanhai-mood-state': 'mood',
-  'xinghuanhai-english-state': 'english',
-  'xinghuanhai-creator-ideas': 'creator'
-}
-
 function loadState(): BacklinkState {
   if (typeof window === 'undefined') return { links: [], lastIndexedAt: null }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
-  } catch { }
+  } catch {
+    // ignore parse errors
+  }
   return { links: [], lastIndexedAt: null }
 }
 
@@ -112,7 +101,9 @@ function collectAllSources(): SourceEntry[] {
           type: 'journal'
         })
       })
-    } catch { }
+    } catch {
+      // ignore parse errors
+    }
   }
 
   const quickNotesRaw = window.localStorage.getItem('xinghuanhai-quicknotes-state')
@@ -129,7 +120,9 @@ function collectAllSources(): SourceEntry[] {
           type: 'quicknote'
         })
       })
-    } catch { }
+    } catch {
+      // ignore parse errors
+    }
   }
 
   const goalsRaw = window.localStorage.getItem('xinghuanhai-goals-state')
@@ -146,7 +139,9 @@ function collectAllSources(): SourceEntry[] {
           type: 'goal'
         })
       })
-    } catch { }
+    } catch {
+      // ignore parse errors
+    }
   }
 
   const habitsRaw = window.localStorage.getItem('xinghuanhai-habits-state')
@@ -163,7 +158,9 @@ function collectAllSources(): SourceEntry[] {
           type: 'habit'
         })
       })
-    } catch { }
+    } catch {
+      // ignore parse errors
+    }
   }
 
   const readingRaw = window.localStorage.getItem('xinghuanhai-reading-state')
@@ -180,7 +177,9 @@ function collectAllSources(): SourceEntry[] {
           type: 'reading'
         })
       })
-    } catch { }
+    } catch {
+      // ignore parse errors
+    }
   }
 
   const projectRaw = window.localStorage.getItem('xinghuanhai-project-state')
@@ -197,7 +196,9 @@ function collectAllSources(): SourceEntry[] {
           type: 'project'
         })
       })
-    } catch { }
+    } catch {
+      // ignore parse errors
+    }
   }
 
   return sources
@@ -216,7 +217,6 @@ function collectAllTitles(sources: SourceEntry[]): Set<string> {
 
 export function rebuildIndex(): BacklinkState {
   const sources = collectAllSources()
-  const allTitles = collectAllTitles(sources)
   const links: Backlink[] = []
   const now = new Date().toISOString()
 

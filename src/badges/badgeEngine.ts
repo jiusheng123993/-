@@ -15,7 +15,7 @@ export interface BadgeProgressInput {
 
 export function evaluateBadges(input: BadgeProgressInput): BadgeCollection {
   const badges: Badge[] = BADGE_DEFINITIONS.map((def) => {
-    let progress = 0
+    let progress: number
 
     switch (def.id) {
       case 'first-focus':

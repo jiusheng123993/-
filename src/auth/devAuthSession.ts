@@ -1,4 +1,4 @@
-import type { AuthSession, AuthRole, AuthProviderKind } from './authTypes'
+import type { AuthSession, AuthRole } from './authTypes'
 import { AUTH_STORAGE_KEY } from './authTypes'
 
 export type DevAuthRole = 'user' | 'admin'

@@ -143,7 +143,7 @@ export const FocusModeUI: React.FC<FocusModeUIProps> = ({ onClose }) => {
     if (remainingSeconds === 0 && (phase === 'focusing' || phase === 'break')) {
       handleTimerComplete()
     }
-  }, [remainingSeconds, handleTimerComplete])
+  }, [remainingSeconds, handleTimerComplete, phase])
 
   const handleStart = useCallback(() => {
     if (phase === 'paused') {

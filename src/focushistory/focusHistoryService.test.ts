@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { createFocusHistoryService } from './focusHistoryService'
-import type { FocusHistoryService } from './focusHistoryService'
 
-function createMockWorkspaceState(sessions: any[] = []) {
+interface FocusSession {
+  id: string
+  taskTitle: string
+  minutes: number
+  rewardPoints: number
+  completedAt: string
+}
+
+function createMockWorkspaceState(sessions: FocusSession[] = []) {
   return { focusSessions: sessions }
 }
 
@@ -49,17 +56,19 @@ describe('focusHistoryService', () => {
 
     it('handles missing taskTitle', () => {
       const session = createSession({ taskTitle: 'temp' })
-      delete (session as any).taskTitle
-      const service = createFocusHistoryService(() => createMockWorkspaceState([session]))
+      const partialSession = { ...session } as Partial<FocusSession>
+      delete partialSession.taskTitle
+      const service = createFocusHistoryService(() => createMockWorkspaceState([partialSession as FocusSession]))
       const history = service.getHistory(7)
       expect(history[0].taskTitle).toBe('未知任务')
     })
 
     it('handles missing minutes and rewardPoints', () => {
       const session = createSession({ minutes: 0, rewardPoints: 0 })
-      delete (session as any).minutes
-      delete (session as any).rewardPoints
-      const service = createFocusHistoryService(() => createMockWorkspaceState([session]))
+      const partialSession = { ...session } as Partial<FocusSession>
+      delete partialSession.minutes
+      delete partialSession.rewardPoints
+      const service = createFocusHistoryService(() => createMockWorkspaceState([partialSession as FocusSession]))
       const history = service.getHistory(7)
       expect(history[0].minutes).toBe(0)
       expect(history[0].rewardPoints).toBe(0)

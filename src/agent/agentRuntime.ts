@@ -508,9 +508,7 @@ async function fetchXFYunCodingCompletion(
   }
   
   messages.push({ role: 'user', content: userPrompt })
-  
-  const timestamp = new Date().toISOString()
-  
+
   const requestBody: Record<string, unknown> = {
     messages,
     temperature: 0.7,
@@ -647,39 +645,6 @@ async function fetchXFYunCodingCompletionStream(
   } finally {
     reader.releaseLock()
   }
-}
-
-async function generateHMACSignature(
-  url: string,
-  method: string,
-  body: string,
-  timestamp: string,
-  appId: string,
-  apiSecret: string
-): Promise<string> {
-  const urlObj = new URL(url)
-  const pathAndQuery = urlObj.pathname + (urlObj.search || '')
-  
-  const signatureString = `${method}\n${pathAndQuery}\n${timestamp}\n${body}`
-  
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(apiSecret)
-  const messageData = encoder.encode(signatureString)
-  
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData)
-  
-  const hashArray = Array.from(new Uint8Array(signature))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  
-  return `${appId}:${hashHex}`
 }
 
 function getFallbackResponse(userPrompt: string): string {

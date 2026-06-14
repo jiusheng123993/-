@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAdaptiveTooltip } from '../../platforms'
-import { loadRecords, getTodayRecords, getTodayFocusMinutes, getTodayPomodoroCount } from '../../focus-mode/focusModeService'
+import { loadRecords, getTodayRecords } from '../../focus-mode/focusModeService'
 import type { PomodoroRecord } from '../../focus-mode/types'
 import { computeStats, drawTrendChart, type DashboardStats } from '../../focus-timer/focusChartUtils'
 import styles from './FocusDashboard.module.css'
@@ -24,12 +24,6 @@ function formatMinutes(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   return m > 0 ? `${h}小时${m}分钟` : `${h}小时`
-}
-
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
 export function FocusDashboard({

@@ -4,8 +4,7 @@ import {
   importFromJSON, 
   getBackupInfo, 
   clearAllData, 
-  formatBytes,
-  type BackupModuleInfo
+  formatBytes
 } from './dataBackup'
 
 interface DataBackupUIProps {

@@ -81,7 +81,6 @@ export function deleteEntry(id: string): boolean {
 export function getMoodStats(): MoodStats {
   const entries = loadState().entries
   const now = new Date()
-  const todayStr = now.toISOString().slice(0, 10)
 
   const weekStart = new Date(now)
   weekStart.setDate(now.getDate() - 6)
@@ -90,7 +89,7 @@ export function getMoodStats(): MoodStats {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
   let totalScore = 0
-  let totalEntries = entries.length
+  const totalEntries = entries.length
   let streakDays = 0
   let lowStreakDays = 0
 

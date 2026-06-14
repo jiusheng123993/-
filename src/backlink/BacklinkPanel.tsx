@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   rebuildIndex,
-  getBacklinksFor,
-  getForwardLinksFor,
   findUnlinkedMentions,
   getBacklinkStats,
   getLinkedTargets,

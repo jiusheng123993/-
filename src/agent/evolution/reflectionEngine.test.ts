@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { reflectionEngine, isSundayAt21, checkEventThresholds, countEventsByCategory } from './reflectionEngine'
 import type { MemoryEvent, MemoryProfile } from '../../memory/memoryTypes'
 import type { EventThreshold } from './reflectionEngineTypes'

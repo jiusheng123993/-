@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { X, ChevronLeft, ChevronRight, Sparkles, Shield, AlertTriangle, Check, User, MessageCircle, Ban, Image, Wand2, Loader2 } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Sparkles, Shield, AlertTriangle, Check, MessageCircle, Ban, Image, Wand2, Loader2 } from 'lucide-react'
 import type { PersonaDefinition } from './personaScheduler'
 import { PRESET_PERSONAS } from './personaScheduler'
 import type { PersonaSafetyGate, SafetyCheckResult, IdentityRoleAllowed } from './personaSafetyGate'

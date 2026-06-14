@@ -34,7 +34,7 @@ function detectIsElectron(): boolean {
 
 function detectIsCapacitor(): boolean {
   if (typeof window === 'undefined') return false
-  return !!(window as any).Capacitor?.isNative?.()
+  return !!(window as Window & { Capacitor?: { isNative?: () => boolean } }).Capacitor?.isNative?.()
 }
 
 function detectIsTouchDevice(): boolean {

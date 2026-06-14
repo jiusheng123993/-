@@ -1,3 +1,7 @@
+import type { FinanceState } from '../data/localFinanceStore'
+import type { WellnessState } from '../data/localWellnessStore'
+import type { ReadingState } from '../reading/readingService'
+
 export interface ReportData {
   period: 'weekly' | 'monthly'
   startDate: string
@@ -44,7 +48,23 @@ export interface ReportService {
   getSummaryText(report: ReportData): string
 }
 
-export function createReportService(getWorkspaceState: () => any, getStudyState: () => any, getHabitState: () => any, getFinanceState: () => any, getReadingState: () => any, getWellnessState: () => any, getJournalState: () => any): ReportService {
+type WorkspaceStateGetter = () => Record<string, unknown>
+type StudyStateGetter = () => Record<string, unknown>
+type HabitStateGetter = () => Record<string, unknown>
+type FinanceStateGetter = () => FinanceState
+type ReadingStateGetter = () => ReadingState
+type WellnessStateGetter = () => WellnessState
+type JournalStateGetter = () => Record<string, unknown>
+
+export function createReportService(
+  getWorkspaceState: WorkspaceStateGetter,
+  _getStudyState: StudyStateGetter,
+  getHabitState: HabitStateGetter,
+  getFinanceState: FinanceStateGetter,
+  getReadingState: ReadingStateGetter,
+  getWellnessState: WellnessStateGetter,
+  getJournalState: JournalStateGetter
+): ReportService {
   const getDateRange = (period: 'weekly' | 'monthly', startDateOrYear: string | number, month?: number) => {
     let start: Date, end: Date
     if (period === 'weekly') {
@@ -71,15 +91,13 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
   const generateWeeklyReport = (startDate: string): ReportData => {
     const { startDate: start, endDate: end } = getDateRange('weekly', startDate)
     const workspaceState = getWorkspaceState()
-    const studyState = getStudyState()
     const habitState = getHabitState()
     const financeState = getFinanceState()
-    const readingState = getReadingState()
     const wellnessState = getWellnessState()
     const journalState = getJournalState()
 
-    const weekSessions = filterByDateRange(workspaceState.focusSessions || [], start, end)
-    const weekTasks = filterByDateRange(workspaceState.tasks || [], start, end)
+    const weekSessions = filterByDateRange((workspaceState.focusSessions || []) as Array<Record<string, unknown>>, start, end)
+    const weekTasks = filterByDateRange((workspaceState.tasks || []) as Array<Record<string, unknown>>, start, end)
     const weekHabits = filterByDateRange(habitState?.checkIns || [], start, end)
     const weekFinance = filterByDateRange(financeState?.transactions || [], start, end)
     const weekWellness = filterByDateRange(wellnessState?.water || [], start, end)
@@ -87,17 +105,17 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
     const weekMeals = filterByDateRange(wellnessState?.meals || [], start, end)
     const weekJournal = filterByDateRange(journalState?.entries || [], start, end)
 
-    const totalFocusMinutes = weekSessions.reduce((sum: number, s: any) => sum + (s.minutes || 0), 0)
+    const totalFocusMinutes = weekSessions.reduce((sum, s) => sum + ((s.minutes as number) || 0), 0)
     const taskMinutes: Record<string, number> = {}
-    weekSessions.forEach((s: any) => {
-      taskMinutes[s.taskTitle] = (taskMinutes[s.taskTitle] || 0) + (s.minutes || 0)
+    weekSessions.forEach((s) => {
+      taskMinutes[s.taskTitle as string] = (taskMinutes[s.taskTitle as string] || 0) + ((s.minutes as number) || 0)
     })
     const topTasks = Object.entries(taskMinutes)
       .map(([title, minutes]) => ({ title, minutes }))
       .sort((a, b) => b.minutes - a.minutes)
       .slice(0, 5)
 
-    const completedTasks = weekTasks.filter((t: any) => t.status === 'done').length
+    const completedTasks = weekTasks.filter((t) => t.status === 'done').length
 
     return {
       period: 'weekly',
@@ -124,8 +142,8 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
         avgMood: 0
       },
       finance: {
-        income: weekFinance.filter((t: any) => t.type === 'income').reduce((sum: number, t: any) => sum + (t.amount || 0), 0),
-        expense: weekFinance.filter((t: any) => t.type === 'expense').reduce((sum: number, t: any) => sum + (t.amount || 0), 0),
+        income: weekFinance.filter((t) => t.type === 'income').reduce((sum, t) => sum + (t.amount || 0), 0),
+        expense: weekFinance.filter((t) => t.type === 'expense').reduce((sum, t) => sum + (t.amount || 0), 0),
         balance: 0
       },
       reading: {
@@ -133,9 +151,9 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
         pagesRead: 0
       },
       wellness: {
-        totalWater: weekWellness.reduce((sum: number, w: any) => sum + (w.amount || 0), 0),
-        totalExercise: weekExercises.reduce((sum: number, e: any) => sum + (e.duration || 0), 0),
-        avgCalories: weekMeals.length > 0 ? Math.round(weekMeals.reduce((sum: number, m: any) => sum + (m.calories || 0), 0) / weekMeals.length) : 0
+        totalWater: weekWellness.reduce((sum, w) => sum + (w.amount || 0), 0),
+        totalExercise: weekExercises.reduce((sum, e) => sum + (e.duration || 0), 0),
+        avgCalories: weekMeals.length > 0 ? Math.round(weekMeals.reduce((sum, m) => sum + (m.calories || 0), 0) / weekMeals.length) : 0
       }
     }
   }
@@ -143,10 +161,8 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
   const generateMonthlyReport = (year: number, month: number): ReportData => {
     const { startDate: start, endDate: end } = getDateRange('monthly', year, month)
     const workspaceState = getWorkspaceState()
-    const studyState = getStudyState()
     const habitState = getHabitState()
     const financeState = getFinanceState()
-    const readingState = getReadingState()
     const wellnessState = getWellnessState()
     const journalState = getJournalState()
 
@@ -160,13 +176,14 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
     const monthMeals = filterByDateRange(wellnessState?.meals || [], start, end)
     const monthJournal = filterByDateRange(journalState?.entries || [], start, end)
 
-    const totalFocusMinutes = monthSessions.reduce((sum: number, s: any) => sum + (s.minutes || 0), 0)
-    const completedTasks = monthTasks.filter((t: any) => t.status === 'done').length
+    const totalFocusMinutes = monthSessions.reduce((sum, s) => sum + ((s.minutes as number) || 0), 0)
+    const completedTasks = monthTasks.filter((t) => t.status === 'done').length
 
-    const income = monthFinance.filter((t: any) => t.type === 'income').reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
-    const expense = monthFinance.filter((t: any) => t.type === 'expense').reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+    const income = monthFinance.filter((t) => t.type === 'income').reduce((sum, t) => sum + ((t.amount as number) || 0), 0)
+    const expense = monthFinance.filter((t) => t.type === 'expense').reduce((sum, t) => sum + ((t.amount as number) || 0), 0)
 
-    const completedBooks = (readingState?.books || []).filter((b: any) => b.status === 'completed' && b.completedAt && b.completedAt.split('-')[0] === String(year) && b.completedAt.split('-')[1] === String(month).padStart(2, '0')).length
+    const readingState = getReadingState()
+    const completedBooks = (readingState?.books || []).filter((b) => b.status === 'completed' && b.completedAt && b.completedAt.split('-')[0] === String(year) && b.completedAt.split('-')[1] === String(month).padStart(2, '0')).length
 
     return {
       period: 'monthly',
@@ -202,9 +219,9 @@ export function createReportService(getWorkspaceState: () => any, getStudyState:
         pagesRead: 0
       },
       wellness: {
-        totalWater: monthWellness.reduce((sum: number, w: any) => sum + (w.amount || 0), 0),
-        totalExercise: monthExercises.reduce((sum: number, e: any) => sum + (e.duration || 0), 0),
-        avgCalories: monthMeals.length > 0 ? Math.round(monthMeals.reduce((sum: number, m: any) => sum + (m.calories || 0), 0) / monthMeals.length) : 0
+        totalWater: monthWellness.reduce((sum, w) => sum + ((w.amount as number) || 0), 0),
+        totalExercise: monthExercises.reduce((sum, e) => sum + ((e.duration as number) || 0), 0),
+        avgCalories: monthMeals.length > 0 ? Math.round(monthMeals.reduce((sum, m) => sum + ((m.calories as number) || 0), 0) / monthMeals.length) : 0
       }
     }
   }

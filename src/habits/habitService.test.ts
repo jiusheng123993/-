@@ -47,7 +47,7 @@ describe('habitService', () => {
     expect(getHabitCompletionRate(state)).toBe(0)
 
     const habitId = state.habits[0].id
-    let updated = toggleHabit(state, habitId, today)
+    const updated = toggleHabit(state, habitId, today)
     const rate = getHabitCompletionRate(updated)
     expect(rate).toBeGreaterThan(0)
   })

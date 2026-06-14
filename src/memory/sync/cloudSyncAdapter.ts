@@ -49,6 +49,7 @@ export function getCloudSyncConfig(): CloudSyncConfig {
       return JSON.parse(stored)
     }
   } catch {
+    // ignore parse errors
   }
   return {
     enabled: false,
@@ -87,7 +88,7 @@ export function createMockCloudSyncAdapter(): CloudSyncAdapter {
       }
     },
 
-    async sync(payload: CloudSyncPayload): Promise<boolean> {
+    async sync(_payload: CloudSyncPayload): Promise<boolean> {
       if (!connected) return false
       syncing = true
       await new Promise(r => setTimeout(r, 1000))
@@ -103,7 +104,7 @@ export function createMockCloudSyncAdapter(): CloudSyncAdapter {
       return null
     },
 
-    async push(data: CloudSyncPayload): Promise<boolean> {
+    async push(_data: CloudSyncPayload): Promise<boolean> {
       if (!connected) return false
       pending++
       await new Promise(r => setTimeout(r, 500))

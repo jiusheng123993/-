@@ -58,7 +58,7 @@ describe('quickNotesService', () => {
   describe('queries', () => {
     it('gets pinned notes', () => {
       const note1 = service.addNote('置顶笔记1')
-      const note2 = service.addNote('普通笔记')
+      service.addNote('普通笔记')
       service.togglePin(note1.id)
 
       const pinned = service.getPinnedNotes()

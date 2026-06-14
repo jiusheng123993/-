@@ -2,7 +2,6 @@ import type { CustomPersona, CustomPersonaId, CustomPersonaInput } from './custo
 import {
   addCustomPersona,
   deleteCustomPersona,
-  loadCustomPersonas,
   updateCustomPersona
 } from './customPersona'
 import type { PersonaSafetyGate, SafetyCheckResult } from './personaSafetyGate'

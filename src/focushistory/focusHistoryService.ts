@@ -8,6 +8,18 @@ export interface FocusHistoryEntry {
   hourOfDay: number
 }
 
+interface FocusSession {
+  id: string
+  taskTitle?: string
+  minutes?: number
+  rewardPoints?: number
+  completedAt: string
+}
+
+interface WorkspaceState {
+  focusSessions?: FocusSession[]
+}
+
 export interface FocusHistoryService {
   getHistory(days: number): FocusHistoryEntry[]
   getHeatmapData(days: number): { day: number; hour: number; count: number }[]
@@ -17,7 +29,7 @@ export interface FocusHistoryService {
   getEfficiencyTrend(days: number): { date: string; avgMinutes: number }[]
 }
 
-export function createFocusHistoryService(getWorkspaceState: () => any): FocusHistoryService {
+export function createFocusHistoryService(getWorkspaceState: () => WorkspaceState): FocusHistoryService {
   const getHistory = (days: number): FocusHistoryEntry[] => {
     const workspaceState = getWorkspaceState()
     const sessions = workspaceState.focusSessions || []
@@ -25,8 +37,8 @@ export function createFocusHistoryService(getWorkspaceState: () => any): FocusHi
     cutoff.setDate(cutoff.getDate() - days)
     
     return sessions
-      .filter((s: any) => new Date(s.completedAt) >= cutoff)
-      .map((s: any) => ({
+      .filter((s) => new Date(s.completedAt) >= cutoff)
+      .map((s) => ({
         id: s.id,
         taskTitle: s.taskTitle || '未知任务',
         minutes: s.minutes || 0,
@@ -35,7 +47,7 @@ export function createFocusHistoryService(getWorkspaceState: () => any): FocusHi
         dayOfWeek: new Date(s.completedAt).getDay(),
         hourOfDay: new Date(s.completedAt).getHours()
       }))
-      .sort((a: any, b: any) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+      .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
   }
 
   const getHeatmapData = (days: number) => {

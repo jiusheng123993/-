@@ -156,16 +156,6 @@ function persistToDB(db: IDBDatabase, schedule: PersonaSchedule): Promise<void> 
   })
 }
 
-function deleteFromDB(db: IDBDatabase, userId: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(IDB_STORE_NAME, 'readwrite')
-    const store = tx.objectStore(IDB_STORE_NAME)
-    const request = store.delete(userId)
-    request.onsuccess = () => resolve()
-    request.onerror = () => reject(request.error)
-  })
-}
-
 function clearDB(db: IDBDatabase): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(IDB_STORE_NAME, 'readwrite')
@@ -178,18 +168,14 @@ function clearDB(db: IDBDatabase): Promise<void> {
 
 export function createIndexedDBPersonaScheduleStorage(): PersonaScheduleStorage {
   const cache = new Map<string, PersonaSchedule>()
-  let ready = false
 
   openScheduleDB().then(db => {
     return loadAllFromDB(db).then(data => {
       for (const [key, value] of data) {
         cache.set(key, value)
       }
-      ready = true
     })
-  }).catch(() => {
-    ready = true
-  })
+  }).catch(() => { /* ignore */ })
 
   function persist(schedule: PersonaSchedule): void {
     openScheduleDB().then(db => persistToDB(db, schedule)).catch(() => { /* ignore */ })

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Target, Sparkles, Layout, ArrowRight, ArrowLeft, Check } from 'lucide-react'
+import { Sparkles, ArrowRight, ArrowLeft, Check } from 'lucide-react'
 
 interface OnboardingUIProps {
   onComplete: (data: OnboardingData) => void

@@ -2,10 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createCommunityPersonaService } from './communityPersonaService'
 import type {
   ICommunityPersonaService,
-  CommunityPersonaServiceConfig,
-  CommunityPersonaEntry,
-  CommunityReport,
-  CommunityRating
+  CommunityPersonaServiceConfig
 } from './communityPersonaService'
 import type { CustomPersona, CustomPersonaInput } from '../customPersona'
 import type { PersonaSafetyGate, SafetyCheckResult } from '../personaSafetyGate'

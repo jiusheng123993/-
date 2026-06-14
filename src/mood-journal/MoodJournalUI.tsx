@@ -92,7 +92,6 @@ export function MoodJournalUI({ userId: _userId }: MoodJournalUIProps) {
       return
     }
 
-    const yMin = 0
     const yMax = 10
 
     ctx.strokeStyle = '#e2e8f0'
@@ -164,7 +163,13 @@ export function MoodJournalUI({ userId: _userId }: MoodJournalUIProps) {
         ctx.fillText(label, x, h - 4)
       }
     })
-  }
+  }, [])
+
+  useEffect(() => {
+    if (stats && canvasRef.current) {
+      drawTrendChart(canvasRef.current, stats.weeklyStats)
+    }
+  }, [stats, drawTrendChart])
 
   const handleSubmit = () => {
     const todayStr = new Date().toISOString().slice(0, 10)

@@ -5,7 +5,6 @@ import {
   deleteStudyPlan,
   updateStudyPlan,
   addPhase,
-  updatePhase,
   deletePhase,
   addTask,
   updateTask,
@@ -14,7 +13,6 @@ import {
   getPlanProgress,
   getTodayTasks,
   type StudyPlan,
-  type StudyPhase,
   type StudyTask,
   type TargetScore,
   type PlanProgress

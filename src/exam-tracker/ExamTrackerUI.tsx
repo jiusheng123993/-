@@ -147,8 +147,6 @@ export function ExamTrackerUI({ userId }: ExamTrackerUIProps) {
       record.scores.map(s => `${s.subject}: ${s.score}/${s.totalScore}`).join(', ')
 
     try {
-      const systemPrompt = `你是学习分析师。对比用户提供的两次考试分数，指出进步和退步的科目，建议优先复习方向。
-用 JSON 格式返回，不要有其他内容。格式：{"analysis":"总体分析（简短）","improved":["科目1"],"declined":["科目2"],"unchanged":["科目3"],"priority":"建议优先复习的科目"}`
       const userPrompt = `最近考试：《${latest.name}》（${latest.date}）- ${buildScoreText(latest)}
 上一次：《${previous.name}》（${previous.date}）- ${buildScoreText(previous)}`
 
@@ -165,13 +163,6 @@ export function ExamTrackerUI({ userId }: ExamTrackerUIProps) {
 
       const jsonMatch = fullResponse.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
-        const result = JSON.parse(jsonMatch[0]) as {
-          analysis: string
-          improved: string[]
-          declined: string[]
-          unchanged: string[]
-          priority: string
-        }
         updateExamRecord(latest.id, { aiAnalysis: fullResponse.trim() })
         setRecords(getExamRecords())
       } else {

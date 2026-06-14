@@ -150,6 +150,7 @@ export function SilentSuggestionUI({ suggestions, onDismiss, onAction }: SilentS
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSilentSuggestions(profile?: MemoryProfile, memoryEvents?: MemoryEvent[]) {
   const [suggestions, setSuggestions] = useState<SilentSuggestion[]>([])
   const [aiSuggestions, setAiSuggestions] = useState<SilentSuggestion[]>([])

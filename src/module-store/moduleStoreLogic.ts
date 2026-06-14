@@ -181,10 +181,6 @@ const migrateSize = (value: unknown): ModuleSize | null => {
   return null
 }
 
-const isModuleSize = (value: unknown): value is ModuleSize => {
-  return migrateSize(value) !== null
-}
-
 const isCanvasItem = (value: unknown): value is CanvasItem => {
   if (!value || typeof value !== 'object') return false
   const item = value as CanvasItem

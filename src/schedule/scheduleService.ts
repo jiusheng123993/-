@@ -46,7 +46,7 @@ function generateId(): string {
 }
 
 export function createScheduleService() {
-  let state = loadState()
+  const state = loadState()
 
   const persist = () => saveState(state)
 

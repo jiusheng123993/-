@@ -22,7 +22,6 @@ const presetSizes: { columns: number; rows: number; label: string }[] = [
   { columns: 4, rows: 2, label: '4×2 全屏' }
 ]
 
-const sizeToKey = (size: ModuleSize) => `${size.columns}x${size.rows}`
 const keyToSize = (key: string): ModuleSize => {
   const [c, r] = key.split('x').map(Number)
   return { columns: c || 2, rows: r || 1 }

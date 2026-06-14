@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { AvatarManager } from './AvatarManager'
 
 vi.mock('./avatarService', () => ({
@@ -32,7 +32,7 @@ vi.mock('./avatarService', () => ({
     })),
     canGenerateAI: vi.fn(() => true),
     getRemainingGenerations: vi.fn(() => 5),
-    createFromBuiltin: vi.fn((userId, builtinId) => ({
+    createFromBuiltin: vi.fn((_userId, _builtinId) => ({
       id: 'new-avatar',
       name: '新角色',
       source: 'builtin',

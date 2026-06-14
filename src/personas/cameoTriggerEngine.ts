@@ -43,12 +43,6 @@ export interface CameoTriggerEngine {
   removeRule(type: CameoTriggerType): void
 }
 
-const HOLIDAY_RULES: Omit<CameoTriggerRule, 'condition'>[] = [
-  { type: 'holiday', personaId: 'gentle_sister', priority: 10, requiresEntitlement: 'agent' },
-  { type: 'holiday', personaId: 'wise_elder', priority: 10, requiresEntitlement: 'agent' },
-  { type: 'holiday', personaId: 'energetic_pal', priority: 10, requiresEntitlement: 'agent' },
-]
-
 const HOLIDAY_DATES: { month: number; date: number; personaId: string; name: string }[] = [
   { month: 1, date: 1, personaId: 'gentle_sister', name: '新年' },
   { month: 2, date: 14, personaId: 'gentle_sister', name: '情人节' },

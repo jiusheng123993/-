@@ -3,7 +3,6 @@ import {
   ShoppingBag,
   Sparkles,
   Crown,
-  Lock,
   Unlock,
   Check,
   X,
@@ -16,8 +15,7 @@ import {
   Shield,
   AlertTriangle,
   RefreshCw,
-  ChevronRight,
-  Info
+  ChevronRight
 } from 'lucide-react'
 import type { PersonaDefinition } from './personaScheduler'
 import type { PersonaProvider } from '../entitlement/personaProvider'
@@ -216,6 +214,7 @@ export function CameoStorefrontUI({
     return CAMEO_PRODUCTS
       .filter((p) => personaProvider.canUseCameo(userId, p.persona.id))
       .map((p) => p.persona.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, personaProvider, refreshKey])
 
   const freeProducts = useMemo(() => {

@@ -6,7 +6,7 @@ import { CycleTodayCard } from './CycleTodayCard'
 import { CycleSettingsPage } from './CycleSettings'
 import { PrivacyLock } from './PrivacyLock'
 import { Calendar, BarChart3, Settings, Droplets } from 'lucide-react'
-import type { CycleRecord, SymptomType, MoodType, FlowLevel } from './cycleTypes'
+import type { SymptomType, MoodType, FlowLevel } from './cycleTypes'
 import { SYMptom_LABELS, MOOD_LABELS, FLOW_LABELS } from './cycleTypes'
 
 type CycleView = 'calendar' | 'today' | 'stats' | 'settings'

@@ -49,16 +49,10 @@ function loadFromStorage<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key)
     if (raw) return JSON.parse(raw)
-  } catch { }
+  } catch {
+    // ignore parse errors
+  }
   return fallback
-}
-
-function extractTagsFromEntries(entries: { tags?: string[] }[]): string[] {
-  const tagSet = new Set<string>()
-  entries.forEach(entry => {
-    (entry.tags || []).forEach(tag => tagSet.add(tag))
-  })
-  return Array.from(tagSet)
 }
 
 function calculateNodeSize(type: GraphNode['type'], connectionCount: number): number {
@@ -91,7 +85,7 @@ export function buildKnowledgeGraph(): KnowledgeGraphData {
   const habits = habitsState.habits || []
   const moodEntries = moodState.entries || []
 
-  journalEntries.forEach((entry, index) => {
+  journalEntries.forEach((entry) => {
     const nodeId = `journal-${entry.id}`
     const node: GraphNode = {
       id: nodeId,

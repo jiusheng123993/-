@@ -3,7 +3,6 @@ import type { AvatarDefinition, AvatarRenderMode, AnimationState } from './avata
 import {
   createAnimatorState,
   transitionAnimation,
-  advanceTransition,
   completeTransition,
   getAnimationDuration,
   isAnimationLooping,
@@ -33,7 +32,6 @@ export function AvatarRenderer({
   const [currentMode, setCurrentMode] = useState<AvatarRenderMode>(avatar.renderMode)
   const animatorRef = useRef(createAnimatorState())
   const animFrameRef = useRef<number>(0)
-  const lastTimeRef = useRef<number>(0)
   const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const clearAnimationTimer = useCallback(() => {
@@ -44,10 +42,11 @@ export function AvatarRenderer({
   }, [])
 
   useEffect(() => {
+    const frameId = animFrameRef.current
     return () => {
       clearAnimationTimer()
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current)
+      if (frameId) {
+        cancelAnimationFrame(frameId)
       }
     }
   }, [clearAnimationTimer])

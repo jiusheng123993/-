@@ -1,4 +1,4 @@
-import { render, screen, within, act } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ModuleStoreUI } from './ModuleStoreUI'
@@ -9,7 +9,7 @@ const createModuleItem = (id: string, title: string, category: string = 'product
   title,
   description: `模块描述 - ${title}`,
   icon: 'CheckCircle',
-  category: category as any,
+  category: category as Module['category'],
   size,
   isDefault: true,
   isCustom: false

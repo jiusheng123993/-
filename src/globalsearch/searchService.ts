@@ -29,14 +29,14 @@ function extractMatchSnippet(text: string, query: string, maxLen = 80): string {
   return snippet
 }
 
-export function createSearchService(getWorkspaceState: () => any, getStudyState: () => any, getHabitState: () => any, getFinanceState: () => any, getReadingState: () => any, getJournalState: () => any, getGoalsState: () => any, getProjectState: () => any): SearchService {
+export function createSearchService(getWorkspaceState: () => Record<string, unknown>, getStudyState: () => Record<string, unknown>, getHabitState: () => Record<string, unknown>, getFinanceState: () => Record<string, unknown>, getReadingState: () => Record<string, unknown>, getJournalState: () => Record<string, unknown>, getGoalsState: () => Record<string, unknown>, getProjectState: () => Record<string, unknown>): SearchService {
   const search = (query: string): SearchResult[] => {
     if (!query.trim()) return []
     const lowerQuery = query.toLowerCase()
     const results: SearchResult[] = []
 
     const workspaceState = getWorkspaceState()
-    ;(workspaceState.tasks || []).forEach((task: any) => {
+    ;(workspaceState.tasks as Array<Record<string, unknown>> || []).forEach((task) => {
       if (matchField(task.title, lowerQuery) || matchField(task.description, lowerQuery) || matchField(task.tags?.join(' '), lowerQuery)) {
         results.push({
           type: 'task',
@@ -51,7 +51,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const studyState = getStudyState()
-    ;(studyState.notes || []).forEach((note: any) => {
+    ;(studyState.notes as Array<Record<string, unknown>> || []).forEach((note) => {
       if (matchField(note.title, lowerQuery) || matchField(note.content, lowerQuery)) {
         results.push({
           type: 'note',
@@ -66,7 +66,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const goalsState = getGoalsState()
-    ;(goalsState.goals || []).forEach((goal: any) => {
+    ;(goalsState.goals as Array<Record<string, unknown>> || []).forEach((goal) => {
       if (matchField(goal.title, lowerQuery) || matchField(goal.description, lowerQuery)) {
         results.push({
           type: 'goal',
@@ -81,7 +81,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const readingState = getReadingState()
-    ;(readingState.books || []).forEach((book: any) => {
+    ;(readingState.books as Array<Record<string, unknown>> || []).forEach((book) => {
       if (matchField(book.title, lowerQuery) || matchField(book.author, lowerQuery) || matchField(book.notes, lowerQuery)) {
         results.push({
           type: 'book',
@@ -96,7 +96,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const projectState = getProjectState()
-    ;(projectState.projects || []).forEach((project: any) => {
+    ;(projectState.projects as Array<Record<string, unknown>> || []).forEach((project) => {
       if (matchField(project.name, lowerQuery) || matchField(project.description, lowerQuery)) {
         results.push({
           type: 'project',
@@ -111,7 +111,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const habitState = getHabitState()
-    ;(habitState.habits || []).forEach((habit: any) => {
+    ;(habitState.habits as Array<Record<string, unknown>> || []).forEach((habit) => {
       if (matchField(habit.name, lowerQuery) || matchField(habit.description, lowerQuery)) {
         results.push({
           type: 'habit',
@@ -126,7 +126,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const journalState = getJournalState()
-    ;(journalState.entries || []).forEach((entry: any) => {
+    ;(journalState.entries as Array<Record<string, unknown>> || []).forEach((entry) => {
       if (matchField(entry.content, lowerQuery) || matchField(entry.title, lowerQuery) || matchField(entry.mood, lowerQuery)) {
         results.push({
           type: 'journal',
@@ -141,7 +141,7 @@ export function createSearchService(getWorkspaceState: () => any, getStudyState:
     })
 
     const financeState = getFinanceState()
-    ;(financeState.transactions || []).forEach((tx: any) => {
+    ;(financeState.transactions as Array<Record<string, unknown>> || []).forEach((tx) => {
       if (matchField(tx.description, lowerQuery) || matchField(tx.category, lowerQuery) || matchField(tx.note, lowerQuery)) {
         results.push({
           type: 'finance',

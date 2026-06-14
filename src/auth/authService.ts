@@ -1,5 +1,5 @@
-import type { AuthSession, AuthResult, LoginRequest, RegisterRequest, AuthProviderKind } from './authTypes'
-import { AUTH_STORAGE_KEY, isRealAuth } from './authTypes'
+import type { AuthSession, AuthResult, LoginRequest, RegisterRequest } from './authTypes'
+import { isRealAuth } from './authTypes'
 import { getAuthProvider } from './authProviders'
 import { loadAuthSession, saveAuthSession, clearAuthSession, devSessionToAuthSession, loadDevAuthSession } from './devAuthSession'
 

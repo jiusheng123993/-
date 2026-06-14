@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LayoutTemplate, Plus, Trash2, Play, Clock, FolderOpen } from 'lucide-react'
+import { LayoutTemplate, Plus, Trash2, Play } from 'lucide-react'
 import { createTemplateService } from './templateService'
 
 interface TemplateUIProps {

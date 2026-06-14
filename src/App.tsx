@@ -2400,15 +2400,17 @@ export default function App() {
               <button className="theme-modal-close" onClick={closeThemePicker} type="button" aria-label="关闭主题库">
                 ×
               </button>
+            </header>
+            <div style={{ padding: '12px 24px', display: 'flex', justifyContent: 'flex-end', borderBottom: '1px solid var(--border)' }}>
               <button 
                 className="custom-persona-editor-btn secondary" 
                 onClick={() => { setIsThemePickerOpen(false); setIsWallpaperPickerOpen(true); }}
-                style={{ position: 'absolute', top: 16, right: 60, padding: '8px 16px', fontSize: 13 }}
+                style={{ padding: '8px 16px', fontSize: 13 }}
                 type="button"
               >
                 🖼️ 壁纸设置
               </button>
-            </header>
+            </div>
 
             <div className="theme-modal-toolbar">
               <label className="theme-search">

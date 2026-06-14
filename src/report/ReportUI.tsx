@@ -1,17 +1,17 @@
 import { useState, useMemo } from 'react'
-import { FileText, Calendar, TrendingUp, CheckCircle, Target, Heart, Wallet, BookOpen, BarChart3, Download, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FileText, TrendingUp, CheckCircle, Target, Heart, Wallet, BookOpen, Download, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createReportService } from './reportService'
 import type { ReportData } from './reportService'
 
 interface ReportUIProps {
   compact?: boolean
-  getWorkspaceState?: () => any
-  getStudyState?: () => any
-  getHabitState?: () => any
-  getFinanceState?: () => any
-  getReadingState?: () => any
-  getWellnessState?: () => any
-  getJournalState?: () => any
+  getWorkspaceState?: () => Record<string, unknown>
+  getStudyState?: () => Record<string, unknown>
+  getHabitState?: () => Record<string, unknown>
+  getFinanceState?: () => Record<string, unknown>
+  getReadingState?: () => Record<string, unknown>
+  getWellnessState?: () => Record<string, unknown>
+  getJournalState?: () => Record<string, unknown>
 }
 
 const colors = {

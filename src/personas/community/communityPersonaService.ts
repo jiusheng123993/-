@@ -129,7 +129,7 @@ function computeHotScore(entry: CommunityPersonaEntry): number {
 }
 
 export function createCommunityPersonaService(config: CommunityPersonaServiceConfig): ICommunityPersonaService {
-  const { safetyGate, getCustomPersonaById, getCustomPersonasByUser, addCustomPersona } = config
+  const { safetyGate, getCustomPersonaById, addCustomPersona } = config
 
   function getEntries(): CommunityPersonaEntry[] {
     return loadFromStorage<CommunityPersonaEntry>(ENTRIES_STORAGE_KEY)

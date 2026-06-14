@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createSearchService } from './searchService'
 
-function mockState(overrides: Record<string, any> = {}) {
+function mockState(overrides: Record<string, unknown> = {}) {
   return () => ({
     tasks: [],
     notes: [],

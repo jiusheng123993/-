@@ -9,7 +9,6 @@ import {
   type ErrorItem,
   type ErrorBookStats
 } from './errorBookService'
-import { getExamRecords, type ExamRecord } from '../exam-tracker/examTrackerService'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
@@ -55,7 +54,6 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
   const [reviewAnswer, setReviewAnswer] = useState('')
   const [reviewRevealed, setReviewRevealed] = useState(false)
   const [reviewResults, setReviewResults] = useState<Record<string, 'correct' | 'wrong' | null>>({})
-  const [examRecords, setExamRecords] = useState<ExamRecord[]>([])
 
   const [newQuestion, setNewQuestion] = useState('')
   const [newQuestionImage, setNewQuestionImage] = useState<string | null>(null)
@@ -85,7 +83,6 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
     const allSubjects = getSubjects()
     setItems(allItems)
     setSubjects(allSubjects)
-    setExamRecords(getExamRecords())
   }, [])
 
   useEffect(() => {
@@ -168,7 +165,6 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
 
       if (hasAnyKey) {
         try {
-          const systemPrompt = `你是一个OCR识别助手。用户上传了一张题目图片，请识别图片中的文字内容，只返回题目原文，不要添加任何解释。如果图片中没有题目文字，返回空字符串。`
           const userPrompt = `请识别这张图片中的题目文字内容。`
 
           let fullResponse = ''
@@ -274,12 +270,6 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
     const controller = new AbortController()
 
     try {
-      const systemPrompt = `你是备考教练。用户给你一道做错的题目，你需要：
-1. 分析可能的错因
-2. 给出正确解法
-3. 生成2道同类型变式题（带答案）
-用 JSON 格式返回，不要有其他内容。格式：{"analysis":"...","solution":"...","similarQuestions":[{"question":"...","answer":"..."}]}`
-
       const userPrompt = `题目：${item.question}
 错误答案：${item.wrongAnswer}
 ${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}

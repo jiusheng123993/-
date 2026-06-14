@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAuthService, type AuthService } from '../auth/authService'
-import type { AuthSession, AuthResult, LoginRequest, RegisterRequest, AuthProviderKind } from '../auth/authTypes'
+import type { AuthSession, AuthResult, LoginRequest, RegisterRequest } from '../auth/authTypes'
 import { isRealAuth } from '../auth/authTypes'
-import { createRoleSession, devSessionToAuthSession, type DevAuthSession } from '../auth/devAuthSession'
+import { createRoleSession, devSessionToAuthSession } from '../auth/devAuthSession'
 
 export function useAuth() {
   const [authService] = useState<AuthService>(() => getAuthService())
