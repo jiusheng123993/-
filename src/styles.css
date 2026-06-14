@@ -2331,10 +2331,13 @@ small,
   cursor: pointer;
   font-weight: 950;
   box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+  transition: all 0.2s ease;
 }
 
 .theme-picker-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  background: var(--card-gradient);
 }
 
 .theme-picker-button small,
@@ -2579,9 +2582,9 @@ small,
 
 .wallpaper-picker-button {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   padding: 16px 20px;
   background: var(--surface-elevated);
   border: 1px solid var(--border);
@@ -2589,6 +2592,7 @@ small,
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  width: 100%;
 }
 
 .wallpaper-picker-button:hover {
