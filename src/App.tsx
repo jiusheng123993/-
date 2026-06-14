@@ -1658,17 +1658,25 @@ export default function App() {
                       className="theme-picker-button"
                       onClick={() => openThemePicker()}
                       type="button"
+                      style={{ display: 'flex', alignItems: 'center', gap: 12 }}
                     >
-                      <span>打开主题库</span>
-                      <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
+                      <span style={{ fontSize: 20 }}>🎨</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <span>打开主题库</span>
+                        <small>{themeRegistry.length} 款主题 · 支持搜索和滑动选择</small>
+                      </div>
                     </button>
                     <button
                       className="wallpaper-picker-button"
                       onClick={() => setIsWallpaperPickerOpen(true)}
                       type="button"
+                      style={{ display: 'flex', alignItems: 'center', gap: 12 }}
                     >
-                      <span>壁纸设置</span>
-                      <small>自定义壁纸与主题联动效果</small>
+                      <span style={{ fontSize: 20 }}>🖼️</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <span>壁纸设置</span>
+                        <small>自定义壁纸与主题联动效果</small>
+                      </div>
                     </button>
                     <div className="active-theme-preview" aria-label="当前主题预览">
                       <strong>{activeTheme.name}</strong>
@@ -2405,10 +2413,22 @@ export default function App() {
               <button 
                 className="custom-persona-editor-btn secondary" 
                 onClick={() => { setIsThemePickerOpen(false); setIsWallpaperPickerOpen(true); }}
-                style={{ padding: '8px 16px', fontSize: 13 }}
+                style={{ 
+                  padding: '10px 20px', 
+                  fontSize: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  borderRadius: 12,
+                  background: 'var(--surface-elevated)',
+                  border: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
                 type="button"
               >
-                🖼️ 壁纸设置
+                <span style={{ fontSize: 18 }}>🖼️</span>
+                <span>壁纸设置</span>
               </button>
             </div>
 
