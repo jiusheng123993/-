@@ -71,7 +71,7 @@ export const FocusModeUI: React.FC<FocusModeUIProps> = ({ onClose }) => {
   const timeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 
   useEffect(() => {
-    loadCustomBackgrounds().then(setCustomBackgrounds).catch(() => {})
+    loadCustomBackgrounds().then(setCustomBackgrounds).catch((err: unknown) => { console.warn('[FocusModeUI] Failed to load custom backgrounds:', err) })
   }, [])
 
   useEffect(() => {

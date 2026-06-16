@@ -4,6 +4,7 @@ import { createPersonaProvider, type PersonaProvider } from '../entitlement/pers
 import { createEntitlementService } from '../entitlement/entitlementService'
 import { PRESET_PERSONAS, type PersonaDefinition } from './personaScheduler'
 import { addCustomPersona, type CustomPersonaInput } from './customPersona'
+import { usePersonaFormWizard } from '../hooks/usePersonaFormWizard'
 import { X } from 'lucide-react'
 import styles from '../components/membership/MembershipPage.module.css'
 
@@ -228,58 +229,58 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
   )
 }
 
+const DEFAULT_MODULES: CustomPersonaInput['modules'] = [
+  { id: 'mod-1', title: '', description: '', signal: '' },
+  { id: 'mod-2', title: '', description: '', signal: '' },
+  { id: 'mod-3', title: '', description: '', signal: '' },
+  { id: 'mod-4', title: '', description: '', signal: '' },
+]
+
+const DEFAULT_FORM_DATA: CustomPersonaInput = {
+  name: '',
+  targetUser: '',
+  painPoint: '',
+  primaryFlow: '',
+  hero: '',
+  mainModuleTitle: '',
+  sideModuleTitle: '',
+  aiRole: '',
+  keyMetrics: ['', '', '', ''],
+  modules: DEFAULT_MODULES,
+  aiActions: ['daily-plan', 'task-breakdown', 'daily-review'],
+  recommendedThemeId: 'minimal-premium',
+}
+
+const STEP_VALIDATORS: Record<number, (data: CustomPersonaInput) => boolean> = {
+  1: (d) => !!d.name && !!d.targetUser && !!d.painPoint && !!d.primaryFlow,
+  2: (d) => !!d.mainModuleTitle && !!d.sideModuleTitle && !!d.aiRole,
+  3: (d) => d.modules.every((m) => !!m.title && !!m.description),
+}
+
 function CustomPersonaCreatorModal({ onClose, onCreate }: { onClose: () => void; onCreate: () => void }) {
-  const [formData, setFormData] = useState<CustomPersonaInput>({
-    name: '',
-    targetUser: '',
-    painPoint: '',
-    primaryFlow: '',
-    hero: '',
-    mainModuleTitle: '',
-    sideModuleTitle: '',
-    aiRole: '',
-    keyMetrics: ['', '', '', ''],
-    modules: [
-      { id: 'mod-1', title: '', description: '', signal: '' },
-      { id: 'mod-2', title: '', description: '', signal: '' },
-      { id: 'mod-3', title: '', description: '', signal: '' },
-      { id: 'mod-4', title: '', description: '', signal: '' }
-    ],
-    aiActions: ['daily-plan', 'task-breakdown', 'daily-review'],
-    recommendedThemeId: 'minimal-premium'
+  const {
+    formData,
+    step,
+    totalSteps,
+    updateField,
+    nextStep,
+    prevStep,
+    isStepValid,
+  } = usePersonaFormWizard<CustomPersonaInput>({
+    initialData: DEFAULT_FORM_DATA,
+    totalSteps: 3,
+    stepValidators: STEP_VALIDATORS,
   })
 
-  const [step, setStep] = useState(1)
-  const totalSteps = 3
-
-  const updateField = <K extends keyof CustomPersonaInput>(field: K, value: CustomPersonaInput[K]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
   const updateModule = (index: number, field: 'title' | 'description' | 'signal', value: string) => {
-    setFormData((prev) => {
-      const modules = [...prev.modules]
-      modules[index] = { ...modules[index], [field]: value }
-      return { ...prev, modules }
-    })
+    const modules = [...formData.modules]
+    modules[index] = { ...modules[index], [field]: value }
+    updateField('modules', modules)
   }
 
   const handleSubmit = () => {
     addCustomPersona(formData)
     onCreate()
-  }
-
-  const isStepValid = () => {
-    switch (step) {
-      case 1:
-        return !!formData.name && !!formData.targetUser && !!formData.painPoint && !!formData.primaryFlow
-      case 2:
-        return !!formData.mainModuleTitle && !!formData.sideModuleTitle && !!formData.aiRole
-      case 3:
-        return formData.modules.every((m) => !!m.title && !!m.description)
-      default:
-        return false
-    }
   }
 
   return (
@@ -451,7 +452,7 @@ function CustomPersonaCreatorModal({ onClose, onCreate }: { onClose: () => void;
 
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
           <button
-            onClick={() => setStep((s) => Math.max(1, s - 1))}
+            onClick={prevStep}
             disabled={step === 1}
             type="button"
             style={{
@@ -468,7 +469,7 @@ function CustomPersonaCreatorModal({ onClose, onCreate }: { onClose: () => void;
           </button>
           {step < totalSteps ? (
             <button
-              onClick={() => setStep((s) => s + 1)}
+              onClick={nextStep}
               disabled={!isStepValid()}
               type="button"
               style={{

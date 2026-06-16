@@ -3,6 +3,7 @@ import { GraduationCap, Briefcase, Palette, Sprout, BookOpen, Building2, Award, 
 import { personaRegistry, type PersonaId, type PersonaScenario } from './personaRegistry'
 import type { CustomPersona, CustomPersonaInput } from './customPersona'
 import { addCustomPersona, deleteCustomPersona, loadCustomPersonas } from './customPersona'
+import { usePersonaFormWizard } from '../hooks/usePersonaFormWizard'
 
 const getPersonaIcon = (id: string) => {
   switch (id) {
@@ -177,49 +178,45 @@ type PersonaCreatorModalProps = {
 }
 
 const PersonaCreatorModal = ({ onClose, onCreate, initialData }: PersonaCreatorModalProps) => {
-  const [formData, setFormData] = useState<CustomPersonaInput>({
-    name: initialData?.name || '',
-    targetUser: initialData?.targetUser || '',
-    painPoint: initialData?.painPoint || '',
-    primaryFlow: initialData?.primaryFlow || '',
-    hero: initialData?.hero || '',
-    mainModuleTitle: initialData?.mainModuleTitle || '',
-    sideModuleTitle: initialData?.sideModuleTitle || '',
-    aiRole: initialData?.aiRole || '',
-    keyMetrics: initialData?.keyMetrics || ['', '', '', ''],
-    modules: initialData?.modules || [
-      { id: 'mod-1', title: '', description: '', signal: '' },
-      { id: 'mod-2', title: '', description: '', signal: '' },
-      { id: 'mod-3', title: '', description: '', signal: '' },
-      { id: 'mod-4', title: '', description: '', signal: '' }
-    ],
-    aiActions: initialData?.aiActions || ['daily-plan', 'task-breakdown', 'daily-review'],
-    recommendedThemeId: initialData?.recommendedThemeId || 'minimal-premium'
+  const {
+    formData,
+    step,
+    totalSteps,
+    updateField,
+    nextStep,
+    prevStep,
+    isStepValid,
+  } = usePersonaFormWizard<CustomPersonaInput>({
+    initialData: {
+      name: initialData?.name || '',
+      targetUser: initialData?.targetUser || '',
+      painPoint: initialData?.painPoint || '',
+      primaryFlow: initialData?.primaryFlow || '',
+      hero: initialData?.hero || '',
+      mainModuleTitle: initialData?.mainModuleTitle || '',
+      sideModuleTitle: initialData?.sideModuleTitle || '',
+      aiRole: initialData?.aiRole || '',
+      keyMetrics: initialData?.keyMetrics || ['', '', '', ''],
+      modules: initialData?.modules || [
+        { id: 'mod-1', title: '', description: '', signal: '' },
+        { id: 'mod-2', title: '', description: '', signal: '' },
+        { id: 'mod-3', title: '', description: '', signal: '' },
+        { id: 'mod-4', title: '', description: '', signal: '' },
+      ],
+      aiActions: initialData?.aiActions || ['daily-plan', 'task-breakdown', 'daily-review'],
+      recommendedThemeId: initialData?.recommendedThemeId || 'minimal-premium',
+    },
+    totalSteps: 3,
+    stepValidators: {
+      1: (d) => !!d.name && !!d.targetUser && !!d.painPoint && !!d.primaryFlow,
+      2: (d) => !!d.mainModuleTitle && !!d.sideModuleTitle && !!d.aiRole,
+      3: (d) => d.modules.every((m) => !!m.title && !!m.description),
+    },
   })
-
-  const [step, setStep] = useState(1)
-  const totalSteps = 3
-
-  const updateField = <K extends keyof CustomPersonaInput>(field: K, value: CustomPersonaInput[K]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
 
   const handleSubmit = () => {
     const persona = addCustomPersona(formData)
     onCreate(persona)
-  }
-
-  const isStepValid = () => {
-    switch (step) {
-      case 1:
-        return formData.name && formData.targetUser && formData.painPoint && formData.primaryFlow
-      case 2:
-        return formData.mainModuleTitle && formData.sideModuleTitle && formData.aiRole
-      case 3:
-        return formData.modules.every((m) => m.title && m.description)
-      default:
-        return false
-    }
   }
 
   return (
@@ -393,14 +390,14 @@ const PersonaCreatorModal = ({ onClose, onCreate, initialData }: PersonaCreatorM
 
         <div className="persona-creator-actions">
           {step > 1 && (
-            <button className="persona-creator-btn secondary" onClick={() => setStep(step - 1)} type="button">
+            <button className="persona-creator-btn secondary" onClick={prevStep} type="button">
               上一步
             </button>
           )}
           {step < totalSteps ? (
             <button
               className="persona-creator-btn primary"
-              onClick={() => setStep(step + 1)}
+              onClick={nextStep}
               disabled={!isStepValid()}
               type="button"
             >

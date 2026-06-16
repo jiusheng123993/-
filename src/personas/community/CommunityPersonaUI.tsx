@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import type { ICommunityPersonaService, CommunityPersonaEntry, CommunitySortMode, CommunityReportReason } from './communityPersonaService'
 import type { CustomPersona } from '../customPersona'
+import { createErrorHandler } from '../../utils/errorHandler'
 
 export type CommunityPersonaUIProps = {
   userId: string
@@ -102,6 +103,8 @@ export function CommunityPersonaUI({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const handleError = useMemo(() => createErrorHandler({ setError, moduleName: '社区人格' }), [])
+
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [reportReason, setReportReason] = useState<CommunityReportReason>('inappropriate_persona')
   const [reportDescription, setReportDescription] = useState('')
@@ -133,12 +136,12 @@ export function CommunityPersonaUI({
         offset: page * PAGE_SIZE,
       })
       setEntries(result)
-    } catch {
-      setError('加载失败，请重试')
+    } catch (e) {
+      handleError(e, '加载失败，请重试')
     } finally {
       setLoading(false)
     }
-  }, [communityService, sortMode, searchQuery, page])
+  }, [communityService, sortMode, searchQuery, page, handleError])
 
   useEffect(() => {
     loadEntries()

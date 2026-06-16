@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Brain, Plus, Trash2, CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react'
 import { reviewRepository, type ReviewItem as SupabaseReviewItem, type CreateReviewInput as SupabaseCreateReviewInput } from '../data/repositories/reviewRepository'
 import { createLocalReviewStore, type ReviewItem, type CreateReviewInput, type ReviewStore } from './reviewStore'
+import { createErrorHandler } from '../utils/errorHandler'
 
 interface ReviewSchedulerUIProps {
   userId: string
@@ -42,6 +43,7 @@ export function ReviewSchedulerUI({ userId, onClose, dataSource = 'local' }: Rev
   const [items, setItems] = useState<ReviewItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const handleError = useMemo(() => createErrorHandler({ setError, moduleName: '复习计划' }), [])
   const [showAddForm, setShowAddForm] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -126,11 +128,11 @@ export function ReviewSchedulerUI({ userId, onClose, dataSource = 'local' }: Rev
       const data = await store.findByUserId(userId)
       setItems(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载失败')
+      handleError(err, '加载失败')
     } finally {
       setLoading(false)
     }
-  }, [userId, store])
+  }, [userId, store, handleError])
 
   useEffect(() => {
     loadItems()
@@ -151,7 +153,7 @@ export function ReviewSchedulerUI({ userId, onClose, dataSource = 'local' }: Rev
       setShowAddForm(false)
       loadItems()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败')
+      handleError(err, '创建失败')
     }
   }
 
@@ -160,7 +162,7 @@ export function ReviewSchedulerUI({ userId, onClose, dataSource = 'local' }: Rev
       await store.delete(id)
       loadItems()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '删除失败')
+      handleError(err, '删除失败')
     }
   }
 
@@ -174,7 +176,7 @@ export function ReviewSchedulerUI({ userId, onClose, dataSource = 'local' }: Rev
       })
       loadItems()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '更新失败')
+      handleError(err, '更新失败')
     }
   }
 

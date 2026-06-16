@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { getSupabaseConfig, saveSupabaseConfig, getSupabase } from '../infrastructure/supabase'
+import { createErrorHandler } from '../utils/errorHandler'
 
 interface SupabaseConfigUIProps {
   onConfigured: () => void
@@ -12,6 +13,8 @@ export function SupabaseConfigUI({ onConfigured, onBack }: SupabaseConfigUIProps
   const [anonKey, setAnonKey] = useState(existing?.anonKey || '')
   const [error, setError] = useState<string | null>(null)
   const [testing, setTesting] = useState(false)
+
+  const handleError = useMemo(() => createErrorHandler({ setError, moduleName: 'Supabase配置' }), [])
 
   const handleSave = async () => {
     setError(null)
@@ -39,7 +42,7 @@ export function SupabaseConfigUI({ onConfigured, onBack }: SupabaseConfigUIProps
 
       onConfigured()
     } catch (e) {
-      setError(e instanceof Error ? e.message : '连接失败')
+      handleError(e, '连接失败')
     } finally {
       setTesting(false)
     }

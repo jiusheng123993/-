@@ -245,7 +245,7 @@ export function createIndexedDBPersonaScheduleStorage(): PersonaScheduleStorage 
 
     clear(): void {
       cache.clear()
-      openScheduleDB().then(db => clearDB(db)).catch(() => { /* ignore */ })
+      openScheduleDB().then(db => clearDB(db)).catch((err: unknown) => { console.warn('[personaScheduleStore] Failed to clear IndexedDB:', err) })
     }
   }
 }

@@ -1,13 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { focusService } from '../services/focusService'
+import { createErrorHandler } from '../utils/errorHandler'
 import type { FocusSession } from '../data/repositories'
+import type { ToastMessage } from '../components/toast/Toast'
 
-export function useFocus(userId: string | null) {
+export function useFocus(userId: string | null, addToast?: (toast: Omit<ToastMessage, 'id'>) => void) {
   const [sessions, setSessions] = useState<FocusSession[]>([])
   const [activeSession, setActiveSession] = useState<FocusSession | null>(null)
   const [totalTime, setTotalTime] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleError = useMemo(() => createErrorHandler({ setError, addToast, moduleName: '专注' }), [addToast])
 
   const loadHistory = useCallback(async () => {
     if (!userId) return
@@ -21,11 +25,11 @@ export function useFocus(userId: string | null) {
       setSessions(data)
       setTotalTime(total)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      handleError(e, '加载失败')
     } finally {
       setLoading(false)
     }
-  }, [userId])
+  }, [userId, handleError])
 
   useEffect(() => {
     loadHistory()
@@ -39,10 +43,10 @@ export function useFocus(userId: string | null) {
       setActiveSession(session)
       return session
     } catch (e) {
-      setError(e instanceof Error ? e.message : '开始失败')
+      handleError(e, '开始失败')
       return null
     }
-  }, [userId])
+  }, [userId, handleError])
 
   const endSession = useCallback(async (): Promise<number | null> => {
     if (!activeSession) return null
@@ -54,10 +58,10 @@ export function useFocus(userId: string | null) {
       setTotalTime((prev) => prev + session.duration)
       return experience
     } catch (e) {
-      setError(e instanceof Error ? e.message : '结束失败')
+      handleError(e, '结束失败')
       return null
     }
-  }, [activeSession])
+  }, [activeSession, handleError])
 
   return {
     sessions,

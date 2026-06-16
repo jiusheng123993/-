@@ -4,6 +4,9 @@ import type { MemoryEvent, MemoryProfile } from '../../memory/memoryTypes'
 import type { ProfileChangeProposal } from './reflectionEngineTypes'
 import { evolutionStorage } from './evolutionStorage'
 import { reflectionEngine } from './reflectionEngine'
+import { createErrorHandler } from '../../utils/errorHandler'
+
+const handleError = createErrorHandler({ moduleName: '进化仪式' })
 
 function getWeekKey(date: Date): string {
   const d = new Date(date)
@@ -109,7 +112,7 @@ export function useEvolutionRitual(
         setPendingEntry(entry)
       }
     } catch (error) {
-      console.error('Failed to check evolution entry:', error)
+      handleError(error, '进化仪式检查失败')
     } finally {
       setIsLoading(false)
     }

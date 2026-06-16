@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import type { AppNotification, NotificationService } from './notificationService'
 import './notification.css'
 
@@ -9,6 +10,8 @@ interface NotificationBannerProps {
 export const NotificationBanner: React.FC<NotificationBannerProps> = ({ service }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>(() => service.getUnread())
   const [isOpen, setIsOpen] = useState(false)
+  const bellRef = useRef<HTMLButtonElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
 
   useEffect(() => {
     const unsub = service.subscribe(() => {
@@ -23,13 +26,32 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({ service 
     }
   }, [service])
 
+  const updateDropdownPosition = useCallback(() => {
+    if (bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect()
+      setDropdownStyle({
+        top: rect.bottom + 8,
+        left: rect.left,
+      })
+    }
+  }, [])
+
+  const handleToggle = useCallback(() => {
+    const nextOpen = !isOpen
+    setIsOpen(nextOpen)
+    if (nextOpen) {
+      updateDropdownPosition()
+    }
+  }, [isOpen, updateDropdownPosition])
+
   const unreadCount = notifications.length
 
   return (
     <>
       <button
+        ref={bellRef}
         className="notification-bell"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         title="通知"
         type="button"
       >
@@ -39,9 +61,9 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({ service 
         )}
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div className="notification-dropdown-backdrop" onClick={() => setIsOpen(false)} role="presentation">
-          <div className="notification-dropdown" onClick={e => e.stopPropagation()}>
+          <div className="notification-dropdown" style={dropdownStyle} onClick={e => e.stopPropagation()}>
             <div className="notification-dropdown-header">
               <h3>通知</h3>
               {unreadCount > 0 && (
@@ -83,7 +105,8 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({ service 
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

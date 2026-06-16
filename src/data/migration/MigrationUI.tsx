@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   scanLocalStorage,
   migrateModule,
   clearLocalStorageAfterMigration,
   type MigrationModule
 } from './migrationTool'
+import { createErrorHandler } from '../../utils/errorHandler'
 
 interface MigrationUIProps {
   userId: string
@@ -16,6 +17,8 @@ export function MigrationUI({ userId, onComplete }: MigrationUIProps) {
   const [migrating, setMigrating] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleError = useMemo(() => createErrorHandler({ setError, moduleName: '数据迁移' }), [])
 
   const totalItems = modules.reduce((sum, m) => sum + m.count, 0)
   const doneModules = modules.filter((m) => m.status === 'done').length
@@ -40,12 +43,13 @@ export function MigrationUI({ userId, onComplete }: MigrationUIProps) {
         mod.error = e instanceof Error ? e.message : '迁移失败'
         updated[i] = mod
         setModules([...updated])
+        handleError(e, '迁移失败')
       }
     }
 
     setMigrating(false)
     setDone(true)
-  }, [userId, modules])
+  }, [userId, modules, handleError])
 
   const handleClear = useCallback(() => {
     clearLocalStorageAfterMigration(modules)

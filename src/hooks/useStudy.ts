@@ -1,13 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { studyService } from '../services/studyService'
+import { createErrorHandler } from '../utils/errorHandler'
 import type { Exam, CreateExamInput, UpdateExamInput, ErrorBookItem, CreateErrorBookInput, MemoryCard, CreateMemoryCardInput } from '../data/repositories'
+import type { ToastMessage } from '../components/toast/Toast'
 
-export function useStudy(userId: string | null) {
+export function useStudy(userId: string | null, addToast?: (toast: Omit<ToastMessage, 'id'>) => void) {
   const [exams, setExams] = useState<Exam[]>([])
   const [errors, setErrors] = useState<ErrorBookItem[]>([])
   const [cards, setCards] = useState<MemoryCard[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleError = useMemo(() => createErrorHandler({ setError, addToast, moduleName: '学习' }), [addToast])
 
   const loadAll = useCallback(async () => {
     if (!userId) return
@@ -23,11 +27,11 @@ export function useStudy(userId: string | null) {
       setErrors(errorData)
       setCards(cardData)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '加载失败')
+      handleError(e, '加载失败')
     } finally {
       setLoading(false)
     }
-  }, [userId])
+  }, [userId, handleError])
 
   useEffect(() => {
     loadAll()
@@ -41,10 +45,10 @@ export function useStudy(userId: string | null) {
       setExams((prev) => [exam, ...prev])
       return exam
     } catch (e) {
-      setError(e instanceof Error ? e.message : '创建失败')
+      handleError(e, '创建失败')
       return null
     }
-  }, [userId])
+  }, [userId, handleError])
 
   const updateExam = useCallback(async (examId: string, patch: UpdateExamInput): Promise<Exam | null> => {
     setError(null)
@@ -53,10 +57,10 @@ export function useStudy(userId: string | null) {
       setExams((prev) => prev.map((e) => (e.id === examId ? updated : e)))
       return updated
     } catch (e) {
-      setError(e instanceof Error ? e.message : '更新失败')
+      handleError(e, '更新失败')
       return null
     }
-  }, [])
+  }, [handleError])
 
   const deleteExam = useCallback(async (examId: string): Promise<boolean> => {
     setError(null)
@@ -65,10 +69,10 @@ export function useStudy(userId: string | null) {
       setExams((prev) => prev.filter((e) => e.id !== examId))
       return true
     } catch (e) {
-      setError(e instanceof Error ? e.message : '删除失败')
+      handleError(e, '删除失败')
       return false
     }
-  }, [])
+  }, [handleError])
 
   const addError = useCallback(async (input: Omit<CreateErrorBookInput, 'userId'>): Promise<ErrorBookItem | null> => {
     if (!userId) return null
@@ -78,10 +82,10 @@ export function useStudy(userId: string | null) {
       setErrors((prev) => [item, ...prev])
       return item
     } catch (e) {
-      setError(e instanceof Error ? e.message : '添加失败')
+      handleError(e, '添加失败')
       return null
     }
-  }, [userId])
+  }, [userId, handleError])
 
   const markErrorMastered = useCallback(async (errorId: string): Promise<ErrorBookItem | null> => {
     setError(null)
@@ -90,10 +94,10 @@ export function useStudy(userId: string | null) {
       setErrors((prev) => prev.map((e) => (e.id === errorId ? updated : e)))
       return updated
     } catch (e) {
-      setError(e instanceof Error ? e.message : '标记失败')
+      handleError(e, '标记失败')
       return null
     }
-  }, [])
+  }, [handleError])
 
   const createCard = useCallback(async (input: Omit<CreateMemoryCardInput, 'userId'>): Promise<MemoryCard | null> => {
     if (!userId) return null
@@ -103,10 +107,10 @@ export function useStudy(userId: string | null) {
       setCards((prev) => [card, ...prev])
       return card
     } catch (e) {
-      setError(e instanceof Error ? e.message : '创建失败')
+      handleError(e, '创建失败')
       return null
     }
-  }, [userId])
+  }, [userId, handleError])
 
   const reviewCard = useCallback(async (cardId: string, quality: number): Promise<MemoryCard | null> => {
     setError(null)
@@ -115,10 +119,10 @@ export function useStudy(userId: string | null) {
       setCards((prev) => prev.map((c) => (c.id === cardId ? updated : c)))
       return updated
     } catch (e) {
-      setError(e instanceof Error ? e.message : '复习失败')
+      handleError(e, '复习失败')
       return null
     }
-  }, [])
+  }, [handleError])
 
   return {
     exams,

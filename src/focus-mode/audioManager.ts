@@ -82,7 +82,7 @@ function playHtmlAudio(filePath: string): void {
   htmlAudioElement = new Audio(filePath)
   htmlAudioElement.loop = true
   htmlAudioElement.volume = gainNode ? gainNode.gain.value : 0.5
-  htmlAudioElement.play().catch(() => {})
+  htmlAudioElement.play().catch((err: unknown) => { console.warn('[audioManager] Failed to play audio:', err) })
 }
 
 export function playAudio(audioId: string, volume: number = 0.5): void {
