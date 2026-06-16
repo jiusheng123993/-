@@ -215,13 +215,15 @@ describe('App', () => {
     renderApp()
 
     await user.click(screen.getByRole('button', { name: '打开侧边栏' }))
-    await user.click(screen.getByRole('button', { name: '设置' }))
-    await user.click(screen.getByRole('button', { name: /创建身份/ }))
+    await user.click(screen.getByRole('button', { name: '身份切换' }))
 
-    const identityDialog = screen.getByRole('dialog', { name: '身份管理' })
+    const identityDialog = await screen.findByRole('dialog', { name: '身份管理' }, { timeout: 3000 })
+    expect(identityDialog).toBeInTheDocument()
+
+    const createButton = screen.getByRole('button', { name: '创建新身份' })
+    await user.click(createButton)
     expect(within(identityDialog).getByRole('heading', { name: '身份管理' })).toBeInTheDocument()
 
-    await user.click(within(identityDialog).getByRole('button', { name: '创建新身份' }))
     await user.type(within(identityDialog).getByLabelText('身份名称'), '页面级验证身份')
     await user.type(within(identityDialog).getByLabelText('描述（可选）'), '覆盖创建编辑删除流程')
     await user.click(within(identityDialog).getByRole('button', { name: '学生' }))
