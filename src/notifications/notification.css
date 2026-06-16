@@ -33,20 +33,18 @@
 .notification-dropdown-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 .notification-dropdown {
   position: fixed;
-  top: 48px;
-  right: 16px;
   width: 360px;
   max-height: 480px;
   background: var(--surface, #1e1e2e);
   border: 1px solid var(--border, #333);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  z-index: 1001;
+  z-index: 2001;
   display: flex;
   flex-direction: column;
   overflow: hidden;

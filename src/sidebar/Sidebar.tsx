@@ -4,84 +4,32 @@ interface SidebarProps {
   isOpen: boolean
   onToggle: () => void
   onOpenModuleStore: () => void
-  onOpenLayoutShare: () => void
   onOpenThemePicker: () => void
-  onOpenMembership: () => void
   onOpenIdentitySelector: () => void
-  onOpenCycleTracker: () => void
-  onOpenAvatarManager: () => void
-  onOpenMemoryProfile: () => void
   onOpenPersonaSelector: () => void
-  onOpenCustomPersonaEditor: () => void
-  onOpenCommunityPersona: () => void
-  onOpenCameoStorefront: () => void
   onOpenRelationshipSpace: () => void
   onOpenAgentChat: () => void
-  onSwitchRole: () => void
-  onOpenDataBackup: () => void
-  onOpenApiKeySettings: () => void
-  onOpenTemplate: () => void
-  onOpenReviewScheduler: () => void
-  onOpenKnowledgeGraph: () => void
-  onOpenSchedule: () => void
-  onOpenBacklink: () => void
-  onOpenFocusMode: () => void
-  onOpenReport: () => void
-  onOpenGlobalSearch: () => void
-  onOpenQuickNotes: () => void
-  onOpenTimeBlock: () => void
-  onOpenFocusStats: () => void
-  onOpenFocusHistory: () => void
-  onOpenMigration: () => void
-  authLabel: string
+  onOpenSettings: () => void
   currentThemeName: string
   membershipTier: string
   aiQuota: number
   streakDays: number
-  dataSource: 'local' | 'supabase'
-  onSwitchDataSource: () => void
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   isOpen, 
   onToggle,
   onOpenModuleStore,
-  onOpenLayoutShare,
   onOpenThemePicker,
-  onOpenMembership,
   onOpenIdentitySelector,
-  onOpenCycleTracker,
-  onOpenAvatarManager,
-  onOpenMemoryProfile,
   onOpenPersonaSelector,
-  onOpenCustomPersonaEditor,
-  onOpenCommunityPersona,
-  onOpenCameoStorefront,
   onOpenRelationshipSpace,
   onOpenAgentChat,
-  onSwitchRole,
-  onOpenDataBackup,
-  onOpenApiKeySettings,
-  onOpenTemplate,
-  onOpenReviewScheduler,
-  onOpenKnowledgeGraph,
-  onOpenSchedule,
-  onOpenBacklink,
-  onOpenFocusMode,
-  onOpenReport,
-  onOpenGlobalSearch,
-  onOpenQuickNotes,
-  onOpenTimeBlock,
-  onOpenFocusStats,
-  onOpenFocusHistory,
-  onOpenMigration,
-  authLabel,
+  onOpenSettings,
   currentThemeName,
   membershipTier,
   aiQuota,
-  streakDays,
-  dataSource,
-  onSwitchDataSource
+  streakDays
 }) => {
   const [activeSection, setActiveSection] = useState<string>('identity')
 
@@ -90,25 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'modules', label: '模块商店', icon: 'Grid' },
     { id: 'ai', label: 'AI 助手', icon: 'Bot' },
     { id: 'persona', label: '人格切换', icon: 'Sparkles' },
-    { id: 'custom-persona', label: '自定义角色', icon: 'Edit' },
-    { id: 'community-persona', label: '社区', icon: 'Users' },
-    { id: 'cameo-storefront', label: 'Cameo 商店', icon: 'ShoppingBag' },
     { id: 'relationship', label: '关系空间', icon: 'Users' },
-    { id: 'memory', label: '记忆画像', icon: 'Brain' },
-    { id: 'cycle', label: '周期追踪', icon: 'Heart' },
-    { id: 'avatar', label: '我的角色', icon: 'Smile' },
-    { id: 'knowledge-graph', label: '知识图谱', icon: 'Sparkles' },
-    { id: 'schedule', label: '日程提醒', icon: 'Calendar' },
-    { id: 'backlink', label: '双向链接', icon: 'Link' },
-    { id: 'focus-mode', label: '专注模式', icon: 'Target' },
-    { id: 'template', label: '模板中心', icon: 'Layout' },
-    { id: 'review', label: '复习提醒', icon: 'Brain' },
-    { id: 'report', label: '数据报告', icon: 'BarChart3' },
-    { id: 'search', label: '全局搜索', icon: 'Search' },
-    { id: 'quicknotes', label: '快速笔记', icon: 'StickyNote' },
-    { id: 'timeblock', label: '时间块', icon: 'Clock' },
-    { id: 'focusstats', label: '专注统计', icon: 'TrendingUp' },
-    { id: 'focushistory', label: '专注历史', icon: 'Calendar' },
     { id: 'settings', label: '设置', icon: 'Settings' },
     { id: 'theme', label: '主题切换', icon: 'Palette' }
   ]
@@ -132,62 +62,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'relationship':
         onOpenRelationshipSpace()
         break
-      case 'cycle':
-        onOpenCycleTracker()
-        break
-      case 'avatar':
-        onOpenAvatarManager()
-        break
-      case 'memory':
-        onOpenMemoryProfile()
-        break
       case 'persona':
         onOpenPersonaSelector()
         break
-      case 'custom-persona':
-        onOpenCustomPersonaEditor()
-        break
-      case 'community-persona':
-        onOpenCommunityPersona()
-        break
-      case 'cameo-storefront':
-        onOpenCameoStorefront()
-        break
-      case 'template':
-        onOpenTemplate()
-        break
-      case 'review':
-        onOpenReviewScheduler()
-        break
-      case 'knowledge-graph':
-        onOpenKnowledgeGraph()
-        break
-      case 'schedule':
-        onOpenSchedule()
-        break
-      case 'backlink':
-        onOpenBacklink()
-        break
-      case 'focus-mode':
-        onOpenFocusMode()
-        break
-      case 'report':
-        onOpenReport()
-        break
-      case 'search':
-        onOpenGlobalSearch()
-        break
-      case 'quicknotes':
-        onOpenQuickNotes()
-        break
-      case 'timeblock':
-        onOpenTimeBlock()
-        break
-      case 'focusstats':
-        onOpenFocusStats()
-        break
-      case 'focushistory':
-        onOpenFocusHistory()
+      case 'settings':
+        onOpenSettings()
         break
     }
   }
@@ -286,161 +165,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         <div style={{ flex: 1, overflow: 'auto', marginTop: '16px' }}>
-          {activeSection === 'settings' && (
-            <div style={{ padding: '8px 0' }}>
-              <button
-                onClick={onOpenMembership}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>👑</span>
-                <span>会员中心</span>
-              </button>
-              <button
-                onClick={onOpenLayoutShare}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>📤</span>
-                <span>布局分享</span>
-              </button>
-              <button
-                onClick={onOpenDataBackup}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>💾</span>
-                <span>数据管理</span>
-              </button>
-              <button
-                onClick={onOpenApiKeySettings}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>🔑</span>
-                <span>AI 服务配置</span>
-              </button>
-              <button
-                onClick={onSwitchDataSource}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>☁️</span>
-                <span>数据源：{dataSource === 'supabase' ? '云端 (Supabase)' : '本地存储'}</span>
-              </button>
-              <button
-                onClick={onOpenMigration}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>📦</span>
-                <span>数据迁移</span>
-              </button>
-              <button
-                onClick={onOpenIdentitySelector}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                  marginBottom: '8px'
-                }}
-              >
-                <span>✨</span>
-                <span>创建身份</span>
-              </button>
-              <button
-                onClick={onSwitchRole}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--text)',
-                  cursor: 'pointer'
-                }}
-              >
-                <span>🔑</span>
-                <span>{authLabel}</span>
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="sidebar-footer" style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
@@ -450,31 +174,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             gap: '8px',
             padding: '8px 12px',
             borderRadius: '8px',
-            backgroundColor: 'var(--surface-elevated)',
-            marginBottom: '12px'
+            backgroundColor: 'var(--surface-elevated)'
           }}>
             <span style={{ fontSize: '14px' }}>🎨</span>
             <span style={{ fontSize: '13px', color: 'var(--muted)' }}>当前主题：</span>
             <span style={{ fontSize: '13px', fontWeight: 500 }}>{currentThemeName}</span>
           </div>
-          <button
-            className="layout-lock-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%',
-              padding: '12px',
-              borderRadius: '12px',
-              border: '1px solid var(--border)',
-              backgroundColor: 'transparent',
-              color: 'var(--text)',
-              cursor: 'pointer'
-            }}
-          >
-            <span>🔒</span>
-            <span>锁定布局</span>
-          </button>
         </div>
       </aside>
 
