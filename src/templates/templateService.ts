@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface TaskTemplate {
   id: string
   name: string
@@ -7,20 +9,7 @@ export interface TaskTemplate {
   createdAt: string
 }
 
-const STORAGE_KEY = 'xinghuanhai-task-templates-state'
-
-function loadState(): TaskTemplate[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-
-function saveState(templates: TaskTemplate[]): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(templates))
-}
+const storage = createStorageService<TaskTemplate[]>('xinghuanhai-task-templates-state', [])
 
 const defaultTemplates: TaskTemplate[] = [
   {
@@ -70,9 +59,9 @@ export interface TemplateService {
 
 export function createTemplateService(): TemplateService {
   const getTemplates = (): TaskTemplate[] => {
-    const saved = loadState()
+    const saved = storage.load()
     if (saved.length === 0) {
-      saveState(defaultTemplates)
+      storage.save(defaultTemplates)
       return defaultTemplates
     }
     return saved
@@ -88,19 +77,19 @@ export function createTemplateService(): TemplateService {
       usageCount: 0,
       createdAt: new Date().toISOString()
     }
-    saveState([template, ...templates])
+    storage.save([template, ...templates])
     return template
   }
 
   const deleteTemplate = (id: string): void => {
-    saveState(getTemplates().filter((t) => t.id !== id))
+    storage.save(getTemplates().filter((t) => t.id !== id))
   }
 
   const useTemplate = (id: string): { title: string; minutes: number }[] => {
     const templates = getTemplates()
     const template = templates.find((t) => t.id === id)
     if (template) {
-      saveState(templates.map((t) => (t.id === id ? { ...t, usageCount: t.usageCount + 1 } : t)))
+      storage.save(templates.map((t) => (t.id === id ? { ...t, usageCount: t.usageCount + 1 } : t)))
       return template.tasks
     }
     return []

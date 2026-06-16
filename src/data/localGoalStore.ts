@@ -1,3 +1,5 @@
+import { createStorageService } from './storageFactory'
+
 export interface GoalItem {
   id: string
   title: string
@@ -72,18 +74,6 @@ export interface GoalStore {
 }
 
 export function createGoalBrowserStore(storageKey = STORAGE_KEY): GoalStore {
-  return {
-    load: () => {
-      if (typeof window === 'undefined') return createInitialGoalState()
-      try {
-        const raw = window.localStorage.getItem(storageKey)
-        if (raw) return JSON.parse(raw)
-      } catch { /* ignore */ }
-      return createInitialGoalState()
-    },
-    save: (state) => {
-      if (typeof window === 'undefined') return
-      window.localStorage.setItem(storageKey, JSON.stringify(state))
-    }
-  }
+  const storage = createStorageService<GoalState>(storageKey, createInitialGoalState())
+  return { load: storage.load, save: storage.save }
 }

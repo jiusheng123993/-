@@ -1,3 +1,5 @@
+import { createStorageService } from './storageFactory'
+
 export interface ProjectItem {
   id: string
   name: string
@@ -58,18 +60,6 @@ export interface ProjectStore {
 }
 
 export function createProjectBrowserStore(storageKey = STORAGE_KEY): ProjectStore {
-  return {
-    load: () => {
-      if (typeof window === 'undefined') return createInitialProjectState()
-      try {
-        const raw = window.localStorage.getItem(storageKey)
-        if (raw) return JSON.parse(raw)
-      } catch { /* ignore */ }
-      return createInitialProjectState()
-    },
-    save: (state) => {
-      if (typeof window === 'undefined') return
-      window.localStorage.setItem(storageKey, JSON.stringify(state))
-    }
-  }
+  const storage = createStorageService<ProjectState>(storageKey, createInitialProjectState())
+  return { load: storage.load, save: storage.save }
 }

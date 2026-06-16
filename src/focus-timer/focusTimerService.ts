@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface FocusSession {
   id: string
   subject: string
@@ -22,65 +24,56 @@ export interface FocusStats {
   subjectStats: { subject: string; minutes: number; sessions: number }[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-focustimer-state'
-
-function loadState(): FocusTimerState {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { sessions: [], defaultDuration: 25 }
-}
-
-function saveState(state: FocusTimerState): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+const storage = createStorageService<FocusTimerState>(
+  'xinghuanhai-focustimer-state',
+  { sessions: [], defaultDuration: 25 }
+)
 
 export function getSessions(): FocusSession[] {
-  return loadState().sessions
+  return storage.load().sessions
 }
 
 export function getDefaultDuration(): number {
-  return loadState().defaultDuration
+  return storage.load().defaultDuration
 }
 
 export function setDefaultDuration(minutes: number): void {
-  const state = loadState()
+  const state = storage.load()
   state.defaultDuration = minutes
-  saveState(state)
+  storage.save(state)
 }
 
 export function addSession(session: Omit<FocusSession, 'id'>): FocusSession {
-  const state = loadState()
+  const state = storage.load()
   const newSession: FocusSession = {
     ...session,
     id: crypto.randomUUID(),
   }
   state.sessions.unshift(newSession)
-  saveState(state)
+  storage.save(state)
   return newSession
 }
 
 export function updateSession(id: string, updates: Partial<FocusSession>): FocusSession | null {
-  const state = loadState()
+  const state = storage.load()
   const index = state.sessions.findIndex((s) => s.id === id)
   if (index === -1) return null
   state.sessions[index] = { ...state.sessions[index], ...updates }
-  saveState(state)
+  storage.save(state)
   return state.sessions[index]
 }
 
 export function deleteSession(id: string): boolean {
-  const state = loadState()
+  const state = storage.load()
   const index = state.sessions.findIndex((s) => s.id === id)
   if (index === -1) return false
   state.sessions.splice(index, 1)
-  saveState(state)
+  storage.save(state)
   return true
 }
 
 export function getFocusStats(): FocusStats {
-  const sessions = loadState().sessions
+  const sessions = storage.load().sessions
   const now = new Date()
   const todayStr = now.toISOString().slice(0, 10)
 

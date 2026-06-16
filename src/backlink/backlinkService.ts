@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface Backlink {
   id: string
   sourceId: string
@@ -29,23 +31,7 @@ export interface BacklinkState {
   lastIndexedAt: string | null
 }
 
-const STORAGE_KEY = 'xinghuanhai-backlink-state'
-
-function loadState(): BacklinkState {
-  if (typeof window === 'undefined') return { links: [], lastIndexedAt: null }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch {
-    // ignore parse errors
-  }
-  return { links: [], lastIndexedAt: null }
-}
-
-function saveState(state: BacklinkState): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+const storage = createStorageService<BacklinkState>('xinghuanhai-backlink-state', { links: [], lastIndexedAt: null })
 
 const LINK_PATTERN = /\[\[([^\]]+)\]\]/g
 
@@ -241,24 +227,24 @@ export function rebuildIndex(): BacklinkState {
     lastIndexedAt: now
   }
 
-  saveState(state)
+  storage.save(state)
   return state
 }
 
 export function getBacklinksFor(targetTitle: string): Backlink[] {
-  const state = loadState()
+  const state = storage.load()
   return state.links.filter(l => l.targetTitle === targetTitle)
 }
 
 export function getForwardLinksFor(sourceId: string): Backlink[] {
-  const state = loadState()
+  const state = storage.load()
   return state.links.filter(l => l.sourceId === sourceId)
 }
 
 export function findUnlinkedMentions(): UnlinkedMention[] {
   const sources = collectAllSources()
   const allTitles = collectAllTitles(sources)
-  const state = loadState()
+  const state = storage.load()
   const mentions: UnlinkedMention[] = []
 
   const existingLinks = new Set<string>()
@@ -299,7 +285,7 @@ export function getBacklinkStats(): {
   totalTargets: number
   unlinkedCount: number
 } {
-  const state = loadState()
+  const state = storage.load()
   const sources = new Set(state.links.map(l => l.sourceId))
   const targets = new Set(state.links.map(l => l.targetTitle))
   const unlinked = findUnlinkedMentions()
@@ -313,7 +299,7 @@ export function getBacklinkStats(): {
 }
 
 export function getLinkedTargets(): { title: string; count: number }[] {
-  const state = loadState()
+  const state = storage.load()
   const countMap = new Map<string, number>()
   state.links.forEach(l => {
     countMap.set(l.targetTitle, (countMap.get(l.targetTitle) || 0) + 1)
@@ -356,9 +342,9 @@ export function getSourceTypeIcon(type: Backlink['sourceType']): string {
 }
 
 export function getState(): BacklinkState {
-  return loadState()
+  return storage.load()
 }
 
 export function clearLinks(): void {
-  saveState({ links: [], lastIndexedAt: null })
+  storage.save({ links: [], lastIndexedAt: null })
 }

@@ -1,3 +1,5 @@
+import { createStorageService } from './storageFactory'
+
 export interface WellnessWater {
   id: string
   amount: number
@@ -64,18 +66,6 @@ export interface WellnessStore {
 }
 
 export function createWellnessBrowserStore(storageKey = STORAGE_KEY): WellnessStore {
-  return {
-    load: () => {
-      if (typeof window === 'undefined') return createInitialWellnessState()
-      try {
-        const raw = window.localStorage.getItem(storageKey)
-        if (raw) return JSON.parse(raw)
-      } catch { /* ignore */ }
-      return createInitialWellnessState()
-    },
-    save: (state) => {
-      if (typeof window === 'undefined') return
-      window.localStorage.setItem(storageKey, JSON.stringify(state))
-    }
-  }
+  const storage = createStorageService<WellnessState>(storageKey, createInitialWellnessState())
+  return { load: storage.load, save: storage.save }
 }

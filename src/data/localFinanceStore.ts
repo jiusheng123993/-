@@ -1,3 +1,5 @@
+import { createStorageService } from './storageFactory'
+
 export interface FinanceTransaction {
   id: string
   type: 'income' | 'expense'
@@ -90,18 +92,6 @@ export interface FinanceStore {
 }
 
 export function createFinanceBrowserStore(storageKey = STORAGE_KEY): FinanceStore {
-  return {
-    load: () => {
-      if (typeof window === 'undefined') return createInitialFinanceState()
-      try {
-        const raw = window.localStorage.getItem(storageKey)
-        if (raw) return JSON.parse(raw)
-      } catch { /* ignore */ }
-      return createInitialFinanceState()
-    },
-    save: (state) => {
-      if (typeof window === 'undefined') return
-      window.localStorage.setItem(storageKey, JSON.stringify(state))
-    }
-  }
+  const storage = createStorageService<FinanceState>(storageKey, createInitialFinanceState())
+  return { load: storage.load, save: storage.save }
 }

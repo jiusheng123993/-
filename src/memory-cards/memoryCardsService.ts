@@ -1,4 +1,5 @@
 import { calculateNextReview } from './spacedRepetition'
+import { createStorageService } from '../data/storageFactory'
 
 export interface Deck {
   id: string
@@ -85,34 +86,29 @@ function migrateState(raw: unknown): MemoryCardsState {
   }
 }
 
-export function loadState(): MemoryCardsState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      const defaultDeck: Deck = {
-        id: DEFAULT_DECK_ID,
-        name: '默认',
-        icon: '📝',
-        color: '#22c55e',
-        createdAt: new Date().toISOString()
-      }
-      return { decks: [defaultDeck], cards: [], activeDeckId: DEFAULT_DECK_ID }
-    }
-    return migrateState(JSON.parse(raw))
-  } catch {
-    const defaultDeck: Deck = {
-      id: DEFAULT_DECK_ID,
-      name: '默认',
-      icon: '📝',
-      color: '#22c55e',
-      createdAt: new Date().toISOString()
-    }
-    return { decks: [defaultDeck], cards: [], activeDeckId: DEFAULT_DECK_ID }
+function makeDefaultState(): MemoryCardsState {
+  const defaultDeck: Deck = {
+    id: DEFAULT_DECK_ID,
+    name: '默认',
+    icon: '📝',
+    color: '#22c55e',
+    createdAt: new Date().toISOString()
   }
+  return { decks: [defaultDeck], cards: [], activeDeckId: DEFAULT_DECK_ID }
+}
+
+const storage = createStorageService<MemoryCardsState>(
+  STORAGE_KEY,
+  makeDefaultState(),
+  migrateState
+)
+
+export function loadState(): MemoryCardsState {
+  return storage.load()
 }
 
 export function saveState(state: MemoryCardsState): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  storage.save(state)
 }
 
 export function createDeck(state: MemoryCardsState, name: string, icon: string, color: string): MemoryCardsState {

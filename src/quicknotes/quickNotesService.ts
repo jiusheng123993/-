@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface QuickNote {
   id: string
   content: string
@@ -11,21 +13,10 @@ export interface QuickNotesState {
   notes: QuickNote[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-quicknotes-state'
-
-function loadState(): QuickNotesState {
-  if (typeof window === 'undefined') return { notes: [] }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { notes: [] }
-}
-
-function saveState(state: QuickNotesState): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+const storage = createStorageService<QuickNotesState>(
+  'xinghuanhai-quicknotes-state',
+  { notes: [] }
+)
 
 export interface QuickNotesService {
   getState(): QuickNotesState
@@ -39,9 +30,9 @@ export interface QuickNotesService {
 }
 
 export function createQuickNotesService(): QuickNotesService {
-  const getState = (): QuickNotesState => loadState()
+  const getState = (): QuickNotesState => storage.load()
 
-  const save = (state: QuickNotesState): void => saveState(state)
+  const save = (state: QuickNotesState): void => storage.save(state)
 
   const addNote = (content: string, tags: string[] = []): QuickNote => {
     const state = getState()

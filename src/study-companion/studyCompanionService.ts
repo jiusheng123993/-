@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface CompanionMessage {
   id: string
   role: 'user' | 'assistant'
@@ -11,51 +13,42 @@ export interface StudyCompanionState {
   lastCheckIn: string
 }
 
-const STORAGE_KEY = 'xinghuanhai-studycompanion-state'
-
-function loadState(): StudyCompanionState {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { messages: [], lastCheckIn: '' }
-}
-
-function saveState(state: StudyCompanionState): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+const storage = createStorageService<StudyCompanionState>(
+  'xinghuanhai-studycompanion-state',
+  { messages: [], lastCheckIn: '' }
+)
 
 export function getMessages(): CompanionMessage[] {
-  return loadState().messages
+  return storage.load().messages
 }
 
 export function getLastCheckIn(): string {
-  return loadState().lastCheckIn
+  return storage.load().lastCheckIn
 }
 
 export function addMessage(msg: Omit<CompanionMessage, 'id' | 'createdAt'>): CompanionMessage {
-  const state = loadState()
+  const state = storage.load()
   const newMsg: CompanionMessage = {
     ...msg,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
   }
   state.messages.push(newMsg)
-  saveState(state)
+  storage.save(state)
   return newMsg
 }
 
 export function deleteMessage(id: string): boolean {
-  const state = loadState()
+  const state = storage.load()
   const index = state.messages.findIndex((m) => m.id === id)
   if (index === -1) return false
   state.messages.splice(index, 1)
-  saveState(state)
+  storage.save(state)
   return true
 }
 
 export function clearMessages(): void {
-  saveState({ messages: [], lastCheckIn: '' })
+  storage.save({ messages: [], lastCheckIn: '' })
 }
 
 export function updateLastCheckIn(date: string): void {

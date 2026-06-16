@@ -1,5 +1,6 @@
 import type { WorkspaceState } from '../../data/workspaceStoreTypes'
 import type { MemoryProfile } from '../memoryTypes'
+import { createStorageService } from '../../data/storageFactory'
 
 export interface CloudSyncConfig {
   enabled: boolean
@@ -40,26 +41,18 @@ export interface CloudSyncProvider {
   createAdapter(config: CloudSyncConfig): CloudSyncAdapter
 }
 
-export const CLOUD_SYNC_STORAGE_KEY = 'cloud_sync_config'
+const cloudSyncStorage = createStorageService<CloudSyncConfig>('cloud_sync_config', {
+  enabled: false,
+  autoSync: true,
+  syncInterval: 5 * 60 * 1000
+})
 
 export function getCloudSyncConfig(): CloudSyncConfig {
-  try {
-    const stored = localStorage.getItem(CLOUD_SYNC_STORAGE_KEY)
-    if (stored) {
-      return JSON.parse(stored)
-    }
-  } catch {
-    // ignore parse errors
-  }
-  return {
-    enabled: false,
-    autoSync: true,
-    syncInterval: 5 * 60 * 1000
-  }
+  return cloudSyncStorage.load()
 }
 
 export function setCloudSyncConfig(config: CloudSyncConfig): void {
-  localStorage.setItem(CLOUD_SYNC_STORAGE_KEY, JSON.stringify(config))
+  cloudSyncStorage.save(config)
 }
 
 export function createMockCloudSyncAdapter(): CloudSyncAdapter {

@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface TimeBlock {
   id: string
   title: string
@@ -13,7 +15,10 @@ export interface TimeBlockState {
   blocks: TimeBlock[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-timeblocks-state'
+const storage = createStorageService<TimeBlockState>(
+  'xinghuanhai-timeblocks-state',
+  { blocks: [] }
+)
 
 const categoryColors = {
   work: '#3b82f6',
@@ -21,20 +26,6 @@ const categoryColors = {
   exercise: '#22c55e',
   rest: '#f59e0b',
   other: '#6b7280'
-}
-
-function loadState(): TimeBlockState {
-  if (typeof window === 'undefined') return { blocks: [] }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { blocks: [] }
-}
-
-function saveState(state: TimeBlockState): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
 }
 
 export interface TimeBlockService {
@@ -47,9 +38,9 @@ export interface TimeBlockService {
 }
 
 export function createTimeBlockService(): TimeBlockService {
-  const getState = (): TimeBlockState => loadState()
+  const getState = (): TimeBlockState => storage.load()
 
-  const save = (state: TimeBlockState): void => saveState(state)
+  const save = (state: TimeBlockState): void => storage.save(state)
 
   const addBlock = (title: string, startHour: number, endHour: number, category: TimeBlock['category']): TimeBlock => {
     const state = getState()

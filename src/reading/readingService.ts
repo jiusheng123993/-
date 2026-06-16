@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface Book {
   id: string
   title: string
@@ -34,25 +36,14 @@ export interface ReadingState {
   goals: ReadingGoal[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-reading-state'
+const storage = createStorageService<ReadingState>(
+  'xinghuanhai-reading-state',
+  { books: [], notes: [], goals: [] }
+)
 
 const BOOK_CATEGORIES = ['技术', '文学', '历史', '哲学', '商业', '心理', '科幻', '其他']
 
 export const readingCategories = BOOK_CATEGORIES
-
-function loadState(): ReadingState {
-  if (typeof window === 'undefined') return { books: [], notes: [], goals: [] }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { books: [], notes: [], goals: [] }
-}
-
-function saveState(state: ReadingState): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
 
 export interface ReadingService {
   getState(): ReadingState
@@ -69,9 +60,9 @@ export interface ReadingService {
 }
 
 export function createReadingService(): ReadingService {
-  const getState = (): ReadingState => loadState()
+  const getState = (): ReadingState => storage.load()
 
-  const save = (state: ReadingState): void => saveState(state)
+  const save = (state: ReadingState): void => storage.save(state)
 
   const addBook = (title: string, author: string, totalPages: number, category: string): Book => {
     const state = getState()

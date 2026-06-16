@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface GraphNode {
   id: string
   label: string
@@ -44,17 +46,6 @@ const NODE_SIZES: Record<GraphNode['type'], { min: number; max: number }> = {
   persona: { min: 35, max: 70 }
 }
 
-function loadFromStorage<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (raw) return JSON.parse(raw)
-  } catch {
-    // ignore parse errors
-  }
-  return fallback
-}
-
 function calculateNodeSize(type: GraphNode['type'], connectionCount: number): number {
   const { min, max } = NODE_SIZES[type]
   return Math.min(max, min + connectionCount * 3)
@@ -71,12 +62,19 @@ export function buildKnowledgeGraph(): KnowledgeGraphData {
   const nodeMap = new Map<string, GraphNode>()
   const connectionCounts = new Map<string, number>()
 
-  const journalState = loadFromStorage<{ entries?: { id: string; title?: string; tags?: string[]; mood?: string; date?: string }[] }>('xinghuanhai-journal-state', { entries: [] })
-  const readingState = loadFromStorage<{ books?: { id: string; title: string; author?: string; category?: string }[] }>('xinghuanhai-reading-state', { books: [] })
-  const quickNotesState = loadFromStorage<{ notes?: { id: string; content: string; tags: string[] }[] }>('xinghuanhai-quicknotes-state', { notes: [] })
-  const goalsState = loadFromStorage<{ goals?: { id: string; title: string; parentId?: string; status?: string }[] }>('xinghuanhai-goals-state', { goals: [] })
-  const habitsState = loadFromStorage<{ habits?: { id: string; name: string; category?: string }[] }>('xinghuanhai-habits-state', { habits: [] })
-  const moodState = loadFromStorage<{ entries?: { id: string; mood: string; date: string }[] }>('xinghuanhai-mood-state', { entries: [] })
+  const journalStorage = createStorageService<{ entries?: { id: string; title?: string; tags?: string[]; mood?: string; date?: string }[] }>('xinghuanhai-journal-state', { entries: [] })
+  const readingStorage = createStorageService<{ books?: { id: string; title: string; author?: string; category?: string }[] }>('xinghuanhai-reading-state', { books: [] })
+  const quickNotesStorage = createStorageService<{ notes?: { id: string; content: string; tags: string[] }[] }>('xinghuanhai-quicknotes-state', { notes: [] })
+  const goalsStorage = createStorageService<{ goals?: { id: string; title: string; parentId?: string; status?: string }[] }>('xinghuanhai-goals-state', { goals: [] })
+  const habitsStorage = createStorageService<{ habits?: { id: string; name: string; category?: string }[] }>('xinghuanhai-habits-state', { habits: [] })
+  const moodStorage = createStorageService<{ entries?: { id: string; mood: string; date: string }[] }>('xinghuanhai-mood-state', { entries: [] })
+
+  const journalState = journalStorage.load()
+  const readingState = readingStorage.load()
+  const quickNotesState = quickNotesStorage.load()
+  const goalsState = goalsStorage.load()
+  const habitsState = habitsStorage.load()
+  const moodState = moodStorage.load()
 
   const journalEntries = journalState.entries || []
   const readingBooks = readingState.books || []

@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface MoodEntry {
   id: string
   date: string
@@ -20,30 +22,18 @@ export interface MoodStats {
   tagStats: { tag: string; count: number; avgScore: number }[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-moodjournal-state'
-
-function loadState(): MoodJournalState {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { entries: [] }
-}
-
-function saveState(state: MoodJournalState): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+const storage = createStorageService<MoodJournalState>('xinghuanhai-moodjournal-state', { entries: [] })
 
 export function getEntries(): MoodEntry[] {
-  return loadState().entries
+  return storage.load().entries
 }
 
 export function getEntryByDate(date: string): MoodEntry | undefined {
-  return loadState().entries.find((e) => e.date === date)
+  return storage.load().entries.find((e) => e.date === date)
 }
 
 export function addEntry(entry: Omit<MoodEntry, 'id'>): MoodEntry {
-  const state = loadState()
+  const state = storage.load()
   const existing = state.entries.findIndex((e) => e.date === entry.date)
   const newEntry: MoodEntry = {
     ...entry,
@@ -55,31 +45,31 @@ export function addEntry(entry: Omit<MoodEntry, 'id'>): MoodEntry {
     state.entries.unshift(newEntry)
   }
   state.entries.sort((a, b) => b.date.localeCompare(a.date))
-  saveState(state)
+  storage.save(state)
   return newEntry
 }
 
 export function updateEntry(id: string, updates: Partial<MoodEntry>): MoodEntry | null {
-  const state = loadState()
+  const state = storage.load()
   const index = state.entries.findIndex((e) => e.id === id)
   if (index === -1) return null
   state.entries[index] = { ...state.entries[index], ...updates }
   state.entries.sort((a, b) => b.date.localeCompare(a.date))
-  saveState(state)
+  storage.save(state)
   return state.entries[index]
 }
 
 export function deleteEntry(id: string): boolean {
-  const state = loadState()
+  const state = storage.load()
   const index = state.entries.findIndex((e) => e.id === id)
   if (index === -1) return false
   state.entries.splice(index, 1)
-  saveState(state)
+  storage.save(state)
   return true
 }
 
 export function getMoodStats(): MoodStats {
-  const entries = loadState().entries
+  const entries = storage.load().entries
   const now = new Date()
 
   const weekStart = new Date(now)
@@ -237,7 +227,7 @@ export interface MoodInsights {
 }
 
 export function getRecentMoods(days: number = 7): MoodEntry[] {
-  const entries = loadState().entries
+  const entries = storage.load().entries
   const now = new Date()
   const startDate = new Date(now)
   startDate.setDate(now.getDate() - days + 1)

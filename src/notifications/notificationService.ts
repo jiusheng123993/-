@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface AppNotification {
   id: string
   type: 'schedule' | 'habit' | 'review' | 'goal' | 'system'
@@ -20,38 +22,16 @@ export interface NotificationPreferences {
   quietHoursEnd: string
 }
 
-const STORAGE_KEY = 'xinghuanhai-notification-state'
-const PREFS_KEY = 'xinghuanhai-notification-prefs'
-
-function loadNotifications(): AppNotification[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-
-function saveNotifications(notifications: AppNotification[]): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications.slice(-200)))
-}
-
-function loadPrefs(): NotificationPreferences {
-  const defaults: NotificationPreferences = {
-    browserEnabled: false,
-    scheduleReminders: true,
-    habitReminders: true,
-    reviewReminders: true,
-    goalReminders: true,
-    quietHoursStart: '22:00',
-    quietHoursEnd: '08:00'
-  }
-  if (typeof window === 'undefined') return defaults
-  try {
-    const raw = window.localStorage.getItem(PREFS_KEY)
-    return raw ? JSON.parse(raw) : defaults
-  } catch { return defaults }
-}
+const notificationStorage = createStorageService<AppNotification[]>('xinghuanhai-notification-state', [])
+const prefsStorage = createStorageService<NotificationPreferences>('xinghuanhai-notification-prefs', {
+  browserEnabled: false,
+  scheduleReminders: true,
+  habitReminders: true,
+  reviewReminders: true,
+  goalReminders: true,
+  quietHoursStart: '22:00',
+  quietHoursEnd: '08:00'
+})
 
 function isInQuietHours(prefs: NotificationPreferences): boolean {
   const now = new Date()
@@ -67,16 +47,12 @@ function isInQuietHours(prefs: NotificationPreferences): boolean {
 }
 
 export function createNotificationService() {
-  const notifications = loadNotifications()
-  let prefs = loadPrefs()
+  const notifications = notificationStorage.load()
+  let prefs = prefsStorage.load()
   let listeners: Array<(notifications: AppNotification[]) => void> = []
 
-  const persist = () => saveNotifications(notifications)
-  const persistPrefs = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))
-    }
-  }
+  const persist = () => notificationStorage.save(notifications.slice(-200) as AppNotification[])
+  const persistPrefs = () => prefsStorage.save(prefs)
 
   const requestBrowserPermission = async (): Promise<boolean> => {
     if (typeof window === 'undefined' || !('Notification' in window)) return false

@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface ExamScore {
   subject: string
   score: number
@@ -40,66 +42,57 @@ export interface ExamTrackerState {
   records: ExamRecord[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-examtracker-state'
-
-function loadState(): ExamTrackerState {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  return { records: [] }
-}
-
-function saveState(state: ExamTrackerState): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
+const storage = createStorageService<ExamTrackerState>(
+  'xinghuanhai-examtracker-state',
+  { records: [] }
+)
 
 export function getExamRecords(): ExamRecord[] {
-  return loadState().records
+  return storage.load().records
 }
 
 export function getExamRecordById(id: string): ExamRecord | undefined {
-  return loadState().records.find((r) => r.id === id)
+  return storage.load().records.find((r) => r.id === id)
 }
 
 export function addExamRecord(record: Omit<ExamRecord, 'id'>): ExamRecord {
-  const state = loadState()
+  const state = storage.load()
   const newRecord: ExamRecord = {
     ...record,
     id: crypto.randomUUID(),
   }
   state.records.unshift(newRecord)
   state.records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  saveState(state)
+  storage.save(state)
   return newRecord
 }
 
 export function updateExamRecord(id: string, updates: Partial<ExamRecord>): ExamRecord | null {
-  const state = loadState()
+  const state = storage.load()
   const index = state.records.findIndex((r) => r.id === id)
   if (index === -1) return null
   state.records[index] = { ...state.records[index], ...updates }
-  saveState(state)
+  storage.save(state)
   return state.records[index]
 }
 
 export function deleteExamRecord(id: string): boolean {
-  const state = loadState()
+  const state = storage.load()
   const index = state.records.findIndex((r) => r.id === id)
   if (index === -1) return false
   state.records.splice(index, 1)
-  saveState(state)
+  storage.save(state)
   return true
 }
 
 export function getLatestTwoRecords(): [ExamRecord, ExamRecord] | null {
-  const records = loadState().records
+  const records = storage.load().records
   if (records.length < 2) return null
   return [records[0], records[1]]
 }
 
 export function getSubjectsFromRecords(): string[] {
-  const state = loadState()
+  const state = storage.load()
   const subjectSet = new Set<string>()
   for (const record of state.records) {
     for (const score of record.scores) {

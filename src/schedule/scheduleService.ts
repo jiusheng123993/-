@@ -1,3 +1,5 @@
+import { createStorageService } from '../data/storageFactory'
+
 export interface ScheduleEvent {
   id: string
   title: string
@@ -18,7 +20,7 @@ export interface ScheduleState {
   events: ScheduleEvent[]
 }
 
-const STORAGE_KEY = 'xinghuanhai-schedule-state'
+const storage = createStorageService<ScheduleState>('xinghuanhai-schedule-state', { events: [] })
 
 const EVENT_COLORS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
@@ -26,29 +28,14 @@ const EVENT_COLORS = [
   '#06b6d4', '#3b82f6'
 ]
 
-function loadState(): ScheduleState {
-  if (typeof window === 'undefined') return { events: [] }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : { events: [] }
-  } catch {
-    return { events: [] }
-  }
-}
-
-function saveState(state: ScheduleState): void {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}
-
 function generateId(): string {
   return crypto.randomUUID()
 }
 
 export function createScheduleService() {
-  const state = loadState()
+  const state = storage.load()
 
-  const persist = () => saveState(state)
+  const persist = () => storage.save(state)
 
   return {
     getState(): ScheduleState {
