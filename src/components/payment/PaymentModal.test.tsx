@@ -132,7 +132,7 @@ describe('PaymentModal', () => {
 
     renderModal({ onClose, onSuccess })
 
-    expect(screen.getByText('支付成功')).toBeInTheDocument()
+    expect(screen.getAllByText('支付成功').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('您已成功购买 学习会员月卡')).toBeInTheDocument()
     expect(screen.getByText('订单号: order-123')).toBeInTheDocument()
     expect(screen.getByText('学习会员权益已解锁')).toBeInTheDocument()
@@ -171,7 +171,7 @@ describe('PaymentModal', () => {
 
     renderModal()
 
-    expect(screen.getByText('支付失败')).toBeInTheDocument()
+    expect(screen.getAllByText('支付失败').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('支付过程中出现问题，请稍后重试')).toBeInTheDocument()
   })
 

@@ -721,38 +721,35 @@ export default function App() {
         onOpenMemoryProfile={() => setIsMemoryProfileOpen(true)}
       />
 
-      {isThemePickerOpen && (
-        <ThemePickerModal
-          activeTheme={activeTheme}
-          themeFamilies={themeFamilies}
-          filteredThemes={filteredThemes}
-          themeSearchQuery={themeSearchQuery}
-          activeThemeFamily={activeThemeFamily}
-          onClose={closeThemePicker}
-          onOpenWallpaper={() => { setIsThemePickerOpen(false); setIsWallpaperPickerOpen(true) }}
-          onSearchChange={setThemeSearchQuery}
-          onFamilyChange={setActiveThemeFamily}
-          onSwitchTheme={switchTheme}
-        />
-      )}
+      <ThemePickerModal
+        isOpen={isThemePickerOpen}
+        activeTheme={activeTheme}
+        themeFamilies={themeFamilies}
+        filteredThemes={filteredThemes}
+        themeSearchQuery={themeSearchQuery}
+        activeThemeFamily={activeThemeFamily}
+        onClose={closeThemePicker}
+        onOpenWallpaper={() => { setIsThemePickerOpen(false); setIsWallpaperPickerOpen(true) }}
+        onSearchChange={setThemeSearchQuery}
+        onFamilyChange={setActiveThemeFamily}
+        onSwitchTheme={switchTheme}
+      />
 
-      {isWallpaperPickerOpen && (
-        <WallpaperPickerModal
-          activeTheme={activeTheme}
-          onClose={() => setIsWallpaperPickerOpen(false)}
-          onWallpaperSelected={setRelationshipSpaceWallpaper}
-        />
-      )}
+      <WallpaperPickerModal
+        isOpen={isWallpaperPickerOpen}
+        activeTheme={activeTheme}
+        onClose={() => setIsWallpaperPickerOpen(false)}
+        onWallpaperSelected={setRelationshipSpaceWallpaper}
+      />
 
-      {isMembershipOpen && (
-        <MembershipModal
-          flow={membership}
-          userId={userId}
-          inviteRewards={inviteRewards}
-          addToast={addToast}
-          onClose={() => setIsMembershipOpen(false)}
-        />
-      )}
+      <MembershipModal
+        isOpen={isMembershipOpen}
+        flow={membership}
+        userId={userId}
+        inviteRewards={inviteRewards}
+        addToast={addToast}
+        onClose={() => setIsMembershipOpen(false)}
+      />
 
       {isSettingsOpen && (
         <SettingsPanel
@@ -765,35 +762,27 @@ export default function App() {
         />
       )}
 
-      {isPaymentOpen && selectedProduct && (
-        <PaymentModal
-          flow={membership}
-          onClose={() => setIsPaymentOpen(false)}
-        />
-      )}
+      <PaymentModal
+        isOpen={isPaymentOpen && !!selectedProduct}
+        flow={membership}
+        onClose={() => setIsPaymentOpen(false)}
+      />
 
-      {isCycleTrackerOpen && (
-        <CycleTrackerModal onClose={() => setIsCycleTrackerOpen(false)} />
-      )}
+      <CycleTrackerModal isOpen={isCycleTrackerOpen} onClose={() => setIsCycleTrackerOpen(false)} />
 
-      {isDataBackupOpen && (
-        <DataBackupModal onClose={() => setIsDataBackupOpen(false)} />
-      )}
+      <DataBackupModal isOpen={isDataBackupOpen} onClose={() => setIsDataBackupOpen(false)} />
 
-      {isApiKeySettingsOpen && (
-        <ApiKeySettingsModal onClose={() => setIsApiKeySettingsOpen(false)} />
-      )}
+      <ApiKeySettingsModal isOpen={isApiKeySettingsOpen} onClose={() => setIsApiKeySettingsOpen(false)} />
 
-      {isSupabaseConfigOpen && (
-        <SupabaseConfigModal
-          onConfigured={() => {
-            setDataSource('supabase')
-            setIsSupabaseConfigOpen(false)
-            addToast({ type: 'success', title: 'Supabase 已连接', message: '数据源已切换至云端' })
-          }}
-          onBack={() => setIsSupabaseConfigOpen(false)}
-        />
-      )}
+      <SupabaseConfigModal
+        isOpen={isSupabaseConfigOpen}
+        onConfigured={() => {
+          setDataSource('supabase')
+          setIsSupabaseConfigOpen(false)
+          addToast({ type: 'success', title: 'Supabase 已连接', message: '数据源已切换至云端' })
+        }}
+        onBack={() => setIsSupabaseConfigOpen(false)}
+      />
 
       {isReportOpen && (
         <ReportModal
@@ -865,9 +854,7 @@ export default function App() {
         />
       )}
 
-      {isSyncOpen && (
-        <SyncModal onClose={() => setIsSyncOpen(false)} />
-      )}
+      <SyncModal isOpen={isSyncOpen} onClose={() => setIsSyncOpen(false)} />
 
       <KnowledgeGraphModal
         isOpen={isKnowledgeGraphOpen}
@@ -884,9 +871,7 @@ export default function App() {
         onClose={() => setIsBacklinkOpen(false)}
       />
 
-      {isFocusModeOpen && (
-        <FocusModeModal onClose={() => setIsFocusModeOpen(false)} />
-      )}
+      <FocusModeModal isOpen={isFocusModeOpen} onClose={() => setIsFocusModeOpen(false)} />
 
       <TemplateModal
         isOpen={isTemplateOpen}
@@ -900,19 +885,18 @@ export default function App() {
         dataSource={dataSource}
       />
 
-      {isAvatarManagerOpen && (
-        <AvatarManagerModal
-          userId={userId}
-          onClose={() => setIsAvatarManagerOpen(false)}
-          onAvatarSelect={(avatarId) => {
-            setWorkspaceState((prev) => ({
-              ...prev,
-              preferences: { ...prev.preferences, avatarId }
-            }))
-            addToast({ type: 'success', title: '角色已更新', message: `已选择新角色形象。` })
-          }}
-        />
-      )}
+      <AvatarManagerModal
+        isOpen={isAvatarManagerOpen}
+        userId={userId}
+        onClose={() => setIsAvatarManagerOpen(false)}
+        onAvatarSelect={(avatarId) => {
+          setWorkspaceState((prev) => ({
+            ...prev,
+            preferences: { ...prev.preferences, avatarId }
+          }))
+          addToast({ type: 'success', title: '角色已更新', message: `已选择新角色形象。` })
+        }}
+      />
 
       {isRelationshipSpaceOpen && (
         <RelationshipSpaceModal
@@ -930,28 +914,26 @@ export default function App() {
         />
       )}
 
-      {isMemoryProfileOpen && (
-        <MemoryProfileModal
-          profile={memoryProfile}
-          events={memoryEvents}
-          onClose={() => setIsMemoryProfileOpen(false)}
-          onSave={(profile) => {
-            setMemoryProfile(profile)
-            setWorkspaceState(prev => ({ ...prev, memoryProfile: profile }))
-          }}
-        />
-      )}
+      <MemoryProfileModal
+        isOpen={isMemoryProfileOpen}
+        profile={memoryProfile}
+        events={memoryEvents}
+        onClose={() => setIsMemoryProfileOpen(false)}
+        onSave={(profile) => {
+          setMemoryProfile(profile)
+          setWorkspaceState(prev => ({ ...prev, memoryProfile: profile }))
+        }}
+      />
 
-      {isPersonaSelectorOpen && (
-        <PersonaSelectorModal
-          userId={userId}
-          currentPersonaId={currentPersonaId}
-          onClose={() => setIsPersonaSelectorOpen(false)}
-          onSelect={(personaId) => {
-            setCurrentPersonaId(personaId)
-          }}
-        />
-      )}
+      <PersonaSelectorModal
+        isOpen={isPersonaSelectorOpen}
+        userId={userId}
+        currentPersonaId={currentPersonaId}
+        onClose={() => setIsPersonaSelectorOpen(false)}
+        onSelect={(personaId) => {
+          setCurrentPersonaId(personaId)
+        }}
+      />
 
       {isCustomPersonaEditorOpen && (
         <CustomPersonaEditorModal
@@ -1004,9 +986,7 @@ export default function App() {
         />
       )}
 
-      {isAdminConsoleOpen && (
-        <AdminConsoleModal onClose={() => setIsAdminConsoleOpen(false)} />
-      )}
+      <AdminConsoleModal isOpen={isAdminConsoleOpen} onClose={() => setIsAdminConsoleOpen(false)} />
 
       {selectedOrder && (
         <OrderDetailModal
@@ -1015,9 +995,7 @@ export default function App() {
         />
       )}
 
-      {isIdentitySelectorOpen && (
-        <IdentitySelectorModal onClose={() => setIsIdentitySelectorOpen(false)} />
-      )}
+      <IdentitySelectorModal isOpen={isIdentitySelectorOpen} onClose={() => setIsIdentitySelectorOpen(false)} />
 
       {moduleStoreState.isStoreOpen && (
         <ModuleStoreUI
@@ -1052,10 +1030,12 @@ export default function App() {
           onClose={() => setIsAgentChatOpen(false)}
           personaId={activePersona?.id}
           aiRole={activePersona?.aiRole}
+          userId={userId}
           profile={memoryProfile}
           memoryEvents={memoryEvents}
           memoryObserver={memoryObserver}
           healthMonitor={relationshipHealthMonitor}
+          safetyGate={personaSafetyGate}
           onConversationComplete={handleConversationComplete}
         />
       )}

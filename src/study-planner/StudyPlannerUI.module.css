@@ -1091,3 +1091,101 @@
   background: rgba(139, 92, 246, 0.05);
   border-color: #8b5cf6;
 }
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .createButton {
+    width: 100%;
+    text-align: center;
+  }
+
+  .targetScoreRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .targetScoreRow .select {
+    flex: 1;
+    width: 100%;
+  }
+
+  .targetScoreRow .input {
+    width: 100%;
+  }
+
+  .dateRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .taskFormRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .taskFormRow .select {
+    width: 100%;
+  }
+
+  .minutesField {
+    width: 100%;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .planCardMeta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .detailHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .overallProgress {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .phaseProgressHeader {
+    min-width: 80px;
+  }
+
+  .aiActions {
+    flex-direction: column;
+  }
+
+  .taskEditInline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .taskEditInline .input,
+  .taskEditInline .select {
+    width: 100%;
+  }
+
+  .taskEditInlineCompact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .taskEditInlineCompact .input {
+    width: 100%;
+  }
+}

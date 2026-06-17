@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
+import { usePlatform } from '../platforms'
 import {
   getMessages,
   addMessage,
@@ -34,6 +35,8 @@ const QUICK_ACTIONS: QuickAction[] = [
 ]
 
 export function StudyCompanionUI({ userId }: StudyCompanionUIProps) {
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const { hasAnyKey } = useApiKeyStatus()
   const entitlementService = createEntitlementService()
   const isMember = userId

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { BookOpen, Trash2, Star, Target, Library, BookMarked } from 'lucide-react'
+import { usePlatform } from '../platforms'
 import { createReadingService, readingCategories } from './readingService'
 import type { ReadingService, Book } from './readingService'
 import type { StudyTheme } from '../themes/themeRegistry'
@@ -48,6 +49,8 @@ function getColors(theme?: StudyTheme) {
 
 export function ReadingUI({ compact = false, service: externalService, theme }: ReadingUIProps) {
   const colors = getColors(theme)
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const [service] = useState<ReadingService>(() => externalService ?? createReadingService())
   const [activeTab, setActiveTab] = useState<'library' | 'reading' | 'notes' | 'goals'>('library')
   const [bookTitle, setBookTitle] = useState('')
@@ -155,7 +158,7 @@ export function ReadingUI({ compact = false, service: externalService, theme }: 
   ] as const
 
   return (
-    <div style={{ background: colors.bg, color: colors.text, fontFamily: 'system-ui, sans-serif', minHeight: '100vh', padding: 24, overflowY: 'auto' }}>
+    <div style={{ background: colors.bg, color: colors.text, fontFamily: 'system-ui, sans-serif', padding: 24, overflowY: 'auto' }}>
       <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
         <BookOpen size={24} style={{ color: colors.accent }} />阅读清单
       </h2>
@@ -188,7 +191,7 @@ export function ReadingUI({ compact = false, service: externalService, theme }: 
         <div>
           <div style={{ background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: 12, padding: 20, marginBottom: 24 }}>
             <h3 style={{ fontSize: 14, marginBottom: 16 }}>添加新书</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <input
                 type="text"
                 placeholder="书名"
@@ -204,7 +207,7 @@ export function ReadingUI({ compact = false, service: externalService, theme }: 
                 style={{ padding: '10px 14px', border: `1px solid ${colors.inputBorder}`, borderRadius: 8, background: colors.inputBg, color: colors.text, fontSize: 14 }}
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <input
                 type="number"
                 placeholder="总页数"
@@ -266,7 +269,7 @@ export function ReadingUI({ compact = false, service: externalService, theme }: 
         <div>
           <div style={{ background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: 12, padding: 20, marginBottom: 24 }}>
             <h3 style={{ fontSize: 14, marginBottom: 16 }}>阅读统计</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 16 }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 24, fontWeight: 700, color: colors.text }}>{stats.totalBooks}</div>
                 <small style={{ color: colors.textSecondary }}>藏书</small>
@@ -340,7 +343,7 @@ export function ReadingUI({ compact = false, service: externalService, theme }: 
         <div>
           <div style={{ background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: 12, padding: 20, marginBottom: 24 }}>
             <h3 style={{ fontSize: 14, marginBottom: 16 }}>添加笔记</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 100px', gap: 12, marginBottom: 12 }}>
               <select
                 value={newNoteType}
                 onChange={(e) => {

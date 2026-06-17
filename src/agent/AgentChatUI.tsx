@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { usePlatform } from '../platforms'
 import type { PersonaId } from '../personas/personaRegistry'
 import type { AvatarMood } from '../avatar/avatarTypes'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 import type { MemoryObserver } from '../memory/memoryObserver'
 import type { RelationshipHealthMonitor } from '../personas/relationshipHealthMonitor'
+import type { PersonaSafetyGate } from '../personas/personaSafetyGate'
 import { agentRuntime } from './agentRuntime'
 import { getMoodEmoji } from '../avatar/animator'
 
@@ -22,11 +23,13 @@ export interface AgentChatUIProps {
   personaId?: PersonaId
   aiRole?: string
   avatarId?: string
+  userId?: string
   profile?: MemoryProfile
   memoryEvents?: MemoryEvent[]
   memoryObserver?: MemoryObserver | null
   onSendMessage?: (message: string) => Promise<string>
   healthMonitor?: RelationshipHealthMonitor | null
+  safetyGate?: PersonaSafetyGate | null
   onConversationComplete?: (userMessage: string, agentResponse: string) => void
 }
 
@@ -57,7 +60,7 @@ function extractTopics(content: string): string[] {
   return topics.length > 0 ? topics : ['general']
 }
 
-export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memoryEvents, memoryObserver, onSendMessage, healthMonitor, onConversationComplete }: AgentChatUIProps) {
+export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profile, memoryEvents, memoryObserver, onSendMessage, healthMonitor, safetyGate, onConversationComplete }: AgentChatUIProps) {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -91,6 +94,20 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
     const userContent = inputValue.trim()
 
     const crisisResult = healthMonitor?.checkCrisis('current-user', userContent)
+
+    const dialogueSafetyResult = safetyGate?.validateDialogue(userContent, '')
+    if (dialogueSafetyResult && !dialogueSafetyResult.ok) {
+      const blockedMessage: AgentMessage = {
+        id: `msg-${Date.now()}`,
+        role: 'agent',
+        content: `🛡️ 内容安全提醒：${dialogueSafetyResult.reason || '您的消息包含不适宜内容，请修改后重试。'}`,
+        timestamp: new Date().toISOString(),
+        mood: 'concerned'
+      }
+      setMessages(prev => [...prev, blockedMessage])
+      setInputValue('')
+      return
+    }
 
     const userMessage: AgentMessage = {
       id: `msg-${Date.now()}`,
@@ -202,7 +219,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
         }
       }
     }
-  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, onConversationComplete, memoryEvents, profile])
+  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, safetyGate, onConversationComplete, memoryEvents, profile])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -210,6 +227,17 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
       handleSend()
     }
   }, [handleSend])
+
+  const conversationDailyMinutes = useMemo(() => {
+    if (!userId || !safetyGate) return 0
+    const userMessages = messages.filter(m => m.role === 'user')
+    return userMessages.length * 2
+  }, [messages, userId, safetyGate])
+
+  const conversationHealthResult = useMemo(() => {
+    if (!userId || !safetyGate || conversationDailyMinutes === 0) return null
+    return safetyGate.checkConversationHealth(userId, conversationDailyMinutes)
+  }, [userId, safetyGate, conversationDailyMinutes])
 
   if (!isOpen) return null
 
@@ -347,6 +375,22 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, profile, memor
           </div>
         )}
         <div ref={messagesEndRef} />
+        {conversationHealthResult && !conversationHealthResult.ok && (
+          <div style={{
+            padding: 12,
+            borderRadius: 8,
+            background: 'rgba(245, 158, 11, 0.1)',
+            border: '1px solid #f59e0b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            color: '#f59e0b'
+          }}>
+            <span>⚠️</span>
+            <span>{conversationHealthResult.reason}</span>
+          </div>
+        )}
       </div>
 
       <div

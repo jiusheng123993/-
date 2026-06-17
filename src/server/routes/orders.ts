@@ -3,6 +3,9 @@ import { createOrder, getOrderById, getOrdersByUser, refundOrder, orderService }
 import { requireAuth, canAccessUserResource, isAdmin } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
 import type { CreateOrderRequest } from '../types'
+import { grantEntitlements } from '../services/entitlementService'
+import { broadcastToUser } from '../websocket'
+import { orderRepo, paymentRepo } from '../db/orderRepository'
 
 /**
  * Orders Router - 订单管理路由
@@ -138,7 +141,7 @@ export function createOrdersRouter(): Router {
     }
   }))
 
-  router.post('/:id/pay', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/:id/pay', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (isProduction()) {
       safeError(res, 403, 'This endpoint is disabled in production')
       return
@@ -162,13 +165,41 @@ export function createOrdersRouter(): Router {
       return
     }
     try {
-      orderService.markAsPaid(
-        req.params.id,
-        typeof channelTradeNo === 'string' && channelTradeNo.length <= 128
-          ? channelTradeNo
-          : 'mock-trade-no',
-        'mock receipt'
-      )
+      const tradeNo = typeof channelTradeNo === 'string' && channelTradeNo.length <= 128
+        ? channelTradeNo
+        : `mock-trade-${order.id}-${Date.now().toString(36)}`
+
+      orderService.markAsPaid(req.params.id, tradeNo, 'mock receipt')
+
+      try {
+        grantEntitlements(order.userId, order.productId)
+      } catch (entitlementError) {
+        console.error(`[orders] Failed to grant entitlements for order ${order.id}:`, entitlementError)
+      }
+
+      broadcastToUser(order.userId, {
+        type: 'payment_status',
+        orderId: order.id,
+        status: 'paid',
+        tradeNo
+      })
+
+      try {
+        await orderRepo.updateStatus(order.id, 'paid', {
+          channelTradeNo: tradeNo,
+          receipt: 'mock receipt'
+        })
+        await paymentRepo.create({
+          orderId: order.id,
+          channel: order.channel,
+          tradeNo,
+          amount: order.amount,
+          rawCallback: { mock: true, paidAt: new Date().toISOString() }
+        })
+      } catch (dbError) {
+        console.error(`[orders] Failed to persist payment for order ${order.id}:`, dbError)
+      }
+
       res.json(orderService.getOrderById(req.params.id))
     } catch {
       safeError(res, 500, 'Failed to mark as paid')

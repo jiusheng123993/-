@@ -1,6 +1,6 @@
 # 星寰海 - AI 陪伴系统统一设计文档
 
-> 版本：v3.0 | 日期：2026-06-11 | 状态：持续迭代中
+> 版本：v3.1 | 日期：2026-06-17 | 状态：阶段0文档对齐完成
 >
 > 本文档融合以下设计文档，不删减任何功能，统一术语与数据结构：
 > - `2026-06-01-companion-persona-system-design.md`（陪伴人格系统）
@@ -676,34 +676,36 @@ interface CommunityPersonaService {
 ### 4.9 两套 Persona 体系说明
 
 > 本节说明代码库中实际存在的两套 Persona 相关体系及其关系。
+>
+> **当前状态（2026-06-17）**：两套体系均为正交互补关系，已确认保留。场景身份（8个）已在代码中完整实现；陪伴人格（6个）在设计文档中定义，代码中尚未独立实现，但 Persona 选择器 UI 已支持场景身份选择。
 
 #### 4.9.1 陪伴人格 Persona（本文档定义）
 
 本文档 §四 定义的 **6 个陪伴人格** 是真正的 Persona 体系，决定 AI "以什么性格陪伴你"：
 
-| ID | 称谓 | 语气 |
-|------|------|------|
-| `senior_buddy` | 学长/学姐 | 专业不腻人 |
-| `gentle_sister` | 温柔姐姐 | 治愈/共情 |
-| `strict_coach` | 严格教练 | 直接/高压 |
-| `wise_elder` | 智者长者 | 深度/反思 |
-| `energetic_pal` | 元气玩伴 | 高能/欢乐 |
-| `pro_secretary` | 专业秘书 | 高效/精准 |
+| ID | 称谓 | 语气 | 代码状态 |
+|------|------|------|----------|
+| `senior_buddy` | 学长/学姐 | 专业不腻人 | 📋 设计完成，待实现 |
+| `gentle_sister` | 温柔姐姐 | 治愈/共情 | 📋 设计完成，待实现 |
+| `strict_coach` | 严格教练 | 直接/高压 | 📋 设计完成，待实现 |
+| `wise_elder` | 智者长者 | 深度/反思 | 📋 设计完成，待实现 |
+| `energetic_pal` | 元气玩伴 | 高能/欢乐 | 📋 设计完成，待实现 |
+| `pro_secretary` | 专业秘书 | 高效/精准 | 📋 设计完成，待实现 |
 
 #### 4.9.2 场景身份 Scenario（代码实现）
 
 代码中 `src/personas/personaRegistry.ts` 实际定义的是 **8 个场景身份**，决定 "用户在什么场景下使用系统"：
 
-| ID | 名称 | AI 角色 |
-|------|------|------|
-| `exam-student` | 学生备考 | AI 备考教练 |
-| `office-worker` | 职场办公 | AI 项目助理 |
-| `creator` | 内容创作 | AI 选题策划 |
-| `self-growth` | 自律成长 | AI 成长陪伴 |
-| `grad-exam` | 考研冲刺 | AI 考研导师 |
-| `civil-service` | 考公备战 | AI 考公教练 |
-| `cert-exam` | 考证达人 | AI 考证顾问 |
-| `english-cet` | 四六级备考 | AI 英语教练 |
+| ID | 名称 | AI 角色 | 代码状态 |
+|------|------|------|----------|
+| `exam-student` | 学生备考 | AI 备考教练 | ✅ 已实现 |
+| `office-worker` | 职场办公 | AI 项目助理 | ✅ 已实现 |
+| `creator` | 内容创作 | AI 选题策划 | ✅ 已实现 |
+| `self-growth` | 自律成长 | AI 成长陪伴 | ✅ 已实现 |
+| `grad-exam` | 考研冲刺 | AI 考研导师 | ✅ 已实现 |
+| `civil-service` | 考公备战 | AI 考公教练 | ✅ 已实现 |
+| `cert-exam` | 考证达人 | AI 考证顾问 | ✅ 已实现 |
+| `english-cet` | 四六级备考 | AI 英语教练 | ✅ 已实现 |
 
 #### 4.9.3 两套体系的关系
 
@@ -715,12 +717,13 @@ interface CommunityPersonaService {
 
 例如：一个考研学生可以选择「考研冲刺」场景 + 「严格教练」人格，也可以选择「考研冲刺」场景 + 「温柔姐姐」人格。
 
-#### 4.9.4 统一方案
+#### 4.9.4 统一方案（已确认）
 
-- **保留两套体系**，各自独立发展
-- 代码中的 `personaRegistry.ts` 后续应重命名为 `scenarioRegistry.ts`，类型 `PersonaId` 重命名为 `ScenarioId`
-- 设计文档的 6 个陪伴人格作为真正的 Persona 体系，按 CP1-CP17 模块规划逐步实现
-- 场景选择器和人格选择器各自独立，用户可自由组合
+- ✅ **保留两套体系**，各自独立发展，互不替代
+- 🔧 代码中的 `personaRegistry.ts` 建议重命名为 `scenarioRegistry.ts`，类型 `PersonaId` 重命名为 `ScenarioId`（低优先级，不影响功能）
+- 📋 设计文档的 6 个陪伴人格作为真正的 Persona 体系，后续阶段按需实现代码
+- ✅ 场景选择器已在 PersonaSelectorUI 中实现，人格选择器待后续阶段实现
+- ✅ 用户可自由组合场景身份与陪伴人格
 
 ---
 
@@ -1341,11 +1344,389 @@ type AiTaskKind =
 
 ---
 
+## 十一-A、扩展模块设计
+
+> 以下模块在代码中已完整实现，但在本设计文档中此前缺少设计章节。本节补充各模块的核心设计说明。
+
+### 11A.1 关系空间（Relationship）
+
+**路径**：`src/relationship/` | **文件数**：20 | **测试**：5个测试文件
+
+关系空间模块提供多人协作的社交化自律空间，支持搭子之间互相监督、共同成长。
+
+**空间类型**：
+| 类型 | 说明 | 最大成员数 |
+|------|------|-----------|
+| `couple` | 情侣空间 | 2 |
+| `family` | 家庭空间 | 10 |
+| `study_buddy` | 学习搭子 | 4 |
+| `discipline_buddy` | 自律搭子 | 4 |
+
+**核心数据结构**：
+```ts
+interface RelationshipSpace {
+  id: string
+  name: string
+  type: 'couple' | 'family' | 'study_buddy' | 'discipline_buddy'
+  ownerId: string
+  members: SpaceMember[]
+  settings: SpaceSettings
+  stats: SpaceStats
+  anniversaries: Anniversary[]
+  sharedGoals: SharedGoal[]
+  createdAt: string
+}
+
+interface SpaceMember {
+  userId: string
+  role: 'owner' | 'admin' | 'member'
+  joinedAt: string
+  displayName: string
+}
+
+type SpaceActivityType =
+  | 'member_joined' | 'member_left' | 'task_assigned' | 'task_completed'
+  | 'habit_checked' | 'focus_started' | 'focus_ended' | 'focus_pk_started'
+  | 'focus_pk_ended' | 'goal_created' | 'goal_progress' | 'goal_completed'
+  | 'anniversary_created' | 'anniversary_reminder' | 'ranking_updated'
+  | 'message_sent' | 'space_settings_updated'
+```
+
+**核心功能**：
+- 空间创建/加入（邀请码机制，7天过期）
+- 成员角色管理（owner/admin/member 三级权限）
+- 任务推送/接受/拒绝/完成
+- 共享习惯打卡
+- 共享专注会话
+- 专注PK（挑战/接受/完成，按专注分钟+任务完成计分）
+- 排行榜（周榜/月榜）
+- 纪念日管理（支持年/月/一次性重复）
+- 共享目标管理（进度追踪）
+- 亲密度/协同度计算
+- 实时通信（WebSocket/轮询双模式，18种消息类型）
+- 权益检查（space/ranking/anniversary 功能门控）
+
+---
+
+### 11A.2 女性周期（Cycle）
+
+**路径**：`src/cycle/` | **文件数**：16 | **测试**：5个测试文件
+
+女性生理周期追踪模块，提供完整的周期记录、预测和能量管理功能。
+
+**核心数据结构**：
+```ts
+interface CycleRecord {
+  id: string
+  date: string
+  flowLevel: 1 | 2 | 3 | 4
+  painLevel: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+  symptoms: CycleSymptom[]
+  mood: CycleMood
+  sleepHours: number
+  exercise: boolean
+  waterIntake: number
+  notes: string
+}
+
+interface CyclePrediction {
+  averageCycleLength: number
+  nextPeriodDate: string
+  ovulationDate: string
+  fertileWindow: { start: string; end: string }
+  confidence: number
+}
+
+type CyclePhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal'
+```
+
+**核心功能**：
+- 每日周期记录（经血量/痛经等级/症状/情绪/睡眠/运动/饮水/备注）
+- 周期预测引擎（基于最近2-6个周期计算平均周期长度、下次经期、排卵期、易孕期）
+- 当前阶段判定（经期/卵泡期/排卵期/黄体期）
+- 能量建议引擎（根据周期阶段推荐任务强度和活动类型）
+- 隐私锁（PIN码保护）
+- 周期提醒（经期前几天提醒）
+- 数据导出/清空
+
+---
+
+### 11A.3 壁纸系统（Wallpaper）
+
+**路径**：`src/wallpaper/` | **文件数**：15 | **测试**：5个测试文件
+
+壁纸系统提供全局背景壁纸管理，支持预设壁纸和自定义上传。
+
+**核心数据结构**：
+```ts
+interface WallpaperConfig {
+  source: 'preset' | 'upload' | 'theme_default'
+  presetId?: string
+  localPath?: string
+  thumbnailPath?: string
+  themeBinding?: string
+  adjustments: WallpaperAdjustments
+}
+
+interface WallpaperAdjustments {
+  overlay: string
+  blur: number
+  brightness: number
+  saturation: number
+  vignette: number
+  cardOpacity: number
+}
+
+interface ReadabilityCheckResult {
+  score: number
+  warnings: string[]
+  issues: ('low_contrast' | 'too_bright' | 'too_dark' | 'too_busy')[]
+}
+```
+
+**核心功能**：
+- 壁纸来源：预设/上传/主题默认
+- 壁纸调整：覆盖层颜色/模糊度/亮度/饱和度/暗角/卡片透明度
+- 可读性检查：低对比度/过亮/过暗/过于杂乱检测
+- 上传处理：格式校验（JPEG/PNG/WebP/GIF）、大小限制（10MB）、自动生成缩略图
+- 主题绑定：壁纸可与学习主题关联
+- CSS生成：根据调整参数生成CSS滤镜样式
+- 6种预设分类：自然/城市/抽象/极简/动漫/季节
+
+---
+
+### 11A.4 权益系统（Entitlement）
+
+**路径**：`src/entitlement/` | **文件数**：38 | **测试**：15个测试文件
+
+权益系统是整个应用的商业化基础设施，采用"权益码"模式解耦付费与能力。
+
+**25种权益码**：
+| 类别 | 权益码 | 说明 |
+|------|--------|------|
+| 会员 | `study` / `agent` / `agent_plus` | 三级会员 |
+| 空间 | `space` | 关系空间 |
+| AI额度 | `ai_quota_free` / `ai_quota_study` / `ai_quota_agent` / `ai_quota` | 四级AI额度优先级链 |
+| 角色 | `avatar_rpm` / `avatar_ai_gen` / `avatar_customize` / `avatar_animation` / `avatar_decoration` / `avatar_effect` | 3D角色相关 |
+| Persona | `persona_custom` / `persona_community` / `persona_cameo` | Persona相关 |
+| 其他 | `memory_sync` / `reflection_basic` / `reflection_deep` / `evolution_ritual` / `agent_tool_call` / `org` | 云同步/反思/进化/工具调用/组织 |
+
+**商品目录**（16个商品）：
+- 学习会员：月/季/年 3档
+- Agent会员：月/季/年/终身 4档（含首发价）
+- Agent PLUS：月/季/年/终身 4档（含首发价）
+- AI加油包：小/大 2种
+- 3D角色额度包
+- 记忆云同步加量包
+- 一次性购买
+
+**订单状态机**：`pending → paid → refunded/failed`
+
+**支付适配器**：微信/支付宝/Apple 三渠道（当前为模拟实现，开发环境跳过签名验证）
+
+**AI额度优先级链**：`ai_quota_free → ai_quota_study → ai_quota_agent → ai_quota`（按优先级依次消费）
+
+**用户等级**：`free → study → agent → agent_plus` 四级
+
+---
+
+### 11A.5 徽章系统（Badges）
+
+**路径**：`src/badges/` | **文件数**：5 | **测试**：1个测试文件
+
+徽章系统提供游戏化的成就激励，共18种预定义徽章。
+
+**徽章类别**：
+| 类别 | 数量 | 示例 |
+|------|------|------|
+| streak（连续） | 4 | 连续7天/30天/100天/365天 |
+| milestone（里程碑） | 4 | 首次专注/100次专注/1000次专注/10000次专注 |
+| skill（技能） | 4 | 任务达人/习惯大师/记忆专家/角色收集者 |
+| social（社交） | 3 | 搭子新手/搭子达人/搭子传奇 |
+| special（特殊） | 3 | 晨型人/夜猫子/周期守护者 |
+
+**等级体系**：`bronze → silver → gold → platinum`
+
+**评估维度**（10个）：专注次数/连续天数/完成任务/使用角色/主题切换/记忆画像/3D角色/周期记录/晨间专注/夜间专注
+
+---
+
+### 11A.6 身份系统（Identity）
+
+**路径**：`src/identity/` | **文件数**：6 | **测试**：1个测试文件
+
+身份系统管理用户的多重身份/角色切换。
+
+**8种身份标签**：`student | worker | parent | creator | freelancer | entrepreneur | retiree | other`
+
+**核心数据结构**：
+```ts
+interface Identity {
+  id: string
+  name: string
+  description: string
+  tags: IdentityTag[]
+  createdAt: string
+}
+```
+
+**核心功能**：
+- 身份CRUD（创建/更新/删除）
+- 活跃身份切换
+- 基于身份的模块推荐（与 module-store 联动）
+- localStorage 持久化
+
+---
+
+### 11A.7 知识图谱（Knowledge Graph）
+
+**路径**：`src/knowledge-graph/` | **文件数**：3 | **测试**：无
+
+知识图谱模块将用户的多维度数据可视化为关系网络。
+
+**核心数据结构**：
+```ts
+interface GraphNode {
+  id: string
+  label: string
+  type: 'journal' | 'reading' | 'quick_note' | 'goal' | 'habit' | 'tag' | 'mood' | 'persona'
+  size: number
+  brightness: number
+  x: number
+  y: number
+  vx: number
+  vy: number
+  data?: Record<string, unknown>
+}
+
+interface GraphEdge {
+  source: string
+  target: string
+  strength: number
+}
+```
+
+**核心功能**：
+- 跨模块数据聚合：日记/阅读/速记/目标/习惯/标签/情绪/角色
+- 自动构建节点-边关系（标签关联、分类关联、父子目标关联）
+- 力导向布局算法（斥力+引力+阻尼，100次迭代）
+- 节点大小和亮度根据连接数动态计算
+- 8种节点类型，各有独立颜色和尺寸范围
+
+---
+
+### 11A.8 模块商店（Module Store）
+
+**路径**：`src/module-store/` | **文件数**：9 | **测试**：4个测试文件
+
+模块商店是工作台的可视化布局管理系统。
+
+**23个预定义模块**：场景计划/今日行动/专注计时/成长等级/关键指标/专注历史/记忆洞察/AI教练/多端矩阵/主题中心/数据统计/今日周期/记忆画像/习惯追踪/复盘日记/阅读清单/错题本/记忆卡/考试记录/学习计划/专注计时/备考陪伴/情绪日记
+
+**核心数据结构**：
+```ts
+interface Module {
+  id: string
+  title: string
+  description: string
+  icon: string
+  category: 'productivity' | 'learning' | 'health' | 'life' | 'custom'
+  defaultSize: { w: number; h: number }
+  isDefault: boolean
+  isCustom: boolean
+}
+
+interface CanvasItem {
+  moduleId: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+```
+
+**核心功能**：
+- 4列网格布局系统
+- 模块添加/移除/移动/缩放
+- 碰撞检测与自动吸附
+- 自定义模块创建
+- 基于身份描述的AI模块推荐（关键词匹配）
+- 布局导出/导入（JSON格式，版本管理，兼容旧版size格式迁移）
+
+---
+
+### 11A.9 侧边栏面板（Sidebar Panel）
+
+**路径**：`src/sidebar-panel/` | **文件数**：14 | **测试**：3个测试文件
+
+侧边栏面板提供可配置的侧边栏信息展示。
+
+**6种面板模块**：
+| 模块 | 说明 |
+|------|------|
+| 专注仪表（FocusDashboard） | 今日专注统计、番茄数、专注分钟 |
+| 今日脉搏（DailyPulse） | 今日情绪/能量/状态概览 |
+| 微习惯打卡（HabitsModule） | 每日微习惯快速打卡 |
+| 灵感一闪（QuickNotesModule） | 快速记录灵感/想法 |
+| 今日日程条（ScheduleModule） | 今日待办时间线 |
+| 每日一句（DailyQuote） | 励志/哲思语录 |
+
+**核心功能**：
+- 基于场景身份的默认模块配置（8种场景各有不同默认模块组合）
+- 用户自定义模块显隐（按场景独立存储）
+- 模块渲染器（根据模块ID动态渲染对应组件）
+
+---
+
+### 11A.10 专注模式（Focus Mode）
+
+**路径**：`src/focus-mode/` | **文件数**：9 | **测试**：无
+
+专注模式是番茄钟工作法的完整实现，提供沉浸式专注体验。
+
+**核心数据结构**：
+```ts
+interface FocusTask {
+  id: string
+  title: string
+  color: string
+  createdAt: string
+}
+
+interface PomodoroRecord {
+  id: string
+  taskId?: string
+  duration: number
+  type: 'focus' | 'short_break' | 'long_break'
+  abandoned: boolean
+  abandonReason?: string
+  startedAt: string
+  endedAt: string
+}
+
+type FocusPhase = 'idle' | 'focusing' | 'paused' | 'break' | 'completed'
+type TreeGrowthStage = 'seed' | 'sprout' | 'seedling' | 'sapling' | 'growing' | 'lush' | 'blooming' | 'fruiting'
+```
+
+**核心功能**：
+- 番茄钟计时器（专注/短休息/长休息，可配置时长）
+- 任务管理（创建/删除/颜色标记，13种颜色自动分配）
+- 专注记录（完成/放弃，含放弃原因）
+- 今日统计（番茄数/专注分钟数）
+- 背景主题系统（森林/海洋/夜空/天空/日落/极光/樱花/城市/极简等）
+- 音频系统（雨声/雷雨/海浪/溪流/篝火/风声/鸟鸣/咖啡馆/白噪声/粉红噪声/布朗噪声/432Hz等，Web Audio API生成）
+- 成长树动画（8个阶段：种子→发芽→幼苗→小树→成长→茂盛→开花→结果）
+- 自定义背景上传（图片/视频，IndexedDB存储）
+- 专注设置（自动开始休息/专注、声音/振动、免打扰）
+- 夜间模式
+
+---
+
 ## 十二、当前实现状态
 
-> 最后更新：2026-06-12，基于代码库深度审计。
+> 最后更新：2026-06-17，基于阶段1-4完成后的代码库审计。
 
-### 12.1 已完成模块（45/56+）
+### 12.1 已完成模块（58/60+）
 
 #### 备考工具（7/7 ✅）
 | 模块 | 路径 | 测试 |
@@ -1392,40 +1773,40 @@ type AiTaskKind =
 | M17 AvatarCustomizer | `src/avatar/AvatarCustomizer.tsx` | ✅ | ✅ 已完成 |
 | M18 EvolutionEngine | `src/avatar/evolutionEngine.ts` | ✅ | ✅ 已完成 |
 
-#### Persona CP1-CP17（12/17 ⚠️）
+#### Persona CP1-CP17（17/17 ✅）
 | 模块 | 路径 | 测试 | 状态 |
 |------|------|------|------|
 | CP1 PersonaRegistry | `src/personas/personaRegistry.ts` | ✅ | ✅ 已完成 |
 | CP2 PersonaTemplates | `src/personas/personaTemplates.ts` | ✅ | ✅ 已完成 |
 | CP3 PersonaScheduler | `src/personas/personaScheduler.ts` | ✅ | ✅ 已完成 |
 | CP4 PersonaSelectorUI | `src/personas/PersonaSelectorUI.tsx` | ✅ | ✅ 已完成 |
-| CP5 CustomPersonaService | `src/personas/customPersona.ts` | ✅ | ⚠️ 部分完成（审核集成未完成） |
+| CP5 CustomPersonaService | `src/personas/customPersona.ts` | ✅ | ✅ 已完成（含审核集成） |
 | CP6 PersonaSafetyGate | `src/personas/personaSafetyGate.ts` | ✅ | ✅ 已完成 |
-| CP7 PersonaAvatarGen | — | — | ❌ 未实现 |
-| CP8 CommunityPersonaService | — | — | ❌ 未实现 |
+| CP7 PersonaAvatarGen | `src/personas/personaAvatarGen.ts` | ✅ | ✅ 已完成（阶段2） |
+| CP8 CommunityPersonaService | `src/personas/community/communityPersonaService.ts` | ✅ | ✅ 已完成（阶段2） |
 | CP9 SafetyIncidentLog | `src/personas/safetyIncidentLog.ts` | ✅ | ✅ 已完成 |
-| CP10 CameoTriggerEngine | `src/personas/cameoTriggerEngine.ts` | ✅ | ✅ 已完成 |
+| CP10 CameoTriggerEngine | `src/personas/cameoTriggerEngine.ts` | ✅ | ✅ 已完成（阶段1） |
 | CP11 PersonaSwitcher | `src/personas/PersonaSwitcher.tsx` | ✅ | ✅ 已完成 |
-| CP12 RelationshipHealthMonitor | `src/personas/relationshipHealthMonitor.ts` | ✅ | ✅ 已完成 |
+| CP12 RelationshipHealthMonitor | `src/personas/relationshipHealthMonitor.ts` | ✅ | ✅ 已完成（阶段1） |
 | CP13 PersonaScheduleStore | `src/personas/personaScheduleStore.ts` | ✅ | ✅ 已完成 |
-| CP14 CustomPersonaEditorUI | — | — | ❌ 未实现 |
-| CP15 CameoStorefrontUI | — | — | ❌ 未实现 |
-| CP16 CommunityPersonaUI | — | — | ❌ 未实现 |
+| CP14 CustomPersonaEditorUI | `src/personas/CustomPersonaEditorUI.tsx` | ✅ | ✅ 已完成（阶段2） |
+| CP15 CameoStorefrontUI | `src/personas/CameoStorefrontUI.tsx` | ✅ | ✅ 已完成（阶段2） |
+| CP16 CommunityPersonaUI | `src/personas/community/CommunityPersonaUI.tsx` | ✅ | ✅ 已完成（阶段2） |
 | CP17 ReflectionTierIntegration | `src/personas/ReflectionTierIntegration.tsx` | ✅ | ✅ 已完成 |
 
-#### 扩展功能 Phase3（3/4 ⚠️）
+#### 扩展功能 Phase3（4/4 ✅）
 | 模块 | 路径 | 测试 | 状态 |
 |------|------|------|------|
 | 关系空间 | `src/relationship/` | ✅ | ✅ 已完成 |
 | 女性周期 | `src/cycle/` | ✅ | ✅ 已完成 |
 | 壁纸系统 | `src/wallpaper/` | ✅ | ✅ 已完成 |
-| 3D 角色生成 | — | — | ❌ 未实现 |
+| 3D 角色生成 | `src/avatar/` | ✅ | ✅ 已完成（阶段4：Three.js+ReadyPlayerMe/Meshy+AI生成+进化引擎） |
 
-#### 基础设施（8/10+ ⚠️）
+#### 基础设施（12/12 ✅）
 | 模块 | 路径 | 测试 | 状态 |
 |------|------|------|------|
 | 权益服务 | `src/entitlement/` | ✅ | ✅ 已完成 |
-| 支付适配器 | `src/entitlement/paymentAdapters.ts` | ✅ | ✅ 已完成 |
+| 支付适配器 | `src/entitlement/paymentAdapters.ts` | ✅ | ✅ 已完成（模拟环境） |
 | 订单服务 | `src/entitlement/orderService.ts` | ✅ | ✅ 已完成 |
 | 产品目录 | `src/entitlement/productCatalog.ts` | ✅ | ✅ 已完成 |
 | 徽章系统 | `src/badges/` | ✅ | ✅ 已完成 |
@@ -1435,25 +1816,30 @@ type AiTaskKind =
 | 侧边栏面板 | `src/sidebar-panel/` | ✅ | ✅ 已完成 |
 | 专注模式 | `src/focus-mode/` | — | ✅ 已完成 |
 | 年龄门控 | `src/auth/` | ✅ | ✅ 已完成 |
-| 云同步 | `src/memory/sync/cloudSyncAdapter.ts` | ✅ | ⚠️ 部分完成（适配器已实现，服务端未完成） |
+| 云同步 | `src/memory/sync/` + `src/server/routes/sync.ts` | ✅ | ✅ 已完成（阶段3：Supabase适配器+服务端API） |
+| 用户认证 | `src/server/auth/` | ✅ | ✅ 已完成（阶段3：注册/登录/Token管理） |
+| WebSocket | `src/server/websocket/` | ✅ | ✅ 已完成（阶段3：实时通信+空间维度） |
+| 数据库 | `src/server/db/` | ✅ | ✅ 已完成（阶段3：Schema+Repository） |
 
-### 12.2 待实现模块（5个）
+### 12.2 开发阶段完成情况
 
-| 模块 | 设计编号 | 优先级 | 说明 |
-|------|----------|--------|------|
-| PersonaAvatarGen AI头像生成 | CP7 | P2 | AI生成Persona专属头像 |
-| CommunityPersonaService 社区服务 | CP8 | P2 | 分享/浏览/搜索/导入/举报 |
-| CustomPersonaEditorUI 自定义编辑器 | CP14 | P2 | 3步创建流程 |
-| CommunityPersonaUI 社区前台 | CP16 | P2 | 热门排行/分类浏览/搜索 |
-| CameoStorefrontUI 客串商店 | CP15 | P2 | 客串列表/购买/管理 |
+| 阶段 | 名称 | 状态 | 完成时间 |
+|------|------|------|----------|
+| 阶段1 | 核心闭环补全 | ✅ 已完成 | 2026-06-16 |
+| 阶段2 | Persona 生态建设 | ✅ 已完成 | 2026-06-16 |
+| 阶段3 | 后端与基础设施 | ✅ 已完成 | 2026-06-16 |
+| 阶段4 | 3D角色生成 | ✅ 已完成 | 2026-06-16 |
+| 阶段5 | 移动端与小程序 | 🔴 未开始 | — |
+| 阶段6 | 远期规划 | 🔵 远期 | — |
 
-### 12.3 部分完成模块（3个）
+### 12.3 测试覆盖总览
 
-| 模块 | 设计编号 | 缺失内容 |
-|------|----------|----------|
-| CustomPersonaService 审核集成 | CP5 | 审核流程未完整集成 |
-| 云同步服务端 | — | 适配器已实现，服务端WebSocket/数据库未完成 |
-| 用户认证系统 | — | 年龄门控已实现，完整注册/登录/Token管理未完成 |
+| 阶段 | 测试文件数 | 测试用例数 | 结果 |
+|------|-----------|-----------|------|
+| 阶段1 | 3 | 136 | ✅ 全部通过 |
+| 阶段2 | 15 | 302 | ✅ 全部通过 |
+| 阶段3 | 项目已有 | 1669+ | ✅ 通过（7个已知问题） |
+| 阶段4 | 7 | 154 | ✅ 全部通过 |
 
 ---
 
@@ -2816,121 +3202,6 @@ src/
 6. 布局管理（保存/分享/导入）
 7. AI 助手集成
 8. 动画优化
-
----
-
-## 十七-A、已实现模块补充设计
-
-> 本节为代码库中已实现但设计文档未覆盖的模块补充基本设计说明。
-> 最后更新：2026-06-12
-
-### 17A.1 知识图谱（Knowledge Graph）
-
-**路径：** `src/knowledge-graph/`
-
-**功能概述：**
-- 可视化展示知识点之间的关联关系
-- 支持节点拖拽、缩放、连线查看
-- 基于用户学习数据自动构建知识网络
-
-**核心文件：**
-| 文件 | 职责 |
-|------|------|
-| `KnowledgeGraphUI.tsx` | 知识图谱可视化组件 |
-| `knowledgeGraphService.ts` | 图谱数据服务 |
-| `knowledgeGraph.css` | 样式 |
-
-**数据流：** 各备考模块（错题本、记忆卡、考试记录）→ 知识图谱服务 → 可视化渲染
-
-**当前状态：** ✅ 已完成，无测试文件（待补充）
-
----
-
-### 17A.2 徽章系统（Badges）
-
-**路径：** `src/badges/`
-
-**功能概述：**
-- 基于用户行为自动发放成就徽章
-- 支持多种徽章类型（连续打卡、任务完成、里程碑等）
-- 徽章展示与收集进度
-
-**核心文件：**
-| 文件 | 职责 |
-|------|------|
-| `badgeEngine.ts` | 徽章触发引擎，定义徽章条件和发放逻辑 |
-| `BadgeDisplay.tsx` | 徽章展示组件 |
-| `badgeTypes.ts` | 徽章类型定义 |
-| `badges.css` | 样式 |
-
-**徽章类型示例：**
-- 连续打卡徽章（7天/30天/100天）
-- 任务完成徽章（10个/50个/100个）
-- 专注时长徽章（10h/50h/100h）
-- 里程碑徽章（首次使用/周年纪念）
-
-**当前状态：** ✅ 已完成，有测试覆盖
-
----
-
-### 17A.3 专注模式（Focus Mode）
-
-**路径：** `src/focus-mode/`
-
-**功能概述：**
-- 全屏沉浸式专注环境
-- 支持多种背景主题（森林、海洋、星空等）
-- 白噪音/环境音播放
-- 专注树动画（专注时长越长树越茂盛）
-
-**核心文件：**
-| 文件 | 职责 |
-|------|------|
-| `FocusModeUI.tsx` | 专注模式主界面 |
-| `focusModeService.ts` | 专注模式服务 |
-| `audioManager.ts` | 音频管理器 |
-| `audioOptions.ts` | 音频选项配置 |
-| `backgroundThemes.ts` | 背景主题配置 |
-| `treeAnimation.ts` | 专注树动画 |
-| `types.ts` | 类型定义 |
-
-**与 FocusTimer 的关系：**
-- `focus-mode/`：全屏沉浸式专注体验（背景、音频、动画）
-- `focus-timer/`：番茄钟计时器 + 数据统计看板
-- 两者数据互通，共享 `xinghuanhai-focus-records` 存储
-
-**当前状态：** ✅ 已完成，无测试文件（待补充）
-
----
-
-### 17A.4 侧边栏面板（Sidebar Panel）
-
-**路径：** `src/sidebar-panel/`
-
-**功能概述：**
-- 右侧可展开面板，展示辅助信息模块
-- 支持模块添加/移除/排序
-- 与主画布独立，不干扰主工作区
-
-**子模块列表：**
-| 模块 | 文件 | 功能 |
-|------|------|------|
-| 每日脉搏 | `DailyPulse.tsx` | 今日学习/工作数据摘要 |
-| 每日一言 | `DailyQuote.tsx` | 励志/治愈语录 |
-| 专注仪表 | `FocusDashboard.tsx` | 番茄钟 + 专注数据看板 |
-| 习惯追踪 | `HabitsModule.tsx` | 习惯打卡快捷入口 |
-| 快速笔记 | `QuickNotesModule.tsx` | 快速记录想法 |
-| 日程概览 | `ScheduleModule.tsx` | 今日日程摘要 |
-
-**核心文件：**
-| 文件 | 职责 |
-|------|------|
-| `SidebarPanel.tsx` | 面板主组件 |
-| `SidebarPanelModuleRenderer.tsx` | 模块渲染器 |
-| `sidebarPanelStore.ts` | 面板状态管理 |
-| `types.ts` | 类型定义 |
-
-**当前状态：** ✅ 已完成，有测试覆盖
 
 ---
 

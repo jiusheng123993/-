@@ -10,7 +10,7 @@ export function createAuthRouter(): Router {
   const router = Router()
   const userStore = getUserStore()
 
-  router.post('/register', (req: Request, res: Response) => {
+  router.post('/register', async (req: Request, res: Response) => {
     const { provider, code, phoneNumber, displayName, age } = req.body
 
     if (!provider || !['wechat', 'alipay', 'apple'].includes(provider)) {
@@ -30,7 +30,7 @@ export function createAuthRouter(): Router {
 
     const trimmedName = displayName.trim().slice(0, DISPLAY_NAME_MAX)
 
-    const existingPhone = userStore.findByPhoneNumber(phoneNumber)
+    const existingPhone = await userStore.findByPhoneNumber(phoneNumber)
     if (existingPhone) {
       res.status(409).json({ error: '该手机号已注册' })
       return
@@ -38,13 +38,13 @@ export function createAuthRouter(): Router {
 
     const providerUserId = `${provider}-${code || Date.now().toString(36)}`
 
-    const existingProvider = userStore.findByProviderUserId(provider as AuthProviderKind, providerUserId)
+    const existingProvider = await userStore.findByProviderUserId(provider as AuthProviderKind, providerUserId)
     if (existingProvider) {
       res.status(409).json({ error: '该账号已注册' })
       return
     }
 
-    const user = userStore.createUser({
+    const user = await userStore.createUser({
       provider: provider as AuthProviderKind,
       providerUserId,
       displayName: trimmedName,
@@ -68,7 +68,7 @@ export function createAuthRouter(): Router {
     })
   })
 
-  router.post('/login', (req: Request, res: Response) => {
+  router.post('/login', async (req: Request, res: Response) => {
     const { provider, code, phoneNumber } = req.body
 
     if (!provider || !['wechat', 'alipay', 'apple'].includes(provider)) {
@@ -78,10 +78,10 @@ export function createAuthRouter(): Router {
 
     const providerUserId = `${provider}-${code || Date.now().toString(36)}`
 
-    let user = userStore.findByProviderUserId(provider as AuthProviderKind, providerUserId)
+    let user = await userStore.findByProviderUserId(provider as AuthProviderKind, providerUserId)
 
     if (!user && phoneNumber) {
-      user = userStore.findByPhoneNumber(phoneNumber)
+      user = await userStore.findByPhoneNumber(phoneNumber)
     }
 
     if (!user) {
@@ -109,7 +109,7 @@ export function createAuthRouter(): Router {
     })
   })
 
-  router.post('/refresh', (req: Request, res: Response) => {
+  router.post('/refresh', async (req: Request, res: Response) => {
     const { refreshToken } = req.body
 
     if (!refreshToken) {
@@ -123,7 +123,7 @@ export function createAuthRouter(): Router {
       return
     }
 
-    const user = userStore.findByUserId(payload.userId)
+    const user = await userStore.findByUserId(payload.userId)
     if (!user) {
       res.status(401).json({ error: '用户不存在' })
       return
@@ -144,7 +144,7 @@ export function createAuthRouter(): Router {
     res.json({ success: true })
   })
 
-  router.get('/session', (req: Request, res: Response) => {
+  router.get('/session', async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization
     if (!authHeader) {
       res.status(401).json({ error: '未登录' })
@@ -158,7 +158,7 @@ export function createAuthRouter(): Router {
       return
     }
 
-    const user = userStore.findByUserId(payload.userId)
+    const user = await userStore.findByUserId(payload.userId)
     if (!user) {
       res.status(401).json({ error: '用户不存在' })
       return
@@ -174,7 +174,7 @@ export function createAuthRouter(): Router {
     })
   })
 
-  router.post('/bind-device', (req: Request, res: Response) => {
+  router.post('/bind-device', async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization
     if (!authHeader) {
       res.status(401).json({ error: '未登录' })
@@ -194,7 +194,7 @@ export function createAuthRouter(): Router {
       return
     }
 
-    const device = userStore.bindDevice(payload.userId, deviceName)
+    const device = await userStore.bindDevice(payload.userId, deviceName)
     if (!device) {
       res.status(404).json({ error: '用户不存在' })
       return
@@ -203,7 +203,7 @@ export function createAuthRouter(): Router {
     res.status(201).json(device)
   })
 
-  router.get('/devices', (req: Request, res: Response) => {
+  router.get('/devices', async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization
     if (!authHeader) {
       res.status(401).json({ error: '未登录' })
@@ -217,7 +217,7 @@ export function createAuthRouter(): Router {
       return
     }
 
-    const devices = userStore.getDevices(payload.userId)
+    const devices = await userStore.getDevices(payload.userId)
     res.json(devices)
   })
 

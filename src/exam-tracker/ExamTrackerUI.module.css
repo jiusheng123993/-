@@ -719,3 +719,56 @@
   margin-bottom: 4px;
   pointer-events: none;
 }
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .scoreRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .scoreRow .input:first-child {
+    flex: 1;
+  }
+
+  .customCompareRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .compareVs {
+    display: none;
+  }
+
+  .compareSelect {
+    width: 100%;
+  }
+
+  .compareButton {
+    width: 100%;
+  }
+
+  .detailActions {
+    flex-direction: column;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .trendBar:hover::after {
+    display: none;
+  }
+}

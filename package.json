@@ -61,6 +61,7 @@
     "jsdom": "latest",
     "tsx": "^4.19.0",
     "typescript-eslint": "latest",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "latest",
     "wait-on": "latest"
   }

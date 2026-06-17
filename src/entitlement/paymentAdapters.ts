@@ -7,7 +7,7 @@
  * - 不写入任何密钥、证书、商户号（由部署环境注入）
  *
  * 安全：
- * - 当前为未实现占位，所有方法均抛出明确错误，防止静默返回假数据
+ * - 当前为模拟实现，开发环境返回模拟支付结果
  * - 生产环境需替换为真实 SDK 调用，密钥从环境变量读取
  * - rawReceipt 仅用于服务端对账，不向前端暴露
  *
@@ -18,11 +18,19 @@
 
 import type { OrderPaymentChannel } from './orderTypes'
 
-class PaymentNotImplementedError extends Error {
-  constructor(channel: string, method: string) {
-    super(`PaymentAdapter[${channel}].${method}: 支付渠道尚未接入，请联系管理员配置`)
-    this.name = 'PaymentNotImplementedError'
-  }
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production'
+}
+
+function generateMockPaymentId(channel: string, orderId: string): string {
+  const ts = Date.now().toString(36)
+  const rand = Math.random().toString(36).slice(2, 8)
+  return `mock-${channel}-${orderId}-${ts}-${rand}`
+}
+
+function generateMockTradeNo(channel: string, orderId: string): string {
+  const ts = Date.now().toString(36)
+  return `trade-${channel}-${orderId}-${ts}`
 }
 
 /**
@@ -47,40 +55,50 @@ export interface VerificationResult {
   rawReceipt?: string
 }
 
-function notImplemented(channel: string, method: string): never {
-  throw new PaymentNotImplementedError(channel, method)
+function createMockAdapter(channel: OrderPaymentChannel): PaymentAdapter {
+  return {
+    async createPayment(orderId: string, amount: number): Promise<PaymentResult> {
+      if (isProduction()) {
+        throw new Error(`PaymentAdapter[${channel}].createPayment: 生产环境需接入真实支付 SDK`)
+      }
+      const paymentId = generateMockPaymentId(channel, orderId)
+      return {
+        paymentId,
+        paymentUrl: `/mock-payment?channel=${channel}&orderId=${orderId}&amount=${amount}&paymentId=${paymentId}`,
+        qrCode: `mock-qr-${channel}-${orderId}`
+      }
+    },
+
+    async verifyPayment(paymentId: string): Promise<VerificationResult> {
+      if (isProduction()) {
+        throw new Error(`PaymentAdapter[${channel}].verifyPayment: 生产环境需接入真实支付 SDK`)
+      }
+      const orderId = paymentId.includes('-')
+        ? paymentId.split('-').slice(2, -2).join('-')
+        : paymentId
+      return {
+        success: true,
+        tradeNo: generateMockTradeNo(channel, orderId),
+        rawReceipt: JSON.stringify({
+          channel,
+          paymentId,
+          verifiedAt: new Date().toISOString(),
+          mock: true
+        })
+      }
+    }
+  }
 }
 
 /**
  * 支付渠道适配器注册表。
- * 当前所有渠道均为未实现占位，调用任何方法均抛出 PaymentNotImplementedError。
+ * 当前为模拟实现，开发环境返回模拟支付结果。
  * 接入真实支付 SDK 时，替换对应渠道的 createPayment / verifyPayment 实现即可。
  */
 export const paymentAdapters: Record<OrderPaymentChannel, PaymentAdapter> = {
-  wechat: {
-    async createPayment(_orderId: string, _amount: number): Promise<PaymentResult> {
-      notImplemented('wechat', 'createPayment')
-    },
-    async verifyPayment(_paymentId: string): Promise<VerificationResult> {
-      notImplemented('wechat', 'verifyPayment')
-    }
-  },
-  apple: {
-    async createPayment(_orderId: string, _amount: number): Promise<PaymentResult> {
-      notImplemented('apple', 'createPayment')
-    },
-    async verifyPayment(_paymentId: string): Promise<VerificationResult> {
-      notImplemented('apple', 'verifyPayment')
-    }
-  },
-  alipay: {
-    async createPayment(_orderId: string, _amount: number): Promise<PaymentResult> {
-      notImplemented('alipay', 'createPayment')
-    },
-    async verifyPayment(_paymentId: string): Promise<VerificationResult> {
-      notImplemented('alipay', 'verifyPayment')
-    }
-  }
+  wechat: createMockAdapter('wechat'),
+  apple: createMockAdapter('apple'),
+  alipay: createMockAdapter('alipay')
 }
 
 /**

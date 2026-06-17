@@ -3,6 +3,7 @@ import { handleWechatCallback, handleAlipayCallback, handleAppleVerify } from '.
 import { grantEntitlements } from '../services/entitlementService'
 import { getOrderById } from '../services/orderService'
 import { broadcastToUser } from '../websocket'
+import { orderRepo, paymentRepo } from '../db/orderRepository'
 
 /**
  * Payment Router - 支付回调路由
@@ -35,6 +36,22 @@ export function createPaymentRouter(): Router {
             status: 'paid',
             tradeNo: result.tradeNo
           })
+
+          try {
+            await orderRepo.updateStatus(orderId, 'paid', {
+              channelTradeNo: result.tradeNo,
+              receipt: JSON.stringify(data)
+            })
+            await paymentRepo.create({
+              orderId,
+              channel: 'wechat',
+              tradeNo: result.tradeNo,
+              amount: order.amount,
+              rawCallback: data as Record<string, unknown>
+            })
+          } catch (dbError) {
+            console.error(`[payment] Failed to persist wechat callback for order ${orderId}:`, dbError)
+          }
         }
       }
 
@@ -59,6 +76,22 @@ export function createPaymentRouter(): Router {
             status: 'paid',
             tradeNo: result.tradeNo
           })
+
+          try {
+            await orderRepo.updateStatus(orderId, 'paid', {
+              channelTradeNo: result.tradeNo,
+              receipt: JSON.stringify(data)
+            })
+            await paymentRepo.create({
+              orderId,
+              channel: 'alipay',
+              tradeNo: result.tradeNo,
+              amount: order.amount,
+              rawCallback: data as Record<string, unknown>
+            })
+          } catch (dbError) {
+            console.error(`[payment] Failed to persist alipay callback for order ${orderId}:`, dbError)
+          }
         }
       }
 
@@ -82,6 +115,22 @@ export function createPaymentRouter(): Router {
             orderId,
             status: 'paid'
           })
+
+          try {
+            await orderRepo.updateStatus(orderId, 'paid', {
+              channelTradeNo: result.tradeNo,
+              receipt
+            })
+            await paymentRepo.create({
+              orderId,
+              channel: 'apple',
+              tradeNo: result.tradeNo,
+              amount: order.amount,
+              rawCallback: { receipt }
+            })
+          } catch (dbError) {
+            console.error(`[payment] Failed to persist apple verify for order ${orderId}:`, dbError)
+          }
         }
       }
 

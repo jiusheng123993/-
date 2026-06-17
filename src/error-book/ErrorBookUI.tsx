@@ -13,6 +13,7 @@ import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
 import { loadState as loadMCState, saveState as saveMCState, addCard } from '../memory-cards/memoryCardsService'
+import { usePlatform } from '../platforms'
 import styles from './ErrorBookUI.module.css'
 
 const SUBJECTS = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '其他']
@@ -32,6 +33,8 @@ interface ErrorBookUIProps {
 }
 
 export function ErrorBookUI({ userId }: ErrorBookUIProps) {
+  const { deviceCategory } = usePlatform()
+  const isMobile = deviceCategory === 'mobile'
   const [items, setItems] = useState<ErrorItem[]>([])
   const [subjects, setSubjects] = useState<string[]>([])
   const [selectedSubject, setSelectedSubject] = useState<string>('全部')

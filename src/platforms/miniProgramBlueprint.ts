@@ -1,3 +1,8 @@
+/**
+ * @deprecated 小程序已砍掉，此文件保留仅作历史参考。
+ * 移动端方案改为 Capacitor Android 原生壳。
+ * 请使用 platforms 模块的其他组件（AdaptiveSidebar、AdaptiveModal 等）。
+ */
 export interface MiniProgramModule {
   id: string
   title: string
