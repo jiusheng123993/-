@@ -6,8 +6,6 @@ import {
   ConversationHealthGuard,
   usePersonaSafetyGate
 } from './PersonaSafetyGateIntegration'
-import type { SafetyCheckResult } from './personaSafetyGate'
-
 describe('PersonaSafetyValidator', () => {
   it('renders nothing when result is ok', () => {
     const onResult = vi.fn()

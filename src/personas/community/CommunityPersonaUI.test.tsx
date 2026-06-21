@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { CommunityPersonaUI } from './CommunityPersonaUI'
 import type { ICommunityPersonaService } from './communityPersonaService'
-import type { CommunityPersonaEntry, CommunityRating, CommunityReport } from './communityPersonaService'
+import type { CommunityPersonaEntry } from './communityPersonaService'
 
 function makeMockEntry(overrides: Partial<CommunityPersonaEntry> = {}): CommunityPersonaEntry {
   return {

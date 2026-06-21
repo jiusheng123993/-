@@ -15,7 +15,6 @@ import {
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
-import { usePlatform } from '../platforms'
 import styles from './ExamTrackerUI.module.css'
 
 const DEFAULT_SUBJECTS = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治']
@@ -25,8 +24,6 @@ interface ExamTrackerUIProps {
 }
 
 export function ExamTrackerUI({ userId }: ExamTrackerUIProps) {
-  const { deviceCategory } = usePlatform()
-  const isMobile = deviceCategory === 'mobile'
   const [records, setRecords] = useState<ExamRecord[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)

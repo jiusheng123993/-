@@ -20,7 +20,6 @@ import {
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
-import { usePlatform } from '../platforms'
 import styles from './StudyPlannerUI.module.css'
 
 const DEFAULT_SUBJECTS = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治']
@@ -31,8 +30,6 @@ interface StudyPlannerUIProps {
 }
 
 export function StudyPlannerUI({ userId }: StudyPlannerUIProps) {
-  const { deviceCategory } = usePlatform()
-  const isMobile = deviceCategory === 'mobile'
   const [plans, setPlans] = useState<StudyPlan[]>([])
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [showAddPlanForm, setShowAddPlanForm] = useState(false)

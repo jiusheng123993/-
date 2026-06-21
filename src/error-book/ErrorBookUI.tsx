@@ -13,7 +13,6 @@ import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
 import { createEntitlementService } from '../entitlement/entitlementService'
 import { loadState as loadMCState, saveState as saveMCState, addCard } from '../memory-cards/memoryCardsService'
-import { usePlatform } from '../platforms'
 import styles from './ErrorBookUI.module.css'
 
 const SUBJECTS = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '其他']
@@ -33,8 +32,6 @@ interface ErrorBookUIProps {
 }
 
 export function ErrorBookUI({ userId }: ErrorBookUIProps) {
-  const { deviceCategory } = usePlatform()
-  const isMobile = deviceCategory === 'mobile'
   const [items, setItems] = useState<ErrorItem[]>([])
   const [subjects, setSubjects] = useState<string[]>([])
   const [selectedSubject, setSelectedSubject] = useState<string>('全部')
@@ -497,7 +494,7 @@ ${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}
             <div className={styles.reviewQuestion}>{reviewItems[reviewIndex].question}</div>
             {reviewItems[reviewIndex].questionImage && (
               <div className={styles.reviewImage}>
-                <img src={reviewItems[reviewIndex].questionImage} alt="题目图片" />
+                <img src={reviewItems[reviewIndex].questionImage} alt="题目图片" loading="lazy" />
               </div>
             )}
             <div className={styles.reviewWrongAnswer}>
@@ -700,7 +697,7 @@ ${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}
                 </div>
                 {item.questionImage && (
                   <div className={styles.questionImage}>
-                    <img src={item.questionImage} alt="题目图片" />
+                    <img src={item.questionImage} alt="题目图片" loading="lazy" />
                   </div>
                 )}
                 <div className={styles.question}>{item.question}</div>
@@ -905,7 +902,7 @@ ${item.correctAnswer ? `正确答案：${item.correctAnswer}` : ''}
               {ocrLoading ? (
                 <span className={styles.uploadLoading}>⏳ 识别中...</span>
               ) : newQuestionImage ? (
-                <img src={newQuestionImage} alt="已上传题目" className={styles.uploadPreview} />
+                <img src={newQuestionImage} alt="已上传题目" className={styles.uploadPreview} loading="lazy" />
               ) : (
                 <span className={styles.uploadPlaceholder}>📷 拍照或上传题目图片</span>
               )}

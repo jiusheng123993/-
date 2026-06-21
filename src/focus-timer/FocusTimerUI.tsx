@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { loadRecords, getTodayRecords } from '../focus-mode/focusModeService'
 import type { PomodoroRecord } from '../focus-mode/types'
 import { computeStats, drawTrendChart, type DashboardStats } from './focusChartUtils'
-import { usePlatform } from '../platforms'
 import styles from './FocusTimerUI.module.css'
 
 interface FocusTimerUIProps {
@@ -17,8 +16,6 @@ function formatMinutes(minutes: number): string {
 }
 
 export function FocusTimerUI({ userId: _userId }: FocusTimerUIProps) {
-  const { deviceCategory } = usePlatform()
-  const isMobile = deviceCategory === 'mobile'
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [showHistory, setShowHistory] = useState(false)
   const [todayRecords, setTodayRecords] = useState<PomodoroRecord[]>([])
