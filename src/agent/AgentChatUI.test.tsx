@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AgentChatUI, AgentChatToggle } from './AgentChatUI'
+import { createAgentChatMemoryAdapter, createBrowserMemoryBodyStore } from '../memory-body'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 import type { MemoryObserver } from '../memory/memoryObserver'
 
@@ -306,6 +307,41 @@ describe('AgentChatUI', () => {
           memoryBodyContext: expect.stringContaining('用户喜欢西瓜')
         }))
       })
+    })
+
+    it('handles MemoryBody feedback commands locally without sending them as normal chat', async () => {
+      const userId = 'feedback-user'
+      const onSendMessage = vi.fn().mockResolvedValue('Normal response')
+      const store = createBrowserMemoryBodyStore(userId, 'xinghuanhai-growth-workbench')
+      const adapter = createAgentChatMemoryAdapter({
+        store,
+        scope: { userId, projectId: 'xinghuanhai-growth-workbench' }
+      })
+
+      adapter.rememberUserMessage('我喜欢吃西瓜', '2026-06-22T00:00:00.000Z')
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          userId={userId}
+          onSendMessage={onSendMessage}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: '忘掉西瓜，不要记这个' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(screen.getByText('已按你的要求忘掉这条记忆。')).toBeInTheDocument()
+      })
+      expect(onSendMessage).not.toHaveBeenCalled()
+      const refreshedAdapter = createAgentChatMemoryAdapter({
+        store: createBrowserMemoryBodyStore(userId, 'xinghuanhai-growth-workbench'),
+        scope: { userId, projectId: 'xinghuanhai-growth-workbench' }
+      })
+      expect(refreshedAdapter.buildPromptContext('我喜欢吃什么水果')).not.toContain('用户喜欢西瓜')
     })
   })
 })

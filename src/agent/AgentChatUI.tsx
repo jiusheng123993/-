@@ -44,6 +44,13 @@ const MEMORY_BODY_PROJECT_ID = 'xinghuanhai-growth-workbench'
 const DEFAULT_MEMORY_BODY_USER_ID = 'default-user'
 const MAX_HISTORY_MESSAGES = 50
 
+function getFeedbackCommandResponse(type: string): string {
+  if (type === 'forget') return '已按你的要求忘掉这条记忆。'
+  if (type === 'correct') return '已按你的纠正更新记忆。'
+  if (type === 'confirm') return '已确认这条记忆。'
+  return '已更新记忆。'
+}
+
 function loadChatHistory(): AgentMessage[] {
   try {
     const raw = localStorage.getItem(CHAT_HISTORY_KEY)
@@ -211,6 +218,22 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
     streamingContentRef.current = ''
     
     setInputValue('')
+
+    const feedbackCommandResult = memoryBodyAdapter.applyFeedbackCommand(userMessage.content, userMessage.timestamp)
+    if (feedbackCommandResult.matched && feedbackCommandResult.applied) {
+      const feedbackResponse = getFeedbackCommandResponse(feedbackCommandResult.feedback.type)
+      const agentMessage: AgentMessage = {
+        id: `msg-feedback-${Date.now()}`,
+        role: 'agent',
+        content: feedbackResponse,
+        timestamp: new Date().toISOString(),
+        mood: 'happy'
+      }
+      setMessages(prev => [...prev, agentMessage])
+      conversationHistoryRef.current.push({ role: 'agent', content: feedbackResponse })
+      return
+    }
+
     setIsLoading(true)
 
     memoryBodyAdapter.rememberUserMessage(userMessage.content, userMessage.timestamp)
