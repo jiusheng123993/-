@@ -122,4 +122,82 @@ describe('agent chat memory adapter', () => {
       confidence: 0.9
     })
   })
+
+  it('applies explicit confirmation feedback through the adapter store boundary', () => {
+    const feedbackAt = '2026-06-22T02:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', confidence: 0.72, strength: 0.5 }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope })
+
+    const result = adapter.applyFeedback({
+      type: 'confirm',
+      atomId: 'atom-watermelon',
+      timestamp: feedbackAt
+    })
+
+    expect(result.applied).toBe(true)
+    expect(store.load().atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      lifecycle: 'confirmed',
+      confidence: 0.87,
+      strength: 0.7,
+      updatedAt: feedbackAt
+    })
+  })
+
+  it('applies explicit forget feedback and keeps forbidden memory out of prompt context', () => {
+    const feedbackAt = '2026-06-22T02:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜' }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope })
+
+    const result = adapter.applyFeedback({
+      type: 'forget',
+      atomId: 'atom-watermelon',
+      timestamp: feedbackAt
+    })
+
+    expect(result.applied).toBe(true)
+    expect(store.load().atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      lifecycle: 'forbidden',
+      sensitivity: 'forbidden',
+      updatedAt: feedbackAt
+    })
+    expect(adapter.buildPromptContext('我喜欢吃什么水果')).not.toContain('用户喜欢西瓜')
+  })
+
+  it('applies explicit correction feedback and records correction meta', () => {
+    const feedbackAt = '2026-06-22T02:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜' }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope })
+
+    const result = adapter.applyFeedback({
+      type: 'correct',
+      atomId: 'atom-watermelon',
+      timestamp: feedbackAt,
+      correction: {
+        id: 'atom-mango',
+        predicate: 'likes',
+        object: '芒果',
+        content: '用户喜欢芒果'
+      }
+    })
+
+    const state = store.load()
+    expect(result.applied).toBe(true)
+    expect(state.atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      lifecycle: 'archived',
+      updatedAt: feedbackAt
+    })
+    expect(state.atoms.find(atom => atom.id === 'atom-mango')).toMatchObject({
+      source: 'manual',
+      lifecycle: 'confirmed',
+      content: '用户喜欢芒果',
+      contradictionOf: ['atom-watermelon']
+    })
+    expect(state.meta).toMatchObject({
+      totalCorrections: 1,
+      updatedAt: feedbackAt
+    })
+  })
 })

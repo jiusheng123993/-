@@ -1,6 +1,7 @@
 import { buildMemoryBodyPromptContext } from '../context/memoryBodyContextBuilder'
 import { normalizeScore } from '../core/memoryBodyGuards'
 import type { MemoryAtom, MemoryScope } from '../core/memoryBodyTypes'
+import { applyMemoryFeedback, type MemoryFeedback, type MemoryFeedbackResult } from '../feedback/memoryFeedback'
 import { ingestMemoryText, type MemoryIngestResult } from '../ingestion/memoryIngestor'
 import { retrieveRelevantMemories } from '../retrieval/memoryRetrieval'
 import type { MemoryBodyStore } from '../store/memoryBodyStore'
@@ -14,6 +15,7 @@ export interface AgentChatMemoryAdapterOptions {
 export interface AgentChatMemoryAdapter {
   rememberUserMessage: (message: string, timestamp: string) => MemoryIngestResult
   buildPromptContext: (currentMessage?: string) => string
+  applyFeedback: (feedback: MemoryFeedback) => MemoryFeedbackResult
 }
 
 function roundScore(score: number): number {
@@ -31,6 +33,21 @@ function trackMemoryAccess(store: MemoryBodyStore, atoms: MemoryAtom[], accessed
       updatedAt: accessedAt
     })
   })
+}
+
+function updateFeedbackMeta(store: MemoryBodyStore, feedback: MemoryFeedback, result: MemoryFeedbackResult): MemoryFeedbackResult {
+  if (!result.applied) return result
+  const state = store.load()
+  store.save({
+    ...state,
+    atoms: result.atoms,
+    meta: {
+      ...state.meta,
+      updatedAt: feedback.timestamp,
+      totalCorrections: feedback.type === 'correct' ? state.meta.totalCorrections + 1 : state.meta.totalCorrections
+    }
+  })
+  return result
 }
 
 export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOptions): AgentChatMemoryAdapter {
@@ -55,6 +72,10 @@ export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOpti
       const context = buildMemoryBodyPromptContext({ atoms })
       if (context) trackMemoryAccess(options.store, atoms, now())
       return context
-    }
+    },
+    applyFeedback: (feedback) => updateFeedbackMeta(options.store, feedback, applyMemoryFeedback({
+      atoms: options.store.load().atoms,
+      feedback
+    }))
   }
 }
