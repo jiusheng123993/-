@@ -2,6 +2,7 @@ import { buildMemoryBodyPromptContext } from '../context/memoryBodyContextBuilde
 import { normalizeScore } from '../core/memoryBodyGuards'
 import type { MemoryAtom, MemoryScope } from '../core/memoryBodyTypes'
 import { applyMemoryFeedback, type MemoryFeedback, type MemoryFeedbackResult } from '../feedback/memoryFeedback'
+import { parseMemoryFeedbackCommand } from '../feedback/memoryFeedbackCommandParser'
 import { ingestMemoryText, type MemoryIngestResult } from '../ingestion/memoryIngestor'
 import { retrieveRelevantMemories } from '../retrieval/memoryRetrieval'
 import type { MemoryBodyStore } from '../store/memoryBodyStore'
@@ -12,10 +13,15 @@ export interface AgentChatMemoryAdapterOptions {
   now?: () => string
 }
 
+export type AgentChatMemoryFeedbackCommandResult =
+  | ({ matched: true; feedback: MemoryFeedback } & MemoryFeedbackResult)
+  | { matched: false; applied: false }
+
 export interface AgentChatMemoryAdapter {
   rememberUserMessage: (message: string, timestamp: string) => MemoryIngestResult
   buildPromptContext: (currentMessage?: string) => string
   applyFeedback: (feedback: MemoryFeedback) => MemoryFeedbackResult
+  applyFeedbackCommand: (message: string, timestamp: string) => AgentChatMemoryFeedbackCommandResult
 }
 
 function roundScore(score: number): number {
@@ -50,6 +56,13 @@ function updateFeedbackMeta(store: MemoryBodyStore, feedback: MemoryFeedback, re
   return result
 }
 
+function applyFeedbackToStore(store: MemoryBodyStore, feedback: MemoryFeedback): MemoryFeedbackResult {
+  return updateFeedbackMeta(store, feedback, applyMemoryFeedback({
+    atoms: store.load().atoms,
+    feedback
+  }))
+}
+
 export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOptions): AgentChatMemoryAdapter {
   const now = options.now ?? (() => new Date().toISOString())
 
@@ -73,9 +86,19 @@ export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOpti
       if (context) trackMemoryAccess(options.store, atoms, now())
       return context
     },
-    applyFeedback: (feedback) => updateFeedbackMeta(options.store, feedback, applyMemoryFeedback({
-      atoms: options.store.load().atoms,
-      feedback
-    }))
+    applyFeedback: (feedback) => applyFeedbackToStore(options.store, feedback),
+    applyFeedbackCommand: (message, timestamp) => {
+      const command = parseMemoryFeedbackCommand({
+        text: message,
+        atoms: options.store.load().atoms,
+        timestamp
+      })
+      if (!command.matched) return { matched: false, applied: false }
+      return {
+        matched: true,
+        feedback: command.feedback,
+        ...applyFeedbackToStore(options.store, command.feedback)
+      }
+    }
   }
 }

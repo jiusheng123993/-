@@ -200,4 +200,78 @@ describe('agent chat memory adapter', () => {
       updatedAt: feedbackAt
     })
   })
+
+  it('applies natural language forget feedback commands through the adapter', () => {
+    const feedbackAt = '2026-06-22T03:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜' }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope })
+
+    const result = adapter.applyFeedbackCommand('忘掉西瓜，不要记这个', feedbackAt)
+
+    expect(result).toMatchObject({
+      matched: true,
+      applied: true,
+      feedback: {
+        type: 'forget',
+        atomId: 'atom-watermelon',
+        timestamp: feedbackAt
+      }
+    })
+    expect(store.load().atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      lifecycle: 'forbidden',
+      sensitivity: 'forbidden',
+      updatedAt: feedbackAt
+    })
+    expect(adapter.buildPromptContext('我喜欢吃什么水果')).not.toContain('用户喜欢西瓜')
+  })
+
+  it('applies natural language correction feedback commands through the adapter', () => {
+    const feedbackAt = '2026-06-22T03:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜' }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope })
+
+    const result = adapter.applyFeedbackCommand('我喜欢的是芒果，不是西瓜', feedbackAt)
+
+    const state = store.load()
+    expect(result).toMatchObject({
+      matched: true,
+      applied: true,
+      feedback: {
+        type: 'correct',
+        atomId: 'atom-watermelon',
+        timestamp: feedbackAt
+      }
+    })
+    expect(state.atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      lifecycle: 'archived',
+      updatedAt: feedbackAt
+    })
+    expect(state.atoms.find(atom => atom.object === '芒果')).toMatchObject({
+      source: 'manual',
+      lifecycle: 'confirmed',
+      content: '用户喜欢芒果',
+      contradictionOf: ['atom-watermelon']
+    })
+    expect(state.meta).toMatchObject({
+      totalCorrections: 1,
+      updatedAt: feedbackAt
+    })
+  })
+
+  it('does not apply unrelated chat as a feedback command', () => {
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜' }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope })
+
+    const result = adapter.applyFeedbackCommand('今天我想聊聊学习计划', timestamp)
+
+    expect(result).toEqual({ matched: false, applied: false })
+    expect(store.load().atoms).toHaveLength(1)
+    expect(store.load().atoms[0]).toMatchObject({
+      id: 'atom-watermelon',
+      lifecycle: 'active'
+    })
+  })
 })
