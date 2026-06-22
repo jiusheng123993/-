@@ -214,7 +214,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
     setIsLoading(true)
 
     memoryBodyAdapter.rememberUserMessage(userMessage.content, userMessage.timestamp)
-    const memoryBodyContext = memoryBodyAdapter.buildPromptContext()
+    const memoryBodyContext = memoryBodyAdapter.buildPromptContext(userMessage.content)
 
     const streamingId = `msg-stream-${Date.now()}`
     const streamingMessage: AgentMessage = {

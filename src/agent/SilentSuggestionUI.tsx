@@ -11,7 +11,7 @@ export interface SilentSuggestionUIProps {
 
 const PRIORITY_STYLES = {
   low: { bg: 'var(--surface-elevated)', border: 'var(--border)', icon: '💡' },
-  medium: { bg: 'var(--surface-elevated)', border: 'var(--warning)', icon: '�? },
+  medium: { bg: 'var(--surface-elevated)', border: 'var(--warning)', icon: '⭐' },
   high: { bg: 'var(--surface-elevated)', border: 'var(--error)', icon: '🔥' }
 }
 
@@ -117,7 +117,7 @@ export function SilentSuggestionUI({ suggestions, onDismiss, onAction }: SilentS
                         marginLeft: 'auto'
                       }}
                     >
-                      知道�?
+                      知道了
                     </button>
                   )}
                 </div>

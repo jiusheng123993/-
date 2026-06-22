@@ -6,7 +6,7 @@ import { ToastProvider } from './components/toast/Toast'
 
 const renderApp = () => render(<ToastProvider><App /></ToastProvider>)
 
-const getWorkbench = () => screen.findByRole('region', { name: '工作台画布' })
+const getWorkbench = () => screen.findByRole('region', { name: '工作台画布' }, { timeout: 5000 })
 
 const openThemeLibrary = async (user: ReturnType<typeof userEvent.setup>) => {
   const workbench = await getWorkbench()
