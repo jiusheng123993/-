@@ -80,4 +80,26 @@ describe('agent chat memory adapter', () => {
     expect(context).toContain('用户喜欢西瓜')
     expect(context).not.toContain('用户重视学习计划')
   })
+
+  it('tracks access only for memories injected into prompt context', () => {
+    const accessedAt = '2026-06-22T01:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜', accessCount: 2, lastAccessedAt: timestamp, scenarios: ['food_recommendation'] }))
+    store.upsertAtom(createAtom({ id: 'atom-study', content: '用户重视学习计划', object: '学习', accessCount: 5, lastAccessedAt: timestamp, strength: 1, confidence: 1, scenarios: ['study'] }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope, now: () => accessedAt })
+
+    adapter.buildPromptContext('我喜欢吃什么水果')
+
+    const atoms = store.load().atoms
+    expect(atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      accessCount: 3,
+      lastAccessedAt: accessedAt,
+      updatedAt: accessedAt
+    })
+    expect(atoms.find(atom => atom.id === 'atom-study')).toMatchObject({
+      accessCount: 5,
+      lastAccessedAt: timestamp,
+      updatedAt: timestamp
+    })
+  })
 })
