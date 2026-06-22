@@ -1,4 +1,5 @@
 import { buildMemoryBodyPromptContext } from '../context/memoryBodyContextBuilder'
+import { normalizeScore } from '../core/memoryBodyGuards'
 import type { MemoryAtom, MemoryScope } from '../core/memoryBodyTypes'
 import { ingestMemoryText, type MemoryIngestResult } from '../ingestion/memoryIngestor'
 import { retrieveRelevantMemories } from '../retrieval/memoryRetrieval'
@@ -15,10 +16,16 @@ export interface AgentChatMemoryAdapter {
   buildPromptContext: (currentMessage?: string) => string
 }
 
+function roundScore(score: number): number {
+  return Math.round(normalizeScore(score) * 100) / 100
+}
+
 function trackMemoryAccess(store: MemoryBodyStore, atoms: MemoryAtom[], accessedAt: string): void {
   atoms.forEach(atom => {
     store.upsertAtom({
       ...atom,
+      confidence: roundScore(atom.confidence + 0.02),
+      strength: roundScore(atom.strength + 0.04),
       accessCount: atom.accessCount + 1,
       lastAccessedAt: accessedAt,
       updatedAt: accessedAt

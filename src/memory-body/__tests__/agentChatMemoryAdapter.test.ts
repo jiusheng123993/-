@@ -102,4 +102,24 @@ describe('agent chat memory adapter', () => {
       updatedAt: timestamp
     })
   })
+
+  it('reinforces only memories injected into prompt context', () => {
+    const accessedAt = '2026-06-22T01:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    store.upsertAtom(createAtom({ id: 'atom-watermelon', content: '用户喜欢西瓜', object: '西瓜', strength: 0.5, confidence: 0.78, scenarios: ['food_recommendation'] }))
+    store.upsertAtom(createAtom({ id: 'atom-study', content: '用户重视学习计划', object: '学习', strength: 0.9, confidence: 0.9, scenarios: ['study'] }))
+    const adapter = createAgentChatMemoryAdapter({ store, scope, now: () => accessedAt })
+
+    adapter.buildPromptContext('我喜欢吃什么水果')
+
+    const atoms = store.load().atoms
+    expect(atoms.find(atom => atom.id === 'atom-watermelon')).toMatchObject({
+      strength: 0.54,
+      confidence: 0.8
+    })
+    expect(atoms.find(atom => atom.id === 'atom-study')).toMatchObject({
+      strength: 0.9,
+      confidence: 0.9
+    })
+  })
 })
