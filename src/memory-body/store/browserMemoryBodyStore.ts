@@ -1,6 +1,7 @@
 import { MEMORY_BODY_STORAGE_KEY } from '../core/memoryBodyConfig'
 import { createMemoryBodyState } from '../core/memoryBodyGuards'
 import type { MemoryBodyState } from '../core/memoryBodyTypes'
+import { runMemoryDecayCycle } from '../decay/memoryDecayCycle'
 import { createInMemoryMemoryBodyStore } from './inMemoryMemoryBodyStore'
 import type { LocalStorageLike, MemoryBodyStore } from './memoryBodyStore'
 
@@ -10,7 +11,12 @@ function isMemoryBodyState(value: unknown): value is MemoryBodyState {
   return candidate.version === 1 && Array.isArray(candidate.atoms) && Array.isArray(candidate.entities) && Array.isArray(candidate.relations) && Array.isArray(candidate.beliefs)
 }
 
-export function createBrowserMemoryBodyStore(userId: string, projectId: string, storage: LocalStorageLike = window.localStorage, storageKey = MEMORY_BODY_STORAGE_KEY): MemoryBodyStore {
+export interface BrowserMemoryBodyStoreOptions {
+  now?: () => string
+  minDaysBetweenDecay?: number
+}
+
+export function createBrowserMemoryBodyStore(userId: string, projectId: string, storage: LocalStorageLike = window.localStorage, storageKey = MEMORY_BODY_STORAGE_KEY, options: BrowserMemoryBodyStoreOptions = {}): MemoryBodyStore {
   const loadState = () => {
     const raw = storage.getItem(storageKey)
     if (!raw) return createMemoryBodyState(userId, projectId)
@@ -22,8 +28,15 @@ export function createBrowserMemoryBodyStore(userId: string, projectId: string, 
     }
   }
 
-  const memoryStore = createInMemoryMemoryBodyStore(userId, projectId, loadState())
+  const loadedState = loadState()
+  const decayCycle = runMemoryDecayCycle({
+    state: loadedState,
+    decayedAt: options.now?.() ?? new Date().toISOString(),
+    minDaysBetweenDecay: options.minDaysBetweenDecay
+  })
+  const memoryStore = createInMemoryMemoryBodyStore(userId, projectId, decayCycle.state)
   const persist = () => storage.setItem(storageKey, JSON.stringify(memoryStore.load()))
+  if (decayCycle.decayed) persist()
 
   return {
     load: memoryStore.load,
