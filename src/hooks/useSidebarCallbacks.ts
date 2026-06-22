@@ -11,6 +11,7 @@ interface SidebarCallbacksDeps {
   setIsRelationshipSpaceOpen: (open: boolean) => void
   setIsAgentChatOpen: (open: boolean) => void
   setIsSettingsOpen: (open: boolean) => void
+  setIsKnowledgeGraphOpen: (open: boolean) => void
   setIsMembershipOpen: (open: boolean) => void
   setIsDataBackupOpen: (open: boolean) => void
   setIsApiKeySettingsOpen: (open: boolean) => void
@@ -28,6 +29,7 @@ export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
     setIsRelationshipSpaceOpen,
     setIsAgentChatOpen,
     setIsSettingsOpen,
+    setIsKnowledgeGraphOpen,
     setIsMembershipOpen,
     setIsDataBackupOpen,
     setIsApiKeySettingsOpen,
@@ -78,6 +80,13 @@ export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
     setIsSettingsOpen(true)
   }, [closeAllSidebarPanels, setIsSettingsOpen])
 
+  const onOpenKnowledgeGraph = useCallback(() => {
+    closeAllSidebarPanels()
+    flushSync(() => {
+      setIsKnowledgeGraphOpen(true)
+    })
+  }, [closeAllSidebarPanels, setIsKnowledgeGraphOpen])
+
   const onOpenMembership = useCallback(() => {
     closeAllSidebarPanels()
     flushSync(() => {
@@ -121,6 +130,7 @@ export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
     onOpenRelationshipSpace,
     onOpenAgentChat,
     onOpenSettings,
+    onOpenKnowledgeGraph,
     onOpenMembership,
     onOpenDataBackup,
     onOpenApiKeySettings,

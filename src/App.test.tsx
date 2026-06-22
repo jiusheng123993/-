@@ -6,9 +6,11 @@ import { ToastProvider } from './components/toast/Toast'
 
 const renderApp = () => render(<ToastProvider><App /></ToastProvider>)
 
+const getWorkbench = () => screen.findByRole('region', { name: '工作台画布' })
+
 const openThemeLibrary = async (user: ReturnType<typeof userEvent.setup>) => {
-  const buttons = screen.getAllByRole('button', { name: /打开主题库/ })
-  await user.click(buttons[0])
+  const workbench = await getWorkbench()
+  await user.click(within(workbench).getByRole('button', { name: '主题切换' }))
   return screen.getByRole('dialog', { name: '主题库' })
 }
 
@@ -34,19 +36,19 @@ describe('App', () => {
     vi.useRealTimers()
   })
 
-  it('renders the app shell with workbench canvas', () => {
+  it('renders the app shell with workbench canvas', async () => {
     renderApp()
 
     expect(screen.getByRole('heading', { name: '星寰海' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: '工作台画布' })).toBeInTheDocument()
+    expect(await getWorkbench()).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '打开侧边栏' })).toBeInTheDocument()
     expect(document.querySelector('.draggable-canvas')).toBeInTheDocument()
   })
 
-  it('shows the 5 default modules on the workbench canvas', () => {
+  it('shows the 5 default modules on the workbench canvas', async () => {
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const workbench = await getWorkbench()
     expect(within(workbench).getByText('习惯追踪')).toBeInTheDocument()
     expect(within(workbench).getByText('复盘日记')).toBeInTheDocument()
     expect(within(workbench).getByText('阅读清单')).toBeInTheDocument()
@@ -58,7 +60,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const workbench = await getWorkbench()
     await user.dblClick(within(workbench).getByText('习惯追踪').closest('article')!)
 
     expect(screen.getByRole('dialog', { name: '习惯追踪 · 工作台详情' })).toBeInTheDocument()
@@ -68,7 +70,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const workbench = await getWorkbench()
     await user.dblClick(within(workbench).getByText('复盘日记').closest('article')!)
 
     expect(screen.getByRole('dialog', { name: '复盘日记 · 工作台详情' })).toBeInTheDocument()
@@ -78,7 +80,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const workbench = await getWorkbench()
     const errorBookHeading = within(workbench).getAllByText('错题本')[0]
     await user.dblClick(errorBookHeading.closest('article')!)
 
@@ -89,7 +91,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const workbench = await getWorkbench()
     await user.dblClick(within(workbench).getByText('阅读清单').closest('article')!)
 
     expect(screen.getByRole('dialog', { name: '阅读清单 · 工作台详情' })).toBeInTheDocument()
@@ -99,7 +101,7 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const workbench = screen.getByRole('region', { name: '工作台画布' })
+    const workbench = await getWorkbench()
     const memoryCard = within(workbench).getAllByText('记忆卡')[0].closest('article')!
     await user.dblClick(memoryCard)
 
@@ -141,8 +143,8 @@ describe('App', () => {
     })
     expect(screen.queryByRole('dialog', { name: '主题库' })).not.toBeInTheDocument()
 
-    await openThemeLibrary(user)
-    await user.click(screen.getByRole('button', { name: '关闭主题库' }))
+    const dialog = await openThemeLibrary(user)
+    await user.click(within(dialog).getByRole('button', { name: '关闭' }))
     expect(screen.queryByRole('dialog', { name: '主题库' })).not.toBeInTheDocument()
   })
 
@@ -150,9 +152,9 @@ describe('App', () => {
     const user = userEvent.setup()
     renderApp()
 
-    await openThemeLibrary(user)
+    const dialog = await openThemeLibrary(user)
     await searchTheme(user, '薄荷')
-    await user.click(screen.getByRole('button', { name: '关闭主题库' }))
+    await user.click(within(dialog).getByRole('button', { name: '关闭' }))
 
     const reopenedDialog = await openThemeLibrary(user)
     expect(screen.getByRole('searchbox', { name: '搜索主题' })).toHaveValue('')
@@ -249,7 +251,7 @@ describe('App', () => {
 
     expect(within(identityDialog).queryByText('页面级验证身份已编辑')).not.toBeInTheDocument()
 
-    await user.click(within(identityDialog).getByRole('button', { name: '关闭身份管理' }))
+    await user.click(within(identityDialog).getByRole('button', { name: '关闭' }))
     expect(screen.queryByRole('dialog', { name: '身份管理' })).not.toBeInTheDocument()
   })
 })

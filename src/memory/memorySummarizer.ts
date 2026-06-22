@@ -189,6 +189,7 @@ function analyzePreferenceChanges(
   const taskEvents = events.filter(e => e.category === 'task_completed')
   const focusEvents = events.filter(e => e.category === 'focus_completed')
   const journalEvents = events.filter(e => e.category === 'journal_created')
+  const preferenceEvents = events.filter(e => e.category === 'preference_learned' || e.kind === 'preference')
 
   if (taskEvents.length >= 10 && profile.preferences.planningStyle !== 'structured') {
     proposals.push({
@@ -221,6 +222,36 @@ function analyzePreferenceChanges(
       evidenceEventIds: journalEvents.slice(0, 3).map(e => e.id),
       confidence: 0.65
     })
+  }
+
+  if (preferenceEvents.length > 0) {
+    const existingCustom = profile.preferences.customPreferences ?? {}
+    const newCustom: Record<string, string> = { ...existingCustom }
+    let hasNewCustom = false
+
+    for (const event of preferenceEvents) {
+      const content = event.summary || event.content || ''
+      const match = content.match(/用户偏好：customPreferences\.(\w+)=(.+?)。/)
+      if (match) {
+        const key = match[1]
+        const value = match[2]
+        if (!existingCustom[key] || existingCustom[key] !== value) {
+          newCustom[key] = value
+          hasNewCustom = true
+        }
+      }
+    }
+
+    if (hasNewCustom) {
+      proposals.push({
+        fieldPath: 'preferences.customPreferences',
+        oldValue: existingCustom,
+        newValue: newCustom,
+        reasoning: `从 ${preferenceEvents.length} 次对话中提取了用户自定义偏好`,
+        evidenceEventIds: preferenceEvents.slice(0, 5).map(e => e.id),
+        confidence: 0.75
+      })
+    }
   }
 
   return proposals

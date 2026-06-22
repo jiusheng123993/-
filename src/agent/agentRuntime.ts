@@ -17,6 +17,7 @@ export interface AgentChatRequest {
   useXFYunCoding?: boolean
   profile?: MemoryProfile
   memoryEvents?: MemoryEvent[]
+  memoryBodyContext?: string
   conversationHistory?: Array<{ role: 'user' | 'agent'; content: string }>
 }
 
@@ -42,7 +43,7 @@ function getPersonaSystemPrompt(personaId?: string): string {
   return PERSONA_SYSTEM_PROMPTS[personaId] ?? PERSONA_SYSTEM_PROMPTS.default
 }
 
-function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, memoryEvents?: MemoryEvent[]): string {
+export function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, memoryEvents?: MemoryEvent[], memoryBodyContext = ''): string {
   const basePrompt = getPersonaSystemPrompt(personaId)
   
   let profileContext = ''
@@ -74,13 +75,31 @@ function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, m
   if (memoryEvents && memoryEvents.length > 0) {
     const recentEvents = memoryEvents.slice(-10)
     const eventLines = recentEvents.map(e => {
-      const time = new Date(e.timestamp).toLocaleDateString('zh-CN')
-      return `- [${time}] ${e.category}: ${e.summary}`
+      const time = new Date(e.timestamp || e.createdAt).toLocaleDateString('zh-CN')
+      return `- [${time}] ${e.category || e.kind}: ${e.summary || e.content}`
     })
     memoryContext = `\n\n用户近期活动记忆：\n${eventLines.join('\n')}\n\n请基于以上记忆，在对话中自然地引用用户近期的活动和进展，让对话更有连续性和个性化。`
   }
+
+  let preferenceContext = ''
+  if (memoryEvents && memoryEvents.length > 0) {
+    const preferenceEvents = memoryEvents.filter(e =>
+      e.kind === 'preference' || e.category === 'preference_learned'
+    )
+    if (preferenceEvents.length > 0) {
+      const prefLines = preferenceEvents.slice(-20).map(e => {
+        const content = e.summary || e.content || ''
+        return `- ${content}`
+      })
+      preferenceContext = `\n\n用户偏好记忆（请记住并在对话中自然引用）：\n${prefLines.join('\n')}\n`
+    }
+  }
+
+  const memoryBodyPromptContext = memoryBodyContext.trim()
+    ? `\n\n${memoryBodyContext.trim()}\n\n请优先使用 MemoryBody 长期记忆回答用户关于个人偏好、目标、习惯、边界的问题；不要暴露内部字段、存储细节或敏感信息。`
+    : ''
   
-  return `${basePrompt}${profileContext}${memoryContext}
+  return `${basePrompt}${profileContext}${memoryContext}${preferenceContext}${memoryBodyPromptContext}
 
 ## 记忆与学习能力
 你具备记忆能力。在对话中：
@@ -121,9 +140,9 @@ function buildChatUserPrompt(
 }
 
 export async function sendAgentChatMessageStream(request: AgentChatStreamRequest): Promise<void> {
-  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, conversationHistory, signal, onChunk } = request
+  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, memoryBodyContext, conversationHistory, signal, onChunk } = request
   
-  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents)
+  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents, memoryBodyContext)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
   if (useXFYunCoding) {
@@ -183,9 +202,9 @@ export async function sendAgentChatMessageStream(request: AgentChatStreamRequest
 }
 
 export async function sendAgentChatMessage(request: AgentChatRequest): Promise<AgentChatResponse> {
-  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, conversationHistory } = request
+  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, memoryBodyContext, conversationHistory } = request
   
-  const systemPrompt = buildChatSystemPrompt(personaId, profile)
+  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents, memoryBodyContext)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
   if (useXFYunCoding) {

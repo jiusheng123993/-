@@ -1,7 +1,6 @@
 export { AvatarManager } from './AvatarManager'
 export { AvatarRenderer, AvatarFallback, AvatarAnimationController } from './AvatarRenderer'
 export { AvatarCanvas, AvatarPreview } from './AvatarCanvas'
-export { ThreeDRenderer } from './renderers/ThreeDRenderer'
 export { AvatarCustomizer } from './AvatarCustomizer'
 export { PartPicker, PartCategorySelector } from './PartPicker'
 export { AnimationPicker, AnimationList } from './AnimationPicker'

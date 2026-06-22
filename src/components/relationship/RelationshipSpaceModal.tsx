@@ -46,8 +46,8 @@ export const RelationshipSpaceModal: FC<RelationshipSpaceModalProps> = ({
       style={{
         position: 'absolute',
         inset: 0,
-        background: 'var(--wallpaper-overlay, rgba(0,0,0,0.3))',
-        opacity: Number('var(--wallpaper-overlay-opacity, 0.3)') || 0.3
+        background: 'var(--wallpaper-overlay, rgba(0,0,0,0.6))',
+        opacity: Number('var(--wallpaper-overlay-opacity, 0.6)') || 0.6
       }}
     />
     <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>

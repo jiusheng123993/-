@@ -10,6 +10,10 @@ vi.mock('./agentRuntime', () => ({
   },
 }))
 
+import { agentRuntime } from './agentRuntime'
+
+const mockedAgentRuntime = vi.mocked(agentRuntime)
+
 function makeProfile(overrides: Partial<MemoryProfile> = {}): MemoryProfile {
   return {
     version: 1,
@@ -65,6 +69,11 @@ function makeObserver(overrides: Partial<MemoryObserver> = {}): MemoryObserver {
 describe('AgentChatUI', () => {
   beforeEach(() => {
     HTMLDivElement.prototype.scrollIntoView = vi.fn()
+    localStorage.clear()
+    mockedAgentRuntime.sendMessageStream.mockReset()
+    mockedAgentRuntime.sendMessageStream.mockImplementation(async request => {
+      request.onChunk('Response')
+    })
   })
 
   it('renders chat toggle button', () => {
@@ -276,6 +285,26 @@ describe('AgentChatUI', () => {
 
       await waitFor(() => {
         expect(onSendMessage).toHaveBeenCalled()
+      })
+    })
+
+    it('passes MemoryBody context to agent runtime after remembering chat preference', async () => {
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          userId="user-1"
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: '我喜欢吃西瓜' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(mockedAgentRuntime.sendMessageStream).toHaveBeenCalledWith(expect.objectContaining({
+          memoryBodyContext: expect.stringContaining('用户喜欢西瓜')
+        }))
       })
     })
   })

@@ -27,7 +27,7 @@ function renderMarkdown(text: string): string {
   html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>')
   html = html.replace(/\[\[([^\]]+)\]\]/g, '<span class="wiki-link" data-target="$1">🔗 $1</span>')
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;" />')
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" style="max-width:100%;border-radius:8px;" />')
 
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>')
   html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>')

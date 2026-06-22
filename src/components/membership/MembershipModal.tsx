@@ -47,6 +47,7 @@ export const MembershipModal: FC<MembershipModalProps> = ({ isOpen, flow, userId
       subtitle={`Membership · 会员中心 · 当前 ${currentTier.label} · AI 额度 ${totalQuota} 次`}
       ariaLabel="会员中心"
     >
+      <div className="membership-modal-content">
       <section className="membership-quota-section" style={{ marginBottom: 24 }}>
         <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>AI 额度</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -539,6 +540,7 @@ export const MembershipModal: FC<MembershipModalProps> = ({ isOpen, flow, userId
           </div>
         )}
       </section>
+      </div>
     </AdaptiveModal>
   )
 }

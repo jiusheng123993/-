@@ -244,6 +244,22 @@ export const CanvasCard = ({
     window.addEventListener('pointerup', handleResizeUp)
   }, [size, onResize])
 
+  useEffect(() => {
+    return () => {
+      if (handlePointerMoveRef.current) {
+        window.removeEventListener('pointermove', handlePointerMoveRef.current)
+      }
+      if (handlePointerUpRef.current) {
+        window.removeEventListener('pointerup', handlePointerUpRef.current)
+      }
+      setIsDragging(false)
+      isDraggingRef.current = false
+      dragStartRef.current = null
+      setIsResizing(false)
+      setPreviewSize(null)
+    }
+  }, [])
+
   return (
     <article
       ref={cardRef}

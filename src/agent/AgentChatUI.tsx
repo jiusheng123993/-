@@ -6,6 +6,7 @@ import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 import type { MemoryObserver } from '../memory/memoryObserver'
 import type { RelationshipHealthMonitor } from '../personas/relationshipHealthMonitor'
 import type { PersonaSafetyGate } from '../personas/personaSafetyGate'
+import { createAgentChatMemoryAdapter, createBrowserMemoryBodyStore } from '../memory-body'
 import { agentRuntime } from './agentRuntime'
 import { getMoodEmoji } from '../avatar/animator'
 
@@ -38,6 +39,32 @@ function getGreeting(aiRole?: string): string {
   return `你好！我是你的${role}，有什么可以帮你的吗？`
 }
 
+const CHAT_HISTORY_KEY = 'agent_chat_history'
+const MEMORY_BODY_PROJECT_ID = 'xinghuanhai-growth-workbench'
+const DEFAULT_MEMORY_BODY_USER_ID = 'default-user'
+const MAX_HISTORY_MESSAGES = 50
+
+function loadChatHistory(): AgentMessage[] {
+  try {
+    const raw = localStorage.getItem(CHAT_HISTORY_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.slice(-MAX_HISTORY_MESSAGES)
+  } catch {
+    return []
+  }
+}
+
+function saveChatHistory(messages: AgentMessage[]): void {
+  try {
+    const toSave = messages.slice(-MAX_HISTORY_MESSAGES)
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(toSave))
+  } catch {
+    // localStorage full or unavailable
+  }
+}
+
 const TOPIC_KEYWORDS: Record<string, string[]> = {
   '学习': ['学习', '考试', '复习', '课程', '知识', '阅读', '读书', '笔记', '记忆'],
   '目标': ['目标', '计划', '规划', '进度', '达成', '完成'],
@@ -60,29 +87,92 @@ function extractTopics(content: string): string[] {
   return topics.length > 0 ? topics : ['general']
 }
 
+const PREFERENCE_PATTERNS: Array<{
+  pattern: RegExp
+  fieldPath: string
+  extract: (match: RegExpMatchArray) => string
+}> = [
+  { pattern: /我喜欢吃[「「]?(.{1,20})[」」]?/g, fieldPath: 'customPreferences.foodPreference', extract: m => m[1].trim() },
+  { pattern: /我爱吃[「「]?(.{1,20})[」」]?/g, fieldPath: 'customPreferences.foodPreference', extract: m => m[1].trim() },
+  { pattern: /我最喜欢的食物是[「「]?(.{1,20})[」」]?/g, fieldPath: 'customPreferences.foodPreference', extract: m => m[1].trim() },
+  { pattern: /我喜欢[「「]?(.{1,20})[」」]?(?:这个)?颜色/g, fieldPath: 'customPreferences.colorPreference', extract: m => m[1].trim() },
+  { pattern: /我最喜欢的颜色是[「「]?(.{1,10})[」」]?/g, fieldPath: 'customPreferences.colorPreference', extract: m => m[1].trim() },
+  { pattern: /我喜欢听[「「]?(.{1,20})[」」]?(?:的)?(?:歌|音乐)/g, fieldPath: 'customPreferences.musicPreference', extract: m => m[1].trim() },
+  { pattern: /我最喜欢的(?:歌手|乐队)是[「「]?(.{1,20})[」」]?/g, fieldPath: 'customPreferences.musicPreference', extract: m => m[1].trim() },
+  { pattern: /我喜欢看[「「]?(.{1,20})[」」]?(?:的)?(?:电影|剧|动漫|动画)/g, fieldPath: 'customPreferences.entertainmentPreference', extract: m => m[1].trim() },
+  { pattern: /我最喜欢的(?:电影|剧|动漫)是[「「]?(.{1,20})[」」]?/g, fieldPath: 'customPreferences.entertainmentPreference', extract: m => m[1].trim() },
+  { pattern: /我喜欢(?:打|玩)[「「]?(.{1,15})[」」]?/g, fieldPath: 'customPreferences.hobbyPreference', extract: m => m[1].trim() },
+  { pattern: /我的爱好是[「「]?(.{1,20})[」」]?/g, fieldPath: 'customPreferences.hobbyPreference', extract: m => m[1].trim() },
+  { pattern: /我叫[「「]?(.{1,15})[」」]?/g, fieldPath: 'identity.nickname', extract: m => m[1].trim() },
+  { pattern: /我的名字是[「「]?(.{1,15})[」」]?/g, fieldPath: 'identity.nickname', extract: m => m[1].trim() },
+  { pattern: /我是[「「]?(.{1,15})[」」]?(?:，|。|$)/g, fieldPath: 'identity.nickname', extract: m => m[1].trim() },
+  { pattern: /我(?:是|在)(?:一[个名位]?)?(学生|老师|工程师|设计师|程序员|产品经理|运营|医生|律师|自由职业|创业者)/g, fieldPath: 'identity.currentRole', extract: m => m[1].trim() },
+  { pattern: /我的目标是[「「]?(.{1,40})[」」]?/g, fieldPath: 'goals.primaryGoal', extract: m => m[1].trim() },
+  { pattern: /我想[「「]?(.{1,40})[」」]?/g, fieldPath: 'goals.primaryGoal', extract: m => m[1].trim() },
+]
+
+function extractPreferencesFromMessage(content: string): Array<{ fieldPath: string; value: string }> {
+  const results: Array<{ fieldPath: string; value: string }> = []
+  const seen = new Set<string>()
+  for (const { pattern, fieldPath, extract } of PREFERENCE_PATTERNS) {
+    pattern.lastIndex = 0
+    let match: RegExpExecArray | null
+    while ((match = pattern.exec(content)) !== null) {
+      const value = extract(match)
+      if (value && value.length >= 1 && value.length <= 40) {
+        const key = `${fieldPath}=${value}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          results.push({ fieldPath, value })
+        }
+      }
+    }
+  }
+  return results
+}
+
 export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profile, memoryEvents, memoryObserver, onSendMessage, healthMonitor, safetyGate, onConversationComplete }: AgentChatUIProps) {
-  const [messages, setMessages] = useState<AgentMessage[]>([])
+  const [messages, setMessages] = useState<AgentMessage[]>(() => loadChatHistory())
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const streamingContentRef = useRef('')
+  const memoryBodyUserId = userId || profile?.scope.userId || DEFAULT_MEMORY_BODY_USER_ID
+  const memoryBodyAdapter = useMemo(() => createAgentChatMemoryAdapter({
+    store: createBrowserMemoryBodyStore(memoryBodyUserId, MEMORY_BODY_PROJECT_ID),
+    scope: { userId: memoryBodyUserId, projectId: MEMORY_BODY_PROJECT_ID }
+  }), [memoryBodyUserId])
 
   const conversationHistoryRef = useRef<Array<{ role: 'user' | 'agent'; content: string }>>([])
 
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      const greeting: AgentMessage = {
-        id: `msg-${Date.now()}`,
-        role: 'agent',
-        content: getGreeting(aiRole),
-        timestamp: new Date().toISOString(),
-        mood: 'happy'
+    if (isOpen) {
+      const restored = loadChatHistory()
+      if (restored.length > 0) {
+        setMessages(restored)
+        conversationHistoryRef.current = restored
+          .filter(m => m.role === 'user' || m.role === 'agent')
+          .map(m => ({ role: m.role as 'user' | 'agent', content: m.content }))
+      } else {
+        const greeting: AgentMessage = {
+          id: `msg-${Date.now()}`,
+          role: 'agent',
+          content: getGreeting(aiRole),
+          timestamp: new Date().toISOString(),
+          mood: 'happy'
+        }
+        setMessages([greeting])
+        conversationHistoryRef.current = []
       }
-      setMessages([greeting])
-      conversationHistoryRef.current = []
     }
-  }, [isOpen, aiRole, messages.length])
+  }, [isOpen, aiRole])
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveChatHistory(messages)
+    }
+  }, [messages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -123,6 +213,9 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
     setInputValue('')
     setIsLoading(true)
 
+    memoryBodyAdapter.rememberUserMessage(userMessage.content, userMessage.timestamp)
+    const memoryBodyContext = memoryBodyAdapter.buildPromptContext()
+
     const streamingId = `msg-stream-${Date.now()}`
     const streamingMessage: AgentMessage = {
       id: streamingId,
@@ -159,6 +252,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
           conversationHistory: conversationHistoryRef.current,
           profile: profile,
           memoryEvents: memoryEvents,
+          memoryBodyContext,
           signal: controller.signal,
           onChunk: (chunk: string) => {
             streamingContentRef.current += chunk
@@ -215,11 +309,19 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
             )
           }
 
+          const extractedPrefs = extractPreferencesFromMessage(lastUserMsg.content)
+          for (const { fieldPath, value } of extractedPrefs) {
+            memoryObserver.onUserPreferenceLearned(
+              `${fieldPath}=${value}`,
+              `用户在对话中说："${lastUserMsg.content.slice(0, 50)}"`
+            )
+          }
+
           onConversationComplete?.(lastUserMsg.content, lastAgentMsg.content)
         }
       }
     }
-  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, safetyGate, onConversationComplete, memoryEvents, profile])
+  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, safetyGate, onConversationComplete, memoryEvents, profile, memoryBodyAdapter])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

@@ -140,6 +140,7 @@ export interface MemoryProfilePreferences {
   reminderFrequency?: ReminderFrequency
   detailLevel?: DetailLevel
   languageStyle?: LanguageStyle
+  customPreferences?: Record<string, string>
 }
 
 export interface MemoryProfileBoundaries {

@@ -93,8 +93,8 @@ export function WorkbenchCanvas({
   _setIsWallpaperPickerOpen,
   _setIsCycleTrackerOpen,
   _setIsMemoryProfileOpen,
-  _openThemePicker,
-  _restorePersonaTheme,
+  openThemePicker,
+  restorePersonaTheme,
   _startFocusTimer,
   _pauseFocusTimer,
   _resetFocusTimer,
@@ -226,6 +226,12 @@ export function WorkbenchCanvas({
           <span style={{ background: activeTheme.tokens.colors.primary }} />
           <span style={{ background: activeTheme.tokens.colors.secondary }} />
           <span style={{ background: activeTheme.tokens.colors.accent }} />
+        </div>
+        <div className="canvas-thumb-actions">
+          <button type="button" onClick={(event) => { event.stopPropagation(); openThemePicker() }}>主题切换</button>
+          {workspaceState.preferences.themeMode === 'manual' && (
+            <button type="button" onClick={(event) => { event.stopPropagation(); restorePersonaTheme() }}>恢复场景推荐主题</button>
+          )}
         </div>
       </div>
     ),

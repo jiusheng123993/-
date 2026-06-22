@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 interface DraggableModalProps {
   isOpen: boolean
@@ -97,6 +97,13 @@ export const DraggableModal = ({
     window.addEventListener('pointermove', handleMove)
     window.addEventListener('pointerup', handleUp)
   }, [isMaximized])
+
+  useEffect(() => {
+    return () => {
+      setIsResizing(false)
+      resizeStartRef.current = null
+    }
+  }, [])
 
   const handleMaximize = useCallback(() => {
     if (isMaximized) {

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EvolutionRitualUIProps, EvolutionEntry } from './evolutionRitualTypes'
 import styles from './EvolutionRitualUI.module.css'
 
@@ -104,6 +104,12 @@ export function EvolutionRitualUI({
 
     window.addEventListener('pointermove', handleMove)
     window.addEventListener('pointerup', handleUp)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      dragStartRef.current = null
+    }
   }, [])
 
   const handleAccept = () => {

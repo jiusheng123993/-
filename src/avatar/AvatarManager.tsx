@@ -187,7 +187,7 @@ export function AvatarManager({ userId, onAvatarSelect }: AvatarManagerProps) {
                 >
                   <div className="builtin-avatar-thumb">
                     {builtin.stickerUrl ? (
-                      <img src={builtin.stickerUrl} alt={builtin.name} />
+                      <img src={builtin.stickerUrl} alt={builtin.name} loading="lazy" />
                     ) : (
                       <span className="placeholder-icon">🎭</span>
                     )}

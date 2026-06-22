@@ -10,6 +10,7 @@ interface SidebarProps {
   onOpenRelationshipSpace: () => void
   onOpenAgentChat: () => void
   onOpenSettings: () => void
+  onOpenKnowledgeGraph: () => void
   currentThemeName: string
   membershipTier: string
   aiQuota: number
@@ -26,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenRelationshipSpace,
   onOpenAgentChat,
   onOpenSettings,
+  onOpenKnowledgeGraph,
   currentThemeName,
   membershipTier,
   aiQuota,
@@ -39,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'ai', label: 'AI 助手', icon: 'Bot' },
     { id: 'persona', label: '人格切换', icon: 'Sparkles' },
     { id: 'relationship', label: '关系空间', icon: 'Users' },
+    { id: 'knowledge-graph', label: '知识图谱', icon: 'GitGraph' },
     { id: 'settings', label: '设置', icon: 'Settings' },
     { id: 'theme', label: '主题切换', icon: 'Palette' }
   ]
@@ -61,6 +64,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         break
       case 'relationship':
         onOpenRelationshipSpace()
+        break
+      case 'knowledge-graph':
+        onOpenKnowledgeGraph()
         break
       case 'persona':
         onOpenPersonaSelector()

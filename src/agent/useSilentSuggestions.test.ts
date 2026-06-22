@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('./SilentSuggestionUI', async () => {
-  const actual = await vi.importActual('./SilentSuggestionUI')
+vi.mock('./useSilentSuggestions', async () => {
+  const actual = await vi.importActual('./useSilentSuggestions')
   return {
     ...(actual as object),
     useSilentSuggestions: vi.fn(),
   }
 })
 
-import { useSilentSuggestions } from './SilentSuggestionUI'
+import { useSilentSuggestions } from './useSilentSuggestions'
 import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
-import type { SilentSuggestion } from './SilentSuggestionUI'
+import type { SilentSuggestion } from './useSilentSuggestions'
 
 const mockedUseSilentSuggestions = vi.mocked(useSilentSuggestions)
 

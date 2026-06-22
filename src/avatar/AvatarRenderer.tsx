@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import type { AvatarDefinition, AvatarRenderMode, AnimationState } from './avatarTypes'
 import {
   createAnimatorState,
@@ -8,7 +8,8 @@ import {
   isAnimationLooping,
   getAnimationCSS
 } from './animator'
-import { ThreeDRenderer } from './renderers/ThreeDRenderer'
+
+const ThreeDRenderer = lazy(() => import('./renderers/ThreeDRenderer').then(m => ({ default: m.ThreeDRenderer })))
 
 type AvatarRendererProps = {
   avatar: AvatarDefinition
@@ -98,13 +99,19 @@ export function AvatarRenderer({
   if (currentMode === '3d_gltf' && !renderError) {
     return (
       <div className="avatar-renderer-3d" style={{ width, height }}>
-        <ThreeDRenderer
-          avatar={avatar}
-          width={width}
-          height={height}
-          autoRotate={true}
-          onError={handle3DError}
-        />
+        <Suspense fallback={
+          <div className="avatar-renderer-loading" style={{ width, height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span>加载3D引擎...</span>
+          </div>
+        }>
+          <ThreeDRenderer
+            avatar={avatar}
+            width={width}
+            height={height}
+            autoRotate={true}
+            onError={handle3DError}
+          />
+        </Suspense>
         <div className="avatar-renderer-label">
           3D · {avatar.name}
         </div>

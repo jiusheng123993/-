@@ -701,7 +701,7 @@ export function CustomPersonaEditorUI({
                       {isGeneratingAvatar ? (
                         <Loader2 size={24} className="custom-persona-editor-avatar-spinner" />
                       ) : aiGeneratedAvatarUrl ? (
-                        <img src={aiGeneratedAvatarUrl} alt="AI生成头像" className="custom-persona-editor-avatar-ai-img" />
+                        <img src={aiGeneratedAvatarUrl} alt="AI生成头像" className="custom-persona-editor-avatar-ai-img" loading="lazy" />
                       ) : (
                         <Wand2 size={24} />
                       )}

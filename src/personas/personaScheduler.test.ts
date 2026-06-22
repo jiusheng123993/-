@@ -218,6 +218,9 @@ describe('personaScheduler with cameoEngine', () => {
   })
 
   it('triggers focus streak cameo when focus minutes >= 120 via engine', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-10T10:00:00Z'))
+
     storage.save({
       userId: 'user-1',
       mainPersonaId: 'senior_buddy',
@@ -233,6 +236,9 @@ describe('personaScheduler with cameoEngine', () => {
   })
 
   it('does not trigger focus streak when focus minutes < 120 via engine', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-10T10:00:00Z'))
+
     storage.save({
       userId: 'user-1',
       mainPersonaId: 'senior_buddy',
@@ -247,6 +253,9 @@ describe('personaScheduler with cameoEngine', () => {
   })
 
   it('triggers task milestone cameo at every 10 tasks via engine', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-10T10:00:00Z'))
+
     storage.save({
       userId: 'user-1',
       mainPersonaId: 'senior_buddy',
@@ -262,6 +271,9 @@ describe('personaScheduler with cameoEngine', () => {
   })
 
   it('does not trigger task milestone below 10 tasks via engine', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-10T10:00:00Z'))
+
     storage.save({
       userId: 'user-1',
       mainPersonaId: 'senior_buddy',
