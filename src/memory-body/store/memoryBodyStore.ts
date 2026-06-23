@@ -1,4 +1,5 @@
 import type { MemoryAtom, MemoryBodyState, MemoryEntity, MemoryRelation, MemoryScope, UserBelief } from '../core/memoryBodyTypes'
+import type { MemoryAuditEvent } from '../audit/memoryAuditLog'
 
 export interface MemoryBodyStore {
   load: () => MemoryBodyState
@@ -10,6 +11,8 @@ export interface MemoryBodyStore {
   listActiveAtoms: (scope: MemoryScope) => MemoryAtom[]
   archiveAtom: (atomId: string, updatedAt: string) => boolean
   forgetAtom: (atomId: string, updatedAt: string) => boolean
+  appendAuditEvent: (event: MemoryAuditEvent) => void
+  getAuditEvents: (filter?: { atomId?: string; type?: string }) => MemoryAuditEvent[]
 }
 
 export interface LocalStorageLike {

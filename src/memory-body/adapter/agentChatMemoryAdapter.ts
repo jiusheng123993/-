@@ -6,6 +6,42 @@ import { parseMemoryFeedbackCommand } from '../feedback/memoryFeedbackCommandPar
 import { ingestMemoryText, type MemoryIngestResult } from '../ingestion/memoryIngestor'
 import { retrieveRelevantMemories } from '../retrieval/memoryRetrieval'
 import type { MemoryBodyStore } from '../store/memoryBodyStore'
+import { createMemoryAuditEvent } from '../audit/memoryAuditLog'
+
+function generateAuditId(): string {
+  return `audit_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+}
+
+function auditFeedback(store: MemoryBodyStore, feedback: MemoryFeedback, result: MemoryFeedbackResult): void {
+  if (!result.applied) return
+  const eventType = feedback.type === 'confirm' ? 'memory_confirmed' as const
+    : feedback.type === 'forget' ? 'memory_forgotten' as const
+    : 'memory_corrected' as const
+  store.appendAuditEvent(createMemoryAuditEvent({
+    id: generateAuditId(),
+    type: eventType,
+    atomId: feedback.atomId,
+    timestamp: feedback.timestamp,
+    actor: 'user',
+    summary: feedback.type === 'confirm' ? '用户确认记忆'
+      : feedback.type === 'forget' ? '用户要求忘记记忆'
+      : '用户纠正记忆',
+    sourceText: feedback.correction?.content
+  }))
+}
+
+function auditPromptUsage(store: MemoryBodyStore, usedAtomIds: string[], timestamp: string): void {
+  usedAtomIds.forEach(atomId => {
+    store.appendAuditEvent(createMemoryAuditEvent({
+      id: generateAuditId(),
+      type: 'memory_used_in_prompt',
+      atomId,
+      timestamp,
+      actor: 'system',
+      summary: '记忆被注入 prompt 上下文'
+    }))
+  })
+}
 
 export interface AgentChatMemoryAdapterOptions {
   store: MemoryBodyStore
@@ -75,21 +111,31 @@ export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOpti
       store: options.store
     }),
     buildPromptContext: (currentMessage) => {
+      const scenarios = currentMessage ? ['chat', 'food_recommendation', 'emotional_support', 'goal_planning'] as const : undefined
       const atoms = retrieveRelevantMemories({
         atoms: options.store.load().atoms,
         scope: options.scope,
         query: currentMessage,
-        scenarios: currentMessage ? ['chat', 'food_recommendation', 'emotional_support', 'goal_planning'] : undefined,
+        scenarios,
         minRelevanceScore: currentMessage ? 1 : 0
       })
-      const { context, usedAtomIds } = composePromptContext({ atoms })
+      const { context, usedAtomIds } = composePromptContext({
+        atoms,
+        scenarios: scenarios ? [...scenarios] : undefined,
+        scope: options.scope
+      })
       if (context) {
         const usedAtoms = atoms.filter(atom => usedAtomIds.includes(atom.id))
         trackMemoryAccess(options.store, usedAtoms, now())
+        auditPromptUsage(options.store, usedAtomIds, now())
       }
       return context
     },
-    applyFeedback: (feedback) => applyFeedbackToStore(options.store, feedback),
+    applyFeedback: (feedback) => {
+      const result = applyFeedbackToStore(options.store, feedback)
+      auditFeedback(options.store, feedback, result)
+      return result
+    },
     applyFeedbackCommand: (message, timestamp) => {
       const command = parseMemoryFeedbackCommand({
         text: message,
@@ -97,10 +143,12 @@ export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOpti
         timestamp
       })
       if (!command.matched) return { matched: false, applied: false }
+      const result = applyFeedbackToStore(options.store, command.feedback)
+      auditFeedback(options.store, command.feedback, result)
       return {
         matched: true,
         feedback: command.feedback,
-        ...applyFeedbackToStore(options.store, command.feedback)
+        ...result
       }
     }
   }

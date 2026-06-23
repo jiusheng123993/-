@@ -1,5 +1,6 @@
 import { createMemoryBodyState, isActiveMemoryAtom, sameMemoryScope } from '../core/memoryBodyGuards'
 import type { MemoryAtom, MemoryBodyState, MemoryEntity, MemoryRelation, UserBelief } from '../core/memoryBodyTypes'
+import type { MemoryAuditEvent } from '../audit/memoryAuditLog'
 import type { MemoryBodyStore } from './memoryBodyStore'
 
 function cloneState(state: MemoryBodyState): MemoryBodyState {
@@ -12,6 +13,7 @@ function upsertById<T extends { id: string }>(items: T[], item: T): T[] {
 
 export function createInMemoryMemoryBodyStore(userId: string, projectId: string, initialState?: MemoryBodyState): MemoryBodyStore {
   let state = cloneState(initialState ?? createMemoryBodyState(userId, projectId))
+  let auditEvents: MemoryAuditEvent[] = []
 
   const updateMeta = (updatedAt: string) => {
     state = { ...state, meta: { ...state.meta, updatedAt } }
@@ -64,6 +66,19 @@ export function createInMemoryMemoryBodyStore(userId: string, projectId: string,
       }
       if (changed) updateMeta(updatedAt)
       return changed
+    },
+    appendAuditEvent: (event) => {
+      auditEvents = [...auditEvents, event]
+    },
+    getAuditEvents: (filter) => {
+      let result = auditEvents
+      if (filter?.atomId) {
+        result = result.filter(e => e.atomId === filter.atomId)
+      }
+      if (filter?.type) {
+        result = result.filter(e => e.type === filter.type)
+      }
+      return result
     }
   }
 }

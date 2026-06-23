@@ -5,9 +5,9 @@ import { composePromptContext } from '../context/promptContextComposer'
 function atom(partial: Partial<MemoryAtom>): MemoryAtom {
   return {
     id: partial.id ?? 'atom-1',
-    scope: { userId: 'user-1', projectId: 'project-1' },
+    scope: partial.scope ?? { userId: 'user-1', projectId: 'project-1' },
     layer: 'semantic',
-    type: 'preference',
+    type: partial.type ?? 'preference',
     subject: 'user',
     predicate: 'prefers',
     object: partial.object ?? '完整方案',
@@ -15,7 +15,7 @@ function atom(partial: Partial<MemoryAtom>): MemoryAtom {
     source: 'chat',
     confidence: partial.confidence ?? 0.9,
     strength: partial.strength ?? 0.9,
-    emotionalWeight: 0.2,
+    emotionalWeight: partial.emotionalWeight ?? 0.2,
     sensitivity: partial.sensitivity ?? 'personal',
     lifecycle: partial.lifecycle ?? 'confirmed',
     evidence: partial.evidence ?? [{
@@ -61,5 +61,68 @@ describe('promptContextComposer', () => {
     expect(result.context).not.toContain('用户喜欢西瓜')
     expect(result.context).not.toContain('旧偏好')
     expect(result.usedAtomIds).toEqual(['atom-active'])
+  })
+
+  it('excludes memory not permitted for the current scenario', () => {
+    const result = composePromptContext({
+      atoms: [
+        atom({ id: 'atom-chat', content: '聊天偏好', scenarios: ['chat'] }),
+        atom({ id: 'atom-planning', content: '规划偏好', scenarios: ['goal_planning'] })
+      ],
+      maxItems: 5,
+      scenarios: ['goal_planning']
+    })
+
+    expect(result.usedAtomIds).toContain('atom-planning')
+    expect(result.usedAtomIds).not.toContain('atom-chat')
+  })
+
+  it('includes boundaryWarnings in result', () => {
+    const result = composePromptContext({
+      atoms: [
+        atom({
+          id: 'atom-emotion',
+          type: 'emotion',
+          content: '用户今天心情不好',
+          emotionalWeight: 0.9,
+          evidence: [{
+            id: 'evidence-1',
+            source: 'chat',
+            sourceText: '今天心情不好',
+            timestamp: '2026-06-23T00:00:00.000Z',
+            confidence: 0.7
+          }],
+          tags: ['single_event']
+        })
+      ],
+      maxItems: 5,
+      scope: { userId: 'user-1', projectId: 'project-1' }
+    })
+
+    expect(result.boundaryWarnings).toContain('single_event_emotion_not_personality')
+  })
+
+  it('blocks cross-user memory when scope is provided', () => {
+    const result = composePromptContext({
+      atoms: [
+        atom({ id: 'atom-other-user', scope: { userId: 'user-2', projectId: 'project-1' }, content: '其他用户记忆' })
+      ],
+      maxItems: 5,
+      scope: { userId: 'user-1', projectId: 'project-1' }
+    })
+
+    expect(result.usedAtomIds).toEqual([])
+    expect(result.boundaryWarnings).toContain('cross_user_boundary')
+  })
+
+  it('returns empty boundaryWarnings when no scope is provided', () => {
+    const result = composePromptContext({
+      atoms: [
+        atom({ id: 'atom-1', content: '用户偏好完整方案' })
+      ],
+      maxItems: 5
+    })
+
+    expect(result.boundaryWarnings).toEqual([])
   })
 })

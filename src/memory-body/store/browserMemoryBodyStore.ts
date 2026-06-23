@@ -70,6 +70,8 @@ export function createBrowserMemoryBodyStore(userId: string, projectId: string, 
       const changed = memoryStore.forgetAtom(atomId, updatedAt)
       persist()
       return changed
-    }
+    },
+    appendAuditEvent: memoryStore.appendAuditEvent,
+    getAuditEvents: memoryStore.getAuditEvents
   }
 }
