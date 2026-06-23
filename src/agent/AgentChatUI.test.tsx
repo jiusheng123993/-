@@ -343,5 +343,42 @@ describe('AgentChatUI', () => {
       })
       expect(refreshedAdapter.buildPromptContext('我喜欢吃什么水果')).not.toContain('用户喜欢西瓜')
     })
+
+    it('handles MemoryBody correction commands locally without sending them as normal chat', async () => {
+      const userId = 'correction-user'
+      const onSendMessage = vi.fn().mockResolvedValue('Normal response')
+      const store = createBrowserMemoryBodyStore(userId, 'xinghuanhai-growth-workbench')
+      const adapter = createAgentChatMemoryAdapter({
+        store,
+        scope: { userId, projectId: 'xinghuanhai-growth-workbench' }
+      })
+
+      adapter.rememberUserMessage('我喜欢吃西瓜', '2026-06-22T00:00:00.000Z')
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          userId={userId}
+          onSendMessage={onSendMessage}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: '我喜欢的是芒果，不是西瓜' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(screen.getByText('已按你的纠正更新记忆。')).toBeInTheDocument()
+      })
+      expect(onSendMessage).not.toHaveBeenCalled()
+      const refreshedAdapter = createAgentChatMemoryAdapter({
+        store: createBrowserMemoryBodyStore(userId, 'xinghuanhai-growth-workbench'),
+        scope: { userId, projectId: 'xinghuanhai-growth-workbench' }
+      })
+      const promptContext = refreshedAdapter.buildPromptContext('我喜欢吃什么水果')
+      expect(promptContext).toContain('用户喜欢芒果')
+      expect(promptContext).not.toContain('用户喜欢西瓜')
+    })
   })
 })
