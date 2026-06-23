@@ -1127,6 +1127,52 @@ interface MoodJournalAI {
 - ✅ 必须使用："陪伴搭子/成长伙伴/学习搭子/懂你的 AI"
 - Persona 商店中**禁止使用**"和 TA 谈恋爱/和 TA 在一起"等暗示词，**必须使用**"和 TA 一起学习/让 TA 陪你成长"
 
+### 7.7 后端接口安全（补充）
+
+> 本章节补充后端接口层面的安全审查，与 L1-L5 的 AI 内容安全形成互补。详细审查见 `docs/superpowers/specs/2026-06-01-auth-permission-design.md` 和 `docs/superpowers/specs/2026-06-01-payment-system-design.md`。
+
+#### 7.7.1 接口输入安全
+
+所有后端接口的关键参数（userId、orderId、productId、channel、phoneNumber）均通过正则白名单校验，防止注入和越权。支付回调路由（`/api/payment/*/callback`）的输入校验待补全。
+
+#### 7.7.2 登录与鉴权
+
+- 订单/退款/同步接口需要 Bearer Token（开发环境 `dev-user:` / `dev-admin:`，生产环境 JWT）
+- 支付回调路由当前无鉴权，依赖第三方签名验证（支付宝/Apple 验签未实现，标记为 P1 风险）
+- JWT 密钥存在硬编码默认值（P0 风险），生产环境必须通过 `VITE_JWT_SECRET` 环境变量覆盖
+
+#### 7.7.3 权限设计
+
+- 用户只能操作自己的订单和数据（`canAccessUserResource` 中间件）
+- 管理员可操作任意用户资源
+- 模拟支付仅限管理员 + 非生产环境
+- 同步接口（sync push）的数据归属校验待补全
+
+#### 7.7.4 注入风险
+
+- 全部数据库操作使用 Supabase JS SDK 参数化查询，无 SQL 注入风险
+- 支付回调 `rawCallback` 字段直接存储为 JSONB，存在二次注入风险（P2）
+- sync push 的 `content` 和 `metadata` 字段未做内容清洗（P2）
+- 支付回调错误信息直接返回 `(error as Error).message`，可能泄露内部信息（P2）
+
+#### 7.7.5 过度防御
+
+- 支付宝验签 `verifyAlipaySign`、Apple 收据验证 `verifyAppleReceipt` 为死代码（函数体为空），需清理或实现
+- 微信签名生成 `generateWechatSign` 实现不完整（未做哈希），需修复
+
+#### 7.7.6 后端安全风险清单
+
+| 优先级 | 风险 | 影响 |
+|--------|------|------|
+| 🔴 P0 | JWT 密钥硬编码默认值 | 生产环境 token 可被伪造 |
+| 🔴 P0 | 支付回调路由无鉴权 | 开发环境任何人可触发权益发放 |
+| 🟠 P1 | 支付宝/Apple 支付验签未实现 | 生产环境支付回调永远失败 |
+| 🟠 P1 | sync push 缺少数据归属校验 | 前端可构造他人数据 id |
+| 🟡 P2 | 支付回调错误信息泄露 | 可能泄露内部实现细节 |
+| 🟡 P2 | sync push 内容未清洗 | 存储型 XSS 风险 |
+| 🟡 P2 | authRoutes 无测试覆盖 | 认证接口变更无法自动验证 |
+| 🟢 P3 | 微信签名生成不完整 | 生产环境需修复 |
+
 ---
 
 ## 八、会员体系

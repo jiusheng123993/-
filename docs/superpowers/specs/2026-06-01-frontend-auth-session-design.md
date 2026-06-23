@@ -100,6 +100,16 @@ src/auth/devAuthSession.ts
 - 普通用户 token 使用 `dev-user:<userId>`。
 - 生成 header 前必须校验 session。
 
+### 与后端安全对接
+
+> 本模块依赖后端鉴权体系，后端安全审查详见 `docs/superpowers/specs/2026-06-01-auth-permission-design.md`。
+
+- 前端 token 格式必须与后端 `authMiddleware.ts` 的解析规则一致
+- 生产环境必须替换 dev token 为真实 JWT（后端 `jwtService.ts` 签发）
+- 生产环境 JWT 密钥必须通过 `VITE_JWT_SECRET` 环境变量设置，禁止使用硬编码默认值（P0 风险）
+- 支付回调路由（`/api/payment/*/callback`）当前无鉴权，前端不应直接调用这些路由
+- 管理员 token 在生产环境必须禁用（`dev-admin:` 前缀仅开发环境有效）
+
 ## 测试计划
 
 1. 默认 session 生成正确。

@@ -217,3 +217,15 @@ const [isRefundSubmitting, setIsRefundSubmitting] = useState(false)
 - 不引入新 UI 库。
 - 不改变后端订单状态机。
 - 保留现有会员中心试用、优惠券、邀请、套餐展示、订单详情和退款入口。
+
+### 安全依赖说明
+
+> 本模块依赖后端鉴权与支付安全体系，详细安全审查见以下文档：
+> - `docs/superpowers/specs/2026-06-01-auth-permission-design.md`（鉴权权限模块设计）
+> - `docs/superpowers/specs/2026-06-01-payment-system-design.md`（支付流程接入设计）
+
+- 所有订单 API 调用必须携带有效的 Authorization header（由 `authSession` 生成）
+- 前端不应绕过鉴权直接调用支付回调路由（`/api/payment/*/callback`）
+- 生产环境必须替换 dev token 为真实 JWT，JWT 密钥禁止硬编码（P0 风险）
+- 订单归属校验由后端 `canAccessUserResource` 中间件保证，前端不应信任客户端传入的 userId
+- 支付金额由后端根据 productId 从 ProductCatalog 查询，前端不应自行计算金额
