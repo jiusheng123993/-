@@ -44,7 +44,7 @@ describe('promptContextComposer', () => {
 
     expect(result.context).toContain('用户偏好完整方案，不接受简化版')
     expect(result.usedAtomIds).toEqual(['atom-complete'])
-    expect(result.explanations).toEqual(['使用 atom-complete：confirmed / personal / overall 0.78'])
+    expect(result.explanations).toEqual(['使用 atom-complete：confirmed / personal / quality 0.78 / economy 0.51'])
     expect(result.threatWarnings).toEqual([])
     expect(result.overfittingAdjustments).toEqual([])
   })

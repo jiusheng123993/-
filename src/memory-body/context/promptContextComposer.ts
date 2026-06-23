@@ -6,12 +6,15 @@ import { checkCognitivePermission, createCognitivePermission, DEFAULT_COGNITIVE_
 import { checkCognitiveBoundary, type CognitiveBoundaryWarning } from '../boundary/cognitiveBoundary'
 import { detectCognitiveThreats, type CognitiveThreat } from '../threat/cognitiveThreatModel'
 import { applyAntiOverfittingPolicy, type AntiOverfittingAdjustment } from '../policy/antiOverfittingPolicy'
+import { calculateMemoryEconomy, type MemoryEconomy } from '../economy/memoryEconomy'
+import { createCognitiveBudget, isWithinPromptTokenBudget, type CognitiveBudget } from '../budget/cognitiveBudget'
 
 export interface PromptContextComposerInput {
   atoms: MemoryAtom[]
   maxItems?: number
   scenarios?: MemoryScenario[]
   scope?: MemoryScope
+  budget?: CognitiveBudget
 }
 
 export interface PromptContextComposerResult {
@@ -21,6 +24,8 @@ export interface PromptContextComposerResult {
   boundaryWarnings: CognitiveBoundaryWarning[]
   threatWarnings: CognitiveThreat[]
   overfittingAdjustments: AntiOverfittingAdjustment[]
+  economyScores: MemoryEconomy[]
+  budgetExceeded: boolean
 }
 
 function inferPermissionFromScenarios(scenarios: MemoryScenario[]): CognitivePermission {
@@ -44,11 +49,12 @@ function isScenarioAllowed(atomScenarios: MemoryScenario[], currentScenarios: Me
 export function composePromptContext(input: PromptContextComposerInput): PromptContextComposerResult {
   const currentScenarios = input.scenarios ?? ['chat']
   const scope = input.scope
+  const budget = input.budget ?? createCognitiveBudget()
   const boundaryWarnings: CognitiveBoundaryWarning[] = []
   const threatWarnings: CognitiveThreat[] = []
   const overfittingAdjustments: AntiOverfittingAdjustment[] = []
 
-  const ranked = input.atoms
+  const filtered = input.atoms
     .filter(atom => isActiveMemoryAtom(atom) && !isForbiddenMemoryAtom(atom))
     .filter(atom => {
       const atomScenarios = atom.scenarios ?? []
@@ -71,18 +77,29 @@ export function composePromptContext(input: PromptContextComposerInput): PromptC
       overfittingAdjustments.push(...policyResult.adjustments)
       return policyResult.allowed
     })
-    .map(atom => ({ atom, quality: scoreMemoryQuality(atom) }))
-    .sort((left, right) => right.quality.overallScore - left.quality.overallScore)
+
+  const economyScores = filtered.map(atom => calculateMemoryEconomy(atom))
+
+  const ranked = filtered
+    .map((atom, i) => ({ atom, quality: scoreMemoryQuality(atom), economy: economyScores[i] }))
+    .sort((left, right) => {
+      const leftScore = left.quality.overallScore * 0.6 + left.economy.valueScore * 0.4
+      const rightScore = right.quality.overallScore * 0.6 + right.economy.valueScore * 0.4
+      return rightScore - leftScore
+    })
     .slice(0, input.maxItems ?? 8)
 
   const atoms = ranked.map(item => item.atom)
+  const budgetExceeded = !isWithinPromptTokenBudget(atoms, budget)
 
   return {
     context: buildMemoryBodyPromptContext({ atoms }),
     usedAtomIds: atoms.map(atom => atom.id),
-    explanations: ranked.map(item => `使用 ${item.atom.id}：${item.atom.lifecycle} / ${item.atom.sensitivity} / overall ${item.quality.overallScore.toFixed(2)}`),
+    explanations: ranked.map(item => `使用 ${item.atom.id}：${item.atom.lifecycle} / ${item.atom.sensitivity} / quality ${item.quality.overallScore.toFixed(2)} / economy ${item.economy.valueScore.toFixed(2)}`),
     boundaryWarnings,
     threatWarnings,
-    overfittingAdjustments
+    overfittingAdjustments,
+    economyScores: ranked.map(item => item.economy),
+    budgetExceeded
   }
 }
