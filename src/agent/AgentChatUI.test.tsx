@@ -380,5 +380,42 @@ describe('AgentChatUI', () => {
       expect(promptContext).toContain('用户喜欢芒果')
       expect(promptContext).not.toContain('用户喜欢西瓜')
     })
+
+    it('handles MemoryBody confirm commands locally without sending them as normal chat', async () => {
+      const userId = 'confirm-user'
+      const onSendMessage = vi.fn().mockResolvedValue('Normal response')
+      const store = createBrowserMemoryBodyStore(userId, 'xinghuanhai-growth-workbench')
+      const adapter = createAgentChatMemoryAdapter({
+        store,
+        scope: { userId, projectId: 'xinghuanhai-growth-workbench' }
+      })
+
+      adapter.rememberUserMessage('我喜欢吃西瓜', '2026-06-22T00:00:00.000Z')
+      const seededAtom = store.load().atoms.find(atom => atom.object === '西瓜')
+      expect(seededAtom).toBeDefined()
+
+      render(
+        <AgentChatUI
+          isOpen
+          onClose={() => {}}
+          userId={userId}
+          onSendMessage={onSendMessage}
+        />
+      )
+
+      const input = screen.getByPlaceholderText('输入消息...')
+      fireEvent.change(input, { target: { value: '确认这条记忆，没错' } })
+      fireEvent.click(screen.getByLabelText('发送消息'))
+
+      await waitFor(() => {
+        expect(screen.getByText('已确认这条记忆。')).toBeInTheDocument()
+      })
+      expect(onSendMessage).not.toHaveBeenCalled()
+      const refreshedStore = createBrowserMemoryBodyStore(userId, 'xinghuanhai-growth-workbench')
+      const confirmedAtom = refreshedStore.load().atoms.find(atom => atom.object === '西瓜')
+      expect(confirmedAtom).toMatchObject({ lifecycle: 'confirmed' })
+      expect(confirmedAtom?.confidence).toBeGreaterThan(seededAtom?.confidence ?? 0)
+      expect(confirmedAtom?.strength).toBeGreaterThan(seededAtom?.strength ?? 0)
+    })
   })
 })
