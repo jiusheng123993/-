@@ -36,5 +36,5 @@ export function isProtectedMemoryAtom(atom: MemoryAtom): boolean {
 }
 
 export function isForbiddenMemoryAtom(atom: MemoryAtom): boolean {
-  return atom.lifecycle === 'forbidden' || atom.sensitivity === 'forbidden'
+  return atom.lifecycle === 'forbidden'
 }
