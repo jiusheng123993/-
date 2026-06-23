@@ -1,4 +1,4 @@
-import { buildMemoryBodyPromptContext } from '../context/memoryBodyContextBuilder'
+import { composePromptContext } from '../context/promptContextComposer'
 import { normalizeScore } from '../core/memoryBodyGuards'
 import type { MemoryAtom, MemoryScope } from '../core/memoryBodyTypes'
 import { applyMemoryFeedback, type MemoryFeedback, type MemoryFeedbackResult } from '../feedback/memoryFeedback'
@@ -82,8 +82,11 @@ export function createAgentChatMemoryAdapter(options: AgentChatMemoryAdapterOpti
         scenarios: currentMessage ? ['chat', 'food_recommendation', 'emotional_support', 'goal_planning'] : undefined,
         minRelevanceScore: currentMessage ? 1 : 0
       })
-      const context = buildMemoryBodyPromptContext({ atoms })
-      if (context) trackMemoryAccess(options.store, atoms, now())
+      const { context, usedAtomIds } = composePromptContext({ atoms })
+      if (context) {
+        const usedAtoms = atoms.filter(atom => usedAtomIds.includes(atom.id))
+        trackMemoryAccess(options.store, usedAtoms, now())
+      }
       return context
     },
     applyFeedback: (feedback) => applyFeedbackToStore(options.store, feedback),

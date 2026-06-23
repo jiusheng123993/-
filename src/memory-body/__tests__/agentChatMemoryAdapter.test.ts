@@ -123,6 +123,43 @@ describe('agent chat memory adapter', () => {
     })
   })
 
+  it('tracks access only for the governed composer selection window', () => {
+    const accessedAt = '2026-06-22T01:00:00.000Z'
+    const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
+    const atoms = Array.from({ length: 9 }, (_, index) => createAtom({
+      id: `atom-complete-${index + 1}`,
+      object: `完整方案${index + 1}`,
+      content: `用户偏好完整方案${index + 1}`,
+      lifecycle: 'confirmed',
+      confidence: 0.9,
+      strength: index === 8 ? 0.9 : 0.8,
+      accessCount: 0,
+      scenarios: ['chat'],
+      tags: [`complete-solution-${index + 1}`],
+      evidence: [{
+        id: `evidence-complete-${index + 1}`,
+        source: 'chat',
+        sourceText: `要做完整方案${index + 1}`,
+        timestamp,
+        confidence: index === 8 ? 0.1 : 0.9
+      }]
+    }))
+    atoms.forEach(atom => store.upsertAtom(atom))
+    const adapter = createAgentChatMemoryAdapter({ store, scope, now: () => accessedAt })
+
+    const context = adapter.buildPromptContext()
+
+    const storedAtoms = store.load().atoms
+    expect(context).toContain('用户偏好完整方案1')
+    expect(context).not.toContain('用户偏好完整方案9')
+    expect(storedAtoms.filter(atom => atom.lastAccessedAt === accessedAt)).toHaveLength(8)
+    expect(storedAtoms.find(atom => atom.id === 'atom-complete-9')).toMatchObject({
+      accessCount: 0,
+      lastAccessedAt: timestamp,
+      updatedAt: timestamp
+    })
+  })
+
   it('applies explicit confirmation feedback through the adapter store boundary', () => {
     const feedbackAt = '2026-06-22T02:00:00.000Z'
     const store = createInMemoryMemoryBodyStore(scope.userId, scope.projectId)
