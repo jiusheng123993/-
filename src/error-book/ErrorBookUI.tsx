@@ -11,7 +11,7 @@ import {
 } from './errorBookService'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
-import { createEntitlementService } from '../entitlement/entitlementService'
+import { useMembership } from '../hooks/useMembership'
 import { loadState as loadMCState, saveState as saveMCState, addCard } from '../memory-cards/memoryCardsService'
 import styles from './ErrorBookUI.module.css'
 
@@ -70,13 +70,7 @@ export function ErrorBookUI({ userId }: ErrorBookUIProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { hasAnyKey } = useApiKeyStatus()
-
-  const entitlementService = createEntitlementService()
-  const isMember = userId ? (
-    entitlementService.has(userId, 'study') ||
-    entitlementService.has(userId, 'agent') ||
-    entitlementService.has(userId, 'agent_plus')
-  ) : false
+  const { isMember } = useMembership(userId)
 
   const loadData = useCallback(() => {
     const allItems = getErrorItems()

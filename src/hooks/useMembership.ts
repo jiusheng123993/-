@@ -16,13 +16,21 @@ interface Coupon {
   used: boolean
 }
 
-export function useMembership(userId: string) {
+export function useMembership(userId: string | undefined) {
   const entitlementService = useMemo(() => createEntitlementService(), [])
   const aiQuotaProvider = useMemo(() => createAiQuotaProvider(entitlementService), [entitlementService])
   const [trials, setTrials] = useState<Trial[]>([])
   const [coupons, setCoupons] = useState<Coupon[]>([])
 
+  const isMember = useMemo(() => {
+    if (!userId) return false
+    return entitlementService.has(userId, 'study') ||
+           entitlementService.has(userId, 'agent') ||
+           entitlementService.has(userId, 'agent_plus')
+  }, [userId, entitlementService])
+
   const currentTier = useMemo(() => {
+    if (!userId) return { level: 'free', label: '免费用户', color: '#94a3b8' }
     if (entitlementService.has(userId, 'agent_plus')) return { level: 'agent_plus', label: 'Agent PLUS', color: '#8b5cf6' }
     if (entitlementService.has(userId, 'agent')) return { level: 'agent', label: 'Agent 会员', color: '#6366f1' }
     if (entitlementService.has(userId, 'study')) return { level: 'study', label: '学习会员', color: '#10b981' }
@@ -126,6 +134,7 @@ export function useMembership(userId: string) {
   }, [])
 
   return {
+    isMember,
     currentTier,
     quotaStatus,
     totalQuota,

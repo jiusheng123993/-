@@ -19,7 +19,7 @@ import {
 } from './studyPlannerService'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
-import { createEntitlementService } from '../entitlement/entitlementService'
+import { useMembership } from '../hooks/useMembership'
 import styles from './StudyPlannerUI.module.css'
 
 const DEFAULT_SUBJECTS = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治']
@@ -60,13 +60,7 @@ export function StudyPlannerUI({ userId }: StudyPlannerUIProps) {
   const [aiSuggestionError, setAiSuggestionError] = useState<string | null>(null)
 
   const { hasAnyKey } = useApiKeyStatus()
-
-  const entitlementService = createEntitlementService()
-  const isMember = userId ? (
-    entitlementService.has(userId, 'study') ||
-    entitlementService.has(userId, 'agent') ||
-    entitlementService.has(userId, 'agent_plus')
-  ) : false
+  const { isMember } = useMembership(userId)
 
   const canUseAI = isMember && hasAnyKey
 

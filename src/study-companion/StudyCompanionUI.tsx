@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useApiKeyStatus } from '../hooks/useApiKeyStatus'
-import { createEntitlementService } from '../entitlement/entitlementService'
+import { useMembership } from '../hooks/useMembership'
 import { sendAgentChatMessageStream } from '../agent/agentRuntime'
 import {
   getMessages,
@@ -35,12 +35,7 @@ const QUICK_ACTIONS: QuickAction[] = [
 
 export function StudyCompanionUI({ userId }: StudyCompanionUIProps) {
   const { hasAnyKey } = useApiKeyStatus()
-  const entitlementService = createEntitlementService()
-  const isMember = userId
-    ? entitlementService.has(userId, 'study') ||
-      entitlementService.has(userId, 'agent') ||
-      entitlementService.has(userId, 'agent_plus')
-    : false
+  const { isMember } = useMembership(userId)
 
   const [messages, setMessages] = useState<CompanionMessage[]>([])
   const [input, setInput] = useState('')
