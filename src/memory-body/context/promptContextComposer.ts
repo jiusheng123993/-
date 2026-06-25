@@ -4,8 +4,8 @@ import type { MemoryAtom, MemoryScenario, MemoryScope } from '../core/memoryBody
 import { scoreMemoryQuality } from '../quality/memoryQuality'
 import { checkCognitivePermission, createCognitivePermission, DEFAULT_COGNITIVE_PERMISSION, type CognitivePermission } from '../permission/cognitivePermission'
 import { checkCognitiveBoundary, type CognitiveBoundaryWarning } from '../boundary/cognitiveBoundary'
-import { detectCognitiveThreats, type CognitiveThreat } from '../threat/cognitiveThreatModel'
-import { applyAntiOverfittingPolicy, type AntiOverfittingAdjustment } from '../policy/antiOverfittingPolicy'
+import { assessCognitiveThreats } from '../threat/cognitiveThreatModel'
+import { applyAntiOverfittingPolicy } from '../policy/antiOverfittingPolicy'
 import { calculateMemoryEconomy, type MemoryEconomy } from '../economy/memoryEconomy'
 import { createCognitiveBudget, isWithinPromptTokenBudget, type CognitiveBudget } from '../budget/cognitiveBudget'
 
@@ -22,8 +22,8 @@ export interface PromptContextComposerResult {
   usedAtomIds: string[]
   explanations: string[]
   boundaryWarnings: CognitiveBoundaryWarning[]
-  threatWarnings: CognitiveThreat[]
-  overfittingAdjustments: AntiOverfittingAdjustment[]
+  threatWarnings: string[]
+  overfittingAdjustments: string[]
   economyScores: MemoryEconomy[]
   budgetExceeded: boolean
 }
@@ -51,8 +51,8 @@ export function composePromptContext(input: PromptContextComposerInput): PromptC
   const scope = input.scope
   const budget = input.budget ?? createCognitiveBudget()
   const boundaryWarnings: CognitiveBoundaryWarning[] = []
-  const threatWarnings: CognitiveThreat[] = []
-  const overfittingAdjustments: AntiOverfittingAdjustment[] = []
+  const threatWarnings: string[] = []
+  const overfittingAdjustments: string[] = []
 
   const filtered = input.atoms
     .filter(atom => isActiveMemoryAtom(atom) && !isForbiddenMemoryAtom(atom))
@@ -62,9 +62,19 @@ export function composePromptContext(input: PromptContextComposerInput): PromptC
     })
     .filter(atom => {
       if (!scope) return true
-      const threats = detectCognitiveThreats(atom, { currentScope: scope, currentScenario: currentScenarios[0] ?? 'chat' })
-      threatWarnings.push(...threats)
-      return !threats.includes('unauthorized_memory_use') && !threats.includes('cross_context_leakage')
+      const threatResult = assessCognitiveThreats({
+        atom,
+        sourceText: atom.evidence?.[0]?.sourceText ?? atom.content,
+        currentScenario: currentScenarios[0] ?? 'chat',
+        atomScenario: atom.scenarios?.[0] ?? 'chat',
+        isSensitive: atom.sensitivity === 'sensitive' || atom.sensitivity === 'forbidden',
+        isStale: atom.lifecycle === 'archived',
+        isPersonalized: atom.sensitivity === 'personal',
+        isAuthorized: atom.scope?.userId === scope.userId,
+        promptContext: atom.content
+      })
+      threatWarnings.push(...threatResult.threats.filter(t => t.detected).map(t => t.type))
+      return threatResult.recommendation !== 'block'
     })
     .filter(atom => {
       if (!scope) return true
@@ -73,9 +83,20 @@ export function composePromptContext(input: PromptContextComposerInput): PromptC
       return boundaryCheck.allowed
     })
     .filter(atom => {
-      const policyResult = applyAntiOverfittingPolicy(atom)
-      overfittingAdjustments.push(...policyResult.adjustments)
-      return policyResult.allowed
+      const policyResult = applyAntiOverfittingPolicy({
+        atom,
+        evidenceCount: atom.evidence?.length ?? 0,
+        occurrenceCount: atom.accessCount ?? 0,
+        hasConflict: atom.source !== 'manual' && (atom.contradictionOf?.length ?? 0) > 0,
+        isUserConfirmed: atom.lifecycle === 'confirmed',
+        isModelReinforced: atom.source === 'model',
+        isTemporaryEmotion: atom.type === 'emotion' && (atom.emotionalWeight ?? 0) > 0.5,
+        hasCorrection: atom.source === 'manual' || (atom.contradictionOf?.length ?? 0) > 0,
+        currentScope: scope ?? atom.scope ?? { userId: 'default', projectId: 'default' },
+        suggestedScope: atom.scope ?? scope ?? { userId: 'default', projectId: 'default' }
+      })
+      overfittingAdjustments.push(...policyResult.risks.map(r => r.type))
+      return policyResult.passed
     })
 
   const economyScores = filtered.map(atom => calculateMemoryEconomy(atom))

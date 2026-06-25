@@ -17,6 +17,8 @@ interface SidebarCallbacksDeps {
   setIsApiKeySettingsOpen: (open: boolean) => void
   setIsSupabaseConfigOpen: (open: boolean) => void
   setIsMigrationOpen: (open: boolean) => void
+  setIsMemoryStarMapOpen: (open: boolean) => void
+  setIsMetricsDashboardOpen: (open: boolean) => void
 }
 
 export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
@@ -34,7 +36,9 @@ export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
     setIsDataBackupOpen,
     setIsApiKeySettingsOpen,
     setIsSupabaseConfigOpen,
-    setIsMigrationOpen
+    setIsMigrationOpen,
+    setIsMemoryStarMapOpen,
+    setIsMetricsDashboardOpen
   } = deps
 
   const onOpenModuleStore = useCallback(() => {
@@ -122,6 +126,20 @@ export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
     })
   }, [closeAllSidebarPanels, setIsMigrationOpen])
 
+  const onOpenMemoryStarMap = useCallback(() => {
+    closeAllSidebarPanels()
+    flushSync(() => {
+      setIsMemoryStarMapOpen(true)
+    })
+  }, [closeAllSidebarPanels, setIsMemoryStarMapOpen])
+
+  const onOpenMetricsDashboard = useCallback(() => {
+    closeAllSidebarPanels()
+    flushSync(() => {
+      setIsMetricsDashboardOpen(true)
+    })
+  }, [closeAllSidebarPanels, setIsMetricsDashboardOpen])
+
   return {
     onOpenModuleStore,
     onOpenThemePicker,
@@ -135,6 +153,8 @@ export function useSidebarCallbacks(deps: SidebarCallbacksDeps) {
     onOpenDataBackup,
     onOpenApiKeySettings,
     onOpenSupabaseConfig,
-    onOpenMigration
+    onOpenMigration,
+    onOpenMemoryStarMap,
+    onOpenMetricsDashboard
   }
 }

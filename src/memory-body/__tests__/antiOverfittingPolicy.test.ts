@@ -1,164 +1,387 @@
-import { describe, expect, it } from 'vitest'
-import type { MemoryAtom } from '../core/memoryBodyTypes'
-import { applyAntiOverfittingPolicy } from '../policy/antiOverfittingPolicy'
+import { describe, it, expect } from 'vitest'
+import {
+  checkLowEvidenceStable,
+  checkSingleOccurrenceGlobal,
+  checkTemporaryEmotionPermanent,
+  checkConflictConfidenceDecay,
+  checkModelReinforcementOverride,
+  checkCorrectionIsolation,
+  determineMaxLifecycle,
+  applyAntiOverfittingPolicy,
+  summarizeAntiOverfittingResult,
+} from '../policy/antiOverfittingPolicy'
+import type { MemoryAtom } from '../types'
 
-const scope = { userId: 'user-1', projectId: 'project-1' }
-const timestamp = '2026-06-23T00:00:00.000Z'
-
-function atom(partial: Partial<MemoryAtom>): MemoryAtom {
+function makeAtom(overrides: Partial<MemoryAtom> = {}): MemoryAtom {
   return {
-    id: partial.id ?? 'atom-1',
-    scope: partial.scope ?? scope,
-    layer: partial.layer ?? 'semantic',
-    type: partial.type ?? 'preference',
-    subject: partial.subject ?? 'user',
-    predicate: partial.predicate ?? 'likes',
-    object: partial.object ?? '西瓜',
-    content: partial.content ?? '用户喜欢西瓜',
-    source: partial.source ?? 'chat',
-    confidence: partial.confidence ?? 0.78,
-    strength: partial.strength ?? 0.5,
-    emotionalWeight: partial.emotionalWeight ?? 0.1,
-    sensitivity: partial.sensitivity ?? 'personal',
-    lifecycle: partial.lifecycle ?? 'active',
-    evidence: partial.evidence ?? [{
-      id: 'evidence-1',
-      source: 'chat',
-      sourceText: '我喜欢吃西瓜',
-      timestamp,
-      confidence: 0.78
-    }],
-    tags: partial.tags ?? [],
-    scenarios: partial.scenarios ?? ['chat'],
-    conditions: partial.conditions,
-    createdAt: partial.createdAt ?? timestamp,
-    updatedAt: partial.updatedAt ?? timestamp,
-    lastAccessedAt: partial.lastAccessedAt ?? timestamp,
-    accessCount: partial.accessCount ?? 0,
-    contradictionOf: partial.contradictionOf ?? []
+    id: 'atom-1',
+    content: '用户偏好 TypeScript',
+    kind: 'preference',
+    scope: 'project',
+    scenario: 'coding',
+    lifecycle: 'active',
+    status: 'active',
+    confidence: 0.7,
+    sensitivity: 'public',
+    source: 'chat',
+    evidence: [],
+    tags: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    quality: 0.6,
+    ...overrides,
   }
 }
 
-describe('antiOverfittingPolicy', () => {
-  it('allows normal confirmed memory without adjustments', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({ lifecycle: 'confirmed', confidence: 0.85, strength: 0.8, evidence: [
-        { id: 'ev-1', source: 'chat', sourceText: 'like', timestamp, confidence: 0.85 },
-        { id: 'ev-2', source: 'chat', sourceText: 'still like', timestamp, confidence: 0.8 }
-      ] })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).toEqual([])
+describe('checkLowEvidenceStable', () => {
+  it('returns risk when stable with low evidence', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const risk = checkLowEvidenceStable(atom, 1)
+    expect(risk).not.toBeNull()
+    expect(risk!.type).toBe('low_evidence_stable')
+    expect(risk!.severity).toBe('high')
   })
 
-  it('blocks low-evidence memory from being stable', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'stable',
-        confidence: 0.3,
-        evidence: [{ id: 'ev-1', source: 'chat', sourceText: 'maybe', timestamp, confidence: 0.3 }]
-      })
-    )
-    expect(result.allowed).toBe(false)
-    expect(result.adjustments).toContain('low_evidence_stable_blocked')
+  it('returns null when stable with enough evidence', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const risk = checkLowEvidenceStable(atom, 3)
+    expect(risk).toBeNull()
   })
 
-  it('adds scenario boundary for single-evidence preference', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'confirmed',
-        confidence: 0.8,
-        evidence: [{ id: 'ev-1', source: 'chat', sourceText: 'once', timestamp, confidence: 0.8 }],
-        scenarios: ['chat', 'goal_planning', 'food_recommendation']
-      })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).toContain('single_evidence_scenario_boundary')
-    expect(result.suggestedScenarios).toEqual(['chat'])
+  it('returns null when not stable', () => {
+    const atom = makeAtom({ lifecycle: 'active' })
+    const risk = checkLowEvidenceStable(atom, 1)
+    expect(risk).toBeNull()
+  })
+})
+
+describe('checkSingleOccurrenceGlobal', () => {
+  it('returns risk when suggesting global with single occurrence', () => {
+    const atom = makeAtom({ scope: 'project' })
+    const risk = checkSingleOccurrenceGlobal(atom, 1, 'global')
+    expect(risk).not.toBeNull()
+    expect(risk!.type).toBe('single_occurrence_global')
   })
 
-  it('marks temporary emotion as short-term', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        type: 'emotion',
-        emotionalWeight: 0.9,
-        lifecycle: 'active',
-        evidence: [{ id: 'ev-1', source: 'chat', sourceText: 'sad today', timestamp, confidence: 0.7 }]
-      })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).toContain('temporary_emotion_short_term')
-    expect(result.suggestedLifecycle).toBe('draft')
+  it('returns null when already global', () => {
+    const atom = makeAtom({ scope: 'global' })
+    const risk = checkSingleOccurrenceGlobal(atom, 1, 'global')
+    expect(risk).toBeNull()
   })
 
-  it('reduces confidence when contradiction exists', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'confirmed',
-        confidence: 0.9,
-        contradictionOf: ['atom-other']
-      })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).toContain('contradiction_confidence_reduced')
-    expect(result.adjustedConfidence).toBeLessThan(0.9)
+  it('returns null with enough occurrences', () => {
+    const atom = makeAtom({ scope: 'project' })
+    const risk = checkSingleOccurrenceGlobal(atom, 2, 'global')
+    expect(risk).toBeNull()
+  })
+})
+
+describe('checkTemporaryEmotionPermanent', () => {
+  it('returns risk when temporary emotion is not transient', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const risk = checkTemporaryEmotionPermanent(atom, true)
+    expect(risk).not.toBeNull()
+    expect(risk!.type).toBe('temporary_emotion_permanent')
   })
 
-  it('prioritizes user confirmation over model reinforcement', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'confirmed',
-        confidence: 0.6,
-        strength: 0.4,
-        source: 'model'
-      })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).toContain('model_source_lower_priority')
-    expect(result.adjustedStrength).toBeLessThanOrEqual(0.4)
+  it('returns null when temporary emotion is transient', () => {
+    const atom = makeAtom({ lifecycle: 'transient' })
+    const risk = checkTemporaryEmotionPermanent(atom, true)
+    expect(risk).toBeNull()
   })
 
-  it('triggers isolation for corrected memory', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'confirmed',
-        contradictionOf: ['atom-new'],
-        source: 'manual'
-      })
-    )
-    expect(result.allowed).toBe(false)
-    expect(result.adjustments).toContain('corrected_memory_isolated')
+  it('returns null when not temporary emotion', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const risk = checkTemporaryEmotionPermanent(atom, false)
+    expect(risk).toBeNull()
+  })
+})
+
+describe('checkConflictConfidenceDecay', () => {
+  it('decays confidence when conflict exists and confidence > 0.5', () => {
+    const atom = makeAtom({ confidence: 0.8 })
+    const { risk, adjustedConfidence } = checkConflictConfidenceDecay(atom, true)
+    expect(risk).not.toBeNull()
+    expect(risk!.type).toBe('conflict_confidence_decay')
+    expect(adjustedConfidence).toBe(0.5)
   })
 
-  it('allows high-evidence confirmed memory with multiple sources', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'confirmed',
-        confidence: 0.9,
-        strength: 0.85,
-        evidence: [
-          { id: 'ev-1', source: 'chat', sourceText: 'like', timestamp, confidence: 0.9 },
-          { id: 'ev-2', source: 'chat', sourceText: 'still like', timestamp, confidence: 0.85 },
-          { id: 'ev-3', source: 'manual', sourceText: 'confirmed', timestamp, confidence: 1 }
-        ]
-      })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).toEqual([])
+  it('does not decay when no conflict', () => {
+    const atom = makeAtom({ confidence: 0.8 })
+    const { risk, adjustedConfidence } = checkConflictConfidenceDecay(atom, false)
+    expect(risk).toBeNull()
+    expect(adjustedConfidence).toBe(0.8)
   })
 
-  it('does not adjust manual source memory confidence', () => {
-    const result = applyAntiOverfittingPolicy(
-      atom({
-        lifecycle: 'confirmed',
-        confidence: 0.9,
-        source: 'manual',
-        evidence: [
-          { id: 'ev-1', source: 'manual', sourceText: 'user said', timestamp, confidence: 1 }
-        ]
-      })
-    )
-    expect(result.allowed).toBe(true)
-    expect(result.adjustments).not.toContain('model_source_lower_priority')
+  it('does not decay when confidence is low', () => {
+    const atom = makeAtom({ confidence: 0.4 })
+    const { risk, adjustedConfidence } = checkConflictConfidenceDecay(atom, true)
+    expect(risk).toBeNull()
+    expect(adjustedConfidence).toBe(0.4)
+  })
+})
+
+describe('checkModelReinforcementOverride', () => {
+  it('returns risk when model reinforced without user confirmation', () => {
+    const risk = checkModelReinforcementOverride(false, true)
+    expect(risk).not.toBeNull()
+    expect(risk!.type).toBe('model_reinforcement_override')
+  })
+
+  it('returns null when user confirmed', () => {
+    const risk = checkModelReinforcementOverride(true, true)
+    expect(risk).toBeNull()
+  })
+
+  it('returns null when not model reinforced', () => {
+    const risk = checkModelReinforcementOverride(false, false)
+    expect(risk).toBeNull()
+  })
+})
+
+describe('checkCorrectionIsolation', () => {
+  it('returns risk when correction exists and atom not archived', () => {
+    const atom = makeAtom({ lifecycle: 'active' })
+    const { risk, shouldIsolateOld } = checkCorrectionIsolation(true, atom)
+    expect(risk).not.toBeNull()
+    expect(risk!.type).toBe('correction_isolation_missing')
+    expect(shouldIsolateOld).toBe(true)
+  })
+
+  it('returns null when already archived', () => {
+    const atom = makeAtom({ lifecycle: 'archived' })
+    const { risk, shouldIsolateOld } = checkCorrectionIsolation(true, atom)
+    expect(risk).toBeNull()
+    expect(shouldIsolateOld).toBe(false)
+  })
+
+  it('returns null when no correction', () => {
+    const atom = makeAtom({ lifecycle: 'active' })
+    const { risk, shouldIsolateOld } = checkCorrectionIsolation(false, atom)
+    expect(risk).toBeNull()
+    expect(shouldIsolateOld).toBe(false)
+  })
+
+  it('returns null when source is manual (correction result atom)', () => {
+    const atom = makeAtom({ lifecycle: 'confirmed', source: 'manual' })
+    const { risk, shouldIsolateOld } = checkCorrectionIsolation(true, atom)
+    expect(risk).toBeNull()
+    expect(shouldIsolateOld).toBe(false)
+  })
+})
+
+describe('determineMaxLifecycle', () => {
+  it('returns transient for temporary emotion', () => {
+    expect(determineMaxLifecycle(true, 5, true, false)).toBe('transient')
+  })
+
+  it('returns active when conflict exists', () => {
+    expect(determineMaxLifecycle(false, 5, true, true)).toBe('active')
+  })
+
+  it('returns confirmed when user confirmed with enough evidence', () => {
+    expect(determineMaxLifecycle(false, 3, true, false)).toBe('confirmed')
+  })
+
+  it('returns stable with enough evidence but no confirmation', () => {
+    expect(determineMaxLifecycle(false, 3, false, false)).toBe('stable')
+  })
+
+  it('returns active with some evidence', () => {
+    expect(determineMaxLifecycle(false, 1, false, false)).toBe('active')
+  })
+
+  it('returns transient with no evidence', () => {
+    expect(determineMaxLifecycle(false, 0, false, false)).toBe('transient')
+  })
+})
+
+describe('applyAntiOverfittingPolicy', () => {
+  it('passes for a healthy atom', () => {
+    const atom = makeAtom({ lifecycle: 'active', confidence: 0.7 })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: true,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    expect(result.passed).toBe(true)
+    expect(result.risks).toHaveLength(0)
+  })
+
+  it('detects low evidence stable risk', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 1,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: false,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.some((r) => r.type === 'low_evidence_stable')).toBe(true)
+  })
+
+  it('detects single occurrence global risk', () => {
+    const atom = makeAtom({ scope: 'project' })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 1,
+      hasConflict: false,
+      isUserConfirmed: false,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'global',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.some((r) => r.type === 'single_occurrence_global')).toBe(true)
+    expect(result.adjustedScope).toBe('project')
+  })
+
+  it('detects temporary emotion permanent risk', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: false,
+      isModelReinforced: false,
+      isTemporaryEmotion: true,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.some((r) => r.type === 'temporary_emotion_permanent')).toBe(true)
+    expect(result.maxLifecycle).toBe('transient')
+  })
+
+  it('detects conflict confidence decay', () => {
+    const atom = makeAtom({ confidence: 0.8 })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 2,
+      hasConflict: true,
+      isUserConfirmed: false,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.some((r) => r.type === 'conflict_confidence_decay')).toBe(true)
+    expect(result.adjustedConfidence).toBe(0.5)
+  })
+
+  it('detects model reinforcement override', () => {
+    const atom = makeAtom()
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: false,
+      isModelReinforced: true,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.some((r) => r.type === 'model_reinforcement_override')).toBe(true)
+  })
+
+  it('detects correction isolation missing', () => {
+    const atom = makeAtom({ lifecycle: 'active' })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: false,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: true,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.some((r) => r.type === 'correction_isolation_missing')).toBe(true)
+    expect(result.shouldIsolateOld).toBe(true)
+  })
+
+  it('detects multiple risks simultaneously', () => {
+    const atom = makeAtom({ lifecycle: 'stable', confidence: 0.8 })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 1,
+      occurrenceCount: 1,
+      hasConflict: true,
+      isUserConfirmed: false,
+      isModelReinforced: true,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'global',
+    })
+    expect(result.passed).toBe(false)
+    expect(result.risks.length).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe('summarizeAntiOverfittingResult', () => {
+  it('summarizes passed result', () => {
+    const atom = makeAtom()
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 3,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: true,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    const summary = summarizeAntiOverfittingResult(result)
+    expect(summary).toContain('通过')
+    expect(summary).toContain('风险数: 0')
+  })
+
+  it('summarizes failed result with risks', () => {
+    const atom = makeAtom({ lifecycle: 'stable' })
+    const result = applyAntiOverfittingPolicy({
+      atom,
+      evidenceCount: 1,
+      occurrenceCount: 2,
+      hasConflict: false,
+      isUserConfirmed: false,
+      isModelReinforced: false,
+      isTemporaryEmotion: false,
+      hasCorrection: false,
+      currentScope: 'project',
+      suggestedScope: 'project',
+    })
+    const summary = summarizeAntiOverfittingResult(result)
+    expect(summary).toContain('未通过')
+    expect(summary).toContain('low_evidence_stable')
   })
 })

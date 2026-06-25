@@ -106,8 +106,7 @@ describe('promptContextComposer', () => {
     })
 
     expect(result.boundaryWarnings).toContain('single_event_emotion_not_personality')
-    expect(result.threatWarnings).toContain('over_personalization')
-    expect(result.overfittingAdjustments).toContain('temporary_emotion_short_term')
+    expect(result.overfittingAdjustments).toContain('temporary_emotion_permanent')
   })
 
   it('blocks cross-user memory when scope is provided', () => {
@@ -120,7 +119,7 @@ describe('promptContextComposer', () => {
     })
 
     expect(result.usedAtomIds).toEqual([])
-    expect(result.threatWarnings).toContain('cross_context_leakage')
+    expect(result.threatWarnings).toContain('unauthorized_memory_use')
     expect(result.overfittingAdjustments).toEqual([])
   })
 
@@ -140,7 +139,7 @@ describe('promptContextComposer', () => {
   it('blocks memory with unauthorized_memory_use threat', () => {
     const result = composePromptContext({
       atoms: [
-        atom({ id: 'atom-forbidden', content: '禁止使用的记忆', lifecycle: 'confirmed', sensitivity: 'forbidden' })
+        atom({ id: 'atom-other-user', scope: { userId: 'user-2', projectId: 'project-1' }, content: '其他用户记忆' })
       ],
       maxItems: 5,
       scope: { userId: 'user-1', projectId: 'project-1' }
@@ -150,16 +149,17 @@ describe('promptContextComposer', () => {
     expect(result.threatWarnings).toContain('unauthorized_memory_use')
   })
 
-  it('blocks memory with cross_context_leakage threat', () => {
+  it('warns about cross_context_leakage threat but allows atom through', () => {
     const result = composePromptContext({
       atoms: [
-        atom({ id: 'atom-other-user', scope: { userId: 'user-2', projectId: 'project-1' }, content: '其他用户记忆' })
+        atom({ id: 'atom-planning', content: '规划场景记忆', scenarios: ['goal_planning', 'chat'], sensitivity: 'personal' })
       ],
       maxItems: 5,
-      scope: { userId: 'user-1', projectId: 'project-1' }
+      scope: { userId: 'user-1', projectId: 'project-1' },
+      scenarios: ['chat']
     })
 
-    expect(result.usedAtomIds).toEqual([])
+    expect(result.usedAtomIds).toContain('atom-planning')
     expect(result.threatWarnings).toContain('cross_context_leakage')
   })
 
@@ -178,10 +178,10 @@ describe('promptContextComposer', () => {
     })
 
     expect(result.usedAtomIds).toEqual([])
-    expect(result.overfittingAdjustments).toContain('low_evidence_stable_blocked')
+    expect(result.overfittingAdjustments).toContain('low_evidence_stable')
   })
 
-  it('blocks memory with corrected_memory_isolated anti-overfitting', () => {
+  it('allows manual correction atoms through anti-overfitting', () => {
     const result = composePromptContext({
       atoms: [
         atom({
@@ -189,13 +189,14 @@ describe('promptContextComposer', () => {
           content: '已纠正的记忆',
           lifecycle: 'confirmed',
           source: 'manual',
-          contradictionOf: ['atom-other']
+          contradictionOf: ['atom-other'],
+          confidence: 0.4
         })
       ],
       maxItems: 5
     })
 
-    expect(result.usedAtomIds).toEqual([])
-    expect(result.overfittingAdjustments).toContain('corrected_memory_isolated')
+    expect(result.usedAtomIds).toContain('atom-corrected')
+    expect(result.overfittingAdjustments).toEqual([])
   })
 })

@@ -16,6 +16,10 @@ import { useAuth } from './hooks/useAuth'
 import { LoginPage } from './auth/LoginPage'
 import { RegisterPage } from './auth/RegisterPage'
 import { createBrowserMemoryStore } from './memory/memoryStore'
+import { createBrowserMemoryBodyStore } from './memory-body/store/browserMemoryBodyStore'
+import { computeMemoryProductMetrics } from './memory-body/metrics/memoryProductMetrics'
+import type { MemoryProductMetricsResult } from './memory-body/metrics/memoryProductMetrics'
+import type { MemoryAtom } from './memory-body/core/memoryBodyTypes'
 import { createMemoryObserver } from './memory/memoryObserver'
 import { withWorkspaceMemoryObserver } from './memory/workspaceMemoryMiddleware'
 import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
@@ -104,9 +108,12 @@ const DataBackupModal = lazy(() => import('./components/data/DataBackupModal').t
 const ApiKeySettingsModal = lazy(() => import('./components/settings/ApiKeySettingsModal').then(m => ({ default: m.ApiKeySettingsModal })))
 const SupabaseConfigModal = lazy(() => import('./components/settings/SupabaseConfigModal').then(m => ({ default: m.SupabaseConfigModal })))
 const SyncModal = lazy(() => import('./components/sync/SyncModal').then(m => ({ default: m.SyncModal })))
+const MemoryStarMapModal = lazy(() => import('./components/memory-star-map/MemoryStarMapModal').then(m => ({ default: m.MemoryStarMapModal })))
+const MetricsDashboardModal = lazy(() => import('./components/metrics-dashboard/MetricsDashboardModal').then(m => ({ default: m.MetricsDashboardModal })))
 
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()
 const memoryStore = typeof window === 'undefined' ? undefined : createBrowserMemoryStore()
+const memoryBodyStore = typeof window === 'undefined' ? undefined : createBrowserMemoryBodyStore('default', 'growth-workbench')
 const moduleLayoutStorageKey = 'xinghuanhai-module-layout-state'
 const onboardingDataKey = 'xinghuanhai-onboarding-data'
 
@@ -256,6 +263,8 @@ export default function App() {
     isFocusStatsOpen, setIsFocusStatsOpen,
     isFocusHistoryOpen, setIsFocusHistoryOpen,
     isMigrationOpen, setIsMigrationOpen,
+    isMemoryStarMapOpen, setIsMemoryStarMapOpen,
+    isMetricsDashboardOpen, setIsMetricsDashboardOpen,
     currentPersonaId, setCurrentPersonaId,
     memoryProfile, setMemoryProfile,
     selectedSpaceId, setSelectedSpaceId,
@@ -380,6 +389,13 @@ export default function App() {
     () => memoryStore ? createMemoryObserver({ scope: memoryScope, store: memoryStore }) : null
   )
   memoryObserverRef.current = memoryObserver
+  const memoryAtoms = useMemo<MemoryAtom[]>(() => {
+    if (!memoryBodyStore) return []
+    return memoryBodyStore.listActiveAtoms(memoryScope)
+  }, [memoryScope])
+  const memoryProductMetrics = useMemo<MemoryProductMetricsResult>(() => {
+    return computeMemoryProductMetrics({ atoms: memoryAtoms })
+  }, [memoryAtoms])
   const recommendedModules = useMemo(() => recommendModulesForIdentity({
     identityDescription: `${activePersona.name} ${activePersona.targetUser} ${activePersona.painPoint} ${activePersona.primaryFlow}`,
     personaModuleTitles: activePersona.modules.map((module) => module.title)
@@ -523,7 +539,9 @@ export default function App() {
     setIsDataBackupOpen,
     setIsApiKeySettingsOpen,
     setIsSupabaseConfigOpen,
-    setIsMigrationOpen
+    setIsMigrationOpen,
+    setIsMemoryStarMapOpen,
+    setIsMetricsDashboardOpen
   })
 
   if (!onboardingCompleted) {
@@ -589,6 +607,8 @@ export default function App() {
         onOpenAgentChat={sidebarCallbacks.onOpenAgentChat}
         onOpenSettings={sidebarCallbacks.onOpenSettings}
         onOpenKnowledgeGraph={sidebarCallbacks.onOpenKnowledgeGraph}
+        onOpenMemoryStarMap={sidebarCallbacks.onOpenMemoryStarMap}
+        onOpenMetricsDashboard={sidebarCallbacks.onOpenMetricsDashboard}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
         aiQuota={totalQuota}
@@ -897,6 +917,23 @@ export default function App() {
 
       <Suspense fallback={null}>
         <SyncModal isOpen={isSyncOpen} onClose={() => setIsSyncOpen(false)} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <MemoryStarMapModal
+          isOpen={isMemoryStarMapOpen}
+          onClose={() => setIsMemoryStarMapOpen(false)}
+        />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <MetricsDashboardModal
+          isOpen={isMetricsDashboardOpen}
+          onClose={() => setIsMetricsDashboardOpen(false)}
+          metrics={memoryProductMetrics}
+          atoms={memoryAtoms}
+          scope={memoryScope}
+        />
       </Suspense>
 
       <Suspense fallback={null}>

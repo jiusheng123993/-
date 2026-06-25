@@ -281,3 +281,114 @@ describe('syncMigrationVersioning', () => {
     })
   })
 })
+
+// ─── 遗留数据导入桥接函数测试 ───────────────────────────────
+
+import { importLegacyData, smartImport } from '../migration/syncMigrationVersioning'
+
+const legacyScope: MemoryScope = { userId: 'user-1', projectId: 'project-1' }
+
+describe('importLegacyData', () => {
+  it('v0_raw_text 格式导入', () => {
+    const result = importLegacyData({
+      format: 'v0_raw_text',
+      data: '用户喜欢 TypeScript',
+      userId: legacyScope.userId,
+      projectId: legacyScope.projectId,
+    })
+    expect(result).not.toBeNull()
+    expect(result!.atoms).toHaveLength(1)
+    expect(result!.atoms[0].content).toBe('用户喜欢 TypeScript')
+    expect(result!.atoms[0].tags).toContain('legacy')
+    expect(result!.atoms[0].tags).toContain('v0_raw_text')
+    expect(result!.scope.userId).toBe(legacyScope.userId)
+  })
+
+  it('v0_json_atoms 格式导入', () => {
+    const result = importLegacyData({
+      format: 'v0_json_atoms',
+      data: [
+        { id: 'a1', content: '偏好1', confidence: 0.8 },
+        { id: 'a2', content: '偏好2', confidence: 0.6 },
+      ],
+      userId: legacyScope.userId,
+      projectId: legacyScope.projectId,
+    })
+    expect(result).not.toBeNull()
+    expect(result!.atoms).toHaveLength(2)
+    expect(result!.atoms[0].id).toBe('a1')
+    expect(result!.atoms[0].content).toBe('偏好1')
+    expect(result!.atoms[1].id).toBe('a2')
+    expect(result!.atoms[1].content).toBe('偏好2')
+  })
+
+  it('非遗留格式返回 null', () => {
+    const result = importLegacyData({
+      format: 'unknown_format',
+      data: 'some data',
+    })
+    expect(result).toBeNull()
+  })
+
+  it('无效 JSON 返回 null', () => {
+    const result = importLegacyData('not an object')
+    expect(result).toBeNull()
+  })
+
+  it('null 输入返回 null', () => {
+    const result = importLegacyData(null)
+    expect(result).toBeNull()
+  })
+
+  it('v0_raw_text 缺少 userId 使用默认值', () => {
+    const result = importLegacyData({
+      format: 'v0_raw_text',
+      data: 'some text',
+    })
+    expect(result).not.toBeNull()
+    expect(result!.scope.userId).toBe('unknown')
+  })
+})
+
+describe('smartImport', () => {
+  it('标准格式导入', () => {
+    const testState = state({ atoms: [atom({ id: 'atom-1' })] })
+    const exported = exportMemoryBodyState(testState)
+    const parsed = JSON.parse(exported)
+    const result = smartImport(parsed)
+    expect(result.status).toBe('success')
+    expect(result.state).toBeDefined()
+    expect(result.state!.atoms).toHaveLength(1)
+    expect(result.state!.atoms[0].id).toBe('atom-1')
+  })
+
+  it('遗留格式导入', () => {
+    const result = smartImport({
+      format: 'v0_raw_text',
+      data: '用户喜欢 TypeScript',
+      userId: legacyScope.userId,
+      projectId: legacyScope.projectId,
+    })
+    expect(result.status).toBe('success')
+    expect(result.state).toBeDefined()
+    expect(result.state!.atoms).toHaveLength(1)
+    expect(result.state!.atoms[0].content).toBe('用户喜欢 TypeScript')
+  })
+
+  it('完全无效数据返回 failed', () => {
+    const result = smartImport('not an object')
+    expect(result.status).toBe('failed')
+    expect(result.reason).toBeDefined()
+  })
+
+  it('null 输入返回 failed', () => {
+    const result = smartImport(null)
+    expect(result.status).toBe('failed')
+  })
+
+  it('无法识别的对象返回 failed', () => {
+    const result = smartImport({ foo: 'bar' })
+    expect(result.status).toBe('failed')
+    expect(result.reason).toBe('无法识别的数据格式')
+  })
+})

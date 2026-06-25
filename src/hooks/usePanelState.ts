@@ -75,6 +75,10 @@ export interface PanelState {
   setIsFocusHistoryOpen: (v: boolean) => void
   isMigrationOpen: boolean
   setIsMigrationOpen: (v: boolean) => void
+  isMemoryStarMapOpen: boolean
+  setIsMemoryStarMapOpen: (v: boolean) => void
+  isMetricsDashboardOpen: boolean
+  setIsMetricsDashboardOpen: (v: boolean) => void
   isLoginOpen: boolean
   setIsLoginOpen: (v: boolean) => void
   isRegisterOpen: boolean
@@ -154,6 +158,8 @@ export function usePanelState(
   const [isFocusStatsOpen, setIsFocusStatsOpen] = useState(false)
   const [isFocusHistoryOpen, setIsFocusHistoryOpen] = useState(false)
   const [isMigrationOpen, setIsMigrationOpen] = useState(false)
+  const [isMemoryStarMapOpen, setIsMemoryStarMapOpen] = useState(false)
+  const [isMetricsDashboardOpen, setIsMetricsDashboardOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [openWorkbenchDetail, setOpenWorkbenchDetail] = useState<string | null>(null)
@@ -206,6 +212,8 @@ export function usePanelState(
       setIsFocusStatsOpen(false)
       setIsFocusHistoryOpen(false)
       setIsMigrationOpen(false)
+      setIsMemoryStarMapOpen(false)
+      setIsMetricsDashboardOpen(false)
       setSidebarOpen(false)
       setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))
     })
@@ -247,6 +255,8 @@ export function usePanelState(
     isFocusStatsOpen, setIsFocusStatsOpen,
     isFocusHistoryOpen, setIsFocusHistoryOpen,
     isMigrationOpen, setIsMigrationOpen,
+    isMemoryStarMapOpen, setIsMemoryStarMapOpen,
+    isMetricsDashboardOpen, setIsMetricsDashboardOpen,
     isLoginOpen, setIsLoginOpen,
     isRegisterOpen, setIsRegisterOpen,
     openWorkbenchDetail, setOpenWorkbenchDetail,
