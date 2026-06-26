@@ -160,7 +160,7 @@ function simulateForces(nodes: LayoutNode[], edges: StarMapEdge[], iterations: n
 
 // ─── 组件 ───────────────────────────────────────────────────
 
-export function MemoryStarMapUI({ onClose: _onClose }: MemoryStarMapUIProps) {
+export function MemoryStarMapUI({ atoms, entities, relations, scope, onClose: _onClose }: MemoryStarMapUIProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { deviceCategory } = usePlatform()
   const isMobile = deviceCategory === 'mobile'
@@ -181,12 +181,11 @@ export function MemoryStarMapUI({ onClose: _onClose }: MemoryStarMapUIProps) {
   const animationRef = useRef<number>()
 
   useEffect(() => {
-    // 使用空数据构建星图（实际数据应由外部传入，此处展示组件结构）
     const data = buildStarMap({
-      atoms: [],
-      entities: [],
-      relations: [],
-      scope: { userId: 'default', projectId: 'default' }
+      atoms,
+      entities,
+      relations,
+      scope
     })
     if (data.nodes.length > 0 && containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect()
@@ -196,7 +195,7 @@ export function MemoryStarMapUI({ onClose: _onClose }: MemoryStarMapUIProps) {
       setEdges(data.edges)
       setTimeout(() => setIsSimulating(false), 500)
     }
-  }, [])
+  }, [atoms, entities, relations, scope])
 
   useEffect(() => {
     if (!isSimulating || nodes.length === 0) return

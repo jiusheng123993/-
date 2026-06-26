@@ -19,7 +19,7 @@ import { createBrowserMemoryStore } from './memory/memoryStore'
 import { createBrowserMemoryBodyStore } from './memory-body/store/browserMemoryBodyStore'
 import { computeMemoryProductMetrics } from './memory-body/metrics/memoryProductMetrics'
 import type { MemoryProductMetricsResult } from './memory-body/metrics/memoryProductMetrics'
-import type { MemoryAtom } from './memory-body/core/memoryBodyTypes'
+import type { MemoryAtom, MemoryEntity, MemoryRelation } from './memory-body/core/memoryBodyTypes'
 import { createMemoryObserver } from './memory/memoryObserver'
 import { withWorkspaceMemoryObserver } from './memory/workspaceMemoryMiddleware'
 import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
@@ -393,6 +393,14 @@ export default function App() {
     if (!memoryBodyStore) return []
     return memoryBodyStore.listActiveAtoms(memoryScope)
   }, [memoryScope])
+  const memoryEntities = useMemo<MemoryEntity[]>(() => {
+    if (!memoryBodyStore) return []
+    return memoryBodyStore.load().entities
+  }, [])
+  const memoryRelations = useMemo<MemoryRelation[]>(() => {
+    if (!memoryBodyStore) return []
+    return memoryBodyStore.load().relations
+  }, [])
   const memoryProductMetrics = useMemo<MemoryProductMetricsResult>(() => {
     return computeMemoryProductMetrics({ atoms: memoryAtoms })
   }, [memoryAtoms])
@@ -923,6 +931,10 @@ export default function App() {
         <MemoryStarMapModal
           isOpen={isMemoryStarMapOpen}
           onClose={() => setIsMemoryStarMapOpen(false)}
+          atoms={memoryAtoms}
+          entities={memoryEntities}
+          relations={memoryRelations}
+          scope={memoryScope}
         />
       </Suspense>
 
