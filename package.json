@@ -14,6 +14,7 @@
     "build:electron:mac": "npm run build && cross-env ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --config electron-builder.yml --mac",
     "build:electron:linux": "npm run build && cross-env ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --config electron-builder.yml --linux",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
