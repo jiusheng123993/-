@@ -536,20 +536,7 @@ export default function App() {
   const sidebarCallbacks = useSidebarCallbacks({
     closeAllSidebarPanels,
     openThemePicker,
-    setModuleStoreState,
-    setIsIdentitySelectorOpen,
-    setIsPersonaSelectorOpen,
-    setIsRelationshipSpaceOpen,
-    setIsAgentChatOpen,
-    setIsSettingsOpen,
-    setIsKnowledgeGraphOpen,
-    setIsMembershipOpen,
-    setIsDataBackupOpen,
-    setIsApiKeySettingsOpen,
-    setIsSupabaseConfigOpen,
-    setIsMigrationOpen,
-    setIsMemoryStarMapOpen,
-    setIsMetricsDashboardOpen
+    setModuleStoreState
   })
 
   if (!onboardingCompleted) {
