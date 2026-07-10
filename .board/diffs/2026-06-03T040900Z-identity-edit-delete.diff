@@ -1,0 +1,237 @@
+# 改动说明
+# 问题：身份系统缺少编辑和删除功能，用户无法修改已创建的身份信息；且没有键盘快捷键支持，操作效率低。
+# 原因：MVP 版本只实现了身份创建和切换，编辑删除和键盘交互被遗漏。
+# 改动：
+#   1. IdentitySelector.tsx 增加编辑身份功能（点击编辑按钮弹出表单）
+#   2. IdentitySelector.tsx 增加删除确认弹窗，防止误删
+#   3. IdentitySelector.tsx 增加键盘快捷键：Escape 取消/关闭，Ctrl+Enter 保存
+#   4. IdentitySelector.css 增加删除确认弹窗样式和悬停动画
+#   5. IdentitySelector.test.tsx 新增编辑、删除、键盘快捷键的测试用例
+# 影响：身份系统功能完整，用户可以通过鼠标或键盘完成全部操作
+
+diff --git a/src/shared/identity/IdentitySelector.tsx b/src/shared/identity/IdentitySelector.tsx
+index 2a3b4c5..7f8e9d1 100644
+--- a/src/shared/identity/IdentitySelector.tsx
++++ b/src/shared/identity/IdentitySelector.tsx
+@@ -15,6 +15,8 @@ export function IdentitySelector() {
+   const [isOpen, setIsOpen] = useState(false);
+   const [editingId, setEditingId] = useState<string | null>(null);
+   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
++  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
++  const formRef = useRef<HTMLFormElement>(null);
+   
+   const handleOpen = () => setIsOpen(true);
+   const handleClose = () => {
+@@ -22,6 +24,8 @@ export function IdentitySelector() {
+     setEditingId(null);
+     setDeleteConfirmId(null);
+     setFormErrors({});
++    // 重置表单
++    formRef.current?.reset();
+   };
+   
+   const handleEdit = (identity: Identity) => {
+@@ -32,6 +36,16 @@ export function IdentitySelector() {
+   const handleDelete = (id: string) => {
+     setDeleteConfirmId(id);
+   };
++  
++  const confirmDelete = () => {
++    if (deleteConfirmId) {
++      deleteIdentity(deleteConfirmId);
++      setDeleteConfirmId(null);
++    }
++  };
++  
++  const cancelDelete = () => {
++    setDeleteConfirmId(null);
++  };
+   
+   const handleSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
+@@ -45,6 +59,22 @@ export function IdentitySelector() {
+     handleClose();
+   };
+   
++  // 键盘快捷键
++  useEffect(() => {
++    const handleKeyDown = (e: KeyboardEvent) => {
++      if (!isOpen) return;
++      if (e.key === 'Escape') {
++        if (deleteConfirmId) cancelDelete();
++        else if (editingId) setEditingId(null);
++        else handleClose();
++      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
++        formRef.current?.requestSubmit();
++      }
++    };
++    window.addEventListener('keydown', handleKeyDown);
++    return () => window.removeEventListener('keydown', handleKeyDown);
++  }, [isOpen, deleteConfirmId, editingId]);
++  
+   return (
+     <Dialog open={isOpen} onOpenChange={setIsOpen}>
+-      <form onSubmit={handleSubmit}>
++      <form ref={formRef} onSubmit={handleSubmit}>
+         {/* 身份列表 */}
+         <div className="identity-list">
+           {identities.map(identity => (
+             <div key={identity.id} className="identity-item">
+               <span>{identity.name}</span>
+               <div className="identity-actions">
+-                <button onClick={() => handleEdit(identity)}>编辑</button>
+-                <button onClick={() => handleDelete(identity.id)}>删除</button>
++                <button 
++                  onClick={() => handleEdit(identity)}
++                  aria-label={`编辑 ${identity.name}`}
++                >
++                  编辑
++                </button>
++                <button 
++                  onClick={() => handleDelete(identity.id)}
++                  aria-label={`删除 ${identity.name}`}
++                >
++                  删除
++                </button>
+               </div>
+             </div>
+           ))}
+         </div>
++        
++        {/* 删除确认弹窗 */}
++        {deleteConfirmId && (
++          <div className="delete-confirm-overlay" role="alertdialog">
++            <div className="delete-confirm-dialog">
++              <p>确定要删除此身份吗？此操作不可撤销。</p>
++              <div className="delete-confirm-actions">
++                <button onClick={cancelDelete}>取消</button>
++                <button onClick={confirmDelete} className="danger">删除</button>
++              </div>
++            </div>
++          </div>
++        )}
+       </form>
+     </Dialog>
+   );
+
+diff --git a/src/shared/identity/IdentitySelector.css b/src/shared/identity/IdentitySelector.css
+index 5b6c7d8..9a0b1c2 100644
+--- a/src/shared/identity/IdentitySelector.css
++++ b/src/shared/identity/IdentitySelector.css
+@@ -45,6 +45,52 @@
+   gap: 8px;
+ }
+ 
++.delete-confirm-overlay {
++  position: fixed;
++  top: 0;
++  left: 0;
++  right: 0;
++  bottom: 0;
++  background: rgba(0, 0, 0, 0.5);
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  z-index: 1000;
++}
++
++.delete-confirm-dialog {
++  background: white;
++  padding: 24px;
++  border-radius: 12px;
++  max-width: 400px;
++  width: 90%;
++  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
++}
++
++.delete-confirm-dialog p {
++  margin: 0 0 16px;
++  font-size: 14px;
++  color: #374151;
++}
++
++.delete-confirm-actions {
++  display: flex;
++  justify-content: flex-end;
++  gap: 8px;
++}
++
++.delete-confirm-actions button.danger {
++  background: #ef4444;
++  color: white;
++}
++
++.delete-confirm-actions button.danger:hover {
++  background: #dc2626;
++}
++
++/* 动画 */
++.identity-item {
++  transition: background-color 0.15s ease;
++}
++
++.identity-item:hover {
++  background-color: #f3f4f6;
++}
++
+ @media (max-width: 768px) {
+   .identity-selector {
+     padding: 12px;
+
+diff --git a/src/shared/identity/IdentitySelector.test.tsx b/src/shared/identity/IdentitySelector.test.tsx
+index 8c9d0e1..2a3b4c5 100644
+--- a/src/shared/identity/IdentitySelector.test.tsx
++++ b/src/shared/identity/IdentitySelector.test.tsx
+@@ -25,6 +25,48 @@ describe('IdentitySelector', () => {
+     expect(screen.getByText('身份2')).toBeInTheDocument();
+   });
+   
++  it('应支持编辑身份', async () => {
++    const user = userEvent.setup();
++    render(<IdentitySelector />);
++    
++    await user.click(screen.getByRole('button', { name: /编辑 身份1/i }));
++    
++    const nameInput = screen.getByLabelText(/身份名称/i);
++    await user.clear(nameInput);
++    await user.type(nameInput, '更新后的身份');
++    
++    await user.click(screen.getByRole('button', { name: /保存/i }));
++    
++    expect(screen.getByText('更新后的身份')).toBeInTheDocument();
++  });
++  
++  it('应支持删除身份并确认', async () => {
++    const user = userEvent.setup();
++    render(<IdentitySelector />);
++    
++    await user.click(screen.getByRole('button', { name: /删除 身份1/i }));
++    
++    // 确认弹窗出现
++    expect(screen.getByText(/确定要删除/i)).toBeInTheDocument();
++    
++    await user.click(screen.getByRole('button', { name: /删除/i }));
++    
++    expect(screen.queryByText('身份1')).not.toBeInTheDocument();
++  });
++  
++  it('应支持键盘快捷键', async () => {
++    const user = userEvent.setup();
++    render(<IdentitySelector />);
++    
++    // Escape 关闭弹窗
++    await user.keyboard('{Escape}');
++    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
++    
++    // Ctrl+Enter 提交表单
++    await user.click(screen.getByRole('button', { name: /创建身份/i }));
++    const nameInput = screen.getByLabelText(/身份名称/i);
++    await user.type(nameInput, '快捷键测试');
++    await user.keyboard('{Control>}{Enter}{/Control}');
++    
++    expect(screen.getByText('快捷键测试')).toBeInTheDocument();
++  });
++
+   it('应支持创建新身份', async () => {
+     const user = userEvent.setup();
+     render(<IdentitySelector />);

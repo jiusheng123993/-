@@ -1,0 +1,25 @@
+# 改动说明
+问题：UI 去重方向错误，误删了新版 Sidebar 组件
+原因：对 UI 去重范围判断失误
+改动：
+  1. 恢复最新独立 Sidebar 组件
+  2. 恢复最新独立 SidebarToggle 组件
+  3. 恢复默认可拖拽模块画布
+影响：UI 功能恢复正常
+
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,3 +1,5 @@
++import { Sidebar } from './shared/sidebar/Sidebar';
++import { SidebarToggle } from './shared/sidebar/SidebarToggle';
+ import { ModuleCanvas } from './shared/module-store/ModuleCanvas';
+ 
+ export const App = () => {
+@@ -5,5 +7,7 @@
+     <div className="app">
++      <SidebarToggle />
++      <Sidebar />
+       <ModuleCanvas />
+     </div>
+   );
+ };

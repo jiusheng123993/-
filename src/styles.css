@@ -99,7 +99,9 @@ button {
 [data-theme='night-aurora'] .panel::after,
 [data-theme='night-aurora'] .card::after,
 [data-theme='clash-neon-cyber'] .panel::after,
-[data-theme='clash-neon-cyber'] .card::after {
+[data-theme='clash-neon-cyber'] .card::after,
+[data-theme='night-cosmos'] .panel::after,
+[data-theme='night-cosmos'] .card::after {
   background: linear-gradient(135deg, rgba(148, 163, 184, 0.10), transparent 38%);
   opacity: 0.34;
 }
@@ -11544,4 +11546,753 @@ small,
   border-radius: 50%;
   border: 2px solid var(--surface-strong);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   深空星海主题 (night-cosmos) v4 — Cosmic Brutalism
+   设计哲学：深空黑底 + 电光蓝紫霓虹 + 琥珀暖金点缀 + 粗野几何装饰
+   借鉴 Radium (Cosmin Capitanu) 的包装感、概念感、排版功力
+   ============================================ */
+
+/* --- CSS 变量覆盖 --- */
+html[data-theme='night-cosmos'] {
+  --app-background: #020617;
+  --surface: rgba(10, 14, 38, 0.85);
+  --surface-strong: rgba(15, 20, 50, 0.92);
+  --primary: #6366f1;
+  --secondary: #a855f7;
+  --accent: #f59e0b;
+  --text: #e2e8ff;
+  --muted: #94a3b8;
+  --border: rgba(99, 102, 241, 0.25);
+  --hero-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #f59e0b 100%);
+  --card-gradient: linear-gradient(135deg, rgba(15, 20, 50, 0.95), rgba(8, 10, 28, 0.9));
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.60);
+  --glass: blur(24px) saturate(1.1);
+  --glass-edge: rgba(99, 102, 241, 0.30);
+  --glass-edge-soft: rgba(99, 102, 241, 0.10);
+  --glass-tint: rgba(10, 14, 38, 0.75);
+  --glass-tint-hover: rgba(15, 22, 55, 0.85);
+  --glass-shadow: rgba(0, 0, 0, 0.55);
+  --glass-bubble: rgba(99, 102, 241, 0.15);
+}
+
+/* ============================================
+   背景层：深空底色
+   ============================================ */
+html[data-theme='night-cosmos'] body {
+  background: #020617;
+}
+
+/* 星云光斑 1 — 左上角大光斑，蓝紫调 */
+html[data-theme='night-cosmos'] body::before {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  width: 900px;
+  height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.06) 40%, transparent 70%);
+  top: -350px;
+  left: -250px;
+  filter: blur(80px);
+  animation: nebulaDrift1 24s ease-in-out infinite;
+}
+
+/* 星云光斑 2 — 右下角，琥珀暖金调 */
+html[data-theme='night-cosmos'] body::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 60% 60%, rgba(245, 158, 11, 0.08), rgba(99, 102, 241, 0.04) 45%, transparent 70%);
+  bottom: -200px;
+  right: -150px;
+  filter: blur(80px);
+  animation: nebulaDrift2 28s ease-in-out infinite;
+}
+
+@keyframes nebulaDrift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  25% { transform: translate(50px, -40px) scale(1.12); opacity: 0.9; }
+  50% { transform: translate(-30px, 30px) scale(0.92); opacity: 0.4; }
+  75% { transform: translate(40px, -15px) scale(1.06); opacity: 0.75; }
+}
+
+@keyframes nebulaDrift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  33% { transform: translate(-40px, -30px) scale(1.1); opacity: 0.7; }
+  66% { transform: translate(30px, 40px) scale(0.9); opacity: 0.3; }
+}
+
+/* ============================================
+   网格线 — 粗野主义几何装饰
+   ============================================ */
+html[data-theme='night-cosmos'] .app-shell::before {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at 50% 50%, black 25%, transparent 65%);
+}
+
+/* ============================================
+   星点层 — 多层视差星点（亮星 + 彩色星）
+   ============================================ */
+html[data-theme='night-cosmos'] .app-shell::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  inset: 0;
+  background:
+    radial-gradient(2.5px 2.5px at 8% 12%, rgba(226, 232, 255, 0.95), transparent),
+    radial-gradient(1.5px 1.5px at 22% 28%, rgba(99, 102, 241, 0.85), transparent),
+    radial-gradient(2px 2px at 38% 18%, rgba(226, 232, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 52% 35%, rgba(168, 85, 247, 0.75), transparent),
+    radial-gradient(3px 3px at 68% 22%, rgba(245, 158, 11, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 82% 40%, rgba(226, 232, 255, 0.65), transparent),
+    radial-gradient(2px 2px at 15% 55%, rgba(99, 102, 241, 0.75), transparent),
+    radial-gradient(1px 1px at 32% 68%, rgba(226, 232, 255, 0.55), transparent),
+    radial-gradient(2.5px 2.5px at 48% 58%, rgba(168, 85, 247, 0.65), transparent),
+    radial-gradient(1.5px 1.5px at 62% 72%, rgba(226, 232, 255, 0.75), transparent),
+    radial-gradient(2px 2px at 78% 65%, rgba(245, 158, 11, 0.55), transparent),
+    radial-gradient(1px 1px at 88% 78%, rgba(226, 232, 255, 0.55), transparent),
+    radial-gradient(2px 2px at 5% 82%, rgba(99, 102, 241, 0.65), transparent),
+    radial-gradient(1.5px 1.5px at 42% 85%, rgba(226, 232, 255, 0.55), transparent),
+    radial-gradient(2px 2px at 72% 15%, rgba(168, 85, 247, 0.55), transparent),
+    radial-gradient(1px 1px at 18% 42%, rgba(245, 158, 11, 0.5), transparent),
+    radial-gradient(2px 2px at 58% 8%, rgba(226, 232, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 92% 55%, rgba(99, 102, 241, 0.55), transparent);
+  animation: starfieldSlow 50s linear infinite;
+}
+
+@keyframes starfieldSlow {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-20px, -10px); }
+  50% { transform: translate(10px, -20px); }
+  75% { transform: translate(-8px, 15px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ============================================
+   卡片/面板 — 深色玻璃 + 霓虹边框 + 琥珀暖金高光线
+   ============================================ */
+html[data-theme='night-cosmos'] .panel,
+html[data-theme='night-cosmos'] .card {
+  background: rgba(10, 14, 38, 0.78);
+  backdrop-filter: blur(24px) saturate(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(1.1);
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(99, 102, 241, 0.08);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 卡片顶部高光线 — 蓝紫渐变 + 琥珀暖金收尾 */
+html[data-theme='night-cosmos'] .panel::after,
+html[data-theme='night-cosmos'] .card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.5), rgba(168, 85, 247, 0.4), rgba(245, 158, 11, 0.25), transparent);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 卡片 hover — 霓虹发光 + 琥珀暖金点缀 */
+html[data-theme='night-cosmos'] .panel:hover,
+html[data-theme='night-cosmos'] .card:hover {
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.55),
+    0 0 35px rgba(99, 102, 241, 0.22),
+    0 0 70px rgba(168, 85, 247, 0.12),
+    0 0 15px rgba(245, 158, 11, 0.08),
+    inset 0 1px 0 rgba(99, 102, 241, 0.18);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   光轨环绕 — hover 时卡片边缘旋转光效（蓝紫 + 琥珀）
+   ============================================ */
+html[data-theme='night-cosmos'] .panel::before,
+html[data-theme='night-cosmos'] .card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent 55%, rgba(99, 102, 241, 0.55), rgba(168, 85, 247, 0.45), rgba(245, 158, 11, 0.3), transparent 75%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+
+html[data-theme='night-cosmos'] .panel:hover::before,
+html[data-theme='night-cosmos'] .card:hover::before {
+  opacity: 1;
+  animation: orbitSpin 4s linear infinite;
+}
+
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   标题 — 渐变流光文字（蓝紫 + 琥珀暖金）
+   ============================================ */
+html[data-theme='night-cosmos'] h1,
+html[data-theme='night-cosmos'] h2,
+html[data-theme='night-cosmos'] .hero-title {
+  background: linear-gradient(135deg, #e2e8ff 0%, #a5b4fc 25%, #c4b5fd 45%, #fcd34d 65%, #e2e8ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textFlow 8s linear infinite;
+  text-shadow: none;
+}
+
+@keyframes textFlow {
+  from { background-position: 200% center; }
+  to { background-position: -200% center; }
+}
+
+/* ============================================
+   工作台区域 — 微光粒子上升
+   ============================================ */
+html[data-theme='night-cosmos'] .workspace-layout::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  inset: 0;
+  background:
+    radial-gradient(2px 2px at 15% 92%, rgba(99, 102, 241, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 35% 88%, rgba(245, 158, 11, 0.45), transparent),
+    radial-gradient(2px 2px at 55% 90%, rgba(168, 85, 247, 0.5), transparent),
+    radial-gradient(1px 1px at 75% 86%, rgba(226, 232, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 91%, rgba(99, 102, 241, 0.4), transparent);
+  animation: particlesRise 10s ease-in-out infinite;
+}
+
+@keyframes particlesRise {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-40px); opacity: 0.8; }
+}
+
+/* ============================================
+   按钮 — 霓虹 hover + 琥珀暖金点缀
+   ============================================ */
+html[data-theme='night-cosmos'] button:not(.plain):hover {
+  box-shadow:
+    0 0 20px rgba(99, 102, 241, 0.35),
+    0 0 40px rgba(99, 102, 241, 0.12),
+    0 0 8px rgba(245, 158, 11, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+html[data-theme='night-cosmos'] button.primary,
+html[data-theme='night-cosmos'] .btn-primary {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: none;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+}
+
+html[data-theme='night-cosmos'] button.primary:hover,
+html[data-theme='night-cosmos'] .btn-primary:hover {
+  background: linear-gradient(135deg, #818cf8, #c084fc);
+  box-shadow:
+    0 6px 30px rgba(99, 102, 241, 0.45),
+    0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+/* ============================================
+   输入框 — 深色风格
+   ============================================ */
+html[data-theme='night-cosmos'] input,
+html[data-theme='night-cosmos'] textarea,
+html[data-theme='night-cosmos'] select {
+  background: rgba(10, 14, 38, 0.6);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #e2e8ff;
+}
+
+html[data-theme='night-cosmos'] input:focus,
+html[data-theme='night-cosmos'] textarea:focus,
+html[data-theme='night-cosmos'] select:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+  outline: none;
+}
+
+html[data-theme='night-cosmos'] input::placeholder,
+html[data-theme='night-cosmos'] textarea::placeholder {
+  color: rgba(148, 163, 184, 0.5);
+}
+
+/* ============================================
+   模态框 — 深色玻璃 + 霓虹边框
+   ============================================ */
+html[data-theme='night-cosmos'] .modal,
+html[data-theme='night-cosmos'] [class*="modal"],
+html[data-theme='night-cosmos'] [class*="Modal"] {
+  background: rgba(10, 14, 38, 0.92);
+  backdrop-filter: blur(30px) saturate(1.2);
+  -webkit-backdrop-filter: blur(30px) saturate(1.2);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(99, 102, 241, 0.12);
+}
+
+/* ============================================
+   Toast/通知 — 深色风格
+   ============================================ */
+html[data-theme='night-cosmos'] .toast,
+html[data-theme='night-cosmos'] [class*="toast"],
+html[data-theme='night-cosmos'] [class*="notification"] {
+  background: rgba(10, 14, 38, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #e2e8ff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   滚动条 — 深色风格
+   ============================================ */
+html[data-theme='night-cosmos'] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html[data-theme='night-cosmos'] ::-webkit-scrollbar-track {
+  background: rgba(10, 14, 38, 0.3);
+}
+
+html[data-theme='night-cosmos'] ::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 3px;
+}
+
+html[data-theme='night-cosmos'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* ============================================
+   链接 — 琥珀暖金
+   ============================================ */
+html[data-theme='night-cosmos'] a {
+  color: #a5b4fc;
+  transition: color 0.2s ease;
+}
+
+html[data-theme='night-cosmos'] a:hover {
+  color: #fcd34d;
+}
+
+/* ============================================
+   选中文字 — 蓝紫高亮
+   ============================================ */
+html[data-theme='night-cosmos'] ::selection {
+  background: rgba(99, 102, 241, 0.35);
+  color: #e2e8ff;
+}
+
+/* ============================================
+   Hero 区域 — Cosmic Brutalism 彻底改造
+   设计：粗野几何装饰线 + 动态星云背景 + 琥珀暖金点缀
+   ============================================ */
+html[data-theme='night-cosmos'] .hero {
+  position: relative;
+  padding: 28px 32px;
+  background: rgba(8, 12, 32, 0.82);
+  backdrop-filter: blur(28px) saturate(1.2);
+  -webkit-backdrop-filter: blur(28px) saturate(1.2);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.50),
+    0 0 60px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(99, 102, 241, 0.10);
+  overflow: hidden;
+}
+
+/* Hero 顶部高光线 — 蓝紫→琥珀渐变 */
+html[data-theme='night-cosmos'] .hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), rgba(168, 85, 247, 0.5), rgba(245, 158, 11, 0.35), transparent);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Hero 底部装饰线 — 粗野几何 */
+html[data-theme='night-cosmos'] .hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 5%, rgba(99, 102, 241, 0.3) 15%, rgba(168, 85, 247, 0.2) 50%, rgba(245, 158, 11, 0.15) 85%, transparent 95%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Hero 品牌 Logo — 霓虹发光 */
+html[data-theme='night-cosmos'] .hero-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  box-shadow:
+    0 0 25px rgba(99, 102, 241, 0.45),
+    0 0 50px rgba(168, 85, 247, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+  font-size: 22px;
+  animation: logoGlow 3s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+  0%, 100% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.45), 0 0 50px rgba(168, 85, 247, 0.25); }
+  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.65), 0 0 70px rgba(168, 85, 247, 0.40), 0 0 15px rgba(245, 158, 11, 0.2); }
+}
+
+/* Hero 应用名 — 渐变流光 */
+html[data-theme='night-cosmos'] .hero-app-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #e2e8ff 0%, #a5b4fc 40%, #c4b5fd 60%, #fcd34d 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textFlow 8s linear infinite;
+}
+
+/* Hero 日期时间 — 琥珀暖金点缀 */
+html[data-theme='night-cosmos'] .hero-date {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+html[data-theme='night-cosmos'] .hero-time {
+  color: #a5b4fc;
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+html[data-theme='night-cosmos'] .hero-weekday {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* Hero 引用语 — 琥珀暖金高亮 */
+html[data-theme='night-cosmos'] .hero-quote-text {
+  color: #cbd5e1;
+  font-size: 14px;
+  font-style: italic;
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+html[data-theme='night-cosmos'] .hero-quote-author {
+  color: #fcd34d;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* Hero 主题名标签 — 霓虹边框 */
+html[data-theme='night-cosmos'] .hero-theme-name {
+  background: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+html[data-theme='night-cosmos'] .hero-theme-name:hover {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Hero 连续天数 — 琥珀暖金 */
+html[data-theme='night-cosmos'] .hero-streak {
+  color: #94a3b8;
+}
+
+html[data-theme='night-cosmos'] .hero-streak strong {
+  color: #fcd34d;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* ============================================
+   侧边栏 — Cosmic Brutalism 彻底改造
+   设计：深空玻璃 + 霓虹边框 + 琥珀暖金导航高亮
+   ============================================ */
+html[data-theme='night-cosmos'] .sidebar {
+  background: rgba(6, 10, 28, 0.92) !important;
+  backdrop-filter: blur(32px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(1.3) !important;
+  border-right: 1px solid rgba(99, 102, 241, 0.2) !important;
+  box-shadow:
+    4px 0 50px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(99, 102, 241, 0.08) !important;
+}
+
+/* 侧边栏标题 */
+html[data-theme='night-cosmos'] .sidebar-header h2 {
+  background: linear-gradient(135deg, #e2e8ff 0%, #a5b4fc 50%, #c4b5fd 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textFlow 8s linear infinite;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+html[data-theme='night-cosmos'] .sidebar-header p {
+  color: #94a3b8;
+}
+
+/* 侧边栏标签（会员等级等） */
+html[data-theme='night-cosmos'] .sidebar span[style*="backgroundColor"] {
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* 侧边栏导航项 — 彻底改造 */
+html[data-theme='night-cosmos'] .sidebar-item,
+html[data-theme='night-cosmos'] .sidebar-nav button {
+  position: relative;
+  border-radius: 12px !important;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border-left: 2px solid transparent !important;
+}
+
+/* 导航项 hover — 琥珀暖金高亮 + 左侧发光条 */
+html[data-theme='night-cosmos'] .sidebar-item:hover,
+html[data-theme='night-cosmos'] .sidebar-nav button:hover {
+  background: rgba(245, 158, 11, 0.06) !important;
+  border-left: 2px solid rgba(245, 158, 11, 0.5) !important;
+  color: #fcd34d !important;
+  transform: translateX(4px);
+}
+
+/* 导航项 active — 蓝紫霓虹 */
+html[data-theme='night-cosmos'] .sidebar-item.active,
+html[data-theme='night-cosmos'] .sidebar-nav button[style*="var(--primary)"] {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.1)) !important;
+  border-left: 2px solid rgba(99, 102, 241, 0.8) !important;
+  color: #e2e8ff !important;
+  box-shadow:
+    inset 0 0 20px rgba(99, 102, 241, 0.08),
+    0 0 15px rgba(99, 102, 241, 0.1);
+}
+
+/* 侧边栏底部 — 主题信息 */
+html[data-theme='night-cosmos'] .sidebar-footer {
+  border-top: 1px solid rgba(99, 102, 241, 0.15) !important;
+}
+
+html[data-theme='night-cosmos'] .sidebar-footer > div {
+  background: rgba(99, 102, 241, 0.08) !important;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 10px;
+}
+
+/* 侧边栏遮罩 — 更深 */
+html[data-theme='night-cosmos'] .sidebar-overlay {
+  background: rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* ============================================
+   工作台卡片 — Cosmic Brutalism 彻底改造
+   设计：深空玻璃 + 霓虹发光边框 + 光轨环绕 + 琥珀暖金点缀
+   ============================================ */
+html[data-theme='night-cosmos'] .canvas-card {
+  background: rgba(10, 14, 38, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  border: 1px solid rgba(99, 102, 241, 0.18) !important;
+  border-radius: 18px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(99, 102, 241, 0.06) !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* 卡片 hover — 霓虹发光 + 光轨 */
+html[data-theme='night-cosmos'] .canvas-card:hover {
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(99, 102, 241, 0.2),
+    0 0 60px rgba(168, 85, 247, 0.1),
+    0 0 12px rgba(245, 158, 11, 0.06),
+    inset 0 1px 0 rgba(99, 102, 241, 0.15) !important;
+  transform: translateY(-3px) scale(1.015) !important;
+}
+
+/* 卡片标题 */
+html[data-theme='night-cosmos'] .canvas-card .card-heading.compact h3,
+html[data-theme='night-cosmos'] .canvas-card .canvas-card-title {
+  color: #e2e8ff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* 卡片描述 */
+html[data-theme='night-cosmos'] .canvas-card-description {
+  color: #94a3b8;
+}
+
+/* 卡片关闭按钮 */
+html[data-theme='night-cosmos'] .canvas-card-close-btn {
+  color: #64748b;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+html[data-theme='night-cosmos'] .canvas-card-close-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+/* 卡片拖拽中 */
+html[data-theme='night-cosmos'] .canvas-card.dragging {
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.25),
+    0 16px 48px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* 卡片内容区内的 panel/card — 更深色 */
+html[data-theme='night-cosmos'] .canvas-card-content .card,
+html[data-theme='night-cosmos'] .canvas-card-content .panel,
+html[data-theme='night-cosmos'] .canvas-card-content .side-card {
+  background: rgba(6, 10, 28, 0.6);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+/* ============================================
+   右侧快捷面板 — Cosmic Brutalism 彻底改造
+   设计：深空玻璃 + 霓虹边框 + 琥珀暖金点缀
+   ============================================ */
+html[data-theme='night-cosmos'] [class*="sidebarPanel"] {
+  background: transparent;
+}
+
+/* 面板标题 */
+html[data-theme='night-cosmos'] [class*="sidebarPanelTitle"] {
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* 添加按钮 */
+html[data-theme='night-cosmos'] [class*="sidebarPanelAddBtn"] {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+html[data-theme='night-cosmos'] [class*="sidebarPanelAddBtn"]:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #c7d2fe;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+/* 模块选择器 */
+html[data-theme='night-cosmos'] [class*="sidebarPanelSelector"] {
+  background: rgba(10, 14, 38, 0.85);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* 模块选择器项 */
+html[data-theme='night-cosmos'] [class*="sidebarPanelSelectorItem"] {
+  background: rgba(15, 20, 50, 0.7);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  color: #cbd5e1;
+  transition: all 0.3s ease;
+}
+
+html[data-theme='night-cosmos'] [class*="sidebarPanelSelectorItem"]:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #e2e8ff;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+}
+
+/* ============================================
+   工作台区域 — 深色背景
+   ============================================ */
+html[data-theme='night-cosmos'] .workspace {
+  background: transparent;
+}
+
+/* ============================================
+   无障碍降级
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme='night-cosmos'] body::before,
+  html[data-theme='night-cosmos'] body::after,
+  html[data-theme='night-cosmos'] .app-shell::after,
+  html[data-theme='night-cosmos'] .workspace-layout::after {
+    animation: none !important;
+  }
+  html[data-theme='night-cosmos'] .panel:hover::before,
+  html[data-theme='night-cosmos'] .card:hover::before {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  html[data-theme='night-cosmos'] h1,
+  html[data-theme='night-cosmos'] h2,
+  html[data-theme='night-cosmos'] .hero-title,
+  html[data-theme='night-cosmos'] .hero-app-name,
+  html[data-theme='night-cosmos'] .sidebar-header h2 {
+    animation: none !important;
+    background: none !important;
+    -webkit-text-fill-color: var(--text);
+  }
+  html[data-theme='night-cosmos'] .hero-logo {
+    animation: none !important;
+  }
 }

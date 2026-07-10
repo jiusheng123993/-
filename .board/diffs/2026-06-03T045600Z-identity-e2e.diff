@@ -1,0 +1,116 @@
+# 改动说明
+# 问题：身份系统的测试覆盖不足，缺少页面级完整流程的验证，且部分 UI 组件缺少无障碍属性。
+# 原因：之前的测试只验证了单个组件，没有覆盖用户从打开弹窗到完成身份管理的完整操作流程。
+# 改动：
+#   1. App.test.tsx 新增身份管理完整页面级流程测试（10步验证）
+#   2. App.tsx 移除未使用的 import，增加 data-testid 便于测试定位
+#   3. ModuleStoreUI.tsx 增加 aria-label 提升无障碍体验
+# 影响：测试覆盖率提升，确保身份管理核心流程不会回归
+
+diff --git a/src/App.test.tsx b/src/App.test.tsx
+index 1a2b3c4..5d6e7f8 100644
+--- a/src/App.test.tsx
++++ b/src/App.test.tsx
+@@ -45,6 +45,78 @@ describe('App', () => {
+     expect(screen.getByText('身份管理')).toBeInTheDocument();
+   });
+ 
++  it('应完成身份管理的完整页面级流程', async () => {
++    const user = userEvent.setup();
++    render(<App />);
++    
++    // 1. 打开身份选择器
++    const identityButton = screen.getByRole('button', { name: /当前身份/i });
++    await user.click(identityButton);
++    
++    // 2. 验证弹窗打开
++    const dialog = screen.getByRole('dialog', { name: /身份管理/i });
++    expect(dialog).toBeInTheDocument();
++    
++    // 3. 创建新身份
++    const createButton = screen.getByRole('button', { name: /创建身份/i });
++    await user.click(createButton);
++    
++    // 4. 填写表单
++    const nameInput = screen.getByLabelText(/身份名称/i);
++    await user.type(nameInput, '测试身份');
++    
++    const descInput = screen.getByLabelText(/描述/i);
++    await user.type(descInput, '这是一个测试身份');
++    
++    // 5. 提交表单
++    const submitButton = screen.getByRole('button', { name: /保存/i });
++    await user.click(submitButton);
++    
++    // 6. 验证新身份出现在列表中
++    expect(screen.getByText('测试身份')).toBeInTheDocument();
++    
++    // 7. 切换到新身份
++    const newIdentity = screen.getByText('测试身份');
++    await user.click(newIdentity);
++    
++    // 8. 验证当前身份更新
++    expect(screen.getByText(/当前身份.*测试身份/)).toBeInTheDocument();
++    
++    // 9. 关闭弹窗
++    const closeButton = screen.getByRole('button', { name: /关闭/i });
++    await user.click(closeButton);
++    
++    // 10. 验证弹窗关闭
++    expect(dialog).not.toBeInTheDocument();
++  });
++
+   it('应渲染导航栏', () => {
+     render(<App />);
+     expect(screen.getByRole('navigation')).toBeInTheDocument();
+@@ -52,7 +124,7 @@ describe('App', () => {
+   it('应支持主题切换', async () => {
+     const user = userEvent.setup();
+     render(<App />);
+-    const themeButton = screen.getByRole('button', { name: /主题/i });
++    const themeButton = screen.getByRole('button', { name: /切换主题/i });
+     await user.click(themeButton);
+     expect(document.body).toHaveClass('dark-theme');
+   });
+
+diff --git a/src/App.tsx b/src/App.tsx
+index 9a8b7c6..1d2e3f4 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,7 +1,6 @@
+-import React, { useState } from 'react';
++import { useState } from 'react';
+ import { BrowserRouter } from 'react-router-dom';
+-import { ThemeProvider } from './shared/theme';
+ import { IdentityProvider } from './shared/identity';
+ import { Sidebar } from './shared/sidebar';
+ import { ModuleStoreUI } from './shared/module-store';
+@@ -15,7 +14,7 @@ function App() {
+   return (
+     <BrowserRouter>
+       <IdentityProvider>
+-        <div className="app">
++        <div className="app" data-testid="app-root">
+           <Sidebar onToggle={setSidebarOpen} />
+           <main className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
+             <ModuleStoreUI />
+
+diff --git a/src/shared/module-store/ModuleStoreUI.tsx b/src/shared/module-store/ModuleStoreUI.tsx
+index 4c5d6e7..8a9b0c1 100644
+--- a/src/shared/module-store/ModuleStoreUI.tsx
++++ b/src/shared/module-store/ModuleStoreUI.tsx
+@@ -1,5 +1,4 @@
+ import { useState, useCallback } from 'react';
+-import { DragDropContext } from '@hello-pangea/dnd';
+ import { ModuleCanvas } from '../canvas';
+ import { useModules } from './hooks';
+ 
+@@ -12,7 +11,7 @@ export function ModuleStoreUI() {
+   return (
+     <div className="module-store">
+       <header className="module-store-header">
+-        <h1>模块商店</h1>
++        <h1 aria-label="模块商店">模块商店</h1>
+       </header>
+       <ModuleCanvas modules={modules} onUpdate={handleUpdate} />
+     </div>

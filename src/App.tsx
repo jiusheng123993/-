@@ -3,54 +3,54 @@ import {
   createBrowserWorkspaceStore,
   createInitialWorkspaceState,
   type WorkspaceState
-} from './data/workspaceStore'
-import type { PersonaId } from './personas/personaRegistry'
-import { PersonaSwitcher } from './personas/PersonaSwitcher'
-import { buildTriggerContextFromMemoryObserver } from './personas/cameoTriggerEngine'
-import { PRESET_PERSONAS } from './personas/personaScheduler'
-import { IdentityProvider } from './identity/IdentityProvider'
-import { Sidebar } from './sidebar/Sidebar'
-import { SidebarToggle } from './sidebar/SidebarToggle'
-import { AdaptiveSidebar } from './platforms'
-import { useAuth } from './hooks/useAuth'
-import { LoginPage } from './auth/LoginPage'
-import { RegisterPage } from './auth/RegisterPage'
-import { createBrowserMemoryStore } from './memory/memoryStore'
-import { createBrowserMemoryBodyStore } from './memory-body/store/browserMemoryBodyStore'
-import { computeMemoryProductMetrics } from './memory-body/metrics/memoryProductMetrics'
-import type { MemoryProductMetricsResult } from './memory-body/metrics/memoryProductMetrics'
-import type { MemoryAtom, MemoryEntity, MemoryRelation } from './memory-body/core/memoryBodyTypes'
-import { createMemoryObserver } from './memory/memoryObserver'
-import { withWorkspaceMemoryObserver } from './memory/workspaceMemoryMiddleware'
-import type { MemoryEvent, MemoryScope } from './memory/memoryTypes'
-import { useToast } from './components/toast/Toast'
-import { useApiKeyStatus } from './hooks/useApiKeyStatus'
-import { SidebarPanel } from './sidebar-panel'
-import { PlatformContext, getPlatformInfo } from './platforms'
-import { defaultModules } from './module-store/ModuleRegistry'
+} from './shared/data/workspaceStore'
+import type { PersonaId } from './ai-partner/personas/personaRegistry'
+import { PersonaSwitcher } from './ai-partner/personas/PersonaSwitcher'
+import { buildTriggerContextFromMemoryObserver } from './ai-partner/personas/cameoTriggerEngine'
+import { PRESET_PERSONAS } from './ai-partner/personas/personaScheduler'
+import { IdentityProvider } from './shared/identity/IdentityProvider'
+import { Sidebar } from './shared/sidebar/Sidebar'
+import { SidebarToggle } from './shared/sidebar/SidebarToggle'
+import { AdaptiveSidebar } from './shared/platforms'
+import { useAuth } from './shared/hooks/useAuth'
+import { LoginPage } from './shared/auth/LoginPage'
+import { RegisterPage } from './shared/auth/RegisterPage'
+import { createBrowserMemoryStore } from './ai-partner/memory/memoryStore'
+import { createBrowserMemoryBodyStore } from './ai-partner/memory-body/store/browserMemoryBodyStore'
+
+import type { MemoryAtom, MemoryEntity, MemoryRelation } from './ai-partner/memory-body/core/memoryBodyTypes'
+import { createMemoryObserver } from './ai-partner/memory/memoryObserver'
+import { withWorkspaceMemoryObserver } from './ai-partner/memory/workspaceMemoryMiddleware'
+import type { MemoryEvent, MemoryScope } from './ai-partner/memory/memoryTypes'
+import { useToast } from './shared/components/toast/Toast'
+import { useApiKeyStatus } from './shared/hooks/useApiKeyStatus'
+import { SidebarPanel } from './shared/sidebar-panel'
+import { PlatformContext, getPlatformInfo } from './shared/platforms'
+import { defaultModules } from './shared/module-store/ModuleRegistry'
 import {
   addModuleToLayout,
   createInitialModuleStoreState,
   exportModuleLayout,
   importModuleLayout,
   recommendModulesForIdentity
-} from './module-store/moduleStoreLogic'
-import type { ModuleStoreState } from './module-store/types'
-import { OnboardingUI } from './onboarding/OnboardingUI'
-import { createScheduleService } from './schedule/scheduleService'
-import { NotificationBanner } from './notifications/NotificationBanner'
-import { seedDevEntitlements } from './data/devEntitlements'
-import { ClockDisplay } from './components/common/ClockDisplay'
-import { usePanelState } from './hooks/usePanelState'
-import { useFocusTimer } from './hooks/useFocusTimer'
-import { useThemeManager } from './hooks/useThemeManager'
-import { useMembershipFlow } from './hooks/useMembershipFlow'
-import { useCanvasModules } from './hooks/useCanvasModules'
-import { usePersonaManager } from './hooks/usePersonaManager'
-import { useStoreInitialization } from './hooks/useStoreInitialization'
-import { useSidebarCallbacks } from './hooks/useSidebarCallbacks'
-import { useEvolutionRitual } from './agent/evolution/useEvolutionRitual'
-import { useSilentSuggestions } from './agent/useSilentSuggestions'
+} from './shared/module-store/moduleStoreLogic'
+import type { ModuleStoreState } from './shared/module-store/types'
+import { OnboardingUI } from './shared/onboarding/OnboardingUI'
+// scheduleService was removed - using empty stub
+const createScheduleService = () => ({ getDueReminders: () => [] })
+import { NotificationBanner } from './shared/notifications/NotificationBanner'
+import { seedDevEntitlements } from './shared/data/devEntitlements'
+import { ClockDisplay } from './shared/components/common/ClockDisplay'
+import { usePanelState } from './shared/hooks/usePanelState'
+import { useFocusTimer } from './shared/hooks/useFocusTimer'
+import { useThemeManager } from './shared/hooks/useThemeManager'
+import { useMembershipFlow } from './shared/hooks/useMembershipFlow'
+import { useCanvasModules } from './shared/hooks/useCanvasModules'
+import { usePersonaManager } from './shared/hooks/usePersonaManager'
+import { useStoreInitialization } from './shared/hooks/useStoreInitialization'
+import { useSidebarCallbacks } from './shared/hooks/useSidebarCallbacks'
+import { useEvolutionRitual } from './ai-partner/agent/evolution/useEvolutionRitual'
+import { useSilentSuggestions } from './ai-partner/agent/useSilentSuggestions'
 import {
   entitlementService,
   notificationService,
@@ -64,52 +64,25 @@ import {
   communityPersonaService,
   personaProvider,
   customPersonaService
-} from './services/instances'
+} from './shared/services/instances'
 
-const EvolutionRitualUI = lazy(() => import('./agent/evolution/EvolutionRitualUI').then(m => ({ default: m.EvolutionRitualUI })))
-const AgentChatUI = lazy(() => import('./agent/AgentChatUI').then(m => ({ default: m.AgentChatUI })))
-const AgentChatToggle = lazy(() => import('./agent/AgentChatUI').then(m => ({ default: m.AgentChatToggle })))
-const SilentSuggestionUI = lazy(() => import('./agent/SilentSuggestionUI').then(m => ({ default: m.SilentSuggestionUI })))
-const AIRecommendationUI = lazy(() => import('./module-store/AIRecommendationUI').then(m => ({ default: m.AIRecommendationUI })))
-const LayoutShareUI = lazy(() => import('./module-store/LayoutShareUI').then(m => ({ default: m.LayoutShareUI })))
-const ModuleStoreUI = lazy(() => import('./module-store/ModuleStoreUI').then(m => ({ default: m.ModuleStoreUI })))
-const MigrationModal = lazy(() => import('./components/data/MigrationModal').then(m => ({ default: m.MigrationModal })))
-const BacklinkModal = lazy(() => import('./components/backlink/BacklinkModal').then(m => ({ default: m.BacklinkModal })))
-const FocusModeModal = lazy(() => import('./components/focus/FocusModeModal').then(m => ({ default: m.FocusModeModal })))
-const KnowledgeGraphModal = lazy(() => import('./components/knowledge-graph/KnowledgeGraphModal').then(m => ({ default: m.KnowledgeGraphModal })))
-const ScheduleModal = lazy(() => import('./components/schedule/ScheduleModal').then(m => ({ default: m.ScheduleModal })))
-const TemplateModal = lazy(() => import('./components/template/TemplateModal').then(m => ({ default: m.TemplateModal })))
-const ReviewSchedulerModal = lazy(() => import('./components/review/ReviewSchedulerModal').then(m => ({ default: m.ReviewSchedulerModal })))
-const ReportModal = lazy(() => import('./components/report/ReportModal').then(m => ({ default: m.ReportModal })))
-const GlobalSearchModal = lazy(() => import('./components/search/GlobalSearchModal').then(m => ({ default: m.GlobalSearchModal })))
-const QuickNotesModal = lazy(() => import('./components/notes/QuickNotesModal').then(m => ({ default: m.QuickNotesModal })))
-const TimeBlockModal = lazy(() => import('./components/time-block/TimeBlockModal').then(m => ({ default: m.TimeBlockModal })))
-const FocusStatsModal = lazy(() => import('./components/focus/FocusStatsModal').then(m => ({ default: m.FocusStatsModal })))
-const FocusHistoryModal = lazy(() => import('./components/focus/FocusHistoryModal').then(m => ({ default: m.FocusHistoryModal })))
-const CycleTrackerModal = lazy(() => import('./components/cycle/CycleTrackerModal').then(m => ({ default: m.CycleTrackerModal })))
-const AvatarManagerModal = lazy(() => import('./components/avatar/AvatarManagerModal').then(m => ({ default: m.AvatarManagerModal })))
-const MemoryProfileModal = lazy(() => import('./components/memory/MemoryProfileModal').then(m => ({ default: m.MemoryProfileModal })))
-const AdminConsoleModal = lazy(() => import('./components/membership/AdminConsoleModal').then(m => ({ default: m.AdminConsoleModal })))
-const WorkbenchDetailPanel = lazy(() => import('./components/workbench/WorkbenchDetailPanel').then(m => ({ default: m.WorkbenchDetailPanel })))
-const WorkbenchCanvas = lazy(() => import('./components/workbench/WorkbenchCanvas').then(m => ({ default: m.WorkbenchCanvas })))
-const MembershipModal = lazy(() => import('./components/membership/MembershipModal').then(m => ({ default: m.MembershipModal })))
-const SettingsPanel = lazy(() => import('./components/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
-const PaymentModal = lazy(() => import('./components/membership/PaymentModal').then(m => ({ default: m.PaymentModal })))
-const OrderDetailModal = lazy(() => import('./components/membership/OrderDetailModal').then(m => ({ default: m.OrderDetailModal })))
-const CustomPersonaEditorModal = lazy(() => import('./components/persona/CustomPersonaEditorModal').then(m => ({ default: m.CustomPersonaEditorModal })))
-const CommunityPersonaModal = lazy(() => import('./components/persona/CommunityPersonaModal').then(m => ({ default: m.CommunityPersonaModal })))
-const CameoStorefrontModal = lazy(() => import('./components/persona/CameoStorefrontModal').then(m => ({ default: m.CameoStorefrontModal })))
-const RelationshipSpaceModal = lazy(() => import('./components/relationship/RelationshipSpaceModal').then(m => ({ default: m.RelationshipSpaceModal })))
-const ThemePickerModal = lazy(() => import('./components/theme/ThemePickerModal').then(m => ({ default: m.ThemePickerModal })))
-const WallpaperPickerModal = lazy(() => import('./components/theme/WallpaperPickerModal').then(m => ({ default: m.WallpaperPickerModal })))
-const PersonaSelectorModal = lazy(() => import('./components/persona/PersonaSelectorModal').then(m => ({ default: m.PersonaSelectorModal })))
-const IdentitySelectorModal = lazy(() => import('./components/identity/IdentitySelectorModal').then(m => ({ default: m.IdentitySelectorModal })))
-const DataBackupModal = lazy(() => import('./components/data/DataBackupModal').then(m => ({ default: m.DataBackupModal })))
-const ApiKeySettingsModal = lazy(() => import('./components/settings/ApiKeySettingsModal').then(m => ({ default: m.ApiKeySettingsModal })))
-const SupabaseConfigModal = lazy(() => import('./components/settings/SupabaseConfigModal').then(m => ({ default: m.SupabaseConfigModal })))
-const SyncModal = lazy(() => import('./components/sync/SyncModal').then(m => ({ default: m.SyncModal })))
-const MemoryStarMapModal = lazy(() => import('./components/memory-star-map/MemoryStarMapModal').then(m => ({ default: m.MemoryStarMapModal })))
-const MetricsDashboardModal = lazy(() => import('./components/metrics-dashboard/MetricsDashboardModal').then(m => ({ default: m.MetricsDashboardModal })))
+const EvolutionRitualUI = lazy(() => import('./ai-partner/agent/evolution/EvolutionRitualUI').then(m => ({ default: m.EvolutionRitualUI })))
+const AgentChatUI = lazy(() => import('./ai-partner/agent/AgentChatUI').then(m => ({ default: m.AgentChatUI })))
+const AgentChatToggle = lazy(() => import('./ai-partner/agent/AgentChatUI').then(m => ({ default: m.AgentChatToggle })))
+const SilentSuggestionUI = lazy(() => import('./ai-partner/agent/SilentSuggestionUI').then(m => ({ default: m.SilentSuggestionUI })))
+const WorkbenchDetailPanel = lazy(() => import('./shared/components/workbench/WorkbenchDetailPanel').then(m => ({ default: m.WorkbenchDetailPanel })))
+const WorkbenchCanvas = lazy(() => import('./shared/components/workbench/WorkbenchCanvas').then(m => ({ default: m.WorkbenchCanvas })))
+const MembershipModal = lazy(() => import('./shared/components/membership/MembershipModal').then(m => ({ default: m.MembershipModal })))
+const SettingsPanel = lazy(() => import('./shared/components/SettingsPanel').then(m => ({ default: m.SettingsPanel })))
+const PaymentModal = lazy(() => import('./shared/components/membership/PaymentModal').then(m => ({ default: m.PaymentModal })))
+const OrderDetailModal = lazy(() => import('./shared/components/membership/OrderDetailModal').then(m => ({ default: m.OrderDetailModal })))
+const RelationshipSpaceModal = lazy(() => import('./shared/components/relationship/RelationshipSpaceModal').then(m => ({ default: m.RelationshipSpaceModal })))
+const ThemePickerModal = lazy(() => import('./shared/components/theme/ThemePickerModal').then(m => ({ default: m.ThemePickerModal })))
+const WallpaperPickerModal = lazy(() => import('./shared/components/theme/WallpaperPickerModal').then(m => ({ default: m.WallpaperPickerModal })))
+const PersonaSelectorModal = lazy(() => import('./shared/components/persona/PersonaSelectorModal').then(m => ({ default: m.PersonaSelectorModal })))
+const IdentitySelectorModal = lazy(() => import('./shared/components/identity/IdentitySelectorModal').then(m => ({ default: m.IdentitySelectorModal })))
+const MemoryStarMapModal = lazy(() => import('./shared/components/memory-star-map/MemoryStarMapModal').then(m => ({ default: m.MemoryStarMapModal })))
+const MemoryProfileModal = lazy(() => import('./shared/components/memory/MemoryProfileModal').then(m => ({ default: m.MemoryProfileModal })))
 
 const store = typeof window === 'undefined' ? undefined : createBrowserWorkspaceStore()
 const memoryStore = typeof window === 'undefined' ? undefined : createBrowserMemoryStore()
@@ -222,8 +195,6 @@ export default function App() {
     isWallpaperPickerOpen, setIsWallpaperPickerOpen,
     isIdentitySelectorOpen, setIsIdentitySelectorOpen,
     moduleStoreState, setModuleStoreState,
-    isAIRecommendationOpen, setIsAIRecommendationOpen,
-    isLayoutShareOpen, setIsLayoutShareOpen,
     layoutImportError, setLayoutImportError,
     openWorkbenchDetail, setOpenWorkbenchDetail,
     sidebarOpen, setSidebarOpen,
@@ -235,36 +206,11 @@ export default function App() {
     isSettingsOpen, setIsSettingsOpen,
     isPaymentOpen, setIsPaymentOpen,
     selectedProduct, setSelectedProduct,
-    isAdminConsoleOpen, setIsAdminConsoleOpen,
     isRelationshipSpaceOpen, setIsRelationshipSpaceOpen,
     isAgentChatOpen, setIsAgentChatOpen,
     isMemoryProfileOpen, setIsMemoryProfileOpen,
-    isCycleTrackerOpen, setIsCycleTrackerOpen,
-    isAvatarManagerOpen, setIsAvatarManagerOpen,
     isPersonaSelectorOpen, setIsPersonaSelectorOpen,
-    isCustomPersonaEditorOpen, setIsCustomPersonaEditorOpen,
-    isCommunityPersonaOpen, setIsCommunityPersonaOpen,
-    isCameoStorefrontOpen, setIsCameoStorefrontOpen,
-    isDataBackupOpen, setIsDataBackupOpen,
-    isApiKeySettingsOpen, setIsApiKeySettingsOpen,
-    isSyncOpen, setIsSyncOpen,
-    isKnowledgeGraphOpen, setIsKnowledgeGraphOpen,
-    isScheduleOpen, setIsScheduleOpen,
-    isBacklinkOpen, setIsBacklinkOpen,
-    isFocusModeOpen, setIsFocusModeOpen,
-    isTemplateOpen, setIsTemplateOpen,
-    isReviewSchedulerOpen, setIsReviewSchedulerOpen,
-    isSupabaseConfigOpen, setIsSupabaseConfigOpen,
-    dataSource, setDataSource,
-    isReportOpen, setIsReportOpen,
-    isGlobalSearchOpen, setIsGlobalSearchOpen,
-    isQuickNotesOpen, setIsQuickNotesOpen,
-    isTimeBlockOpen, setIsTimeBlockOpen,
-    isFocusStatsOpen, setIsFocusStatsOpen,
-    isFocusHistoryOpen, setIsFocusHistoryOpen,
-    isMigrationOpen, setIsMigrationOpen,
     isMemoryStarMapOpen, setIsMemoryStarMapOpen,
-    isMetricsDashboardOpen, setIsMetricsDashboardOpen,
     currentPersonaId, setCurrentPersonaId,
     memoryProfile, setMemoryProfile,
     selectedSpaceId, setSelectedSpaceId,
@@ -401,9 +347,6 @@ export default function App() {
     if (!memoryBodyStore) return []
     return memoryBodyStore.load().relations
   }, [])
-  const memoryProductMetrics = useMemo<MemoryProductMetricsResult>(() => {
-    return computeMemoryProductMetrics({ atoms: memoryAtoms })
-  }, [memoryAtoms])
   const recommendedModules = useMemo(() => recommendModulesForIdentity({
     identityDescription: `${activePersona.name} ${activePersona.targetUser} ${activePersona.painPoint} ${activePersona.primaryFlow}`,
     personaModuleTitles: activePersona.modules.map((module) => module.title)
@@ -508,28 +451,24 @@ export default function App() {
       if (page === 'membership') {
         setIsMembershipOpen(true)
       } else if (page === 'settings') {
-        setIsApiKeySettingsOpen(true)
+        setIsSettingsOpen(true)
       }
     }
 
     window.addEventListener('navigate', handleNavigate)
     return () => window.removeEventListener('navigate', handleNavigate)
-  }, [closeAllSidebarPanels, setIsApiKeySettingsOpen, setIsMembershipOpen])
+  }, [closeAllSidebarPanels, setIsSettingsOpen, setIsMembershipOpen])
 
   const canvasModules = useCanvasModules({
     moduleStoreState,
     setModuleStoreState,
-    setIsAIRecommendationOpen,
-    setLayoutImportError,
-    setIsLayoutShareOpen
+    setLayoutImportError
   })
   const {
     addCanvasModule,
     removeCanvasModule,
     updateCanvasItems,
     createCustomCanvasModule,
-    applyRecommendedModules,
-    importLayout,
     moveWorkbenchItem
   } = canvasModules
 
@@ -601,9 +540,7 @@ export default function App() {
         onOpenRelationshipSpace={sidebarCallbacks.onOpenRelationshipSpace}
         onOpenAgentChat={sidebarCallbacks.onOpenAgentChat}
         onOpenSettings={sidebarCallbacks.onOpenSettings}
-        onOpenKnowledgeGraph={sidebarCallbacks.onOpenKnowledgeGraph}
         onOpenMemoryStarMap={sidebarCallbacks.onOpenMemoryStarMap}
-        onOpenMetricsDashboard={sidebarCallbacks.onOpenMetricsDashboard}
         currentThemeName={activeTheme.name}
         membershipTier={currentTier.label}
         aiQuota={totalQuota}
@@ -691,7 +628,6 @@ export default function App() {
             updateCanvasItems={updateCanvasItems}
             setOpenWorkbenchDetail={setOpenWorkbenchDetail}
             setIsWallpaperPickerOpen={setIsWallpaperPickerOpen}
-            setIsCycleTrackerOpen={setIsCycleTrackerOpen}
             setIsMemoryProfileOpen={setIsMemoryProfileOpen}
             openThemePicker={openThemePicker}
             restorePersonaTheme={restorePersonaTheme}
@@ -720,7 +656,6 @@ export default function App() {
         onPauseFocus={pauseFocusTimer}
         onResetFocus={resetFocusTimer}
         onAdjustFocus={adjustFocusDuration}
-        onOpenSchedule={() => setIsScheduleOpen(true)}
       />
       </div>
 
@@ -740,7 +675,6 @@ export default function App() {
           focusRewardPoints={focusRewardPoints}
           weeklyProgress={weeklyProgress}
           memoryProfile={memoryProfile}
-          onOpenCycleTracker={() => setIsCycleTrackerOpen(true)}
           onOpenMemoryProfile={() => setIsMemoryProfileOpen(true)}
         />
       </Suspense>
@@ -786,10 +720,6 @@ export default function App() {
           <SettingsPanel
             onClose={() => setIsSettingsOpen(false)}
             onOpenMembership={() => { setIsSettingsOpen(false); setIsMembershipOpen(true) }}
-            onOpenDataBackup={() => { setIsSettingsOpen(false); setIsDataBackupOpen(true) }}
-            onOpenApiKeySettings={() => { setIsSettingsOpen(false); setIsApiKeySettingsOpen(true) }}
-            onOpenSupabaseConfig={() => { setIsSettingsOpen(false); setIsSupabaseConfigOpen(true) }}
-            onOpenMigration={() => { setIsSettingsOpen(false); setIsMigrationOpen(true) }}
           />
         </Suspense>
       )}
@@ -802,117 +732,6 @@ export default function App() {
         />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <CycleTrackerModal isOpen={isCycleTrackerOpen} onClose={() => setIsCycleTrackerOpen(false)} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <DataBackupModal isOpen={isDataBackupOpen} onClose={() => setIsDataBackupOpen(false)} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <ApiKeySettingsModal isOpen={isApiKeySettingsOpen} onClose={() => setIsApiKeySettingsOpen(false)} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <SupabaseConfigModal
-          isOpen={isSupabaseConfigOpen}
-          onConfigured={() => {
-            setDataSource('supabase')
-            setIsSupabaseConfigOpen(false)
-            addToast({ type: 'success', title: 'Supabase 已连接', message: '数据源已切换至云端' })
-          }}
-          onBack={() => setIsSupabaseConfigOpen(false)}
-        />
-      </Suspense>
-
-      {isReportOpen && (
-        <Suspense fallback={null}>
-          <ReportModal
-            isOpen={isReportOpen}
-            onClose={() => setIsReportOpen(false)}
-            getWorkspaceState={getWorkspaceState}
-            getStudyState={getStudyState}
-            getHabitState={getHabitState}
-            getFinanceState={getFinanceState}
-            getReadingState={getReadingState}
-            getWellnessState={getWellnessState}
-            getJournalState={getJournalState}
-          />
-        </Suspense>
-      )}
-
-      {isGlobalSearchOpen && (
-        <Suspense fallback={null}>
-          <GlobalSearchModal
-            isOpen={isGlobalSearchOpen}
-            onClose={() => setIsGlobalSearchOpen(false)}
-            getWorkspaceState={getWorkspaceState}
-            getStudyState={getStudyState}
-            getHabitState={getHabitState}
-            getFinanceState={getFinanceState}
-            getReadingState={getReadingState}
-            getJournalState={getJournalState}
-            getGoalsState={getGoalsState}
-            getProjectState={getProjectState}
-          />
-        </Suspense>
-      )}
-
-      {isQuickNotesOpen && (
-        <Suspense fallback={null}>
-          <QuickNotesModal
-            isOpen={isQuickNotesOpen}
-            onClose={() => setIsQuickNotesOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {isTimeBlockOpen && (
-        <Suspense fallback={null}>
-          <TimeBlockModal
-            isOpen={isTimeBlockOpen}
-            onClose={() => setIsTimeBlockOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {isFocusStatsOpen && (
-        <Suspense fallback={null}>
-          <FocusStatsModal
-            isOpen={isFocusStatsOpen}
-            onClose={() => setIsFocusStatsOpen(false)}
-            getWorkspaceState={getWorkspaceState}
-          />
-        </Suspense>
-      )}
-
-      {isFocusHistoryOpen && (
-        <Suspense fallback={null}>
-          <FocusHistoryModal
-            isOpen={isFocusHistoryOpen}
-            onClose={() => setIsFocusHistoryOpen(false)}
-            getWorkspaceState={getWorkspaceState}
-          />
-        </Suspense>
-      )}
-
-      {isMigrationOpen && (
-        <Suspense fallback={null}>
-          <MigrationModal
-            isOpen={isMigrationOpen}
-            onClose={() => setIsMigrationOpen(false)}
-            dataSource={dataSource}
-            userId={userId}
-            addToast={addToast}
-            onNavigateToSupabase={() => setIsSupabaseConfigOpen(true)}
-          />
-        </Suspense>
-      )}
-
-      <Suspense fallback={null}>
-        <SyncModal isOpen={isSyncOpen} onClose={() => setIsSyncOpen(false)} />
-      </Suspense>
 
       <Suspense fallback={null}>
         <MemoryStarMapModal
@@ -925,71 +744,7 @@ export default function App() {
         />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <MetricsDashboardModal
-          isOpen={isMetricsDashboardOpen}
-          onClose={() => setIsMetricsDashboardOpen(false)}
-          metrics={memoryProductMetrics}
-          atoms={memoryAtoms}
-          scope={memoryScope}
-        />
-      </Suspense>
 
-      <Suspense fallback={null}>
-        <KnowledgeGraphModal
-          isOpen={isKnowledgeGraphOpen}
-          onClose={() => setIsKnowledgeGraphOpen(false)}
-        />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <ScheduleModal
-          isOpen={isScheduleOpen}
-          onClose={() => setIsScheduleOpen(false)}
-        />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <BacklinkModal
-          isOpen={isBacklinkOpen}
-          onClose={() => setIsBacklinkOpen(false)}
-        />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <FocusModeModal isOpen={isFocusModeOpen} onClose={() => setIsFocusModeOpen(false)} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <TemplateModal
-          isOpen={isTemplateOpen}
-          onClose={() => setIsTemplateOpen(false)}
-        />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <ReviewSchedulerModal
-          isOpen={isReviewSchedulerOpen}
-          onClose={() => setIsReviewSchedulerOpen(false)}
-          userId={userId}
-          dataSource={dataSource}
-        />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <AvatarManagerModal
-          isOpen={isAvatarManagerOpen}
-          userId={userId}
-          onClose={() => setIsAvatarManagerOpen(false)}
-          onAvatarSelect={(avatarId) => {
-            setWorkspaceState((prev) => ({
-              ...prev,
-              preferences: { ...prev.preferences, avatarId }
-            }))
-            addToast({ type: 'success', title: '角色已更新', message: `已选择新角色形象。` })
-          }}
-        />
-      </Suspense>
 
       {isRelationshipSpaceOpen && (
         <Suspense fallback={null}>
@@ -1034,52 +789,6 @@ export default function App() {
         />
       </Suspense>
 
-      {isCustomPersonaEditorOpen && (
-        <Suspense fallback={null}>
-          <CustomPersonaEditorModal
-            userId={userId}
-            onClose={() => setIsCustomPersonaEditorOpen(false)}
-            onCreate={(persona) => {
-              setCurrentPersonaId(persona.id)
-              setIsCustomPersonaEditorOpen(false)
-            }}
-            entitlementService={entitlementService}
-            safetyGate={personaSafetyGate}
-            incidentLog={safetyIncidentLog}
-            avatarGen={personaAvatarGen}
-            customPersonaService={customPersonaService}
-          />
-        </Suspense>
-      )}
-
-      {isCommunityPersonaOpen && (
-        <Suspense fallback={null}>
-          <CommunityPersonaModal
-            userId={userId}
-            communityService={communityPersonaService}
-            onImportPersona={(persona) => {
-              setCurrentPersonaId(persona.id)
-              setIsCommunityPersonaOpen(false)
-            }}
-            onClose={() => setIsCommunityPersonaOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {isCameoStorefrontOpen && (
-        <Suspense fallback={null}>
-          <CameoStorefrontModal
-            userId={userId}
-            personaProvider={personaProvider}
-            entitlementService={entitlementService}
-            onClose={() => setIsCameoStorefrontOpen(false)}
-            onPurchase={(personaId) => {
-              setCurrentPersonaId(personaId)
-              setIsCameoStorefrontOpen(false)
-            }}
-          />
-        </Suspense>
-      )}
 
       {pendingEntry && (
         <Suspense fallback={null}>
@@ -1093,9 +802,6 @@ export default function App() {
         </Suspense>
       )}
 
-      <Suspense fallback={null}>
-        <AdminConsoleModal isOpen={isAdminConsoleOpen} onClose={() => setIsAdminConsoleOpen(false)} />
-      </Suspense>
 
       {selectedOrder && (
         <Suspense fallback={null}>
@@ -1110,38 +816,6 @@ export default function App() {
         <IdentitySelectorModal isOpen={isIdentitySelectorOpen} onClose={() => setIsIdentitySelectorOpen(false)} />
       </Suspense>
 
-      {moduleStoreState.isStoreOpen && (
-        <Suspense fallback={null}>
-          <ModuleStoreUI
-            onAddModule={addCanvasModule}
-            onClose={() => setModuleStoreState((current) => ({ ...current, isStoreOpen: false }))}
-            onCreateCustomModule={createCustomCanvasModule}
-            onRemoveModule={removeCanvasModule}
-            state={moduleStoreState}
-          />
-        </Suspense>
-      )}
-
-      {isAIRecommendationOpen && (
-        <Suspense fallback={null}>
-          <AIRecommendationUI
-            identityDescription={`${activePersona.name}：${activePersona.targetUser}`}
-            modules={recommendedModules}
-            onApply={applyRecommendedModules}
-            onClose={() => setIsAIRecommendationOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {isLayoutShareOpen && (
-        <Suspense fallback={null}>
-          <LayoutShareUI
-            exportedLayout={exportedModuleLayout}
-            onClose={() => setIsLayoutShareOpen(false)}
-            onImport={importLayout}
-          />
-        </Suspense>
-      )}
 
       {isAgentChatOpen && (
         <Suspense fallback={null}>

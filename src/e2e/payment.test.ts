@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { createEntitlementService } from '../entitlement/entitlementService'
-import { createOrderService } from '../entitlement/orderService'
-import { getProductById, getActiveProducts } from '../entitlement/productCatalog'
-import { createAiQuotaProvider } from '../entitlement/aiQuotaProvider'
-import { createSubscriptionProvider } from '../entitlement/subscriptionProvider'
-import { createAgentTierProvider } from '../entitlement/agentTierProvider'
+import { createEntitlementService } from '../shared/entitlement/entitlementService'
+import { createOrderService } from '../shared/entitlement/orderService'
+import { getProductById, getActiveProducts } from '../shared/entitlement/productCatalog'
+import { createAiQuotaProvider } from '../shared/entitlement/aiQuotaProvider'
+import { createSubscriptionProvider } from '../shared/entitlement/subscriptionProvider'
+import { createAgentTierProvider } from '../shared/entitlement/agentTierProvider'
 
 describe('Payment Flow E2E', () => {
   let entitlementService: ReturnType<typeof createEntitlementService>

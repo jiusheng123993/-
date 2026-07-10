@@ -2,7 +2,7 @@ import { render, screen, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import { ToastProvider } from './components/toast/Toast'
+import { ToastProvider } from './shared/components/toast/Toast'
 
 const renderApp = () => render(<ToastProvider><App /></ToastProvider>)
 

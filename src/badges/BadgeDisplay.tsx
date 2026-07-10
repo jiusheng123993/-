@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { usePlatform } from '../platforms'
+import { usePlatform } from '../shared/platforms'
 import type { Badge, BadgeCollection } from './badgeTypes'
 import { TIER_COLORS, TIER_LABELS } from './badgeTypes'
 import { evaluateBadges, type BadgeProgressInput } from './badgeEngine'
