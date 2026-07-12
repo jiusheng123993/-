@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "xinghuanhai-miniapp",
   "description": "星寰海 - 情绪健康管理平台",
-  "appid": "touristappid",
+  "appid": "wxa57cb3a5a40fc8f1",
   "setting": {
     "urlCheck": true,
     "es6": false,
