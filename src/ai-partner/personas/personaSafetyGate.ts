@@ -1,12 +1,14 @@
 import type { SafetyIncidentLog } from './safetyIncidentLog'
 
 export type IdentityRoleAllowed =
-  | 'senior_student'
-  | 'coach'
+  | 'girlfriend'
   | 'sister'
   | 'brother'
+  | 'teacher'
   | 'friend'
   | 'study_partner'
+  | 'senior_student'
+  | 'coach'
   | 'secretary'
   | 'wise_elder'
 
@@ -26,13 +28,13 @@ export interface PersonaSafetyGate {
 }
 
 const IDENTITY_ROLE_WHITELIST: IdentityRoleAllowed[] = [
-  'senior_student', 'coach', 'sister', 'brother',
-  'friend', 'study_partner', 'secretary', 'wise_elder'
+  'girlfriend', 'sister', 'brother', 'teacher',
+  'friend', 'study_partner', 'senior_student', 'coach', 'secretary', 'wise_elder'
 ]
 
 const FORBIDDEN_KEYWORDS = [
-  '女友', '男友', '恋人', '老婆', '老公', '伴侣', '情人',
-  'girlfriend', 'boyfriend', 'lover', 'wife', 'husband', 'partner'
+  '男友', '恋人', '老婆', '老公', '伴侣', '情人',
+  'boyfriend', 'lover', 'wife', 'husband', 'partner'
 ]
 
 const JAILBREAK_PATTERNS = [

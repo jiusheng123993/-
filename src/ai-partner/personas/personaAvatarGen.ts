@@ -39,9 +39,11 @@ const TONE_STYLE_MAP: Record<string, string> = {
 }
 
 const IDENTITY_STYLE_MAP: Record<string, string> = {
+  'girlfriend': '俏皮女友',
+  'sister': '贴心姐姐',
+  'teacher': '严厉老师',
   'senior_student': '高年级学长/学姐',
   'coach': '教练/导师',
-  'sister': '温柔姐姐',
   'brother': '可靠哥哥',
   'friend': '知心朋友',
   'study_partner': '学习搭档',

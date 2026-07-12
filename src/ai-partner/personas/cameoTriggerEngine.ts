@@ -44,19 +44,19 @@ export interface CameoTriggerEngine {
 }
 
 const HOLIDAY_DATES: { month: number; date: number; personaId: string; name: string }[] = [
-  { month: 1, date: 1, personaId: 'gentle_sister', name: '新年' },
-  { month: 2, date: 14, personaId: 'gentle_sister', name: '情人节' },
-  { month: 5, date: 1, personaId: 'strict_coach', name: '劳动节' },
-  { month: 6, date: 1, personaId: 'energetic_pal', name: '儿童节' },
-  { month: 9, date: 10, personaId: 'wise_elder', name: '教师节' },
-  { month: 10, date: 1, personaId: 'wise_elder', name: '国庆节' },
-  { month: 12, date: 25, personaId: 'gentle_sister', name: '圣诞节' },
+  { month: 1, date: 1, personaId: 'caring_sister', name: '新年' },
+  { month: 2, date: 14, personaId: 'playful_girlfriend', name: '情人节' },
+  { month: 5, date: 1, personaId: 'strict_teacher', name: '劳动节' },
+  { month: 6, date: 1, personaId: 'playful_girlfriend', name: '儿童节' },
+  { month: 9, date: 10, personaId: 'strict_teacher', name: '教师节' },
+  { month: 10, date: 1, personaId: 'caring_sister', name: '国庆节' },
+  { month: 12, date: 25, personaId: 'playful_girlfriend', name: '圣诞节' },
 ]
 
 const EXAM_SEASONS: { month: number; startDate: number; endDate: number; personaId: string; name: string }[] = [
-  { month: 1, startDate: 5, endDate: 15, personaId: 'strict_coach', name: '期末考试' },
-  { month: 6, startDate: 20, endDate: 30, personaId: 'strict_coach', name: '期末考试' },
-  { month: 12, startDate: 20, endDate: 30, personaId: 'strict_coach', name: '期末考试' },
+  { month: 1, startDate: 5, endDate: 15, personaId: 'strict_teacher', name: '期末考试' },
+  { month: 6, startDate: 20, endDate: 30, personaId: 'strict_teacher', name: '期末考试' },
+  { month: 12, startDate: 20, endDate: 30, personaId: 'strict_teacher', name: '期末考试' },
 ]
 
 function isHolidayMatch(now: Date): { personaId: string; name: string } | null {
@@ -127,61 +127,61 @@ function isMoodLowMatch(context: CameoTriggerContext): boolean {
 const DEFAULT_RULES: CameoTriggerRule[] = [
   {
     type: 'holiday',
-    personaId: 'gentle_sister',
+    personaId: 'caring_sister',
     condition: (ctx) => isHolidayMatch(ctx.now) !== null,
     priority: 100,
     requiresEntitlement: 'agent',
   },
   {
     type: 'exam_season',
-    personaId: 'strict_coach',
+    personaId: 'strict_teacher',
     condition: (ctx) => isExamSeasonMatch(ctx.now) !== null,
     priority: 95,
     requiresEntitlement: 'agent',
   },
   {
     type: 'birthday',
-    personaId: 'gentle_sister',
+    personaId: 'caring_sister',
     condition: (ctx) => isBirthdayMatch(ctx.now, ctx.schedule.userBirthday),
     priority: 90,
     requiresEntitlement: 'agent',
   },
   {
     type: 'anniversary',
-    personaId: 'gentle_sister',
+    personaId: 'playful_girlfriend',
     condition: (ctx) => isAnniversaryMatch(ctx.now, ctx.schedule.userAnniversary),
     priority: 85,
     requiresEntitlement: 'agent',
   },
   {
     type: 'daily_evening',
-    personaId: 'gentle_sister',
+    personaId: 'playful_girlfriend',
     condition: (ctx) => isDailyEveningMatch(ctx.now, ctx.schedule.cameoFrequency),
     priority: 50,
   },
   {
     type: 'weekend',
-    personaId: 'wise_elder',
+    personaId: 'playful_girlfriend',
     condition: (ctx) => isWeekendMatch(ctx.now, ctx.schedule.cameoFrequency),
     priority: 45,
   },
   {
     type: 'focus_streak',
-    personaId: 'strict_coach',
+    personaId: 'strict_teacher',
     condition: (ctx) => isFocusStreakMatch(ctx),
     priority: 70,
     requiresEntitlement: 'agent',
   },
   {
     type: 'task_milestone',
-    personaId: 'energetic_pal',
+    personaId: 'playful_girlfriend',
     condition: (ctx) => isTaskMilestoneMatch(ctx),
     priority: 65,
     requiresEntitlement: 'agent',
   },
   {
     type: 'mood_low',
-    personaId: 'gentle_sister',
+    personaId: 'caring_sister',
     condition: (ctx) => isMoodLowMatch(ctx),
     priority: 80,
     requiresEntitlement: 'agent',

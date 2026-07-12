@@ -30,15 +30,15 @@ describe('personaScheduler', () => {
   it('returns main persona when schedule exists', () => {
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'gentle_sister',
+      mainPersonaId: 'caring_sister',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'medium'
     })
 
     const persona = scheduler.getCurrentPersona('user-1')
-    expect(persona?.id).toBe('gentle_sister')
-    expect(persona?.name).toBe('温柔姐姐')
+    expect(persona?.id).toBe('caring_sister')
+    expect(persona?.name).toBe('贴心姐姐')
   })
 
   it('returns cameo persona when active', () => {
@@ -47,12 +47,12 @@ describe('personaScheduler', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'medium',
       activeCameo: {
-        personaId: 'strict_coach',
+        personaId: 'strict_teacher',
         triggeredBy: 'user_manual',
         triggerDetail: 'User activated',
         startedAt: new Date().toISOString(),
@@ -61,15 +61,15 @@ describe('personaScheduler', () => {
     })
 
     const persona = scheduler.getCurrentPersona('user-1')
-    expect(persona?.id).toBe('strict_coach')
+    expect(persona?.id).toBe('strict_teacher')
   })
 
   it('selects main persona with valid entitlement', () => {
-    const result = scheduler.selectMainPersona('user-1', 'gentle_sister')
+    const result = scheduler.selectMainPersona('user-1', 'caring_sister')
     expect(result.ok).toBe(true)
 
     const schedule = storage.get('user-1')
-    expect(schedule?.mainPersonaId).toBe('gentle_sister')
+    expect(schedule?.mainPersonaId).toBe('caring_sister')
   })
 
   it('rejects persona selection without entitlement', () => {
@@ -78,7 +78,7 @@ describe('personaScheduler', () => {
     }
     scheduler = createPersonaScheduler(storage, mockEntitlement)
 
-    const result = scheduler.selectMainPersona('user-1', 'gentle_sister')
+    const result = scheduler.selectMainPersona('user-1', 'caring_sister')
     expect(result.ok).toBe(false)
     expect(result.reason).toBe('tier_required')
   })
@@ -92,13 +92,13 @@ describe('personaScheduler', () => {
   it('rejects selection within monthly limit', () => {
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: new Date().toISOString(),
       cameoFrequency: 'medium'
     })
 
-    const result = scheduler.selectMainPersona('user-1', 'gentle_sister')
+    const result = scheduler.selectMainPersona('user-1', 'caring_sister')
     expect(result.ok).toBe(false)
     expect(result.reason).toBe('monthly_limit_reached')
   })
@@ -106,16 +106,16 @@ describe('personaScheduler', () => {
   it('activates and ends cameo', () => {
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'medium'
     })
 
-    scheduler.activateCameo('user-1', 'strict_coach', 7, 'user_manual')
+    scheduler.activateCameo('user-1', 'strict_teacher', 7, 'user_manual')
 
     let schedule = storage.get('user-1')
-    expect(schedule?.activeCameo?.personaId).toBe('strict_coach')
+    expect(schedule?.activeCameo?.personaId).toBe('strict_teacher')
 
     scheduler.endCameo('user-1')
     schedule = storage.get('user-1')
@@ -125,7 +125,7 @@ describe('personaScheduler', () => {
   it('returns null for auto cameo when frequency is off', () => {
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'off'
@@ -136,14 +136,41 @@ describe('personaScheduler', () => {
 })
 
 describe('PRESET_PERSONAS', () => {
-  it('contains 6 preset personas', () => {
-    expect(PRESET_PERSONAS).toHaveLength(6)
+  it('contains 3 preset personas', () => {
+    expect(PRESET_PERSONAS).toHaveLength(3)
   })
 
   it('has unique ids', () => {
     const ids = PRESET_PERSONAS.map(p => p.id)
     const uniqueIds = [...new Set(ids)]
     expect(uniqueIds).toHaveLength(ids.length)
+  })
+
+  it('includes playful_girlfriend with female gender', () => {
+    const gf = PRESET_PERSONAS.find(p => p.id === 'playful_girlfriend')
+    expect(gf).toBeDefined()
+    expect(gf!.gender).toBe('female')
+    expect(gf!.identityRole).toBe('girlfriend')
+  })
+
+  it('includes caring_sister with female gender', () => {
+    const sister = PRESET_PERSONAS.find(p => p.id === 'caring_sister')
+    expect(sister).toBeDefined()
+    expect(sister!.gender).toBe('female')
+    expect(sister!.identityRole).toBe('sister')
+  })
+
+  it('includes strict_teacher with neutral gender', () => {
+    const teacher = PRESET_PERSONAS.find(p => p.id === 'strict_teacher')
+    expect(teacher).toBeDefined()
+    expect(teacher!.gender).toBe('neutral')
+    expect(teacher!.identityRole).toBe('teacher')
+  })
+
+  it('all personas have tierRequired free', () => {
+    for (const persona of PRESET_PERSONAS) {
+      expect(persona.tierRequired).toBe('free')
+    }
   })
 })
 
@@ -174,7 +201,7 @@ describe('personaScheduler with cameoEngine', () => {
   it('returns null for auto cameo when frequency is off', () => {
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'off'
@@ -189,7 +216,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'weekly'
@@ -197,7 +224,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     const result = scheduler.checkAutoCameoTriggers('user-1')
     expect(result).not.toBeNull()
-    expect(result!.id).toBe('gentle_sister')
+    expect(result!.id).toBe('caring_sister')
   })
 
   it('triggers exam season cameo during exam period via engine', () => {
@@ -206,7 +233,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'weekly'
@@ -214,7 +241,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     const result = scheduler.checkAutoCameoTriggers('user-1')
     expect(result).not.toBeNull()
-    expect(result!.id).toBe('strict_coach')
+    expect(result!.id).toBe('strict_teacher')
   })
 
   it('triggers focus streak cameo when focus minutes >= 120 via engine', () => {
@@ -223,7 +250,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'event_threshold',
@@ -232,7 +259,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     const result = scheduler.checkAutoCameoTriggers('user-1')
     expect(result).not.toBeNull()
-    expect(result!.id).toBe('strict_coach')
+    expect(result!.id).toBe('strict_teacher')
   })
 
   it('does not trigger focus streak when focus minutes < 120 via engine', () => {
@@ -241,7 +268,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'event_threshold',
@@ -258,7 +285,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'event_threshold',
@@ -267,7 +294,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     const result = scheduler.checkAutoCameoTriggers('user-1')
     expect(result).not.toBeNull()
-    expect(result!.id).toBe('energetic_pal')
+    expect(result!.id).toBe('playful_girlfriend')
   })
 
   it('does not trigger task milestone below 10 tasks via engine', () => {
@@ -276,7 +303,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'event_threshold',
@@ -292,7 +319,7 @@ describe('personaScheduler with cameoEngine', () => {
 
     storage.save({
       userId: 'user-1',
-      mainPersonaId: 'senior_buddy',
+      mainPersonaId: 'playful_girlfriend',
       mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
       mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
       cameoFrequency: 'off'

@@ -18,7 +18,7 @@ interface PersonaSelectorUIProps {
 }
 
 export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: PersonaSelectorUIProps) {
-  const [selectedId, setSelectedId] = useState(currentPersonaId || 'senior_buddy')
+  const [selectedId, setSelectedId] = useState(currentPersonaId || 'playful_girlfriend')
   const [showCreator, setShowCreator] = useState(false)
 
   const availablePresets = useMemo(() => {
@@ -193,8 +193,8 @@ export function PersonaSelectorUI({ userId, currentPersonaId, onSelect }: Person
             <tr>
               <td>预设角色</td>
               <td>❌</td>
-              <td>✅ 6个</td>
-              <td>✅ 6个</td>
+              <td>✅ 3个</td>
+              <td>✅ 3个</td>
             </tr>
             <tr>
               <td>自定义角色</td>

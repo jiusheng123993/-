@@ -91,23 +91,23 @@ describe('AgentChatUI', () => {
 
   it('does not render when isOpen is false', () => {
     render(<AgentChatUI isOpen={false} onClose={() => {}} />)
-    expect(screen.queryByText('AI 助手')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('点击修改名字')).not.toBeInTheDocument()
   })
 
   it('renders greeting message when opened', () => {
     render(<AgentChatUI isOpen onClose={() => {}} />)
-    expect(screen.getByText('AI 助手')).toBeInTheDocument()
+    expect(screen.getByTitle('点击修改名字')).toBeInTheDocument()
     expect(screen.getByText('在线')).toBeInTheDocument()
   })
 
   it('shows custom aiRole when provided', () => {
     render(<AgentChatUI isOpen onClose={() => {}} aiRole="AI 备考教练" />)
-    expect(screen.getByText('AI 备考教练')).toBeInTheDocument()
+    expect(screen.getByTitle('点击修改名字')).toBeInTheDocument()
   })
 
-  it('shows default AI 助手 when no aiRole provided', () => {
+  it('shows default persona name when no aiRole provided', () => {
     render(<AgentChatUI isOpen onClose={() => {}} />)
-    expect(screen.getByText('AI 助手')).toBeInTheDocument()
+    expect(screen.getByTitle('点击修改名字')).toBeInTheDocument()
   })
 
   it('allows message input', () => {
@@ -165,7 +165,7 @@ describe('AgentChatUI', () => {
         />
       )
 
-      expect(screen.getByText('AI 助手')).toBeInTheDocument()
+      expect(screen.getByTitle('点击修改名字')).toBeInTheDocument()
     })
 
     it('renders with memoryObserver without crashing', () => {
@@ -179,7 +179,7 @@ describe('AgentChatUI', () => {
         />
       )
 
-      expect(screen.getByText('AI 助手')).toBeInTheDocument()
+      expect(screen.getByTitle('点击修改名字')).toBeInTheDocument()
     })
 
     it('renders with all memory props without crashing', () => {
@@ -197,7 +197,7 @@ describe('AgentChatUI', () => {
         />
       )
 
-      expect(screen.getByText('AI 助手')).toBeInTheDocument()
+      expect(screen.getByTitle('点击修改名字')).toBeInTheDocument()
     })
 
     it('uses custom onSendMessage when provided', async () => {

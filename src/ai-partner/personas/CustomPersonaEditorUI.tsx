@@ -32,12 +32,14 @@ interface CustomPersonaDraft {
 }
 
 const IDENTITY_ROLE_OPTIONS: { value: IdentityRoleAllowed; label: string; icon: string }[] = [
-  { value: 'senior_student', label: '学姐/学长', icon: '🎓' },
-  { value: 'coach', label: '教练', icon: '🏋️' },
-  { value: 'sister', label: '姐姐', icon: '💕' },
+  { value: 'girlfriend', label: '女友', icon: '💕' },
+  { value: 'sister', label: '姐姐', icon: '🌸' },
+  { value: 'teacher', label: '老师', icon: '📚' },
   { value: 'brother', label: '哥哥', icon: '🤝' },
   { value: 'friend', label: '朋友', icon: '👋' },
-  { value: 'study_partner', label: '学习搭子', icon: '📚' },
+  { value: 'study_partner', label: '学习搭子', icon: '📖' },
+  { value: 'senior_student', label: '学姐/学长', icon: '🎓' },
+  { value: 'coach', label: '教练', icon: '🏋️' },
   { value: 'secretary', label: '秘书', icon: '💼' },
   { value: 'wise_elder', label: '智者', icon: '🧙' },
 ]

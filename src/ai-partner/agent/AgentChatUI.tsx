@@ -6,18 +6,26 @@ import type { MemoryProfile, MemoryEvent } from '../memory/memoryTypes'
 import type { MemoryObserver } from '../memory/memoryObserver'
 import type { RelationshipHealthMonitor } from '../personas/relationshipHealthMonitor'
 import type { PersonaSafetyGate } from '../personas/personaSafetyGate'
+import { PRESET_PERSONAS, getDisplayName } from '../personas/personaScheduler'
+import type { PersonaDefinition } from '../personas/personaScheduler'
 import { createAgentChatMemoryAdapter, createBrowserMemoryBodyStore } from '../memory-body'
 import type { AgentChatMemoryAdapter } from '../memory-body'
 import type { MemoryFeedbackType } from '../memory-body'
 import { agentRuntime } from './agentRuntime'
 import { getMoodEmoji } from '../avatar/animator'
+import { createProactiveChatEngine } from './proactiveChat'
+import type { ProactiveMessage } from './proactiveChat'
+import { createPersonaAutoSwitcher } from './personaAutoSwitcher'
+import type { AutoSwitchContext } from './personaAutoSwitcher'
 
 export interface AgentMessage {
   id: string
-  role: 'user' | 'agent'
+  role: 'user' | 'agent' | 'system' | 'proactive'
   content: string
   timestamp: string
   mood?: AvatarMood
+  personaId?: string
+  isProactive?: boolean
 }
 
 export interface AgentChatUIProps {
@@ -36,15 +44,78 @@ export interface AgentChatUIProps {
   onConversationComplete?: (userMessage: string, agentResponse: string) => void
 }
 
-function getGreeting(aiRole?: string): string {
-  const role = aiRole || 'AI 助手'
-  return `你好！我是你的${role}，有什么可以帮你的吗？`
+/** 人格对应的 emoji 和颜色 */
+const PERSONA_META: Record<string, { emoji: string; color: string }> = {
+  playful_girlfriend: { emoji: '💕', color: '#ec4899' },
+  caring_sister: { emoji: '🌸', color: '#8b5cf6' },
+  strict_teacher: { emoji: '📚', color: '#3b82f6' }
+}
+
+/** 性别选项 */
+const GENDER_OPTIONS: Array<{ value: 'male' | 'female' | 'neutral'; label: string }> = [
+  { value: 'male', label: '男' },
+  { value: 'female', label: '女' },
+  { value: 'neutral', label: '无性别' }
+]
+
+/** 性别对应的头像 emoji */
+const GENDER_EMOJI: Record<string, string> = {
+  male: '🧑',
+  female: '👩',
+  neutral: '🤖'
+}
+
+function getGreeting(displayName?: string): string {
+  const name = displayName || 'AI 助手'
+  return `你好！我是${name}，有什么可以帮你的吗？`
 }
 
 const CHAT_HISTORY_KEY = 'agent_chat_history'
+const PERSONA_SETTINGS_KEY = 'agent_persona_settings'
 const MEMORY_BODY_PROJECT_ID = 'xinghuanhai-growth-workbench'
 const DEFAULT_MEMORY_BODY_USER_ID = 'default-user'
 const MAX_HISTORY_MESSAGES = 50
+
+/** 人格设置持久化 */
+interface PersonaSettings {
+  activePersonaId: string
+  customName: string
+  gender: 'male' | 'female' | 'neutral'
+  isManualSwitch: boolean
+  lastAutoSwitchAt: number
+}
+
+function loadPersonaSettings(): PersonaSettings {
+  try {
+    const raw = localStorage.getItem(PERSONA_SETTINGS_KEY)
+    if (!raw) {
+      return {
+        activePersonaId: 'playful_girlfriend',
+        customName: '',
+        gender: 'female',
+        isManualSwitch: false,
+        lastAutoSwitchAt: 0
+      }
+    }
+    return JSON.parse(raw)
+  } catch {
+    return {
+      activePersonaId: 'playful_girlfriend',
+      customName: '',
+      gender: 'female',
+      isManualSwitch: false,
+      lastAutoSwitchAt: 0
+    }
+  }
+}
+
+function savePersonaSettings(settings: PersonaSettings): void {
+  try {
+    localStorage.setItem(PERSONA_SETTINGS_KEY, JSON.stringify(settings))
+  } catch {
+    // localStorage full or unavailable
+  }
+}
 
 const FEEDBACK_PATTERNS: { pattern: RegExp; type: MemoryFeedbackType; extractKeyword: (content: string) => string; response: string }[] = [
   { pattern: /忘掉(.+?)(?:，|。|！|？|$)|忘记(.+?)(?:，|。|！|？|$)|不要.*记住(.+?)(?:，|。|！|？|$)|忘掉.*不要记/i, type: 'forget', extractKeyword: (c) => { const m = c.match(/忘掉(.+?)(?:，|。|！|？|$)|忘记(.+?)(?:，|。|！|？|$)|不要.*记住(.+?)(?:，|。|！|？|$)/); return (m?.[1] || m?.[2] || m?.[3] || '').trim(); }, response: '已按你的要求忘掉这条记忆。' },
@@ -192,8 +263,173 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
 
   const conversationHistoryRef = useRef<Array<{ role: 'user' | 'agent'; content: string }>>([])
 
+  // 人格设置状态
+  const [personaSettings, setPersonaSettings] = useState<PersonaSettings>(() => loadPersonaSettings())
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
+
+  // 主动对话引擎
+  const proactiveEngine = useMemo(() => createProactiveChatEngine(), [])
+  const [unreadProactiveCount, setUnreadProactiveCount] = useState(0)
+
+  // 人格自动切换引擎
+  const autoSwitcher = useMemo(() => createPersonaAutoSwitcher(), [])
+
+  // 用 ref 保存 personaSettings 最新值，避免 useEffect 频繁重建定时器
+  const personaSettingsRef = useRef(personaSettings)
+  personaSettingsRef.current = personaSettings
+
+  // 获取当前激活的人格
+  const activePersona = useMemo((): PersonaDefinition => {
+    return PRESET_PERSONAS.find(p => p.id === personaSettings.activePersonaId) || PRESET_PERSONAS[0]
+  }, [personaSettings.activePersonaId])
+
+  // 显示名称
+  const displayName = useMemo(() => {
+    return personaSettings.customName || getDisplayName(activePersona)
+  }, [personaSettings.customName, activePersona])
+
+  // 头像 emoji
+  const avatarEmoji = useMemo(() => {
+    return GENDER_EMOJI[personaSettings.gender] || '🤖'
+  }, [personaSettings.gender])
+
+  // 检查主动对话
+  useEffect(() => {
+    if (!isOpen) return
+    const unread = proactiveEngine.getUnreadMessages()
+    setUnreadProactiveCount(unread.length)
+  }, [isOpen, proactiveEngine])
+
+  // 定时检查主动对话触发 + 人格自动切换
+  useEffect(() => {
+    if (!isOpen) return
+    const checkInterval = setInterval(() => {
+      const now = new Date()
+      // 主动对话检查
+      const newMessages = proactiveEngine.checkTriggers({
+        hour: now.getHours(),
+        focusMinutes: 0,
+        userEmotion: 'neutral',
+        idleMinutes: 0,
+        hasAchievement: false
+      })
+      if (newMessages.length > 0) {
+        const proactiveAgentMessages: AgentMessage[] = newMessages.map(pm => ({
+          id: pm.id,
+          role: 'proactive' as const,
+          content: pm.content,
+          timestamp: pm.timestamp,
+          personaId: pm.personaId,
+          isProactive: true
+        }))
+        setMessages(prev => [...prev, ...proactiveAgentMessages])
+        setUnreadProactiveCount(prev => prev + newMessages.length)
+      }
+
+      // 人格自动切换检查
+      const switchContext: AutoSwitchContext = {
+        hour: now.getHours(),
+        userEmotion: 'neutral',
+        userScene: 'unknown',
+        idleMinutes: 0,
+        focusMinutes: 0,
+        isManualOverride: personaSettings.isManualSwitch
+      }
+      const switchResult = autoSwitcher.evaluate(switchContext)
+      if (switchResult.shouldSwitch && switchResult.targetPersonaId !== personaSettings.activePersonaId) {
+        const targetPersona = PRESET_PERSONAS.find(p => p.id === switchResult.targetPersonaId)
+        if (targetPersona) {
+          const newSettings: PersonaSettings = {
+            ...personaSettings,
+            activePersonaId: switchResult.targetPersonaId,
+            gender: targetPersona.gender || 'neutral',
+            isManualSwitch: false,
+            lastAutoSwitchAt: Date.now()
+          }
+          setPersonaSettings(newSettings)
+          savePersonaSettings(newSettings)
+
+          const switchMsg: AgentMessage = {
+            id: `msg-auto-switch-${Date.now()}`,
+            role: 'system',
+            content: `${switchResult.reason}`,
+            timestamp: new Date().toISOString()
+          }
+          setMessages(prev => [...prev, switchMsg])
+        }
+      }
+    }, 60 * 1000) // 每分钟检查一次
+    return () => clearInterval(checkInterval)
+  }, [isOpen, proactiveEngine, autoSwitcher, personaSettings])
+
+  // 切换人格
+  const handlePersonaSwitch = useCallback((personaId: string) => {
+    const persona = PRESET_PERSONAS.find(p => p.id === personaId)
+    if (!persona) return
+
+    const newSettings: PersonaSettings = {
+      ...personaSettings,
+      activePersonaId: personaId,
+      gender: persona.gender || 'neutral',
+      isManualSwitch: true,
+      lastAutoSwitchAt: personaSettings.lastAutoSwitchAt
+    }
+    setPersonaSettings(newSettings)
+    savePersonaSettings(newSettings)
+
+    // 设置手动覆盖标记，阻止自动切换
+    localStorage.setItem('persona_manual_override', 'true')
+
+    // 插入系统提示
+    const switchMsg: AgentMessage = {
+      id: `msg-switch-${Date.now()}`,
+      role: 'system',
+      content: `已切换到${getDisplayName(persona)}模式`,
+      timestamp: new Date().toISOString()
+    }
+    setMessages(prev => [...prev, switchMsg])
+  }, [personaSettings])
+
+  // 性别切换
+  const handleGenderChange = useCallback((gender: 'male' | 'female' | 'neutral') => {
+    const newSettings = { ...personaSettings, gender }
+    setPersonaSettings(newSettings)
+    savePersonaSettings(newSettings)
+  }, [personaSettings])
+
+  // 名字编辑
+  const handleNameEditStart = useCallback(() => {
+    setNameInput(personaSettings.customName || getDisplayName(activePersona))
+    setIsEditingName(true)
+  }, [personaSettings.customName, activePersona])
+
+  const handleNameEditConfirm = useCallback(() => {
+    const trimmed = nameInput.trim()
+    const newSettings = { ...personaSettings, customName: trimmed }
+    setPersonaSettings(newSettings)
+    savePersonaSettings(newSettings)
+    setIsEditingName(false)
+  }, [nameInput, personaSettings])
+
+  const handleNameEditCancel = useCallback(() => {
+    setIsEditingName(false)
+    setNameInput('')
+  }, [])
+
+  // 标记主动消息已读
+  const handleMarkProactiveRead = useCallback(() => {
+    const unread = proactiveEngine.getUnreadMessages()
+    for (const msg of unread) {
+      proactiveEngine.markAsRead(msg.id)
+    }
+    setUnreadProactiveCount(0)
+  }, [proactiveEngine])
+
   useEffect(() => {
     if (isOpen) {
+      handleMarkProactiveRead()
       const restored = loadChatHistory()
       if (restored.length > 0) {
         setMessages(restored)
@@ -204,7 +440,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
         const greeting: AgentMessage = {
           id: `msg-${Date.now()}`,
           role: 'agent',
-          content: getGreeting(aiRole),
+          content: getGreeting(displayName),
           timestamp: new Date().toISOString(),
           mood: 'happy'
         }
@@ -212,7 +448,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
         conversationHistoryRef.current = []
       }
     }
-  }, [isOpen, aiRole])
+  }, [isOpen, displayName, handleMarkProactiveRead])
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -315,6 +551,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
           memoryEvents: memoryEvents,
           memoryBodyContext,
           signal: controller.signal,
+          customName: personaSettings.customName || undefined,
           onChunk: (chunk: string) => {
             streamingContentRef.current += chunk
             setMessages(prev => prev.map(m =>
@@ -382,7 +619,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
         }
       }
     }
-  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, safetyGate, onConversationComplete, memoryEvents, profile, memoryBodyAdapter])
+  }, [inputValue, isLoading, onSendMessage, personaId, memoryObserver, healthMonitor, safetyGate, onConversationComplete, memoryEvents, profile, memoryBodyAdapter, personaSettings.customName])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -433,12 +670,13 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
           overflow: 'hidden'
         }}
       >
+      {/* 头部区域 */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 20px',
+          padding: '12px 20px',
           borderBottom: '1px solid var(--border)',
           background: 'var(--surface-elevated)'
         }}
@@ -449,40 +687,186 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
               width: '40px',
               height: '40px',
               borderRadius: '50%',
-              background: 'var(--primary)',
+              background: PERSONA_META[activePersona.id]?.color || 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '20px'
+              fontSize: '20px',
+              transition: 'background 300ms'
             }}
           >
-            🤖
+            {avatarEmoji}
           </div>
           <div>
-            <div style={{ fontWeight: 600, fontSize: '15px' }}>{aiRole || 'AI 助手'}</div>
+            {/* 名字编辑区域 */}
+            {isEditingName ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={e => setNameInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleNameEditConfirm()
+                    if (e.key === 'Escape') handleNameEditCancel()
+                  }}
+                  autoFocus
+                  maxLength={20}
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--primary)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    width: '120px'
+                  }}
+                />
+                <button
+                  onClick={handleNameEditConfirm}
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '14px', color: 'var(--primary)' }}
+                >✓</button>
+                <button
+                  onClick={handleNameEditCancel}
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)' }}
+                >✕</button>
+              </div>
+            ) : (
+              <div
+                onClick={handleNameEditStart}
+                style={{ fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                title="点击修改名字"
+              >
+                {displayName}
+                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>✏️</span>
+              </div>
+            )}
             <div style={{ fontSize: '12px', color: 'var(--muted)' }}>在线</div>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-          aria-label="关闭聊天"
-        >
-          ✕
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* 设置按钮 */}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              border: 'none',
+              background: showSettings ? 'var(--surface)' : 'transparent',
+              cursor: 'pointer',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text)'
+            }}
+            aria-label="设置"
+          >
+            ⚙️
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            aria-label="关闭聊天"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
+      {/* 人格切换栏 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          padding: '8px 16px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--surface)'
+        }}
+      >
+        {PRESET_PERSONAS.map(persona => {
+          const meta = PERSONA_META[persona.id]
+          const isActive = persona.id === personaSettings.activePersonaId
+          return (
+            <button
+              key={persona.id}
+              onClick={() => handlePersonaSwitch(persona.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: isActive ? `2px solid ${meta?.color || 'var(--primary)'}` : '2px solid transparent',
+                background: isActive ? `${meta?.color || 'var(--primary)'}18` : 'var(--surface-elevated)',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: isActive ? 600 : 400,
+                color: isActive ? (meta?.color || 'var(--primary)') : 'var(--muted)',
+                transition: 'all 200ms',
+                transform: isActive ? 'scale(1.05)' : 'scale(1)'
+              }}
+            >
+              <span>{meta?.emoji || '🤖'}</span>
+              <span>{getDisplayName(persona)}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 设置面板（性别选择） */}
+      {showSettings && (
+        <div
+          style={{
+            padding: '10px 20px',
+            borderBottom: '1px solid var(--border)',
+            background: 'var(--surface-elevated)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            fontSize: '13px'
+          }}
+        >
+          <span style={{ color: 'var(--muted)', fontWeight: 500 }}>性别：</span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {GENDER_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleGenderChange(opt.value)}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  border: personaSettings.gender === opt.value ? '2px solid var(--primary)' : '2px solid var(--border)',
+                  background: personaSettings.gender === opt.value ? 'var(--primary)' : 'var(--surface)',
+                  color: personaSettings.gender === opt.value ? '#fff' : 'var(--text)',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  transition: 'all 200ms'
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 消息列表 */}
       <div
         style={{
           flex: 1,
@@ -493,35 +877,101 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
           gap: '12px'
         }}
       >
-        {messages.map(message => (
-          <div
-            key={message.id}
-            style={{
-              display: 'flex',
-              justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
+        {messages.map(message => {
+          // 系统提示消息（居中、灰色、小字）
+          if (message.role === 'system') {
+            return (
+              <div
+                key={message.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: '4px 0'
+                }}
+              >
+                <div
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '12px',
+                    background: 'var(--surface-elevated)',
+                    color: 'var(--muted)',
+                    fontSize: '12px',
+                    textAlign: 'center'
+                  }}
+                >
+                  {message.content}
+                </div>
+              </div>
+            )
+          }
+
+          // 主动发起的消息（带星号标记）
+          if (message.role === 'proactive' || message.isProactive) {
+            return (
+              <div
+                key={message.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-start'
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: '80%',
+                    padding: '12px 16px',
+                    borderRadius: '16px',
+                    background: 'var(--surface-elevated)',
+                    color: 'var(--text)',
+                    fontSize: '14px',
+                    lineHeight: 1.5,
+                    wordBreak: 'break-word',
+                    borderLeft: '3px solid #f59e0b'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12px', color: '#f59e0b' }}>⭐</span>
+                    <span style={{ fontSize: '11px', color: 'var(--muted)' }}>主动消息</span>
+                  </div>
+                  <span style={{ marginRight: '6px' }}>
+                    {getMoodEmoji(message.mood)}
+                  </span>
+                  {message.content}
+                </div>
+              </div>
+            )
+          }
+
+          // 普通消息
+          return (
             <div
+              key={message.id}
               style={{
-                maxWidth: '80%',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                background: message.role === 'user' 
-                  ? 'var(--primary)' 
-                  : 'var(--surface-elevated)',
-                color: message.role === 'user' ? '#fff' : 'var(--text)',
-                fontSize: '14px',
-                lineHeight: 1.5,
-                wordBreak: 'break-word'
+                display: 'flex',
+                justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start'
               }}
             >
-              <span style={{ marginRight: '6px' }}>
-                {message.role === 'agent' ? getMoodEmoji(message.mood) : ''}
-              </span>
-              {message.content}
+              <div
+                style={{
+                  maxWidth: '80%',
+                  padding: '12px 16px',
+                  borderRadius: '16px',
+                  background: message.role === 'user' 
+                    ? 'var(--primary)' 
+                    : 'var(--surface-elevated)',
+                  color: message.role === 'user' ? '#fff' : 'var(--text)',
+                  fontSize: '14px',
+                  lineHeight: 1.5,
+                  wordBreak: 'break-word'
+                }}
+              >
+                <span style={{ marginRight: '6px' }}>
+                  {message.role === 'agent' ? getMoodEmoji(message.mood) : ''}
+                </span>
+                {message.content}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         {isLoading && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <div
@@ -556,6 +1006,7 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
         )}
       </div>
 
+      {/* 输入区域 */}
       <div
         style={{
           padding: '16px',
@@ -609,9 +1060,10 @@ export function AgentChatUI({ isOpen, onClose, personaId, aiRole, userId, profil
   )
 }
 
-export function AgentChatToggle({ onClick }: { onClick: () => void }) {
+export function AgentChatToggle({ onClick, unreadCount }: { onClick: () => void; unreadCount?: number }) {
   const { deviceCategory } = usePlatform()
   const isMobile = deviceCategory === 'mobile'
+  const count = unreadCount || 0
 
   return (
     <button
@@ -646,6 +1098,27 @@ export function AgentChatToggle({ onClick }: { onClick: () => void }) {
       }}
     >
       🤖
+      {count > 0 && (
+        <span
+          style={{
+            position: 'absolute',
+            top: '-2px',
+            right: '-2px',
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            background: '#ef4444',
+            color: '#fff',
+            fontSize: '11px',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
     </button>
   )
 }

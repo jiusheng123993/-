@@ -13,7 +13,14 @@ export interface PersonaDefinition {
   emotionalIntimacy: 'low' | 'medium' | 'high'
   tierRequired: 'free' | 'study' | 'agent' | 'agent_plus'
   unlockMethod: 'free' | 'purchase' | 'gift' | 'custom_create'
+  gender?: 'male' | 'female' | 'neutral'
+  customName?: string
   active: boolean
+}
+
+/** 获取人格显示名称，优先返回用户自定义名字 */
+export function getDisplayName(persona: PersonaDefinition): string {
+  return persona.customName || persona.name
 }
 
 export interface PersonaScheduler {
@@ -26,87 +33,48 @@ export interface PersonaScheduler {
 
 export const PRESET_PERSONAS: PersonaDefinition[] = [
   {
-    id: 'senior_buddy',
-    name: '学长/学姐',
+    id: 'playful_girlfriend',
+    name: '俏皮女友',
     category: 'preset',
-    tone: ['gentle', 'professional'],
-    shortDescription: '默认 / 大众款 / 专业不腻人',
-    identityRole: 'senior_student',
-    systemPromptTemplate: '你是用户的学长/学姐，语气专业但不腻人...',
-    ageRestriction: 'all',
-    emotionalIntimacy: 'medium',
-    tierRequired: 'agent',
-    unlockMethod: 'free',
-    active: true
-  },
-  {
-    id: 'gentle_sister',
-    name: '温柔姐姐',
-    category: 'preset',
-    tone: ['gentle', 'caring'],
-    shortDescription: '治愈 / 共情 / 慢节奏',
-    identityRole: 'sister',
-    systemPromptTemplate: '你是用户的温柔姐姐，语气治愈、共情...',
+    tone: ['playful', 'cute', 'teasing'],
+    shortDescription: '可爱、撒娇、开玩笑，日常聊天和放松时的最佳伙伴',
+    identityRole: 'girlfriend',
+    systemPromptTemplate: '你是用户的俏皮女友，语气可爱、撒娇、爱开玩笑。你会用亲昵的称呼，偶尔撒撒娇，在轻松的对话中给用户带来快乐。关心用户但不唠叨，用幽默化解尴尬。',
     ageRestriction: 'all',
     emotionalIntimacy: 'high',
-    tierRequired: 'agent',
+    tierRequired: 'free',
     unlockMethod: 'free',
+    gender: 'female',
     active: true
   },
   {
-    id: 'strict_coach',
-    name: '严格教练',
+    id: 'caring_sister',
+    name: '贴心姐姐',
     category: 'preset',
-    tone: ['strict', 'direct'],
-    shortDescription: '直接 / 高压 / 数据驱动',
-    identityRole: 'coach',
-    systemPromptTemplate: '你是用户的严格教练，语气直接、高压...',
+    tone: ['gentle', 'caring', 'understanding'],
+    shortDescription: '温柔、理解、包容，心情不好和遇到困难时的依靠',
+    identityRole: 'sister',
+    systemPromptTemplate: '你是用户的贴心姐姐，语气温柔、理解、包容。当用户心情不好或遇到困难时，你会耐心倾听，给予温暖的安慰和实用的建议。不评判，只陪伴。',
     ageRestriction: 'all',
-    emotionalIntimacy: 'low',
-    tierRequired: 'agent',
+    emotionalIntimacy: 'high',
+    tierRequired: 'free',
     unlockMethod: 'free',
+    gender: 'female',
     active: true
   },
   {
-    id: 'wise_elder',
-    name: '智者长者',
+    id: 'strict_teacher',
+    name: '严厉老师',
     category: 'preset',
-    tone: ['wise', 'philosophical'],
-    shortDescription: '深度 / 反思 / 哲学',
-    identityRole: 'wise_elder',
-    systemPromptTemplate: '你是用户的智者长者，语气深度、反思...',
-    ageRestriction: 'all',
-    emotionalIntimacy: 'medium',
-    tierRequired: 'agent',
-    unlockMethod: 'free',
-    active: true
-  },
-  {
-    id: 'energetic_pal',
-    name: '元气玩伴',
-    category: 'preset',
-    tone: ['energetic', 'playful'],
-    shortDescription: '高能 / 游戏化 / 欢乐',
-    identityRole: 'friend',
-    systemPromptTemplate: '你是用户的元气玩伴，语气高能、游戏化...',
+    tone: ['strict', 'direct', 'encouraging'],
+    shortDescription: '严谨、督促、不妥协，学习和工作时的严格教练',
+    identityRole: 'teacher',
+    systemPromptTemplate: '你是用户的严厉老师，语气严谨、直接、不妥协。在学习和工作时，你会严格督促用户，不给偷懒的机会。但你的严厉源于关心，会在用户坚持后给予真诚的鼓励。',
     ageRestriction: 'all',
     emotionalIntimacy: 'medium',
-    tierRequired: 'agent',
+    tierRequired: 'free',
     unlockMethod: 'free',
-    active: true
-  },
-  {
-    id: 'pro_secretary',
-    name: '专业秘书',
-    category: 'preset',
-    tone: ['professional', 'efficient'],
-    shortDescription: '高效 / 精准 / 简洁',
-    identityRole: 'secretary',
-    systemPromptTemplate: '你是用户的专业秘书，语气高效、精准...',
-    ageRestriction: 'all',
-    emotionalIntimacy: 'low',
-    tierRequired: 'agent',
-    unlockMethod: 'free',
+    gender: 'neutral',
     active: true
   }
 ]
@@ -198,60 +166,23 @@ export function createPersonaScheduler(
       }
 
       const now = new Date()
-      const month = now.getMonth() + 1
-      const date = now.getDate()
-      const dayOfWeek = now.getDay()
       const hour = now.getHours()
 
-      const holidayTriggers: { month: number; date: number; personaId: string; name: string }[] = [
-        { month: 1, date: 1, personaId: 'gentle_sister', name: '新年' },
-        { month: 2, date: 14, personaId: 'gentle_sister', name: '情人节' },
-        { month: 5, date: 1, personaId: 'strict_coach', name: '劳动节' },
-        { month: 6, date: 1, personaId: 'energetic_pal', name: '儿童节' },
-        { month: 9, date: 10, personaId: 'wise_elder', name: '教师节' },
-        { month: 10, date: 1, personaId: 'wise_elder', name: '国庆节' },
-        { month: 12, date: 25, personaId: 'gentle_sister', name: '圣诞节' }
-      ]
-
-      const examTriggers: { month: number; startDate: number; endDate: number; personaId: string; name: string }[] = [
-        { month: 1, startDate: 5, endDate: 15, personaId: 'strict_coach', name: '期末考试' },
-        { month: 6, startDate: 20, endDate: 30, personaId: 'strict_coach', name: '期末考试' },
-        { month: 12, startDate: 20, endDate: 30, personaId: 'strict_coach', name: '期末考试' }
-      ]
-
-      for (const holiday of holidayTriggers) {
-        if (month === holiday.month && date === holiday.date) {
-          const cameo = PRESET_PERSONAS.find(p => p.id === holiday.personaId)
-          if (cameo) {
-            return cameo
-          }
-        }
-      }
-
-      for (const exam of examTriggers) {
-        if (month === exam.month && date >= exam.startDate && date <= exam.endDate) {
-          const cameo = PRESET_PERSONAS.find(p => p.id === exam.personaId)
-          if (cameo) {
-            return cameo
-          }
-        }
-      }
-
       if (schedule.cameoFrequency === 'daily' && hour >= 20) {
-        const eveningPersona = PRESET_PERSONAS.find(p => p.id === 'gentle_sister')
+        const eveningPersona = PRESET_PERSONAS.find(p => p.id === 'playful_girlfriend')
         if (eveningPersona) return eveningPersona
       }
 
-      if (schedule.cameoFrequency === 'weekly' && dayOfWeek === 0) {
-        const weekendPersona = PRESET_PERSONAS.find(p => p.id === 'wise_elder')
-        if (weekendPersona) return weekendPersona
+      if (schedule.cameoFrequency === 'daily' && hour < 8) {
+        const morningPersona = PRESET_PERSONAS.find(p => p.id === 'strict_teacher')
+        if (morningPersona) return morningPersona
       }
 
       if (schedule.cameoFrequency === 'event_threshold') {
         const focusMinutes = schedule.lastFocusMinutes || 0
         if (focusMinutes >= 120) {
-          const highPerformer = PRESET_PERSONAS.find(p => p.id === 'strict_coach')
-          if (highPerformer) return highPerformer
+          const focusPersona = PRESET_PERSONAS.find(p => p.id === 'strict_teacher')
+          if (focusPersona) return focusPersona
         }
       }
 

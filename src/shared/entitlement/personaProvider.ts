@@ -46,12 +46,9 @@ export function createPersonaProvider(entitlementService: EntitlementService): P
       if (!this.canUsePreset(userId, '')) return []
 
       return [
-        'senior_buddy',
-        'gentle_sister',
-        'strict_coach',
-        'wise_elder',
-        'energetic_pal',
-        'pro_secretary'
+        'playful_girlfriend',
+        'caring_sister',
+        'strict_teacher'
       ]
     }
   }

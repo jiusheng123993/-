@@ -1,4 +1,5 @@
 import type { UserConfigExport } from '@tarojs/cli'
+import path from 'path'
 
 const config: UserConfigExport = {
   projectName: 'xinghuanhai-miniapp',
@@ -28,7 +29,10 @@ const config: UserConfigExport = {
   },
   mini: {
     webpackChain(chain) {
-      chain.plugins.delete('webpack-progress-plugin')
+      chain.resolve.alias.set('@', path.resolve(__dirname, '..', 'src'))
+    },
+    sass: {
+      data: `@import "@/styles/global.scss";`
     },
     postcss: {
       pxtransform: {

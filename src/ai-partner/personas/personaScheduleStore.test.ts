@@ -24,7 +24,7 @@ function runStorageTests(
     it('saves and retrieves schedule', () => {
       const schedule = {
         userId: 'user-1',
-        mainPersonaId: 'senior_buddy',
+        mainPersonaId: 'playful_girlfriend',
         mainPersonaSelectedAt: '2026-01-01T00:00:00.000Z',
         mainPersonaLastChangedAt: '2026-01-01T00:00:00.000Z',
         cameoFrequency: 'weekly' as const

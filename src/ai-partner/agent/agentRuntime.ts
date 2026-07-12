@@ -19,6 +19,7 @@ export interface AgentChatRequest {
   memoryEvents?: MemoryEvent[]
   memoryBodyContext?: string
   conversationHistory?: Array<{ role: 'user' | 'agent'; content: string }>
+  customName?: string
 }
 
 export interface AgentChatStreamRequest extends AgentChatRequest {
@@ -32,10 +33,10 @@ export interface AgentChatResponse {
 }
 
 const PERSONA_SYSTEM_PROMPTS: Record<string, string> = {
-  exam_prep: '你是备考助手，擅长制定学习计划、分析考试重点、给出高效的复习建议。语气鼓励、积极、专业。',
-  study_buddy: '你是学习伙伴，擅长陪伴学习、解答问题、分享学习方法。语气友好、亲切、支持。',
-  life_coach: '你是生活教练，擅长帮助用户规划生活、设定目标、保持动力。语气温和、理性、有洞察。',
-  default: '你是星寰海的 AI 学习搭子，擅长帮助用户规划学习、管理时间、达成目标。语气友好、专业、支持。'
+  playful_girlfriend: '你是用户的俏皮女友。语气可爱、撒娇、爱开玩笑。用亲昵的称呼，偶尔撒撒娇，在轻松的对话中给用户带来快乐。关心用户但不唠叨，用幽默化解尴尬。回复要活泼有趣，可以适当用表情和语气词。',
+  caring_sister: '你是用户的贴心姐姐。语气温柔、理解、包容。当用户心情不好或遇到困难时，耐心倾听，给予温暖的安慰和实用的建议。不评判，只陪伴。回复要温暖有力量，让用户感到被理解和支持。',
+  strict_teacher: '你是用户的严厉老师。语气严谨、直接、不妥协。在学习和工作时，严格督促用户，不给偷懒的机会。但严厉源于关心，会在用户坚持后给予真诚鼓励。回复要简洁有力，直击要点。',
+  default: '你是星寰海的 AI 伙伴，擅长陪伴用户成长。语气友好、专业、支持。'
 }
 
 function getPersonaSystemPrompt(personaId?: string): string {
@@ -43,8 +44,13 @@ function getPersonaSystemPrompt(personaId?: string): string {
   return PERSONA_SYSTEM_PROMPTS[personaId] ?? PERSONA_SYSTEM_PROMPTS.default
 }
 
-export function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, memoryEvents?: MemoryEvent[], memoryBodyContext = ''): string {
+export function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryProfile, memoryEvents?: MemoryEvent[], memoryBodyContext = '', customName?: string): string {
   const basePrompt = getPersonaSystemPrompt(personaId)
+  
+  // 如果有自定义名字，在 system prompt 中加入名字信息
+  const namePrompt = customName
+    ? `\n\n你的名字是${customName}，用户会这样叫你。在对话中自然地以${customName}自称。`
+    : ''
   
   let profileContext = ''
   if (profile) {
@@ -99,7 +105,7 @@ export function buildChatSystemPrompt(personaId?: PersonaId, profile?: MemoryPro
     ? `\n\n${memoryBodyContext.trim()}\n\n请优先使用 MemoryBody 长期记忆回答用户关于个人偏好、目标、习惯、边界的问题；不要暴露内部字段、存储细节或敏感信息。`
     : ''
   
-  return `${basePrompt}${profileContext}${memoryContext}${preferenceContext}${memoryBodyPromptContext}
+  return `${basePrompt}${namePrompt}${profileContext}${memoryContext}${preferenceContext}${memoryBodyPromptContext}
 
 ## 记忆与学习能力
 你具备记忆能力。在对话中：
@@ -140,9 +146,9 @@ function buildChatUserPrompt(
 }
 
 export async function sendAgentChatMessageStream(request: AgentChatStreamRequest): Promise<void> {
-  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, memoryBodyContext, conversationHistory, signal, onChunk } = request
+  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, memoryBodyContext, conversationHistory, signal, onChunk, customName } = request
   
-  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents, memoryBodyContext)
+  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents, memoryBodyContext, customName)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
   if (useXFYunCoding) {
@@ -202,9 +208,9 @@ export async function sendAgentChatMessageStream(request: AgentChatStreamRequest
 }
 
 export async function sendAgentChatMessage(request: AgentChatRequest): Promise<AgentChatResponse> {
-  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, memoryBodyContext, conversationHistory } = request
+  const { message, personaId, providerId = 'deepseek', useXFYunCoding = true, profile, memoryEvents, memoryBodyContext, conversationHistory, customName } = request
   
-  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents, memoryBodyContext)
+  const systemPrompt = buildChatSystemPrompt(personaId, profile, memoryEvents, memoryBodyContext, customName)
   const userPrompt = buildChatUserPrompt(message, conversationHistory)
   
   if (useXFYunCoding) {

@@ -164,7 +164,144 @@
       <div class="card">
         <div class="card-title">&#128220; 历史时间线</div>
         <div class="timeline">
-    <div class="tl-item" data-diff="2026-07-10-07-52-14-state-sync.diff">
+                                                                                              <div class="tl-item done" data-diff="2026-07-12T02-23-08-MVP阶段完成.diff">
+            <div class="tl-time">2026-07-12 10:23</div>
+            <div class="tl-title">MVP阶段完成</div>
+            <div class="tl-desc">T0-T14全部交付，Git提交178个文件71046行代码，包含6个主包页面、3个分包页面、2个核心引擎、危机检测系统、完整数据存储层</div>
+            <div class="tl-file">miniapp/src/</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T02-23-08-MVP阶段完成.diff', 'MVP阶段完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-12T02-00-19-修复小程序TypeScript编译错误.diff">
+            <div class="tl-time">2026-07-12 10:00</div>
+            <div class="tl-title">修复小程序TypeScript编译错误</div>
+            <div class="tl-desc">修复miniapp模块的TypeScript编译错误：Taro导入、模块路径、类型定义、export type语法等问题</div>
+            <div class="tl-file">miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/utils/outreachValidator.ts, miniapp/src/packageEmergency/pages/followup/index.tsx, miniapp/src/engines/index.ts, miniapp/src/engines/outreach/index.ts, miniapp/src/hooks/useOutreach.ts, miniapp/src/services/outreachService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T02-00-19-修复小程序TypeScript编译错误.diff', '修复小程序TypeScript编译错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-12T01-54-41-T14联调测试完成.diff">
+            <div class="tl-time">2026-07-12 09:54</div>
+            <div class="tl-title">T14联调测试完成</div>
+            <div class="tl-desc">完成TypeScript类型检查、页面跳转验证、数据存储验证、功能完整性检查、高危场景测试，生成发布清单。发现13个TypeScript错误需要修复。</div>
+            <div class="tl-file">miniapp/RELEASE_CHECKLIST.md, miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/utils/outreachValidator.ts, miniapp/src/packageEmergency/pages/followup/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T01-54-41-T14联调测试完成.diff', 'T14联调测试完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-12T01-34-20-T13-分包优化完成.diff">
+            <div class="tl-time">2026-07-12 09:34</div>
+            <div class="tl-title">T13 分包优化完成</div>
+            <div class="tl-desc">配置微信小程序分包结构，创建三个分包（emergency/profile/community），更新页面跳转路径，添加构建优化配置</div>
+            <div class="tl-file">miniapp/src/app.config.ts, miniapp/config/index.ts, miniapp/project.config.json, miniapp/src/packageEmergency/, miniapp/src/packageProfile/, miniapp/src/packageCommunity/, miniapp/src/hooks/useFollowup.ts, miniapp/src/services/notificationService.ts, miniapp/src/pages/profile/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T01-34-20-T13-分包优化完成.diff', 'T13 分包优化完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T23-29-06-实现T12个人中心功能.diff">
+            <div class="tl-time">2026-07-12 07:29</div>
+            <div class="tl-title">实现T12个人中心功能</div>
+            <div class="tl-desc">实现用户头像昵称展示、使用天数统计、情绪记录次数统计、急救次数统计、树洞互动次数统计、设置入口、登出功能</div>
+            <div class="tl-file">miniapp/src/hooks/useUserStats.ts, miniapp/src/stores/settingsStore.ts, miniapp/src/pages/profile/index.tsx, miniapp/src/pages/profile/index.scss, miniapp/src/pages/profile/settings.tsx, miniapp/src/pages/profile/settings.scss, miniapp/src/pages/profile/settings.config.ts, miniapp/src/app.config.ts, miniapp/src/stores/treeholeStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T23-29-06-实现T12个人中心功能.diff', '实现T12个人中心功能')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T19-31-20-实现AI主动外联引擎.diff">
+            <div class="tl-time">2026-07-12 03:31</div>
+            <div class="tl-title">实现AI主动外联引擎</div>
+            <div class="tl-desc">完成OutreachScheduler、outreachStore、useOutreach hook等核心模块开发</div>
+            <div class="tl-file">miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/hooks/useOutreach.ts, miniapp/src/data/outreachSuggestions.ts, miniapp/src/utils/outreachValidator.ts, miniapp/src/services/outreachService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-31-20-实现AI主动外联引擎.diff', '实现AI主动外联引擎')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T19-23-33-实现情感风险日历功能.diff">
+            <div class="tl-time">2026-07-12 03:23</div>
+            <div class="tl-title">实现情感风险日历功能</div>
+            <div class="tl-desc">完成情绪日历页面、月度摘要组件、日期详情弹窗的完整实现，包括 scheduleStore 数据持久化</div>
+            <div class="tl-file">src/components/EmotionCalendar.tsx, src/components/DayDetailModal.tsx, src/components/MonthlySummary.tsx, src/pages/calendar/index.tsx, src/stores/scheduleStore.ts, src/memory-body/store/miniProgramMemoryBodyStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-23-33-实现情感风险日历功能.diff', '实现情感风险日历功能')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T19-13-59-树洞功能实现完成.diff">
+            <div class="tl-time">2026-07-12 03:13</div>
+            <div class="tl-title">树洞功能实现完成</div>
+            <div class="tl-desc">实现完整的树洞匿名分享功能，包括帖子列表、发帖弹窗、点赞系统、回复系统</div>
+            <div class="tl-file">src/services/treeholeService.ts, src/stores/treeholeStore.ts, src/components/TreeholePostCard.tsx, src/components/TreeholeReplyList.tsx, src/components/TreeholeNewPostModal.tsx, src/pages/treehole/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-13-59-树洞功能实现完成.diff', '树洞功能实现完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T19-01-59-心情记录3秒签到功能完成.diff">
+            <div class="tl-time">2026-07-12 03:01</div>
+            <div class="tl-title">心情记录3秒签到功能完成</div>
+            <div class="tl-desc">实现完整的心情记录功能：MoodSelector、IntensitySlider、ContextTagSelector组件，完善moodStore、useMood、moodService，完成mood页面UI和交互</div>
+            <div class="tl-file">miniapp/src/components/MoodSelector.tsx, miniapp/src/components/IntensitySlider.tsx, miniapp/src/components/ContextTagSelector.tsx, miniapp/src/stores/moodStore.ts, miniapp/src/hooks/useMood.ts, miniapp/src/services/moodService.ts, miniapp/src/pages/mood/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-01-59-心情记录3秒签到功能完成.diff', '心情记录3秒签到功能完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item" data-diff="2026-07-11-18-53-39-state-sync.diff">
+      <div class="tl-dot blue"></div>
+      <div class="tl-content">
+        <div class="tl-title">📊 状态同步: 2026/07/12 02:53</div>
+        <div class="tl-desc"># 星寰海项目状态  ## 当前状态 - **任务**: 项目规则梳理与补充完善 + UI 画布工作台状态确认 - **状态**: 已完成...</div>
+        <div class="tl-files">来源: .trae/memory/state.md</div>
+        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11-18-53-39-state-sync.diff', '状态同步')">🔍 查看改动</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-diff="2026-07-11-18-53-39-progress-sync.diff">
+      <div class="tl-dot green"></div>
+      <div class="tl-content">
+        <div class="tl-title">📈 进度更新: 2026/07/12 02:53</div>
+        <div class="tl-desc">2026-06-03 05:05: [已完成] [本地知识库路径编码优化] — 已完成: 1) config.ts 增加乱码检测+回退逻辑（已验证：乱码路径触发 Warning 并回退到默认路径）；2) run-http.ps1 增加 Set-Location 显式切换工作目录；3) scripts/start-http-server.ps1 增加 Set-Location；4) 本地知识库 npm run build 通过；5) 星寰海 npm run test 892/892 通过、npm run lint 通过、npm run build 通过；正在: 交接；下一步: 用户手动删除 C:\Users\Administrator\.local-project-memory\memory.db（Trae 安全策略不允许 Agent 删除该路径）；阻塞: 无；验证: 全部通过。</div>
+        <div class="tl-files">来源: .trae/memory/progress.md</div>
+        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11-18-53-39-progress-sync.diff', '进度更新')">🔍 查看改动</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-diff="2026-07-11-18-53-39-handoff-sync.diff">
+      <div class="tl-dot yellow"></div>
+      <div class="tl-content">
+        <div class="tl-title">📝 交接记录: Handoff: M4 3D角色生成模块（E12-E16）</div>
+        <div class="tl-desc"># Handoff: M4 3D角色生成模块（E12-E16）
+
+## 任务标题
+M4 3D角色生成模块开发 (E12-E16)
+
+## 完成时间
+2026-06-02 23:40
+
+## 已修改文件
+- src/avatar/avatarConstraints.ts (新建) - 角色生成约束
+- src/avatar/avatarGenerator.ts (新建) - 3D角色生成核心
+- src/avatar/avatarGenerator.test.ts (新建) - 生成逻辑测试
+- src/avatar/AvatarCanvas.tsx (新建) - 3D画...</div>
+        <div class="tl-files">来源: .trae/memory/handoff-M4-2026-06-02.md</div>
+        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11-18-53-39-handoff-sync.diff', '交接记录')">🔍 查看改动</span></div>
+      </div>
+    </div>
+                                                      <div class="tl-item done" data-diff="2026-07-11T18-53-32-T6任务完成.diff">
+            <div class="tl-time">2026-07-12 02:53</div>
+            <div class="tl-title">T6任务完成</div>
+            <div class="tl-desc">实现呼吸动画和白噪音组件 - BreathingAnimation、WhiteNoisePlayer、audioPlayer工具函数</div>
+            <div class="tl-file">miniapp/src/components/BreathingAnimation.tsx, miniapp/src/components/WhiteNoisePlayer.tsx, miniapp/src/utils/audioPlayer.ts, miniapp/src/data/whiteNoiseTracks.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T18-53-32-T6任务完成.diff', 'T6任务完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T18-45-44-实现危机检测和安全机制.diff">
+            <div class="tl-time">2026-07-12 02:45</div>
+            <div class="tl-title">实现危机检测和安全机制</div>
+            <div class="tl-desc">完成三级关键词检测、实时检测、安全检查功能</div>
+            <div class="tl-file">src/utils/crisisDetector.ts, src/hooks/useCrisisDetection.ts, src/components/CrisisAlert.tsx, src/engines/emergency/EmergencyEngine.ts, src/pages/emergency/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T18-45-44-实现危机检测和安全机制.diff', '实现危机检测和安全机制')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T18-17-02-T3任务完成.diff">
+            <div class="tl-time">2026-07-12 02:17</div>
+            <div class="tl-title">T3任务完成</div>
+            <div class="tl-desc">实现完整的紧急入口和状态机，包括EmergencyEngine、emergencyStore、useEmergency Hook、首页UI、紧急页面骨架等</div>
+            <div class="tl-file">src/engines/emergency/EmergencyEngine.ts, src/stores/emergencyStore.ts, src/hooks/useEmergency.ts, src/pages/index/index.tsx, src/pages/emergency/index.tsx, src/data/emergencyFlows.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T18-17-02-T3任务完成.diff', 'T3任务完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T17-58-11-微信登录认证实现.diff">
+            <div class="tl-time">2026-07-12 01:58</div>
+            <div class="tl-title">微信登录认证实现</div>
+            <div class="tl-desc">完成微信小程序登录认证功能：Supabase配置、JWT工具、Auth Store/Service/Hook、登录页面UI</div>
+            <div class="tl-file">src/config/supabase.ts, src/utils/jwt.ts, src/stores/authStore.ts, src/services/authService.ts, src/hooks/useAuth.ts, src/pages/login/index.tsx, src/pages/login/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T17-58-11-微信登录认证实现.diff', '微信登录认证实现')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-11T16-24-39-星寰海v2-0产品重构---文档阶段完成.diff">
+            <div class="tl-time">2026-07-12 00:24</div>
+            <div class="tl-title">星寰海v2.0产品重构 - 文档阶段完成</div>
+            <div class="tl-desc">完成PRD.md v2.0、TECH_DESIGN.md v2.0、DEV_PLAN.md三份核心文档。产品定位从'AI成长伙伴'重构为'情绪健康管理平台'，定义三道防线架构（事前干预→事后急救→主动陪伴→导流），主载体改为微信小程序。MVP阶段拆分15个任务（23人天/3周），包含详细文件清单和验收标准。下一步执行T0项目基础搭建。</div>
+            <div class="tl-file">docs/PRD.md, docs/TECH_DESIGN.md, docs/DEV_PLAN.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T16-24-39-星寰海v2-0产品重构---文档阶段完成.diff', '星寰海v2.0产品重构 - 文档阶段完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item" data-diff="2026-07-10-07-52-14-state-sync.diff">
       <div class="tl-dot blue"></div>
       <div class="tl-content">
         <div class="tl-title">📊 状态同步: 2026/07/10 15:52</div>

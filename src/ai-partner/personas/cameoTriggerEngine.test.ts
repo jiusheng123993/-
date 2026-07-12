@@ -48,7 +48,7 @@ describe('cameoTriggerEngine', () => {
       const customRules: CameoTriggerRule[] = [
         {
           type: 'holiday',
-          personaId: 'energetic_pal',
+          personaId: 'playful_girlfriend',
           condition: () => true,
           priority: 100,
         },
@@ -286,7 +286,7 @@ describe('cameoTriggerEngine', () => {
         PRESET_PERSONAS
       )
       expect(result.persona).not.toBeNull()
-      expect(result.persona!.id).toBe('gentle_sister')
+      expect(result.persona!.id).toBe('caring_sister')
     })
 
     it('returns null persona when persona not in list', () => {
@@ -322,7 +322,7 @@ describe('cameoTriggerEngine', () => {
     it('adds a new rule', () => {
       const newRule: CameoTriggerRule = {
         type: 'focus_streak',
-        personaId: 'energetic_pal',
+        personaId: 'playful_girlfriend',
         condition: () => true,
         priority: 200,
       }
@@ -330,13 +330,13 @@ describe('cameoTriggerEngine', () => {
       const rules = engine.getActiveRules()
       const added = rules.find(r => r.priority === 200)
       expect(added).toBeDefined()
-      expect(added!.personaId).toBe('energetic_pal')
+      expect(added!.personaId).toBe('playful_girlfriend')
     })
 
     it('replaces existing rule with same type', () => {
       const newRule: CameoTriggerRule = {
         type: 'holiday',
-        personaId: 'strict_coach',
+        personaId: 'strict_teacher',
         condition: () => true,
         priority: 200,
       }
@@ -344,7 +344,7 @@ describe('cameoTriggerEngine', () => {
       const rules = engine.getActiveRules()
       const holidayRules = rules.filter(r => r.type === 'holiday')
       expect(holidayRules).toHaveLength(1)
-      expect(holidayRules[0].personaId).toBe('strict_coach')
+      expect(holidayRules[0].personaId).toBe('strict_teacher')
     })
   })
 
@@ -384,9 +384,9 @@ describe('EXAM_SEASONS', () => {
     expect(EXAM_SEASONS).toHaveLength(3)
   })
 
-  it('all exam seasons target strict_coach', () => {
+  it('all exam seasons target strict_teacher', () => {
     for (const exam of EXAM_SEASONS) {
-      expect(exam.personaId).toBe('strict_coach')
+      expect(exam.personaId).toBe('strict_teacher')
     }
   })
 })
