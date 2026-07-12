@@ -1,0 +1,344 @@
+// 星寰海 v2.0 - 行动步骤样式
+
+.action-step {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.action-header {
+  text-align: center;
+  padding: $spacing-xl 0;
+}
+
+.action-title {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.action-subtitle {
+  display: block;
+  font-size: 1rem;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+}
+
+/* 选项列表 */
+.action-options {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.action-option {
+  padding: $spacing-lg;
+  background: $color-bg-secondary;
+  border: 3px solid transparent;
+  border-radius: $border-radius-lg;
+  transition: all $transition-base;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-color: $color-primary;
+  }
+}
+
+.option-main {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.option-desc {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+/* 互动内容区 */
+.action-content {
+  min-height: 300px;
+}
+
+/* 呼吸动画 */
+.breathing-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-xl;
+  padding: $spacing-xl;
+}
+
+.breathing-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s ease-in-out;
+}
+
+.breathing-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.breathing-controls {
+  .play-btn,
+  .stop-btn {
+    padding: $spacing-md $spacing-xl;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $transition-base;
+  }
+
+  .play-btn {
+    background: $color-primary;
+    color: white;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .stop-btn {
+    background: #ef5350;
+    color: white;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* 接地练习 */
+.grounding-exercise {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.exercise-title {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.exercise-desc {
+  display: block;
+  font-size: 0.95rem;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+}
+
+.grounding-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.grounding-group {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.count-label {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $color-primary;
+  min-width: 40px;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.item-text {
+  font-size: 0.95rem;
+  color: $color-text-secondary;
+}
+
+/* 肌肉放松 */
+.muscle-relaxation {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.relaxation-step {
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: $border-radius-lg;
+  margin: $spacing-lg 0;
+}
+
+.step-text {
+  font-size: 1.1rem;
+  color: $color-text-primary;
+  line-height: 1.6;
+}
+
+.relaxation-progress {
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: 0.9rem;
+  margin-bottom: $spacing-lg;
+}
+
+.relaxation-controls {
+  display: flex;
+  justify-content: center;
+
+  .play-btn,
+  .next-btn {
+    padding: $spacing-md $spacing-xl;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $transition-base;
+  }
+
+  .play-btn {
+    background: $color-primary;
+    color: white;
+  }
+
+  .next-btn {
+    background: $color-success;
+    color: white;
+  }
+}
+
+/* 微休息 */
+.micro-rest {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.rest-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+}
+
+.rest-option {
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  text-align: center;
+}
+
+.option-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: $spacing-sm;
+}
+
+.option-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+/* 自我关怀 */
+.self-compassion {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.compassion-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.prompt-card {
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+}
+
+.prompt-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $color-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.prompt-text {
+  display: block;
+  font-size: 0.95rem;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.highlight {
+  color: $color-primary;
+  font-weight: 500;
+}
+
+/* 感官着陆 */
+.sensory-grounding {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.sensory-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+}
+
+.sensory-option {
+  padding: $spacing-lg;
+  border-radius: $border-radius-md;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &.visual {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  }
+
+  &.auditory {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  }
+
+  &.tactile {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  }
+
+  &.olfactory {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  }
+}

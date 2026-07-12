@@ -1,0 +1,303 @@
+// 星寰海 v2.0 - 连接步骤样式
+
+.connect-step {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.connect-header {
+  text-align: center;
+  padding: $spacing-xl 0;
+}
+
+.connect-title {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.connect-subtitle {
+  display: block;
+  font-size: 1rem;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+}
+
+.connect-content {
+  padding: $spacing-lg;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+/* 通用区块样式 */
+.section-title {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.section-desc {
+  display: block;
+  font-size: 0.95rem;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+}
+
+/* 同伴支持 */
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.message-card {
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: $border-radius-md;
+}
+
+.message-text {
+  display: block;
+  font-size: 1rem;
+  color: $color-text-primary;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.message-author {
+  display: block;
+  font-size: 0.85rem;
+  color: $color-text-tertiary;
+  margin-top: $spacing-sm;
+  text-align: right;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+}
+
+.resource-card {
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.resource-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: $spacing-sm;
+}
+
+.resource-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.resource-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: $color-text-tertiary;
+}
+
+/* 专业帮助 */
+.hotline-card {
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, #ef5350 0%, #d32f2f 100%);
+  border-radius: $border-radius-lg;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+}
+
+.hotline-label {
+  display: block;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: $spacing-sm;
+}
+
+.hotline-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 2px;
+}
+
+.hotline-hours {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: $spacing-sm;
+}
+
+.resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateX(4px);
+  }
+}
+
+.resource-info {
+  flex: 1;
+}
+
+/* 社区资源 */
+.community-options {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.community-card {
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  border-left: 4px solid;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateX(4px);
+  }
+}
+
+.community-icon {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: $spacing-sm;
+}
+
+.community-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.community-desc {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-text-secondary;
+}
+
+/* 睡眠卫生 */
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.tip-item {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+}
+
+.tip-number {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-primary;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tip-content {
+  flex: 1;
+}
+
+.tip-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.tip-desc {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-text-secondary;
+}
+
+/* 咨询选项 */
+.counseling-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+}
+
+.counseling-card {
+  padding: $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+  text-align: center;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.counseling-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: $spacing-sm;
+}
+
+.counseling-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.counseling-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: $color-text-tertiary;
+}

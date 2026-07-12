@@ -1,0 +1,427 @@
+// 星寰海 v2.0 - 急救流程页面样式
+@import '../../app.scss';
+
+.emergency-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $color-bg-primary;
+  padding: $spacing-lg;
+}
+
+.no-session {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: $color-text-secondary;
+  font-size: 1.1rem;
+}
+
+/* 进度条 */
+.progress-bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: $color-border;
+  border-radius: $border-radius-full;
+  margin-bottom: $spacing-xl;
+  overflow: hidden;
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: $border-radius-full;
+    transition: width $transition-base;
+  }
+
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    color: $color-text-tertiary;
+    background: $color-bg-primary;
+    padding: 0 $spacing-sm;
+  }
+}
+
+/* 步骤内容 */
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.step-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.3;
+}
+
+.step-description {
+  font-size: 1rem;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.step-component {
+  margin-top: $spacing-md;
+}
+
+/* 文本输入 */
+.text-input {
+  width: 100%;
+  padding: $spacing-md;
+  border: 2px solid $color-border;
+  border-radius: $border-radius-lg;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 150px;
+  background: $color-bg-secondary;
+  color: $color-text-primary;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+/* 颜色选择器 */
+.color-selector {
+  .color-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $spacing-md;
+  }
+
+  .color-option {
+    aspect-ratio: 1;
+    border-radius: $border-radius-lg;
+    cursor: pointer;
+    transition: all $transition-base;
+    border: 3px solid transparent;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    &:active {
+      border-color: $color-text-primary;
+    }
+  }
+}
+
+/* 行动选择器 */
+.action-selector {
+  .action-options {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  .action-option {
+    padding: $spacing-md;
+    background: $color-bg-secondary;
+    border: 2px solid $color-border;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover {
+      border-color: $color-primary;
+      background: $color-bg-tertiary;
+    }
+  }
+}
+
+/* 连接消息 */
+.connect-message {
+  text-align: center;
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* 完成总结 */
+.closing-summary {
+  text-align: center;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: $border-radius-lg;
+  color: white;
+
+  p {
+    font-size: 1.1rem;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* 呼吸动画 */
+.breathing-animation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+
+  .breathing-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    animation: breathe 4s ease-in-out infinite;
+
+    p {
+      margin: $spacing-sm 0;
+    }
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* 选择器 */
+.choice-selector {
+  .choice-options {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  .choice-option {
+    padding: $spacing-md;
+    background: $color-bg-secondary;
+    border: 2px solid $color-border;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+  }
+}
+
+/* 控制圈 */
+.control-circle {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-md;
+  }
+}
+
+/* 允许消息 */
+.allowance-message {
+  text-align: center;
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* 自我关怀选择器 */
+.selfcare-selector {
+  .selfcare-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+  }
+
+  .selfcare-option {
+    padding: $spacing-md;
+    background: $color-bg-secondary;
+    border: 2px solid $color-border;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+  }
+}
+
+/* 社交证明 */
+.social-proof {
+  text-align: center;
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* 树洞链接 */
+.treehole-link {
+  text-align: center;
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-md;
+  }
+
+  .btn-link {
+    background: none;
+    border: none;
+    color: $color-primary;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
+
+/* 晚安交换 */
+.goodnight-exchange {
+  text-align: center;
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* 颜色回应 */
+.color-response {
+  text-align: center;
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+
+  p {
+    font-size: 1.1rem;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+/* 音频选择器 */
+.audio-selector {
+  .audio-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+    margin-top: $spacing-md;
+  }
+
+  .audio-option {
+    padding: $spacing-md;
+    background: $color-bg-secondary;
+    border: 2px solid $color-border;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+  }
+}
+
+/* 默认组件 */
+.default-component {
+  padding: $spacing-xl;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+  color: $color-text-secondary;
+}
+
+/* 加载状态 */
+.loading {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $color-text-tertiary;
+}
+
+/* 导航按钮 */
+.navigation-buttons {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-xl;
+  border-top: 1px solid $color-border;
+
+  .btn {
+    flex: 1;
+    padding: $spacing-md $spacing-lg;
+    border: none;
+    border-radius: $border-radius-lg;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    &-secondary {
+      background: $color-bg-secondary;
+      color: $color-text-primary;
+      border: 2px solid $color-border;
+    }
+
+    &-success {
+      background: $color-success;
+      color: white;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+  }
+}

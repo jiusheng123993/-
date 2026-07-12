@@ -1,0 +1,76 @@
+// 星寰海 v2.0 - 命名步骤样式
+
+.naming-step {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.naming-header {
+  text-align: center;
+  padding: $spacing-xl 0;
+}
+
+.naming-title {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.naming-subtitle {
+  display: block;
+  font-size: 1rem;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+}
+
+.naming-options {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.naming-option {
+  padding: $spacing-lg;
+  background: $color-bg-secondary;
+  border: 3px solid transparent;
+  border-radius: $border-radius-lg;
+  transition: all $transition-base;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.selected {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  }
+}
+
+.naming-option-label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.naming-option-desc {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.naming-hint {
+  text-align: center;
+  padding: $spacing-md;
+  color: $color-text-tertiary;
+  font-size: 0.9rem;
+}

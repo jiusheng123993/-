@@ -1,0 +1,78 @@
+// 星寰海 v2.0 - 首页样式
+@import '../../app.scss';
+
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: $spacing-lg;
+}
+
+.home-container {
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+.home-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  letter-spacing: 0.05em;
+}
+
+.home-subtitle {
+  font-size: 1.1rem;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xl;
+  line-height: 1.6;
+}
+
+.emotion-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.emotion-btn {
+  width: 100%;
+  padding: $spacing-lg;
+  border: none;
+  border-radius: $border-radius-lg;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-base;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.selected {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .emotion-label {
+    display: block;
+    width: 100%;
+  }
+}
+
+.home-footer {
+  font-size: 0.9rem;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xl;
+  opacity: 0.8;
+}

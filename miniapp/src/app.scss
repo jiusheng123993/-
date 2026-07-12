@@ -1,0 +1,130 @@
+// 星寰海 v2.0 - 全局样式系统
+// 色彩心理学配色方案
+
+// ===== 色彩变量 =====
+$color-primary: #7c4dff; // 主色：紫色（神秘、内省）
+$color-primary-light: #b388ff;
+$color-primary-dark: #5e35b1;
+
+$color-sad: #4fc3f7; // 难过：浅蓝（平静、舒缓）
+$color-anxious: #ff8a65; // 焦虑：橙红（温暖、释放）
+$color-tired: #9fa8da; // 累：淡紫（柔和、休息）
+$color-lonely: #80deea; // 孤独：青色（清新、连接）
+$color-unclear: #ce93d8; // 说不出来：薰衣草紫（模糊、温柔）
+
+$color-success: #66bb6a;
+$color-warning: #ffa726;
+$color-danger: #ef5350;
+$color-crisis: #d32f2f;
+
+$color-text-primary: #1a1a2e;
+$color-text-secondary: #555570;
+$color-text-tertiary: #9999aa;
+$color-text-inverse: #ffffff;
+
+$color-bg-page: #f5f5f7;
+$color-bg-card: #ffffff;
+$color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+$color-border: #e8e8ec;
+$color-divider: #f0f0f2;
+
+// ===== 间距系统 =====
+$spacing-xs: 8px;
+$spacing-sm: 12px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// ===== 字体系统 =====
+$font-size-xs: 22px;
+$font-size-sm: 26px;
+$font-size-md: 28px;
+$font-size-lg: 32px;
+$font-size-xl: 36px;
+$font-size-xxl: 48px;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// ===== 圆角 =====
+$radius-sm: 8px;
+$radius-md: 16px;
+$radius-lg: 24px;
+$radius-full: 999px;
+
+// ===== 阴影 =====
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+// ===== 动画 =====
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// ===== 页面基础样式 =====
+page {
+  background-color: $color-bg-page;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: 1.6;
+}
+
+// ===== 通用工具类 =====
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background-color: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin: $spacing-sm $spacing-md;
+  box-shadow: $shadow-sm;
+}
+
+.btn-primary {
+  background-color: $color-primary;
+  color: $color-text-inverse;
+  border: none;
+  border-radius: $radius-full;
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  text-align: center;
+
+  &:active {
+    background-color: $color-primary-dark;
+  }
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: $color-primary;
+  border: 2px solid $color-primary;
+  border-radius: $radius-full;
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  text-align: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-secondary {
+  color: $color-text-secondary;
+}
+
+.text-tertiary {
+  color: $color-text-tertiary;
+}

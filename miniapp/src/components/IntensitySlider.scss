@@ -1,0 +1,95 @@
+// 星寰海 v2.0 - 情绪强度滑块样式
+.intensity-slider {
+  padding: 32rpx;
+
+  &-title {
+    display: block;
+    font-size: 36rpx;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 24rpx;
+  }
+}
+
+.intensity-display {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.intensity-value {
+  font-size: 72rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.intensity-label {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.intensity-track {
+  position: relative;
+  height: 16rpx;
+  background: #e0e0e0;
+  border-radius: 8rpx;
+  margin: 32rpx 0;
+}
+
+.intensity-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 8rpx;
+  transition: width 0.1s ease;
+}
+
+.intensity-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  transition: left 0.1s ease, background-color 0.2s ease;
+  z-index: 2;
+}
+
+.intensity-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 快速选择按钮 */
+.quick-select {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24rpx;
+}
+
+.quick-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  border: 4rpx solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &.active {
+    background: currentColor;
+    color: #fff !important;
+  }
+}

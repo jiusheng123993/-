@@ -1,0 +1,196 @@
+// 星寰海 v2.0 - 结束步骤样式
+
+.closing-step {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.closing-header {
+  text-align: center;
+  padding: $spacing-xl 0;
+}
+
+.closing-title {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.closing-subtitle {
+  display: block;
+  font-size: 1rem;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+}
+
+/* 通用区块 */
+.section-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+/* 步骤总结 */
+.summary-section {
+  padding: $spacing-lg;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.summary-item {
+  display: flex;
+  gap: $spacing-md;
+  align-items: flex-start;
+}
+
+.summary-number {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.summary-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.summary-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.summary-text {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+/* 鼓励话语 */
+.encouragement-section {
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-radius: $border-radius-lg;
+}
+
+.encouragement-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.encouragement-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-tertiary;
+  border-radius: $border-radius-md;
+}
+
+.encouragement-icon {
+  font-size: 1.5rem;
+}
+
+.encouragement-text {
+  font-size: 1rem;
+  color: $color-text-primary;
+  line-height: 1.5;
+}
+
+.show-more {
+  text-align: center;
+  padding: $spacing-md;
+  color: $color-primary;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* 感恩练习 */
+.gratitude-section {
+  padding: $spacing-lg;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.gratitude-hint {
+  display: block;
+  font-size: 0.9rem;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-md;
+}
+
+.gratitude-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: $spacing-md;
+  background: $color-bg-tertiary;
+  border: 2px solid $color-border;
+  border-radius: $border-radius-md;
+  font-size: 1rem;
+  color: $color-text-primary;
+
+  &::placeholder {
+    color: #999;
+  }
+}
+
+/* 完成按钮 */
+.complete-btn {
+  padding: $spacing-lg;
+  border-radius: $border-radius-lg;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/* 底部提示 */
+.footer-note {
+  text-align: center;
+  padding: $spacing-lg;
+  color: $color-text-tertiary;
+  font-size: 0.85rem;
+
+  .hotline {
+    display: block;
+    margin-top: $spacing-sm;
+    color: $color-primary;
+    font-weight: 500;
+  }
+}

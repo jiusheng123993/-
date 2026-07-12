@@ -1,0 +1,234 @@
+// 星寰海 v2.0 - 月度摘要组件样式
+
+.monthly-summary {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 头部 */
+.summary-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+}
+
+.summary-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.summary-period {
+  font-size: 28rpx;
+  color: #888888;
+}
+
+/* 指标网格 */
+.metrics-grid {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.metric-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  background-color: #f5f5f7;
+  border-radius: 16rpx;
+
+  &.primary {
+    background-color: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+
+    .metric-value,
+    .metric-label {
+      color: #ffffff;
+    }
+  }
+}
+
+.metric-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.metric-label {
+  font-size: 24rpx;
+  color: #888888;
+  margin-top: 8rpx;
+}
+
+/* 趋势指示器 */
+.trend-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.trend-icon {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.trend-text {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* 最常见情绪 */
+.common-mood {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.section-label {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.mood-tag {
+  padding: 12rpx 24rpx;
+  background-color: #eff6ff;
+  border-radius: 12rpx;
+}
+
+.mood-text {
+  font-size: 28rpx;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* 高风险天数 */
+.high-risk-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.risk-badge {
+  display: flex;
+  align-items: baseline;
+  padding: 12rpx 24rpx;
+  border-radius: 12rpx;
+}
+
+.risk-count {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.risk-unit {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+}
+
+/* 风险分布 */
+.risk-distribution {
+  padding: 24rpx 0;
+}
+
+.distribution-bar {
+  display: flex;
+  height: 24rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  background-color: #f0f0f0;
+}
+
+.bar-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+
+  &.critical {
+    background-color: #ef4444;
+  }
+
+  &.high {
+    background-color: #f97316;
+  }
+
+  &.medium {
+    background-color: #eab308;
+  }
+
+  &.low {
+    background-color: #22c55e;
+  }
+}
+
+.distribution-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+
+  &.critical {
+    background-color: #ef4444;
+  }
+
+  &.high {
+    background-color: #f97316;
+  }
+
+  &.medium {
+    background-color: #eab308;
+  }
+
+  &.low {
+    background-color: #22c55e;
+  }
+}
+
+.legend-text {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+/* 警告提示 */
+.warning-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 24rpx;
+  background-color: #fef3c7;
+  border-radius: 16rpx;
+  margin-top: 24rpx;
+}
+
+.tip-icon {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #92400e;
+  line-height: 1.6;
+}

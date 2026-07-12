@@ -1,0 +1,278 @@
+// 星寰海 v2.0 - 日期详情弹窗样式
+
+.day-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+/* 遮罩层 */
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 弹窗内容 */
+.modal-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85vh;
+  background-color: #ffffff;
+  border-radius: 32rpx 32rpx 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* 头部 */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.modal-date {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.close-btn {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f5f5f7;
+
+  &:active {
+    background-color: #e0e0e0;
+  }
+
+  Text {
+    font-size: 28rpx;
+    color: #666666;
+  }
+}
+
+/* 统计摘要 */
+.stats-section {
+  display: flex;
+  justify-content: space-around;
+  padding: 32rpx;
+  background-color: #fafafa;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #888888;
+}
+
+/* 事件列表区域 */
+.events-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24rpx 32rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999999;
+  margin-bottom: 32rpx;
+}
+
+.add-btn {
+  padding: 20rpx 48rpx;
+  background-color: #3b82f6;
+  border-radius: 16rpx;
+
+  Text {
+    font-size: 28rpx;
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  &:active {
+    background-color: #2563eb;
+  }
+}
+
+/* 事件列表 */
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 事件卡片 */
+.event-card {
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.event-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.event-time {
+  display: flex;
+  align-items: center;
+}
+
+.event-time-text {
+  font-size: 24rpx;
+  color: #888888;
+  font-family: 'SF Mono', monospace;
+}
+
+.event-risk-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+}
+
+.event-risk-text {
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.event-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 16rpx;
+}
+
+/* 标签 */
+.event-tags,
+.event-contexts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.tag {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+
+  &.emotion {
+    background-color: #eff6ff;
+    color: #3b82f6;
+  }
+
+  &.intensity {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+
+  &.context {
+    background-color: #f0fdf4;
+    color: #16a34a;
+  }
+}
+
+.event-note {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+
+/* 操作按钮 */
+.event-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 12rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+
+  &.delete {
+    background-color: #fef2f2;
+    color: #dc2626;
+
+    &:active {
+      background-color: #fee2e2;
+    }
+  }
+}
+
+/* 底部操作区 */
+.modal-footer {
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.add-entry-btn {
+  width: 100%;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #3b82f6;
+  border-radius: 16rpx;
+
+  Text {
+    font-size: 32rpx;
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  &:active {
+    background-color: #2563eb;
+  }
+}

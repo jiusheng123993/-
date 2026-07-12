@@ -1,0 +1,125 @@
+// 星寰海 v2.0 - 书写步骤样式
+
+.writing-step {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.writing-header {
+  text-align: center;
+  padding: $spacing-xl 0;
+}
+
+.writing-title {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.writing-subtitle {
+  display: block;
+  font-size: 1rem;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+}
+
+/* 写作提示 */
+.writing-prompts {
+  .prompts-label {
+    display: block;
+    font-size: 0.95rem;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-md;
+  }
+
+  .prompts-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  .prompt-item {
+    padding: $spacing-md $spacing-lg;
+    background: $color-bg-secondary;
+    border: 2px solid transparent;
+    border-radius: $border-radius-md;
+    font-size: 1rem;
+    color: $color-text-secondary;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:hover {
+      border-color: $color-border;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border-color: $color-primary;
+      color: $color-text-primary;
+    }
+  }
+}
+
+/* 文本输入区 */
+.writing-area {
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+}
+
+.writing-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: $spacing-lg;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: $color-text-primary;
+  background: transparent;
+  border: none;
+
+  &::placeholder {
+    color: #999;
+  }
+}
+
+.writing-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  border-top: 1px solid $color-border;
+}
+
+.word-count {
+  font-size: 0.9rem;
+  color: $color-text-tertiary;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: $color-text-tertiary;
+}
+
+/* 提交按钮 */
+.submit-btn {
+  padding: $spacing-lg;
+  border-radius: $border-radius-lg;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

@@ -1,0 +1,212 @@
+// 星寰海 v2.0 - 白噪音播放器样式
+.white-noise-player {
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-lg;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-lg;
+}
+
+.player-status {
+  margin-bottom: $spacing-lg;
+
+  .current-track {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    .track-icon {
+      font-size: 36rpx;
+    }
+
+    .track-name {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: $color-text-primary;
+    }
+
+    .playing-indicator {
+      font-size: 24rpx;
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .paused-indicator {
+      font-size: 24rpx;
+      color: $color-text-tertiary;
+    }
+  }
+
+  .no-track-selected {
+    font-size: 28rpx;
+    color: $color-text-tertiary;
+  }
+}
+
+.error-message {
+  padding: $spacing-md;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+
+  text {
+    font-size: 24rpx;
+    color: #ef4444;
+  }
+}
+
+.volume-control,
+.auto-stop-control {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  .control-label {
+    font-size: 28rpx;
+    color: $color-text-secondary;
+    min-width: 120rpx;
+  }
+
+  .volume-slider,
+  .auto-stop-slider {
+    flex: 1;
+    height: 8rpx;
+  }
+
+  .volume-value,
+  .auto-stop-value {
+    font-size: 24rpx;
+    color: $color-text-tertiary;
+    min-width: 100rpx;
+    text-align: right;
+  }
+}
+
+.playback-controls {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+
+  .play-btn,
+  .pause-btn,
+  .stop-btn {
+    flex: 1;
+    padding: $spacing-md;
+    border-radius: $border-radius-lg;
+    font-size: 28rpx;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all $transition-base;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .play-btn {
+    background: $color-primary;
+    color: white;
+  }
+
+  .pause-btn {
+    background: #f59e0b;
+    color: white;
+  }
+
+  .stop-btn {
+    background: #ef5350;
+    color: white;
+  }
+}
+
+.track-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.track-group {
+  margin-bottom: $spacing-lg;
+
+  .group-title {
+    display: block;
+    font-size: 28rpx;
+    font-weight: 600;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-sm;
+    border-bottom: 2rpx solid $color-border;
+  }
+
+  .track-items {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: $color-bg-primary;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.active {
+    background: rgba(102, 126, 234, 0.1);
+    border: 2rpx solid $color-primary;
+  }
+
+  .track-icon {
+    font-size: 40rpx;
+  }
+
+  .track-info {
+    flex: 1;
+
+    .track-name {
+      display: block;
+      font-size: 28rpx;
+      font-weight: 500;
+      color: $color-text-primary;
+      margin-bottom: 4rpx;
+    }
+
+    .track-desc {
+      display: block;
+      font-size: 22rpx;
+      color: $color-text-tertiary;
+    }
+  }
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius-lg;
+
+  text {
+    font-size: 28rpx;
+    color: $color-text-secondary;
+  }
+}
