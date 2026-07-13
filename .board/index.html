@@ -847,28 +847,19 @@ function renderDiff(text) {
 
 (function initDateIndex() {
   const container = document.getElementById('date-index');
-  const dates = ['2026-06-03', '2026-06-02'];
-  const labels = {'2026-06-03': '6月3日 (10项)', '2026-06-02': '6月2日 (2项)'};
-  dates.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'sidebar-date';
-    el.textContent = labels[d] || d;
-    el.onclick = function() {
-      document.querySelectorAll('.sidebar-date').forEach(e => e.classList.remove('active'));
-      this.classList.add('active');
-      switchView('timeline');
-      setTimeout(() => {
-        document.querySelectorAll('.tl-item').forEach(e => {
-          if (e.querySelector('.tl-time')?.textContent?.startsWith(d)) {
-            e.style.display = '';
-          } else {
-            e.style.display = 'none';
-          }
-        });
-      }, 100);
-    };
-    container.appendChild(el);
+  const dateCount = {};
+  
+  document.querySelectorAll('.tl-item .tl-time').forEach(el => {
+    const timeText = el.textContent.trim();
+    const dateMatch = timeText.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      const date = dateMatch[1];
+      dateCount[date] = (dateCount[date] || 0) + 1;
+    }
   });
+  
+  const sortedDates = Object.keys(dateCount).sort((a, b) => b.localeCompare(a));
+  
   const all = document.createElement('div');
   all.className = 'sidebar-date active';
   all.textContent = '全部显示';
@@ -878,7 +869,35 @@ function renderDiff(text) {
     switchView('timeline');
     setTimeout(() => document.querySelectorAll('.tl-item').forEach(e => e.style.display = ''), 100);
   };
-  container.insertBefore(all, container.firstChild);
+  container.appendChild(all);
+  
+  sortedDates.forEach(date => {
+    const count = dateCount[date];
+    const month = parseInt(date.split('-')[1], 10);
+    const day = parseInt(date.split('-')[2], 10);
+    const label = month + '月' + day + '日 (' + count + '项)';
+    
+    const el = document.createElement('div');
+    el.className = 'sidebar-date';
+    el.textContent = label;
+    el.dataset.date = date;
+    el.onclick = function() {
+      document.querySelectorAll('.sidebar-date').forEach(e => e.classList.remove('active'));
+      this.classList.add('active');
+      switchView('timeline');
+      setTimeout(() => {
+        document.querySelectorAll('.tl-item').forEach(item => {
+          const timeEl = item.querySelector('.tl-time');
+          if (timeEl && timeEl.textContent.trim().startsWith(date)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      }, 100);
+    };
+    container.appendChild(el);
+  });
 })();
 </script>
 </body>
