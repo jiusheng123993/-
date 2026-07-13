@@ -1,4 +1,5 @@
 export default definePageConfig({
   navigationBarTitleText: '星寰海',
-  enablePullDownRefresh: false
+  enablePullDownRefresh: false,
+  enableShareAppMessage: true
 })

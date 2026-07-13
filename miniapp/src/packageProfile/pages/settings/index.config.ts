@@ -1,4 +1,5 @@
 export default definePageConfig({
   navigationBarTitleText: '设置',
-  enablePullDownRefresh: false
+  enablePullDownRefresh: false,
+  enableShareAppMessage: true
 })
