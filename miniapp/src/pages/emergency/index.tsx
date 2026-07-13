@@ -141,7 +141,7 @@ export function EmergencyPage() {
   );
 }
 
-/** 根据组件类型渲染不同内容 */
+export default EmergencyPage;
 function renderStepComponent(
   componentType: string,
   config: any,

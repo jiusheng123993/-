@@ -59,3 +59,5 @@ export function HomePage({ onMoodSelect }: HomePageProps) {
     </div>
   );
 }
+
+export default HomePage;
