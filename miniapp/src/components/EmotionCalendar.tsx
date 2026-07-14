@@ -1,4 +1,4 @@
-// 星寰海 v2.0 - 情绪日历组件
+// 星寰海 v3.0 - 情绪日历组件（水墨风格）
 import { View, Text } from '@tarojs/components';
 import { useMemo } from 'react';
 import { useScheduleStore } from '../stores/scheduleStore';
@@ -19,14 +19,14 @@ interface EmotionCalendarProps {
   onDayClick?: (date: string) => void;
 }
 
-/** 根据风险等级获取颜色 */
+/** 根据风险等级获取水墨灰阶颜色 */
 function getRiskColor(riskLevel: RiskLevel): string {
   switch (riskLevel) {
-    case 'critical': return '#ef4444';
-    case 'high': return '#f97316';
-    case 'medium': return '#eab308';
-    case 'low': return '#22c55e';
-    default: return '#9ca3af';
+    case 'critical': return '#2d2d2d'; // 深墨
+    case 'high': return '#5a5a5a';     // 浓墨
+    case 'medium': return '#8a8a8a';   // 中墨
+    case 'low': return '#b0b0b0';      // 淡墨
+    default: return '#d0d0d0';
   }
 }
 
@@ -178,23 +178,23 @@ export default function EmotionCalendar({ onDayClick }: EmotionCalendarProps) {
         ))}
       </View>
 
-      {/* 图例 */}
+      {/* 图例 - 水墨灰阶 */}
       <View className='legend'>
         <View className='legend-item'>
           <View className='legend-dot' style={{ backgroundColor: getRiskColor('low') }} />
-          <Text className='legend-text'>低风险</Text>
+          <Text className='legend-text'>淡墨</Text>
         </View>
         <View className='legend-item'>
           <View className='legend-dot' style={{ backgroundColor: getRiskColor('medium') }} />
-          <Text className='legend-text'>中风险</Text>
+          <Text className='legend-text'>中墨</Text>
         </View>
         <View className='legend-item'>
           <View className='legend-dot' style={{ backgroundColor: getRiskColor('high') }} />
-          <Text className='legend-text'>高风险</Text>
+          <Text className='legend-text'>浓墨</Text>
         </View>
         <View className='legend-item'>
           <View className='legend-dot' style={{ backgroundColor: getRiskColor('critical') }} />
-          <Text className='legend-text'>极高风险</Text>
+          <Text className='legend-text'>深墨</Text>
         </View>
       </View>
     </View>

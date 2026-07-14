@@ -1,303 +1,209 @@
-// 星寰海 v2.0 - 连接步骤样式
+// 星寰海 v3.0 - 连接步骤样式（水墨风格）
 
-.connect-step {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-lg;
+.emergency-step-connect {
+  padding: 32rpx 0;
 }
 
-.connect-header {
-  text-align: center;
-  padding: $spacing-xl 0;
+.step-header {
+  margin-bottom: 48rpx;
 }
 
-.connect-title {
+.step-title {
   display: block;
-  font-size: 1.6rem;
+  font-size: 40rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: #2d2d2d;
+  margin-bottom: 16rpx;
+  letter-spacing: -0.5rpx;
   line-height: 1.4;
 }
 
-.connect-subtitle {
+.step-subtitle {
   display: block;
-  font-size: 1rem;
-  color: $color-text-secondary;
-  margin-top: $spacing-sm;
-}
-
-.connect-content {
-  padding: $spacing-lg;
-  background: $color-bg-secondary;
-  border-radius: $border-radius-lg;
-}
-
-/* 通用区块样式 */
-.section-title {
-  display: block;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: $color-text-primary;
-  margin-bottom: $spacing-sm;
-}
-
-.section-desc {
-  display: block;
-  font-size: 0.95rem;
-  color: $color-text-secondary;
-  margin-bottom: $spacing-lg;
-}
-
-/* 同伴支持 */
-.messages-list {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-  margin-bottom: $spacing-lg;
-}
-
-.message-card {
-  padding: $spacing-lg;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-radius: $border-radius-md;
-}
-
-.message-text {
-  display: block;
-  font-size: 1rem;
-  color: $color-text-primary;
-  font-style: italic;
+  font-size: 28rpx;
+  color: #8a8a8a;
   line-height: 1.6;
 }
 
-.message-author {
+/* 资源列表 */
+.resources-section {
+  margin-bottom: 48rpx;
+}
+
+.section-label {
   display: block;
-  font-size: 0.85rem;
-  color: $color-text-tertiary;
-  margin-top: $spacing-sm;
-  text-align: right;
-}
-
-.resources-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $spacing-md;
-}
-
-.resource-card {
-  padding: $spacing-lg;
-  background: $color-bg-tertiary;
-  border-radius: $border-radius-md;
-  text-align: center;
-  cursor: pointer;
-  transition: all $transition-base;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
-}
-
-.resource-icon {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: $spacing-sm;
-}
-
-.resource-title {
-  display: block;
-  font-size: 1rem;
-  font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: $spacing-xs;
-}
-
-.resource-desc {
-  display: block;
-  font-size: 0.85rem;
-  color: $color-text-tertiary;
-}
-
-/* 专业帮助 */
-.hotline-card {
-  padding: $spacing-xl;
-  background: linear-gradient(135deg, #ef5350 0%, #d32f2f 100%);
-  border-radius: $border-radius-lg;
-  text-align: center;
-  margin-bottom: $spacing-lg;
-}
-
-.hotline-label {
-  display: block;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: $spacing-sm;
-}
-
-.hotline-number {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  letter-spacing: 2px;
-}
-
-.hotline-hours {
-  display: block;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: $spacing-sm;
+  font-size: 26rpx;
+  color: #8a8a8a;
+  margin-bottom: 24rpx;
+  font-weight: 500;
 }
 
 .resources-list {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 20rpx;
 }
 
-.resource-item {
+.resource-card {
   display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  padding: $spacing-lg;
-  background: $color-bg-tertiary;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  transition: all $transition-base;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 28rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  animation: inkFadeIn 0.5s ease forwards;
+  opacity: 0;
 
-  &:hover {
-    transform: translateX(4px);
+  &:active {
+    transform: scale(0.98);
+    background: rgba(93, 93, 93, 0.08);
+  }
+
+  &.selected {
+    border-color: rgba(45, 45, 45, 0.15);
+    background: rgba(45, 45, 45, 0.06);
   }
 }
 
-.resource-info {
-  flex: 1;
-}
-
-/* 社区资源 */
-.community-options {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.community-card {
-  padding: $spacing-lg;
-  background: $color-bg-tertiary;
-  border-radius: $border-radius-md;
-  border-left: 4px solid;
-  cursor: pointer;
-  transition: all $transition-base;
-
-  &:hover {
-    transform: translateX(4px);
-  }
-}
-
-.community-icon {
-  display: block;
-  font-size: 1.5rem;
-  margin-bottom: $spacing-sm;
-}
-
-.community-title {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: $spacing-xs;
-}
-
-.community-desc {
-  display: block;
-  font-size: 0.9rem;
-  color: $color-text-secondary;
-}
-
-/* 睡眠卫生 */
-.tips-list {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.tip-item {
-  display: flex;
-  gap: $spacing-md;
-  padding: $spacing-lg;
-  background: $color-bg-tertiary;
-  border-radius: $border-radius-md;
-}
-
-.tip-number {
-  width: 32px;
-  height: 32px;
+.resource-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+  background: rgba(93, 93, 93, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $color-primary;
-  color: white;
-  border-radius: 50%;
-  font-size: 0.9rem;
-  font-weight: 700;
   flex-shrink: 0;
 }
 
-.tip-content {
+.icon-text {
+  font-size: 32rpx;
+}
+
+.resource-content {
   flex: 1;
+  min-width: 0;
 }
 
-.tip-title {
+.resource-title {
   display: block;
-  font-size: 1rem;
+  font-size: 30rpx;
   font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: $spacing-xs;
+  color: #2d2d2d;
+  margin-bottom: 8rpx;
 }
 
-.tip-desc {
+.resource-description {
   display: block;
-  font-size: 0.9rem;
-  color: $color-text-secondary;
+  font-size: 24rpx;
+  color: #8a8a8a;
+  line-height: 1.5;
 }
 
-/* 咨询选项 */
-.counseling-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $spacing-md;
+/* 支持消息 */
+.messages-section {
+  margin-bottom: 48rpx;
 }
 
-.counseling-card {
-  padding: $spacing-lg;
-  background: $color-bg-tertiary;
-  border-radius: $border-radius-md;
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.message-card {
+  padding: 28rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  animation: inkFadeIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.message-text {
+  display: block;
+  font-size: 28rpx;
+  color: #5a5a5a;
+  line-height: 1.8;
+  margin-bottom: 16rpx;
+  font-style: italic;
+}
+
+.message-author {
+  display: block;
+  font-size: 24rpx;
+  color: #8a8a8a;
+  text-align: right;
+}
+
+/* 热线区域 */
+.hotline-section {
+  margin-top: 48rpx;
+  padding-top: 48rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.hotline-label {
+  display: block;
+  font-size: 26rpx;
+  color: #8a8a8a;
+  margin-bottom: 24rpx;
   text-align: center;
-  cursor: pointer;
-  transition: all $transition-base;
+}
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.hotline-btn {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 32rpx;
+  background: rgba(45, 45, 45, 0.08);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(45, 45, 45, 0.1);
+  transition: all 0.3s ease;
+
+  &:active {
+    background: rgba(45, 45, 45, 0.12);
   }
 }
 
-.counseling-icon {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: $spacing-sm;
+.hotline-icon {
+  font-size: 48rpx;
 }
 
-.counseling-title {
+.hotline-info {
+  flex: 1;
+}
+
+.hotline-title {
   display: block;
-  font-size: 1rem;
+  font-size: 30rpx;
   font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: $spacing-xs;
+  color: #2d2d2d;
+  margin-bottom: 4rpx;
 }
 
-.counseling-desc {
+.hotline-number {
   display: block;
-  font-size: 0.85rem;
-  color: $color-text-tertiary;
+  font-size: 28rpx;
+  color: #5a5a5a;
+  font-weight: 500;
+}
+
+@keyframes inkFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

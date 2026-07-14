@@ -42,45 +42,8 @@ export default defineAppConfig({
   },
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#ffffff',
+    navigationBarBackgroundColor: '#f7f4ed',
     navigationBarTitleText: '星寰海',
     navigationBarTextStyle: 'black'
-  },
-  tabBar: {
-    color: '#999999',
-    selectedColor: '#7c4dff',
-    backgroundColor: '#ffffff',
-    borderStyle: 'white',
-    list: [
-      {
-        pagePath: 'pages/index/index',
-        text: '首页',
-        iconPath: 'assets/tabbar/home.png',
-        selectedIconPath: 'assets/tabbar/home-active.png'
-      },
-      {
-        pagePath: 'pages/calendar/index',
-        text: '日历',
-        iconPath: 'assets/tabbar/calendar.png',
-        selectedIconPath: 'assets/tabbar/calendar-active.png'
-      },
-      {
-        pagePath: 'pages/mood/index',
-        text: '记录',
-        iconPath: 'assets/tabbar/mood.png',
-        selectedIconPath: 'assets/tabbar/mood-active.png'
-      },
-      {
-        pagePath: 'pages/profile/index',
-        text: '我的',
-        iconPath: 'assets/tabbar/profile.png',
-        selectedIconPath: 'assets/tabbar/profile-active.png'
-      }
-    ]
-  },
-  permission: {
-    'scope.userInfo': {
-      desc: '你的信息将用于完善个人资料'
-    }
   }
 })

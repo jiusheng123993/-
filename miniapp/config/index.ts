@@ -30,6 +30,9 @@ const config: UserConfigExport = {
   mini: {
     webpackChain(chain) {
       chain.resolve.alias.set('@', path.resolve(__dirname, '..', 'src'))
+      // 确保只有一个 React 实例，避免 Hook 错误
+      chain.resolve.alias.set('react', path.resolve(__dirname, '..', 'node_modules', 'react'))
+      chain.resolve.alias.set('react-dom', path.resolve(__dirname, '..', 'node_modules', 'react-dom'))
     },
     sass: {
       data: `@import "@/styles/global.scss";`

@@ -1,0 +1,79 @@
+// 星寰海 v3.0 - 悬浮液态玻璃导航栏样式
+.floating-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 20rpx 40rpx;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.floating-nav-glass {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 66vw;
+  min-width: 520rpx;
+  max-width: 720rpx;
+  height: 96rpx;
+  padding: 0 16rpx;
+  border-radius: 48rpx;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  pointer-events: auto;
+  gap: 0;
+}
+
+.floating-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 24rpx;
+  border-radius: 24rpx;
+  transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  cursor: pointer;
+  position: relative;
+  flex: 1;
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &.active {
+    background: rgba(45, 45, 45, 0.06);
+  }
+}
+
+.floating-nav-icon-wrap {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4rpx;
+}
+
+.floating-nav-text {
+  font-size: 22rpx;
+  color: #8a8a8a;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-align: center;
+  display: block;
+  width: 100%;
+
+  &.active {
+    color: #2d2d2d;
+    font-weight: 600;
+  }
+}

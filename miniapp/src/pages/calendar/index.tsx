@@ -5,6 +5,7 @@ import { useState } from 'react';
 import EmotionCalendar from '../../components/EmotionCalendar';
 import DayDetailModal from '../../components/DayDetailModal';
 import MonthlySummary from '../../components/MonthlySummary';
+import FloatingNav from '../../components/FloatingNav';
 import { useScheduleStore } from '../../stores/scheduleStore';
 import './index.scss';
 
@@ -39,23 +40,31 @@ export default function CalendarPage() {
 
   return (
     <View className='calendar-page'>
+      {/* 水墨背景装饰 */}
+      <View className='ink-bg-decoration ink-bg-1' />
+      <View className='ink-bg-decoration ink-bg-2' />
+
       {/* 页面标题 */}
-      <View className='page-header'>
+      <View className='page-header ink-item' style={{ animationDelay: '0.1s' }}>
         <Text className='page-title'>情绪日历</Text>
         <Text className='page-subtitle'>追踪你的情绪变化，发现规律</Text>
       </View>
 
       {/* 月度摘要 */}
-      <MonthlySummary
-        year={currentMonth.getFullYear()}
-        month={currentMonth.getMonth()}
-      />
+      <View className='monthly-summary ink-item' style={{ animationDelay: '0.2s' }}>
+        <MonthlySummary
+          year={currentMonth.getFullYear()}
+          month={currentMonth.getMonth()}
+        />
+      </View>
 
       {/* 日历组件 */}
-      <EmotionCalendar onDayClick={handleDayClick} />
+      <View className='emotion-calendar ink-item' style={{ animationDelay: '0.3s' }}>
+        <EmotionCalendar onDayClick={handleDayClick} />
+      </View>
 
       {/* 使用提示 */}
-      <View className='tips-section'>
+      <View className='tips-section ink-item' style={{ animationDelay: '0.4s' }}>
         <Text className='tips-title'>💡 使用提示</Text>
         <View className='tip-item'>
           <Text className='tip-dot'>•</Text>
@@ -77,6 +86,9 @@ export default function CalendarPage() {
         onClose={handleCloseModal}
         onAddEntry={handleAddEntry}
       />
+
+      {/* 悬浮导航 */}
+      <FloatingNav />
     </View>
   );
 }

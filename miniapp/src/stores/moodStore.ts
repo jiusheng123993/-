@@ -53,3 +53,8 @@ export const useMoodStore = create<MoodStoreState>((set, get) => ({
 
   clearEntries: () => set({ entries: [] })
 }));
+
+/** 从本地存储加载情绪记录 */
+export function loadMoodEntriesFromStorage(): MoodEntry[] {
+  return memoryStore.getMoodEntries();
+}

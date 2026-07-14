@@ -1,201 +1,108 @@
-// 星寰海 v2.0 - 连接步骤组件
-// 提供支持资源和连接选项
-
+// 星寰海 v3.0 - 急救步骤4：建立连接（水墨风格）
 import { View, Text } from '@tarojs/components';
+import { useState } from 'react';
+import Taro from '@tarojs/taro';
 import './EmergencyStepConnect.scss';
 
-interface ResourceLink {
+interface Resource {
   id: string;
   title: string;
   description: string;
-  url?: string;
   icon?: string;
 }
 
 interface SupportMessage {
   id: string;
   text: string;
-  author?: string;
+  author: string;
 }
 
 interface EmergencyStepConnectProps {
   title: string;
-  subtitle?: string;
-  flowColor: string;
-  resourceType: 'peer' | 'professional' | 'community' | 'sleep' | 'counseling';
-  resources: ResourceLink[];
+  subtitle: string;
+  resourceType: string;
+  resources: Resource[];
   supportMessages?: SupportMessage[];
-  onResourceClick?: (resourceId: string) => void;
+  onSelect: (resourceId: string) => void;
 }
 
 export default function EmergencyStepConnect({
   title,
   subtitle,
-  flowColor,
-  resourceType,
   resources,
-  supportMessages = [],
-  onResourceClick
+  supportMessages,
+  onSelect,
 }: EmergencyStepConnectProps) {
-  const renderPeerSupport = () => (
-    <View className="connect-section">
-      <Text className="section-title">你不是一个人</Text>
-      <Text className="section-desc">
-        今晚有成千上万的人也在经历类似的感受
-      </Text>
+  const [selectedResource, setSelectedResource] = useState<string | null>(null);
 
-      {supportMessages.length > 0 && (
-        <View className="messages-list">
-          {supportMessages.map((msg) => (
-            <View key={msg.id} className="message-card">
-              <Text className="message-text">"{msg.text}"</Text>
-              {msg.author && <Text className="message-author">— {msg.author}</Text>}
-            </View>
-          ))}
-        </View>
-      )}
+  const handleResourceClick = (resourceId: string) => {
+    setSelectedResource(resourceId);
+    onSelect(resourceId);
+  };
 
-      <View className="resources-grid">
-        {resources.map((resource) => (
-          <View
-            key={resource.id}
-            className="resource-card"
-            onClick={() => onResourceClick?.(resource.id)}
-          >
-            <Text className="resource-icon">{resource.icon || '💬'}</Text>
-            <Text className="resource-title">{resource.title}</Text>
-            <Text className="resource-desc">{resource.description}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderProfessionalHelp = () => (
-    <View className="connect-section">
-      <Text className="section-title">寻求专业帮助</Text>
-      <Text className="section-desc">
-        如果你感觉情绪难以承受，专业人士可以提供帮助
-      </Text>
-
-      <View className="hotline-card">
-        <Text className="hotline-label">全国心理援助热线</Text>
-        <Text className="hotline-number">400-161-9995</Text>
-        <Text className="hotline-hours">24 小时免费服务</Text>
-      </View>
-
-      <View className="resources-list">
-        {resources.map((resource) => (
-          <View
-            key={resource.id}
-            className="resource-item"
-            onClick={() => onResourceClick?.(resource.id)}
-          >
-            <Text className="resource-icon">{resource.icon || '📞'}</Text>
-            <View className="resource-info">
-              <Text className="resource-title">{resource.title}</Text>
-              <Text className="resource-desc">{resource.description}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderCommunityResources = () => (
-    <View className="connect-section">
-      <Text className="section-title">找到你的社区</Text>
-      <Text className="section-desc">
-        与理解你的人建立连接
-      </Text>
-
-      <View className="community-options">
-        {resources.map((resource) => (
-          <View
-            key={resource.id}
-            className="community-card"
-            style={{ borderLeftColor: flowColor }}
-            onClick={() => onResourceClick?.(resource.id)}
-          >
-            <Text className="community-icon">{resource.icon || '🌍'}</Text>
-            <Text className="community-title">{resource.title}</Text>
-            <Text className="community-desc">{resource.description}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderSleepHygiene = () => (
-    <View className="connect-section">
-      <Text className="section-title">改善睡眠质量</Text>
-      <Text className="section-desc">
-        良好的睡眠习惯可以帮助你恢复能量
-      </Text>
-
-      <View className="tips-list">
-        {resources.map((resource, index) => (
-          <View key={resource.id} className="tip-item">
-            <Text className="tip-number">{index + 1}</Text>
-            <View className="tip-content">
-              <Text className="tip-title">{resource.title}</Text>
-              <Text className="tip-desc">{resource.description}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderCounselingOption = () => (
-    <View className="connect-section">
-      <Text className="section-title">专业咨询</Text>
-      <Text className="section-desc">
-        有时候，和专业人士聊聊会有帮助
-      </Text>
-
-      <View className="counseling-options">
-        {resources.map((resource) => (
-          <View
-            key={resource.id}
-            className="counseling-card"
-            onClick={() => onResourceClick?.(resource.id)}
-          >
-            <Text className="counseling-icon">{resource.icon || '🎯'}</Text>
-            <Text className="counseling-title">{resource.title}</Text>
-            <Text className="counseling-desc">{resource.description}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderContent = () => {
-    switch (resourceType) {
-      case 'peer':
-        return renderPeerSupport();
-      case 'professional':
-        return renderProfessionalHelp();
-      case 'community':
-        return renderCommunityResources();
-      case 'sleep':
-        return renderSleepHygiene();
-      case 'counseling':
-        return renderCounselingOption();
-      default:
-        return renderPeerSupport();
-    }
+  const handleHotlineCall = () => {
+    Taro.makePhoneCall({ phoneNumber: '400-161-9995' });
   };
 
   return (
-    <View className="connect-step">
-      <View className="connect-header">
-        <Text className="connect-title">{title}</Text>
-        {subtitle && <Text className="connect-subtitle">{subtitle}</Text>}
+    <View className='emergency-step-connect'>
+      <View className='step-header'>
+        <Text className='step-title'>{title}</Text>
+        <Text className='step-subtitle'>{subtitle}</Text>
       </View>
 
-      <View className="connect-content">
-        {renderContent()}
+      {/* 资源列表 */}
+      <View className='resources-section'>
+        <Text className='section-label'>你可以尝试：</Text>
+        <View className='resources-list'>
+          {resources.map((resource, index) => (
+            <View
+              key={resource.id}
+              className={`resource-card ${selectedResource === resource.id ? 'selected' : ''}`}
+              onClick={() => handleResourceClick(resource.id)}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <View className='resource-icon'>
+                <Text className='icon-text'>{resource.icon || '•'}</Text>
+              </View>
+              <View className='resource-content'>
+                <Text className='resource-title'>{resource.title}</Text>
+                <Text className='resource-description'>{resource.description}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* 支持消息 */}
+      {supportMessages && supportMessages.length > 0 && (
+        <View className='messages-section'>
+          <Text className='section-label'>来自社区的声音：</Text>
+          <View className='messages-list'>
+            {supportMessages.map((message, index) => (
+              <View
+                key={message.id}
+                className='message-card'
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
+                <Text className='message-text'>"{message.text}"</Text>
+                <Text className='message-author'>— {message.author}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* 热线按钮 */}
+      <View className='hotline-section'>
+        <Text className='hotline-label'>需要立即帮助？</Text>
+        <View className='hotline-btn' onClick={handleHotlineCall}>
+          <Text className='hotline-icon'>📞</Text>
+          <View className='hotline-info'>
+            <Text className='hotline-title'>希望24热线</Text>
+            <Text className='hotline-number'>400-161-9995</Text>
+          </View>
+        </View>
       </View>
     </View>
   );

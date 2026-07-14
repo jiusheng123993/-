@@ -5,900 +5,223 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>项目看板 - 星寰海</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; }
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: 220px; background: #1a1a2e; color: white; padding: 20px 0; flex-shrink: 0; overflow-y: auto; position: sticky; top: 0; height: 100vh; }
-  .sidebar-title { padding: 0 16px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
-  .sidebar-section { margin-top: 12px; }
-  .sidebar-label { padding: 6px 16px; font-size: 11px; text-transform: uppercase; opacity: 0.5; letter-spacing: 1px; }
-  .sidebar-item { padding: 8px 16px 8px 24px; font-size: 13px; cursor: pointer; color: rgba(255,255,255,0.7); transition: all 0.15s; border-left: 3px solid transparent; }
-  .sidebar-item:hover { background: rgba(255,255,255,0.05); color: white; }
-  .sidebar-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: #4ade80; }
-  .sidebar-date { padding: 4px 16px 4px 24px; font-size: 12px; cursor: pointer; color: rgba(255,255,255,0.5); transition: all 0.15s; }
-  .sidebar-date:hover { color: white; }
-  .sidebar-date.active { color: #4ade80; }
-  .main { flex: 1; padding: 24px; max-width: 900px; }
-  .header { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 28px 32px; border-radius: 12px; margin-bottom: 20px; }
-  .header h1 { font-size: 24px; margin-bottom: 6px; }
-  .header .meta { font-size: 14px; opacity: 0.8; }
-  .header .progress-bar { margin-top: 14px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
-  .header .progress-fill { height: 100%; background: #4ade80; border-radius: 3px; transition: width 0.5s; }
-  .card { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
-  .badge-done { background: #dcfce7; color: #166534; }
-  .badge-doing { background: #fef9c3; color: #854d0e; }
-  .badge-pending { background: #f3f4f6; color: #6b7280; }
-  .badge-fail { background: #fee2e2; color: #991b1b; }
-  .badge-review { background: #dbeafe; color: #1e40af; }
-  .badge-blocked { background: #fce7f3; color: #9d174d; }
-  .module-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-  .module-item:last-child { border-bottom: none; }
-  .module-name { font-size: 14px; }
-  .module-desc { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .timeline { position: relative; padding-left: 20px; }
-  .timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
-  .tl-item { position: relative; padding: 10px 0 10px 16px; border-bottom: 1px solid #f3f4f6; }
-  .tl-item:last-child { border-bottom: none; }
-  .tl-item::before { content: ''; position: absolute; left: -16px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; border: 2px solid white; box-shadow: 0 0 0 2px #3b82f6; }
-  .tl-item.done::before { background: #4ade80; box-shadow: 0 0 0 2px #4ade80; }
-  .tl-item.fail::before { background: #f87171; box-shadow: 0 0 0 2px #f87171; }
-  .tl-item.review::before { background: #f59e0b; box-shadow: 0 0 0 2px #f59e0b; }
-  .tl-time { font-size: 11px; color: #9ca3af; }
-  .tl-title { font-size: 14px; font-weight: 500; margin: 2px 0; }
-  .tl-desc { font-size: 13px; color: #4b5563; }
-  .tl-file { font-size: 12px; color: #2563eb; font-family: monospace; }
-  .tl-actions { margin-top: 6px; }
-  .tl-view-diff { font-size: 12px; color: #2563eb; cursor: pointer; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px; }
-  .tl-view-diff:hover { color: #1d4ed8; }
-  .review-pass { border-left: 3px solid #4ade80; padding: 8px 12px; margin: 6px 0; font-size: 13px; background: #f0fdf4; border-radius: 0 6px 6px 0; }
-  .review-fail { border-left: 3px solid #f87171; padding: 8px 12px; margin: 6px 0; font-size: 13px; background: #fef2f2; border-radius: 0 6px 6px 0; }
-  .review-info { border-left: 3px solid #3b82f6; padding: 8px 12px; margin: 6px 0; font-size: 13px; background: #eff6ff; border-radius: 0 6px 6px 0; }
-  .decision-item { padding: 6px 0; font-size: 13px; color: #4b5563; border-bottom: 1px solid #f9fafb; }
-  .decision-item::before { content: "\2192 "; color: #9ca3af; }
-  .date-divider { font-size: 14px; font-weight: 600; color: #1a1a2e; padding: 16px 0 8px; border-bottom: 1px solid #e5e7eb; margin-bottom: 8px; }
-  .hidden { display: none; }
-
-  /* Diff Modal */
-  .diff-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
-  .diff-modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .diff-modal { background: white; border-radius: 12px; width: 95%; max-width: 1400px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); transform: translateY(20px); transition: transform 0.2s; }
-  .diff-modal-overlay.active .diff-modal { transform: translateY(0); }
-  .diff-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
-  .diff-modal-title { font-size: 15px; font-weight: 600; }
-  .diff-modal-close { width: 32px; height: 32px; border: none; background: #f3f4f6; border-radius: 6px; cursor: pointer; font-size: 18px; color: #6b7280; display: flex; align-items: center; justify-content: center; }
-  .diff-modal-close:hover { background: #e5e7eb; color: #1a1a2e; }
-  .diff-modal-body { flex: 1; overflow: auto; padding: 20px; }
-  .diff-loading { padding: 40px; text-align: center; color: #9ca3af; font-size: 14px; }
-  .diff-empty { padding: 40px; text-align: center; color: #9ca3af; font-size: 14px; }
-
-  /* Plain Text Mode (for non-diff content) */
-  .diff-plain-text { padding: 16px; background: #fafafa; border-radius: 8px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 13px; line-height: 1.7; }
-  .diff-plain-line { padding: 2px 0; color: #374151; border-bottom: 1px solid #f0f0f0; }
-  .diff-plain-line:last-child { border-bottom: none; }
-  .diff-plain-comment { padding: 4px 0; color: #92400e; font-weight: 600; border-bottom: 1px solid #fde047; background: #fefce8; margin: 2px -16px; padding-left: 16px; padding-right: 16px; }
-
-  /* Diff File Card - Side by Side View */
-  .diff-file-card { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
-  .diff-description { padding: 12px 16px; background: #fefce8; border-bottom: 1px solid #fde047; }
-  .diff-description-line { font-size: 13px; color: #713f12; line-height: 1.7; }
-  .diff-description-line:first-child { font-weight: 600; color: #92400e; }
-  .diff-file-header { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; background: #fafafa; }
-  .diff-file-name { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 13px; color: #2563eb; font-weight: 600; }
-  .diff-file-desc { font-size: 12px; color: #6b7280; margin-top: 4px; }
-  .diff-hunks { display: flex; flex-direction: column; }
-  .diff-hunk-header { padding: 6px 16px; font-size: 11px; color: #6b7280; background: #f6f8fa; border-bottom: 1px solid #e5e7eb; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; }
-  .diff-pair { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #e5e7eb; }
-  .diff-pair-header { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
-  .diff-pair-header-left { padding: 6px 12px; font-size: 11px; font-weight: 600; background: #fef2f2; color: #991b1b; border-bottom: 1px solid #fecaca; border-right: 1px solid #fecaca; }
-  .diff-pair-header-right { padding: 6px 12px; font-size: 11px; font-weight: 600; background: #f0fdf4; color: #166534; border-bottom: 1px solid #bbf7d0; }
-  .diff-side { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; }
-  .diff-side-left { border-right: 1px solid #e5e7eb; }
-  .diff-line-row { display: flex; white-space: pre; }
-  .diff-line-num { width: 40px; min-width: 40px; text-align: right; padding: 2px 6px; font-size: 11px; user-select: none; border-right: 1px solid #e5e7eb; }
-  .diff-line-content { padding: 2px 8px; flex: 1; }
-  .diff-line-row.del { background: #fef2f2; }
-  .diff-line-row.del .diff-line-num { background: #fee2e2; color: #991b1b; }
-  .diff-line-row.del .diff-line-content { color: #991b1b; }
-  .diff-line-row.add { background: #f0fdf4; }
-  .diff-line-row.add .diff-line-num { background: #dcfce7; color: #166534; }
-  .diff-line-row.add .diff-line-content { color: #166534; }
-  .diff-line-row.ctx { background: #f6f8fa; }
-  .diff-line-row.ctx .diff-line-num { background: #f6f8fa; color: #9ca3af; }
-  .diff-line-row.ctx .diff-line-content { color: #4b5563; }
-  .diff-line-row.empty { background: #fafafa; }
-  .diff-line-row.empty .diff-line-num { background: #fafafa; color: #e5e7eb; }
-  .diff-line-row.empty .diff-line-content { color: #e5e7eb; }
-
-  @media (max-width: 768px) { .sidebar { width: 160px; } .main { padding: 16px; } .diff-modal { width: 96%; max-height: 90vh; } .diff-pair { grid-template-columns: 1fr; } .diff-side-left { border-right: none; border-bottom: 1px solid #e5e7eb; } }
+:root{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--text:#e2e8f0;--dim:#94a3b8;--muted:#64748b;--accent:#38bdf8;--accent2:#818cf8;--green:#4ade80;--green-bg:rgba(74,222,128,.1);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.1);--red:#f87171;--red-bg:rgba(248,113,113,.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,.1);--pink:#f472b6;--pink-bg:rgba(244,114,182,.1);--gray:#94a3b8;--gray-bg:rgba(148,163,184,.1);--border:#334155;--r:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sb{width:240px;background:var(--bg);border-right:1px solid var(--border);flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+.sb-hd{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.sb-logo{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sb-pulse{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.sb-nav{flex:1;padding:8px 0;overflow-y:auto}
+.sb-lbl{padding:8px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600}
+.sb-item{padding:8px 16px 8px 24px;font-size:13px;cursor:pointer;color:var(--dim);transition:.15s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px}
+.sb-item:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.sb-item.on{background:rgba(56,189,248,.08);color:var(--accent);border-left-color:var(--accent)}
+.sb-item .ic{font-size:14px;width:18px;text-align:center}
+.sb-date{padding:6px 16px 6px 32px;font-size:12px;cursor:pointer;color:var(--muted);transition:.15s;display:flex;align-items:center;justify-content:space-between}
+.sb-date:hover{color:var(--dim);background:rgba(255,255,255,.02)}
+.sb-date.on{color:var(--accent)}
+.sb-date .ct{font-size:10px;background:var(--border);padding:1px 6px;border-radius:8px}
+.sb-ft{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.ws-d{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.ws-d.on{background:var(--green)}.ws-d.off{background:var(--red)}
+.main{flex:1;padding:24px 32px;max-width:1100px;min-width:0}
+.hdr{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid var(--border);border-radius:14px;padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(56,189,248,.08) 0%,transparent 70%);pointer-events:none}
+.hdr h1{font-size:22px;font-weight:700;margin-bottom:4px;position:relative}
+.hdr .meta{font-size:13px;color:var(--dim);position:relative;display:flex;flex-wrap:wrap;gap:16px}
+.hdr .mi{display:flex;align-items:center;gap:4px}
+.hdr .ps{margin-top:16px;position:relative}
+.hdr .pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.hdr .pf{height:100%;border-radius:4px;transition:width .8s;background:linear-gradient(90deg,var(--accent),var(--green))}
+.hdr .pl{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--dim)}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;transition:transform .15s}
+.sc:hover{transform:translateY(-2px)}
+.sv{font-size:28px;font-weight:700}
+.sv.g{color:var(--green)}.sv.y{color:var(--yellow)}.sv.b{color:var(--blue)}.sv.r{color:var(--red)}
+.sl{font-size:12px;color:var(--muted);margin-top:2px}
+.cd{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:14px}
+.ct2{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.mi2{padding:12px 0;border-bottom:1px solid var(--border)}
+.mi2:last-child{border-bottom:none}
+.mr{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.mr:hover .mn{color:var(--accent)}
+.mn{font-size:14px;font-weight:500;transition:.15s}
+.md{font-size:12px;color:var(--muted);margin-top:2px}
+.mrt{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.mp{width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.mpf{height:100%;border-radius:2px;transition:width .5s}
+.mpf.done{background:var(--green)}.mpf.doing{background:var(--yellow)}.mpf.pending{background:var(--gray)}.mpf.blocked{background:var(--red)}
+.mdt{display:none;padding:10px 0 4px 16px}
+.mdt.open{display:block}
+.mst{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:var(--dim)}
+.ck{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.ck.done{background:var(--green);border-color:var(--green);color:var(--bg)}
+.ck.doing{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
+.badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-done{background:var(--green-bg);color:var(--green)}.b-doing{background:var(--yellow-bg);color:var(--yellow)}.b-pending{background:var(--gray-bg);color:var(--gray)}.b-fail{background:var(--red-bg);color:var(--red)}.b-review{background:var(--blue-bg);color:var(--blue)}.b-blocked{background:var(--pink-bg);color:var(--pink)}.b-change{background:var(--blue-bg);color:var(--blue)}.b-sync{background:rgba(129,140,248,.1);color:var(--accent2)}.b-test{background:var(--pink-bg);color:var(--pink)}
+.sbx{margin-bottom:16px;position:relative}
+.si{width:100%;padding:10px 14px 10px 36px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s}
+.si:focus{border-color:var(--accent)}
+.sic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.fb{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.fbtn{padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:.15s}
+.fbtn:hover{border-color:var(--accent);color:var(--accent)}
+.fbtn.on{background:rgba(56,189,248,.1);border-color:var(--accent);color:var(--accent)}
+.dg{margin-bottom:20px}
+.dh{font-size:13px;font-weight:600;color:var(--dim);padding:8px 0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:8px;position:sticky;top:0;background:var(--bg2);z-index:1;display:flex;align-items:center;gap:8px}
+.dh .dd{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ti{position:relative;padding:10px 0 10px 28px;border-bottom:1px solid rgba(51,65,85,.5);transition:background .15s}
+.ti:hover{background:rgba(255,255,255,.02)}
+.ti:last-child{border-bottom:none}
+.ti::before{content:'';position:absolute;left:6px;top:18px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg2)}
+.ti.t-change::before{background:var(--blue);box-shadow:0 0 0 2px var(--blue)}
+.ti.t-done::before{background:var(--green);box-shadow:0 0 0 2px var(--green)}
+.ti.t-fail::before{background:var(--red);box-shadow:0 0 0 2px var(--red)}
+.ti.t-review::before{background:var(--yellow);box-shadow:0 0 0 2px var(--yellow)}
+.ti.t-sync::before{background:var(--accent2);box-shadow:0 0 0 2px var(--accent2)}
+.ti.t-test::before{background:var(--pink);box-shadow:0 0 0 2px var(--pink)}
+.tt{font-size:11px;color:var(--muted)}
+.ttl{font-size:14px;font-weight:500;margin:2px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tde{font-size:13px;color:var(--dim);line-height:1.5}
+.tf{font-size:12px;color:var(--accent);font-family:'SFMono-Regular',Consolas,monospace;margin-top:4px}
+.ta{margin-top:6px}
+.tvd{font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline;display:inline-flex;align-items:center;gap:4px}
+.tvd:hover{color:var(--blue)}
+.ttb{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600}
+.rv{padding:12px;border-radius:8px;margin-bottom:8px;border-left:3px solid}
+.rv-pass{border-left-color:var(--green);background:var(--green-bg)}
+.rv-fail{border-left-color:var(--red);background:var(--red-bg)}
+.rv-info{border-left-color:var(--blue);background:var(--blue-bg)}
+.rv-t{font-size:13px;font-weight:600;margin-bottom:4px}
+.rv-d{font-size:12px;color:var(--dim)}
+.rv-m{font-size:11px;color:var(--muted);margin-top:4px}
+.tst{padding:10px 12px;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02);border:1px solid var(--border)}
+.tst-l{display:flex;align-items:center;gap:8px}
+.tst-n{font-size:13px}
+.tst-r{font-size:12px;color:var(--muted)}
+.tst-d{font-size:11px;color:var(--muted)}
+.dci{padding:10px 12px;border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border)}
+.dci-t{font-size:13px;font-weight:500}
+.dci-m{font-size:11px;color:var(--muted);margin-top:4px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-i{font-size:32px;margin-bottom:8px}
+.empty-t{font-size:14px}
+.hidden{display:none!important}
+.dmo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none}
+.dmo.on{opacity:1;pointer-events:auto}
+.dm{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:95%;max-width:1400px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:translateY(20px);transition:transform .2s}
+.dmo.on .dm{transform:translateY(0)}
+.dm-h{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.dm-t{font-size:14px;font-weight:600}
+.dm-c{width:30px;height:30px;border:none;background:var(--border);border-radius:6px;cursor:pointer;font-size:16px;color:var(--dim);display:flex;align-items:center;justify-content:center}
+.dm-c:hover{background:var(--bg3);color:var(--text)}
+.dm-b{flex:1;overflow:auto;padding:20px}
+.dl{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+.de{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+.dpt{padding:16px;background:var(--bg);border-radius:8px;font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;line-height:1.7}
+.dpl{padding:2px 0;color:var(--dim);border-bottom:1px solid var(--border)}
+.dpl:last-child{border-bottom:none}
+.dpc{padding:4px 0;color:var(--yellow);font-weight:600;border-bottom:1px solid rgba(251,191,36,.2);background:var(--yellow-bg);margin:2px -16px;padding-left:16px;padding-right:16px}
+.dfc{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.ddesc{padding:12px 16px;background:var(--yellow-bg);border-bottom:1px solid rgba(251,191,36,.2)}
+.ddesc-l{font-size:13px;color:var(--yellow);line-height:1.7}
+.ddesc-l:first-child{font-weight:600}
+.dfh{padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.dfn{font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;color:var(--accent);font-weight:600}
+.dfd{font-size:12px;color:var(--muted);margin-top:2px}
+.dhs{display:flex;flex-direction:column}
+.dhh{padding:6px 16px;font-size:11px;color:var(--muted);background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);font-family:'SFMono-Regular',Consolas,monospace}
+.dp2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.dp2h{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}
+.dp2hl{padding:6px 12px;font-size:11px;font-weight:600;background:var(--red-bg);color:var(--red);border-bottom:1px solid rgba(248,113,113,.2);border-right:1px solid var(--border)}
+.dp2hr{padding:6px 12px;font-size:11px;font-weight:600;background:var(--green-bg);color:var(--green);border-bottom:1px solid rgba(74,222,128,.2)}
+.ds{font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;line-height:1.6;overflow-x:auto}
+.dsl{border-right:1px solid var(--border)}
+.dlr{display:flex;white-space:pre}
+.dln{width:40px;min-width:40px;text-align:right;padding:2px 6px;font-size:11px;user-select:none;border-right:1px solid var(--border);color:var(--muted)}
+.dlc{padding:2px 8px;flex:1}
+.dlr.del{background:var(--red-bg)}.dlr.del .dln{background:rgba(248,113,113,.15);color:var(--red)}.dlr.del .dlc{color:var(--red)}
+.dlr.add{background:var(--green-bg)}.dlr.add .dln{background:rgba(74,222,128,.15);color:var(--green)}.dlr.add .dlc{color:var(--green)}
+.dlr.ctx{background:rgba(255,255,255,.01)}.dlr.ctx .dln{color:var(--muted)}.dlr.ctx .dlc{color:var(--dim)}
+.dlr.empty{background:transparent}.dlr.empty .dln{color:var(--border)}.dlr.empty .dlc{color:var(--border)}
+@media(max-width:900px){.sb{width:180px}.main{padding:16px}.sg{grid-template-columns:repeat(2,1fr)}.dm{width:96%}.dp2{grid-template-columns:1fr}.dsl{border-right:none;border-bottom:1px solid var(--border)}}
+@media(max-width:600px){.sb{display:none}.sg{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div class="layout">
-  <div class="sidebar">
-    <div class="sidebar-title">&#128203; 星寰海</div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">概览</div>
-      <div class="sidebar-item active" onclick="switchView('overview')">&#128204; 模块看板</div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">历史记录</div>
-      <div class="sidebar-item" onclick="switchView('timeline')">&#128220; 时间线</div>
-      <div class="sidebar-item" onclick="switchView('reviews')">&#128269; 审查记录</div>
-      <div class="sidebar-item" onclick="switchView('tests')">&#129514; 测试记录</div>
-      <div class="sidebar-item" onclick="switchView('decisions')">&#128161; 决策记录</div>
-    </div>
-    <div class="sidebar-section" id="date-index">
-      <div class="sidebar-label">按日期查找</div>
-    </div>
-  </div>
-  <div class="main">
-    <div class="header">
-      <h1>&#128203; 星寰海</h1>
-      <div class="meta">项目名称：星寰海 | 当前阶段：开发中 | 更新于：2026-07-08</div>
-      <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
-      <div style="margin-top: 8px; font-size: 13px; opacity: 0.7;">整体进度：60%</div>
-    </div>
-    <div id="view-overview">
-      <div class="card">
-        <div class="card-title">&#128204; 模块看板</div>
-        <div class="module-item"><div><div class="module-name">AI 伴侣 (ai-partner)</div><div class="module-desc">Agent对话、记忆系统、进化仪式、个性人格</div></div><span class="badge badge-doing">进行中</span></div>
-        <div class="module-item"><div><div class="module-name">3D 角色系统 (avatar)</div><div class="module-desc">3D角色生成、定制、渲染、动画、导出 (M4完成)</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">成长系统 (growth)</div><div class="module-desc">习惯追踪、专注计时、日记、生理周期追踪</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">双人空间 (duo)</div><div class="module-desc">关系管理、共享任务板、亲密计算</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">身份系统 (identity)</div><div class="module-desc">身份选择/创建/切换/编辑/删除，表单验证</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">支付与权限 (entitlement)</div><div class="module-desc">支付、订阅、权限管理、会员体系</div></div><span class="badge badge-doing">进行中</span></div>
-        <div class="module-item"><div><div class="module-name">模块商店 (module-store)</div><div class="module-desc">模块发现、AI推荐、布局分享、可拖拽画布</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">共享基础设施 (shared)</div><div class="module-desc">通用UI组件、Hooks、工具函数、主题系统</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">专注模式 (focus-mode)</div><div class="module-desc">专注计时、音频管理、背景主题、专注统计</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">学习工具 (study)</div><div class="module-desc">学习伴侣、学习计划、考试追踪</div></div><span class="badge badge-pending">待开始</span></div>
-        <div class="module-item"><div><div class="module-name">知识图谱 (knowledge-graph)</div><div class="module-desc">知识图谱可视化、记忆卡片</div></div><span class="badge badge-pending">待开始</span></div>
-        <div class="module-item"><div><div class="module-name">模板与笔记 (templates/notes)</div><div class="module-desc">模板系统、快速笔记、全局搜索</div></div><span class="badge badge-done">已完成</span></div>
-        <div class="module-item"><div><div class="module-name">服务器与数据库 (server)</div><div class="module-desc">后端服务、数据库、WebSocket、认证</div></div><span class="badge badge-pending">待开始</span></div>
-        <div class="module-item"><div><div class="module-name">桌面端 (Electron)</div><div class="module-desc">Electron 桌面应用打包与配置</div></div><span class="badge badge-pending">待开始</span></div>
-        <div class="module-item"><div><div class="module-name">移动端 (Capacitor)</div><div class="module-desc">Capacitor 移动端配置与构建</div></div><span class="badge badge-pending">待开始</span></div>
-      </div>
-    </div>
-    <div id="view-timeline" class="hidden">
-      <div class="card">
-        <div class="card-title">&#128220; 历史时间线</div>
-        <div class="timeline">
-                                                                                                        <div class="tl-item done" data-diff="2026-07-12T02-40-31-构建问题修复.diff">
-            <div class="tl-time">2026-07-12 10:40</div>
-            <div class="tl-title">构建问题修复</div>
-            <div class="tl-desc">修复Taro CLI版本不匹配、webpack兼容性、SCSS变量问题，构建成功生成dist目录</div>
-            <div class="tl-file">miniapp/config/index.ts, miniapp/package.json, miniapp/src/styles/global.scss</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T02-40-31-构建问题修复.diff', '构建问题修复')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-12T02-23-08-MVP阶段完成.diff">
-            <div class="tl-time">2026-07-12 10:23</div>
-            <div class="tl-title">MVP阶段完成</div>
-            <div class="tl-desc">T0-T14全部交付，Git提交178个文件71046行代码，包含6个主包页面、3个分包页面、2个核心引擎、危机检测系统、完整数据存储层</div>
-            <div class="tl-file">miniapp/src/</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T02-23-08-MVP阶段完成.diff', 'MVP阶段完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-12T02-00-19-修复小程序TypeScript编译错误.diff">
-            <div class="tl-time">2026-07-12 10:00</div>
-            <div class="tl-title">修复小程序TypeScript编译错误</div>
-            <div class="tl-desc">修复miniapp模块的TypeScript编译错误：Taro导入、模块路径、类型定义、export type语法等问题</div>
-            <div class="tl-file">miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/utils/outreachValidator.ts, miniapp/src/packageEmergency/pages/followup/index.tsx, miniapp/src/engines/index.ts, miniapp/src/engines/outreach/index.ts, miniapp/src/hooks/useOutreach.ts, miniapp/src/services/outreachService.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T02-00-19-修复小程序TypeScript编译错误.diff', '修复小程序TypeScript编译错误')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-12T01-54-41-T14联调测试完成.diff">
-            <div class="tl-time">2026-07-12 09:54</div>
-            <div class="tl-title">T14联调测试完成</div>
-            <div class="tl-desc">完成TypeScript类型检查、页面跳转验证、数据存储验证、功能完整性检查、高危场景测试，生成发布清单。发现13个TypeScript错误需要修复。</div>
-            <div class="tl-file">miniapp/RELEASE_CHECKLIST.md, miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/utils/outreachValidator.ts, miniapp/src/packageEmergency/pages/followup/index.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T01-54-41-T14联调测试完成.diff', 'T14联调测试完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-12T01-34-20-T13-分包优化完成.diff">
-            <div class="tl-time">2026-07-12 09:34</div>
-            <div class="tl-title">T13 分包优化完成</div>
-            <div class="tl-desc">配置微信小程序分包结构，创建三个分包（emergency/profile/community），更新页面跳转路径，添加构建优化配置</div>
-            <div class="tl-file">miniapp/src/app.config.ts, miniapp/config/index.ts, miniapp/project.config.json, miniapp/src/packageEmergency/, miniapp/src/packageProfile/, miniapp/src/packageCommunity/, miniapp/src/hooks/useFollowup.ts, miniapp/src/services/notificationService.ts, miniapp/src/pages/profile/index.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-12T01-34-20-T13-分包优化完成.diff', 'T13 分包优化完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T23-29-06-实现T12个人中心功能.diff">
-            <div class="tl-time">2026-07-12 07:29</div>
-            <div class="tl-title">实现T12个人中心功能</div>
-            <div class="tl-desc">实现用户头像昵称展示、使用天数统计、情绪记录次数统计、急救次数统计、树洞互动次数统计、设置入口、登出功能</div>
-            <div class="tl-file">miniapp/src/hooks/useUserStats.ts, miniapp/src/stores/settingsStore.ts, miniapp/src/pages/profile/index.tsx, miniapp/src/pages/profile/index.scss, miniapp/src/pages/profile/settings.tsx, miniapp/src/pages/profile/settings.scss, miniapp/src/pages/profile/settings.config.ts, miniapp/src/app.config.ts, miniapp/src/stores/treeholeStore.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T23-29-06-实现T12个人中心功能.diff', '实现T12个人中心功能')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T19-31-20-实现AI主动外联引擎.diff">
-            <div class="tl-time">2026-07-12 03:31</div>
-            <div class="tl-title">实现AI主动外联引擎</div>
-            <div class="tl-desc">完成OutreachScheduler、outreachStore、useOutreach hook等核心模块开发</div>
-            <div class="tl-file">miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/hooks/useOutreach.ts, miniapp/src/data/outreachSuggestions.ts, miniapp/src/utils/outreachValidator.ts, miniapp/src/services/outreachService.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-31-20-实现AI主动外联引擎.diff', '实现AI主动外联引擎')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T19-23-33-实现情感风险日历功能.diff">
-            <div class="tl-time">2026-07-12 03:23</div>
-            <div class="tl-title">实现情感风险日历功能</div>
-            <div class="tl-desc">完成情绪日历页面、月度摘要组件、日期详情弹窗的完整实现，包括 scheduleStore 数据持久化</div>
-            <div class="tl-file">src/components/EmotionCalendar.tsx, src/components/DayDetailModal.tsx, src/components/MonthlySummary.tsx, src/pages/calendar/index.tsx, src/stores/scheduleStore.ts, src/memory-body/store/miniProgramMemoryBodyStore.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-23-33-实现情感风险日历功能.diff', '实现情感风险日历功能')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T19-13-59-树洞功能实现完成.diff">
-            <div class="tl-time">2026-07-12 03:13</div>
-            <div class="tl-title">树洞功能实现完成</div>
-            <div class="tl-desc">实现完整的树洞匿名分享功能，包括帖子列表、发帖弹窗、点赞系统、回复系统</div>
-            <div class="tl-file">src/services/treeholeService.ts, src/stores/treeholeStore.ts, src/components/TreeholePostCard.tsx, src/components/TreeholeReplyList.tsx, src/components/TreeholeNewPostModal.tsx, src/pages/treehole/index.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-13-59-树洞功能实现完成.diff', '树洞功能实现完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T19-01-59-心情记录3秒签到功能完成.diff">
-            <div class="tl-time">2026-07-12 03:01</div>
-            <div class="tl-title">心情记录3秒签到功能完成</div>
-            <div class="tl-desc">实现完整的心情记录功能：MoodSelector、IntensitySlider、ContextTagSelector组件，完善moodStore、useMood、moodService，完成mood页面UI和交互</div>
-            <div class="tl-file">miniapp/src/components/MoodSelector.tsx, miniapp/src/components/IntensitySlider.tsx, miniapp/src/components/ContextTagSelector.tsx, miniapp/src/stores/moodStore.ts, miniapp/src/hooks/useMood.ts, miniapp/src/services/moodService.ts, miniapp/src/pages/mood/index.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T19-01-59-心情记录3秒签到功能完成.diff', '心情记录3秒签到功能完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item" data-diff="2026-07-11-18-53-39-state-sync.diff">
-      <div class="tl-dot blue"></div>
-      <div class="tl-content">
-        <div class="tl-title">📊 状态同步: 2026/07/12 02:53</div>
-        <div class="tl-desc"># 星寰海项目状态  ## 当前状态 - **任务**: 项目规则梳理与补充完善 + UI 画布工作台状态确认 - **状态**: 已完成...</div>
-        <div class="tl-files">来源: .trae/memory/state.md</div>
-        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11-18-53-39-state-sync.diff', '状态同步')">🔍 查看改动</span></div>
-      </div>
-    </div>
-    <div class="tl-item" data-diff="2026-07-11-18-53-39-progress-sync.diff">
-      <div class="tl-dot green"></div>
-      <div class="tl-content">
-        <div class="tl-title">📈 进度更新: 2026/07/12 02:53</div>
-        <div class="tl-desc">2026-06-03 05:05: [已完成] [本地知识库路径编码优化] — 已完成: 1) config.ts 增加乱码检测+回退逻辑（已验证：乱码路径触发 Warning 并回退到默认路径）；2) run-http.ps1 增加 Set-Location 显式切换工作目录；3) scripts/start-http-server.ps1 增加 Set-Location；4) 本地知识库 npm run build 通过；5) 星寰海 npm run test 892/892 通过、npm run lint 通过、npm run build 通过；正在: 交接；下一步: 用户手动删除 C:\Users\Administrator\.local-project-memory\memory.db（Trae 安全策略不允许 Agent 删除该路径）；阻塞: 无；验证: 全部通过。</div>
-        <div class="tl-files">来源: .trae/memory/progress.md</div>
-        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11-18-53-39-progress-sync.diff', '进度更新')">🔍 查看改动</span></div>
-      </div>
-    </div>
-    <div class="tl-item" data-diff="2026-07-11-18-53-39-handoff-sync.diff">
-      <div class="tl-dot yellow"></div>
-      <div class="tl-content">
-        <div class="tl-title">📝 交接记录: Handoff: M4 3D角色生成模块（E12-E16）</div>
-        <div class="tl-desc"># Handoff: M4 3D角色生成模块（E12-E16）
-
-## 任务标题
-M4 3D角色生成模块开发 (E12-E16)
-
-## 完成时间
-2026-06-02 23:40
-
-## 已修改文件
-- src/avatar/avatarConstraints.ts (新建) - 角色生成约束
-- src/avatar/avatarGenerator.ts (新建) - 3D角色生成核心
-- src/avatar/avatarGenerator.test.ts (新建) - 生成逻辑测试
-- src/avatar/AvatarCanvas.tsx (新建) - 3D画...</div>
-        <div class="tl-files">来源: .trae/memory/handoff-M4-2026-06-02.md</div>
-        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11-18-53-39-handoff-sync.diff', '交接记录')">🔍 查看改动</span></div>
-      </div>
-    </div>
-                                                      <div class="tl-item done" data-diff="2026-07-11T18-53-32-T6任务完成.diff">
-            <div class="tl-time">2026-07-12 02:53</div>
-            <div class="tl-title">T6任务完成</div>
-            <div class="tl-desc">实现呼吸动画和白噪音组件 - BreathingAnimation、WhiteNoisePlayer、audioPlayer工具函数</div>
-            <div class="tl-file">miniapp/src/components/BreathingAnimation.tsx, miniapp/src/components/WhiteNoisePlayer.tsx, miniapp/src/utils/audioPlayer.ts, miniapp/src/data/whiteNoiseTracks.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T18-53-32-T6任务完成.diff', 'T6任务完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T18-45-44-实现危机检测和安全机制.diff">
-            <div class="tl-time">2026-07-12 02:45</div>
-            <div class="tl-title">实现危机检测和安全机制</div>
-            <div class="tl-desc">完成三级关键词检测、实时检测、安全检查功能</div>
-            <div class="tl-file">src/utils/crisisDetector.ts, src/hooks/useCrisisDetection.ts, src/components/CrisisAlert.tsx, src/engines/emergency/EmergencyEngine.ts, src/pages/emergency/index.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T18-45-44-实现危机检测和安全机制.diff', '实现危机检测和安全机制')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T18-17-02-T3任务完成.diff">
-            <div class="tl-time">2026-07-12 02:17</div>
-            <div class="tl-title">T3任务完成</div>
-            <div class="tl-desc">实现完整的紧急入口和状态机，包括EmergencyEngine、emergencyStore、useEmergency Hook、首页UI、紧急页面骨架等</div>
-            <div class="tl-file">src/engines/emergency/EmergencyEngine.ts, src/stores/emergencyStore.ts, src/hooks/useEmergency.ts, src/pages/index/index.tsx, src/pages/emergency/index.tsx, src/data/emergencyFlows.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T18-17-02-T3任务完成.diff', 'T3任务完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T17-58-11-微信登录认证实现.diff">
-            <div class="tl-time">2026-07-12 01:58</div>
-            <div class="tl-title">微信登录认证实现</div>
-            <div class="tl-desc">完成微信小程序登录认证功能：Supabase配置、JWT工具、Auth Store/Service/Hook、登录页面UI</div>
-            <div class="tl-file">src/config/supabase.ts, src/utils/jwt.ts, src/stores/authStore.ts, src/services/authService.ts, src/hooks/useAuth.ts, src/pages/login/index.tsx, src/pages/login/index.scss</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T17-58-11-微信登录认证实现.diff', '微信登录认证实现')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-11T16-24-39-星寰海v2-0产品重构---文档阶段完成.diff">
-            <div class="tl-time">2026-07-12 00:24</div>
-            <div class="tl-title">星寰海v2.0产品重构 - 文档阶段完成</div>
-            <div class="tl-desc">完成PRD.md v2.0、TECH_DESIGN.md v2.0、DEV_PLAN.md三份核心文档。产品定位从'AI成长伙伴'重构为'情绪健康管理平台'，定义三道防线架构（事前干预→事后急救→主动陪伴→导流），主载体改为微信小程序。MVP阶段拆分15个任务（23人天/3周），包含详细文件清单和验收标准。下一步执行T0项目基础搭建。</div>
-            <div class="tl-file">docs/PRD.md, docs/TECH_DESIGN.md, docs/DEV_PLAN.md</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-11T16-24-39-星寰海v2-0产品重构---文档阶段完成.diff', '星寰海v2.0产品重构 - 文档阶段完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item" data-diff="2026-07-10-07-52-14-state-sync.diff">
-      <div class="tl-dot blue"></div>
-      <div class="tl-content">
-        <div class="tl-title">📊 状态同步: 2026/07/10 15:52</div>
-        <div class="tl-desc"># 星寰海项目状态
- 
- ## 当前状态
- - **任务**: 项目规则梳理与补充完善 + UI 画布工作台状态确认
- - **状态**: 已完成
-...</div>
-        <div class="tl-files">来源: .trae/memory/state.md</div>
-        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-10-07-52-14-state-sync.diff', '状态同步')">🔍 查看改动</span></div>
-      </div>
-    </div>
-    <div class="tl-item" data-diff="2026-07-10-07-52-14-progress-sync.diff">
-      <div class="tl-dot green"></div>
-      <div class="tl-content">
-        <div class="tl-title">📈 进度更新: 2026/07/10 15:52</div>
-        <div class="tl-desc">2026-06-03 05:05: [已完成] [本地知识库路径编码优化] — 已完成: 1) config.ts 增加乱码检测+回退逻辑（已验证：乱码路径触发 Warning 并回退到默认路径）；2) run-http.ps1 增加 Set-Location 显式切换工作目录；3) scripts/start-http-server.ps1 增加 Set-Location；4) 本地知识库 npm run build 通过；5) 星寰海 npm run test 892/892 通过、npm run lint 通过、npm run build 通过；正在: 交接；下一步: 用户手动删除 C:\Users\Administrator\.local-project-memory\memory.db（Trae 安全策略不允许 Agent 删除该路径）；阻塞: 无；验证: 全部通过。</div>
-        <div class="tl-files">来源: .trae/memory/progress.md</div>
-        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-10-07-52-14-progress-sync.diff', '进度更新')">🔍 查看改动</span></div>
-      </div>
-    </div>
-    <div class="tl-item" data-diff="2026-07-10-07-52-14-handoff-sync.diff">
-      <div class="tl-dot yellow"></div>
-      <div class="tl-content">
-        <div class="tl-title">📝 交接记录: Handoff: M4 3D角色生成模块（E12-E16）</div>
-        <div class="tl-desc"># Handoff: M4 3D角色生成模块（E12-E16）
-
-## 任务标题
-M4 3D角色生成模块开发 (E12-E16)
-
-## 完成时间
-2026-06-02 23:40
-
-## 已修改文件
-- src/avatar/avatarConstraints.ts (新建) - 角色生成约束
-- src/avatar/avatarGenerator.ts (新建) - 3D角色生成核心
-- src/avatar/avatarGenerator.test.ts (新建) - 生成逻辑测试
-- src/avatar/AvatarCanvas.tsx (新建) - 3D画...</div>
-        <div class="tl-files">来源: .trae/memory/handoff-M4-2026-06-02.md</div>
-        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-10-07-52-14-handoff-sync.diff', '交接记录')">🔍 查看改动</span></div>
-      </div>
-    </div>
-              <div class="tl-item done" data-diff="2026-07-10T07-44-31-任务1代码清理完成.diff">
-            <div class="tl-time">2026-07-10 15:44</div>
-            <div class="tl-title">任务1代码清理完成</div>
-            <div class="tl-desc">修复memoryAuditLog残留引用，任务1全部5项工作完成。TypeScript零错误，1755测试全通过，双Agent审查通过。</div>
-            <div class="tl-file">src/ai-partner/memory-body/store/memoryBodyStore.ts, src/ai-partner/memory-body/store/inMemoryMemoryBodyStore.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-10T07-44-31-任务1代码清理完成.diff', '任务1代码清理完成')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-07-09T14-02-55-测试自动更新.diff">
-            <div class="tl-time">2026-07-09 22:02</div>
-            <div class="tl-title">测试自动更新</div>
-            <div class="tl-desc">测试看板自动更新功能是否正常工作</div>
-            <div class="tl-file">src/test.ts</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-09T14-02-55-测试自动更新.diff', '测试自动更新')">&#128269; 查看改动</span></div>
-          </div>
-<div class="tl-item done" data-diff="2026-06-03T050500Z-local-config.diff">
-            <div class="tl-time">2026-06-03 05:05</div>
-            <div class="tl-title">本地知识库路径编码优化</div>
-            <div class="tl-desc">config.ts 增加乱码检测+回退逻辑；start-http-server.ps1 增加 Set-Location 工作目录切换</div>
-            <div class="tl-file">src/shared/infrastructure/config.ts, scripts/start-http-server.ps1</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T050500Z-local-config.diff', '本地知识库路径编码优化')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T045600Z-identity-e2e.diff">
-            <div class="tl-time">2026-06-03 04:56</div>
-            <div class="tl-title">补强身份系统页面级 E2E 验收</div>
-            <div class="tl-desc">App.test 新增身份管理完整页面级流程测试；身份弹窗语义改进；移除未使用 import</div>
-            <div class="tl-file">src/App.test.tsx, src/App.tsx, src/shared/module-store/ModuleStoreUI.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T045600Z-identity-e2e.diff', '补强身份系统页面级 E2E 验收')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T040900Z-identity-edit-delete.diff">
-            <div class="tl-time">2026-06-03 04:09</div>
-            <div class="tl-title">继续增强身份系统编辑删除与键盘体验</div>
-            <div class="tl-desc">编辑身份、删除确认、Ctrl/Enter 保存、Escape 取消；全量测试 892/892 通过</div>
-            <div class="tl-file">src/shared/identity/IdentitySelector.tsx, IdentitySelector.css, IdentitySelector.test.tsx</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T040900Z-identity-edit-delete.diff', '继续增强身份系统编辑删除与键盘体验')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T034200Z-cleanup-corrupted.diff">
-            <div class="tl-time">2026-06-03 03:42</div>
-            <div class="tl-title">清理乱码本地知识库目录</div>
-            <div class="tl-desc">检查乱码 memory.db 并清理三个乱码副产物</div>
-            <div class="tl-file">.trae/memory/*</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T034200Z-cleanup-corrupted.diff', '清理乱码本地知识库目录')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T031800Z-identity-ux.diff">
-            <div class="tl-time">2026-06-03 03:18</div>
-            <div class="tl-title">优化身份系统用户体验</div>
-            <div class="tl-desc">身份系统动画、移动端响应式、ARIA 标签、表单验证错误提示</div>
-            <div class="tl-file">src/shared/identity/IdentitySelector.tsx, IdentitySelector.css</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T031800Z-identity-ux.diff', '优化身份系统用户体验')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T025500Z-module-store-verify.diff">
-            <div class="tl-time">2026-06-03 02:55</div>
-            <div class="tl-title">模块商店交付后验证</div>
-            <div class="tl-desc">模块商店/拖拽画布/AI推荐/布局分享交付验证；test 884/884 通过</div>
-            <div class="tl-file">src/shared/module-store/*, src/shared/canvas/*</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T025500Z-module-store-verify.diff', '模块商店交付后验证')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T000000Z-cleanup-ui.diff">
-            <div class="tl-time">2026-06-03 00:00</div>
-            <div class="tl-title">清理新旧 UI 重复与性能卡顿</div>
-            <div class="tl-desc">移除旧独立 Sidebar/SidebarToggle，模块画布按需展示；test 891/891 通过</div>
-            <div class="tl-file">src/App.tsx, src/shared/sidebar/*, src/shared/module-store/*</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T000000Z-cleanup-ui.diff', '清理新旧 UI 重复与性能卡顿')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-03T000000Z-fix-ui-direction.diff">
-            <div class="tl-time">2026-06-03 00:00</div>
-            <div class="tl-title">纠正 UI 去重方向错误</div>
-            <div class="tl-desc">恢复最新独立 Sidebar/SidebarToggle 和默认可拖拽模块画布</div>
-            <div class="tl-file">src/App.tsx, src/shared/sidebar/*</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-03T000000Z-fix-ui-direction.diff', '纠正 UI 去重方向错误')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-02T234000Z-m4-avatar.diff">
-            <div class="tl-time">2026-06-02 23:40</div>
-            <div class="tl-title">M4 3D角色生成模块 (E12-E16)</div>
-            <div class="tl-desc">3D角色生成核心逻辑、3D画布组件、角色定制组件、角色导出功能；62/62测试通过</div>
-            <div class="tl-file">src/avatar/* (10新建 + 2更新)</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-02T234000Z-m4-avatar.diff', 'M4 3D角色生成模块 (E12-E16)')">&#128269; 查看改动</span></div>
-          </div>
-          <div class="tl-item done" data-diff="2026-06-02T153000Z-theme-list-fix.diff">
-            <div class="tl-time">2026-06-02 15:30</div>
-            <div class="tl-title">文档修复 - 主题列表修复</div>
-            <div class="tl-desc">主题列表从8个修复为34个</div>
-            <div class="tl-file">src/shared/themes/*</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-06-02T153000Z-theme-list-fix.diff', '文档修复 - 主题列表修复')">&#128269; 查看改动</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="view-reviews" class="hidden">
-      <div class="card">
-        <div class="card-title">&#128269; 审查记录</div>
-        <div class="review-info">&#128220; 当前项目尚未记录双Agent审查历史。审查记录将在此处永久保留。</div>
-      </div>
-    </div>
-    <div id="view-tests" class="hidden">
-      <div class="card">
-        <div class="card-title">&#129514; 测试记录</div>
-        <div class="review-pass">&#9989; M4 3D角色生成模块测试: 62/62 通过 (2026-06-02)</div>
-        <div class="review-pass">&#9989; IdentitySelector 测试: 7/7 通过 (2026-06-03)</div>
-        <div class="review-pass">&#9989; 模块商店/画布全量测试: 884/884 通过 (2026-06-03)</div>
-        <div class="review-pass">&#9989; 身份系统增强全量测试: 885/885 通过 (2026-06-03)</div>
-        <div class="review-pass">&#9989; 身份系统E2E全量测试: 892/892 通过 (2026-06-03)</div>
-        <div class="review-pass">&#9989; 清理UI重复全量测试: 891/891 通过 (2026-06-03)</div>
-        <div class="review-pass">&#9989; 身份系统UX优化全量测试: 890/890 通过 (2026-06-03)</div>
-        <div class="review-pass">&#9989; 本地知识库优化全量测试: 892/892 通过 (2026-06-03)</div>
-        <div class="review-info">&#128220; 项目测试框架: Vitest | 测试命令: npm run test</div>
-      </div>
-    </div>
-    <div id="view-decisions" class="hidden">
-      <div class="card">
-        <div class="card-title">&#128161; 决策记录</div>
-        <div class="decision-item">主题列表从8个修复为34个，恢复完整主题数量</div>
-        <div class="decision-item">3D角色系统采用Three.js + React Three Fiber 实现，支持3D/Live2D/2D贴纸三种模式</div>
-        <div class="decision-item">身份系统采用独立Provider + Store 架构，支持多身份切换和表单验证</div>
-        <div class="decision-item">模块商店采用可拖拽画布 + AI推荐 + 布局分享三位一体架构</div>
-        <div class="decision-item">UI布局决策：保留最新独立Sidebar + 默认可拖拽模块画布，移除app-shell内置旧sidebar</div>
-        <div class="decision-item">本地知识库：增加乱码检测+回退逻辑，清理乱码目录</div>
-        <div class="decision-item">禁止修改范围：src/server/, src/entitlement/entitlementService.ts, src/auth/devAuthSession.ts</div>
-      </div>
-    </div>
-  </div>
+<div class="sb">
+<div class="sb-hd"><div class="sb-logo"><span class="sb-pulse"></span> 星寰海</div></div>
+<div class="sb-nav">
+<div><div class="sb-lbl">概览</div><div class="sb-item on" data-v="overview"><span class="ic">📊</span>仪表盘</div><div class="sb-item" data-v="modules"><span class="ic">📦</span>模块看板</div></div>
+<div><div class="sb-lbl">历史记录</div><div class="sb-item" data-v="timeline"><span class="ic">🕐</span>时间线</div><div class="sb-item" data-v="reviews"><span class="ic">🔍</span>审查记录</div><div class="sb-item" data-v="tests"><span class="ic">🧪</span>测试记录</div><div class="sb-item" data-v="decisions"><span class="ic">💡</span>决策记录</div></div>
+<div id="date-index"><div class="sb-lbl">按日期查找</div></div>
 </div>
-
-<!-- Diff Modal -->
-<div id="diff-modal" class="diff-modal-overlay" onclick="closeDiffOnBackdrop(event)">
-  <div class="diff-modal">
-    <div class="diff-modal-header">
-      <div class="diff-modal-title" id="diff-modal-title">改动详情</div>
-      <button class="diff-modal-close" onclick="closeDiff()">&times;</button>
-    </div>
-    <div class="diff-modal-body" id="diff-modal-body">
-      <div class="diff-loading">加载中...</div>
-    </div>
-  </div>
+<div class="sb-ft"><span class="ws-d off" id="ws-dot"></span><span id="ws-text">实时更新未连接</span></div>
 </div>
-
+<div class="main">
+<div class="hdr"><h1>星寰海 — 情绪健康管理平台</h1><div class="meta"><span class="mi">📌 当前阶段：<strong id="h-stage">MVP开发</strong></span><span class="mi">🌿 分支：<strong id="h-branch">develop</strong></span><span class="mi">🕐 更新于：<strong id="h-time">-</strong></span></div><div class="ps"><div class="pb"><div class="pf" id="h-bar" style="width:0%"></div></div><div class="pl"><span>整体进度</span><span id="h-pct">0%</span></div></div></div>
+<div id="v-overview"></div>
+<div id="v-modules" class="hidden"></div>
+<div id="v-timeline" class="hidden"></div>
+<div id="v-reviews" class="hidden"></div>
+<div id="v-tests" class="hidden"></div>
+<div id="v-decisions" class="hidden"></div>
+</div>
+</div>
+<div id="diff-modal" class="dmo" onclick="if(event.target===this)closeDiff()"><div class="dm"><div class="dm-h"><div class="dm-t" id="dm-title">改动详情</div><button class="dm-c" onclick="closeDiff()">&times;</button></div><div class="dm-b" id="dm-body"><div class="dl">加载中...</div></div></div></div>
 <script>
-function switchView(name) {
-  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById('view-' + name).classList.remove('hidden');
-  document.querySelector('.sidebar-item[onclick="switchView(\'' + name + '\')"]').classList.add('active');
-}
+var BD={project:"星寰海",stage:"MVP开发",branch:"develop",updatedAt:"2026-07-14 16:59",modules:[{id:"emergency",name:"急救箱",desc:"紧急入口、急救流程、高危检测、呼吸动画",status:"done",progress:100,subtasks:[{name:"T3急救箱入口和状态机",status:"done"},{name:"T4 5条急救流程实现",status:"done"},{name:"T5高危检测和安全机制",status:"done"},{name:"T6呼吸动画+白噪音",status:"done"}]},{id:"mood",name:"情绪记录",desc:"3秒情绪打卡签到",status:"done",progress:100,subtasks:[{name:"T7情绪记录3秒打卡",status:"done"}]},{id:"treehole",name:"树洞",desc:"匿名分享帖子列表点赞回复",status:"done",progress:100,subtasks:[{name:"T8树洞基础版",status:"done"}]},{id:"calendar",name:"情绪风险日历",desc:"情绪日历月度摘要日期详情",status:"done",progress:100,subtasks:[{name:"T9情绪风险日历基础版",status:"done"}]},{id:"outreach",name:"AI主动引擎",desc:"OutreachScheduler主动陪伴推送",status:"done",progress:100,subtasks:[{name:"T10 AI主动引擎基础版",status:"done"},{name:"T11第二天跟进推送",status:"done"}]},{id:"auth",name:"微信登录认证",desc:"Supabase JWT Auth Store/Service/Hook",status:"done",progress:100,subtasks:[{name:"T2微信登录认证",status:"done"}]},{id:"profile",name:"个人中心",desc:"用户头像昵称使用天数统计设置登出",status:"done",progress:100,subtasks:[{name:"T12个人中心",status:"done"}]},{id:"optimize",name:"分包优化",desc:"微信小程序分包结构和性能调优",status:"done",progress:100,subtasks:[{name:"T13分包优化和性能调优",status:"done"}]},{id:"release",name:"联调测试发布",desc:"TypeScript检查页面跳转数据存储验证",status:"done",progress:100,subtasks:[{name:"T14联调测试和发布准备",status:"done"}]},{id:"memory-body",name:"memory-body引擎",desc:"memory-body数据层迁移",status:"done",progress:100,subtasks:[{name:"T1 memory-body数据层迁移",status:"done"}]},{id:"project-base",name:"项目基础搭建",desc:"项目初始化和基础配置",status:"done",progress:100,subtasks:[{name:"T0项目基础搭建",status:"done"}]},{id:"ai-partner",name:"AI伴侣",desc:"对话引擎、记忆系统、进化仪式、个性人格",status:"doing",progress:40,subtasks:[{name:"对话引擎",status:"done"},{name:"记忆系统",status:"done"},{name:"进化仪式",status:"doing"},{name:"个性人格",status:"pending"}]},{id:"entitlement",name:"支付与权限",desc:"支付集成、订阅管理、权限控制",status:"pending",progress:0,subtasks:[{name:"支付集成",status:"pending"},{name:"订阅管理",status:"pending"},{name:"权限控制",status:"pending"}]},{id:"study",name:"学习工具",desc:"学习伴侣、学习计划、考试追踪",status:"pending",progress:0,subtasks:[{name:"学习伴侣",status:"pending"},{name:"学习计划",status:"pending"},{name:"考试追踪",status:"pending"}]},{id:"knowledge",name:"知识图谱",desc:"图谱可视化、记忆卡片",status:"pending",progress:0,subtasks:[{name:"图谱可视化",status:"pending"},{name:"记忆卡片",status:"pending"}]},{id:"server",name:"服务器与数据库",desc:"后端API、数据库设计、WebSocket服务",status:"pending",progress:0,subtasks:[{name:"后端API",status:"pending"},{name:"数据库设计",status:"pending"},{name:"WebSocket服务",status:"pending"}]},{id:"desktop",name:"桌面端",desc:"Electron桌面应用打包",status:"pending",progress:0,subtasks:[{name:"Electron打包",status:"pending"}]},{id:"mobile",name:"移动端",desc:"Capacitor移动端配置与构建",status:"pending",progress:0,subtasks:[{name:"Capacitor配置",status:"pending"}]}],timeline:[{time:"2026-07-14 16:59",title:"看板功能完善",desc:"重写看板为数据驱动架构，增加统计仪表盘、模块进度条、子任务展开、时间线日期分组、类型筛选、搜索、按日期动态索引、WebSocket实时更新、diff查看器",files:".board/index.html, .board/update-board.cjs",type:"done",diff:"2026-07-14T08-59-05-看板功能完善.diff"},{time:"2026-07-12 10:40",title:"构建问题修复",desc:"修复Taro CLI版本不匹配、webpack兼容性、SCSS变量问题，构建成功生成dist目录",files:"miniapp/config/index.ts, miniapp/package.json, miniapp/src/styles/global.scss",type:"done",diff:"2026-07-12T02-40-31-构建问题修复.diff"},{time:"2026-07-12 10:23",title:"MVP阶段完成",desc:"T0-T14全部交付，Git提交178个文件71046行代码，包含6个主包页面、3个分包页面、2个核心引擎、危机检测系统、完整数据存储层",files:"miniapp/src/",type:"done",diff:"2026-07-12T02-23-08-MVP阶段完成.diff"},{time:"2026-07-12 10:00",title:"修复小程序TypeScript编译错误",desc:"修复miniapp模块的TypeScript编译错误：Taro导入、模块路径、类型定义、export type语法等问题",files:"miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/utils/outreachValidator.ts",type:"change",diff:"2026-07-12T02-00-19-修复小程序TypeScript编译错误.diff"},{time:"2026-07-12 09:54",title:"T14联调测试完成",desc:"完成TypeScript类型检查、页面跳转验证、数据存储验证、功能完整性检查、高危场景测试，生成发布清单",files:"miniapp/RELEASE_CHECKLIST.md, miniapp/src/engines/outreach/OutreachScheduler.ts",type:"test",diff:"2026-07-12T01-54-41-T14联调测试完成.diff"},{time:"2026-07-12 09:34",title:"T13分包优化完成",desc:"配置微信小程序分包结构，创建三个分包（emergency/profile/community），更新页面跳转路径",files:"miniapp/src/app.config.ts, miniapp/config/index.ts, miniapp/project.config.json",type:"done",diff:"2026-07-12T01-34-20-T13-分包优化完成.diff"},{time:"2026-07-12 07:29",title:"实现T12个人中心功能",desc:"实现用户头像昵称展示、使用天数统计、情绪记录次数统计、急救次数统计、设置入口、登出功能",files:"miniapp/src/hooks/useUserStats.ts, miniapp/src/stores/settingsStore.ts, miniapp/src/pages/profile/",type:"done",diff:"2026-07-11T23-29-06-实现T12个人中心功能.diff"},{time:"2026-07-12 03:31",title:"实现AI主动外联引擎",desc:"完成OutreachScheduler、outreachStore、useOutreach hook等核心模块开发",files:"miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/hooks/useOutreach.ts",type:"done",diff:"2026-07-11T19-31-20-实现AI主动外联引擎.diff"},{time:"2026-07-12 03:23",title:"实现情感风险日历功能",desc:"完成情绪日历页面、月度摘要组件、日期详情弹窗的完整实现，包括scheduleStore数据持久化",files:"src/components/EmotionCalendar.tsx, src/components/DayDetailModal.tsx, src/stores/scheduleStore.ts",type:"done",diff:"2026-07-11T19-23-33-实现情感风险日历功能.diff"},{time:"2026-07-12 03:13",title:"树洞功能实现完成",desc:"实现完整的树洞匿名分享功能，包括帖子列表、发帖弹窗、点赞系统、回复系统",files:"src/services/treeholeService.ts, src/stores/treeholeStore.ts, src/pages/treehole/index.tsx",type:"done",diff:"2026-07-11T19-13-59-树洞功能实现完成.diff"},{time:"2026-07-12 03:01",title:"心情记录3秒签到功能完成",desc:"实现完整的心情记录功能：MoodSelector、IntensitySlider、ContextTagSelector组件",files:"miniapp/src/components/MoodSelector.tsx, miniapp/src/stores/moodStore.ts, miniapp/src/pages/mood/index.tsx",type:"done",diff:"2026-07-11T19-01-59-心情记录3秒签到功能完成.diff"},{time:"2026-07-12 02:53",title:"状态同步",desc:"项目规则梳理与补充完善 + UI画布工作台状态确认",files:".trae/memory/state.md",type:"sync",diff:"2026-07-11-18-53-39-state-sync.diff"},{time:"2026-07-12 02:53",title:"进度更新",desc:"本地知识库路径编码优化完成，npm run test 892/892通过、npm run lint通过、npm run build通过",files:".trae/memory/progress.md",type:"sync",diff:"2026-07-11-18-53-39-progress-sync.diff"},{time:"2026-07-12 02:53",title:"交接记录: M4 3D角色生成模块",desc:"M4 3D角色生成模块开发完成，包含avatarConstraints、avatarGenerator、AvatarCanvas等",files:".trae/memory/handoff-M4-2026-06-02.md",type:"sync",diff:"2026-07-11-18-53-39-handoff-sync.diff"},{time:"2026-07-12 02:45",title:"实现危机检测和安全机制",desc:"完成三级关键词检测、实时检测、安全检查功能",files:"src/utils/crisisDetector.ts, src/hooks/useCrisisDetection.ts, src/components/CrisisAlert.tsx",type:"done",diff:"2026-07-11T18-45-44-实现危机检测和安全机制.diff"},{time:"2026-07-12 02:17",title:"T3任务完成",desc:"实现完整的紧急入口和状态机，包括EmergencyEngine、emergencyStore、useEmergency Hook",files:"src/engines/emergency/EmergencyEngine.ts, src/stores/emergencyStore.ts, src/pages/emergency/index.tsx",type:"done",diff:"2026-07-11T18-17-02-T3任务完成.diff"},{time:"2026-07-12 01:58",title:"微信登录认证实现",desc:"完成微信小程序登录认证功能：Supabase配置、JWT工具、Auth Store/Service/Hook、登录页面UI",files:"src/config/supabase.ts, src/utils/jwt.ts, src/stores/authStore.ts, src/pages/login/index.tsx",type:"done",diff:"2026-07-11T17-58-11-微信登录认证实现.diff"},{time:"2026-07-12 00:24",title:"星寰海v2.0产品重构 - 文档阶段完成",desc:"完成PRD.md v2.0、TECH_DESIGN.md v2.0、DEV_PLAN.md三份核心文档。产品定位重构为情绪健康管理平台",files:"docs/PRD.md, docs/TECH_DESIGN.md, docs/DEV_PLAN.md",type:"done",diff:"2026-07-11T16-24-39-星寰海v2-0产品重构---文档阶段完成.diff"},{time:"2026-07-10 15:52",title:"状态同步",desc:"项目规则梳理与补充完善 + UI画布工作台状态确认",files:".trae/memory/state.md",type:"sync",diff:"2026-07-10-07-52-14-state-sync.diff"},{time:"2026-07-10 15:44",title:"任务1代码清理完成",desc:"修复memoryAuditLog残留引用，TypeScript零错误，1755测试全通过，双Agent审查通过",files:"src/ai-partner/memory-body/store/memoryBodyStore.ts, src/ai-partner/memory-body/store/inMemoryMemoryBodyStore.ts",type:"done",diff:"2026-07-10T07-44-31-任务1代码清理完成.diff"},{time:"2026-07-09 22:02",title:"测试自动更新",desc:"测试看板自动更新功能是否正常工作",files:"src/test.ts",type:"test",diff:"2026-07-09T14-02-55-测试自动更新.diff"},{time:"2026-06-03 05:05",title:"本地知识库路径编码优化",desc:"config.ts增加乱码检测+回退逻辑；start-http-server.ps1增加Set-Location工作目录切换",files:"src/shared/infrastructure/config.ts, scripts/start-http-server.ps1",type:"done",diff:"2026-06-03T050500Z-local-config.diff"},{time:"2026-06-03 04:56",title:"补强身份系统页面级E2E验收",desc:"App.test新增身份管理完整页面级流程测试；身份弹窗语义改进；移除未使用import",files:"src/App.test.tsx, src/App.tsx, src/shared/module-store/ModuleStoreUI.tsx",type:"test",diff:"2026-06-03T045600Z-identity-e2e.diff"},{time:"2026-06-03 04:09",title:"继续增强身份系统编辑删除与键盘体验",desc:"编辑身份、删除确认、Ctrl/Enter保存、Escape取消；全量测试892/892通过",files:"src/shared/identity/IdentitySelector.tsx, IdentitySelector.css, IdentitySelector.test.tsx",type:"done",diff:"2026-06-03T040900Z-identity-edit-delete.diff"},{time:"2026-06-03 03:42",title:"清理乱码本地知识库目录",desc:"检查乱码memory.db并清理三个乱码副产物",files:".trae/memory/*",type:"change",diff:"2026-06-03T034200Z-cleanup-corrupted.diff"},{time:"2026-06-03 03:18",title:"优化身份系统用户体验",desc:"身份系统动画、移动端响应式、ARIA标签、表单验证错误提示",files:"src/shared/identity/IdentitySelector.tsx, IdentitySelector.css",type:"done",diff:"2026-06-03T031800Z-identity-ux.diff"},{time:"2026-06-03 02:55",title:"模块商店交付后验证",desc:"模块商店/拖拽画布/AI推荐/布局分享交付验证；test 884/884通过",files:"src/shared/module-store/*, src/shared/canvas/*",type:"test",diff:"2026-06-03T025500Z-module-store-verify.diff"},{time:"2026-06-03 00:00",title:"清理新旧UI重复与性能卡顿",desc:"移除旧独立Sidebar/SidebarToggle，模块画布按需展示；test 891/891通过",files:"src/App.tsx, src/shared/sidebar/*, src/shared/module-store/*",type:"change",diff:"2026-06-03T000000Z-cleanup-ui.diff"},{time:"2026-06-03 00:00",title:"纠正UI去重方向错误",desc:"恢复最新独立Sidebar/SidebarToggle和默认可拖拽模块画布",files:"src/App.tsx, src/shared/sidebar/*",type:"change",diff:"2026-06-03T000000Z-fix-ui-direction.diff"},{time:"2026-06-02 23:40",title:"M4 3D角色生成模块 (E12-E16)",desc:"3D角色生成核心逻辑、3D画布组件、角色定制组件、角色导出功能；62/62测试通过",files:"src/avatar/* (10新建 + 2更新)",type:"done",diff:"2026-06-02T234000Z-m4-avatar.diff"},{time:"2026-06-02 15:30",title:"文档修复 - 主题列表修复",desc:"主题列表从8个修复为34个",files:"src/shared/themes/*",type:"change",diff:"2026-06-02T153000Z-theme-list-fix.diff"}],reviews:[{title:"任务1代码清理 - 双Agent审查",result:"pass",detail:"TypeScript零错误，1755测试全通过，四大维度审查通过",round:1,date:"2026-07-10"},{title:"M4 3D角色生成模块审查",result:"pass",detail:"62/62测试通过，代码质量、逻辑正确性、安全风险、架构合规全部通过",round:1,date:"2026-06-02"}],tests:[{name:"M4 3D角色生成模块测试",result:"62/62 通过",date:"2026-06-02",pass:true},{name:"IdentitySelector 测试",result:"7/7 通过",date:"2026-06-03",pass:true},{name:"模块商店/画布全量测试",result:"884/884 通过",date:"2026-06-03",pass:true},{name:"身份系统增强全量测试",result:"885/885 通过",date:"2026-06-03",pass:true},{name:"身份系统E2E全量测试",result:"892/892 通过",date:"2026-06-03",pass:true},{name:"清理UI重复全量测试",result:"891/891 通过",date:"2026-06-03",pass:true},{name:"身份系统UX优化全量测试",result:"890/890 通过",date:"2026-06-03",pass:true},{name:"本地知识库优化全量测试",result:"892/892 通过",date:"2026-06-03",pass:true},{name:"任务1代码清理全量测试",result:"1755/1755 通过",date:"2026-07-10",pass:true},{name:"T14联调测试",result:"TypeScript检查+页面跳转+数据存储验证通过",date:"2026-07-12",pass:true}],decisions:[{title:"产品定位重构",detail:"从\"AI成长伙伴\"转向\"情绪健康管理平台\"，主载体从App改为微信小程序",date:"2026-07-11"},{title:"三道防线架构",detail:"事前干预→事后急救→主动陪伴→导流，核心公式：情绪急救箱+memory-body+AI主动陪伴+咨询导流",date:"2026-07-11"},{title:"3D角色系统技术选型",detail:"采用Three.js + React Three Fiber实现，支持3D/Live2D/2D贴纸三种模式",date:"2026-06-02"},{title:"身份系统架构",detail:"采用独立Provider + Store架构，支持多身份切换和表单验证",date:"2026-06-03"},{title:"模块商店架构",detail:"采用可拖拽画布 + AI推荐 + 布局分享三位一体架构",date:"2026-06-03"},{title:"UI布局决策",detail:"保留最新独立Sidebar + 默认可拖拽模块画布，移除app-shell内置旧sidebar",date:"2026-06-03"},{title:"本地知识库路径处理",detail:"增加乱码检测+回退逻辑，清理乱码目录",date:"2026-06-03"},{title:"主题列表修复",detail:"主题列表从8个修复为34个，恢复完整主题数量",date:"2026-06-02"},{title:"禁止修改区域",detail:"src/server/, src/entitlement/entitlementService.ts, src/auth/devAuthSession.ts",date:"2026-06-03"}]};
 
-// Diff Modal Functions
-function openDiff(filename, title) {
-  const modal = document.getElementById('diff-modal');
-  const body = document.getElementById('diff-modal-body');
-  const titleEl = document.getElementById('diff-modal-title');
-  titleEl.textContent = title ? '改动详情 - ' + title : '改动详情';
-  body.innerHTML = '<div class="diff-loading">加载中...</div>';
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
+var _mf="all",_tf="all",_ts="",_df="";
 
-  fetch('diffs/' + filename)
-    .then(r => {
-      if (!r.ok) throw new Error('文件不存在');
-      return r.text();
-    })
-    .then(text => {
-      body.innerHTML = renderDiff(text);
-    })
-    .catch(err => {
-      body.innerHTML = '<div class="diff-empty">暂无 diff 记录（' + err.message + '）</div>';
-    });
-}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function calcP(){var t=0,d=0;BD.modules.forEach(function(m){m.subtasks.forEach(function(s){t++;if(s.status==="done")d++})});return t>0?Math.round(d/t*100):0}
+function sBadge(s){var m={done:["已完成","b-done"],doing:["进行中","b-doing"],pending:["待开始","b-pending"],blocked:["阻塞","b-blocked"]};var i=m[s]||["未知","b-pending"];return'<span class="badge '+i[1]+'">'+i[0]+"</span>"}
+function tBadge(t){var m={change:["变更","b-change"],done:["完成","b-done"],fail:["失败","b-fail"],review:["审查","b-review"],sync:["同步","b-sync"],test:["测试","b-test"]};var i=m[t]||["其他","b-pending"];return'<span class="badge '+i[1]+'">'+i[0]+"</span>"}
+function pClr(p){return p>=100?"var(--green)":p>=50?"var(--yellow)":"var(--blue)"}
 
-function closeDiff() {
-  const modal = document.getElementById('diff-modal');
-  modal.classList.remove('active');
-  document.body.style.overflow = '';
-}
+function rHdr(){var p=calcP();document.getElementById("h-bar").style.width=p+"%";document.getElementById("h-pct").textContent=p+"%";document.getElementById("h-stage").textContent=BD.stage;document.getElementById("h-branch").textContent=BD.branch;document.getElementById("h-time").textContent=BD.updatedAt}
 
-function closeDiffOnBackdrop(e) {
-  if (e.target === e.currentTarget) closeDiff();
-}
+function rOverview(){var dn=0,di=0,pe=0,bl=0;BD.modules.forEach(function(m){if(m.status==="done")dn++;else if(m.status==="doing")di++;else if(m.status==="blocked")bl++;else pe++});var h='<div class="sg"><div class="sc"><div class="sv g">'+dn+'</div><div class="sl">已完成模块</div></div><div class="sc"><div class="sv y">'+di+'</div><div class="sl">进行中模块</div></div><div class="sc"><div class="sv b">'+pe+'</div><div class="sl">待开始模块</div></div><div class="sc"><div class="sv r">'+bl+'</div><div class="sl">阻塞模块</div></div></div>';h+='<div class="cd"><div class="ct2">📦 模块进度概览</div>';BD.modules.forEach(function(m){var c=pClr(m.progress);h+='<div class="mi2"><div class="mr"><div><div class="mn">'+esc(m.name)+'</div><div class="md">'+esc(m.desc)+'</div></div><div class="mrt"><div class="mp"><div class="mpf '+m.status+'" style="width:'+m.progress+'%;background:'+c+'"></div></div><span style="font-size:12px;color:var(--muted)">'+m.progress+'%</span>'+sBadge(m.status)+'</div></div></div>'});h+="</div>";document.getElementById("v-overview").innerHTML=h}
 
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeDiff();
-});
+function rModules(){var h='<div class="cd"><div class="ct2">📦 模块看板</div><div class="fb">';[["all","全部"],["done","已完成"],["doing","进行中"],["pending","待开始"],["blocked","阻塞"]].forEach(function(f){h+='<button class="fbtn'+(_mf===f[0]?" on":"")+'" onclick="setMF(\''+f[0]+"')\">"+f[1]+"</button>"});h+="</div>";var fl=_mf==="all"?BD.modules:BD.modules.filter(function(m){return m.status===_mf});if(fl.length===0){h+='<div class="empty"><div class="empty-i">📭</div><div class="empty-t">没有匹配的模块</div></div>'}else{fl.forEach(function(m,idx){var c=pClr(m.progress);h+='<div class="mi2" data-status="'+m.status+'"><div class="mr" onclick="togMod(\''+m.id+"')\"><div><div class=\"mn\">"+esc(m.name)+'</div><div class="md">'+esc(m.desc)+'</div></div><div class="mrt"><div class="mp"><div class="mpf '+m.status+'" style="width:'+m.progress+'%;background:'+c+'"></div></div><span style="font-size:12px;color:var(--muted)">'+m.progress+'%</span>'+sBadge(m.status)+'<span style="font-size:10px;color:var(--muted)">▼</span></div></div>';if(m.subtasks&&m.subtasks.length){h+='<div class="mdt" id="md-'+m.id+'">';m.subtasks.forEach(function(s){var cc=s.status==="done"?"done":s.status==="doing"?"doing":"";var ci=s.status==="done"?"✓":s.status==="doing"?"◐":"";h+='<div class="mst"><span class="ck '+cc+'">'+ci+'</span><span>'+esc(s.name)+'</span></div>'});h+="</div>"}h+="</div>"})}h+="</div>";document.getElementById("v-modules").innerHTML=h}
+function togMod(id){var e=document.getElementById("md-"+id);if(e)e.classList.toggle("open")}
+function setMF(f){_mf=f;rModules()}
 
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
+function rTimeline(){var h='<div class="cd"><div class="ct2">🕐 历史时间线</div><div class="sbx"><span class="sic">🔍</span><input class="si" id="tl-search" placeholder="搜索标题、描述或文件..." value="'+esc(_ts)+'" oninput="onTS(this.value)"></div><div class="fb">';[["all","全部"],["change","变更"],["done","完成"],["fail","失败"],["review","审查"],["sync","同步"],["test","测试"]].forEach(function(f){h+='<button class="fbtn'+(_tf===f[0]?" on":"")+'" onclick="setTF(\''+f[0]+"')\">"+f[1]+"</button>"});h+="</div>";var it=BD.timeline;if(_tf!=="all")it=it.filter(function(t){return t.type===_tf});if(_ts){var q=_ts.toLowerCase();it=it.filter(function(t){return t.title.toLowerCase().indexOf(q)>=0||t.desc.toLowerCase().indexOf(q)>=0||t.files.toLowerCase().indexOf(q)>=0})}if(_df)it=it.filter(function(t){return t.time.indexOf(_df)===0});var gr={};it.forEach(function(t){var dm=t.time.match(/^(\d{4}-\d{2}-\d{2})/);var dt=dm?dm[1]:"未知日期";if(!gr[dt])gr[dt]=[];gr[dt].push(t)});var sd=Object.keys(gr).sort(function(a,b){return b.localeCompare(a)});if(sd.length===0){h+='<div class="empty"><div class="empty-i">📭</div><div class="empty-t">没有匹配的记录</div></div>'}else{sd.forEach(function(dt){var ps=dt.split("-");var mo=parseInt(ps[1],10);var dy=parseInt(ps[2],10);var cn=gr[dt].length;h+='<div class="dg" data-date="'+dt+'"><div class="dh"><span class="dd"></span>'+mo+"月"+dy+'日 · '+cn+'条记录</div>';gr[dt].forEach(function(t){h+='<div class="ti t-'+t.type+'"><div class="tt">'+esc(t.time)+'</div><div class="ttl">'+esc(t.title)+tBadge(t.type)+'</div><div class="tde">'+esc(t.desc)+'</div><div class="tf">'+esc(t.files)+'</div>';if(t.diff){var st=esc(t.title).replace(/'/g,"\\'");h+='<div class="ta"><a class="tvd" onclick="openDiff(\''+esc(t.diff)+"','"+st+"')\">🔍 查看改动</a></div>"}h+="</div>"});h+="</div>"})}h+="</div>";document.getElementById("v-timeline").innerHTML=h}
+function onTS(v){_ts=v;rTimeline()}
+function setTF(f){_tf=f;_df="";document.querySelectorAll(".sb-date").forEach(function(e){e.classList.remove("on")});rTimeline()}
 
-function generateFileDescription(filename, hasAdd, hasDel) {
-  const ext = filename.split('.').pop() || '';
-  const base = filename.split('/').pop() || filename;
-  
-  if (base.endsWith('.test.' + ext.replace(/test\./, '')) || base.endsWith('.spec.' + ext)) {
-    return '增加/修改测试用例';
-  }
-  if (ext === 'css' || ext === 'scss' || ext === 'less') {
-    return '调整样式';
-  }
-  if (ext === 'ts' || ext === 'tsx' || ext === 'js' || ext === 'jsx') {
-    if (hasAdd && !hasDel) return '新增功能';
-    if (!hasAdd && hasDel) return '删除/重构代码';
-    return '修改逻辑代码';
-  }
-  if (ext === 'html') return '调整页面结构';
-  if (ext === 'json') return '更新配置';
-  if (ext === 'md' || ext === 'txt') return '更新文档';
-  if (hasAdd && !hasDel) return '新增内容';
-  if (!hasAdd && hasDel) return '删除内容';
-  return '修改内容';
-}
+function rReviews(){var h='<div class="cd"><div class="ct2">🔍 审查记录</div>';if(BD.reviews.length===0){h+='<div class="empty"><div class="empty-i">🔍</div><div class="empty-t">暂无审查记录</div></div>'}else{BD.reviews.forEach(function(r){var cl=r.result==="pass"?"rv-pass":"rv-fail";var ic=r.result==="pass"?"✅":"❌";h+='<div class="rv '+cl+'"><div class="rv-t">'+ic+" "+esc(r.title)+'</div><div class="rv-d">'+esc(r.detail)+'</div><div class="rv-m">审查轮次：第'+r.round+"轮 | 日期："+esc(r.date)+"</div></div>"})}h+="</div>";document.getElementById("v-reviews").innerHTML=h}
 
-function parseDiffToFiles(text) {
-  const files = [];
-  const lines = text.split('\n');
-  let currentFile = null;
-  let currentHunk = null;
-  let description = [];
-  let inDescription = false;
-  
-  for (let line of lines) {
-    if (line.startsWith('# 改动说明')) {
-      inDescription = true;
-      continue;
-    }
-    if (inDescription && line.startsWith('#')) {
-      description.push(line.substring(1).trim());
-      continue;
-    }
-    if (inDescription && !line.startsWith('#') && line.trim() !== '') {
-      inDescription = false;
-    }
-    
-    if (line.startsWith('diff --git')) {
-      if (currentFile) {
-        currentFile.description = description;
-        files.push(currentFile);
-      }
-      const match = line.match(/diff --git a\/(.+) b\/(.+)/);
-      currentFile = {
-        filename: match ? match[1] : line,
-        hunks: [],
-        description: []
-      };
-      currentHunk = null;
-    } else if (line.startsWith('@@')) {
-      const m = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-      currentHunk = {
-        header: line,
-        oldStart: m ? parseInt(m[1], 10) : 0,
-        newStart: m ? parseInt(m[2], 10) : 0,
-        lines: []
-      };
-      if (currentFile) currentFile.hunks.push(currentHunk);
-    } else if (currentHunk) {
-      if (line.startsWith('-')) {
-        currentHunk.lines.push({ type: 'del', content: line.substring(1) });
-      } else if (line.startsWith('+')) {
-        currentHunk.lines.push({ type: 'add', content: line.substring(1) });
-      } else if (line.startsWith(' ')) {
-        currentHunk.lines.push({ type: 'ctx', content: line.substring(1) });
-      } else if (line === '') {
-        currentHunk.lines.push({ type: 'ctx', content: '' });
-      }
-    }
-  }
-  
-  if (currentFile) {
-    currentFile.description = description;
-    files.push(currentFile);
-  }
-  return files;
-}
+function rTests(){var h='<div class="cd"><div class="ct2">🧪 测试记录</div><div style="margin-bottom:12px;font-size:12px;color:var(--muted)">测试框架：Vitest | 命令：npm run test</div>';if(BD.tests.length===0){h+='<div class="empty"><div class="empty-i">🧪</div><div class="empty-t">暂无测试记录</div></div>'}else{BD.tests.forEach(function(t){var ic=t.pass?"✅":"❌";h+='<div class="tst"><div class="tst-l"><span>'+ic+'</span><span class="tst-n">'+esc(t.name)+'</span></div><div><span class="tst-r">'+esc(t.result)+'</span><span class="tst-d" style="margin-left:12px">'+esc(t.date)+'</span></div></div>'})}h+="</div>";document.getElementById("v-tests").innerHTML=h}
 
-function renderDiff(text) {
-  const files = parseDiffToFiles(text);
-  if (files.length === 0) {
-    const lines = text.split('\n').filter(l => l.trim());
-    if (lines.length === 0) {
-      return '<div class="diff-empty">暂无 diff 内容</div>';
-    }
-    let html = '<div class="diff-plain-text">';
-    for (const line of lines) {
-      if (line.startsWith('#')) {
-        html += '<div class="diff-plain-comment">' + escapeHtml(line.substring(1).trim()) + '</div>';
-      } else {
-        html += '<div class="diff-plain-line">' + escapeHtml(line) + '</div>';
-      }
-    }
-    html += '</div>';
-    return html;
-  }
-  
-  let html = '';
-  for (const file of files) {
-    const hasAdd = file.hunks.some(h => h.lines.some(l => l.type === 'add'));
-    const hasDel = file.hunks.some(h => h.lines.some(l => l.type === 'del'));
-    const desc = generateFileDescription(file.filename, hasAdd, hasDel);
-    
-    html += '<div class="diff-file-card">';
-    html += '<div class="diff-file-header">';
-    html += '<div class="diff-file-name">&#128196; ' + escapeHtml(file.filename) + '</div>';
-    html += '<div class="diff-file-desc">' + escapeHtml(desc) + '</div>';
-    html += '</div>';
-    
-    if (file.description && file.description.length > 0) {
-      html += '<div class="diff-description">';
-      for (const descLine of file.description) {
-        html += '<div class="diff-description-line">' + escapeHtml(descLine) + '</div>';
-      }
-      html += '</div>';
-    }
-    
-    html += '<div class="diff-hunks">';
-    
-    for (const hunk of file.hunks) {
-      html += '<div class="diff-hunk-header">' + escapeHtml(hunk.header) + '</div>';
-      
-      // 将行配对：删除行和新增行配对，上下文行两边都有
-      const pairs = [];
-      let i = 0;
-      const lines = hunk.lines;
-      
-      while (i < lines.length) {
-        if (lines[i].type === 'del') {
-          // 收集连续的删除行
-          const dels = [];
-          while (i < lines.length && lines[i].type === 'del') {
-            dels.push(lines[i]);
-            i++;
-          }
-          // 收集紧随的连续新增行
-          const adds = [];
-          while (i < lines.length && lines[i].type === 'add') {
-            adds.push(lines[i]);
-            i++;
-          }
-          // 配对：一一对应，多余的单独放
-          const maxLen = Math.max(dels.length, adds.length);
-          for (let j = 0; j < maxLen; j++) {
-            pairs.push({
-              left: j < dels.length ? dels[j] : null,
-              right: j < adds.length ? adds[j] : null
-            });
-          }
-        } else if (lines[i].type === 'add') {
-          // 只有新增行（没有前面的删除行）
-          pairs.push({ left: null, right: lines[i] });
-          i++;
-        } else {
-          // 上下文行
-          pairs.push({ left: lines[i], right: lines[i] });
-          i++;
-        }
-      }
-      
-      // 渲染左右对比
-      html += '<div class="diff-pair">';
-      html += '<div class="diff-pair-header"><div class="diff-pair-header-left">&#128683; 修改前</div><div class="diff-pair-header-right">&#9989; 修改后</div></div>';
-      
-      let oldLineNum = hunk.oldStart;
-      let newLineNum = hunk.newStart;
-      
-      // 先计算行号
-      const leftLines = [];
-      const rightLines = [];
-      for (const pair of pairs) {
-        if (pair.left && pair.left.type === 'ctx') {
-          leftLines.push({ type: 'ctx', content: pair.left.content, num: oldLineNum });
-          rightLines.push({ type: 'ctx', content: pair.right.content, num: newLineNum });
-          oldLineNum++;
-          newLineNum++;
-        } else {
-          if (pair.left) {
-            leftLines.push({ type: 'del', content: pair.left.content, num: oldLineNum });
-            oldLineNum++;
-          } else {
-            leftLines.push({ type: 'empty', content: '', num: '' });
-          }
-          if (pair.right) {
-            rightLines.push({ type: 'add', content: pair.right.content, num: newLineNum });
-            newLineNum++;
-          } else {
-            rightLines.push({ type: 'empty', content: '', num: '' });
-          }
-        }
-      }
-      
-      // 渲染左侧
-      html += '<div class="diff-side diff-side-left">';
-      for (const line of leftLines) {
-        html += '<div class="diff-line-row ' + line.type + '">';
-        html += '<div class="diff-line-num">' + (line.num !== '' ? line.num : '') + '</div>';
-        html += '<div class="diff-line-content">' + escapeHtml(line.content) + '</div>';
-        html += '</div>';
-      }
-      html += '</div>';
-      
-      // 渲染右侧
-      html += '<div class="diff-side">';
-      for (const line of rightLines) {
-        html += '<div class="diff-line-row ' + line.type + '">';
-        html += '<div class="diff-line-num">' + (line.num !== '' ? line.num : '') + '</div>';
-        html += '<div class="diff-line-content">' + escapeHtml(line.content) + '</div>';
-        html += '</div>';
-      }
-      html += '</div>';
-      
-      html += '</div>';
-    }
-    
-    html += '</div></div>';
-  }
-  
-  return html;
-}
+function rDecisions(){var h='<div class="cd"><div class="ct2">💡 决策记录</div>';if(BD.decisions.length===0){h+='<div class="empty"><div class="empty-i">💡</div><div class="empty-t">暂无决策记录</div></div>'}else{BD.decisions.forEach(function(d){h+='<div class="dci"><div class="dci-t">→ '+esc(d.title)+'</div><div class="dci-m">'+esc(d.detail)+" | "+esc(d.date)+"</div></div>"})}h+="</div>";document.getElementById("v-decisions").innerHTML=h}
 
-// WebSocket 实时更新
-(function initWebSocket() {
-  let ws;
-  let reconnectTimer;
-  let wsStatusEl = null;
+function rDateIdx(){var ct=document.getElementById("date-index");var dc={};BD.timeline.forEach(function(t){var dm=t.time.match(/^(\d{4}-\d{2}-\d{2})/);if(dm){var dt=dm[1];dc[dt]=(dc[dt]||0)+1}});var sd=Object.keys(dc).sort(function(a,b){return b.localeCompare(a)});var al=document.createElement("div");al.className="sb-date on";al.textContent="全部显示";al.onclick=function(){document.querySelectorAll(".sb-date").forEach(function(e){e.classList.remove("on")});this.classList.add("on");_df="";swV("timeline")};ct.appendChild(al);sd.forEach(function(dt){var cn=dc[dt];var ps=dt.split("-");var mo=parseInt(ps[1],10);var dy=parseInt(ps[2],10);var el=document.createElement("div");el.className="sb-date";el.innerHTML=mo+"月"+dy+'日 <span class="ct">'+cn+"</span>";el.dataset.date=dt;el.onclick=function(){document.querySelectorAll(".sb-date").forEach(function(e){e.classList.remove("on")});this.classList.add("on");_df=dt;swV("timeline")};ct.appendChild(el)})}
 
-  function createStatusIndicator() {
-    if (wsStatusEl) return;
-    const header = document.querySelector('.header');
-    if (!header) return;
-    wsStatusEl = document.createElement('div');
-    wsStatusEl.style.cssText = 'margin-top: 10px; font-size: 12px; display: flex; align-items: center; gap: 6px;';
-    wsStatusEl.innerHTML = '<span id="ws-dot" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;display:inline-block;"></span><span id="ws-text" style="opacity:0.7;">实时更新未连接</span>';
-    header.appendChild(wsStatusEl);
-  }
+function swV(nm){document.querySelectorAll(".sb-item").forEach(function(e){e.classList.remove("on")});document.querySelectorAll('[id^="v-"]').forEach(function(e){e.classList.add("hidden")});var it=document.querySelector('.sb-item[data-v="'+nm+'"]');if(it)it.classList.add("on");var vw=document.getElementById("v-"+nm);if(vw)vw.classList.remove("hidden");if(nm==="overview")rOverview();else if(nm==="modules")rModules();else if(nm==="timeline")rTimeline();else if(nm==="reviews")rReviews();else if(nm==="tests")rTests();else if(nm==="decisions")rDecisions()}
 
-  function updateStatus(connected, text) {
-    const dot = document.getElementById('ws-dot');
-    const txt = document.getElementById('ws-text');
-    if (dot) dot.style.background = connected ? '#4ade80' : '#9ca3af';
-    if (txt) txt.textContent = text;
-  }
+document.querySelectorAll(".sb-item").forEach(function(el){el.addEventListener("click",function(){var v=this.dataset.v;if(v)swV(v)})});
 
-  function connect() {
-    try {
-      ws = new WebSocket('ws://localhost:8081');
+function openDiff(fn,tl){var md=document.getElementById("diff-modal");var bd=document.getElementById("dm-body");var te=document.getElementById("dm-title");te.textContent=tl?"改动详情 - "+tl:"改动详情";te.dataset.filename=fn;bd.innerHTML='<div class="dl">加载中...</div>';md.classList.add("on");document.body.style.overflow="hidden";fetch("diffs/"+fn).then(function(r){if(!r.ok)throw new Error("文件不存在");return r.text()}).then(function(tx){bd.innerHTML=renderDiff(tx)}).catch(function(er){bd.innerHTML='<div class="de">暂无 diff 记录（'+er.message+"）</div>"})}
+function closeDiff(){var md=document.getElementById("diff-modal");md.classList.remove("on");document.body.style.overflow=""}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDiff()});
 
-      ws.onopen = function() {
-        createStatusIndicator();
-        updateStatus(true, '实时更新已连接');
-        if (reconnectTimer) {
-          clearTimeout(reconnectTimer);
-          reconnectTimer = null;
-        }
-      };
+function genFileDesc(fn,ha,hd){var ex=fn.split(".").pop()||"";var bs=fn.split("/").pop()||fn;if(bs.indexOf(".test.")>=0||bs.indexOf(".spec.")>=0)return"增加/修改测试用例";if(ex==="css"||ex==="scss"||ex==="less")return"调整样式";if(ex==="ts"||ex==="tsx"||ex==="js"||ex==="jsx"){if(ha&&!hd)return"新增功能";if(!ha&&hd)return"删除/重构代码";return"修改逻辑代码"}if(ex==="html")return"调整页面结构";if(ex==="json")return"更新配置";if(ex==="md"||ex==="txt")return"更新文档";if(ha&&!hd)return"新增内容";if(!ha&&hd)return"删除内容";return"修改内容"}
 
-      ws.onmessage = function(event) {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'reload') {
-            // 如果当前在看板页面，刷新数据
-            if (data.file && data.file.includes('index.html')) {
-              location.reload();
-            }
-            // 如果当前在 diff 弹窗中，刷新 diff 内容
-            if (data.file && data.file.includes('.diff')) {
-              const modal = document.getElementById('diff-modal');
-              if (modal && modal.classList.contains('active')) {
-                const titleEl = document.getElementById('diff-modal-title');
-                const currentFile = titleEl ? titleEl.dataset.filename : null;
-                if (currentFile && data.file.includes(currentFile)) {
-                  const titleText = titleEl.textContent.replace('改动详情 - ', '');
-                  openDiff(currentFile, titleText);
-                }
-              }
-            }
-          }
-        } catch (e) {
-          // 静默处理解析错误
-        }
-      };
+function parseDiff(tx){var files=[];var lines=tx.split("\n");var cf=null,ch=null,desc=[],inDesc=false;for(var li=0;li<lines.length;li++){var ln=lines[li];if(ln.indexOf("# 改动说明")===0){inDesc=true;continue}if(inDesc&&ln.indexOf("#")===0){desc.push(ln.substring(1).trim());continue}if(inDesc&&ln.trim()!==""&&ln.indexOf("#")!==0){inDesc=false}if(ln.indexOf("diff --git")===0){if(cf){cf.description=desc;files.push(cf)}var mt=ln.match(/diff --git a\/(.+) b\/(.+)/);cf={filename:mt?mt[1]:ln,hunks:[],description:[]};ch=null;desc=[]}else if(ln.indexOf("@@")===0){var m=ln.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);ch={header:ln,oldStart:m?parseInt(m[1],10):0,newStart:m?parseInt(m[2],10):0,lines:[]};if(cf)cf.hunks.push(ch)}else if(ch){if(ln.indexOf("-")===0)ch.lines.push({type:"del",content:ln.substring(1)});else if(ln.indexOf("+")===0)ch.lines.push({type:"add",content:ln.substring(1)});else if(ln.indexOf(" ")===0)ch.lines.push({type:"ctx",content:ln.substring(1)});else if(ln==="")ch.lines.push({type:"ctx",content:""})}}if(cf){cf.description=desc;files.push(cf)}return files}
 
-      ws.onclose = function() {
-        updateStatus(false, '实时更新已断开');
-        reconnectTimer = setTimeout(connect, 3000);
-      };
+function renderDiff(tx){var files=parseDiff(tx);if(files.length===0){var lines=tx.split("\n").filter(function(l){return l.trim()});if(lines.length===0)return'<div class="de">暂无 diff 内容</div>';var h='<div class="dpt">';lines.forEach(function(ln){if(ln.indexOf("#")===0)h+='<div class="dpc">'+esc(ln.substring(1).trim())+"</div>";else h+='<div class="dpl">'+esc(ln)+"</div>"});return h+"</div>"}var h="";files.forEach(function(file){var ha=file.hunks.some(function(hk){return hk.lines.some(function(l){return l.type==="add"})});var hd=file.hunks.some(function(hk){return hk.lines.some(function(l){return l.type==="del"})});var ds=genFileDesc(file.filename,ha,hd);h+='<div class="dfc"><div class="dfh"><div class="dfn">📄 '+esc(file.filename)+'</div><div class="dfd">'+esc(ds)+"</div></div>";if(file.description&&file.description.length){h+='<div class="ddesc">';file.description.forEach(function(dl){h+='<div class="ddesc-l">'+esc(dl)+"</div>"});h+="</div>"}h+='<div class="dhs">';file.hunks.forEach(function(hk){h+='<div class="dhh">'+esc(hk.header)+"</div>";var pairs=[];var i=0;var ls=hk.lines;while(i<ls.length){if(ls[i].type==="del"){var dels=[];while(i<ls.length&&ls[i].type==="del"){dels.push(ls[i]);i++}var adds=[];while(i<ls.length&&ls[i].type==="add"){adds.push(ls[i]);i++}var mx=Math.max(dels.length,adds.length);for(var j=0;j<mx;j++){pairs.push({left:j<dels.length?dels[j]:null,right:j<adds.length?adds[j]:null})}}else if(ls[i].type==="add"){pairs.push({left:null,right:ls[i]});i++}else{pairs.push({left:ls[i],right:ls[i]});i++}}h+='<div class="dp2"><div class="dp2h"><div class="dp2hl">❌ 修改前</div><div class="dp2hr">✅ 修改后</div></div>';var ol=hk.oldStart,nl=hk.newStart;var ll=[],rl=[];pairs.forEach(function(p){if(p.left&&p.left.type==="ctx"){ll.push({type:"ctx",content:p.left.content,num:ol});rl.push({type:"ctx",content:p.right.content,num:nl});ol++;nl++}else{if(p.left){ll.push({type:"del",content:p.left.content,num:ol});ol++}else{ll.push({type:"empty",content:"",num:""})}if(p.right){rl.push({type:"add",content:p.right.content,num:nl});nl++}else{rl.push({type:"empty",content:"",num:""})}}});h+='<div class="ds dsl">';ll.forEach(function(ln){h+='<div class="dlr '+ln.type+'"><div class="dln">'+(ln.num!==""?ln.num:"")+'</div><div class="dlc">'+esc(ln.content)+"</div></div>"});h+="</div>";h+='<div class="ds">';rl.forEach(function(ln){h+='<div class="dlr '+ln.type+'"><div class="dln">'+(ln.num!==""?ln.num:"")+'</div><div class="dlc">'+esc(ln.content)+"</div></div>"});h+="</div></div>"});h+="</div></div>"});return h}
 
-      ws.onerror = function() {
-        // 静默处理连接错误
-      };
-    } catch (e) {
-      // 静默处理
-    }
-  }
+(function initWS(){var ws,rt;function us(c,t){var d=document.getElementById("ws-dot");var x=document.getElementById("ws-text");if(d)d.className="ws-d "+(c?"on":"off");if(x)x.textContent=t}function conn(){try{ws=new WebSocket("ws://localhost:8081");ws.onopen=function(){us(true,"实时更新已连接");if(rt){clearTimeout(rt);rt=null}};ws.onmessage=function(ev){try{var d=JSON.parse(ev.data);if(d.type==="reload"){if(d.file&&d.file.indexOf("index.html")>=0)location.reload();if(d.file&&d.file.indexOf(".diff")>=0){var md=document.getElementById("diff-modal");if(md&&md.classList.contains("on")){var te=document.getElementById("dm-title");var cf=te?te.dataset.filename:null;if(cf&&d.file.indexOf(cf)>=0){var tt=te.textContent.replace("改动详情 - ","");openDiff(cf,tt)}}}}}catch(e){}};ws.onclose=function(){us(false,"实时更新已断开");rt=setTimeout(conn,3e3)};ws.onerror=function(){}}catch(e){}}conn()})();
 
-  connect();
-})();
-
-(function initDateIndex() {
-  const container = document.getElementById('date-index');
-  const dateCount = {};
-  
-  document.querySelectorAll('.tl-item .tl-time').forEach(el => {
-    const timeText = el.textContent.trim();
-    const dateMatch = timeText.match(/^(\d{4}-\d{2}-\d{2})/);
-    if (dateMatch) {
-      const date = dateMatch[1];
-      dateCount[date] = (dateCount[date] || 0) + 1;
-    }
-  });
-  
-  const sortedDates = Object.keys(dateCount).sort((a, b) => b.localeCompare(a));
-  
-  const all = document.createElement('div');
-  all.className = 'sidebar-date active';
-  all.textContent = '全部显示';
-  all.onclick = function() {
-    document.querySelectorAll('.sidebar-date').forEach(e => e.classList.remove('active'));
-    this.classList.add('active');
-    switchView('timeline');
-    setTimeout(() => document.querySelectorAll('.tl-item').forEach(e => e.style.display = ''), 100);
-  };
-  container.appendChild(all);
-  
-  sortedDates.forEach(date => {
-    const count = dateCount[date];
-    const month = parseInt(date.split('-')[1], 10);
-    const day = parseInt(date.split('-')[2], 10);
-    const label = month + '月' + day + '日 (' + count + '项)';
-    
-    const el = document.createElement('div');
-    el.className = 'sidebar-date';
-    el.textContent = label;
-    el.dataset.date = date;
-    el.onclick = function() {
-      document.querySelectorAll('.sidebar-date').forEach(e => e.classList.remove('active'));
-      this.classList.add('active');
-      switchView('timeline');
-      setTimeout(() => {
-        document.querySelectorAll('.tl-item').forEach(item => {
-          const timeEl = item.querySelector('.tl-time');
-          if (timeEl && timeEl.textContent.trim().startsWith(date)) {
-            item.style.display = '';
-          } else {
-            item.style.display = 'none';
-          }
-        });
-      }, 100);
-    };
-    container.appendChild(el);
-  });
-})();
+rHdr();rOverview();rDateIdx();
 </script>
 </body>
 </html>

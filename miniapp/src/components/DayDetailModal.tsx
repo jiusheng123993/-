@@ -1,4 +1,4 @@
-// 星寰海 v2.0 - 日期详情弹窗组件
+// 星寰海 v3.0 - 日期详情弹窗组件（水墨风格）
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useMemo } from 'react';
@@ -51,14 +51,14 @@ const CONTEXT_LABELS: Record<string, string> = {
   other: '其他',
 };
 
-/** 风险等级颜色 */
+/** 风险等级颜色 - 水墨灰阶 */
 function getRiskColor(riskLevel: string): string {
   switch (riskLevel) {
-    case 'critical': return '#ef4444';
-    case 'high': return '#f97316';
-    case 'medium': return '#eab308';
-    case 'low': return '#22c55e';
-    default: return '#9ca3af';
+    case 'critical': return '#2d2d2d'; // 深墨
+    case 'high': return '#5a5a5a';     // 浓墨
+    case 'medium': return '#8a8a8a';   // 中墨
+    case 'low': return '#b0b0b0';      // 淡墨
+    default: return '#d0d0d0';
   }
 }
 
@@ -139,11 +139,11 @@ export default function DayDetailModal({ date, onClose, onAddEntry }: DayDetailM
               <Text className='stat-label'>条记录</Text>
             </View>
             <View className='stat-item'>
-              <Text className='stat-value' style={{ color: getRiskColor('medium') }}>{stats.avgIntensity}</Text>
+              <Text className='stat-value' style={{ color: '#5a5a5a' }}>{stats.avgIntensity}</Text>
               <Text className='stat-label'>平均强度</Text>
             </View>
             <View className='stat-item'>
-              <Text className='stat-value' style={{ color: stats.highRiskCount > 0 ? getRiskColor('high') : getRiskColor('low') }}>
+              <Text className='stat-value' style={{ color: stats.highRiskCount > 0 ? '#2d2d2d' : '#8a8a8a' }}>
                 {stats.highRiskCount}
               </Text>
               <Text className='stat-label'>高风险</Text>
@@ -170,9 +170,11 @@ export default function DayDetailModal({ date, onClose, onAddEntry }: DayDetailM
                     </View>
                     <View
                       className='event-risk-badge'
-                      style={{ backgroundColor: getRiskColor(event.riskLevel) + '20', color: getRiskColor(event.riskLevel) }}
+                      style={{ backgroundColor: getRiskColor(event.riskLevel) + '15', borderColor: getRiskColor(event.riskLevel) + '20' }}
                     >
-                      <Text className='event-risk-text'>{event.riskLevel === 'critical' ? '极高' : event.riskLevel === 'high' ? '高' : event.riskLevel === 'medium' ? '中' : '低'}风险</Text>
+                      <Text className='event-risk-text' style={{ color: getRiskColor(event.riskLevel) }}>
+                        {event.riskLevel === 'critical' ? '极高' : event.riskLevel === 'high' ? '高' : event.riskLevel === 'medium' ? '中' : '低'}风险
+                      </Text>
                     </View>
                   </View>
 

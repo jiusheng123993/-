@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro';
 import { useAuthStore } from '../../stores/authStore';
 import { useUserStats } from '../../hooks/useUserStats';
 import { APP_VERSION, HOTLINE_NUMBER } from '../../constants';
+import FloatingNav from '../../components/FloatingNav';
 import './index.scss';
 
 export default function Profile() {
@@ -50,7 +51,11 @@ export default function Profile() {
 
   return (
     <View className='profile-page'>
-      <View className='profile-header'>
+      {/* 水墨背景装饰 */}
+      <View className='ink-bg-decoration ink-bg-1' />
+      <View className='ink-bg-decoration ink-bg-2' />
+
+      <View className='profile-header ink-item' style={{ animationDelay: '0.1s' }}>
         <View className='avatar-section' onClick={handleAvatarClick}>
           {user?.avatarUrl ? (
             <Image className='avatar' src={user.avatarUrl} mode='aspectFill' />
@@ -69,7 +74,7 @@ export default function Profile() {
         </View>
       </View>
 
-      <View className='stats-section'>
+      <View className='stats-section ink-item' style={{ animationDelay: '0.2s' }}>
         <View className='stats-title'>
           <Text>我的数据</Text>
         </View>
@@ -93,7 +98,7 @@ export default function Profile() {
         </View>
       </View>
 
-      <View className='menu-section'>
+      <View className='menu-section ink-item' style={{ animationDelay: '0.3s' }}>
         <View className='menu-item' onClick={handleSettingsClick}>
           <Text className='menu-icon'>⚙️</Text>
           <Text className='menu-text'>设置</Text>
@@ -107,7 +112,7 @@ export default function Profile() {
       </View>
 
       {isAuthenticated && (
-        <View className='logout-section'>
+        <View className='logout-section ink-item' style={{ animationDelay: '0.4s' }}>
           <View className='logout-btn' onClick={handleLogout}>
             <Text className='logout-text'>退出登录</Text>
           </View>
@@ -117,6 +122,9 @@ export default function Profile() {
       <View className='profile-footer'>
         <Text className='footer-text'>星寰海 v{APP_VERSION}</Text>
       </View>
+
+      {/* 悬浮导航 */}
+      <FloatingNav />
     </View>
   );
 }

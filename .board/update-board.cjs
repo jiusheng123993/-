@@ -2,110 +2,87 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-/**
- * 自动更新项目看板
- * 
- * 用法：node update-board.cjs <项目根目录> <"改动标题"> <"改动描述"> [涉及文件]
- * 
- * 示例：
- * node update-board.cjs "E:\星寰海" "修复登录bug" "修复用户无法登录的问题" "src/auth/login.ts,src/auth/authService.ts"
- */
-
-function updateBoard(projectPath, title, description, files) {
+function updateBoard(projectPath, title, description, files, type) {
   const boardDir = path.join(projectPath, '.board');
   const indexPath = path.join(boardDir, 'index.html');
   const diffsDir = path.join(boardDir, 'diffs');
 
-  // 确保目录存在
   if (!fs.existsSync(diffsDir)) {
     fs.mkdirSync(diffsDir, { recursive: true });
   }
 
-  // 生成时间戳
   const now = new Date();
   const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const timeStr = now.toLocaleString('zh-CN', { 
-    year: 'numeric', 
-    month: '2-digit', 
-    day: '2-digit', 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  }).replace(/\//g, '-');
+  const pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+  const timeStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
 
-  // 生成 diff 文件
-  const diffFilename = `${timestamp}-${title.replace(/[^\w\u4e00-\u9fa5]/g, '-').slice(0, 30)}.diff`;
+  const diffFilename = timestamp + '-' + title.replace(/[^\w\u4e00-\u9fa5]/g, '-').slice(0, 30) + '.diff';
   const diffPath = path.join(diffsDir, diffFilename);
 
-  // 生成 git diff
   let diffContent = '';
   try {
-    diffContent = execSync('git diff HEAD', { 
-      cwd: projectPath, 
+    diffContent = execSync('git diff HEAD', {
+      cwd: projectPath,
       encoding: 'utf-8',
-      maxBuffer: 10 * 1024 * 1024 // 10MB
+      maxBuffer: 10 * 1024 * 1024
     });
   } catch (e) {
-    // 如果没有 git 或没有改动，生成一个空的 diff
-    diffContent = `# 改动说明\n# 问题：${title}\n# 原因：${description}\n# 改动：\n#   1. ${title}\n# 影响：${description}\n`;
+    diffContent = '# 改动说明\n# ' + title + '\n# ' + description + '\n';
   }
 
-  // 如果没有 git diff，生成一个基于文件的 diff
   if (!diffContent.trim()) {
-    diffContent = `# 改动说明\n# 问题：${title}\n# 原因：${description}\n# 改动：\n#   1. ${title}\n# 影响：${description}\n`;
+    diffContent = '# 改动说明\n# ' + title + '\n# ' + description + '\n';
   }
 
   fs.writeFileSync(diffPath, diffContent, 'utf-8');
 
-  // 读取当前 index.html
-  let html = fs.readFileSync(indexPath, 'utf-8');
+  var html = fs.readFileSync(indexPath, 'utf-8');
 
-  // 生成新的时间线记录
-  const fileList = files ? files.split(',').map(f => f.trim()).join(', ') : '详见 diff 文件';
-  const newRecord = `          <div class="tl-item done" data-diff="${diffFilename}">
-            <div class="tl-time">${timeStr}</div>
-            <div class="tl-title">${title}</div>
-            <div class="tl-desc">${description}</div>
-            <div class="tl-file">${fileList}</div>
-            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('${diffFilename}', '${title}')">&#128269; 查看改动</span></div>
-          </div>`;
+  var fileList = files ? files.split(',').map(function(f) { return f.trim(); }).join(', ') : '详见 diff 文件';
+  var recordType = type || 'change';
 
-  // 在时间线开头插入新记录（找到第一个 tl-item 之前）
-  const timelineStart = html.indexOf('<div class="timeline">');
-  if (timelineStart === -1) {
-    console.error('找不到时间线容器');
+  var newEntry = '{time:"' + timeStr + '",title:"' + title.replace(/"/g, '\\"') + '",desc:"' + description.replace(/"/g, '\\"') + '",files:"' + fileList.replace(/"/g, '\\"') + '",type:"' + recordType + '",diff:"' + diffFilename + '"}';
+
+  var marker = 'timeline:[';
+  var markerPos = html.indexOf(marker);
+  if (markerPos === -1) {
+    console.error('找不到 BD.timeline 数据标记');
     process.exit(1);
   }
 
-  // 在第一个 tl-item 之前插入
-  const firstItem = html.indexOf('<div class="tl-item', timelineStart);
-  if (firstItem !== -1) {
-    html = html.slice(0, firstItem) + newRecord + '\n' + html.slice(firstItem);
-  } else {
-    // 如果没有记录，在 timeline div 结束后插入
-    const timelineEnd = html.indexOf('</div>', timelineStart);
-    html = html.slice(0, timelineEnd) + newRecord + '\n' + html.slice(timelineEnd);
+  var insertPos = markerPos + marker.length;
+  html = html.slice(0, insertPos) + newEntry + ',' + html.slice(insertPos);
+
+  var updateMarker = 'updatedAt:"';
+  var updatePos = html.indexOf(updateMarker);
+  if (updatePos !== -1) {
+    var updateEnd = html.indexOf('"', updatePos + updateMarker.length);
+    if (updateEnd !== -1) {
+      html = html.slice(0, updatePos + updateMarker.length) + timeStr + html.slice(updateEnd);
+    }
   }
 
-  // 更新进度（如果有需要）
-  // 这里可以添加进度计算逻辑
-
-  // 保存更新后的 index.html
   fs.writeFileSync(indexPath, html, 'utf-8');
 
-  console.log(`✅ 看板已更新`);
-  console.log(`   项目：${projectPath}`);
-  console.log(`   标题：${title}`);
-  console.log(`   时间：${timeStr}`);
-  console.log(`   Diff：${diffPath}`);
+  console.log('看板已更新');
+  console.log('  项目：' + projectPath);
+  console.log('  标题：' + title);
+  console.log('  类型：' + recordType);
+  console.log('  时间：' + timeStr);
+  console.log('  Diff：' + diffPath);
 }
 
-// 解析命令行参数
-const args = process.argv.slice(2);
+var args = process.argv.slice(2);
 if (args.length < 3) {
-  console.log('用法：node update-board.cjs <项目根目录> <"改动标题"> <"改动描述"> [涉及文件]');
-  console.log('示例：node update-board.cjs "E:\\星寰海" "修复登录bug" "修复用户无法登录的问题" "src/auth/login.ts"');
+  console.log('用法：node update-board.cjs <项目根目录> <"改动标题"> <"改动描述"> [涉及文件] [类型]');
+  console.log('类型：change(默认) / done / fail / review / sync / test');
+  console.log('示例：node update-board.cjs "E:\\星寰海" "修复登录bug" "修复用户无法登录的问题" "src/auth/login.ts" done');
   process.exit(1);
 }
 
-const [projectPath, title, description, files] = args;
-updateBoard(projectPath, title, description, files);
+var projectPath = args[0];
+var title = args[1];
+var description = args[2];
+var files = args[3] || '';
+var type = args[4] || 'change';
+updateBoard(projectPath, title, description, files, type);

@@ -1,126 +1,82 @@
-// 星寰海 v2.0 - 结束步骤组件
-// 总结流程，提供鼓励和后续建议
-
+// 星寰海 v3.0 - 急救步骤5：结束仪式（水墨风格）
+import { View, Text } from '@tarojs/components';
 import { useState } from 'react';
-import { View, Text, Textarea } from '@tarojs/components';
+import Taro from '@tarojs/taro';
 import './EmergencyStepClosing.scss';
 
-interface StepSummary {
-  stepNumber: number;
-  title: string;
-  content?: string;
-}
-
-interface EncouragementMessage {
+interface ClosingOption {
   id: string;
-  text: string;
-  icon?: string;
+  label: string;
+  description: string;
 }
 
 interface EmergencyStepClosingProps {
   title: string;
-  subtitle?: string;
-  flowColor: string;
-  summaries: StepSummary[];
-  encouragements: EncouragementMessage[];
-  showGratitude?: boolean;
-  onComplete?: (data: { gratitude?: string }) => void;
+  subtitle: string;
+  options: ClosingOption[];
+  onComplete: (selectedOptionId: string) => void;
 }
 
 export default function EmergencyStepClosing({
   title,
   subtitle,
-  flowColor,
-  summaries,
-  encouragements,
-  showGratitude = false,
-  onComplete
+  options,
+  onComplete,
 }: EmergencyStepClosingProps) {
-  const [gratitudeText, setGratitudeText] = useState('');
-  const [showAllEncouragements, setShowAllEncouragements] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
 
-  const handleComplete = () => {
-    if (onComplete) {
-      onComplete({ gratitude: gratitudeText || undefined });
-    }
+  const handleSelect = (optionId: string) => {
+    setSelected(optionId);
   };
 
-  const visibleEncouragements = showAllEncouragements
-    ? encouragements
-    : encouragements.slice(0, 3);
+  const handleComplete = () => {
+    if (!selected) {
+      Taro.showToast({ title: '请选择一项', icon: 'none' });
+      return;
+    }
+    onComplete(selected);
+  };
 
   return (
-    <View className="closing-step">
-      <View className="closing-header">
-        <Text className="closing-title">{title}</Text>
-        {subtitle && <Text className="closing-subtitle">{subtitle}</Text>}
+    <View className='emergency-step-closing'>
+      <View className='step-header'>
+        <Text className='step-title'>{title}</Text>
+        <Text className='step-subtitle'>{subtitle}</Text>
       </View>
 
-      {/* 步骤总结 */}
-      <View className="summary-section">
-        <Text className="section-label">你完成了这些步骤：</Text>
-        <View className="summary-list">
-          {summaries.map((summary) => (
-            <View key={summary.stepNumber} className="summary-item">
-              <View className="summary-number" style={{ background: flowColor }}>
-                <Text>{summary.stepNumber}</Text>
-              </View>
-              <View className="summary-content">
-                <Text className="summary-title">{summary.title}</Text>
-                {summary.content && (
-                  <Text className="summary-text">{summary.content}</Text>
-                )}
-              </View>
+      {/* 完成选项 */}
+      <View className='options-list'>
+        {options.map((option, index) => (
+          <View
+            key={option.id}
+            className={`closing-card ${selected === option.id ? 'selected' : ''}`}
+            onClick={() => handleSelect(option.id)}
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <View className='closing-content'>
+              <Text className='closing-label'>{option.label}</Text>
+              <Text className='closing-description'>{option.description}</Text>
             </View>
-          ))}
-        </View>
-      </View>
-
-      {/* 鼓励话语 */}
-      <View className="encouragement-section">
-        <Text className="section-label">想对你说：</Text>
-        <View className="encouragement-list">
-          {visibleEncouragements.map((msg) => (
-            <View key={msg.id} className="encouragement-card">
-              <Text className="encouragement-icon">{msg.icon || '💛'}</Text>
-              <Text className="encouragement-text">{msg.text}</Text>
+            <View className={`closing-indicator ${selected === option.id ? 'active' : ''}`}>
+              <Text className='indicator-check'>✓</Text>
             </View>
-          ))}
-        </View>
-        {encouragements.length > 3 && (
-          <View className="show-more" onClick={() => setShowAllEncouragements(!showAllEncouragements)}>
-            <Text>{showAllEncouragements ? '收起' : '查看更多'}</Text>
           </View>
-        )}
+        ))}
       </View>
-
-      {/* 感恩练习 */}
-      {showGratitude && (
-        <View className="gratitude-section">
-          <Text className="section-label">感恩练习（可选）</Text>
-          <Text className="gratitude-hint">
-            写下三件今天值得感恩的事，即使是很小的事情
-          </Text>
-          <Textarea
-            className="gratitude-textarea"
-            placeholder="例如：今天阳光很好、喝了一杯热茶..."
-            value={gratitudeText}
-            onInput={(e) => setGratitudeText(e.detail.value)}
-            maxlength={200}
-            autoHeight
-          />
-        </View>
-      )}
 
       {/* 完成按钮 */}
-      <View className="complete-btn" style={{ background: flowColor }} onClick={handleComplete}>
-        <Text>完成并保存</Text>
+      <View className='complete-section'>
+        <View
+          className={`complete-btn ${selected ? 'active' : ''}`}
+          onClick={handleComplete}
+        >
+          <Text className='complete-text'>完成急救</Text>
+        </View>
       </View>
 
-      {/* 温馨提示 */}
-      <View className="footer-note">
-        <Text>如果这种感觉持续困扰你，请寻求专业帮助</Text>
-        <Text className="hotline">心理援助热线：400-161-9995</Text>
+      {/* 鼓励文字 */}
+      <View className='encouragement'>
+        <Text className='encouragement-text'>你已经很勇敢地面对了自己的情绪，这本身就是一种力量。</Text>
       </View>
     </View>
   );

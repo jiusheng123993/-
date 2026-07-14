@@ -1,4 +1,4 @@
-// 星寰海 v2.0 - 月度摘要组件
+// 星寰海 v3.0 - 月度摘要组件（水墨风格）
 import { View, Text } from '@tarojs/components';
 import { useMemo } from 'react';
 import { useScheduleStore } from '../stores/scheduleStore';
@@ -36,15 +36,15 @@ const MOOD_LABELS: Record<string, string> = {
   overwhelmed: '崩溃',
 };
 
-/** 趋势图标和颜色 */
+/** 趋势图标和颜色 - 水墨灰阶 */
 function getTrendInfo(trend: 'improving' | 'declining' | 'stable') {
   switch (trend) {
     case 'improving':
-      return { icon: '↑', color: '#22c55e', label: '改善中' };
+      return { icon: '↑', color: '#5a5a5a', label: '改善中' };
     case 'declining':
-      return { icon: '↓', color: '#ef4444', label: '需关注' };
+      return { icon: '↓', color: '#2d2d2d', label: '需关注' };
     default:
-      return { icon: '→', color: '#6b7280', label: '稳定' };
+      return { icon: '→', color: '#8a8a8a', label: '稳定' };
   }
 }
 
@@ -91,11 +91,11 @@ export default function MonthlySummary({ year, month }: MonthlySummaryProps) {
           <Text className='metric-label'>总记录数</Text>
         </View>
         <View className='metric-card'>
-          <Text className='metric-value' style={{ color: '#f97316' }}>{stats.avgIntensity}</Text>
+          <Text className='metric-value' style={{ color: '#5a5a5a' }}>{stats.avgIntensity}</Text>
           <Text className='metric-label'>平均强度</Text>
         </View>
         <View className='metric-card'>
-          <Text className='metric-value' style={{ color: stats.dailyAverage > 1 ? '#ef4444' : '#22c55e' }}>
+          <Text className='metric-value' style={{ color: stats.dailyAverage > 1 ? '#5a5a5a' : '#8a8a8a' }}>
             {stats.dailyAverage}
           </Text>
           <Text className='metric-label'>日均记录</Text>
@@ -103,7 +103,7 @@ export default function MonthlySummary({ year, month }: MonthlySummaryProps) {
       </View>
 
       {/* 趋势指示器 */}
-      <View className='trend-indicator' style={{ backgroundColor: trendInfo.color + '15' }}>
+      <View className='trend-indicator' style={{ backgroundColor: 'rgba(93, 93, 93, 0.06)' }}>
         <Text className='trend-icon' style={{ color: trendInfo.color }}>{trendInfo.icon}</Text>
         <Text className='trend-text' style={{ color: trendInfo.color }}>
           {trendInfo.label}
@@ -124,10 +124,10 @@ export default function MonthlySummary({ year, month }: MonthlySummaryProps) {
       <View className='high-risk-section'>
         <Text className='section-label'>高风险天数</Text>
         <View className='risk-badge' style={{
-          backgroundColor: stats.highRiskDays > 0 ? '#fef2f2' : '#f0fdf4',
-          color: stats.highRiskDays > 0 ? '#dc2626' : '#16a34a',
+          backgroundColor: stats.highRiskDays > 0 ? 'rgba(93, 93, 93, 0.08)' : 'rgba(93, 93, 93, 0.06)',
+          borderColor: stats.highRiskDays > 0 ? 'rgba(93, 93, 93, 0.12)' : 'rgba(93, 93, 93, 0.08)',
         }}>
-          <Text className='risk-count'>{stats.highRiskDays}</Text>
+          <Text className='risk-count' style={{ color: stats.highRiskDays > 0 ? '#2d2d2d' : '#8a8a8a' }}>{stats.highRiskDays}</Text>
           <Text className='risk-unit'>天</Text>
         </View>
       </View>
@@ -156,19 +156,19 @@ export default function MonthlySummary({ year, month }: MonthlySummaryProps) {
         <View className='distribution-legend'>
           <View className='legend-item'>
             <View className='legend-dot critical' />
-            <Text className='legend-text'>极高 {riskDistribution.critical}</Text>
+            <Text className='legend-text'>深墨 {riskDistribution.critical}</Text>
           </View>
           <View className='legend-item'>
             <View className='legend-dot high' />
-            <Text className='legend-text'>高 {riskDistribution.high}</Text>
+            <Text className='legend-text'>浓墨 {riskDistribution.high}</Text>
           </View>
           <View className='legend-item'>
             <View className='legend-dot medium' />
-            <Text className='legend-text'>中 {riskDistribution.medium}</Text>
+            <Text className='legend-text'>中墨 {riskDistribution.medium}</Text>
           </View>
           <View className='legend-item'>
             <View className='legend-dot low' />
-            <Text className='legend-text'>低 {riskDistribution.low}</Text>
+            <Text className='legend-text'>淡墨 {riskDistribution.low}</Text>
           </View>
         </View>
       </View>

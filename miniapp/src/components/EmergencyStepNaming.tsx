@@ -1,20 +1,18 @@
-// 星寰海 v2.0 - 命名步骤组件
-// 帮助用户识别和命名当前情绪
-
+// 星寰海 v3.0 - 急救步骤1：命名情绪（水墨风格）
 import { View, Text } from '@tarojs/components';
+import { useState } from 'react';
 import './EmergencyStepNaming.scss';
 
 interface NamingOption {
   id: string;
   label: string;
-  description?: string;
+  description: string;
 }
 
 interface EmergencyStepNamingProps {
   title: string;
-  subtitle?: string;
+  subtitle: string;
   options: NamingOption[];
-  flowColor: string;
   onSelect: (optionId: string) => void;
   selectedId?: string;
 }
@@ -23,35 +21,40 @@ export default function EmergencyStepNaming({
   title,
   subtitle,
   options,
-  flowColor,
   onSelect,
-  selectedId
+  selectedId,
 }: EmergencyStepNamingProps) {
+  const [selected, setSelected] = useState<string | undefined>(selectedId);
+
+  const handleSelect = (optionId: string) => {
+    setSelected(optionId);
+    onSelect(optionId);
+  };
+
   return (
-    <View className="naming-step">
-      <View className="naming-header">
-        <Text className="naming-title">{title}</Text>
-        {subtitle && <Text className="naming-subtitle">{subtitle}</Text>}
+    <View className='emergency-step-naming'>
+      <View className='step-header'>
+        <Text className='step-title'>{title}</Text>
+        <Text className='step-subtitle'>{subtitle}</Text>
       </View>
 
-      <View className="naming-options">
-        {options.map((option) => (
+      <View className='options-list'>
+        {options.map((option, index) => (
           <View
             key={option.id}
-            className={`naming-option ${selectedId === option.id ? 'selected' : ''}`}
-            style={{ borderColor: selectedId === option.id ? flowColor : undefined }}
-            onClick={() => onSelect(option.id)}
+            className={`option-card ${selected === option.id ? 'selected' : ''}`}
+            onClick={() => handleSelect(option.id)}
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <Text className="naming-option-label">{option.label}</Text>
-            {option.description && (
-              <Text className="naming-option-desc">{option.description}</Text>
-            )}
+            <View className='option-content'>
+              <Text className='option-label'>{option.label}</Text>
+              <Text className='option-description'>{option.description}</Text>
+            </View>
+            <View className={`option-indicator ${selected === option.id ? 'active' : ''}`}>
+              <Text className='indicator-dot' />
+            </View>
           </View>
         ))}
-      </View>
-
-      <View className="naming-hint">
-        <Text>选择一个最贴近你感受的词</Text>
       </View>
     </View>
   );

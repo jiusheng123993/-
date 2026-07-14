@@ -1,10 +1,8 @@
-// 星寰海 v2.0 - 书写步骤组件
-// 引导用户进行表达性写作，释放情绪
-
-import { useState, useCallback } from 'react';
+// 星寰海 v3.0 - 急救步骤2：书写情绪（水墨风格）
 import { View, Text, Textarea } from '@tarojs/components';
+import { useState, useCallback } from 'react';
+import Taro from '@tarojs/taro';
 import './EmergencyStepWriting.scss';
-import { quickDetect } from '../utils/crisisDetector';
 
 interface WritingPrompt {
   id: string;
@@ -13,99 +11,94 @@ interface WritingPrompt {
 
 interface EmergencyStepWritingProps {
   title: string;
-  subtitle?: string;
+  subtitle: string;
   prompts: WritingPrompt[];
-  flowColor: string;
-  onComplete: (text: string) => void;
-  onCrisisDetected?: (level: 'mild' | 'moderate' | 'severe') => void;
+  crisisKeywords: string[];
+  onSubmit: (content: string) => void;
+  value?: string;
 }
 
 export default function EmergencyStepWriting({
   title,
   subtitle,
   prompts,
-  flowColor,
-  onComplete,
-  onCrisisDetected
+  onSubmit,
+  value = '',
 }: EmergencyStepWritingProps) {
-  const [selectedPromptId, setSelectedPromptId] = useState<string>(prompts[0]?.id || '');
-  const [text, setText] = useState('');
-  const [wordCount, setWordCount] = useState(0);
-  const [lastDetectedLevel, setLastDetectedLevel] = useState<'mild' | 'moderate' | 'severe' | null>(null);
+  const [content, setContent] = useState(value);
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [charCount, setCharCount] = useState(0);
 
-  const handleTextChange = useCallback((value: string) => {
-    setText(value);
-    setWordCount(value.length);
+  const handleContentChange = (e: { detail: { value: string } }) => {
+    const newContent = e.detail.value;
+    setContent(newContent);
+    setCharCount(newContent.length);
+  };
 
-    // 使用危机检测器进行实时检测
-    if (onCrisisDetected && value.trim().length > 0) {
-      const result = quickDetect(value);
-      if (result.detected && result.level !== 'mild') {
-        // 避免重复触发
-        if (lastDetectedLevel !== result.level) {
-          setLastDetectedLevel(result.level);
-          onCrisisDetected(result.level);
-        }
-      } else {
-        setLastDetectedLevel(null);
-      }
-    }
-  }, [onCrisisDetected, lastDetectedLevel]);
-
-  const handleSubmit = () => {
-    if (text.trim()) {
-      onComplete(text);
+  const handlePromptSelect = (promptId: string) => {
+    const prompt = prompts.find(p => p.id === promptId);
+    if (prompt) {
+      setSelectedPrompt(promptId);
+      setContent(prev => prev + (prev ? '\n' : '') + prompt.text + '\n');
+      setCharCount(prev => prev + prompt.text.length + 2);
     }
   };
 
+  const handleSubmit = () => {
+    if (content.trim().length < 10) {
+      Taro.showToast({ title: '请多写一点', icon: 'none' });
+      return;
+    }
+    onSubmit(content);
+  };
+
   return (
-    <View className="writing-step">
-      <View className="writing-header">
-        <Text className="writing-title">{title}</Text>
-        {subtitle && <Text className="writing-subtitle">{subtitle}</Text>}
+    <View className='emergency-step-writing'>
+      <View className='step-header'>
+        <Text className='step-title'>{title}</Text>
+        <Text className='step-subtitle'>{subtitle}</Text>
       </View>
 
-      {/* 写作提示选择 */}
-      {prompts.length > 0 && (
-        <View className="writing-prompts">
-          <Text className="prompts-label">从下面开始写：</Text>
-          <View className="prompts-list">
-            {prompts.map((prompt) => (
-              <View
-                key={prompt.id}
-                className={`prompt-item ${selectedPromptId === prompt.id ? 'active' : ''}`}
-                onClick={() => setSelectedPromptId(prompt.id)}
-              >
-                <Text>{prompt.text}</Text>
-              </View>
-            ))}
-          </View>
+      {/* 提示词 */}
+      <View className='prompts-section'>
+        <Text className='prompts-label'>选择提示开始写作：</Text>
+        <View className='prompts-list'>
+          {prompts.map((prompt, index) => (
+            <View
+              key={prompt.id}
+              className={`prompt-chip ${selectedPrompt === prompt.id ? 'selected' : ''}`}
+              onClick={() => handlePromptSelect(prompt.id)}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <Text className='prompt-text'>{prompt.text}</Text>
+            </View>
+          ))}
         </View>
-      )}
+      </View>
 
-      {/* 文本输入区 */}
-      <View className="writing-area">
+      {/* 写作区域 */}
+      <View className='writing-area'>
         <Textarea
-          className="writing-textarea"
-          placeholder={selectedPromptId ? undefined : '在这里写下你的感受...'}
-          value={text}
-          onInput={(e) => handleTextChange(e.detail.value)}
-          maxlength={500}
+          className='writing-textarea'
+          value={content}
+          onInput={handleContentChange}
+          placeholder='在这里写下你的想法...'
+          maxlength={2000}
           autoHeight
         />
-        <View className="writing-footer">
-          <Text className="word-count">{wordCount} 字</Text>
-          <Text className="hint">不用组织语言，想到什么写什么</Text>
+        <View className='char-count'>
+          <Text className='count-text'>{charCount} / 2000</Text>
         </View>
       </View>
 
       {/* 提交按钮 */}
-      <View
-        className="submit-btn"
-        style={{ backgroundColor: flowColor }}
-        onClick={handleSubmit}
-      >
-        <Text>完成书写</Text>
+      <View className='submit-section'>
+        <View
+          className={`submit-btn ${content.trim().length >= 10 ? 'active' : ''}`}
+          onClick={handleSubmit}
+        >
+          <Text className='submit-text'>完成书写</Text>
+        </View>
       </View>
     </View>
   );

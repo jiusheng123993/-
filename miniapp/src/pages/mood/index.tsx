@@ -7,6 +7,7 @@ import IntensitySlider from '../../components/IntensitySlider';
 import ContextTagSelector from '../../components/ContextTagSelector';
 import { useMood } from '../../hooks/useMood';
 import type { MoodTag, ContextTag, EmotionIntensity } from '../../memory-body/types/memoryBodyTypes';
+import FloatingNav from '../../components/FloatingNav';
 import './index.scss';
 
 export default function MoodPage() {
@@ -17,6 +18,20 @@ export default function MoodPage() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { entries, isSaving, recordMood } = useMood();
+
+  // 加载已有记录
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // 从本地存储加载情绪记录
+        const entries = memoryStore.getRecentMoodEntries(30)
+        setRecentEntries(entries)
+      } catch (err) {
+        console.error('加载记录失败:', err)
+      }
+    }
+    loadData()
+  }, [])
 
   // 处理情境标签选择
   const handleContextSelect = (context: ContextTag) => {
@@ -39,6 +54,9 @@ export default function MoodPage() {
 
     if (result) {
       setShowSuccess(true);
+      // 刷新记录列表
+      const entries = memoryStore.getRecentMoodEntries(30)
+      setRecentEntries(entries)
       setTimeout(() => {
         setShowSuccess(false);
         // 重置表单
@@ -54,6 +72,10 @@ export default function MoodPage() {
 
   return (
     <View className='mood-page'>
+      {/* 水墨背景装饰 */}
+      <View className='ink-bg-decoration ink-bg-1' />
+      <View className='ink-bg-decoration ink-bg-2' />
+
       {/* 成功提示 */}
       {showSuccess && (
         <View className='success-overlay'>
@@ -65,16 +87,22 @@ export default function MoodPage() {
       )}
 
       {/* 情绪选择器 */}
-      <MoodSelector selected={selectedMood} onSelect={setSelectedMood} />
+      <View className='ink-item' style={{ animationDelay: '0.1s' }}>
+        <MoodSelector selected={selectedMood} onSelect={setSelectedMood} />
+      </View>
 
       {/* 强度滑块 */}
-      <IntensitySlider value={intensity} onChange={setIntensity} />
+      <View className='ink-item' style={{ animationDelay: '0.2s' }}>
+        <IntensitySlider value={intensity} onChange={setIntensity} />
+      </View>
 
       {/* 情境标签 */}
-      <ContextTagSelector selected={selectedContexts} onSelect={handleContextSelect} />
+      <View className='ink-item' style={{ animationDelay: '0.3s' }}>
+        <ContextTagSelector selected={selectedContexts} onSelect={handleContextSelect} />
+      </View>
 
       {/* 备注输入 */}
-      <View className='note-section'>
+      <View className='note-section ink-item' style={{ animationDelay: '0.4s' }}>
         <Text className='note-title'>补充说明（可选）</Text>
         <Textarea
           className='note-input'
@@ -88,7 +116,7 @@ export default function MoodPage() {
       </View>
 
       {/* 保存按钮 */}
-      <View className='save-section'>
+      <View className='save-section ink-item' style={{ animationDelay: '0.5s' }}>
         <View
           className={`save-btn ${!selectedMood ? 'disabled' : ''}`}
           onClick={handleSave}
@@ -99,7 +127,7 @@ export default function MoodPage() {
 
       {/* 最近记录 */}
       {entries.length > 0 && (
-        <View className='recent-section'>
+        <View className='recent-section ink-item' style={{ animationDelay: '0.6s' }}>
           <Text className='recent-title'>最近记录</Text>
           <View className='recent-list'>
             {entries.slice(0, 5).map((entry) => (
@@ -124,6 +152,9 @@ export default function MoodPage() {
           </View>
         </View>
       )}
+
+      {/* 悬浮导航 */}
+      <FloatingNav />
     </View>
   );
 }
