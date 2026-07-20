@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星寰海 - 原型图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .prototype-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .prototype-nav h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-right: 16px;
+            white-space: nowrap;
+        }
+
+        .nav-btn {
+            padding: 6px 16px;
+            border: 1px solid #e8e8e8;
+            background: #fff;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            color: #666;
+        }
+
+        .nav-btn:hover {
+            border-color: #4A90D9;
+            color: #4A90D9;
+        }
+
+        .nav-btn.active {
+            background: #4A90D9;
+            color: #fff;
+            border-color: #4A90D9;
+        }
+
+        .prototype-container {
+            display: flex;
+            gap: 40px;
+            padding: 80px 40px 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: #fff;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 30px;
+            scrollbar-width: none;
+        }
+
+        .phone-screen::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 首页样式 */
+        .home-page {
+            min-height: 100%;
+        }
+
+        .home-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+        }
+
+        .home-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .settings-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pet-card {
+            margin: 0 16px 12px;
+            background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+            border-radius: 16px;
+            padding: 16px;
+            color: #fff;
+        }
+
+        .pet-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pet-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .pet-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .pet-info p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .pet-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .check-in-section {
+            margin: 0 16px 16px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .check-in-section h3 {
+            font-size: 16px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .check-in-section p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .check-in-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .streak {
+            font-size: 13px;
+            color: #FAAD14;
+            font-weight: 500;
+        }
+
+        .quick-functions {
+            margin: 0 16px 16px;
+        }
+
+        .quick-functions h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .function-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .function-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .function-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .function-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .function-name {
+            font-size: 12px;
+            color: #1a1a1a;
+        }
+
+        .reminder-card {
+            margin: 0 16px 12px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .reminder-card h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .reminder-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .reminder-item .icon {
+            font-size: 20px;
+        }
+
+        .tip-card {
+            margin: 0 16px;
+            background: linear-gradient(135deg, #FFF7E6 0%, #FFF0D9 100%);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .tip-card h4 {
+            font-size: 14px;
+            color: #FAAD14;
+            margin-bottom: 4px;
+        }
+
+        .tip-card p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 宠物档案页 */
+        .profile-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: #fff;
+        }
+
+        .page-header h2 {
+            flex: 1;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            padding: 6px 12px;
+            background: #4A90D9;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .profile-card {
+            margin: 12px 16px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .profile-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .profile-info p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .profile-actions button {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #e8e8e8;
+            background: #fff;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 20px 16px 12px;
+        }
+
+        .feature-card {
+            margin: 0 16px 12px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .feature-card h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .feature-card .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #E6F7FF;
+            color: #4A90D9;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        /* 打卡页 */
+        .checkin-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .checkin-item {
+            margin: 0 16px 12px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .checkin-item h4 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkin-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .checkin-option {
+            padding: 8px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        .checkin-option.selected {
+            background: #4A90D9;
+            color: #fff;
+            border-color: #4A90D9;
+        }
+
+        .checkin-option.warning {
+            background: #FFF7E6;
+            border-color: #FAAD14;
+            color: #FAAD14;
+        }
+
+        .checkin-option.danger {
+            background: #FFF1F0;
+            border-color: #F5222D;
+            color: #F5222D;
+        }
+
+        .submit-btn {
+            margin: 24px 16px;
+            width: calc(100% - 32px);
+            padding: 16px;
+            background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 食物查询页 */
+        .food-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .search-bar {
+            margin: 12px 16px;
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            gap: 8px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .hot-search {
+            margin: 0 16px 16px;
+        }
+
+        .hot-search h4 {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .hot-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hot-tag {
+            padding: 6px 12px;
+            background: #fff;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .food-result {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .food-result .status {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .food-result h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .food-result .desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .food-detail {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .food-detail h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .food-detail p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        /* 症状初筛页 */
+        .symptom-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e8e8e8;
+        }
+
+        .step-dot.active {
+            background: #4A90D9;
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 0 16px;
+        }
+
+        .symptom-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .symptom-item.selected {
+            border-color: #4A90D9;
+            background: #E6F7FF;
+        }
+
+        .symptom-item .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .symptom-item .name {
+            font-size: 13px;
+        }
+
+        .selected-symptoms {
+            margin: 16px;
+            padding: 12px;
+            background: #E6F7FF;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        /* 日历页 */
+        .calendar-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+        }
+
+        .calendar-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-nav button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #e8e8e8;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin: 0 16px 16px;
+            text-align: center;
+        }
+
+        .calendar-day-header {
+            padding: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .calendar-day {
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .calendar-day.today {
+            background: #4A90D9;
+            color: #fff;
+        }
+
+        .calendar-day.has-event {
+            position: relative;
+        }
+
+        .calendar-day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: #F5222D;
+            border-radius: 50%;
+        }
+
+        /* 趋势页 */
+        .trend-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .chart-container {
+            margin: 0 16px 16px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .chart-header h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .chart-filter {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-filter button {
+            padding: 4px 12px;
+            border: 1px solid #e8e8e8;
+            background: #fff;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .chart-filter button.active {
+            background: #4A90D9;
+            color: #fff;
+            border-color: #4A90D9;
+        }
+
+        .chart-placeholder {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f7fa;
+            border-radius: 12px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .trend-summary {
+            margin: 0 16px 16px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .trend-summary h4 {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .trend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f7fa;
+        }
+
+        .trend-item:last-child {
+            border-bottom: none;
+        }
+
+        .trend-item .label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .trend-item .value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .trend-item .value.up {
+            color: #52C41A;
+        }
+
+        .trend-item .value.down {
+            color: #F5222D;
+        }
+
+        /* 会员页 */
+        .member-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .member-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+            color: #fff;
+        }
+
+        .member-header h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .member-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .benefits-table {
+            margin: 16px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .benefits-table h4 {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .benefit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f7fa;
+        }
+
+        .benefit-row:last-child {
+            border-bottom: none;
+        }
+
+        .benefit-row .feature {
+            font-size: 14px;
+        }
+
+        .benefit-row .free, .benefit-row .premium {
+            font-size: 14px;
+            text-align: center;
+            width: 80px;
+        }
+
+        .benefit-row .premium {
+            color: #4A90D9;
+            font-weight: 600;
+        }
+
+        .plans {
+            margin: 0 16px 16px;
+        }
+
+        .plans h4 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .plan-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .plan-card:hover {
+            border-color: #4A90D9;
+        }
+
+        .plan-card.recommended {
+            border-color: #FAAD14;
+            position: relative;
+        }
+
+        .plan-card .plan-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .plan-card .plan-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #F5222D;
+        }
+
+        .plan-card .plan-price span {
+            font-size: 14px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .plan-card .plan-tag {
+            position: absolute;
+            top: -8px;
+            right: 12px;
+            padding: 2px 8px;
+            background: #FAAD14;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* 设置页 */
+        .settings-page {
+            min-height: 100%;
+            background: #f5f7fa;
+        }
+
+        .settings-group {
+            margin: 0 16px 16px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .settings-group-title {
+            font-size: 14px;
+            color: #666;
+            padding: 12px 16px 8px;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f5f7fa;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item .label {
+            font-size: 15px;
+        }
+
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: #e8e8e8;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle.active {
+            background: #4A90D9;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        .settings-item .arrow {
+            color: #999;
+            font-size: 18px;
+        }
+
+        .logout-btn {
+            margin: 24px 16px;
+            width: calc(100% - 32px);
+            padding: 16px;
+            background: #FFF1F0;
+            color: #F5222D;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 桌面端原型 */
+        .desktop-frame {
+            width: 1200px;
+            height: 800px;
+            background: #f5f7fa;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .desktop-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .desktop-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .desktop-sidebar {
+            width: 240px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .desktop-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+
+        .desktop-nav-item:hover {
+            background: #f5f7fa;
+        }
+
+        .desktop-nav-item.active {
+            background: #E6F7FF;
+            color: #4A90D9;
+        }
+
+        .desktop-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .desktop-layout {
+            display: flex;
+            height: calc(100% - 60px);
+        }
+
+        .skill-chart {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .skill-chart h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .skill-bar {
+            margin-bottom: 16px;
+        }
+
+        .skill-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .skill-bar-track {
+            height: 8px;
+            background: #f5f7fa;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90D9 0%, #7BB3E8 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .skill-bar-fill.target {
+            background: #e8e8e8;
+        }
+
+        .experience-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .experience-card h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .experience-card .company {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .experience-card .desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 标签页切换 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .prototype-container {
+                padding: 80px 16px 40px;
+            }
+
+            .phone-frame {
+                width: 100%;
+                max-width: 375px;
+            }
+
+            .desktop-frame {
+                width: 100%;
+                max-width: 1200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="prototype-nav">
+        <h1>星寰海原型图</h1>
+        <button class="nav-btn active" onclick="showTab('home')">首页</button>
+        <button class="nav-btn" onclick="showTab('profile')">宠物档案</button>
+        <button class="nav-btn" onclick="showTab('checkin')">3秒打卡</button>
+        <button class="nav-btn" onclick="showTab('food')">食物查询</button>
+        <button class="nav-btn" onclick="showTab('symptom')">症状初筛</button>
+        <button class="nav-btn" onclick="showTab('calendar')">疫苗日历</button>
+        <button class="nav-btn" onclick="showTab('trend')">健康趋势</button>
+        <button class="nav-btn" onclick="showTab('member')">会员</button>
+        <button class="nav-btn" onclick="showTab('settings')">设置</button>
+        <button class="nav-btn" onclick="showTab('desktop')">桌面端</button>
+    </nav>
+
+    <div class="prototype-container">
+        <!-- 首页 -->
+        <div id="home" class="tab-content active">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="home-page">
+                        <div class="home-header">
+                            <h2>星寰海</h2>
+                            <button class="settings-btn">⚙️</button>
+                        </div>
+
+                        <div class="pet-card">
+                            <div class="pet-card-header">
+                                <div class="pet-avatar">🐱</div>
+                                <div class="pet-info">
+                                    <h3>咪咪</h3>
+                                    <p>英短 · 3岁 · 4.5kg</p>
+                                </div>
+                            </div>
+                            <div class="pet-switch">▼ 切换宠物</div>
+                        </div>
+
+                        <div class="check-in-section">
+                            <h3>毛孩子今天怎么样？</h3>
+                            <p>快速记录，AI会帮你分析趋势</p>
+                            <button class="check-in-btn">开始3秒打卡</button>
+                            <div class="streak">已连续打卡 7 天 🔥</div>
+                        </div>
+
+                        <div class="quick-functions">
+                            <h4>快捷功能</h4>
+                            <div class="function-grid">
+                                <div class="function-item">
+                                    <div class="function-icon">🍎</div>
+                                    <div class="function-name">食物查询</div>
+                                </div>
+                                <div class="function-item">
+                                    <div class="function-icon">🤒</div>
+                                    <div class="function-name">症状初筛</div>
+                                </div>
+                                <div class="function-item">
+                                    <div class="function-icon">💉</div>
+                                    <div class="function-name">疫苗日历</div>
+                                </div>
+                                <div class="function-item">
+                                    <div class="function-icon">📊</div>
+                                    <div class="function-name">健康趋势</div>
+                                </div>
+                                <div class="function-item">
+                                    <div class="function-icon">🏥</div>
+                                    <div class="function-name">找医院</div>
+                                </div>
+                                <div class="function-item">
+                                    <div class="function-icon">📋</div>
+                                    <div class="function-name">健康报告</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reminder-card">
+                            <h4>📅 upcoming</h4>
+                            <div class="reminder-item">
+                                <span class="icon">💉</span>
+                                <span>咪咪的猫三联第2针 还有3天</span>
+                            </div>
+                        </div>
+
+                        <div class="tip-card">
+                            <h4>💡 今日小贴士</h4>
+                            <p>夏季注意驱虫，建议每月1次</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 宠物档案页 -->
+        <div id="profile" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="profile-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>我的宠物</h2>
+                            <button class="add-btn">+ 添加</button>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <div class="profile-avatar">🐱</div>
+                                <div class="profile-info">
+                                    <h3>咪咪</h3>
+                                    <p>英短 · 3岁 · 4.5kg · 已绝育</p>
+                                </div>
+                            </div>
+                            <div class="profile-actions">
+                                <button>编辑档案</button>
+                                <button>健康记录</button>
+                            </div>
+                        </div>
+
+                        <div class="section-title">品种特征</div>
+
+                        <div class="feature-card">
+                            <h4>🏥 遗传病易感</h4>
+                            <p>折耳猫常见骨骼问题</p>
+                            <span class="tag">了解更多</span>
+                        </div>
+
+                        <div class="feature-card">
+                            <h4>📏 体重范围</h4>
+                            <p>英短正常范围：4-7kg</p>
+                            <p>当前：4.5kg ✅ 正常</p>
+                        </div>
+
+                        <div class="feature-card">
+                            <h4>🍽️ 饮食禁忌</h4>
+                            <p>牛磺酸必需、避免高脂</p>
+                        </div>
+
+                        <div class="section-title">过敏史与用药史</div>
+
+                        <div class="feature-card">
+                            <p>🚫 已知过敏：无</p>
+                            <p>💊 当前用药：无</p>
+                            <p>🏥 慢性病：无</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3秒打卡页 -->
+        <div id="checkin" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="checkin-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>3秒打卡</h2>
+                            <span style="font-size: 14px; color: #666;">咪咪</span>
+                        </div>
+
+                        <div style="padding: 16px;">
+                            <h3 style="font-size: 16px; margin-bottom: 4px;">毛孩子今天怎么样？</h3>
+                            <p style="font-size: 13px; color: #666;">快速记录，AI会帮你分析趋势</p>
+                        </div>
+
+                        <div class="checkin-item">
+                            <h4>💩 便便状态</h4>
+                            <div class="checkin-options">
+                                <button class="checkin-option selected">正常</button>
+                                <button class="checkin-option">偏软</button>
+                                <button class="checkin-option">偏硬</button>
+                                <button class="checkin-option warning">稀便</button>
+                                <button class="checkin-option danger">血便</button>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item">
+                            <h4>🍽️ 食欲状态</h4>
+                            <div class="checkin-options">
+                                <button class="checkin-option selected">正常</button>
+                                <button class="checkin-option">少吃</button>
+                                <button class="checkin-option">多吃</button>
+                                <button class="checkin-option warning">不吃</button>
+                                <button class="checkin-option danger">呕吐</button>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item">
+                            <h4>😺 精神状态</h4>
+                            <div class="checkin-options">
+                                <button class="checkin-option selected">正常</button>
+                                <button class="checkin-option">兴奋</button>
+                                <button class="checkin-option">安静</button>
+                                <button class="checkin-option warning">低落</button>
+                                <button class="checkin-option danger">萎靡</button>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item">
+                            <h4>🏃 运动量</h4>
+                            <div class="checkin-options">
+                                <button class="checkin-option selected">正常</button>
+                                <button class="checkin-option">少</button>
+                                <button class="checkin-option">多</button>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item">
+                            <h4>⚖️ 体重(kg) [可选]</h4>
+                            <div class="search-bar" style="margin: 0;">
+                                <input type="text" value="4.5" placeholder="输入体重">
+                            </div>
+                        </div>
+
+                        <div class="checkin-item">
+                            <h4>📝 备注(可选)</h4>
+                            <div class="search-bar" style="margin: 0;">
+                                <input type="text" placeholder="今天换了新猫粮...">
+                            </div>
+                        </div>
+
+                        <button class="submit-btn">完成打卡</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 食物查询页 -->
+        <div id="food" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="food-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>食物安全查询</h2>
+                        </div>
+
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" placeholder="搜索食物名称...">
+                        </div>
+
+                        <div class="hot-search">
+                            <h4>热门搜索</h4>
+                            <div class="hot-tags">
+                                <span class="hot-tag">巧克力</span>
+                                <span class="hot-tag">葡萄</span>
+                                <span class="hot-tag">洋葱</span>
+                                <span class="hot-tag">牛奶</span>
+                                <span class="hot-tag">鸡蛋</span>
+                                <span class="hot-tag">骨头</span>
+                            </div>
+                        </div>
+
+                        <div class="food-result">
+                            <div class="status">🚫</div>
+                            <h3>不能吃！</h3>
+                            <p class="desc">巧克力</p>
+                            <p style="font-size: 14px; color: #666;">对猫狗有毒</p>
+
+                            <div class="food-detail">
+                                <h4>💀 危险成分</h4>
+                                <p>可可碱、咖啡因</p>
+
+                                <h4>🤢 中毒症状</h4>
+                                <p>呕吐、腹泻、心跳加速、抽搐<br>严重可致命</p>
+
+                                <h4>🆘 如果已经吃了：</h4>
+                                <p>1. 立即联系宠物医院<br>2. 告诉兽医吃了多少、什么类型<br>3. 保留包装或样品</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 症状初筛页 -->
+        <div id="symptom" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="symptom-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>症状初筛</h2>
+                            <span style="font-size: 14px; color: #666;">1/4</span>
+                        </div>
+
+                        <div style="padding: 16px;">
+                            <h3 style="font-size: 16px; margin-bottom: 4px;">毛孩子怎么了？</h3>
+                            <p style="font-size: 13px; color: #666;">选择出现的症状（可多选）</p>
+                        </div>
+
+                        <div class="symptom-grid">
+                            <div class="symptom-item">
+                                <div class="icon">🤮</div>
+                                <div class="name">呕吐</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">💩</div>
+                                <div class="name">腹泻</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">🍽️</div>
+                                <div class="name">不吃</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">😔</div>
+                                <div class="name">精神差</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">🤧</div>
+                                <div class="name">咳嗽</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">👃</div>
+                                <div class="name">打喷嚏</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon"></div>
+                                <div class="name">跛行</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">🔴</div>
+                                <div class="name">皮肤问题</div>
+                            </div>
+                            <div class="symptom-item">
+                                <div class="icon">👁️</div>
+                                <div class="name">眼鼻分泌物</div>
+                            </div>
+                        </div>
+
+                        <div class="selected-symptoms">
+                            已选择：呕吐、精神差
+                        </div>
+
+                        <button class="submit-btn">下一步</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 疫苗日历页 -->
+        <div id="calendar" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="calendar-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>疫苗驱虫日历</h2>
+                            <button class="settings-btn">⚙️</button>
+                        </div>
+
+                        <div style="padding: 16px;">
+                            <h3 style="font-size: 16px;">咪咪的疫苗计划</h3>
+                        </div>
+
+                        <div class="calendar-header">
+                            <h3>2026年7月</h3>
+                            <div class="calendar-nav">
+                                <button>&lt;</button>
+                                <button>&gt;</button>
+                            </div>
+                        </div>
+
+                        <div class="calendar-grid">
+                            <div class="calendar-day-header">日</div>
+                            <div class="calendar-day-header">一</div>
+                            <div class="calendar-day-header">二</div>
+                            <div class="calendar-day-header">三</div>
+                            <div class="calendar-day-header">四</div>
+                            <div class="calendar-day-header">五</div>
+                            <div class="calendar-day-header">六</div>
+
+                            <div class="calendar-day"></div>
+                            <div class="calendar-day"></div>
+                            <div class="calendar-day"></div>
+                            <div class="calendar-day">1</div>
+                            <div class="calendar-day">2</div>
+                            <div class="calendar-day">3</div>
+                            <div class="calendar-day">4</div>
+                            <div class="calendar-day">5</div>
+                            <div class="calendar-day">6</div>
+                            <div class="calendar-day">7</div>
+                            <div class="calendar-day">8</div>
+                            <div class="calendar-day">9</div>
+                            <div class="calendar-day">10</div>
+                            <div class="calendar-day">11</div>
+                            <div class="calendar-day">12</div>
+                            <div class="calendar-day">13</div>
+                            <div class="calendar-day">14</div>
+                            <div class="calendar-day">15</div>
+                            <div class="calendar-day">16</div>
+                            <div class="calendar-day">17</div>
+                            <div class="calendar-day">18</div>
+                            <div class="calendar-day">19</div>
+                            <div class="calendar-day today has-event">20</div>
+                            <div class="calendar-day">21</div>
+                            <div class="calendar-day">22</div>
+                            <div class="calendar-day">23</div>
+                            <div class="calendar-day">24</div>
+                            <div class="calendar-day">25</div>
+                            <div class="calendar-day">26</div>
+                            <div class="calendar-day">27</div>
+                            <div class="calendar-day">28</div>
+                            <div class="calendar-day">29</div>
+                            <div class="calendar-day">30</div>
+                            <div class="calendar-day">31</div>
+                        </div>
+
+                        <div class="reminder-card">
+                            <h4>即将到期</h4>
+                            <div class="reminder-item">
+                                <span class="icon">💉</span>
+                                <div>
+                                    <div>猫三联第2针</div>
+                                    <div style="font-size: 12px; color: #666;">计划日期：7月20日</div>
+                                    <div style="font-size: 12px; color: #FAAD14;">还有3天 ⚠️</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reminder-card">
+                            <h4>已完成</h4>
+                            <div class="reminder-item">
+                                <span class="icon">✅</span>
+                                <div>
+                                    <div>猫三联第1针</div>
+                                    <div style="font-size: 12px; color: #666;">完成日期：5月15日</div>
+                                    <div style="font-size: 12px; color: #666;">下次：7月20日</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 健康趋势页 -->
+        <div id="trend" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="trend-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>健康趋势</h2>
+                            <span style="font-size: 14px; color: #666;">咪咪</span>
+                        </div>
+
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h4>体重趋势</h4>
+                                <div class="chart-filter">
+                                    <button class="active">7天</button>
+                                    <button>30天</button>
+                                    <button>90天</button>
+                                </div>
+                            </div>
+                            <div class="chart-placeholder">
+                                [体重趋势图]
+                            </div>
+                        </div>
+
+                        <div class="trend-summary">
+                            <h4>📊 体重变化</h4>
+                            <div class="trend-item">
+                                <span class="label">当前体重</span>
+                                <span class="value">4.5kg</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="label">7天前</span>
+                                <span class="value">4.2kg</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="label">变化</span>
+                                <span class="value up">+7%</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="label">正常范围</span>
+                                <span class="value">4-7kg ✅</span>
+                            </div>
+                        </div>
+
+                        <div class="trend-summary">
+                            <h4> 食欲趋势</h4>
+                            <p style="font-size: 13px; color: #666; line-height: 1.6;">
+                                7月15-18日连续4天"少吃"<br>
+                                你记录了7月14日换粮<br>
+                                AI发现：咪咪每次换粮都有2-3天食欲下降
+                            </p>
+                        </div>
+
+                        <div class="trend-summary">
+                            <h4>🔴 异常记录</h4>
+                            <p style="font-size: 13px; color: #666; line-height: 1.6;">
+                                7月20日：呕吐1次<br>
+                                当天打卡：食欲"不吃"+精神"低落"<br>
+                                次日恢复正常
+                            </p>
+                        </div>
+
+                        <button class="submit-btn" style="margin-top: 0;">导出健康报告</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 会员页 -->
+        <div id="member" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="member-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>会员中心</h2>
+                        </div>
+
+                        <div class="member-header">
+                            <h2>星寰海会员</h2>
+                            <p>解锁更多功能</p>
+                        </div>
+
+                        <div class="benefits-table">
+                            <h4>会员权益对比</h4>
+                            <div class="benefit-row">
+                                <span class="feature">功能</span>
+                                <span class="free">免费</span>
+                                <span class="premium">会员</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">宠物档案</span>
+                                <span class="free">2只</span>
+                                <span class="premium">5只</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">健康打卡</span>
+                                <span class="free">✅</span>
+                                <span class="premium">✅</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">疫苗日历</span>
+                                <span class="free">✅</span>
+                                <span class="premium">✅</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">食物查询</span>
+                                <span class="free">5次/日</span>
+                                <span class="premium">不限</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">症状初筛</span>
+                                <span class="free">2次/日</span>
+                                <span class="premium">不限</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">健康趋势</span>
+                                <span class="free">7天</span>
+                                <span class="premium">不限</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">健康报告</span>
+                                <span class="free">❌</span>
+                                <span class="premium">✅</span>
+                            </div>
+                            <div class="benefit-row">
+                                <span class="feature">慢性病追踪</span>
+                                <span class="free">❌</span>
+                                <span class="premium">✅</span>
+                            </div>
+                        </div>
+
+                        <div class="plans">
+                            <h4>选择套餐</h4>
+                            <div class="plan-card">
+                                <div class="plan-name">月度会员</div>
+                                <div class="plan-price">¥9.9<span>/月</span></div>
+                            </div>
+                            <div class="plan-card recommended">
+                                <div class="plan-tag">推荐</div>
+                                <div class="plan-name">季度会员</div>
+                                <div class="plan-price">¥24.9<span>/季</span></div>
+                                <div style="font-size: 13px; color: #666;">相当于¥8.3/月</div>
+                            </div>
+                            <div class="plan-card">
+                                <div class="plan-name">年度会员</div>
+                                <div class="plan-price">¥89<span>/年</span></div>
+                                <div style="font-size: 13px; color: #666;">相当于¥7.4/月 最划算</div>
+                            </div>
+                        </div>
+
+                        <button class="submit-btn">立即开通</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置页 -->
+        <div id="settings" class="tab-content">
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="settings-page">
+                        <div class="page-header">
+                            <button class="back-btn">←</button>
+                            <h2>设置</h2>
+                        </div>
+
+                        <div class="settings-group-title">隐私设置</div>
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <span class="label">数据加密存储</span>
+                                <div class="toggle active"></div>
+                            </div>
+                            <div class="settings-item">
+                                <span class="label">云端备份</span>
+                                <div class="toggle active"></div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group-title">通知设置</div>
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <span class="label">疫苗提醒</span>
+                                <div class="toggle active"></div>
+                            </div>
+                            <div class="settings-item">
+                                <span class="label">异常预警</span>
+                                <div class="toggle active"></div>
+                            </div>
+                            <div class="settings-item">
+                                <span class="label">打卡提醒</span>
+                                <div class="toggle"></div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group-title">数据管理</div>
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <span class="label">导出我的数据</span>
+                                <span class="arrow">&gt;</span>
+                            </div>
+                            <div class="settings-item">
+                                <span class="label">清除所有数据</span>
+                                <span class="arrow">&gt;</span>
+                            </div>
+                        </div>
+
+                        <div class="settings-group-title">关于</div>
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <span class="label">版本信息</span>
+                                <span style="font-size: 14px; color: #666;">v1.0.0</span>
+                            </div>
+                            <div class="settings-item">
+                                <span class="label">用户协议</span>
+                                <span class="arrow">&gt;</span>
+                            </div>
+                            <div class="settings-item">
+                                <span class="label">隐私政策</span>
+                                <span class="arrow">&gt;</span>
+                            </div>
+                        </div>
+
+                        <button class="logout-btn">退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 桌面端原型 -->
+        <div id="desktop" class="tab-content">
+            <div class="desktop-frame">
+                <div class="desktop-header">
+                    <h2>星寰海 · AI职业顾问</h2>
+                    <span>👤</span>
+                </div>
+                <div class="desktop-layout">
+                    <div class="desktop-sidebar">
+                        <div class="desktop-nav-item active">
+                            <span>📊</span>
+                            <span>职业档案</span>
+                        </div>
+                        <div class="desktop-nav-item">
+                            <span>📝</span>
+                            <span>AI简历生成</span>
+                        </div>
+                        <div class="desktop-nav-item">
+                            <span>📈</span>
+                            <span>技能差距分析</span>
+                        </div>
+                        <div class="desktop-nav-item">
+                            <span>🎯</span>
+                            <span>学习路径推荐</span>
+                        </div>
+                        <div class="desktop-nav-item">
+                            <span>💬</span>
+                            <span>AI面试模拟</span>
+                        </div>
+                        <div class="desktop-nav-item">
+                            <span>📊</span>
+                            <span>行业趋势分析</span>
+                        </div>
+                    </div>
+                    <div class="desktop-content">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px;">
+                            <div class="skill-chart">
+                                <h3>📊 技能图谱</h3>
+                                <div class="chart-placeholder" style="height: 150px;">[技能雷达图]</div>
+                            </div>
+                            <div class="skill-chart">
+                                <h3>🎯 职业目标</h3>
+                                <p style="font-size: 14px; color: #666; margin-top: 8px;">目标：技术负责人</p>
+                                <p style="font-size: 14px; color: #666;">预计达成：2年</p>
+                                <button style="margin-top: 12px; padding: 8px 16px; background: #4A90D9; color: #fff; border: none; border-radius: 8px; cursor: pointer;">查看路径</button>
+                            </div>
+                            <div class="skill-chart">
+                                <h3>📈 成长轨迹</h3>
+                                <div class="chart-placeholder" style="height: 150px;">[技能增长曲线]</div>
+                            </div>
+                        </div>
+
+                        <div class="skill-chart">
+                            <h3>🔴 差距较大的技能</h3>
+                            <div class="skill-bar">
+                                <div class="skill-bar-label">
+                                    <span>团队管理</span>
+                                    <span>当前：20% / 目标：80%</span>
+                                </div>
+                                <div class="skill-bar-track">
+                                    <div class="skill-bar-fill" style="width: 20%;"></div>
+                                </div>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-bar-label">
+                                    <span>架构设计</span>
+                                    <span>当前：30% / 目标：70%</span>
+                                </div>
+                                <div class="skill-bar-track">
+                                    <div class="skill-bar-fill" style="width: 30%;"></div>
+                                </div>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-bar-label">
+                                    <span>项目管理</span>
+                                    <span>当前：50% / 目标：80%</span>
+                                </div>
+                                <div class="skill-bar-track">
+                                    <div class="skill-bar-fill" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="skill-chart">
+                            <h3>💼 工作经历</h3>
+                            <div class="experience-card">
+                                <h4>前端工程师 · ABC科技</h4>
+                                <p class="company">2023.03 - 至今</p>
+                                <p class="desc">负责公司核心产品前端开发，主导技术选型与架构设计...</p>
+                            </div>
+                            <div class="experience-card">
+                                <h4>初级前端 · XYZ互联网</h4>
+                                <p class="company">2021.07 - 2023.02</p>
+                                <p class="desc">参与电商平台开发，负责商品详情页、购物车等模块...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 移除所有按钮的active状态
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 显示当前标签页
+            document.getElementById(tabName).classList.add('active');
+
+            // 激活当前按钮
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

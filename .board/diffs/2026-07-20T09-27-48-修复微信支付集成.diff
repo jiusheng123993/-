@@ -1,0 +1,6 @@
+# 改动说明
+# 问题：修复微信支付集成
+# 原因：将会员页模拟支付改为真正的微信支付流程：创建订单→唤起微信支付→轮询确认。移除simulatePaymentSuccess和subscribe旧函数，新增createPaymentOrder/requestWechatPayment/pollOrderStatus/confirmPayment函数。
+# 改动：
+#   1. 修复微信支付集成
+# 影响：将会员页模拟支付改为真正的微信支付流程：创建订单→唤起微信支付→轮询确认。移除simulatePaymentSuccess和subscribe旧函数，新增createPaymentOrder/requestWechatPayment/pollOrderStatus/confirmPayment函数。

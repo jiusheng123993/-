@@ -39,6 +39,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+    globDirectory: '03-源代码/桌面端/src',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.deepseek\.com\/.*/i,

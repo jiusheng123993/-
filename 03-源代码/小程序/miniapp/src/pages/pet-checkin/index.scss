@@ -1,0 +1,333 @@
+.pet-checkin {
+  min-height: 100vh;
+  background: #FFF5F0;
+  padding: 32rpx 24rpx;
+  padding-bottom: 200rpx;
+  position: relative;
+}
+
+.pet-checkin__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.pet-checkin__loading-text {
+  font-size: 26rpx;
+  color: #8C8C8C;
+}
+
+.pet-checkin__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 48rpx;
+}
+
+.pet-checkin__empty-icon {
+  font-size: 96rpx;
+  margin-bottom: 24rpx;
+}
+
+.pet-checkin__empty-text {
+  font-size: 28rpx;
+  color: #8C8C8C;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.pet-checkin__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.pet-checkin__section {
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.08);
+}
+
+.pet-checkin__section-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2C2C2C;
+  margin-bottom: 20rpx;
+  letter-spacing: 1rpx;
+}
+
+.pet-checkin__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.pet-checkin__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 140rpx;
+  height: 120rpx;
+  padding: 16rpx 20rpx;
+  background: #FFF5F0;
+  border-radius: 24rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.pet-checkin__option--active {
+  background: #FFF0E5;
+  border-color: #FF8C42;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.2);
+}
+
+.pet-checkin__option-emoji {
+  font-size: 40rpx;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.pet-checkin__option-label {
+  font-size: 22rpx;
+  color: #6B6B6B;
+  font-weight: 500;
+}
+
+.pet-checkin__option--active .pet-checkin__option-label {
+  color: #FF8C42;
+  font-weight: 600;
+}
+
+.pet-checkin__toggle {
+  display: flex;
+  gap: 16rpx;
+}
+
+.pet-checkin__toggle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 120rpx;
+  background: #FFF5F0;
+  border-radius: 24rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.pet-checkin__toggle-btn--active {
+  background: #FFF0E5;
+  border-color: #FF8C42;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.2);
+}
+
+.pet-checkin__toggle-btn--active-danger {
+  background: #FFF0F0;
+  border-color: #FF4D4F;
+  box-shadow: 0 4rpx 16rpx rgba(255, 77, 79, 0.2);
+}
+
+.pet-checkin__toggle-emoji {
+  font-size: 40rpx;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.pet-checkin__toggle-label {
+  font-size: 22rpx;
+  color: #6B6B6B;
+  font-weight: 500;
+}
+
+.pet-checkin__toggle-btn--active .pet-checkin__toggle-label {
+  color: #FF8C42;
+  font-weight: 600;
+}
+
+.pet-checkin__toggle-btn--active-danger .pet-checkin__toggle-label {
+  color: #FF4D4F;
+  font-weight: 600;
+}
+
+.pet-checkin__weight-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 24rpx;
+  background: #FFF5F0;
+  border-radius: 24rpx;
+  font-size: 28rpx;
+  color: #2C2C2C;
+  box-sizing: border-box;
+}
+
+.pet-checkin__weight-placeholder {
+  color: #C0C0C0;
+}
+
+.pet-checkin__notes {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 24rpx;
+  background: #FFF5F0;
+  border-radius: 24rpx;
+  font-size: 28rpx;
+  color: #2C2C2C;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.pet-checkin__notes-placeholder {
+  color: #C0C0C0;
+}
+
+.pet-checkin__notes-count {
+  display: block;
+  font-size: 22rpx;
+  color: #8C8C8C;
+  text-align: right;
+  margin-top: 12rpx;
+}
+
+.pet-checkin__submit {
+  width: 100%;
+  height: 96rpx;
+  background: #FF8C42;
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 700;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(255, 140, 66, 0.3);
+  transition: all 0.3s ease;
+  margin-top: 16rpx;
+}
+
+.pet-checkin__submit:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.2);
+}
+
+.pet-checkin__submit--disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.pet-checkin__result {
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  padding: 40rpx 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.08);
+  margin-bottom: 24rpx;
+}
+
+.pet-checkin__result--normal {
+  border-left: 8rpx solid #52C41A;
+}
+
+.pet-checkin__result--caution {
+  border-left: 8rpx solid #FAAD14;
+}
+
+.pet-checkin__result--warning {
+  border-left: 8rpx solid #FF8C42;
+}
+
+.pet-checkin__result--emergency {
+  border-left: 8rpx solid #FF4D4F;
+}
+
+.pet-checkin__result-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2C2C2C;
+  margin-bottom: 16rpx;
+}
+
+.pet-checkin__result-feedback {
+  display: block;
+  font-size: 26rpx;
+  color: #4A4A4A;
+  line-height: 1.6;
+  padding: 20rpx;
+  border-radius: 16rpx;
+}
+
+.pet-checkin__result--normal .pet-checkin__result-feedback {
+  background: #F6FFED;
+  color: #389E0D;
+}
+
+.pet-checkin__result--caution .pet-checkin__result-feedback {
+  background: #FFFBE6;
+  color: #D48806;
+}
+
+.pet-checkin__result--warning .pet-checkin__result-feedback {
+  background: #FFF2E8;
+  color: #D46B08;
+}
+
+.pet-checkin__result--emergency .pet-checkin__result-feedback {
+  background: #FFF1F0;
+  color: #CF1322;
+}
+
+.pet-checkin__result-detail {
+  margin-top: 24rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.pet-checkin__result-tag {
+  font-size: 22rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  background: #FFF5F0;
+  color: #6B6B6B;
+}
+
+.pet-checkin__stats {
+  background: #FFFFFF;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.08);
+  margin-top: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.pet-checkin__stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pet-checkin__stats-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #FF8C42;
+}
+
+.pet-checkin__stats-label {
+  font-size: 22rpx;
+  color: #8C8C8C;
+}
+
+.pet-checkin__stats-divider {
+  width: 2rpx;
+  height: 48rpx;
+  background: #F0F0F0;
+}

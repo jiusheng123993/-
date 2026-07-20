@@ -19,6 +19,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
+  "include": ["03-源代码/桌面端/src"],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/server"]
 }

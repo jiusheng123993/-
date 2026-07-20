@@ -15,6 +15,20 @@ screenshot-*.png
 release/
 release2/
 build/
+dist/
+dist-electron/
+
+# MCP 工具
+codebase-memory-mcp/
+codebase-memory-mcp-ui/
+
+# 旧版规则文件
+rule-*.md
+
+# 临时脚本
+scripts/
+*.bat
+*.ps1
 
 # 支付配置（包含敏感密钥）
 config/payment/

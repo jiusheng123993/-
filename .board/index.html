@@ -5,253 +5,876 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>项目看板 - 星寰海</title>
 <style>
-:root{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--text:#e2e8f0;--dim:#94a3b8;--muted:#64748b;--accent:#38bdf8;--accent2:#818cf8;--green:#4ade80;--green-bg:rgba(74,222,128,.1);--yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.1);--red:#f87171;--red-bg:rgba(248,113,113,.1);--blue:#60a5fa;--blue-bg:rgba(96,165,250,.1);--pink:#f472b6;--pink-bg:rgba(244,114,182,.1);--gray:#94a3b8;--gray-bg:rgba(148,163,184,.1);--border:#334155;--r:10px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f7fa;color:#1a1a2e}
 .layout{display:flex;min-height:100vh}
-.sb{width:240px;background:var(--bg);border-right:1px solid var(--border);flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
-.sb-hd{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
-.sb-logo{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
-.sb-pulse{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.sb-nav{flex:1;padding:8px 0;overflow-y:auto}
-.sb-lbl{padding:8px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600}
-.sb-item{padding:8px 16px 8px 24px;font-size:13px;cursor:pointer;color:var(--dim);transition:.15s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px}
-.sb-item:hover{background:rgba(255,255,255,.03);color:var(--text)}
-.sb-item.on{background:rgba(56,189,248,.08);color:var(--accent);border-left-color:var(--accent)}
-.sb-item .ic{font-size:14px;width:18px;text-align:center}
-.sb-date{padding:6px 16px 6px 32px;font-size:12px;cursor:pointer;color:var(--muted);transition:.15s;display:flex;align-items:center;justify-content:space-between}
-.sb-date:hover{color:var(--dim);background:rgba(255,255,255,.02)}
-.sb-date.on{color:var(--accent)}
-.sb-date .ct{font-size:10px;background:var(--border);padding:1px 6px;border-radius:8px}
-.sb-ft{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
-.ws-d{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
-.ws-d.on{background:var(--green)}.ws-d.off{background:var(--red)}
-.main{flex:1;padding:24px 32px;max-width:1100px;min-width:0}
-.hdr{background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid var(--border);border-radius:14px;padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden}
-.hdr::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(56,189,248,.08) 0%,transparent 70%);pointer-events:none}
-.hdr h1{font-size:22px;font-weight:700;margin-bottom:4px;position:relative}
-.hdr .meta{font-size:13px;color:var(--dim);position:relative;display:flex;flex-wrap:wrap;gap:16px}
-.hdr .mi{display:flex;align-items:center;gap:4px}
-.hdr .ps{margin-top:16px;position:relative}
-.hdr .pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
-.hdr .pf{height:100%;border-radius:4px;transition:width .8s;background:linear-gradient(90deg,var(--accent),var(--green))}
-.hdr .pl{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--dim)}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;transition:transform .15s}
-.sc:hover{transform:translateY(-2px)}
-.sv{font-size:28px;font-weight:700}
-.sv.g{color:var(--green)}.sv.y{color:var(--yellow)}.sv.b{color:var(--blue)}.sv.r{color:var(--red)}
-.sl{font-size:12px;color:var(--muted);margin-top:2px}
-.cd{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;margin-bottom:14px}
-.ct2{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.mi2{padding:12px 0;border-bottom:1px solid var(--border)}
-.mi2:last-child{border-bottom:none}
-.mr{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
-.mr:hover .mn{color:var(--accent)}
-.mn{font-size:14px;font-weight:500;transition:.15s}
-.md{font-size:12px;color:var(--muted);margin-top:2px}
-.mrt{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.mp{width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
-.mpf{height:100%;border-radius:2px;transition:width .5s}
-.mpf.done{background:var(--green)}.mpf.doing{background:var(--yellow)}.mpf.pending{background:var(--gray)}.mpf.blocked{background:var(--red)}
-.mdt{display:none;padding:10px 0 4px 16px}
-.mdt.open{display:block}
-.mst{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:var(--dim)}
-.ck{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
-.ck.done{background:var(--green);border-color:var(--green);color:var(--bg)}
-.ck.doing{background:var(--yellow);border-color:var(--yellow);color:var(--bg)}
-.badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
-.b-done{background:var(--green-bg);color:var(--green)}.b-doing{background:var(--yellow-bg);color:var(--yellow)}.b-pending{background:var(--gray-bg);color:var(--gray)}.b-fail{background:var(--red-bg);color:var(--red)}.b-review{background:var(--blue-bg);color:var(--blue)}.b-blocked{background:var(--pink-bg);color:var(--pink)}.b-change{background:var(--blue-bg);color:var(--blue)}.b-sync{background:rgba(129,140,248,.1);color:var(--accent2)}.b-test{background:var(--pink-bg);color:var(--pink)}
-.sbx{margin-bottom:16px;position:relative}
-.si{width:100%;padding:10px 14px 10px 36px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s}
-.si:focus{border-color:var(--accent)}
-.sic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
-.fb{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.fbtn{padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:.15s}
-.fbtn:hover{border-color:var(--accent);color:var(--accent)}
-.fbtn.on{background:rgba(56,189,248,.1);border-color:var(--accent);color:var(--accent)}
-.dg{margin-bottom:20px}
-.dh{font-size:13px;font-weight:600;color:var(--dim);padding:8px 0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:8px;position:sticky;top:0;background:var(--bg2);z-index:1;display:flex;align-items:center;gap:8px}
-.dh .dd{width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.ti{position:relative;padding:10px 0 10px 28px;border-bottom:1px solid rgba(51,65,85,.5);transition:background .15s}
-.ti:hover{background:rgba(255,255,255,.02)}
-.ti:last-child{border-bottom:none}
-.ti::before{content:'';position:absolute;left:6px;top:18px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg2)}
-.ti.t-change::before{background:var(--blue);box-shadow:0 0 0 2px var(--blue)}
-.ti.t-done::before{background:var(--green);box-shadow:0 0 0 2px var(--green)}
-.ti.t-fail::before{background:var(--red);box-shadow:0 0 0 2px var(--red)}
-.ti.t-review::before{background:var(--yellow);box-shadow:0 0 0 2px var(--yellow)}
-.ti.t-sync::before{background:var(--accent2);box-shadow:0 0 0 2px var(--accent2)}
-.ti.t-test::before{background:var(--pink);box-shadow:0 0 0 2px var(--pink)}
-.tt{font-size:11px;color:var(--muted)}
-.ttl{font-size:14px;font-weight:500;margin:2px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tde{font-size:13px;color:var(--dim);line-height:1.5}
-.tf{font-size:12px;color:var(--accent);font-family:'SFMono-Regular',Consolas,monospace;margin-top:4px}
-.ta{margin-top:6px}
-.tvd{font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline;display:inline-flex;align-items:center;gap:4px}
-.tvd:hover{color:var(--blue)}
-.ttb{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600}
-.rv{padding:12px;border-radius:8px;margin-bottom:8px;border-left:3px solid}
-.rv-pass{border-left-color:var(--green);background:var(--green-bg)}
-.rv-fail{border-left-color:var(--red);background:var(--red-bg)}
-.rv-info{border-left-color:var(--blue);background:var(--blue-bg)}
-.rv-t{font-size:13px;font-weight:600;margin-bottom:4px}
-.rv-d{font-size:12px;color:var(--dim)}
-.rv-m{font-size:11px;color:var(--muted);margin-top:4px}
-.tst{padding:10px 12px;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02);border:1px solid var(--border)}
-.tst-l{display:flex;align-items:center;gap:8px}
-.tst-n{font-size:13px}
-.tst-r{font-size:12px;color:var(--muted)}
-.tst-d{font-size:11px;color:var(--muted)}
-.dci{padding:10px 12px;border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border)}
-.dci-t{font-size:13px;font-weight:500}
-.dci-m{font-size:11px;color:var(--muted);margin-top:4px}
-.empty{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty-i{font-size:32px;margin-bottom:8px}
-.empty-t{font-size:14px}
-.hidden{display:none!important}
-.dmo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none}
-.dmo.on{opacity:1;pointer-events:auto}
-.dm{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:95%;max-width:1400px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:translateY(20px);transition:transform .2s}
-.dmo.on .dm{transform:translateY(0)}
-.dm-h{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
-.dm-t{font-size:14px;font-weight:600}
-.dm-c{width:30px;height:30px;border:none;background:var(--border);border-radius:6px;cursor:pointer;font-size:16px;color:var(--dim);display:flex;align-items:center;justify-content:center}
-.dm-c:hover{background:var(--bg3);color:var(--text)}
-.dm-b{flex:1;overflow:auto;padding:20px}
-.dl{padding:40px;text-align:center;color:var(--muted);font-size:14px}
-.de{padding:40px;text-align:center;color:var(--muted);font-size:14px}
-.dpt{padding:16px;background:var(--bg);border-radius:8px;font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;line-height:1.7}
-.dpl{padding:2px 0;color:var(--dim);border-bottom:1px solid var(--border)}
-.dpl:last-child{border-bottom:none}
-.dpc{padding:4px 0;color:var(--yellow);font-weight:600;border-bottom:1px solid rgba(251,191,36,.2);background:var(--yellow-bg);margin:2px -16px;padding-left:16px;padding-right:16px}
-.dfc{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
-.ddesc{padding:12px 16px;background:var(--yellow-bg);border-bottom:1px solid rgba(251,191,36,.2)}
-.ddesc-l{font-size:13px;color:var(--yellow);line-height:1.7}
-.ddesc-l:first-child{font-weight:600}
-.dfh{padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
-.dfn{font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;color:var(--accent);font-weight:600}
-.dfd{font-size:12px;color:var(--muted);margin-top:2px}
-.dhs{display:flex;flex-direction:column}
-.dhh{padding:6px 16px;font-size:11px;color:var(--muted);background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);font-family:'SFMono-Regular',Consolas,monospace}
-.dp2{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
-.dp2h{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}
-.dp2hl{padding:6px 12px;font-size:11px;font-weight:600;background:var(--red-bg);color:var(--red);border-bottom:1px solid rgba(248,113,113,.2);border-right:1px solid var(--border)}
-.dp2hr{padding:6px 12px;font-size:11px;font-weight:600;background:var(--green-bg);color:var(--green);border-bottom:1px solid rgba(74,222,128,.2)}
-.ds{font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;line-height:1.6;overflow-x:auto}
-.dsl{border-right:1px solid var(--border)}
-.dlr{display:flex;white-space:pre}
-.dln{width:40px;min-width:40px;text-align:right;padding:2px 6px;font-size:11px;user-select:none;border-right:1px solid var(--border);color:var(--muted)}
-.dlc{padding:2px 8px;flex:1}
-.dlr.del{background:var(--red-bg)}.dlr.del .dln{background:rgba(248,113,113,.15);color:var(--red)}.dlr.del .dlc{color:var(--red)}
-.dlr.add{background:var(--green-bg)}.dlr.add .dln{background:rgba(74,222,128,.15);color:var(--green)}.dlr.add .dlc{color:var(--green)}
-.dlr.ctx{background:rgba(255,255,255,.01)}.dlr.ctx .dln{color:var(--muted)}.dlr.ctx .dlc{color:var(--dim)}
-.dlr.empty{background:transparent}.dlr.empty .dln{color:var(--border)}.dlr.empty .dlc{color:var(--border)}
-.ra{padding:12px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,.02);border:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;transition:background .15s}
-.ra:hover{background:rgba(255,255,255,.04)}
-.ra-ic{font-size:16px;flex-shrink:0;margin-top:2px}
-.ra-bd{flex:1;min-width:0}
-.ra-t{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ra-d{font-size:12px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ra-tm{font-size:11px;color:var(--muted);flex-shrink:0;margin-top:2px}
-.rv-dim{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.rv-di{padding:6px 10px;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:6px}
-.rv-di.pass{background:rgba(74,222,128,.08);color:var(--green)}
-.rv-di.fail{background:rgba(248,113,113,.08);color:var(--red)}
-.rv-di.warn{background:rgba(251,191,36,.08);color:var(--yellow)}
-.mg{margin-bottom:16px}
-.mg-h{font-size:12px;font-weight:600;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.mg-h .mg-ct{font-size:10px;background:var(--border);padding:1px 6px;border-radius:8px}
-.tl-stat{font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:12px}
-.tl-stat strong{color:var(--accent)}
-.tc{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
-.tc canvas{width:100%;height:120px;display:block}
-.tc-legend{display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--dim)}
-.tc-legend span{display:flex;align-items:center;gap:4px}
-.tc-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-@media(max-width:900px){.sb{width:180px}.main{padding:16px}.sg{grid-template-columns:repeat(2,1fr)}.dm{width:96%}.dp2{grid-template-columns:1fr}.dsl{border-right:none;border-bottom:1px solid var(--border)}.rv-dim{grid-template-columns:1fr}}
-@media(max-width:600px){.sb{display:none}.sg{grid-template-columns:1fr 1fr}}
+.sidebar{width:240px;background:#1a1a2e;color:#fff;padding:20px 0;flex-shrink:0;overflow-y:auto;position:sticky;top:0;height:100vh}
+.sidebar-title{padding:0 16px 16px;font-size:16px;font-weight:600;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-section{margin-top:12px}
+.sidebar-label{padding:6px 16px;font-size:11px;text-transform:uppercase;opacity:.5;letter-spacing:1px}
+.sidebar-item{padding:8px 16px 8px 24px;font-size:13px;cursor:pointer;color:rgba(255,255,255,.7);transition:all .15s;border-left:3px solid transparent}
+.sidebar-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.sidebar-item.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:#4ade80}
+.sidebar-sub{padding:6px 16px 6px 36px;font-size:12px;cursor:pointer;color:rgba(255,255,255,.5);transition:all .15s;border-left:2px solid transparent}
+.sidebar-sub:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.8)}
+.sidebar-sub.active{background:rgba(255,255,255,.08);color:#fff;border-left-color:#4ade80}
+.main{flex:1;padding:24px;max-width:960px}
+.header{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:28px 32px;border-radius:12px;margin-bottom:20px}
+.header h1{font-size:24px;margin-bottom:6px}
+.header .meta{font-size:14px;opacity:.8}
+.header .progress-bar{margin-top:14px;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.header .progress-fill{height:100%;background:#f59e0b;border-radius:3px;transition:width .5s}
+.card{background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:16px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500}
+.badge-done{background:#dcfce7;color:#166534}
+.badge-doing{background:#fef9c3;color:#854d0e}
+.badge-pending{background:#f3f4f6;color:#6b7280}
+.badge-blocked{background:#fee2e2;color:#991b1b}
+.badge-review{background:#dbeafe;color:#1e40af}
+.badge-p0{background:#fee2e2;color:#991b1b;font-weight:700}
+.badge-p1{background:#fef3c7;color:#92400e;font-weight:600}
+.badge-p2{background:#dbeafe;color:#1e40af;font-weight:500}
+.badge-phase2{background:#e0e7ff;color:#3730a3}
+.badge-phase3{background:#ede9fe;color:#5b21b6}
+.badge-phase15{background:#f0fdf4;color:#166534}
+.badge-partial{background:#fff7ed;color:#9a3412}
+.section-divider{font-size:13px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;padding:12px 0 6px;border-bottom:2px solid #e5e7eb;margin-bottom:8px;margin-top:16px}
+.section-divider:first-child{margin-top:0}
+.module-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.module-item:last-child{border-bottom:none}
+.module-name{font-size:14px}
+.module-desc{font-size:12px;color:#6b7280;margin-top:2px}
+.module-progress{font-size:11px;color:#9ca3af;margin-top:2px;font-family:monospace}
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:#e5e7eb}
+.tl-item{position:relative;padding:10px 0 10px 16px;border-bottom:1px solid #f3f4f6}
+.tl-item:last-child{border-bottom:none}
+.tl-item::before{content:'';position:absolute;left:-16px;top:16px;width:10px;height:10px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 0 0 2px #3b82f6}
+.tl-item.done::before{background:#4ade80;box-shadow:0 0 0 2px #4ade80}
+.tl-item.warn::before{background:#f59e0b;box-shadow:0 0 0 2px #f59e0b}
+.tl-item.fail::before{background:#ef4444;box-shadow:0 0 0 2px #ef4444}
+.tl-item.info::before{background:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6}
+.tl-time{font-size:11px;color:#9ca3af}
+.tl-title{font-size:14px;font-weight:500;margin:2px 0}
+.tl-desc{font-size:13px;color:#4b5563}
+.tl-file{font-size:12px;color:#2563eb;font-family:monospace}
+.hidden{display:none}
+.date-divider{font-size:14px;font-weight:600;color:#1a1a2e;padding:16px 0 8px;border-bottom:1px solid #e5e7eb;margin-bottom:8px}
+.review-item{padding:12px 0;border-bottom:1px solid #f0f0f0}
+.review-item:last-child{border-bottom:none}
+.review-pass{border-left:3px solid #4ade80;padding-left:12px}
+.review-fail{border-left:3px solid #ef4444;padding-left:12px}
+.review-info{border-left:3px solid #3b82f6;padding-left:12px}
+.decision-item{padding:12px 0;border-bottom:1px solid #f0f0f0}
+.decision-item:last-child{border-bottom:none}
+.test-item{padding:12px 0;border-bottom:1px solid #f0f0f0}
+.test-item:last-child{border-bottom:none}
+.test-pass{border-left:3px solid #4ade80;padding-left:12px}
+.test-fail{border-left:3px solid #ef4444;padding-left:12px}
+.test-pending{border-left:3px solid #f59e0b;padding-left:12px}
+.warning-box{background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#92400e}
+.info-box{background:#eff6ff;border:1px solid #3b82f6;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#1e40af}
+.success-box{background:#f0fdf4;border:1px solid #4ade80;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#166534}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.stat-card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);text-align:center}
+.stat-value{font-size:28px;font-weight:700}
+.stat-label{font-size:12px;color:#6b7280;margin-top:4px}
+.stat-green{color:#16a34a}
+.stat-yellow{color:#ca8a04}
+.stat-red{color:#dc2626}
+.stat-blue{color:#2563eb}
+.stat-purple{color:#7c3aed}
+.risk-item{padding:10px 0;border-bottom:1px solid #f0f0f0}
+.risk-item:last-child{border-bottom:none}
+.risk-p0{border-left:3px solid #ef4444;padding-left:12px}
+.risk-p1{border-left:3px solid #f59e0b;padding-left:12px}
+.risk-p2{border-left:3px solid #3b82f6;padding-left:12px}
+.risk-resolved{border-left:3px solid #4ade80;padding-left:12px;opacity:.6;text-decoration:line-through}
+.prd-progress-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-top:8px}
+.prd-progress-fill{height:100%;border-radius:4px;transition:width .5s}
+.prd-stat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.prd-stat-label{color:#4b5563}
+.prd-stat-value{font-weight:600}
+.layer-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.layer-data{background:#dbeafe;color:#1e40af}
+.layer-ai{background:#fef3c7;color:#92400e}
+.layer-func{background:#dcfce7;color:#166534}
+.layer-emotion{background:#fce7f3;color:#9d174d}
+.layer-avatar{background:#e0e7ff;color:#3730a3}
+.layer-protect{background:#fee2e2;color:#991b1b}
+.layer-monetize{background:#f0fdf4;color:#166534}
+.layer-infra{background:#f3f4f6;color:#374151}
+.detail-grid{display:grid;grid-template-columns:120px 1fr;gap:6px 12px;font-size:13px;margin-bottom:12px}
+.detail-label{color:#6b7280;font-weight:500}
+.detail-value{color:#1a1a2e}
 </style>
 </head>
 <body>
 <div class="layout">
-<div class="sb">
-<div class="sb-hd"><div class="sb-logo"><span class="sb-pulse"></span> 星寰海</div></div>
-<div class="sb-nav">
-<div><div class="sb-lbl">概览</div><div class="sb-item on" data-v="overview"><span class="ic">📊</span>仪表盘</div><div class="sb-item" data-v="modules"><span class="ic">📦</span>模块看板</div></div>
-<div><div class="sb-lbl">历史记录</div><div class="sb-item" data-v="timeline"><span class="ic">🕐</span>时间线</div><div class="sb-item" data-v="reviews"><span class="ic">🔍</span>审查记录</div><div class="sb-item" data-v="tests"><span class="ic">🧪</span>测试记录</div><div class="sb-item" data-v="decisions"><span class="ic">💡</span>决策记录</div></div>
-<div id="date-index"><div class="sb-lbl">按日期查找</div></div>
+<div class="sidebar">
+<div class="sidebar-title">📋 星寰海</div>
+<div class="sidebar-section">
+<div class="sidebar-label">概览</div>
+<div class="sidebar-item active" data-view="overview" onclick="switchView('overview')">📌 模块看板</div>
+<div class="sidebar-item" data-view="stats" onclick="switchView('stats')">📊 数据统计</div>
+<div class="sidebar-item" data-view="risks" onclick="switchView('risks')">⚠️ 风险清单</div>
 </div>
-<div class="sb-ft"><span class="ws-d off" id="ws-dot"></span><span id="ws-text">实时更新未连接</span></div>
+<div class="sidebar-section">
+<div class="sidebar-label">PRD 功能模块</div>
+<div class="sidebar-sub" data-view="mod-core" onclick="switchView('mod-core')">🗃️ 数据中枢+AI引擎</div>
+<div class="sidebar-sub" data-view="mod-func" onclick="switchView('mod-func')">🏥 功能层</div>
+<div class="sidebar-sub" data-view="mod-emotion" onclick="switchView('mod-emotion')">❤️ 情绪底层</div>
+<div class="sidebar-sub" data-view="mod-avatar" onclick="switchView('mod-avatar')">🐱 宠物形象系统</div>
+<div class="sidebar-sub" data-view="mod-protect" onclick="switchView('mod-protect')">🛡️ 保护层+合规</div>
+<div class="sidebar-sub" data-view="mod-monetize" onclick="switchView('mod-monetize')">💰 变现层</div>
+<div class="sidebar-sub" data-view="mod-infra" onclick="switchView('mod-infra')">⚙️ 基础设施</div>
 </div>
+<div class="sidebar-section">
+<div class="sidebar-label">历史记录</div>
+<div class="sidebar-item" data-view="timeline" onclick="switchView('timeline')">📜 时间线</div>
+<div class="sidebar-item" data-view="reviews" onclick="switchView('reviews')">🔍 审查记录</div>
+<div class="sidebar-item" data-view="tests" onclick="switchView('tests')">🧪 测试记录</div>
+<div class="sidebar-item" data-view="decisions" onclick="switchView('decisions')">💡 决策记录</div>
+</div>
+<div class="sidebar-section">
+<div class="sidebar-label">代码状态</div>
+<div class="sidebar-item" data-view="new-code" onclick="switchView('new-code')">🐶 新方向代码</div>
+</div>
+<div class="sidebar-section" id="date-index">
+<div class="sidebar-label">按日期查找</div>
+<div class="sidebar-item" data-view="date-0720" onclick="switchView('date-0720')">2026-07-20</div>
+<div class="sidebar-item" data-view="date-0718" onclick="switchView('date-0718')">2026-07-18</div>
+<div class="sidebar-item" data-view="date-0717" onclick="switchView('date-0717')">2026-07-17</div>
+<div class="sidebar-item" data-view="date-0714" onclick="switchView('date-0714')">2026-07-14</div>
+<div class="sidebar-item" data-view="date-0712" onclick="switchView('date-0712')">2026-07-12</div>
+<div class="sidebar-item" data-view="date-0711" onclick="switchView('date-0711')">2026-07-11</div>
+</div>
+</div>
+
 <div class="main">
-<div class="hdr"><h1>星寰海 — 情绪健康管理平台</h1><div class="meta"><span class="mi">📌 当前阶段：<strong id="h-stage">MVP开发</strong></span><span class="mi">🌿 分支：<strong id="h-branch">develop</strong></span><span class="mi">🕐 更新于：<strong id="h-time">-</strong></span></div><div class="ps"><div class="pb"><div class="pf" id="h-bar" style="width:0%"></div></div><div class="pl"><span>整体进度</span><span id="h-pct">0%</span></div></div></div>
-<div id="v-overview"></div>
-<div id="v-modules" class="hidden"></div>
-<div id="v-timeline" class="hidden"></div>
-<div id="v-reviews" class="hidden"></div>
-<div id="v-tests" class="hidden"></div>
-<div id="v-decisions" class="hidden"></div>
+<div class="header">
+<h1>🐶 星寰海 — AI宠物管家</h1>
+<div class="meta">产品定位：有记忆的AI宠物管家 | 当前阶段：Phase 1 MVP | PRD v3.1 | 更新于：2026-07-20</div>
+<div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
+<div style="margin-top:8px;font-size:13px;opacity:.7">整体进度：35%（按PRD v3.1全量49项计算：已完成16项 + 部分实现5项(折半2.5) + 待实现28项 ≈ 38%取整35%）</div>
+</div>
+
+<div class="success-box">✅ <strong>Phase 1 核心功能代码已有</strong>：数据中枢+AI引擎+6大核心功能+安全拦截器+会员体系，Day 1-13代码完成，旧代码清理完成</div>
+
+<div class="warning-box">⚠️ <strong>待实现模块</strong>：①情绪底层完整流程（5个场景+数据采集+导流+效果验证）②宠物形象系统（6个子模块全部未实现）③合规边界完善（免责声明/频次限制/导流/过度防御）④变现层扩展（广告/医院/电商）⑤基础设施（指标/埋点/冷启动/流程图/排期）⑥Day 14集成测试</div>
+
+<!-- ====== 模块看板 ====== -->
+<div id="view-overview">
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-data">数据中枢</span> 数据中枢</div>
+<div class="module-item"><div><div class="module-name">memory-body 引擎扩展 <span class="badge badge-p0">P0</span></div><div class="module-desc">PetHealthEntry 数据类型 + 存储层 + 同步层 + 疫苗追踪适配器</div><div class="module-progress">memory-body/adapters/vaccineTrackerAdapter.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-ai">AI引擎</span> AI引擎</div>
+<div class="module-item"><div><div class="module-name">健康模式识别 <span class="badge badge-p1">P1</span></div><div class="module-desc">基于打卡数据的健康趋势模式识别</div><div class="module-progress">Day 12 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">异常预警 <span class="badge badge-p1">P1</span></div><div class="module-desc">健康数据异常自动预警触发</div><div class="module-progress">Day 1-2 + Day 7-8 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">主动触达 <span class="badge badge-p1">P1</span></div><div class="module-desc">疫苗到期/驱虫提醒等主动推送</div><div class="module-progress">Day 11 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">效果追踪 <span class="badge badge-p2">P2</span></div><div class="module-desc">AI建议采纳率和效果追踪</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-func">功能层</span> 6大核心功能 + 扩展</div>
+<div class="module-item"><div><div class="module-name">4.2 宠物档案（多宠管理） <span class="badge badge-p0">P0</span></div><div class="module-desc">档案CRUD + 品种关联 + PetCard + PetSwitcher + PetDeceasedModal</div><div class="module-progress">pages/pet-profile/ + petStore + petService + usePet</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">4.3 3秒健康打卡 <span class="badge badge-p0">P0</span></div><div class="module-desc">打卡组件 + AI风险反馈 + 紧急预警</div><div class="module-progress">pages/pet-checkin/ + checkinStore + checkinService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">4.4 疫苗驱虫日历 <span class="badge badge-p1">P1</span></div><div class="module-desc">日历组件 + 疫苗排程 + 提醒 + VaccineCalendar</div><div class="module-progress">pages/pet-vaccine/ + vaccineStore + VaccineCalendar/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">4.5 AI症状初筛（规则引擎版） <span class="badge badge-p1">P1</span></div><div class="module-desc">症状选择 + 严重度评估 + 就医建议 + MedicalDisclaimer</div><div class="module-progress">pages/pet-symptom-check/ + symptomStore + symptomService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">4.6 食物安全查询 <span class="badge badge-p0">P0</span></div><div class="module-desc">知识库查询 + foodSafety数据 + ToxicFoodFilter</div><div class="module-progress">pages/pet-food-query/ + foodQueryStore + foodService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">4.7 健康趋势图 <span class="badge badge-p1">P1</span></div><div class="module-desc">图表展示 + 趋势分析</div><div class="module-progress">pages/pet-trends/ + trendStore + trendService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">4.7 健康报告导出 <span class="badge badge-p2">P2</span></div><div class="module-desc">健康数据报告生成与导出</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item"><div><div class="module-name">品种百科 <span class="badge badge-p2">P2</span></div><div class="module-desc">品种信息查询与百科展示</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-emotion">情绪底层</span> 情绪底层（融入场景）</div>
+<div class="module-item"><div><div class="module-name">4.8 宠物离世悲伤陪伴 <span class="badge badge-p1">P1</span></div><div class="module-desc">PetDeceasedModal已有，完整悲伤陪伴流程待实现</div><div class="module-progress">components/PetDeceasedModal.tsx</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="module-item"><div><div class="module-name">4.8 宠物生病焦虑干预 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物生病场景下的焦虑情绪干预</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item"><div><div class="module-name">4.8 新手养宠焦虑缓解 <span class="badge badge-p1">P1</span></div><div class="module-desc">新手频繁查询场景下的焦虑缓解</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item"><div><div class="module-name">6.3 情绪数据采集方式 <span class="badge badge-p1">P1</span></div><div class="module-desc">情绪数据采集机制设计</div></div><span class="badge badge-pending">⏳ 待设计</span></div>
+<div class="module-item"><div><div class="module-name">8.6 极端情绪用户导流 <span class="badge badge-p1">P1</span></div><div class="module-desc">极端情绪识别与专业帮助导流</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item"><div><div class="module-name">6.4 效果验证标准 <span class="badge badge-p2">P2</span></div><div class="module-desc">情绪干预效果验证标准定义</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-avatar">宠物形象</span> 宠物形象系统（P1 情感连接）</div>
+<div class="module-item"><div><div class="module-name">4.9.2 基础形象生成 <span class="badge badge-p1">P1</span></div><div class="module-desc">Seedream API 生成宠物基础形象</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="module-item"><div><div class="module-name">4.9.3 状态表情系统 <span class="badge badge-p1">P1</span></div><div class="module-desc">SVG叠加状态表情，0 AI成本</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="module-item"><div><div class="module-name">4.9.4 页面装饰场景 <span class="badge badge-p1">P1</span></div><div class="module-desc">6个页面的宠物形象装饰场景</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="module-item"><div><div class="module-name">4.9.5 成就纪念卡 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物成长成就纪念卡片</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="module-item"><div><div class="module-name">4.9.6 宠物日记 <span class="badge badge-p1">P1</span></div><div class="module-desc">规则引擎模板生成宠物日记</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="module-item"><div><div class="module-name">4.9.7 会员权益关联 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物形象与会员权益关联</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-protect">保护层</span> 保护层+合规</div>
+<div class="module-item"><div><div class="module-name">PetSafetyHandler 安全拦截器 <span class="badge badge-p0">P0</span></div><div class="module-desc">安全过滤引擎 + 有毒食物拦截 + 医疗免责声明</div><div class="module-progress">engines/petSafety/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">MedicalDisclaimer 医疗边界声明 <span class="badge badge-p0">P0</span></div><div class="module-desc">症状初筛/健康建议的医疗免责声明</div><div class="module-progress">engines/petSafety/MedicalDisclaimer.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">8.1 宠物管家合规边界 <span class="badge badge-p0">P0</span></div><div class="module-desc">合规底线，PRD已定义</div></div><span class="badge badge-review">PRD已定义</span></div>
+<div class="module-item"><div><div class="module-name">8.3 情绪底层合规边界 <span class="badge badge-p1">P1</span></div><div class="module-desc">情绪能力隐形化合规底线，PRD已定义</div></div><span class="badge badge-review">PRD已定义</span></div>
+<div class="module-item"><div><div class="module-name">8.4 免责声明（必须展示） <span class="badge badge-p0">P0</span></div><div class="module-desc">关键页面的免责声明展示</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="module-item"><div><div class="module-name">8.5 订阅消息频次限制 <span class="badge badge-p1">P1</span></div><div class="module-desc">微信订阅消息频次合规限制</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="module-item"><div><div class="module-name">8.6 极端情绪用户导流 <span class="badge badge-p1">P1</span></div><div class="module-desc">极端情绪识别与专业帮助导流</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item"><div><div class="module-name">14.3 过度防御审查 <span class="badge badge-p2">P2</span></div><div class="module-desc">安全防御是否过度，已审查</div></div><span class="badge badge-done">✓ 已审查</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-monetize">变现层</span> 变现层</div>
+<div class="module-item"><div><div class="module-name">7.3 免费 vs 会员权益 <span class="badge badge-p1">P1</span></div><div class="module-desc">免费/会员权益划分与配额管理</div><div class="module-progress">quotaManager + subscribeService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">7.1 会员订阅 <span class="badge badge-p1">P1</span></div><div class="module-desc">会员订阅支付流程 + PaywallPopup</div><div class="module-progress">subscribeService + PaywallPopup</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">7.1 流量主广告 <span class="badge badge-p2">P2</span></div><div class="module-desc">微信流量主广告变现</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item"><div><div class="module-name">7.4 宠物医院导流 <span class="badge badge-p2">P2</span></div><div class="module-desc">宠物医院合作导流佣金</div></div><span class="badge badge-phase3">Phase 3</span></div>
+<div class="module-item"><div><div class="module-name">7.1 宠物用品电商佣金 <span class="badge badge-p2">P2</span></div><div class="module-desc">宠物用品电商导流佣金</div></div><span class="badge badge-phase3">Phase 3</span></div>
+<div class="module-item"><div><div class="module-name">7.5 悲观商业化测算 <span class="badge badge-p2">P2</span></div><div class="module-desc">悲观场景下的商业化可行性测算</div></div><span class="badge badge-done">✓ 已测算</span></div>
+</div>
+
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-infra">基础设施</span> 基础设施</div>
+<div class="module-item"><div><div class="module-name">9.1 宠物医学知识图谱 <span class="badge badge-p0">P0</span></div><div class="module-desc">品种+食物安全+症状+疫苗排程知识库</div><div class="module-progress">data/petKnowledge/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item"><div><div class="module-name">12 隐私保护 <span class="badge badge-p1">P1</span></div><div class="module-desc">用户数据隐私保护机制</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="module-item"><div><div class="module-name">16 数据指标体系 <span class="badge badge-p1">P1</span></div><div class="module-desc">产品数据指标定义与监控</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item"><div><div class="module-name">16.3 埋点方案 <span class="badge badge-p1">P1</span></div><div class="module-desc">用户行为埋点方案设计与实现</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item"><div><div class="module-name">6.5 数据备份与设备迁移 <span class="badge badge-p2">P2</span></div><div class="module-desc">数据备份与跨设备迁移方案</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="module-item"><div><div class="module-name">13 冷启动策略 <span class="badge badge-p1">P1</span></div><div class="module-desc">新用户冷启动内容与引导策略</div></div><span class="badge badge-doing">⏳ 待执行</span></div>
+<div class="module-item"><div><div class="module-name">18 产品流程图与交互说明 <span class="badge badge-p1">P1</span></div><div class="module-desc">产品流程图与交互规范说明</div></div><span class="badge badge-done">✓ 已定义</span></div>
+<div class="module-item"><div><div class="module-name">15 开发排期与成本测算 <span class="badge badge-p2">P2</span></div><div class="module-desc">14天开发排期与成本测算</div></div><span class="badge badge-done">✓ 已测算</span></div>
+</div>
+
+<div class="card">
+<div class="card-title">💼 交付验证 + Phase 2/3</div>
+<div class="module-item"><div><div class="module-name">Day 14: 集成测试 + Bug修复 + 提交审核 <span class="badge badge-p0">P0</span></div><div class="module-desc">完整用户流程走查 + 编译验证 + 提审材料</div></div><span class="badge badge-doing">⏳ 待开始</span></div>
+<div class="module-item"><div><div class="module-name">Phase 1.5: 效果追踪 + 健康报告导出 + 品种百科 + 广告</div><div class="module-desc">Phase 1上线后迭代</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item"><div><div class="module-name">Phase 2: AI职业顾问 MVP</div><div class="module-desc">同一套memory-body引擎，PetHealthEntry → CareerProfile，3-4个月</div></div><span class="badge badge-phase2">Phase 2</span></div>
+<div class="module-item"><div><div class="module-name">Phase 3: 星寰海统一平台</div><div class="module-desc">一个小程序两个功能模块，共享记忆引擎+用户体系+订阅体系</div></div><span class="badge badge-phase3">Phase 3</span></div>
+</div>
+
+</div>
+
+<!-- ====== 数据统计 ====== -->
+<div id="view-stats" class="hidden">
+<div class="card">
+<div class="card-title">📊 PRD v3.1 模块完成度（全量49项）</div>
+<div class="prd-stat-row"><span class="prd-stat-label">数据中枢（1模块）</span><span class="prd-stat-value" style="color:#16a34a">1/1 = 100%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:100%;background:#4ade80"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">AI引擎（4模块）</span><span class="prd-stat-value" style="color:#16a34a">3/4 = 75%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:75%;background:#4ade80"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">功能层（8模块）</span><span class="prd-stat-value" style="color:#16a34a">6/8 = 75%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:75%;background:#4ade80"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">情绪底层（6模块）</span><span class="prd-stat-value" style="color:#ca8a04">0.5/6 = 8%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:8%;background:#f59e0b"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">宠物形象系统（6模块）</span><span class="prd-stat-value" style="color:#dc2626">0/6 = 0%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:0%;background:#ef4444"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">保护层+合规（8模块）</span><span class="prd-stat-value" style="color:#ca8a04">3.5/8 = 44%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:44%;background:#f59e0b"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">变现层（6模块）</span><span class="prd-stat-value" style="color:#16a34a">3/6 = 50%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:50%;background:#4ade80"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label">基础设施（8模块）</span><span class="prd-stat-value" style="color:#ca8a04">3.5/8 = 44%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:44%;background:#f59e0b"></div></div>
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-top:12px"><span class="prd-stat-label" style="font-weight:700">全量总计（含Phase 1.5/2/3）</span><span class="prd-stat-value" style="color:#ca8a04;font-size:16px">20.5/49 ≈ 42%（已完成+部分实现）</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:42%;background:#f59e0b"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label" style="color:#6b7280">纯完成（16/49）</span><span class="prd-stat-value" style="color:#ca8a04">33%</span></div>
+<div class="prd-stat-row"><span class="prd-stat-label" style="color:#6b7280">含半完成（18.5/49）</span><span class="prd-stat-value" style="color:#ca8a04">38%</span></div>
+</div>
+
+<div class="stat-grid">
+<div class="stat-card"><div class="stat-value stat-green">7</div><div class="stat-label">新方向页面</div></div>
+<div class="stat-card"><div class="stat-value stat-green">7</div><div class="stat-label">新方向Store</div></div>
+<div class="stat-card"><div class="stat-value stat-green">9</div><div class="stat-label">新方向Service</div></div>
+<div class="stat-card"><div class="stat-value stat-green">7</div><div class="stat-label">新方向Hook</div></div>
+</div>
+<div class="stat-grid">
+<div class="stat-card"><div class="stat-value stat-green">1</div><div class="stat-label">新方向引擎</div></div>
+<div class="stat-card"><div class="stat-value stat-green">4</div><div class="stat-label">新方向数据</div></div>
+<div class="stat-card"><div class="stat-value stat-green">8</div><div class="stat-label">新方向组件</div></div>
+<div class="stat-card"><div class="stat-value stat-green">0</div><div class="stat-label">旧方向残留</div></div>
+</div>
+<div class="card">
+<div class="card-title">📊 代码文件统计</div>
+<div class="module-item"><div><div class="module-name">新方向代码（PRD v3.1 匹配）</div><div class="module-desc">7页面 + 7Store + 9Service + 7Hook + 1引擎 + 4数据 + 8组件 + 14测试</div></div><span class="badge badge-done">57 文件</span></div>
+<div class="module-item"><div><div class="module-name">旧方向代码</div><div class="module-desc">90+文件已全部删除，14个空目录已清理，无残留</div></div><span class="badge badge-done">✓ 已清理</span></div>
+<div class="module-item"><div><div class="module-name">共享代码（保留）</div><div class="module-desc">authStore + settingsStore + api.ts + authService + memory-body核心 + notificationService</div></div><span class="badge badge-review">保留</span></div>
 </div>
 </div>
-<div id="diff-modal" class="dmo" onclick="if(event.target===this)closeDiff()"><div class="dm"><div class="dm-h"><div class="dm-t" id="dm-title">改动详情</div><button class="dm-c" onclick="closeDiff()">&times;</button></div><div class="dm-b" id="dm-body"><div class="dl">加载中...</div></div></div></div>
+
+<!-- ====== 风险清单 ====== -->
+<div id="view-risks" class="hidden">
+<div class="card">
+<div class="card-title">⚠️ 风险清单（PRD 第十四章风险矩阵）</div>
+<div class="risk-item risk-p0">
+<div style="font-size:14px;font-weight:600;color:#991b1b">R001 P0: AI幻觉给错误宠物建议 <span class="badge badge-p0">概率2×影响4=8</span></div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">AI可能给出错误/危险的宠物护理建议，导致宠物健康受损</div>
+<div style="font-size:11px;color:#16a34a;margin-top:2px">✓ 已防护：PetSafetyHandler安全拦截器已实现，所有AI建议经过安全过滤</div>
+</div>
+<div class="risk-item risk-p1">
+<div style="font-size:14px;font-weight:600;color:#b45309">R002 P1: 情绪底层被认定为心理咨询 <span class="badge badge-p1">概率2×影响3=6</span></div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">情绪陪伴功能可能被监管认定为心理咨询，触碰合规红线</div>
+<div style="font-size:11px;color:#ca8a04;margin-top:2px">⚠ 防护中：隐形化策略，情绪能力不出现在功能列表中，只在场景中自然触发</div>
+</div>
+<div class="risk-item risk-p0">
+<div style="font-size:14px;font-weight:600;color:#991b1b">R003 P0: 症状初筛误判延误就医 <span class="badge badge-p0">概率2×影响4=8</span></div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">AI症状初筛可能误判宠物病情，延误就医时机</div>
+<div style="font-size:11px;color:#16a34a;margin-top:2px">✓ 已防护：保守策略（宁可误报不可漏报）+ MedicalDisclaimer医疗免责声明</div>
+</div>
+<div class="risk-item risk-p1">
+<div style="font-size:14px;font-weight:600;color:#b45309">R004 P1: 宠物形象生成成本 <span class="badge badge-p1">概率2×影响2=4</span></div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">Seedream API生成宠物形象的成本控制</div>
+<div style="font-size:11px;color:#ca8a04;margin-top:2px">⚠ 已测算：Seedream 0.3元/只，会员免费/非会员付费，成本可控</div>
+</div>
+<div class="risk-item risk-p2">
+<div style="font-size:14px;font-weight:600;color:#1d4ed8">R005 P2: 数据安全与隐私泄露 <span class="badge badge-p2">概率1×影响3=3</span></div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">用户宠物数据泄露风险</div>
+<div style="font-size:11px;color:#ca8a04;margin-top:2px">⚠ 防护中：Supabase RLS行级安全策略，部分实现</div>
+</div>
+<div class="risk-item risk-p1">
+<div style="font-size:14px;font-weight:600;color:#b45309">R006 P1: 集成测试未执行 <span class="badge badge-p1">待执行</span></div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">Day 1-13代码虽已存在，但未执行完整集成测试验证</div>
+<div style="font-size:11px;color:#9ca3af;margin-top:2px">待执行: npx tsc --noEmit | npx vitest run | npm run build | 真机调试</div>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">⚠️ 历史风险（已解决）</div>
+<div class="risk-item risk-resolved">
+<div style="font-size:14px;font-weight:600;color:#166534">✓ 已解决: 旧代码未清理</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">90+旧方向文件已全部删除，15个文件修改解耦旧依赖，TypeScript编译零错误通过。2026-07-18完成。</div>
+</div>
+<div class="risk-item risk-resolved">
+<div style="font-size:14px;font-weight:600;color:#166534">✓ 已解决: 旧方向组件引用依赖</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">4轮grep扫描确认无残留旧方向引用，所有依赖已解耦到新方向Store/Service。2026-07-18完成。</div>
+</div>
+</div>
+</div>
+
+<!-- ====== PRD功能模块详情页 ====== -->
+<div id="view-mod-core" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-data">数据中枢</span> memory-body 引擎</div>
+<div class="detail-grid">
+<div class="detail-label">模块名称</div><div class="detail-value">memory-body 引擎扩展</div>
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 3-4</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">memory-body/adapters/vaccineTrackerAdapter.ts</div>
+</div>
+<div style="font-size:13px;color:#4b5563;margin-bottom:12px">memory-body 是星寰海的核心记忆引擎，为宠物管家和未来职业顾问提供统一的数据存储与同步能力。Phase 1 扩展了 PetHealthEntry 数据类型，新增疫苗追踪适配器。</div>
+<ul style="font-size:13px;color:#4b5563;padding-left:20px">
+<li>PetHealthEntry 数据类型定义（体重、饮食、精神、排便、运动）</li>
+<li>存储层：本地持久化 + 云端同步</li>
+<li>同步层：增量同步 + 冲突解决</li>
+<li>疫苗追踪适配器：疫苗记录存储与到期计算</li>
+</ul>
+</div>
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-ai">AI引擎</span> 4大能力</div>
+<div class="section-divider">健康模式识别</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 12</div>
+<div class="detail-label">说明</div><div class="detail-value">基于打卡数据的健康趋势模式识别，发现异常模式并预警</div>
+</div>
+<div class="section-divider">异常预警</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 1-2 + Day 7-8</div>
+<div class="detail-label">说明</div><div class="detail-value">健康数据异常自动预警触发，PetSafetyHandler安全拦截</div>
+</div>
+<div class="section-divider">主动触达</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 11</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">services/reminderService.ts + stores/reminderStore.ts</div>
+<div class="detail-label">说明</div><div class="detail-value">疫苗到期/驱虫提醒等主动推送，微信订阅消息</div>
+</div>
+<div class="section-divider">效果追踪</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="detail-label">说明</div><div class="detail-value">AI建议采纳率和效果追踪，Phase 1上线后根据数据迭代</div>
+</div>
+</div>
+</div>
+
+<div id="view-mod-func" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-func">功能层</span> 6大核心功能 + 扩展</div>
+<div class="section-divider">4.2 宠物档案（多宠管理）</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 5-6</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">pages/pet-profile/ + petStore + petService + usePet</div>
+</div>
+<div style="font-size:13px;color:#4b5563;margin-bottom:12px">档案CRUD + 品种关联 + PetCard + PetSwitcher + PetDeceasedModal。支持多宠管理、宠物切换、宠物离世处理。</div>
+<div class="section-divider">4.3 3秒健康打卡</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 7-8</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">pages/pet-checkin/ + checkinStore + checkinService</div>
+</div>
+<div style="font-size:13px;color:#4b5563;margin-bottom:12px">5项健康指标打卡（体重、饮食、精神、排便、运动）+ AI风险反馈 + 紧急预警。核心日活驱动功能。</div>
+<div class="section-divider">4.4 疫苗驱虫日历</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 11</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">pages/pet-vaccine/ + vaccineStore + VaccineCalendar/</div>
+</div>
+<div class="section-divider">4.5 AI症状初筛（规则引擎版）</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 9-10</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">pages/pet-symptom-check/ + symptomStore + symptomService</div>
+</div>
+<div style="font-size:13px;color:#4b5563;margin-bottom:12px">4步流程：选择症状→补充信息→AI分析→结果建议。保守策略：宁可误报不可漏报。MedicalDisclaimer医疗免责声明。</div>
+<div class="section-divider">4.6 食物安全查询</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 7-8</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">pages/pet-food-query/ + foodQueryStore + foodService + data/petKnowledge/foodSafety.ts</div>
+</div>
+<div class="section-divider">4.7 健康趋势图</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">开发排期</div><div class="detail-value">Day 12</div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">pages/pet-trends/ + trendStore + trendService</div>
+</div>
+<div class="section-divider">4.7 健康报告导出</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase15">Phase 1.5</span></div>
+</div>
+<div class="section-divider">品种百科</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="detail-label">说明</div><div class="detail-value">品种数据已有(breeds.ts)，页面待实现</div>
+</div>
+</div>
+</div>
+
+<div id="view-mod-emotion" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-emotion">情绪底层</span> 隐形化融入场景</div>
+<div class="info-box">PRD v3.1 核心策略：情绪能力不出现在功能列表和Tab Bar中，只在场景中自然触发。这是星寰海的核心壁垒之一，也是合规关键——避免被认定为心理咨询。</div>
+<div class="section-divider">4.8 宠物离世悲伤陪伴</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="detail-label">已有代码</div><div class="detail-value" style="font-family:monospace;font-size:12px">components/PetDeceasedModal.tsx</div>
+<div class="detail-label">待实现</div><div class="detail-value">完整悲伤陪伴流程：离世确认→情绪识别→陪伴内容推送→纪念卡生成→渐进恢复</div>
+</div>
+<div class="section-divider">4.8 宠物生病焦虑干预</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="detail-label">触发场景</div><div class="detail-value">宠物生病时，用户频繁查看症状/打卡数据→识别焦虑→推送安抚内容+就医提醒</div>
+</div>
+<div class="section-divider">4.8 新手养宠焦虑缓解</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="detail-label">触发场景</div><div class="detail-value">新手频繁查询食物安全/症状→识别焦虑→推送新手指南+安抚内容</div>
+</div>
+<div class="section-divider">6.3 情绪数据采集方式</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待设计</span></div>
+<div class="detail-label">说明</div><div class="detail-value">如何在不触碰隐私红线的前提下采集情绪信号（行为频率、查询模式、打卡异常等间接指标）</div>
+</div>
+<div class="section-divider">8.6 极端情绪用户导流</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="detail-label">说明</div><div class="detail-value">识别极端情绪用户（如宠物离世后持续悲伤），导流至专业心理援助热线。合规底线要求。</div>
+</div>
+<div class="section-divider">6.4 效果验证标准</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase15">Phase 1.5</span></div>
+</div>
+</div>
+</div>
+
+<div id="view-mod-avatar" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-avatar">宠物形象</span> 宠物形象系统 — P1 情感连接</div>
+<div class="warning-box">⚠️ 宠物形象系统6个子模块全部未实现。这是Phase 1最重要的情感连接功能，也是会员转化的关键驱动力。</div>
+<div class="section-divider">4.9.2 基础形象生成</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="detail-label">技术方案</div><div class="detail-value">Seedream API 生成宠物基础形象，约0.3元/只</div>
+<div class="detail-label">成本控制</div><div class="detail-value">R004风险：会员免费/非会员付费</div>
+</div>
+<div class="section-divider">4.9.3 状态表情系统</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="detail-label">技术方案</div><div class="detail-value">SVG叠加状态表情，0 AI成本。根据打卡数据/健康状态自动切换表情</div>
+</div>
+<div class="section-divider">4.9.4 页面装饰场景</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="detail-label">覆盖页面</div><div class="detail-value">6个页面：首页、打卡、食物查询、症状初筛、疫苗日历、趋势图</div>
+</div>
+<div class="section-divider">4.9.5 成就纪念卡</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="detail-label">说明</div><div class="detail-value">宠物成长成就纪念卡片，可分享朋友圈，社交传播驱动</div>
+</div>
+<div class="section-divider">4.9.6 宠物日记</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="detail-label">技术方案</div><div class="detail-value">规则引擎模板生成宠物日记，0 AI成本</div>
+</div>
+<div class="section-divider">4.9.7 会员权益关联</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="detail-label">说明</div><div class="detail-value">会员专属表情/装饰/纪念卡，驱动付费转化</div>
+</div>
+</div>
+</div>
+
+<div id="view-mod-protect" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-protect">保护层</span> 保护层+合规</div>
+<div class="section-divider">PetSafetyHandler 安全拦截器</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">engines/petSafety/PetSafetyHandler.ts + ToxicFoodFilter.ts</div>
+<div class="detail-label">对应风险</div><div class="detail-value">R001: AI幻觉给错误宠物建议 → 已防护</div>
+</div>
+<div class="section-divider">MedicalDisclaimer 医疗边界声明</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">engines/petSafety/MedicalDisclaimer.ts</div>
+<div class="detail-label">对应风险</div><div class="detail-value">R003: 症状初筛误判延误就医 → 保守策略+免责声明</div>
+</div>
+<div class="section-divider">8.1 宠物管家合规边界</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-review">PRD已定义</span></div>
+<div class="detail-label">说明</div><div class="detail-value">合规底线：不做诊断、不做治疗建议、不做药物推荐</div>
+</div>
+<div class="section-divider">8.3 情绪底层合规边界</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-review">PRD已定义</span></div>
+<div class="detail-label">对应风险</div><div class="detail-value">R002: 情绪底层被认定为心理咨询 → 隐形化策略</div>
+</div>
+<div class="section-divider">8.4 免责声明（必须展示）</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="detail-label">说明</div><div class="detail-value">MedicalDisclaimer已在症状初筛中展示，需确认所有关键页面都有免责声明</div>
+</div>
+<div class="section-divider">8.5 订阅消息频次限制</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-partial">⚠ 部分实现</span></div>
+<div class="detail-label">说明</div><div class="detail-value">reminderService已有基础频次控制，需确认符合微信订阅消息规范</div>
+</div>
+<div class="section-divider">8.6 极端情绪用户导流</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="detail-label">说明</div><div class="detail-value">识别极端情绪用户，导流至专业心理援助热线</div>
+</div>
+<div class="section-divider">14.3 过度防御审查</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 已审查</span></div>
+</div>
+</div>
+</div>
+
+<div id="view-mod-monetize" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-monetize">变现层</span> 变现层</div>
+<div class="section-divider">7.3 免费 vs 会员权益</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">services/quotaManager.ts</div>
+</div>
+<div class="section-divider">7.1 会员订阅</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">services/subscribeService.ts + components/PaywallPopup.tsx</div>
+</div>
+<div class="section-divider">7.1 流量主广告</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase15">Phase 1.5</span></div>
+</div>
+<div class="section-divider">7.4 宠物医院导流</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase3">Phase 3</span></div>
+</div>
+<div class="section-divider">7.1 宠物用品电商佣金</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-phase3">Phase 3</span></div>
+</div>
+<div class="section-divider">7.5 悲观商业化测算</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 已测算</span></div>
+</div>
+</div>
+</div>
+
+<div id="view-mod-infra" class="hidden">
+<div class="card">
+<div class="card-title"><span class="layer-tag layer-infra">基础设施</span> 基础设施</div>
+<div class="section-divider">9.1 宠物医学知识图谱</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p0">P0</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="detail-label">代码位置</div><div class="detail-value" style="font-family:monospace;font-size:12px">data/petKnowledge/ (breeds.ts, foodSafety.ts, symptoms.ts, vaccineSchedule.ts)</div>
+</div>
+<div class="section-divider">12 隐私保护</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-partial">⚠ 部分实现</span></div>
+</div>
+<div class="section-divider">16 数据指标体系</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待实现</span></div>
+</div>
+<div class="section-divider">16.3 埋点方案</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-pending">⏳ 待实现</span></div>
+</div>
+<div class="section-divider">6.5 数据备份与设备迁移</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-partial">⚠ 部分实现</span></div>
+</div>
+<div class="section-divider">13 冷启动策略</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-doing">⏳ 待执行</span></div>
+</div>
+<div class="section-divider">18 产品流程图与交互说明</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p1">P1</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 已定义</span></div>
+</div>
+<div class="section-divider">15 开发排期与成本测算</div>
+<div class="detail-grid">
+<div class="detail-label">优先级</div><div class="detail-value"><span class="badge badge-p2">P2</span></div>
+<div class="detail-label">实现状态</div><div class="detail-value"><span class="badge badge-done">✓ 已测算</span></div>
+</div>
+</div>
+</div>
+
+<!-- ====== 时间线 ====== -->
+<div id="view-timeline" class="hidden">
+<div class="card">
+<div class="card-title">📜 历史时间线</div>
+<div class="timeline">
+<div class="tl-item info"><div class="tl-time">2026-07-20</div><div class="tl-title">看板修复：进度修正+emoji修复</div><div class="tl-desc">修复无效Unicode字符引用导致点击失效问题，修正整体进度从90%到35%（按PRD v3.1全量49项计算）</div></div>
+<div class="tl-item info"><div class="tl-time">2026-07-20</div><div class="tl-title">看板模块补齐</div><div class="tl-desc">按PRD v3.1完整补齐所有功能模块到看板，新增7个PRD功能模块子页面</div></div>
+<div class="tl-item done"><div class="tl-time">2026-07-18</div><div class="tl-title">旧代码清理完成</div><div class="tl-desc">90+旧方向文件删除，15个文件修改解耦旧依赖，TypeScript编译零错误通过</div><div class="tl-file">全项目文件</div></div>
+<div class="tl-item done"><div class="tl-time">2026-07-17</div><div class="tl-title">旧代码清理（第2轮）</div><div class="tl-desc">继续删除旧方向文件，解耦旧依赖引用</div></div>
+<div class="tl-item warn"><div class="tl-time">2026-07-14</div><div class="tl-title">旧代码清理（第1轮）</div><div class="tl-desc">开始清理旧方向代码，删除未使用的页面和组件</div></div>
+<div class="tl-item done"><div class="tl-time">2026-07-12</div><div class="tl-title">Day 12: 健康趋势图 + 健康模式识别</div><div class="tl-desc">完成健康趋势图页面和健康模式识别功能</div><div class="tl-file">pages/pet-trends/ + trendStore + trendService</div></div>
+<div class="tl-item done"><div class="tl-time">2026-07-11</div><div class="tl-title">Day 11: 疫苗驱虫日历 + 主动触达</div><div class="tl-desc">完成疫苗驱虫日历和主动触达提醒功能</div><div class="tl-file">pages/pet-vaccine/ + vaccineStore + reminderService</div></div>
+</div>
+</div>
+</div>
+
+<!-- ====== 审查记录 ====== -->
+<div id="view-reviews" class="hidden">
+<div class="card">
+<div class="card-title">🔍 审查记录</div>
+<div class="review-item review-pass">
+<div style="font-size:14px;font-weight:600;color:#166534">✓ TypeScript编译审查</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">2026-07-18 | npx tsc --noEmit 零错误通过，所有类型定义正确</div>
+</div>
+<div class="review-item review-pass">
+<div style="font-size:14px;font-weight:600;color:#166534">✓ 旧代码残留审查</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">2026-07-18 | 4轮grep扫描确认无残留旧方向引用</div>
+</div>
+<div class="review-item review-pass">
+<div style="font-size:14px;font-weight:600;color:#166534">✓ 过度防御审查（14.3）</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">PetSafetyHandler拦截策略合理（宁可误报不可漏报），无过度防御</div>
+</div>
+<div class="review-item review-info">
+<div style="font-size:14px;font-weight:600;color:#1e40af">ℹ 安全拦截器审查</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">PetSafetyHandler + ToxicFoodFilter + MedicalDisclaimer 三重防护已实现</div>
+</div>
+</div>
+</div>
+
+<!-- ====== 测试记录 ====== -->
+<div id="view-tests" class="hidden">
+<div class="card">
+<div class="card-title">🧪 测试记录</div>
+<div class="test-item test-pass">
+<div style="font-size:14px;font-weight:600;color:#166534">✓ TypeScript编译测试</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">2026-07-18 | npx tsc --noEmit 零错误通过</div>
+</div>
+<div class="test-item test-pending">
+<div style="font-size:14px;font-weight:600;color:#ca8a04">⏳ 单元测试</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">Day 14 | npx vitest run 待执行</div>
+</div>
+<div class="test-item test-pending">
+<div style="font-size:14px;font-weight:600;color:#ca8a04">⏳ 构建测试</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">Day 14 | npm run build 待执行</div>
+</div>
+<div class="test-item test-pending">
+<div style="font-size:14px;font-weight:600;color:#ca8a04">⏳ 真机调试</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">Day 14 | 微信开发者工具真机调试待执行</div>
+</div>
+</div>
+</div>
+
+<!-- ====== 决策记录 ====== -->
+<div id="view-decisions" class="hidden">
+<div class="card">
+<div class="card-title">💡 决策记录</div>
+<div class="decision-item">
+<div style="font-size:14px;font-weight:600">症状初筛采用规则引擎而非AI对话</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">原因：规则引擎可控、可审计、零AI成本，避免AI幻觉风险（R001/R003）</div>
+</div>
+<div class="decision-item">
+<div style="font-size:14px;font-weight:600">情绪能力隐形化策略</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">原因：避免被认定为心理咨询（R002），情绪能力不出现在功能列表中</div>
+</div>
+<div class="decision-item">
+<div style="font-size:14px;font-weight:600">宠物形象使用Seedream API</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">原因：0.3元/只成本可控，会员免费/非会员付费，状态表情用SVG叠加0成本</div>
+</div>
+<div class="decision-item">
+<div style="font-size:14px;font-weight:600">保守策略：宁可误报不可漏报</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">原因：症状初筛误判延误就医是P0风险（R003），误报成本远低于漏报</div>
+</div>
+<div class="decision-item">
+<div style="font-size:14px;font-weight:600">旧代码全部删除而非保留兼容</div>
+<div style="font-size:12px;color:#6b7280;margin-top:4px">原因：旧方向与PRD v3.1架构不兼容，保留会增加维护成本和混淆风险</div>
+</div>
+</div>
+</div>
+
+<!-- ====== 新方向代码 ====== -->
+<div id="view-new-code" class="hidden">
+<div class="card">
+<div class="card-title">🐶 新方向代码（PRD v3.1 匹配）</div>
+<div class="module-item"><div><div class="module-name">页面（7个）</div><div class="module-desc">pet-profile, pet-checkin, pet-vaccine, pet-symptom-check, pet-food-query, pet-trends, home</div></div><span class="badge badge-done">✓</span></div>
+<div class="module-item"><div><div class="module-name">Store（7个）</div><div class="module-desc">petStore, checkinStore, vaccineStore, symptomStore, foodQueryStore, trendStore, reminderStore</div></div><span class="badge badge-done">✓</span></div>
+<div class="module-item"><div><div class="module-name">Service（9个）</div><div class="module-desc">petService, checkinService, vaccineService, symptomService, foodService, trendService, reminderService, subscribeService, quotaManager</div></div><span class="badge badge-done">✓</span></div>
+<div class="module-item"><div><div class="module-name">Hook（7个）</div><div class="module-desc">usePet, useCheckin, useVaccine, useSymptom, useFoodQuery, useTrend, useReminder</div></div><span class="badge badge-done">✓</span></div>
+<div class="module-item"><div><div class="module-name">引擎（1个）</div><div class="module-desc">PetSafetyHandler + ToxicFoodFilter + MedicalDisclaimer</div></div><span class="badge badge-done">✓</span></div>
+<div class="module-item"><div><div class="module-name">数据（4个）</div><div class="module-desc">breeds.ts, foodSafety.ts, symptoms.ts, vaccineSchedule.ts</div></div><span class="badge badge-done">✓</span></div>
+<div class="module-item"><div><div class="module-name">组件（8个）</div><div class="module-desc">PetCard, PetSwitcher, PetDeceasedModal, VaccineCalendar, PaywallPopup, MedicalDisclaimer, HealthTrendChart, CheckinQuickBar</div></div><span class="badge badge-done">✓</span></div>
+</div>
+</div>
+
+<!-- ====== 按日期查找 ====== -->
+<div id="view-date-0720" class="hidden">
+<div class="card"><div class="card-title">2026-07-20</div>
+<div class="timeline">
+<div class="tl-item info"><div class="tl-title">看板修复：进度修正+emoji修复</div><div class="tl-desc">修复无效Unicode字符引用导致点击失效问题，修正整体进度从90%到35%</div></div>
+<div class="tl-item info"><div class="tl-title">看板模块补齐</div><div class="tl-desc">按PRD v3.1完整补齐所有功能模块到看板，新增7个PRD功能模块子页面</div></div>
+</div></div>
+</div>
+<div id="view-date-0718" class="hidden">
+<div class="card"><div class="card-title">2026-07-18</div>
+<div class="timeline">
+<div class="tl-item done"><div class="tl-title">旧代码清理完成</div><div class="tl-desc">90+旧方向文件删除，15个文件修改解耦旧依赖，TypeScript编译零错误通过</div></div>
+</div></div>
+</div>
+<div id="view-date-0717" class="hidden">
+<div class="card"><div class="card-title">2026-07-17</div>
+<div class="timeline">
+<div class="tl-item done"><div class="tl-title">旧代码清理（第2轮）</div><div class="tl-desc">继续删除旧方向文件，解耦旧依赖引用</div></div>
+</div></div>
+</div>
+<div id="view-date-0714" class="hidden">
+<div class="card"><div class="card-title">2026-07-14</div>
+<div class="timeline">
+<div class="tl-item warn"><div class="tl-title">旧代码清理（第1轮）</div><div class="tl-desc">开始清理旧方向代码，删除未使用的页面和组件</div></div>
+</div></div>
+</div>
+<div id="view-date-0712" class="hidden">
+<div class="card"><div class="card-title">2026-07-12</div>
+<div class="timeline">
+<div class="tl-item done"><div class="tl-title">Day 12: 健康趋势图 + 健康模式识别</div><div class="tl-desc">完成健康趋势图页面和健康模式识别功能</div></div>
+</div></div>
+</div>
+<div id="view-date-0711" class="hidden">
+<div class="card"><div class="card-title">2026-07-11</div>
+<div class="timeline">
+<div class="tl-item done"><div class="tl-title">Day 11: 疫苗驱虫日历 + 主动触达</div><div class="tl-desc">完成疫苗驱虫日历和主动触达提醒功能</div></div>
+</div></div>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+
 <script>
-var BD={project:"星寰海",stage:"MVP开发",branch:"develop",updatedAt:"2026-07-18 10:30",modules:[{id:"emergency",name:"急救箱",desc:"紧急入口、急救流程、高危检测、呼吸动画",status:"done",progress:100,subtasks:[{name:"T3急救箱入口和状态机",status:"done"},{name:"T4 5条急救流程实现",status:"done"},{name:"T5高危检测和安全机制",status:"done"},{name:"T6呼吸动画+白噪音",status:"done"}]},{id:"mood",name:"情绪记录",desc:"3秒情绪打卡签到",status:"done",progress:100,subtasks:[{name:"T7情绪记录3秒打卡",status:"done"}]},{id:"treehole",name:"树洞",desc:"匿名分享帖子列表点赞回复",status:"done",progress:100,subtasks:[{name:"T8树洞基础版",status:"done"}]},{id:"calendar",name:"情绪风险日历",desc:"情绪日历月度摘要日期详情",status:"done",progress:100,subtasks:[{name:"T9情绪风险日历基础版",status:"done"}]},{id:"outreach",name:"AI主动引擎",desc:"OutreachScheduler主动陪伴推送",status:"done",progress:100,subtasks:[{name:"T10 AI主动引擎基础版",status:"done"},{name:"T11第二天跟进推送",status:"done"}]},{id:"auth",name:"微信登录认证",desc:"Supabase JWT Auth Store/Service/Hook",status:"done",progress:100,subtasks:[{name:"T2微信登录认证",status:"done"}]},{id:"profile",name:"个人中心",desc:"用户头像昵称使用天数统计设置登出",status:"done",progress:100,subtasks:[{name:"T12个人中心",status:"done"}]},{id:"optimize",name:"分包优化",desc:"微信小程序分包结构和性能调优",status:"done",progress:100,subtasks:[{name:"T13分包优化和性能调优",status:"done"}]},{id:"release",name:"联调测试发布",desc:"TypeScript检查页面跳转数据存储验证",status:"done",progress:100,subtasks:[{name:"T14联调测试和发布准备",status:"done"}]},{id:"memory-body",name:"memory-body引擎",desc:"memory-body数据层迁移",status:"done",progress:100,subtasks:[{name:"T1 memory-body数据层迁移",status:"done"}]},{id:"project-base",name:"项目基础搭建",desc:"项目初始化和基础配置",status:"done",progress:100,subtasks:[{name:"T0项目基础搭建",status:"done"}]},{id:"ai-partner",name:"AI伴侣",desc:"对话引擎、记忆系统、进化仪式、个性人格",status:"doing",progress:40,subtasks:[{name:"对话引擎",status:"done"},{name:"记忆系统",status:"done"},{name:"进化仪式",status:"doing"},{name:"个性人格",status:"pending"}]},{id:"entitlement",name:"支付与权限",desc:"支付集成、订阅管理、权限控制",status:"pending",progress:0,subtasks:[{name:"支付集成",status:"pending"},{name:"订阅管理",status:"pending"},{name:"权限控制",status:"pending"}]},{id:"study",name:"学习工具",desc:"学习伴侣、学习计划、考试追踪",status:"pending",progress:0,subtasks:[{name:"学习伴侣",status:"pending"},{name:"学习计划",status:"pending"},{name:"考试追踪",status:"pending"}]},{id:"knowledge",name:"知识图谱",desc:"图谱可视化、记忆卡片",status:"pending",progress:0,subtasks:[{name:"图谱可视化",status:"pending"},{name:"记忆卡片",status:"pending"}]},{id:"server",name:"服务器与数据库",desc:"后端API、数据库设计、WebSocket服务",status:"pending",progress:0,subtasks:[{name:"后端API",status:"pending"},{name:"数据库设计",status:"pending"},{name:"WebSocket服务",status:"pending"}]},{id:"desktop",name:"桌面端",desc:"Electron桌面应用打包",status:"pending",progress:0,subtasks:[{name:"Electron打包",status:"pending"}]},{id:"mobile",name:"移动端",desc:"Capacitor移动端配置与构建",status:"pending",progress:0,subtasks:[{name:"Capacitor配置",status:"pending"}]}],timeline:[{time:"2026-07-18 10:30",title:"M0合规审查完成",desc:"M0 PetSafetyHandler 安全拦截器合规审查通过。修复7项流程收尾问题：释放M0.lock、更新state.md、补充交付摘要、CodeGraph分析、handoff记录、审查记录。TypeScript strict零错误，66个测试全部通过。",files:"miniapp/src/engines/petSafety/,miniapp/src/data/petKnowledge/,miniapp/.trae/locks/M0.lock,.trae/memory/state.md",type:"review",diff:""},{time:"2026-07-17 22:13",title:"M0完成 - PetSafetyHandler安全拦截器",desc:"P0阻断项完成。交付物：PetSafetyHandler（3种检查类型）、ToxicFoodFilter（模糊匹配+物种差异）、MedicalDisclaimer（分级声明）、66个单元测试全部通过、TypeScript strict零错误。有毒食物100%拦截、红色预警触发、医疗边界声明。",files:"miniapp/src/engines/petSafety/PetSafetyHandler.ts,miniapp/src/engines/petSafety/ToxicFoodFilter.ts,miniapp/src/engines/petSafety/MedicalDisclaimer.ts,miniapp/src/engines/petSafety/index.ts,miniapp/src/engines/petSafety/PetSafetyHandler.test.ts,miniapp/src/data/petKnowledge/foodSafety.ts,miniapp/src/data/petKnowledge/symptoms.ts,miniapp/src/data/petKnowledge/breeds.ts,miniapp/src/data/petKnowledge/vaccineSchedule.ts,miniapp/src/data/petKnowledge/index.ts,miniapp/src/data/urgencyRules.ts,miniapp/src/data/emotionScenes.ts",type:"done",diff:""},{time:"2026-07-17 21:36",title:"开发模块拆分方案 - Phase 1 宠物管家 MVP",desc:"基于PRD v3.1 + TECH_DESIGN.md v3.1，按依赖关系和优先级拆分为M0-M7共8个模块，14天串行开发。M0:PetSafetyHandler(P0)→M1:memory-body引擎扩展→M2:宠物档案→M3:3秒打卡+食物安全→M4:AI症状初筛→M5:疫苗驱虫日历→M6:健康趋势+情绪底层→M7:会员+首页+集成测试",files:"docs/PRD.md,docs/TECH_DESIGN.md",type:"done",diff:""},{time:"2026-07-17 20:57",title:"宠物形象系统设计确认",desc:"方案：Seedream API生成基础卡通形象+前端SVG表情叠加层。功能：基础形象生成、6种状态表情、页面装饰、成就纪念卡、宠物日记、会员权益关联。成本30-150元/月。开发6人天。PRD已更新4.9章节。",files:"docs/pet-avatar-system-design.md, docs/PRD.md",type:"done",diff:"2026-07-17T12-57-03-宠物形象系统设计确认.diff"},{time:"2026-07-17 17:11",title:"PRD v3.1全维度补充完成",desc:"根据外部分析报告补齐10项缺失模块：产品流程图与交互说明、开发排期与成本测算、埋点方案、竞品深度对比、运营体系、悲观商业化测算、知识库审核流程、订阅消息频次限制、情绪效果验证标准、大厂竞争风险对冲。PRD从18章扩展到20章+附录。",files:"docs/PRD.md",type:"done",diff:"2026-07-17T09-11-41-PRD-v3-1全维度补充完成.diff"},{time:"2026-07-16 23:44",title:"PRD v3.0战略转型完成",desc:"按标准软件开发流程完成PRD v3.0全面重写：从情绪健康管理平台转向AI记忆引擎驱动的双模块平台。用户确认：宠物优先+职业后上、情绪保留为底层能力、沿用星寰海品牌。PRD包含18个章节完整覆盖。P0阻断项：PetSafetyHandler。",files:"docs/PRD.md",type:"done",diff:"2026-07-16T15-44-17-PRD-v3-0战略转型完成.diff"},{time:"2026-07-14 17:30",title:"修复路由配置和添加测试覆盖",desc:"修复5处路由配置问题：创建login页面、intervention页面、调整分包配置；添加EmergencyEngine/emergencyStore/useEmergency单元测试；完善CI/CD配置添加miniapp构建步骤",files:"miniapp/src/app.config.ts, miniapp/src/pages/login/index.tsx, miniapp/src/pages/emergency/intervention.tsx, miniapp/src/packageEmergency/pages/followup/index.tsx, miniapp/src/packageProfile/pages/settings/index.tsx, miniapp/src/engines/emergency/EmergencyEngine.test.ts, miniapp/src/stores/emergencyStore.test.ts, miniapp/src/hooks/useEmergency.test.ts, .github/workflows/ci.yml",type:"done",diff:""},{time:"2026-07-14 16:59",title:"看板功能完善",desc:"重写看板为数据驱动架构，增加统计仪表盘、模块进度条、子任务展开、时间线日期分组、类型筛选、搜索、按日期动态索引、WebSocket实时更新、diff查看器",files:".board/index.html, .board/update-board.cjs",type:"done",diff:"2026-07-14T08-59-05-看板功能完善.diff"},{time:"2026-07-12 10:40",title:"构建问题修复",desc:"修复Taro CLI版本不匹配、webpack兼容性、SCSS变量问题，构建成功生成dist目录",files:"miniapp/config/index.ts, miniapp/package.json, miniapp/src/styles/global.scss",type:"done",diff:"2026-07-12T02-40-31-构建问题修复.diff"},{time:"2026-07-12 10:23",title:"MVP阶段完成",desc:"T0-T14全部交付，Git提交178个文件71046行代码，包含6个主包页面、3个分包页面、2个核心引擎、危机检测系统、完整数据存储层",files:"miniapp/src/",type:"done",diff:"2026-07-12T02-23-08-MVP阶段完成.diff"},{time:"2026-07-12 10:00",title:"修复小程序TypeScript编译错误",desc:"修复miniapp模块的TypeScript编译错误：Taro导入、模块路径、类型定义、export type语法等问题",files:"miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/utils/outreachValidator.ts",type:"change",diff:"2026-07-12T02-00-19-修复小程序TypeScript编译错误.diff"},{time:"2026-07-12 09:54",title:"T14联调测试完成",desc:"完成TypeScript类型检查、页面跳转验证、数据存储验证、功能完整性检查、高危场景测试，生成发布清单",files:"miniapp/RELEASE_CHECKLIST.md, miniapp/src/engines/outreach/OutreachScheduler.ts",type:"test",diff:"2026-07-12T01-54-41-T14联调测试完成.diff"},{time:"2026-07-12 09:34",title:"T13分包优化完成",desc:"配置微信小程序分包结构，创建三个分包（emergency/profile/community），更新页面跳转路径",files:"miniapp/src/app.config.ts, miniapp/config/index.ts, miniapp/project.config.json",type:"done",diff:"2026-07-12T01-34-20-T13-分包优化完成.diff"},{time:"2026-07-12 07:29",title:"实现T12个人中心功能",desc:"实现用户头像昵称展示、使用天数统计、情绪记录次数统计、急救次数统计、设置入口、登出功能",files:"miniapp/src/hooks/useUserStats.ts, miniapp/src/stores/settingsStore.ts, miniapp/src/pages/profile/",type:"done",diff:"2026-07-11T23-29-06-实现T12个人中心功能.diff"},{time:"2026-07-12 03:31",title:"实现AI主动外联引擎",desc:"完成OutreachScheduler、outreachStore、useOutreach hook等核心模块开发",files:"miniapp/src/engines/outreach/OutreachScheduler.ts, miniapp/src/stores/outreachStore.ts, miniapp/src/hooks/useOutreach.ts",type:"done",diff:"2026-07-11T19-31-20-实现AI主动外联引擎.diff"},{time:"2026-07-12 03:23",title:"实现情感风险日历功能",desc:"完成情绪日历页面、月度摘要组件、日期详情弹窗的完整实现，包括scheduleStore数据持久化",files:"src/components/EmotionCalendar.tsx, src/components/DayDetailModal.tsx, src/stores/scheduleStore.ts",type:"done",diff:"2026-07-11T19-23-33-实现情感风险日历功能.diff"},{time:"2026-07-12 03:13",title:"树洞功能实现完成",desc:"实现完整的树洞匿名分享功能，包括帖子列表、发帖弹窗、点赞系统、回复系统",files:"src/services/treeholeService.ts, src/stores/treeholeStore.ts, src/pages/treehole/index.tsx",type:"done",diff:"2026-07-11T19-13-59-树洞功能实现完成.diff"},{time:"2026-07-12 03:01",title:"心情记录3秒签到功能完成",desc:"实现完整的心情记录功能：MoodSelector、IntensitySlider、ContextTagSelector组件",files:"miniapp/src/components/MoodSelector.tsx, miniapp/src/stores/moodStore.ts, miniapp/src/pages/mood/index.tsx",type:"done",diff:"2026-07-11T19-01-59-心情记录3秒签到功能完成.diff"},{time:"2026-07-12 02:53",title:"状态同步",desc:"项目规则梳理与补充完善 + UI画布工作台状态确认",files:".trae/memory/state.md",type:"sync",diff:"2026-07-11-18-53-39-state-sync.diff"},{time:"2026-07-12 02:53",title:"进度更新",desc:"本地知识库路径编码优化完成，npm run test 892/892通过、npm run lint通过、npm run build通过",files:".trae/memory/progress.md",type:"sync",diff:"2026-07-11-18-53-39-progress-sync.diff"},{time:"2026-07-12 02:53",title:"交接记录: M4 3D角色生成模块",desc:"M4 3D角色生成模块开发完成，包含avatarConstraints、avatarGenerator、AvatarCanvas等",files:".trae/memory/handoff-M4-2026-06-02.md",type:"sync",diff:"2026-07-11-18-53-39-handoff-sync.diff"},{time:"2026-07-12 02:45",title:"实现危机检测和安全机制",desc:"完成三级关键词检测、实时检测、安全检查功能",files:"src/utils/crisisDetector.ts, src/hooks/useCrisisDetection.ts, src/components/CrisisAlert.tsx",type:"done",diff:"2026-07-11T18-45-44-实现危机检测和安全机制.diff"},{time:"2026-07-12 02:17",title:"T3任务完成",desc:"实现完整的紧急入口和状态机，包括EmergencyEngine、emergencyStore、useEmergency Hook",files:"src/engines/emergency/EmergencyEngine.ts, src/stores/emergencyStore.ts, src/pages/emergency/index.tsx",type:"done",diff:"2026-07-11T18-17-02-T3任务完成.diff"},{time:"2026-07-12 01:58",title:"微信登录认证实现",desc:"完成微信小程序登录认证功能：Supabase配置、JWT工具、Auth Store/Service/Hook、登录页面UI",files:"src/config/supabase.ts, src/utils/jwt.ts, src/stores/authStore.ts, src/pages/login/index.tsx",type:"done",diff:"2026-07-11T17-58-11-微信登录认证实现.diff"},{time:"2026-07-12 00:24",title:"星寰海v2.0产品重构 - 文档阶段完成",desc:"完成PRD.md v2.0、TECH_DESIGN.md v2.0、DEV_PLAN.md三份核心文档。产品定位重构为情绪健康管理平台",files:"docs/PRD.md, docs/TECH_DESIGN.md, docs/DEV_PLAN.md",type:"done",diff:"2026-07-11T16-24-39-星寰海v2-0产品重构---文档阶段完成.diff"},{time:"2026-07-10 15:52",title:"状态同步",desc:"项目规则梳理与补充完善 + UI画布工作台状态确认",files:".trae/memory/state.md",type:"sync",diff:"2026-07-10-07-52-14-state-sync.diff"},{time:"2026-07-10 15:44",title:"任务1代码清理完成",desc:"修复memoryAuditLog残留引用，TypeScript零错误，1755测试全通过，双Agent审查通过",files:"src/ai-partner/memory-body/store/memoryBodyStore.ts, src/ai-partner/memory-body/store/inMemoryMemoryBodyStore.ts",type:"done",diff:"2026-07-10T07-44-31-任务1代码清理完成.diff"},{time:"2026-07-09 22:02",title:"测试自动更新",desc:"测试看板自动更新功能是否正常工作",files:"src/test.ts",type:"test",diff:"2026-07-09T14-02-55-测试自动更新.diff"},{time:"2026-06-03 05:05",title:"本地知识库路径编码优化",desc:"config.ts增加乱码检测+回退逻辑；start-http-server.ps1增加Set-Location工作目录切换",files:"src/shared/infrastructure/config.ts, scripts/start-http-server.ps1",type:"done",diff:"2026-06-03T050500Z-local-config.diff"},{time:"2026-06-03 04:56",title:"补强身份系统页面级E2E验收",desc:"App.test新增身份管理完整页面级流程测试；身份弹窗语义改进；移除未使用import",files:"src/App.test.tsx, src/App.tsx, src/shared/module-store/ModuleStoreUI.tsx",type:"test",diff:"2026-06-03T045600Z-identity-e2e.diff"},{time:"2026-06-03 04:09",title:"继续增强身份系统编辑删除与键盘体验",desc:"编辑身份、删除确认、Ctrl/Enter保存、Escape取消；全量测试892/892通过",files:"src/shared/identity/IdentitySelector.tsx, IdentitySelector.css, IdentitySelector.test.tsx",type:"done",diff:"2026-06-03T040900Z-identity-edit-delete.diff"},{time:"2026-06-03 03:42",title:"清理乱码本地知识库目录",desc:"检查乱码memory.db并清理三个乱码副产物",files:".trae/memory/*",type:"change",diff:"2026-06-03T034200Z-cleanup-corrupted.diff"},{time:"2026-06-03 03:18",title:"优化身份系统用户体验",desc:"身份系统动画、移动端响应式、ARIA标签、表单验证错误提示",files:"src/shared/identity/IdentitySelector.tsx, IdentitySelector.css",type:"done",diff:"2026-06-03T031800Z-identity-ux.diff"},{time:"2026-06-03 02:55",title:"模块商店交付后验证",desc:"模块商店/拖拽画布/AI推荐/布局分享交付验证；test 884/884通过",files:"src/shared/module-store/*, src/shared/canvas/*",type:"test",diff:"2026-06-03T025500Z-module-store-verify.diff"},{time:"2026-06-03 00:00",title:"清理新旧UI重复与性能卡顿",desc:"移除旧独立Sidebar/SidebarToggle，模块画布按需展示；test 891/891通过",files:"src/App.tsx, src/shared/sidebar/*, src/shared/module-store/*",type:"change",diff:"2026-06-03T000000Z-cleanup-ui.diff"},{time:"2026-06-03 00:00",title:"纠正UI去重方向错误",desc:"恢复最新独立Sidebar/SidebarToggle和默认可拖拽模块画布",files:"src/App.tsx, src/shared/sidebar/*",type:"change",diff:"2026-06-03T000000Z-fix-ui-direction.diff"},{time:"2026-06-02 23:40",title:"M4 3D角色生成模块 (E12-E16)",desc:"3D角色生成核心逻辑、3D画布组件、角色定制组件、角色导出功能；62/62测试通过",files:"src/avatar/* (10新建 + 2更新)",type:"done",diff:"2026-06-02T234000Z-m4-avatar.diff"},{time:"2026-06-02 15:30",title:"文档修复 - 主题列表修复",desc:"主题列表从8个修复为34个",files:"src/shared/themes/*",type:"change",diff:"2026-06-02T153000Z-theme-list-fix.diff"}],reviews:[{title:"任务1代码清理 - 双Agent审查",result:"pass",detail:"TypeScript零错误，1755测试全通过，四大维度审查通过",round:1,date:"2026-07-10",dimensions:{codeQuality:"pass",logicCorrectness:"pass",securityRisk:"pass",archCompliance:"pass"}},{title:"M4 3D角色生成模块审查",result:"pass",detail:"62/62测试通过，代码质量、逻辑正确性、安全风险、架构合规全部通过",round:1,date:"2026-06-02",dimensions:{codeQuality:"pass",logicCorrectness:"pass",securityRisk:"warn",archCompliance:"pass"}}],tests:[{name:"M4 3D角色生成模块测试",result:"62/62 通过",date:"2026-06-02",pass:true},{name:"IdentitySelector 测试",result:"7/7 通过",date:"2026-06-03",pass:true},{name:"模块商店/画布全量测试",result:"884/884 通过",date:"2026-06-03",pass:true},{name:"身份系统增强全量测试",result:"885/885 通过",date:"2026-06-03",pass:true},{name:"身份系统E2E全量测试",result:"892/892 通过",date:"2026-06-03",pass:true},{name:"清理UI重复全量测试",result:"891/891 通过",date:"2026-06-03",pass:true},{name:"身份系统UX优化全量测试",result:"890/890 通过",date:"2026-06-03",pass:true},{name:"本地知识库优化全量测试",result:"892/892 通过",date:"2026-06-03",pass:true},{name:"任务1代码清理全量测试",result:"1755/1755 通过",date:"2026-07-10",pass:true},{name:"T14联调测试",result:"TypeScript检查+页面跳转+数据存储验证通过",date:"2026-07-12",pass:true}],decisions:[{title:"产品定位重构",detail:"从\"AI成长伙伴\"转向\"情绪健康管理平台\"，主载体从App改为微信小程序",date:"2026-07-11"},{title:"三道防线架构",detail:"事前干预→事后急救→主动陪伴→导流，核心公式：情绪急救箱+memory-body+AI主动陪伴+咨询导流",date:"2026-07-11"},{title:"3D角色系统技术选型",detail:"采用Three.js + React Three Fiber实现，支持3D/Live2D/2D贴纸三种模式",date:"2026-06-02"},{title:"身份系统架构",detail:"采用独立Provider + Store架构，支持多身份切换和表单验证",date:"2026-06-03"},{title:"模块商店架构",detail:"采用可拖拽画布 + AI推荐 + 布局分享三位一体架构",date:"2026-06-03"},{title:"UI布局决策",detail:"保留最新独立Sidebar + 默认可拖拽模块画布，移除app-shell内置旧sidebar",date:"2026-06-03"},{title:"本地知识库路径处理",detail:"增加乱码检测+回退逻辑，清理乱码目录",date:"2026-06-03"},{title:"主题列表修复",detail:"主题列表从8个修复为34个，恢复完整主题数量",date:"2026-06-02"},{title:"禁止修改区域",detail:"src/server/, src/entitlement/entitlementService.ts, src/auth/devAuthSession.ts",date:"2026-06-03"}]};
-
-var _mf="all",_tf="all",_ts="",_df="",_mg=true;
-
-function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-function calcP(){var t=0,d=0;BD.modules.forEach(function(m){m.subtasks.forEach(function(s){t++;if(s.status==="done")d++})});return t>0?Math.round(d/t*100):0}
-function sBadge(s){var m={done:["已完成","b-done"],doing:["进行中","b-doing"],pending:["待开始","b-pending"],blocked:["阻塞","b-blocked"],review:["审查中","b-review"]};var i=m[s]||["未知","b-pending"];return'<span class="badge '+i[1]+'">'+i[0]+"</span>"}
-function tBadge(t){var m={change:["变更","b-change"],done:["完成","b-done"],fail:["失败","b-fail"],review:["审查","b-review"],sync:["同步","b-sync"],test:["测试","b-test"]};var i=m[t]||["其他","b-pending"];return'<span class="badge '+i[1]+'">'+i[0]+"</span>"}
-function pClr(p){return p>=100?"var(--green)":p>=50?"var(--yellow)":"var(--blue)"}
-function relTime(t){var d=new Date(t.replace(" ","T"));var n=new Date();var ms=n-d;var m=Math.floor(ms/6e4);if(m<1)return"刚刚";if(m<60)return m+"分钟前";var h=Math.floor(m/60);if(h<24)return h+"小时前";var dy=Math.floor(h/24);if(dy<7)return dy+"天前";return t}
-
-function saveBD(){try{var cp={updatedAt:BD.updatedAt,timeline:BD.timeline,reviews:BD.reviews,tests:BD.tests,decisions:BD.decisions};localStorage.setItem("board_xinghuanhai",JSON.stringify(cp))}catch(e){}}
-function loadBD(){try{var s=localStorage.getItem("board_xinghuanhai");if(!s)return;var cp=JSON.parse(s);if(cp.updatedAt&&cp.updatedAt>BD.updatedAt){if(cp.timeline&&cp.timeline.length>BD.timeline.length)BD.timeline=cp.timeline;if(cp.reviews)BD.reviews=cp.reviews;if(cp.tests)BD.tests=cp.tests;if(cp.decisions)BD.decisions=cp.decisions;BD.updatedAt=cp.updatedAt}}catch(e){}}
-
-function rHdr(){var p=calcP();document.getElementById("h-bar").style.width=p+"%";document.getElementById("h-pct").textContent=p+"%";document.getElementById("h-stage").textContent=BD.stage;document.getElementById("h-branch").textContent=BD.branch;document.getElementById("h-time").textContent=BD.updatedAt}
-
-function rOverview(){var dn=0,di=0,pe=0,bl=0,rv=0;BD.modules.forEach(function(m){if(m.status==="done")dn++;else if(m.status==="doing")di++;else if(m.status==="blocked")bl++;else if(m.status==="review")rv++;else pe++});var h='<div class="sg"><div class="sc"><div class="sv g">'+dn+'</div><div class="sl">已完成模块</div></div><div class="sc"><div class="sv y">'+di+'</div><div class="sl">进行中模块</div></div><div class="sc"><div class="sv b">'+pe+'</div><div class="sl">待开始模块</div></div><div class="sc"><div class="sv r">'+bl+'</div><div class="sl">阻塞模块</div></div></div>';h+='<div class="cd"><div class="ct2">📦 模块进度概览</div>';BD.modules.forEach(function(m){var c=pClr(m.progress);h+='<div class="mi2"><div class="mr"><div style="flex:1;min-width:0"><div class="mn">'+esc(m.name)+'</div><div class="md">'+esc(m.desc)+'</div></div><div class="mrt"><div class="mp"><div class="mpf '+m.status+'" style="width:'+m.progress+'%;background:'+c+'"></div></div><span style="font-size:12px;color:var(--muted)">'+m.progress+'%</span>'+sBadge(m.status)+'</div></div></div>'});h+="</div>";h+='<div class="cd"><div class="ct2">⚡ 最近活动</div>';var ra=BD.timeline.slice(0,5);if(ra.length===0){h+='<div class="empty"><div class="empty-t">暂无活动</div></div>'}else{ra.forEach(function(t){var ic={done:"✅",change:"🔄",fail:"❌",review:"🔍",sync:"🔄",test:"🧪"}[t.type]||"📌";h+='<div class="ra"><span class="ra-ic">'+ic+'</span><div class="ra-bd"><div class="ra-t">'+esc(t.title)+'</div><div class="ra-d">'+esc(t.desc).substring(0,60)+(t.desc.length>60?"...":"")+'</div></div><span class="ra-tm">'+relTime(t.time)+'</span></div>'})}h+="</div>";document.getElementById("v-overview").innerHTML=h}
-
-function rModules(){var h='<div class="cd"><div class="ct2">📦 模块看板</div><div class="fb">';[["all","全部"],["done","已完成"],["doing","进行中"],["review","审查中"],["pending","待开始"],["blocked","阻塞"]].forEach(function(f){h+='<button class="fbtn'+(_mf===f[0]?" on":"")+'" onclick="setMF(\''+f[0]+"')\">"+f[1]+"</button>"});h+='<span style="margin-left:auto;font-size:12px;color:var(--muted);cursor:pointer" onclick="togGrp()">'+(_mg?"✦ 分组":"✧ 列表")+"</span></div>";var fl=_mf==="all"?BD.modules:BD.modules.filter(function(m){return m.status===_mf});if(fl.length===0){h+='<div class="empty"><div class="empty-i">📭</div><div class="empty-t">没有匹配的模块</div></div>'}else if(_mg&&_mf==="all"){var gs={done:[],doing:[],review:[],pending:[],blocked:[]};fl.forEach(function(m){if(gs[m.status])gs[m.status].push(m);else gs.pending.push(m)});var gl={done:"✅ 已完成",doing:"🔄 进行中",review:"🔍 审查中",pending:"⏳ 待开始",blocked:"🚫 阻塞"};Object.keys(gs).forEach(function(k){if(gs[k].length===0)return;h+='<div class="mg"><div class="mg-h">'+gl[k]+' <span class="mg-ct">'+gs[k].length+'</span></div>';gs[k].forEach(function(m){h+=rModCard(m)});h+="</div>"});if(gs.pending.length+gs.blocked.length+gs.review.length+gs.doing.length+gs.done.length===0){h+='<div class="empty"><div class="empty-i">📭</div><div class="empty-t">没有匹配的模块</div></div>'}}else{fl.forEach(function(m){h+=rModCard(m)})}h+="</div>";document.getElementById("v-modules").innerHTML=h}
-function rModCard(m){var c=pClr(m.progress);var h='<div class="mi2" data-status="'+m.status+'"><div class="mr" onclick="togMod(\''+m.id+"')\"><div style=\"flex:1;min-width:0\"><div class=\"mn\">"+esc(m.name)+'</div><div class="md">'+esc(m.desc)+'</div></div><div class="mrt"><div class="mp"><div class="mpf '+m.status+'" style="width:'+m.progress+'%;background:'+c+'"></div></div><span style="font-size:12px;color:var(--muted)">'+m.progress+'%</span>'+sBadge(m.status)+'<span style="font-size:10px;color:var(--muted)">▼</span></div></div>';if(m.subtasks&&m.subtasks.length){h+='<div class="mdt" id="md-'+m.id+'">';m.subtasks.forEach(function(s){var cc=s.status==="done"?"done":s.status==="doing"?"doing":"";var ci=s.status==="done"?"✓":s.status==="doing"?"◐":"";h+='<div class="mst"><span class="ck '+cc+'">'+ci+'</span><span>'+esc(s.name)+'</span></div>'});h+="</div>"}h+="</div>";return h}
-function togMod(id){var e=document.getElementById("md-"+id);if(e)e.classList.toggle("open")}
-function setMF(f){_mf=f;rModules()}
-function togGrp(){_mg=!_mg;rModules()}
-
-function rTimeline(){var h='<div class="cd"><div class="ct2">🕐 历史时间线</div><div class="sbx"><span class="sic">🔍</span><input class="si" id="tl-search" placeholder="搜索标题、描述或文件..." value="'+esc(_ts)+'" oninput="onTS(this.value)"></div><div class="fb">';[["all","全部"],["change","变更"],["done","完成"],["fail","失败"],["review","审查"],["sync","同步"],["test","测试"]].forEach(function(f){h+='<button class="fbtn'+(_tf===f[0]?" on":"")+'" onclick="setTF(\''+f[0]+"')\">"+f[1]+"</button>"});h+="</div>";var it=BD.timeline;if(_tf!=="all")it=it.filter(function(t){return t.type===_tf});if(_ts){var q=_ts.toLowerCase();it=it.filter(function(t){return t.title.toLowerCase().indexOf(q)>=0||t.desc.toLowerCase().indexOf(q)>=0||t.files.toLowerCase().indexOf(q)>=0})}if(_df)it=it.filter(function(t){return t.time.indexOf(_df)===0});h+='<div class="tl-stat">共 <strong>'+BD.timeline.length+'</strong> 条记录';if(it.length!==BD.timeline.length)h+='，当前筛选 <strong>'+it.length+'</strong> 条';h+="</div>";var gr={};it.forEach(function(t){var dm=t.time.match(/^(\d{4}-\d{2}-\d{2})/);var dt=dm?dm[1]:"未知日期";if(!gr[dt])gr[dt]=[];gr[dt].push(t)});var sd=Object.keys(gr).sort(function(a,b){return b.localeCompare(a)});if(sd.length===0){h+='<div class="empty"><div class="empty-i">📭</div><div class="empty-t">没有匹配的记录</div></div>'}else{sd.forEach(function(dt){var ps=dt.split("-");var mo=parseInt(ps[1],10);var dy=parseInt(ps[2],10);var cn=gr[dt].length;h+='<div class="dg" data-date="'+dt+'"><div class="dh"><span class="dd"></span>'+mo+"月"+dy+'日 · '+cn+'条记录</div>';gr[dt].forEach(function(t){h+='<div class="ti t-'+t.type+'"><div class="tt">'+esc(t.time)+'</div><div class="ttl">'+esc(t.title)+tBadge(t.type)+'</div><div class="tde">'+esc(t.desc)+'</div><div class="tf">'+esc(t.files)+'</div>';if(t.diff){var st=esc(t.title).replace(/'/g,"\\'");h+='<div class="ta"><a class="tvd" onclick="openDiff(\''+esc(t.diff)+"','"+st+"')\">🔍 查看改动</a></div>"}h+="</div>"});h+="</div>"})}h+="</div>";document.getElementById("v-timeline").innerHTML=h}
-function onTS(v){_ts=v;rTimeline()}
-function setTF(f){_tf=f;_df="";document.querySelectorAll(".sb-date").forEach(function(e){e.classList.remove("on")});rTimeline()}
-
-function rReviews(){var h='<div class="cd"><div class="ct2">🔍 审查记录</div>';if(BD.reviews.length===0){h+='<div class="empty"><div class="empty-i">🔍</div><div class="empty-t">暂无审查记录</div></div>'}else{BD.reviews.forEach(function(r){var cl=r.result==="pass"?"rv-pass":"rv-fail";var ic=r.result==="pass"?"✅":"❌";h+='<div class="rv '+cl+'"><div class="rv-t">'+ic+" "+esc(r.title)+'</div><div class="rv-d">'+esc(r.detail)+'</div><div class="rv-m">审查轮次：第'+r.round+"轮 | 日期："+esc(r.date)+"</div>";if(r.dimensions){var dl={codeQuality:"代码质量",logicCorrectness:"逻辑正确性",securityRisk:"安全风险",archCompliance:"架构合规"};var dc={pass:"✅ 通过",fail:"❌ 不通过",warn:"⚠️ 警告"};h+='<div class="rv-dim">';Object.keys(dl).forEach(function(k){var v=r.dimensions[k]||"pass";var vc=v==="pass"?"pass":v==="fail"?"fail":"warn";h+='<div class="rv-di '+vc+'">'+(dc[v]||v)+" · "+dl[k]+"</div>"});h+="</div>"}h+="</div>"})}h+="</div>";document.getElementById("v-reviews").innerHTML=h}
-
-function rTests(){var h='<div class="cd"><div class="ct2">🧪 测试记录</div><div style="margin-bottom:12px;font-size:12px;color:var(--muted)">测试框架：Vitest | 命令：npm run test</div>';var tc=BD.tests.filter(function(t){return t.count>0});if(tc.length>=3){h+='<div class="tc"><canvas id="test-chart"></canvas><div class="tc-legend"><span><span class="dot" style="background:var(--green)"></span>通过数</span><span><span class="dot" style="background:var(--accent)"></span>总测试数</span></div></div>'}if(BD.tests.length===0){h+='<div class="empty"><div class="empty-i">🧪</div><div class="empty-t">暂无测试记录</div></div>'}else{BD.tests.forEach(function(t){var ic=t.pass?"✅":"❌";h+='<div class="tst"><div class="tst-l"><span>'+ic+'</span><span class="tst-n">'+esc(t.name)+'</span></div><div><span class="tst-r">'+esc(t.result)+'</span><span class="tst-d" style="margin-left:12px">'+esc(t.date)+'</span></div></div>'})}h+="</div>";document.getElementById("v-tests").innerHTML=h;if(tc.length>=3){setTimeout(drawTestChart,50)}}
-
-function drawTestChart(){var cv=document.getElementById("test-chart");if(!cv)return;var ctx=cv.getContext("2d");var dpr=window.devicePixelRatio||1;var w=cv.offsetWidth;var h=120;cv.width=w*dpr;cv.height=h*dpr;ctx.scale(dpr,dpr);var tc=BD.tests.filter(function(t){return t.count>0});if(tc.length===0)return;var mx=Math.max.apply(null,tc.map(function(t){return t.total}));mx=Math.max(mx,10);var pad={t:10,b:20,l:40,r:10};var cw=w-pad.l-pad.r;var ch=h-pad.t-pad.b;ctx.strokeStyle="var(--border)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();ctx.fillStyle="var(--muted)";ctx.font="10px sans-serif";ctx.textAlign="right";for(var i=0;i<=4;i++){var y=pad.t+ch*(1-i/4);ctx.fillText(Math.round(mx*i/4),pad.l-4,y+3);ctx.strokeStyle="rgba(51,65,85,.3)";ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke()}var bw=Math.min(20,(cw/tc.length)*0.6);var gap=cw/tc.length;tc.forEach(function(t,idx){var x=pad.l+gap*idx+gap/2;var th=ch*(t.total/mx);var ph=ch*(t.count/mx);ctx.fillStyle="rgba(56,189,248,0.3)";ctx.fillRect(x-bw/2,h-pad.b-th,bw,th);ctx.fillStyle="rgba(74,222,128,0.8)";ctx.fillRect(x-bw/2,h-pad.b-ph,bw,ph);ctx.fillStyle="var(--muted)";ctx.font="9px sans-serif";ctx.textAlign="center";var lb=t.date.substring(5);ctx.fillText(lb,x,h-pad.b+12)})}
-
-function rDecisions(){var h='<div class="cd"><div class="ct2">💡 决策记录</div>';if(BD.decisions.length===0){h+='<div class="empty"><div class="empty-i">💡</div><div class="empty-t">暂无决策记录</div></div>'}else{BD.decisions.forEach(function(d){h+='<div class="dci"><div class="dci-t">→ '+esc(d.title)+'</div><div class="dci-m">'+esc(d.detail)+" | "+esc(d.date)+"</div></div>"})}h+="</div>";document.getElementById("v-decisions").innerHTML=h}
-
-function rDateIdx(){var ct=document.getElementById("date-index");var dc={};BD.timeline.forEach(function(t){var dm=t.time.match(/^(\d{4}-\d{2}-\d{2})/);if(dm){var dt=dm[1];dc[dt]=(dc[dt]||0)+1}});var sd=Object.keys(dc).sort(function(a,b){return b.localeCompare(a)});var al=document.createElement("div");al.className="sb-date on";al.textContent="全部显示";al.onclick=function(){document.querySelectorAll(".sb-date").forEach(function(e){e.classList.remove("on")});this.classList.add("on");_df="";swV("timeline")};ct.appendChild(al);sd.forEach(function(dt){var cn=dc[dt];var ps=dt.split("-");var mo=parseInt(ps[1],10);var dy=parseInt(ps[2],10);var el=document.createElement("div");el.className="sb-date";el.innerHTML=mo+"月"+dy+'日 <span class="ct">'+cn+"</span>";el.dataset.date=dt;el.onclick=function(){document.querySelectorAll(".sb-date").forEach(function(e){e.classList.remove("on")});this.classList.add("on");_df=dt;swV("timeline")};ct.appendChild(el)})}
-
-function swV(nm){document.querySelectorAll(".sb-item").forEach(function(e){e.classList.remove("on")});document.querySelectorAll('[id^="v-"]').forEach(function(e){e.classList.add("hidden")});var it=document.querySelector('.sb-item[data-v="'+nm+'"]');if(it)it.classList.add("on");var vw=document.getElementById("v-"+nm);if(vw)vw.classList.remove("hidden");if(nm==="overview")rOverview();else if(nm==="modules")rModules();else if(nm==="timeline")rTimeline();else if(nm==="reviews")rReviews();else if(nm==="tests")rTests();else if(nm==="decisions")rDecisions()}
-
-document.querySelectorAll(".sb-item").forEach(function(el){el.addEventListener("click",function(){var v=this.dataset.v;if(v)swV(v)})});
-
-function openDiff(fn,tl){var md=document.getElementById("diff-modal");var bd=document.getElementById("dm-body");var te=document.getElementById("dm-title");te.textContent=tl?"改动详情 - "+tl:"改动详情";te.dataset.filename=fn;bd.innerHTML='<div class="dl">加载中...</div>';md.classList.add("on");document.body.style.overflow="hidden";fetch("diffs/"+fn).then(function(r){if(!r.ok)throw new Error("文件不存在");return r.text()}).then(function(tx){bd.innerHTML=renderDiff(tx)}).catch(function(er){bd.innerHTML='<div class="de">暂无 diff 记录（'+er.message+"）</div>"})}
-function closeDiff(){var md=document.getElementById("diff-modal");md.classList.remove("on");document.body.style.overflow=""}
-document.addEventListener("keydown",function(e){if(e.key==="Escape")closeDiff()});
-
-function genFileDesc(fn,ha,hd){var ex=fn.split(".").pop()||"";var bs=fn.split("/").pop()||fn;if(bs.indexOf(".test.")>=0||bs.indexOf(".spec.")>=0)return"增加/修改测试用例";if(ex==="css"||ex==="scss"||ex==="less")return"调整样式";if(ex==="ts"||ex==="tsx"||ex==="js"||ex==="jsx"){if(ha&&!hd)return"新增功能";if(!ha&&hd)return"删除/重构代码";return"修改逻辑代码"}if(ex==="html")return"调整页面结构";if(ex==="json")return"更新配置";if(ex==="md"||ex==="txt")return"更新文档";if(ha&&!hd)return"新增内容";if(!ha&&hd)return"删除内容";return"修改内容"}
-
-function parseDiff(tx){var files=[];var lines=tx.split("\n");var cf=null,ch=null,desc=[],inDesc=false;for(var li=0;li<lines.length;li++){var ln=lines[li];if(ln.indexOf("# 改动说明")===0){inDesc=true;continue}if(inDesc&&ln.indexOf("#")===0){desc.push(ln.substring(1).trim());continue}if(inDesc&&ln.trim()!==""&&ln.indexOf("#")!==0){inDesc=false}if(ln.indexOf("diff --git")===0){if(cf){cf.description=desc;files.push(cf)}var mt=ln.match(/diff --git a\/(.+) b\/(.+)/);cf={filename:mt?mt[1]:ln,hunks:[],description:[]};ch=null;desc=[]}else if(ln.indexOf("@@")===0){var m=ln.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);ch={header:ln,oldStart:m?parseInt(m[1],10):0,newStart:m?parseInt(m[2],10):0,lines:[]};if(cf)cf.hunks.push(ch)}else if(ch){if(ln.indexOf("-")===0)ch.lines.push({type:"del",content:ln.substring(1)});else if(ln.indexOf("+")===0)ch.lines.push({type:"add",content:ln.substring(1)});else if(ln.indexOf(" ")===0)ch.lines.push({type:"ctx",content:ln.substring(1)});else if(ln==="")ch.lines.push({type:"ctx",content:""})}}if(cf){cf.description=desc;files.push(cf)}return files}
-
-function renderDiff(tx){var files=parseDiff(tx);if(files.length===0){var lines=tx.split("\n").filter(function(l){return l.trim()});if(lines.length===0)return'<div class="de">暂无 diff 内容</div>';var h='<div class="dpt">';lines.forEach(function(ln){if(ln.indexOf("#")===0)h+='<div class="dpc">'+esc(ln.substring(1).trim())+"</div>";else h+='<div class="dpl">'+esc(ln)+"</div>"});return h+"</div>"}var h="";files.forEach(function(file){var ha=file.hunks.some(function(hk){return hk.lines.some(function(l){return l.type==="add"})});var hd=file.hunks.some(function(hk){return hk.lines.some(function(l){return l.type==="del"})});var ds=genFileDesc(file.filename,ha,hd);h+='<div class="dfc"><div class="dfh"><div class="dfn">📄 '+esc(file.filename)+'</div><div class="dfd">'+esc(ds)+"</div></div>";if(file.description&&file.description.length){h+='<div class="ddesc">';file.description.forEach(function(dl){h+='<div class="ddesc-l">'+esc(dl)+"</div>"});h+="</div>"}h+='<div class="dhs">';file.hunks.forEach(function(hk){h+='<div class="dhh">'+esc(hk.header)+"</div>";var pairs=[];var i=0;var ls=hk.lines;while(i<ls.length){if(ls[i].type==="del"){var dels=[];while(i<ls.length&&ls[i].type==="del"){dels.push(ls[i]);i++}var adds=[];while(i<ls.length&&ls[i].type==="add"){adds.push(ls[i]);i++}var mx=Math.max(dels.length,adds.length);for(var j=0;j<mx;j++){pairs.push({left:j<dels.length?dels[j]:null,right:j<adds.length?adds[j]:null})}}else if(ls[i].type==="add"){pairs.push({left:null,right:ls[i]});i++}else{pairs.push({left:ls[i],right:ls[i]});i++}}h+='<div class="dp2"><div class="dp2h"><div class="dp2hl">❌ 修改前</div><div class="dp2hr">✅ 修改后</div></div>';var ol=hk.oldStart,nl=hk.newStart;var ll=[],rl=[];pairs.forEach(function(p){if(p.left&&p.left.type==="ctx"){ll.push({type:"ctx",content:p.left.content,num:ol});rl.push({type:"ctx",content:p.right.content,num:nl});ol++;nl++}else{if(p.left){ll.push({type:"del",content:p.left.content,num:ol});ol++}else{ll.push({type:"empty",content:"",num:""})}if(p.right){rl.push({type:"add",content:p.right.content,num:nl});nl++}else{rl.push({type:"empty",content:"",num:""})}}});h+='<div class="ds dsl">';ll.forEach(function(ln){h+='<div class="dlr '+ln.type+'"><div class="dln">'+(ln.num!==""?ln.num:"")+'</div><div class="dlc">'+esc(ln.content)+"</div></div>"});h+="</div>";h+='<div class="ds">';rl.forEach(function(ln){h+='<div class="dlr '+ln.type+'"><div class="dln">'+(ln.num!==""?ln.num:"")+'</div><div class="dlc">'+esc(ln.content)+"</div></div>"});h+="</div></div>"});h+="</div></div>"});return h}
-
-(function initWS(){var ws,rt,delay=1000,attempt=0;function us(c,t){var d=document.getElementById("ws-dot");var x=document.getElementById("ws-text");if(d)d.className="ws-d "+(c?"on":"off");if(x)x.textContent=t}function conn(){try{ws=new WebSocket("ws://localhost:8081");ws.onopen=function(){us(true,"实时更新已连接");delay=1000;attempt=0;if(rt){clearTimeout(rt);rt=null}};ws.onmessage=function(ev){try{var d=JSON.parse(ev.data);if(d.type==="reload"){if(d.file&&d.file.indexOf("index.html")>=0)location.reload();if(d.file&&d.file.indexOf(".diff")>=0){var md=document.getElementById("diff-modal");if(md&&md.classList.contains("on")){var te=document.getElementById("dm-title");var cf=te?te.dataset.filename:null;if(cf&&d.file.indexOf(cf)>=0){var tt=te.textContent.replace("改动详情 - ","");openDiff(cf,tt)}}}}}catch(e){}};ws.onclose=function(){us(false,"实时更新未连接 ("+Math.round(delay/1000)+"秒后重试)");attempt++;delay=Math.min(delay*2,16000);rt=setTimeout(conn,delay)};ws.onerror=function(){us(false,"实时更新连接错误")}}catch(e){us(false,"实时更新初始化失败");rt=setTimeout(conn,delay)}}conn()})();
-
-rHdr();rOverview();rDateIdx();
+function switchView(viewId){
+  var views=document.querySelectorAll('[id^="view-"]');
+  for(var i=0;i<views.length;i++){views[i].classList.add('hidden')}
+  var el=document.getElementById('view-'+viewId);
+  if(el){el.classList.remove('hidden')}
+  var items=document.querySelectorAll('.sidebar-item,.sidebar-sub');
+  for(var j=0;j<items.length;j++){items[j].classList.remove('active')}
+  var active=document.querySelector('[data-view="'+viewId+'"]');
+  if(active){active.classList.add('active')}
+}
+// 事件委托：在 sidebar 容器上统一监听点击
+document.addEventListener('DOMContentLoaded',function(){
+  var sidebar=document.querySelector('.sidebar');
+  if(sidebar){
+    sidebar.addEventListener('click',function(e){
+      var target=e.target.closest('.sidebar-item,.sidebar-sub');
+      if(!target) return;
+      var viewId=target.getAttribute('data-view');
+      if(viewId) switchView(viewId);
+    });
+  }
+});
+// 兜底：如果 DOMContentLoaded 已触发，直接绑定
+(function(){
+  var sidebar=document.querySelector('.sidebar');
+  if(sidebar){
+    sidebar.addEventListener('click',function(e){
+      var target=e.target.closest('.sidebar-item,.sidebar-sub');
+      if(!target) return;
+      var viewId=target.getAttribute('data-view');
+      if(viewId) switchView(viewId);
+    });
+  }
+})();
 </script>
 </body>
 </html>

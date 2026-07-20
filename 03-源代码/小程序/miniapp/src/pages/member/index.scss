@@ -1,0 +1,128 @@
+.member-page {
+  min-height: 100vh;
+  background: #F8F4E9;
+
+  &__hero {
+    background: linear-gradient(135deg, #FF8C42, #FF6B35);
+    padding: 40px 20px 30px;
+    text-align: center;
+  }
+
+  &__hero-title {
+    display: block;
+    font-size: 24px;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  &__hero-subtitle {
+    display: block;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 8px;
+  }
+
+  &__status {
+    padding: 16px;
+  }
+
+  &__status-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+
+  &__status-label {
+    font-size: 14px;
+    color: #999;
+  }
+
+  &__status-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+
+    &--active {
+      color: #FF8C42;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  &__action-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e8e0d4;
+
+    &--cancel {
+      background: #fff;
+    }
+
+    &--restore {
+      background: #fff;
+    }
+  }
+
+  &__action-btn-text {
+    font-size: 13px;
+    color: #666;
+  }
+
+  &__subscribe {
+    padding: 0 0 16px;
+  }
+
+  &__pay-btn {
+    margin: 0 16px;
+    background: linear-gradient(135deg, #FF8C42, #FF6B35);
+    border-radius: 24px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+
+    &--disabled {
+      opacity: 0.6;
+      box-shadow: none;
+    }
+  }
+
+  &__pay-btn-text {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  &__restore {
+    text-align: center;
+    margin-top: 12px;
+    padding: 8px;
+  }
+
+  &__restore-text {
+    font-size: 13px;
+    color: #999;
+    text-decoration: underline;
+  }
+
+  &__error {
+    margin: 16px;
+    padding: 12px;
+    background: #FFF0F0;
+    border-radius: 8px;
+  }
+
+  &__error-text {
+    font-size: 13px;
+    color: #FF4444;
+  }
+}

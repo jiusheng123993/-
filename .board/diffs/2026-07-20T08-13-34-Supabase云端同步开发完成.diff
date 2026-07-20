@@ -1,0 +1,6 @@
+# 改动说明
+# 问题：Supabase云端同步开发完成
+# 原因：完成PRD 6.5云端同步方案：1)SupabaseClient REST客户端-支持CRUD/upsert/批量操作 2)SyncService同步服务-队列同步/推送/拉取/加密/数据导出导入/云端清除 3)cloudSyncStore状态管理-同步状态/进度/错误管理 4)集成checkinService/petService/vaccineService/foodService/symptomStore自动同步 5)敏感数据端到端加密(emotion_triggers/pet_grief_sessions) 6)16个单元测试。全量533测试通过，tsc零错误
+# 改动：
+#   1. Supabase云端同步开发完成
+# 影响：完成PRD 6.5云端同步方案：1)SupabaseClient REST客户端-支持CRUD/upsert/批量操作 2)SyncService同步服务-队列同步/推送/拉取/加密/数据导出导入/云端清除 3)cloudSyncStore状态管理-同步状态/进度/错误管理 4)集成checkinService/petService/vaccineService/foodService/symptomStore自动同步 5)敏感数据端到端加密(emotion_triggers/pet_grief_sessions) 6)16个单元测试。全量533测试通过，tsc零错误

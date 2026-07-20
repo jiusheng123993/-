@@ -1,0 +1,124 @@
+.pet-card {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(140, 107, 79, 0.08);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.pet-card:active {
+  transform: scale(0.98);
+}
+
+.pet-card--current {
+  border: 2px solid #FF8C42;
+  box-shadow: 0 4rpx 20rpx rgba(255, 140, 66, 0.15);
+}
+
+.pet-card--deceased {
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
+.pet-card__avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 24rpx;
+  background: #F5F0E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pet-card__avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.pet-card__avatar-emoji {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.pet-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pet-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.pet-card__name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2C2C2C;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pet-card__gender {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.pet-card__gender--male {
+  color: #4A90D9;
+}
+
+.pet-card__gender--female {
+  color: #E87DA0;
+}
+
+.pet-card__tag {
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.pet-card__tag--current {
+  background: rgba(255, 140, 66, 0.12);
+}
+
+.pet-card__tag--deceased {
+  background: rgba(140, 140, 140, 0.15);
+}
+
+.pet-card__tag-text {
+  font-size: 20rpx;
+  font-weight: 500;
+}
+
+.pet-card__tag--current .pet-card__tag-text {
+  color: #FF8C42;
+}
+
+.pet-card__tag--deceased .pet-card__tag-text {
+  color: #8C8C8C;
+}
+
+.pet-card__breed {
+  display: block;
+  font-size: 26rpx;
+  color: #6B6B6B;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pet-card__detail {
+  display: block;
+  font-size: 24rpx;
+  color: #8C8C8C;
+}

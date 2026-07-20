@@ -1,0 +1,95 @@
+.emotion-card {
+  margin: 24px 32px;
+  padding: 32px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+
+  &--gentle {
+    border-left: 6px solid #9b8ec4;
+  }
+
+  &--encouraging {
+    border-left: 6px solid #FF8C42;
+  }
+
+  &--empathetic {
+    border-left: 6px solid #6baed6;
+  }
+
+  &--celebratory {
+    border-left: 6px solid #f4a460;
+  }
+
+  &--informative {
+    border-left: 6px solid #7fc97f;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  &__icon {
+    font-size: 40px;
+    margin-right: 16px;
+  }
+
+  &__title {
+    font-size: 30px;
+    font-weight: 600;
+    color: #2C2C2C;
+    flex: 1;
+  }
+
+  &__dismiss {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f5f5f5;
+  }
+
+  &__dismiss-text {
+    font-size: 24px;
+    color: #999;
+  }
+
+  &__body {
+    margin-bottom: 20px;
+  }
+
+  &__content {
+    font-size: 28px;
+    line-height: 1.7;
+    color: #444;
+  }
+
+  &__suggestions {
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  &__suggestion {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+  }
+
+  &__suggestion-bullet {
+    font-size: 28px;
+    color: #FF8C42;
+    margin-right: 12px;
+    line-height: 1.6;
+  }
+
+  &__suggestion-text {
+    font-size: 26px;
+    color: #666;
+    line-height: 1.6;
+    flex: 1;
+  }
+}

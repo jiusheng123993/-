@@ -1,0 +1,117 @@
+.mine-page {
+  min-height: 100vh;
+  background: #F8F4E9;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 40px 20px 24px;
+    background: linear-gradient(135deg, #FF8C42, #FF6B35);
+  }
+
+  &__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 14px;
+  }
+
+  &__avatar-text {
+    font-size: 24px;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  &__info {
+    flex: 1;
+  }
+
+  &__nickname {
+    display: block;
+    font-size: 18px;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  &__member-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    padding: 2px 10px;
+    margin-top: 6px;
+  }
+
+  &__member-tag-text {
+    font-size: 11px;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  &__free-tag {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 6px;
+  }
+
+  &__section {
+    margin: 12px 16px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  &__menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f5f0e8;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:active {
+      background: #f9f6f0;
+    }
+  }
+
+  &__menu-left {
+    display: flex;
+    align-items: center;
+  }
+
+  &__menu-icon {
+    font-size: 18px;
+    margin-right: 12px;
+  }
+
+  &__menu-title {
+    font-size: 15px;
+    color: #333;
+  }
+
+  &__menu-right {
+    display: flex;
+    align-items: center;
+  }
+
+  &__menu-badge {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #FF6B35;
+    margin-right: 8px;
+  }
+
+  &__menu-arrow {
+    font-size: 18px;
+    color: #ccc;
+  }
+}

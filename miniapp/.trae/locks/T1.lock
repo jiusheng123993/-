@@ -1,9 +1,0 @@
-{
-  "status": "locked",
-  "taskId": "T1",
-  "taskName": "memory-body数据层迁移",
-  "startedAt": null,
-  "completedAt": null,
-  "lockedBy": "current-session",
-  "lockedAt": "2026-07-12T01:00:00+08:00"
-}

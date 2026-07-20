@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "main": "electron/main.cjs",
+  "main": "03-源代码/桌面端/electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "server": "npx tsx src/server/index.ts",
+    "server": "npx tsx 03-源代码/桌面端/src/shared/server/index.ts",
     "server:dev": "concurrently \"npm run dev\" \"npm run server\"",
     "capacitor:sync": "npx cap sync",
     "capacitor:open:android": "npx cap open android",

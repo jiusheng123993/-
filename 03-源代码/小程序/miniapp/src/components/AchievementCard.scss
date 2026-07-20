@@ -1,0 +1,92 @@
+.achievement-card {
+  position: relative;
+  background: #fff;
+  border-radius: 24px;
+  border: 3px solid;
+  padding: 32px 24px 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  &__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    z-index: 1;
+  }
+
+  &__close-text {
+    font-size: 24px;
+    color: #999;
+  }
+
+  &__icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  &__icon-text {
+    font-size: 56px;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__face {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__face-img {
+    display: block;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__title {
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  &__subtitle {
+    font-size: 26px;
+    color: #666;
+  }
+
+  &__pet-name {
+    font-size: 24px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  &__footer {
+    margin: 24px -24px 0;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__footer-text {
+    font-size: 22px;
+    color: #fff;
+    font-weight: 500;
+    letter-spacing: 4px;
+  }
+}

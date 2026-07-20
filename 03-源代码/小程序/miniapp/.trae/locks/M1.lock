@@ -1,0 +1,1 @@
+{"status":"completed","taskId":"M1","taskName":"memory-body引擎扩展","lockedBy":"current-session","lockedAt":"2026-07-17T22:30:00+08:00","completedAt":"2026-07-18T00:05:00+08:00","description":"扩展memory-body引擎支持宠物健康数据类型：PetHealthEntry类型定义、健康数据摄入、健康趋势检索、健康模式演化"}

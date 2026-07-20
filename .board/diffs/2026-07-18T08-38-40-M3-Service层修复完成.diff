@@ -1,0 +1,6 @@
+# 改动说明
+# 问题：M3 Service层修复完成
+# 原因：修复foodService未匹配食物默认safe→caution+引擎层接入、checkinService类型统一+userId隔离、quotaManager强制配额校验+throwIfExceeded
+# 改动：
+#   1. M3 Service层修复完成
+# 影响：修复foodService未匹配食物默认safe→caution+引擎层接入、checkinService类型统一+userId隔离、quotaManager强制配额校验+throwIfExceeded

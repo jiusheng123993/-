@@ -1,0 +1,59 @@
+export default defineAppConfig({
+  pages: [
+    'pages/index/index',
+    'pages/pet-profile/index',
+    'pages/pet-profile/add/index',
+    'pages/pet-profile/edit/index',
+    'pages/pet-checkin/index',
+    'pages/pet-food-query/index',
+    'pages/pet-vaccine/index',
+    'pages/pet-symptom-check/index',
+    'pages/pet-trends/index',
+    'pages/pet-breed/index',
+    'pages/profile/index',
+    'pages/member/index',
+    'pages/mine/index',
+    'pages/onboarding/index',
+    'pages/login/index',
+    'pages/settings/index',
+    'pages/agreement/index'
+  ],
+  tabBar: {
+    color: '#8C8C8C',
+    selectedColor: '#FF8C42',
+    backgroundColor: '#FFFFFF',
+    borderStyle: 'white',
+    list: [
+      {
+        pagePath: 'pages/index/index',
+        text: '首页',
+        iconPath: 'assets/tabbar/home.png',
+        selectedIconPath: 'assets/tabbar/home-active.png'
+      },
+      {
+        pagePath: 'pages/pet-profile/index',
+        text: '我的宠物',
+        iconPath: 'assets/tabbar/calendar.png',
+        selectedIconPath: 'assets/tabbar/calendar-active.png'
+      },
+      {
+        pagePath: 'pages/member/index',
+        text: '会员',
+        iconPath: 'assets/tabbar/mood.png',
+        selectedIconPath: 'assets/tabbar/mood-active.png'
+      },
+      {
+        pagePath: 'pages/mine/index',
+        text: '我的',
+        iconPath: 'assets/tabbar/profile.png',
+        selectedIconPath: 'assets/tabbar/profile-active.png'
+      }
+    ]
+  },
+  window: {
+    backgroundTextStyle: 'light',
+    navigationBarBackgroundColor: '#f7f4ed',
+    navigationBarTitleText: '星寰海',
+    navigationBarTextStyle: 'black'
+  }
+})

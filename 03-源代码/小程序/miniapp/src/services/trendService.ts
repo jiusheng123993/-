@@ -1,0 +1,551 @@
+import { api } from './api'
+import { getStorage, setStorage } from '../utils/storage'
+import type { PetHealthEntry } from './checkinService'
+import type { AppetiteLevel, SpiritLevel, PoopLevel, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes'
+import { getCheckinsByDateRange } from './checkinService'
+
+function entryDateStr(entry: PetHealthEntry): string {
+  if (entry.createdAt instanceof Date) {
+    return entry.createdAt.toISOString().slice(0, 10)
+  }
+  return String(entry.createdAt).slice(0, 10)
+}
+
+function mapAppetiteLevel(level: AppetiteLevel): 'normal' | 'decreased' | 'increased' | 'none' {
+  switch (level) {
+    case 1: return 'none'
+    case 2: return 'decreased'
+    case 3: return 'normal'
+    case 4: return 'increased'
+    case 5: return 'increased'
+  }
+}
+
+function mapSpiritLevel(level: SpiritLevel): 'normal' | 'low' | 'high' | 'lethargic' {
+  switch (level) {
+    case 1: return 'lethargic'
+    case 2: return 'low'
+    case 3: return 'normal'
+    case 4: return 'normal'
+    case 5: return 'high'
+  }
+}
+
+function mapPoopLevel(level: PoopLevel): 'normal' | 'soft' | 'diarrhea' | 'constipation' | 'bloody' {
+  switch (level) {
+    case 1: return 'bloody'
+    case 2: return 'diarrhea'
+    case 3: return 'normal'
+    case 4: return 'soft'
+    case 5: return 'constipation'
+  }
+}
+
+export interface TrendDataPoint {
+  date: string
+  weight?: number
+  appetite?: 'normal' | 'decreased' | 'increased' | 'none'
+  energy?: 'normal' | 'low' | 'high' | 'lethargic'
+  stool?: 'normal' | 'soft' | 'diarrhea' | 'constipation' | 'bloody'
+  vomiting?: boolean
+  riskLevel?: HealthRiskLevel
+  hasAbnormal: boolean
+}
+
+export interface TrendSummary {
+  petId: string
+  period: string
+  weightTrend: 'stable' | 'increasing' | 'decreasing'
+  weightChange: number
+  weightChangePercent: number
+  appetiteStats: Record<string, number>
+  stoolStats: Record<string, number>
+  abnormalDays: number
+  totalDays: number
+  aiAnalysis: string
+}
+
+export interface MonthlyReport {
+  petId: string
+  month: string
+  summary: TrendSummary
+  highlights: string[]
+  concerns: string[]
+  recommendations: string[]
+}
+
+function getTrendStorageKey(petId: string): string {
+  return `trend_${petId}`
+}
+
+function getLocalTrendData(petId: string): TrendDataPoint[] {
+  return getStorage<TrendDataPoint[]>(getTrendStorageKey(petId)) || []
+}
+
+function saveLocalTrendData(petId: string, data: TrendDataPoint[]): void {
+  setStorage(getTrendStorageKey(petId), data)
+}
+
+function checkinToTrendDataPoint(entry: PetHealthEntry): TrendDataPoint {
+  return {
+    date: entryDateStr(entry),
+    weight: entry.weight,
+    appetite: mapAppetiteLevel(entry.appetiteLevel),
+    energy: mapSpiritLevel(entry.spiritLevel),
+    stool: mapPoopLevel(entry.poopLevel),
+    vomiting: entry.anomalyItems.includes('other'),
+    riskLevel: entry.riskLevel,
+    hasAbnormal: entry.riskLevel !== 'low',
+  }
+}
+
+function calculateWeightTrend(dataPoints: TrendDataPoint[]): {
+  trend: 'stable' | 'increasing' | 'decreasing'
+  change: number
+  changePercent: number
+} {
+  const withWeight = dataPoints.filter((d) => d.weight !== undefined && d.weight !== null)
+  if (withWeight.length < 2) {
+    return { trend: 'stable', change: 0, changePercent: 0 }
+  }
+
+  const sorted = [...withWeight].sort((a, b) => a.date.localeCompare(b.date))
+  const first = sorted[0].weight!
+  const last = sorted[sorted.length - 1].weight!
+  const change = last - first
+  const changePercent = first !== 0 ? (change / first) * 100 : 0
+
+  let trend: 'stable' | 'increasing' | 'decreasing' = 'stable'
+  if (changePercent > 5) {
+    trend = 'increasing'
+  } else if (changePercent < -5) {
+    trend = 'decreasing'
+  }
+
+  return { trend, change, changePercent }
+}
+
+function calculateAppetiteStats(dataPoints: TrendDataPoint[]): Record<string, number> {
+  const stats: Record<string, number> = { normal: 0, decreased: 0, increased: 0, none: 0 }
+  for (const dp of dataPoints) {
+    if (dp.appetite) {
+      stats[dp.appetite] = (stats[dp.appetite] || 0) + 1
+    }
+  }
+  return stats
+}
+
+function calculateStoolStats(dataPoints: TrendDataPoint[]): Record<string, number> {
+  const stats: Record<string, number> = {
+    normal: 0,
+    soft: 0,
+    diarrhea: 0,
+    constipation: 0,
+    bloody: 0,
+  }
+  for (const dp of dataPoints) {
+    if (dp.stool) {
+      stats[dp.stool] = (stats[dp.stool] || 0) + 1
+    }
+  }
+  return stats
+}
+
+function generateAiAnalysis(
+  dataPoints: TrendDataPoint[],
+  weightTrend: { trend: string; change: number; changePercent: number },
+  appetiteStats: Record<string, number>,
+  stoolStats: Record<string, number>,
+  abnormalDays: number,
+  totalDays: number
+): string {
+  const parts: string[] = []
+
+  if (totalDays === 0) {
+    return '暂无足够数据生成健康分析报告，请坚持每日打卡记录宠物健康状况。'
+  }
+
+  if (weightTrend.trend === 'stable') {
+    parts.push('体重保持稳定，这是健康的好迹象。')
+  } else if (weightTrend.trend === 'increasing') {
+    if (weightTrend.changePercent > 20) {
+      parts.push(`⚠️ 体重增长${weightTrend.changePercent.toFixed(1)}%，增幅较大，建议关注饮食和运动量。`)
+    } else if (weightTrend.changePercent > 10) {
+      parts.push(`体重增长${weightTrend.changePercent.toFixed(1)}%，处于关注范围，建议适当控制饮食。`)
+    } else {
+      parts.push(`体重略有增长（${weightTrend.changePercent.toFixed(1)}%），属于正常波动范围。`)
+    }
+  } else {
+    if (weightTrend.changePercent < -20) {
+      parts.push(`⚠️ 体重下降${Math.abs(weightTrend.changePercent).toFixed(1)}%，降幅较大，建议尽快就医检查。`)
+    } else if (weightTrend.changePercent < -10) {
+      parts.push(`体重下降${Math.abs(weightTrend.changePercent).toFixed(1)}%，处于关注范围，建议密切观察。`)
+    } else {
+      parts.push(`体重略有下降（${Math.abs(weightTrend.changePercent).toFixed(1)}%），属于正常波动范围。`)
+    }
+  }
+
+  const appetiteTotal = Object.values(appetiteStats).reduce((a, b) => a + b, 0)
+  if (appetiteTotal > 0) {
+    const noneRatio = (appetiteStats['none'] || 0) / appetiteTotal
+    const decreasedRatio = (appetiteStats['decreased'] || 0) / appetiteTotal
+    const normalRatio = (appetiteStats['normal'] || 0) / appetiteTotal
+
+    if (noneRatio > 0.3) {
+      parts.push('食欲不振天数占比较高，需要重点关注。')
+    } else if (decreasedRatio > 0.3) {
+      parts.push('食欲下降天数较多，建议观察是否有其他伴随症状。')
+    } else if (normalRatio > 0.7) {
+      parts.push('食欲整体正常，饮食状况良好。')
+    } else {
+      parts.push('食欲偶有波动，整体尚可。')
+    }
+  }
+
+  const stoolTotal = Object.values(stoolStats).reduce((a, b) => a + b, 0)
+  if (stoolTotal > 0) {
+    const bloodyCount = stoolStats['bloody'] || 0
+    const diarrheaCount = stoolStats['diarrhea'] || 0
+    const normalCount = stoolStats['normal'] || 0
+    const normalRatio = normalCount / stoolTotal
+
+    if (bloodyCount > 0) {
+      parts.push(`🚨 出现${bloodyCount}天便血情况，这是紧急信号，请立即就医！`)
+    } else if (diarrheaCount > stoolTotal * 0.3) {
+      parts.push('腹泻天数较多，建议就医检查消化系统。')
+    } else if (normalRatio > 0.7) {
+      parts.push('排便情况整体正常。')
+    } else {
+      parts.push('排便偶有异常，建议持续观察。')
+    }
+  }
+
+  if (totalDays > 0) {
+    const abnormalRatio = abnormalDays / totalDays
+    if (abnormalRatio > 0.5) {
+      parts.push('异常天数占比超过50%，整体健康状况需要高度重视。')
+    } else if (abnormalRatio > 0.3) {
+      parts.push('异常天数占比较高，建议进行全面健康检查。')
+    } else if (abnormalRatio < 0.1) {
+      parts.push('整体健康状况良好，继续保持！')
+    }
+  }
+
+  const consecutiveNone = findConsecutiveAbnormal(dataPoints, 'appetite', 'none', 3)
+  if (consecutiveNone) {
+    parts.push('🚨 检测到连续3天以上完全不吃东西，这是紧急情况，请立即就医！')
+  }
+
+  const hasBloody = dataPoints.some((d) => d.stool === 'bloody')
+  if (hasBloody) {
+    parts.push('🚨 检测到便血记录，这是紧急信号，请立即就医！')
+  }
+
+  return parts.join('')
+}
+
+function findConsecutiveAbnormal(
+  dataPoints: TrendDataPoint[],
+  field: 'appetite' | 'stool' | 'energy',
+  value: string,
+  minDays: number
+): boolean {
+  const sorted = [...dataPoints].sort((a, b) => a.date.localeCompare(b.date))
+  let consecutive = 0
+  for (const dp of sorted) {
+    if (dp[field] === value) {
+      consecutive++
+      if (consecutive >= minDays) return true
+    } else {
+      consecutive = 0
+    }
+  }
+  return false
+}
+
+function generateHighlights(
+  dataPoints: TrendDataPoint[],
+  weightTrend: { trend: string; change: number; changePercent: number },
+  appetiteStats: Record<string, number>,
+  stoolStats: Record<string, number>
+): string[] {
+  const highlights: string[] = []
+
+  if (dataPoints.length === 0) return highlights
+
+  if (weightTrend.trend === 'stable') {
+    highlights.push('体重保持稳定')
+  }
+
+  const appetiteTotal = Object.values(appetiteStats).reduce((a, b) => a + b, 0)
+  if (appetiteTotal > 0 && (appetiteStats['normal'] || 0) / appetiteTotal > 0.7) {
+    highlights.push('食欲整体良好')
+  }
+
+  const stoolTotal = Object.values(stoolStats).reduce((a, b) => a + b, 0)
+  if (stoolTotal > 0 && (stoolStats['normal'] || 0) / stoolTotal > 0.7) {
+    highlights.push('排便情况正常')
+  }
+
+  const abnormalRatio = dataPoints.filter((d) => d.hasAbnormal).length / dataPoints.length
+  if (abnormalRatio < 0.1 && dataPoints.length >= 7) {
+    highlights.push('整体健康状况优秀')
+  }
+
+  return highlights
+}
+
+function generateConcerns(
+  dataPoints: TrendDataPoint[],
+  weightTrend: { trend: string; change: number; changePercent: number },
+  appetiteStats: Record<string, number>,
+  stoolStats: Record<string, number>
+): string[] {
+  const concerns: string[] = []
+
+  if (weightTrend.changePercent > 20) {
+    concerns.push(`体重增长${weightTrend.changePercent.toFixed(1)}%，需关注`)
+  } else if (weightTrend.changePercent < -20) {
+    concerns.push(`体重下降${Math.abs(weightTrend.changePercent).toFixed(1)}%，需关注`)
+  }
+
+  const appetiteTotal = Object.values(appetiteStats).reduce((a, b) => a + b, 0)
+  if (appetiteTotal > 0 && (appetiteStats['none'] || 0) > 0) {
+    concerns.push(`有${appetiteStats['none']}天完全不吃东西`)
+  }
+
+  const stoolTotal = Object.values(stoolStats).reduce((a, b) => a + b, 0)
+  if ((stoolStats['bloody'] || 0) > 0) {
+    concerns.push(`出现${stoolStats['bloody']}天便血`)
+  }
+  if ((stoolStats['diarrhea'] || 0) > 0) {
+    concerns.push(`出现${stoolStats['diarrhea']}天腹泻`)
+  }
+
+  const abnormalDays = dataPoints.filter((d) => d.hasAbnormal).length
+  if (dataPoints.length > 0 && abnormalDays / dataPoints.length > 0.3) {
+    concerns.push(`异常天数占比${((abnormalDays / dataPoints.length) * 100).toFixed(0)}%`)
+  }
+
+  return concerns
+}
+
+function generateRecommendations(
+  dataPoints: TrendDataPoint[],
+  weightTrend: { trend: string; change: number; changePercent: number },
+  appetiteStats: Record<string, number>,
+  stoolStats: Record<string, number>
+): string[] {
+  const recommendations: string[] = []
+
+  if (dataPoints.length < 7) {
+    recommendations.push('数据量较少，建议坚持每日打卡以获得更准确的分析')
+  }
+
+  if (weightTrend.changePercent > 10) {
+    recommendations.push('建议控制饮食并增加运动量')
+  } else if (weightTrend.changePercent < -10) {
+    recommendations.push('建议增加营养摄入，必要时就医检查')
+  }
+
+  const appetiteTotal = Object.values(appetiteStats).reduce((a, b) => a + b, 0)
+  if (appetiteTotal > 0 && (appetiteStats['none'] || 0) / appetiteTotal > 0.2) {
+    recommendations.push('食欲问题持续存在，建议就医检查')
+  }
+
+  const stoolTotal = Object.values(stoolStats).reduce((a, b) => a + b, 0)
+  if ((stoolStats['bloody'] || 0) > 0) {
+    recommendations.push('便血是紧急信号，请立即就医')
+  }
+  if ((stoolStats['diarrhea'] || 0) > stoolTotal * 0.3) {
+    recommendations.push('腹泻频繁，建议就医检查消化系统')
+  }
+
+  if (dataPoints.length >= 30) {
+    recommendations.push('建议定期进行年度体检')
+  }
+
+  return recommendations
+}
+
+export async function getTrendData(
+  petId: string,
+  startDate: string,
+  endDate: string,
+  userId?: string
+): Promise<TrendDataPoint[]> {
+  try {
+    const result = await api.get<TrendDataPoint[]>(
+      `/api/pets/${petId}/trends?startDate=${startDate}&endDate=${endDate}`
+    )
+    saveLocalTrendData(petId, result)
+    return result
+  } catch (error) {
+    try {
+      const checkins = await getCheckinsByDateRange(petId, userId || '', startDate, endDate)
+      const trendData = checkins.map(checkinToTrendDataPoint)
+      saveLocalTrendData(petId, trendData)
+      return trendData
+    } catch {
+      const local = getLocalTrendData(petId)
+      return local.filter((d) => d.date >= startDate && d.date <= endDate)
+    }
+  }
+}
+
+export async function getTrendSummary(
+  petId: string,
+  period: 'week' | 'month' | 'quarter'
+): Promise<TrendSummary> {
+  const now = new Date()
+  let startDate: Date
+
+  switch (period) {
+    case 'week':
+      startDate = new Date(now)
+      startDate.setDate(now.getDate() - 7)
+      break
+    case 'month':
+      startDate = new Date(now)
+      startDate.setMonth(now.getMonth() - 1)
+      break
+    case 'quarter':
+      startDate = new Date(now)
+      startDate.setMonth(now.getMonth() - 3)
+      break
+  }
+
+  const startStr = startDate.toISOString().slice(0, 10)
+  const endStr = now.toISOString().slice(0, 10)
+
+  try {
+    const result = await api.get<TrendSummary>(
+      `/api/pets/${petId}/trends/summary?period=${period}`
+    )
+    return result
+  } catch (error) {
+    const dataPoints = await getTrendData(petId, startStr, endStr)
+    return buildLocalTrendSummary(petId, period, dataPoints)
+  }
+}
+
+function buildLocalTrendSummary(
+  petId: string,
+  period: string,
+  dataPoints: TrendDataPoint[]
+): TrendSummary {
+  const weightResult = calculateWeightTrend(dataPoints)
+  const appetiteStats = calculateAppetiteStats(dataPoints)
+  const stoolStats = calculateStoolStats(dataPoints)
+  const abnormalDays = dataPoints.filter((d) => d.hasAbnormal).length
+  const totalDays = dataPoints.length
+
+  const aiAnalysis = generateAiAnalysis(
+    dataPoints,
+    weightResult,
+    appetiteStats,
+    stoolStats,
+    abnormalDays,
+    totalDays
+  )
+
+  return {
+    petId,
+    period,
+    weightTrend: weightResult.trend,
+    weightChange: weightResult.change,
+    weightChangePercent: weightResult.changePercent,
+    appetiteStats,
+    stoolStats,
+    abnormalDays,
+    totalDays,
+    aiAnalysis,
+  }
+}
+
+export async function getMonthlyReport(
+  petId: string,
+  month: string
+): Promise<MonthlyReport> {
+  try {
+    const result = await api.get<MonthlyReport>(
+      `/api/pets/${petId}/trends/report?month=${month}`
+    )
+    return result
+  } catch (error) {
+    const [year, monthNum] = month.split('-').map(Number)
+    const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`
+    const lastDay = new Date(year, monthNum, 0).getDate()
+    const endDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+
+    const dataPoints = await getTrendData(petId, startDate, endDate)
+    const summary = buildLocalTrendSummary(petId, 'month', dataPoints)
+
+    const weightResult = calculateWeightTrend(dataPoints)
+    const appetiteStats = calculateAppetiteStats(dataPoints)
+    const stoolStats = calculateStoolStats(dataPoints)
+
+    return {
+      petId,
+      month,
+      summary,
+      highlights: generateHighlights(dataPoints, weightResult, appetiteStats, stoolStats),
+      concerns: generateConcerns(dataPoints, weightResult, appetiteStats, stoolStats),
+      recommendations: generateRecommendations(dataPoints, weightResult, appetiteStats, stoolStats),
+    }
+  }
+}
+
+export async function getWeightTrend(
+  petId: string,
+  months: number = 3
+): Promise<TrendDataPoint[]> {
+  const endDate = new Date()
+  const startDate = new Date()
+  startDate.setMonth(startDate.getMonth() - months)
+
+  const startStr = startDate.toISOString().slice(0, 10)
+  const endStr = endDate.toISOString().slice(0, 10)
+
+  const allData = await getTrendData(petId, startStr, endStr)
+  return allData.filter((d) => d.weight !== undefined && d.weight !== null)
+}
+
+export async function getAppetiteTrend(
+  petId: string,
+  months: number = 3
+): Promise<TrendDataPoint[]> {
+  const endDate = new Date()
+  const startDate = new Date()
+  startDate.setMonth(startDate.getMonth() - months)
+
+  const startStr = startDate.toISOString().slice(0, 10)
+  const endStr = endDate.toISOString().slice(0, 10)
+
+  const allData = await getTrendData(petId, startStr, endStr)
+  return allData.filter((d) => d.appetite !== undefined)
+}
+
+export async function getStoolTrend(
+  petId: string,
+  months: number = 3
+): Promise<TrendDataPoint[]> {
+  const endDate = new Date()
+  const startDate = new Date()
+  startDate.setMonth(startDate.getMonth() - months)
+
+  const startStr = startDate.toISOString().slice(0, 10)
+  const endStr = endDate.toISOString().slice(0, 10)
+
+  const allData = await getTrendData(petId, startStr, endStr)
+  return allData.filter((d) => d.stool !== undefined)
+}
+
+export async function getAbnormalDays(
+  petId: string,
+  startDate: string,
+  endDate: string
+): Promise<TrendDataPoint[]> {
+  const allData = await getTrendData(petId, startDate, endDate)
+  return allData.filter((d) => d.hasAbnormal)
+}

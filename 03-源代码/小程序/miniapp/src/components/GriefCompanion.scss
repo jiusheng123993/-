@@ -1,0 +1,239 @@
+.grief-companion {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #F8F4E9;
+}
+
+.grief-companion__header {
+  padding: 32rpx 32rpx 24rpx;
+  background: linear-gradient(180deg, rgba(255, 140, 66, 0.12) 0%, rgba(255, 140, 66, 0.02) 100%);
+  border-bottom: 1rpx solid rgba(255, 140, 66, 0.1);
+}
+
+.grief-companion__pet-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 28rpx;
+}
+
+.grief-companion__avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: rgba(255, 140, 66, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.grief-companion__avatar-img {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+}
+
+.grief-companion__avatar-emoji {
+  font-size: 40rpx;
+}
+
+.grief-companion__pet-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.grief-companion__pet-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #2C2C2C;
+  margin-bottom: 4rpx;
+}
+
+.grief-companion__deceased-date {
+  font-size: 24rpx;
+  color: #6B6B6B;
+}
+
+.grief-companion__stage-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.grief-companion__stage-dot {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 140, 66, 0.1);
+  transition: all 0.3s ease;
+}
+
+.grief-companion__stage-dot--active {
+  background: rgba(255, 140, 66, 0.25);
+  transform: scale(1.15);
+}
+
+.grief-companion__stage-dot-inner {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: rgba(255, 140, 66, 0.3);
+  transition: all 0.3s ease;
+}
+
+.grief-companion__stage-dot--active .grief-companion__stage-dot-inner {
+  width: 20rpx;
+  height: 20rpx;
+  background: #FF8C42;
+}
+
+.grief-companion__stage-labels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grief-companion__stage-label {
+  font-size: 20rpx;
+  color: #6B6B6B;
+  width: 112rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.grief-companion__stage-label--active {
+  color: #FF8C42;
+  font-weight: 600;
+}
+
+.grief-companion__messages {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  overflow-y: auto;
+}
+
+.grief-companion__message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 28rpx;
+}
+
+.grief-companion__message--user {
+  flex-direction: row-reverse;
+}
+
+.grief-companion__message-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(255, 140, 66, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.grief-companion__message-avatar-emoji {
+  font-size: 28rpx;
+}
+
+.grief-companion__bubble {
+  max-width: 70%;
+  padding: 20rpx 28rpx;
+  border-radius: 24rpx;
+  position: relative;
+}
+
+.grief-companion__bubble--ai {
+  background: rgba(255, 140, 66, 0.12);
+  border-top-left-radius: 8rpx;
+}
+
+.grief-companion__bubble--user {
+  background: #ffffff;
+  border-top-right-radius: 8rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.grief-companion__bubble-text {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #2C2C2C;
+  word-break: break-all;
+}
+
+.grief-companion__bubble--ai .grief-companion__bubble-text {
+  color: #4A4A4A;
+}
+
+.grief-companion__bubble-time {
+  display: block;
+  font-size: 20rpx;
+  color: #6B6B6B;
+  margin-top: 8rpx;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.grief-companion__input-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #F8F4E9;
+  border-top: 1rpx solid rgba(255, 140, 66, 0.1);
+}
+
+.grief-companion__input {
+  flex: 1;
+  height: 76rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(255, 140, 66, 0.15);
+  border-radius: 38rpx;
+  padding: 0 32rpx;
+  font-size: 28rpx;
+  color: #2C2C2C;
+}
+
+.grief-companion__input-placeholder {
+  color: #6B6B6B;
+  font-size: 28rpx;
+}
+
+.grief-companion__send-btn {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: rgba(255, 140, 66, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16rpx;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.grief-companion__send-btn--active {
+  background: #FF8C42;
+}
+
+.grief-companion__send-icon {
+  font-size: 32rpx;
+  color: #6B6B6B;
+  transform: rotate(-30deg);
+}
+
+.grief-companion__send-btn--active .grief-companion__send-icon {
+  color: #ffffff;
+}

@@ -1,0 +1,1 @@
+{"status":"completed","taskId":"M2","taskName":"宠物档案多宠管理","lockedBy":"current-session","lockedAt":"2026-07-18T00:10:00+08:00","completedAt":"2026-07-18T01:00:00+08:00","description":"宠物档案CRUD、多宠管理、品种关联、离世标记：petService + petStore + usePet + 宠物档案页 + 添加宠物页 + PetCard/PetSwitcher/PetDeceasedModal组件","testResults":"33/33 passed"}

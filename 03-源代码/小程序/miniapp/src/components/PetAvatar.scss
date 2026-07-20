@@ -1,0 +1,58 @@
+.pet-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__face {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__image {
+    display: block;
+  }
+
+  &__label {
+    margin-top: 8px;
+    padding: 4px 16px;
+    border-radius: 20px;
+  }
+
+  &__label-text {
+    font-size: 22px;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  &__diary {
+    margin-top: 16px;
+    padding: 16px 24px;
+    background: #FFF8F0;
+    border-radius: 16px;
+    max-width: 280px;
+    text-align: center;
+    border: 1px solid #FFE0C0;
+  }
+
+  &__diary-emoji {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  &__diary-text {
+    font-size: 24px;
+    color: #666;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  &__diary-author {
+    font-size: 22px;
+    color: #999;
+    margin-top: 8px;
+    display: block;
+  }
+}

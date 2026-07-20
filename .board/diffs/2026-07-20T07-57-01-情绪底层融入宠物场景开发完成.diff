@@ -1,0 +1,6 @@
+# 改动说明
+# 问题：情绪底层融入宠物场景开发完成
+# 原因：完成PRD 4.8情绪底层三大场景：1)EmotionEngine引擎-评估触发条件匹配情绪场景 2)EmotionResponseCard组件-展示情绪响应卡片 3)pet-checkin集成-宠物生病焦虑干预(3天异常触发) 4)pet-food-query/pet-symptom-check集成-新手养宠焦虑缓解 5)GriefCompanion增强-接入EmotionEngine关键词匹配 6)21个单元测试覆盖。全量517测试通过，tsc零错误
+# 改动：
+#   1. 情绪底层融入宠物场景开发完成
+# 影响：完成PRD 4.8情绪底层三大场景：1)EmotionEngine引擎-评估触发条件匹配情绪场景 2)EmotionResponseCard组件-展示情绪响应卡片 3)pet-checkin集成-宠物生病焦虑干预(3天异常触发) 4)pet-food-query/pet-symptom-check集成-新手养宠焦虑缓解 5)GriefCompanion增强-接入EmotionEngine关键词匹配 6)21个单元测试覆盖。全量517测试通过，tsc零错误

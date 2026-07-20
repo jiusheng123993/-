@@ -1,0 +1,84 @@
+.usage-counter {
+  background: #fff;
+  border-radius: 12px;
+  margin: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+  &__header {
+    display: flex;
+    background: #F8F4E9;
+    padding: 10px 12px;
+  }
+
+  &__col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--feature {
+      flex: 2;
+      justify-content: flex-start;
+    }
+
+    &--free {
+      flex: 1;
+    }
+
+    &--member {
+      flex: 1;
+    }
+  }
+
+  &__col-text {
+    font-size: 12px;
+    color: #999;
+    font-weight: 600;
+  }
+
+  &__row {
+    display: flex;
+    padding: 12px;
+    border-bottom: 1px solid #f5f0e8;
+    align-items: center;
+
+    &--highlight {
+      background: #FFF8F0;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__feature-name {
+    font-size: 13px;
+    color: #333;
+  }
+
+  &__value {
+    font-size: 13px;
+    color: #666;
+
+    &--disabled {
+      color: #ccc;
+    }
+
+    &--active {
+      color: #FF8C42;
+      font-weight: 600;
+    }
+  }
+
+  &__member-badge {
+    background: linear-gradient(135deg, #FF8C42, #FF6B35);
+    padding: 8px;
+    text-align: center;
+  }
+
+  &__member-badge-text {
+    font-size: 12px;
+    color: #fff;
+    font-weight: 600;
+  }
+}

@@ -1,0 +1,35 @@
+.page-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px 80px;
+  min-height: 300px;
+
+  &__icon {
+    font-size: 48px;
+    margin-bottom: 24px;
+  }
+
+  &__message {
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  &__retry {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 48px;
+    background: #FF8C42;
+    border-radius: 20px;
+  }
+
+  &__retry-text {
+    font-size: 14px;
+    color: #fff;
+  }
+}

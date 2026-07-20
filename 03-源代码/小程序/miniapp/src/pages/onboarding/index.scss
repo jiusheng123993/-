@@ -1,0 +1,111 @@
+.onboarding-page {
+  min-height: 100vh;
+  background: #F8F4E9;
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px;
+  box-sizing: border-box;
+
+  &__skip {
+    align-self: flex-end;
+    padding: 48px 0 16px;
+  }
+
+  &__skip-text {
+    font-size: 14px;
+    color: #999;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+  }
+
+  &__icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 30px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(140, 107, 79, 0.1);
+    margin-bottom: 32px;
+  }
+
+  &__icon-emoji {
+    font-size: 56px;
+  }
+
+  &__title {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2C2C2C;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  &__description {
+    display: block;
+    font-size: 15px;
+    color: #666;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  &__dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: #e0d8cc;
+    transition: all 0.3s ease;
+
+    &--active {
+      width: 24px;
+      background: #FF8C42;
+    }
+  }
+
+  &__actions {
+    padding-bottom: 60px;
+  }
+
+  &__btn {
+    border-radius: 24px;
+    padding: 14px 0;
+    text-align: center;
+
+    &--next {
+      background: #fff;
+      border: 1px solid #e8e0d4;
+    }
+
+    &--start {
+      background: linear-gradient(135deg, #FF8C42, #FF6B35);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+  }
+
+  &__btn-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+
+    .onboarding-page__btn--start & {
+      color: #fff;
+    }
+  }
+}

@@ -1,0 +1,172 @@
+.food-share-card {
+  background: #F8F4E9;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(140, 107, 79, 0.12);
+  overflow: hidden;
+}
+
+.food-share-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+
+.food-share-card__pet {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.food-share-card__pet-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #EDE7DA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.food-share-card__pet-avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.food-share-card__pet-avatar-emoji {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.food-share-card__pet-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2C2C2C;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200rpx;
+}
+
+.food-share-card__badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  flex-shrink: 0;
+}
+
+.food-share-card__badge-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.food-share-card__badge-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.food-share-card__body {
+  margin-bottom: 28rpx;
+}
+
+.food-share-card__food-name {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #2C2C2C;
+  margin-bottom: 20rpx;
+  line-height: 1.2;
+}
+
+.food-share-card__compounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.food-share-card__compound-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: rgba(244, 67, 54, 0.08);
+  border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.food-share-card__compound-tag-text {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #F44336;
+  line-height: 1.4;
+}
+
+.food-share-card__symptoms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.food-share-card__symptom-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 140, 66, 0.08);
+  border: 1px solid rgba(255, 140, 66, 0.2);
+}
+
+.food-share-card__symptom-tag-text {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #FF8C42;
+  line-height: 1.4;
+}
+
+.food-share-card__symptom-tag--more {
+  background: rgba(107, 107, 107, 0.08);
+  border-color: rgba(107, 107, 107, 0.2);
+}
+
+.food-share-card__symptom-tag-text--more {
+  color: #6B6B6B;
+}
+
+.food-share-card__detail {
+  display: block;
+  font-size: 24rpx;
+  color: #4A4A4A;
+  line-height: 1.6;
+}
+
+.food-share-card__footer {
+  display: flex;
+  justify-content: center;
+}
+
+.food-share-card__share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 80rpx;
+  background: #FF8C42;
+  border-radius: 16rpx;
+  transition: opacity 0.2s ease;
+}
+
+.food-share-card__share-btn:active {
+  opacity: 0.85;
+}
+
+.food-share-card__share-btn-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1;
+}
