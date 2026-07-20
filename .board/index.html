@@ -697,6 +697,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
 <div class="card-title">📜 历史时间线</div>
 <div class="timeline">
+                                                            <div class="tl-item done" data-diff="2026-07-20T15-31-31-小程序审核准备完成.diff">
+            <div class="tl-time">2026-07-20 23:31</div>
+            <div class="tl-title">小程序审核准备完成</div>
+            <div class="tl-desc">隐私政策完善、微信隐私弹窗、账号注销入口、分包配置、医疗免责声明补全、project.config.json配置更新</div>
+            <div class="tl-file">agreement/index.tsx, PrivacyPopup.tsx, app.tsx, app.config.ts, settings/index.tsx, food-query/index.tsx, checkin/index.tsx, trends/index.tsx, project.config.json</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T15-31-31-小程序审核准备完成.diff', '小程序审核准备完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T15-26-13-P2分享裂变-NPS功能完成.diff">
+            <div class="tl-time">2026-07-20 23:26</div>
+            <div class="tl-title">P2分享裂变/NPS功能完成</div>
+            <div class="tl-desc">完成分享裂变和NPS问卷功能：shareService(邀请码/分享记录/推荐处理)、npsService(问卷触发/提交/冷却)、HealthTrendShareCard/VaccineShareCard分享卡片组件、NpsSurvey问卷组件、页面集成(trends/vaccine/index)、测试覆盖(32个测试全部通过)、SCSS样式补齐</div>
+            <div class="tl-file">src/services/shareService.ts, src/services/npsService.ts, src/components/HealthTrendShareCard.tsx, src/components/VaccineShareCard.tsx, src/components/NpsSurvey.tsx, src/pagesPet/trends/index.tsx, src/pagesPet/vaccine/index.tsx, src/pages/index/index.tsx, src/services/__tests__/shareService.test.ts, src/services/__tests__/npsService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T15-26-13-P2分享裂变-NPS功能完成.diff', 'P2分享裂变/NPS功能完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T14-00-18-P1数据隐私功能完成.diff">
+            <div class="tl-time">2026-07-20 22:00</div>
+            <div class="tl-title">P1数据隐私功能完成</div>
+            <div class="tl-desc">完成数据导出/删除/注销功能：dataPrivacyTypes.ts, dataPrivacyService.ts, AccountDeletionConfirm.tsx, authStore扩展deleteAccount/cancelAccountDeletion, settings页面隐私数据管理UI, 全部1167测试通过</div>
+            <div class="tl-file">src/types/dataPrivacyTypes.ts, src/services/dataPrivacyService.ts, src/components/AccountDeletionConfirm.tsx, src/components/AccountDeletionConfirm.scss, src/stores/authStore.ts, src/pages/settings/index.tsx, src/pages/settings/index.scss, src/stores/__tests__/authStore.test.ts, src/hooks/useAuthStore.test.ts, src/services/__tests__/dataPrivacyService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T14-00-18-P1数据隐私功能完成.diff', 'P1数据隐私功能完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T13-55-34-添加隐私协议弹窗功能.diff">
+            <div class="tl-time">2026-07-20 21:55</div>
+            <div class="tl-title">添加隐私协议弹窗功能</div>
+            <div class="tl-desc">为微信小程序添加隐私协议弹窗组件，符合微信2023年9月起强制要求。创建PrivacyPopup组件和样式，在app.tsx中注册Taro.onNeedPrivacyAuthorization监听，用户同意/拒绝时分别调用resolve/reject回调</div>
+            <div class="tl-file">src/components/PrivacyPopup.tsx, src/components/PrivacyPopup.scss, src/app.tsx, src/components/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T13-55-34-添加隐私协议弹窗功能.diff', '添加隐私协议弹窗功能')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T13-40-11-补充Service和Engine层测试.diff">
+            <div class="tl-time">2026-07-20 21:40</div>
+            <div class="tl-title">补充Service和Engine层测试</div>
+            <div class="tl-desc">新增5个测试文件：notificationService(54)、subscribeService(40)、seedreamAdapter(19)、ToxicFoodFilter(43)、MedicalDisclaimer(41)。修复subscribeService类型错误和seedreamAdapter await警告。TypeScript 0错误，1151测试全部通过，构建成功。</div>
+            <div class="tl-file">src/services/__tests__/notificationService.test.ts, src/services/__tests__/subscribeService.test.ts, src/engines/petAvatar/__tests__/seedreamAdapter.test.ts, src/engines/petSafety/__tests__/ToxicFoodFilter.test.ts, src/engines/petSafety/__tests__/MedicalDisclaimer.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T13-40-11-补充Service和Engine层测试.diff', '补充Service和Engine层测试')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T13-25-16-后端stub代码完成-性能优化-测试修复.diff">
+            <div class="tl-time">2026-07-20 21:25</div>
+            <div class="tl-title">后端stub代码完成+性能优化+测试修复</div>
+            <div class="tl-desc">1. 7个后端路由文件stub代码替换为真实数据库操作(pets/checkins/food/symptoms/vaccines/trends/membership) 2. 修复10个路由文件23处asyncHandler回调缺少async关键字的esbuild运行时错误 3. 修复requestLogger JWT解析bug(parsed.sub→parsed.userId) 4. 更新服务器启动日志从20个端点到46个 5. 品种百科页分页加载(133条→初始20条+滚动加载) 6. 4个组件Image添加lazyLoad 7. 疫苗记录分页加载 8. 修复frequencyControlService.test.ts测试失败 9. 全量测试52文件1151用例全部通过</div>
+            <div class="tl-file">桌面端/src/shared/server/routes/pets.ts, 桌面端/src/shared/server/routes/checkins.ts, 桌面端/src/shared/server/routes/food.ts, 桌面端/src/shared/server/routes/symptoms.ts, 桌面端/src/shared/server/routes/vaccines.ts, 桌面端/src/shared/server/routes/trends.ts, 桌面端/src/shared/server/routes/membership.ts, 桌面端/src/shared/server/middleware/requestLogger.ts, 桌面端/src/shared/server/index.ts, 小程序/miniapp/src/pages/pet-breed/index.tsx, 小程序/miniapp/src/pages/pet-vaccine/index.tsx, 小程序/miniapp/src/components/PetCard.tsx, 小程序/miniapp/src/components/PetSwitcher.tsx, 小程序/miniapp/src/components/FoodShareCard.tsx, 小程序/miniapp/src/pages/profile/index.tsx, 小程序/miniapp/src/utils/__tests__/frequencyControlService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T13-25-16-后端stub代码完成-性能优化-测试修复.diff', '后端stub代码完成+性能优化+测试修复')">&#128269; 查看改动</span></div>
+          </div>
 <div class="tl-item info"><div class="tl-time">2026-07-20</div><div class="tl-title">看板修复：进度修正+emoji修复</div><div class="tl-desc">修复无效Unicode字符引用导致点击失效问题，修正整体进度从90%到35%（按PRD v3.1全量49项计算）</div></div>
 <div class="tl-item info"><div class="tl-time">2026-07-20</div><div class="tl-title">看板模块补齐</div><div class="tl-desc">按PRD v3.1完整补齐所有功能模块到看板，新增7个PRD功能模块子页面</div></div>
 <div class="tl-item done"><div class="tl-time">2026-07-18</div><div class="tl-title">旧代码清理完成</div><div class="tl-desc">90+旧方向文件删除，15个文件修改解耦旧依赖，TypeScript编译零错误通过</div><div class="tl-file">全项目文件</div></div>

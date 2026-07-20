@@ -1,17 +1,28 @@
-import { PropsWithChildren, useEffect } from 'react'
+import { PropsWithChildren, useEffect, useState, useRef } from 'react'
 import Taro, { useLaunch } from '@tarojs/taro'
 import { useAuthStore } from './stores/authStore'
 import { usePetStore } from './stores/petStore'
 import { useCheckinStore } from './stores/checkinStore'
 import { useMembershipStore } from './stores/membershipStore'
 import { useTrendStore } from './stores/trendStore'
+import PrivacyPopup from './components/PrivacyPopup'
 import './app.scss'
 
 function App({ children }: PropsWithChildren<{}>) {
+  const [showPrivacyPopup, setShowPrivacyPopup] = useState(false)
+  const privacyResolveRef = useRef<(() => void) | null>(null)
+  const privacyRejectRef = useRef<(() => void) | null>(null)
+
   useLaunch(() => {
   })
 
   useEffect(() => {
+    (Taro as any).onNeedPrivacyAuthorization?.((resolve: () => void, reject: () => void) => {
+      privacyResolveRef.current = resolve
+      privacyRejectRef.current = reject
+      setShowPrivacyPopup(true)
+    })
+
     const initApp = async () => {
       try {
         await useAuthStore.getState().initialize()
@@ -30,7 +41,30 @@ function App({ children }: PropsWithChildren<{}>) {
     initApp()
   }, [])
 
-  return <>{children}</>
+  const handlePrivacyAgree = () => {
+    privacyResolveRef.current?.()
+    privacyResolveRef.current = null
+    privacyRejectRef.current = null
+    setShowPrivacyPopup(false)
+  }
+
+  const handlePrivacyReject = () => {
+    privacyRejectRef.current?.()
+    privacyResolveRef.current = null
+    privacyRejectRef.current = null
+    setShowPrivacyPopup(false)
+  }
+
+  return (
+    <>
+      {children}
+      <PrivacyPopup
+        visible={showPrivacyPopup}
+        onAgree={handlePrivacyAgree}
+        onReject={handlePrivacyReject}
+      />
+    </>
+  )
 }
 
 export default App

@@ -44,7 +44,7 @@ const PetCard: React.FC<PetCardProps> = ({ pet, isCurrent = false, onClick, onLo
     >
       <View className='pet-card__avatar'>
         {pet.avatarPhotoUrl ? (
-          <Image className='pet-card__avatar-img' src={pet.avatarPhotoUrl} mode='aspectFill' />
+          <Image className='pet-card__avatar-img' src={pet.avatarPhotoUrl} mode='aspectFill' lazyLoad />
         ) : (
           <Text className='pet-card__avatar-emoji'>{defaultAvatar}</Text>
         )}

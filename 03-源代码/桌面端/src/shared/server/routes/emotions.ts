@@ -128,7 +128,7 @@ function validateSendMessageBody(body: unknown): { valid: boolean; errors: strin
 export function createEmotionsRouter(): Router {
   const router = Router()
 
-  router.post('/trigger', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/trigger', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const validation = validateTriggerEmotionBody(req.body)
     if (!validation.valid) {
       safeError(res, 400, validation.errors.join('; '))
@@ -154,7 +154,7 @@ export function createEmotionsRouter(): Router {
     }
   }))
 
-  router.get('/triggers', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/triggers', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const userId = req.auth?.userId
     if (!userId || !validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
@@ -168,7 +168,7 @@ export function createEmotionsRouter(): Router {
     }
   }))
 
-  router.post('/grief-session', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/grief-session', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const validation = validateCreateGriefSessionBody(req.body)
     if (!validation.valid) {
       safeError(res, 400, validation.errors.join('; '))
@@ -195,7 +195,7 @@ export function createEmotionsRouter(): Router {
     }
   }))
 
-  router.post('/grief-session/:sessionId/message', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/grief-session/:sessionId/message', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validateSessionId(req.params.sessionId)) {
       safeError(res, 400, 'Invalid sessionId format')
       return

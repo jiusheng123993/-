@@ -13,12 +13,12 @@ interface NavItem {
 const navItems: NavItem[] = [
   { key: 'home', label: '首页', path: '/pages/index/index', icon: 'home' },
   { key: 'pet', label: '宠物', path: '/pages/pet-profile/index', icon: 'pet' },
-  { key: 'checkin', label: '打卡', path: '/pages/pet-checkin/index', icon: 'checkin' },
-  { key: 'food', label: '食物', path: '/pages/pet-food-query/index', icon: 'food' },
-  { key: 'symptom', label: '症状', path: '/pages/pet-symptom-check/index', icon: 'medical' },
-  { key: 'vaccine', label: '疫苗', path: '/pages/pet-vaccine/index', icon: 'shield' },
-  { key: 'trends', label: '趋势', path: '/pages/pet-trends/index', icon: 'chart' },
-  { key: 'profile', label: '我的', path: '/pages/profile/index', icon: 'user' }
+  { key: 'checkin', label: '打卡', path: '/pagesPet/checkin/index', icon: 'checkin' },
+  { key: 'food', label: '食物', path: '/pagesPet/food-query/index', icon: 'food' },
+  { key: 'symptom', label: '症状', path: '/pagesPet/symptom-check/index', icon: 'medical' },
+  { key: 'vaccine', label: '疫苗', path: '/pagesPet/vaccine/index', icon: 'shield' },
+  { key: 'trends', label: '趋势', path: '/pagesPet/trends/index', icon: 'chart' },
+  { key: 'profile', label: '我的', path: '/pagesUser/profile/index', icon: 'user' }
 ]
 
 const NavIcon = ({ name, size = 20, color = '#8C8C8C' }: { name: string; size?: number; color?: string }) => {

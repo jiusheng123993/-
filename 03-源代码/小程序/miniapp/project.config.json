@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "dist/",
   "projectname": "xinghuanhai-miniapp",
-  "description": "星寰海 - 情绪健康管理平台",
+  "description": "星寰海 - AI宠物管家",
   "appid": "wx08d8d6b155bf7860",
   "setting": {
     "urlCheck": true,
@@ -20,7 +20,7 @@
     "checkSiteMap": true,
     "uploadWithSourceMap": false,
     "compileHotReLoad": false,
-    "lazyloadPlaceholderEnable": false,
+    "lazyloadPlaceholderEnable": true,
     "useMultiFrameRuntime": true,
     "useApiHook": true,
     "useApiHostProcess": true,
@@ -46,7 +46,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "3.3.4",
+  "libVersion": "3.7.7",
   "condition": {},
   "simulatorPluginLibVersion": {},
   "packOptions": {

@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { petFoodQueryRepo } from '../db'
+import type { DbPetFoodQuery } from '../db'
 
 const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
 const FOOD_NAME_MAX_LENGTH = 128
@@ -54,10 +56,22 @@ function validateCreateFoodQueryBody(body: unknown): { valid: boolean; errors: s
   return { valid: errors.length === 0, errors }
 }
 
+function toFoodQueryResponse(query: DbPetFoodQuery) {
+  return {
+    id: query.id,
+    userId: query.user_id,
+    foodName: query.food_name,
+    petType: query.species,
+    safetyLevel: query.safety_level,
+    description: query.description,
+    createdAt: query.created_at
+  }
+}
+
 export function createFoodRouter(): Router {
   const router = Router()
 
-  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const validation = validateCreateFoodQueryBody(req.body)
     if (!validation.valid) {
       safeError(res, 400, validation.errors.join('; '))
@@ -69,29 +83,27 @@ export function createFoodRouter(): Router {
       return
     }
     try {
-      const query = {
-        id: `food-q-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      const query = await petFoodQueryRepo.create({
         userId: body.userId,
         foodName: body.foodName,
-        petType: body.petType || null,
-        safetyLevel: 'unknown' as const,
-        createdAt: new Date().toISOString()
-      }
-      res.status(201).json(query)
+        species: body.petType || 'unknown',
+        safetyLevel: 'unknown'
+      })
+      res.status(201).json(toFoodQueryResponse(query))
     } catch {
       safeError(res, 500, 'Failed to create food query')
     }
   }))
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const userId = req.auth?.userId
     if (!userId || !validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
       return
     }
     try {
-      const queries: unknown[] = []
-      res.json(queries)
+      const queries = await petFoodQueryRepo.findByUserId(userId)
+      res.json(queries.map(toFoodQueryResponse))
     } catch {
       safeError(res, 500, 'Failed to fetch food queries')
     }

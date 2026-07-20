@@ -5,8 +5,10 @@ import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import { useMembership } from '../../hooks/useMembership'
 import { useCheckinStore } from '../../stores/checkinStore'
-import { PageLoading, PageError, PetAvatar } from '../../components'
+import { PageLoading, PageError, PetAvatar, NpsSurvey } from '../../components'
+import { checkNpsEligibility, getTriggerEvent, submitNpsResponse, dismissNpsSurvey } from '../../services/npsService'
 import type { ExpressionContext } from '../../engines/petAvatar'
+import type { NpsTriggerEvent } from '../../types/npsTypes'
 import './index.scss'
 
 interface QuickAction {
@@ -18,17 +20,19 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { key: 'food', icon: '🍖', label: '食物查询', path: '/pages/pet-food-query/index', featureKey: 'food_query' },
-  { key: 'symptom', icon: '🩺', label: '症状初筛', path: '/pages/pet-symptom-check/index', featureKey: 'symptom_check' },
-  { key: 'vaccine', icon: '💉', label: '疫苗日历', path: '/pages/pet-vaccine/index' },
-  { key: 'trend', icon: '📊', label: '健康趋势', path: '/pages/pet-trends/index', featureKey: 'health_trend' },
-  { key: 'breed', icon: '📖', label: '品种百科', path: '/pages/pet-breed/index' },
+  { key: 'food', icon: '🍖', label: '食物查询', path: '/pagesPet/food-query/index', featureKey: 'food_query' },
+  { key: 'symptom', icon: '🩺', label: '症状初筛', path: '/pagesPet/symptom-check/index', featureKey: 'symptom_check' },
+  { key: 'vaccine', icon: '💉', label: '疫苗日历', path: '/pagesPet/vaccine/index' },
+  { key: 'trend', icon: '📊', label: '健康趋势', path: '/pagesPet/trends/index', featureKey: 'health_trend' },
+  { key: 'breed', icon: '📖', label: '品种百科', path: '/pagesPet/breed/index' },
 ]
 
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showNps, setShowNps] = useState(false)
+  const [npsTriggerEvent, setNpsTriggerEvent] = useState<NpsTriggerEvent>('manual')
   const user = useAuthStore(s => s.user)
   const { currentPet, pets, initUser: initPetUser, fetchPets } = usePetStore()
   const { isMember, checkAccess, shouldShowPaywall, markPaywallShown } = useMembership()
@@ -61,6 +65,18 @@ export default function HomePage() {
   useEffect(() => {
     loadHomeData()
   }, [loadHomeData])
+
+  useEffect(() => {
+    if (!user?.id || !user?.createdAt) return
+    const createdAt = user.createdAt
+    const npsStatus = checkNpsEligibility(user.id, createdAt)
+    if (npsStatus.isEligible) {
+      const event = getTriggerEvent(createdAt)
+      setNpsTriggerEvent(event)
+      const timer = setTimeout(() => setShowNps(true), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [user?.id, user?.createdAt])
 
   useEffect(() => {
     if (currentPet?.id) {
@@ -100,7 +116,7 @@ export default function HomePage() {
   }, [currentPet, todayEntry])
 
   const handleCheckin = useCallback(() => {
-    Taro.navigateTo({ url: '/pages/pet-checkin/index' })
+    Taro.navigateTo({ url: '/pagesPet/checkin/index' })
   }, [])
 
   const handleQuickAction = useCallback(async (action: QuickAction) => {
@@ -126,6 +142,16 @@ export default function HomePage() {
 
   const handlePetSwitch = useCallback(() => {
     Taro.switchTab({ url: '/pages/pet-profile/index' })
+  }, [])
+
+  const handleNpsSubmit = useCallback(async (score: number, feedback: string) => {
+    if (!user?.id) return
+    await submitNpsResponse(user.id, score, npsTriggerEvent, feedback)
+  }, [user?.id, npsTriggerEvent])
+
+  const handleNpsDismiss = useCallback(() => {
+    dismissNpsSurvey()
+    setShowNps(false)
   }, [])
 
   if (isLoading && pets.length === 0) {
@@ -233,6 +259,14 @@ export default function HomePage() {
       <View className='home-page__footer'>
         <Text className='home-page__footer-text'>{today}</Text>
       </View>
+
+      {showNps && (
+        <NpsSurvey
+          triggerEvent={npsTriggerEvent}
+          onSubmit={handleNpsSubmit}
+          onDismiss={handleNpsDismiss}
+        />
+      )}
     </View>
   )
 }

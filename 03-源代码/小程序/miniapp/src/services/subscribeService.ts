@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro';
 import { getStorage, setStorage } from '../utils/storage';
+import { checkFrequency, recordSend } from './frequencyControlService';
 
 const SUBSCRIBE_STATUS_KEY = 'subscribe_status';
 
@@ -186,6 +187,13 @@ export async function sendSubscribeMessage(
     return false;
   }
 
+  // 频率检查
+  const freqCheck = checkFrequency(templateId);
+  if (!freqCheck.allowed) {
+    console.warn(`[subscribeService] Frequency check failed: ${freqCheck.reason}`);
+    return false;
+  }
+
   try {
     const token = Taro.getStorageSync('xhh_token');
     const apiBaseUrl = process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000';
@@ -202,11 +210,14 @@ export async function sendSubscribeMessage(
 
     if (res.statusCode === 200) {
       recordTemplateUsage(templateId);
+      recordSend(templateId, true); // 记录发送成功
       return true;
     }
 
+    recordSend(templateId, false); // 记录发送失败
     return false;
   } catch {
+    recordSend(templateId, false);
     return false;
   }
 }

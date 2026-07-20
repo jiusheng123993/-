@@ -58,7 +58,7 @@ function validateUseQuotaBody(body: unknown): { valid: boolean; errors: string[]
 export function createQuotasRouter(): Router {
   const router = Router()
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const userId = req.auth?.userId
     if (!userId || !validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
@@ -80,7 +80,7 @@ export function createQuotasRouter(): Router {
     }
   }))
 
-  router.post('/:quotaType/use', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/:quotaType/use', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validateQuotaType(req.params.quotaType)) {
       safeError(res, 400, `quotaType must be one of: ${VALID_QUOTA_TYPES.join(', ')}`)
       return

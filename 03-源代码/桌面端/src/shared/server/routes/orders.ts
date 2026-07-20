@@ -54,7 +54,7 @@ function validateUserId(userId: string): boolean {
 export function createOrdersRouter(): Router {
   const router = Router()
 
-  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const { userId, productId, channel } = req.body as CreateOrderRequest
     if (!validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
@@ -85,7 +85,7 @@ export function createOrdersRouter(): Router {
     }
   }))
 
-  router.get('/user/:userId', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/user/:userId', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validateUserId(req.params.userId)) {
       safeError(res, 400, 'Invalid userId format')
       return
@@ -98,7 +98,7 @@ export function createOrdersRouter(): Router {
     res.json(orders)
   }))
 
-  router.get('/:id', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validateOrderId(req.params.id)) {
       safeError(res, 400, 'Invalid order id format')
       return
@@ -115,7 +115,7 @@ export function createOrdersRouter(): Router {
     res.json(order)
   }))
 
-  router.post('/:id/refund', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/:id/refund', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validateOrderId(req.params.id)) {
       safeError(res, 400, 'Invalid order id format')
       return

@@ -282,26 +282,57 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`📡 WebSocket payment at ws://localhost:${PORT}/ws/payment`)
     console.log(`📡 WebSocket realtime at ws://localhost:${PORT}/ws/realtime`)
     console.log(`🔗 API endpoints:`)
-    console.log(`   - GET  /health`)
-    console.log(`   - POST /api/auth/register`)
-    console.log(`   - POST /api/auth/login`)
-    console.log(`   - POST /api/auth/refresh`)
-    console.log(`   - POST /api/auth/logout`)
-    console.log(`   - GET  /api/auth/session`)
-    console.log(`   - POST /api/auth/bind-device`)
-    console.log(`   - GET  /api/auth/devices`)
-    console.log(`   - POST /api/orders`)
-    console.log(`   - GET  /api/orders/:id`)
-    console.log(`   - GET  /api/orders/user/:userId`)
-    console.log(`   - POST /api/orders/:id/refund`)
-    console.log(`   - POST /api/orders/:id/pay  (dev only)`)
-    console.log(`   - POST /api/payment/wechat/callback`)
-    console.log(`   - POST /api/payment/alipay/callback`)
-    console.log(`   - POST /api/payment/apple/verify`)
-    console.log(`   - POST /api/sync/push`)
-    console.log(`   - GET  /api/sync/pull`)
-    console.log(`   - POST /api/sync/conflict`)
-    console.log(`   - GET  /api/sync/status`)
+    const routes: [string, string][] = [
+      ['GET', '/health'],
+      ['POST', '/api/auth/register'],
+      ['POST', '/api/auth/login'],
+      ['POST', '/api/auth/refresh'],
+      ['POST', '/api/auth/logout'],
+      ['GET', '/api/auth/session'],
+      ['POST', '/api/auth/bind-device'],
+      ['GET', '/api/auth/devices'],
+      ['POST', '/api/orders'],
+      ['GET', '/api/orders/:id'],
+      ['GET', '/api/orders/user/:userId'],
+      ['POST', '/api/orders/:id/refund'],
+      ['POST', '/api/orders/:id/pay  (dev only)'],
+      ['POST', '/api/payment/wechat/callback'],
+      ['POST', '/api/payment/alipay/callback'],
+      ['POST', '/api/payment/apple/verify'],
+      ['POST', '/api/sync/push'],
+      ['GET', '/api/sync/pull'],
+      ['POST', '/api/sync/conflict'],
+      ['GET', '/api/sync/status'],
+      ['POST', '/api/pets'],
+      ['GET', '/api/pets'],
+      ['GET', '/api/pets/:petId'],
+      ['PUT', '/api/pets/:petId'],
+      ['DELETE', '/api/pets/:petId'],
+      ['POST', '/api/pets/:petId/checkins'],
+      ['GET', '/api/pets/:petId/checkins'],
+      ['GET', '/api/pets/:petId/checkins/:date'],
+      ['POST', '/api/food-queries'],
+      ['GET', '/api/food-queries'],
+      ['POST', '/api/pets/:petId/symptom-checks'],
+      ['GET', '/api/pets/:petId/symptom-checks'],
+      ['POST', '/api/pets/:petId/vaccines'],
+      ['GET', '/api/pets/:petId/vaccines/upcoming'],
+      ['GET', '/api/pets/:petId/vaccines'],
+      ['PUT', '/api/pets/:petId/vaccines/:vaccineId'],
+      ['GET', '/api/pets/:petId/trends'],
+      ['GET', '/api/pets/:petId/trends/monthly-report'],
+      ['GET', '/api/membership'],
+      ['POST', '/api/membership/subscribe'],
+      ['GET', '/api/quotas'],
+      ['POST', '/api/quotas/:quotaType/use'],
+      ['POST', '/api/emotions/trigger'],
+      ['GET', '/api/emotions/triggers'],
+      ['POST', '/api/emotions/grief-session'],
+      ['POST', '/api/emotions/grief-session/:sessionId/message'],
+    ]
+    for (const [method, path] of routes) {
+      console.log(`   - ${method.padEnd(6)} ${path}`)
+    }
   })
 }
 

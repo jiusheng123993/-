@@ -1,0 +1,148 @@
+.health-trend-share {
+  &__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  &__card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 640rpx;
+    background: linear-gradient(135deg, #f7f4ed 0%, #fff 100%);
+    border-radius: 32rpx;
+    padding: 40rpx;
+    z-index: 1000;
+    box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.15);
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32rpx;
+  }
+
+  &__brand {
+    font-size: 24rpx;
+    color: #8C6B4F;
+    font-weight: 600;
+    letter-spacing: 2rpx;
+  }
+
+  &__close {
+    font-size: 32rpx;
+    color: #999;
+    padding: 8rpx;
+  }
+
+  &__pet-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24rpx;
+  }
+
+  &__pet-avatar {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 50%;
+    margin-right: 20rpx;
+    border: 4rpx solid rgba(140, 107, 79, 0.2);
+  }
+
+  &__pet-name {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #2d2d2d;
+  }
+
+  &__date {
+    font-size: 24rpx;
+    color: #8a8a8a;
+    margin-bottom: 24rpx;
+  }
+
+  &__summary {
+    background: rgba(74, 144, 217, 0.08);
+    border-radius: 16rpx;
+    padding: 24rpx;
+    margin-bottom: 20rpx;
+  }
+
+  &__summary-label {
+    display: block;
+    font-size: 22rpx;
+    color: #4A90D9;
+    font-weight: 600;
+    margin-bottom: 8rpx;
+  }
+
+  &__summary-text {
+    display: block;
+    font-size: 26rpx;
+    color: #2d2d2d;
+    line-height: 1.6;
+  }
+
+  &__insight {
+    background: rgba(255, 140, 66, 0.08);
+    border-radius: 16rpx;
+    padding: 24rpx;
+    margin-bottom: 24rpx;
+  }
+
+  &__insight-label {
+    display: block;
+    font-size: 22rpx;
+    color: #FF8C42;
+    font-weight: 600;
+    margin-bottom: 8rpx;
+  }
+
+  &__insight-text {
+    display: block;
+    font-size: 26rpx;
+    color: #2d2d2d;
+    line-height: 1.6;
+  }
+
+  &__footer {
+    text-align: center;
+    margin-bottom: 32rpx;
+  }
+
+  &__footer-text {
+    font-size: 20rpx;
+    color: #8C6B4F;
+    letter-spacing: 1rpx;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__share-btn {
+    background: linear-gradient(135deg, #FF8C42, #FF6B35);
+    border-radius: 48rpx;
+    padding: 20rpx 64rpx;
+    box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+
+    &:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+  }
+
+  &__share-btn-text {
+    font-size: 28rpx;
+    color: #fff;
+    font-weight: 600;
+  }
+}

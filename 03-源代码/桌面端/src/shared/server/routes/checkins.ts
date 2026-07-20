@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { petProfileRepo, petHealthEntryRepo } from '../db'
+import type { DbPetHealthEntry } from '../db'
 
 const PET_ID_PATTERN = /^pet-[a-zA-Z0-9_-]{6,64}$/
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -73,10 +75,24 @@ function validateCreateCheckinBody(body: unknown): { valid: boolean; errors: str
   return { valid: errors.length === 0, errors }
 }
 
+function toCheckinResponse(entry: DbPetHealthEntry) {
+  return {
+    id: entry.id,
+    petId: entry.pet_id,
+    date: entry.entry_date,
+    mood: entry.mood || null,
+    appetite: entry.appetite || null,
+    energy: entry.energy || null,
+    note: entry.notes,
+    items: entry.ai_feedback || {},
+    createdAt: entry.created_at
+  }
+}
+
 export function createCheckinsRouter(): Router {
   const router = Router()
 
-  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -88,55 +104,55 @@ export function createCheckinsRouter(): Router {
     }
     const body = req.body as CreateCheckinBody
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const checkin = {
-        id: `checkin-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      const entry = await petHealthEntryRepo.create({
         petId: req.params.petId,
-        date: body.date,
-        mood: body.mood || null,
-        appetite: body.appetite || null,
-        energy: body.energy || null,
-        note: body.note || null,
-        items: body.items || {},
-        createdAt: new Date().toISOString()
-      }
-      res.status(201).json(checkin)
+        userId: req.auth!.userId!,
+        entryDate: body.date,
+        appetite: body.appetite || 'normal',
+        energy: body.energy || 'normal',
+        stool: 'normal',
+        mood: body.mood || 'normal',
+        notes: body.note || undefined,
+        aiFeedback: body.items || undefined
+      })
+      res.status(201).json(toCheckinResponse(entry))
     } catch {
       safeError(res, 500, 'Failed to create checkin')
     }
   }))
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const checkins: unknown[] = []
-      res.json(checkins)
+      const checkins = await petHealthEntryRepo.findByPetId(req.params.petId, req.auth!.userId!)
+      res.json(checkins.map(toCheckinResponse))
     } catch {
       safeError(res, 500, 'Failed to fetch checkins')
     }
   }))
 
-  router.get('/:date', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/:date', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -146,21 +162,21 @@ export function createCheckinsRouter(): Router {
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const checkin: unknown | null = null
+      const checkin = await petHealthEntryRepo.findByDate(req.params.petId, req.auth!.userId!, req.params.date)
       if (!checkin) {
         safeError(res, 404, 'Checkin not found')
         return
       }
-      res.json(checkin)
+      res.json(toCheckinResponse(checkin))
     } catch {
       safeError(res, 500, 'Failed to fetch checkin')
     }

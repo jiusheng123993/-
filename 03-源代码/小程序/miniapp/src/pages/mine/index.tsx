@@ -63,7 +63,7 @@ export default function MinePage() {
   }
 
   const handleSettingsClick = () => {
-    Taro.navigateTo({ url: '/pages/settings/index' })
+    Taro.navigateTo({ url: '/pagesUser/settings/index' })
   }
 
   const handleLogout = () => {

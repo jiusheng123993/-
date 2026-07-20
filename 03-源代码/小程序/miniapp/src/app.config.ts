@@ -2,21 +2,33 @@ export default defineAppConfig({
   pages: [
     'pages/index/index',
     'pages/pet-profile/index',
-    'pages/pet-profile/add/index',
-    'pages/pet-profile/edit/index',
-    'pages/pet-checkin/index',
-    'pages/pet-food-query/index',
-    'pages/pet-vaccine/index',
-    'pages/pet-symptom-check/index',
-    'pages/pet-trends/index',
-    'pages/pet-breed/index',
-    'pages/profile/index',
     'pages/member/index',
     'pages/mine/index',
-    'pages/onboarding/index',
-    'pages/login/index',
-    'pages/settings/index',
-    'pages/agreement/index'
+    'pages/login/index'
+  ],
+  subPackages: [
+    {
+      root: 'pagesPet',
+      pages: [
+        'add/index',
+        'edit/index',
+        'checkin/index',
+        'food-query/index',
+        'vaccine/index',
+        'symptom-check/index',
+        'trends/index',
+        'breed/index'
+      ]
+    },
+    {
+      root: 'pagesUser',
+      pages: [
+        'profile/index',
+        'onboarding/index',
+        'settings/index',
+        'agreement/index'
+      ]
+    }
   ],
   tabBar: {
     color: '#8C8C8C',
@@ -55,5 +67,6 @@ export default defineAppConfig({
     navigationBarBackgroundColor: '#f7f4ed',
     navigationBarTitleText: '星寰海',
     navigationBarTextStyle: 'black'
-  }
+  },
+  __usePrivacyCheck__: true
 })

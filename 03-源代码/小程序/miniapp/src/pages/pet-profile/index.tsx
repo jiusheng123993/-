@@ -94,7 +94,7 @@ export default function PetProfile() {
       success: (res) => {
         const action = itemList[res.tapIndex]
         if (action === '编辑信息') {
-          Taro.navigateTo({ url: `/pages/pet-profile/edit?id=${pet.id}` })
+          Taro.navigateTo({ url: `/pagesPet/edit/index?id=${pet.id}` })
         } else if (action === '标记离世') {
           setDeceasedPet(pet)
           setDeceasedModalVisible(true)
@@ -162,7 +162,7 @@ export default function PetProfile() {
   )
 
   const handleAddPet = useCallback(() => {
-    Taro.navigateTo({ url: '/pages/pet-profile/add' })
+    Taro.navigateTo({ url: '/pagesPet/add/index' })
   }, [])
 
   if (isLoading && pets.length === 0) {

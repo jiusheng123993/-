@@ -1,2 +1,10 @@
 export const APP_VERSION = '1.0.0';
 export const HOTLINE_NUMBER = '400-161-9995';
+export const INVITE_CODE_LENGTH = 6;
+export const INVITE_CODE_MAX_USE = 50;
+export const NPS_MIN_SCORE = 0;
+export const NPS_MAX_SCORE = 10;
+export const NPS_COOLDOWN_DAYS = 30;
+export const NPS_DAY7_TRIGGER = 7;
+export const NPS_DAY30_TRIGGER = 30;
+export const SHARE_REWARD_INVITES = 3;

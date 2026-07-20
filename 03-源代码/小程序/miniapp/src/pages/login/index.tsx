@@ -31,7 +31,7 @@ export default function LoginPage() {
         }, 1500)
       } else if (result.error?.includes('未注册') || result.error?.includes('needRegister')) {
         Taro.navigateTo({
-          url: `/pages/onboarding/index?code=${encodeURIComponent(code)}`
+          url: `/pagesUser/onboarding/index?code=${encodeURIComponent(code)}`
         })
       } else {
         Taro.showToast({ title: result.error || '登录失败，请重试', icon: 'none' })
@@ -44,7 +44,7 @@ export default function LoginPage() {
   }
 
   const handleAgreementClick = (type: 'user' | 'privacy') => {
-    Taro.navigateTo({ url: `/pages/agreement/index?type=${type}` })
+    Taro.navigateTo({ url: `/pagesUser/agreement/index?type=${type}` })
   }
 
   return (

@@ -8,6 +8,7 @@ import {
   sendSubscribeMessage,
   type SubscribeMessageData,
 } from './subscribeService';
+import { checkFrequency, recordSend } from './frequencyControlService';
 import { getMoodDisplayName } from '../utils/moodHelper';
 
 const PENDING_FOLLOWUPS_KEY = 'pending_followups';
@@ -134,13 +135,23 @@ export function checkAndSendFollowups(): PendingFollowup[] {
 async function sendFollowupNotifications(followups: PendingFollowup[]): Promise<void> {
   for (const followup of followups) {
     try {
+      // 频率检查
+      const freqCheck = checkFrequency(FOLLOWUP_TEMPLATE_ID);
+      if (!freqCheck.allowed) {
+        console.warn(`[notificationService] Followup blocked: ${freqCheck.reason}`);
+        followup.status = 'cancelled';
+        continue;
+      }
+
       const sent = await sendSingleFollowup(followup);
       followup.sendAttempts++;
       followup.lastAttemptAt = Date.now();
 
       if (sent) {
         followup.status = 'sent';
+        recordSend(FOLLOWUP_TEMPLATE_ID, true);
       } else {
+        recordSend(FOLLOWUP_TEMPLATE_ID, false);
         if (followup.sendAttempts >= 3) {
           followup.status = 'expired';
         } else {
@@ -167,7 +178,7 @@ async function sendSingleFollowup(followup: PendingFollowup): Promise<boolean> {
     thing3: { value: truncateForTemplate('昨天的情绪急救，今天感觉怎么样？', 20) },
   };
 
-  const page = `/pages/pet-checkin/index?followupSessionId=${followup.sessionId}`;
+  const page = `/pagesPet/checkin/index?followupSessionId=${followup.sessionId}`;
 
   if (followup.subscribeAccepted) {
     const sent = await sendSubscribeMessage(FOLLOWUP_TEMPLATE_ID, data, page);

@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { petProfileRepo, petSymptomCheckRepo } from '../db'
+import type { DbPetSymptomCheck } from '../db'
 
 const PET_ID_PATTERN = /^pet-[a-zA-Z0-9_-]{6,64}$/
 const SYMPTOM_MAX_LENGTH = 256
@@ -66,10 +68,31 @@ function validateCreateSymptomCheckBody(body: unknown): { valid: boolean; errors
   return { valid: errors.length === 0, errors }
 }
 
+function severityToUrgency(severity: string): string {
+  switch (severity) {
+    case 'severe': return 'red'
+    case 'moderate': return 'yellow'
+    default: return 'green'
+  }
+}
+
+function toSymptomCheckResponse(check: DbPetSymptomCheck) {
+  return {
+    id: check.id,
+    petId: check.pet_id,
+    symptoms: check.symptoms,
+    severity: check.severity,
+    description: check.ai_advice,
+    duration: check.duration || null,
+    result: check.possible_conditions.length > 0 ? check.possible_conditions : null,
+    createdAt: check.created_at
+  }
+}
+
 export function createSymptomsRouter(): Router {
   const router = Router()
 
-  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -81,48 +104,50 @@ export function createSymptomsRouter(): Router {
     }
     const body = req.body as CreateSymptomCheckBody
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const check = {
-        id: `symptom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      const severity = body.severity || 'mild'
+      const check = await petSymptomCheckRepo.create({
         petId: req.params.petId,
+        userId: req.auth!.userId!,
         symptoms: body.symptoms,
-        severity: body.severity || 'mild',
-        description: body.description || null,
-        duration: body.duration || null,
-        result: null,
-        createdAt: new Date().toISOString()
-      }
-      res.status(201).json(check)
+        duration: body.duration || 'unknown',
+        severity,
+        urgencyLevel: severityToUrgency(severity),
+        possibleConditions: [],
+        aiAdvice: body.description || undefined,
+        disclaimerAccepted: false
+      })
+      res.status(201).json(toSymptomCheckResponse(check))
     } catch {
       safeError(res, 500, 'Failed to create symptom check')
     }
   }))
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const checks: unknown[] = []
-      res.json(checks)
+      const checks = await petSymptomCheckRepo.findByPetId(req.params.petId, req.auth!.userId!)
+      res.json(checks.map(toSymptomCheckResponse))
     } catch {
       safeError(res, 500, 'Failed to fetch symptom checks')
     }

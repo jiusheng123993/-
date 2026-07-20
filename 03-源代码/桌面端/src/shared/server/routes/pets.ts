@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { petProfileRepo } from '../db'
+import type { DbPetProfile } from '../db'
 
 const PET_ID_PATTERN = /^pet-[a-zA-Z0-9_-]{6,64}$/
 const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
@@ -128,10 +130,28 @@ function validateUpdatePetBody(body: unknown): { valid: boolean; errors: string[
   return { valid: errors.length === 0, errors }
 }
 
+function toPetResponse(pet: DbPetProfile) {
+  return {
+    id: pet.id,
+    userId: pet.user_id,
+    name: pet.name,
+    petType: pet.species,
+    breed: pet.breed,
+    gender: pet.gender || 'unknown',
+    birthday: pet.birth_date,
+    avatarUrl: pet.avatar_url,
+    isNeutered: pet.is_neutered,
+    weight: pet.weight,
+    notes: pet.notes,
+    createdAt: pet.created_at,
+    updatedAt: pet.updated_at
+  }
+}
+
 export function createPetsRouter(): Router {
   const router = Router()
 
-  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const validation = validateCreatePetBody(req.body)
     if (!validation.valid) {
       safeError(res, 400, validation.errors.join('; '))
@@ -143,60 +163,57 @@ export function createPetsRouter(): Router {
       return
     }
     try {
-      const pet = {
-        id: `pet-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      const pet = await petProfileRepo.create({
         userId: body.userId,
         name: body.name,
-        petType: body.petType,
-        breed: body.breed || null,
-        gender: body.gender || 'unknown',
-        birthday: body.birthday || null,
-        avatarUrl: body.avatarUrl || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-      res.status(201).json(pet)
+        species: body.petType,
+        breed: body.breed,
+        gender: body.gender,
+        birthDate: body.birthday,
+        avatarUrl: body.avatarUrl
+      })
+      res.status(201).json(toPetResponse(pet))
     } catch {
       safeError(res, 500, 'Failed to create pet')
     }
   }))
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const userId = req.auth?.userId
     if (!userId || !validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
       return
     }
     try {
-      const pets: unknown[] = []
-      res.json(pets)
+      const pets = await petProfileRepo.findByUserId(userId)
+      res.json(pets.map(toPetResponse))
     } catch {
       safeError(res, 500, 'Failed to fetch pets')
     }
   }))
 
-  router.get('/:petId', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/:petId', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      res.json(pet)
+      res.json(toPetResponse(pet))
     } catch {
       safeError(res, 500, 'Failed to fetch pet')
     }
   }))
 
-  router.put('/:petId', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.put('/:petId', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -207,40 +224,52 @@ export function createPetsRouter(): Router {
       return
     }
     try {
-      const existingPet: { userId: string } | null = null
+      const existingPet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!existingPet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, existingPet.userId)) {
+      if (!canAccessUserResource(req.auth, existingPet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
       const body = req.body as UpdatePetBody
-      const updated = {
-        ...existingPet,
-        ...body,
-        updatedAt: new Date().toISOString()
+      const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+      if (body.name !== undefined) updates.name = body.name
+      if (body.petType !== undefined) updates.species = body.petType
+      if (body.breed !== undefined) updates.breed = body.breed
+      if (body.gender !== undefined) updates.gender = body.gender
+      if (body.birthday !== undefined) updates.birth_date = body.birthday
+      if (body.avatarUrl !== undefined) updates.avatar_url = body.avatarUrl
+      const updated = await petProfileRepo.update(req.params.petId, req.auth!.userId!, updates as any)
+      if (!updated) {
+        safeError(res, 500, 'Failed to update pet')
+        return
       }
-      res.json(updated)
+      res.json(toPetResponse(updated))
     } catch {
       safeError(res, 500, 'Failed to update pet')
     }
   }))
 
-  router.delete('/:petId', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.delete('/:petId', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
     }
     try {
-      const existingPet: { userId: string } | null = null
+      const existingPet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!existingPet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, existingPet.userId)) {
+      if (!canAccessUserResource(req.auth, existingPet.user_id)) {
         safeError(res, 403, 'Forbidden')
+        return
+      }
+      const deleted = await petProfileRepo.delete(req.params.petId, req.auth!.userId!)
+      if (!deleted) {
+        safeError(res, 500, 'Failed to delete pet')
         return
       }
       res.json({ deleted: true })

@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { membershipRepo } from '../db'
+import type { DbMembership } from '../db'
 
 const USER_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
 const VALID_PLANS = ['monthly', 'quarterly', 'yearly'] as const
@@ -18,6 +20,28 @@ function asyncHandler(fn: (req: Request, res: Response) => void | Promise<void>)
 
 function validateUserId(userId: string): boolean {
   return typeof userId === 'string' && USER_ID_PATTERN.test(userId)
+}
+
+function toMembershipResponse(membership: DbMembership) {
+  return {
+    id: membership.id,
+    userId: membership.user_id,
+    plan: membership.plan,
+    status: membership.status,
+    expireAt: membership.expires_at,
+    autoRenew: membership.auto_renew,
+    createdAt: membership.created_at,
+    updatedAt: membership.updated_at
+  }
+}
+
+function planToDuration(plan: string): number {
+  switch (plan) {
+    case 'monthly': return 30
+    case 'quarterly': return 90
+    case 'yearly': return 365
+    default: return 30
+  }
 }
 
 interface SubscribeBody {
@@ -56,27 +80,40 @@ function validateSubscribeBody(body: unknown): { valid: boolean; errors: string[
 export function createMembershipRouter(): Router {
   const router = Router()
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const userId = req.auth?.userId
     if (!userId || !validateUserId(userId)) {
       safeError(res, 400, 'Invalid userId')
       return
     }
     try {
-      const membership = {
+      const existing = await membershipRepo.findByUserId(userId)
+      if (existing) {
+        const now = new Date()
+        const isExpired = existing.expires_at && new Date(existing.expires_at) < now
+        if (isExpired && existing.status === 'active') {
+          const updated = await membershipRepo.update(userId, { status: 'expired' })
+          if (updated) {
+            res.json(toMembershipResponse(updated))
+            return
+          }
+        }
+        res.json(toMembershipResponse(existing))
+        return
+      }
+      res.json({
         userId,
         plan: null,
         status: 'free',
         expireAt: null,
         createdAt: new Date().toISOString()
-      }
-      res.json(membership)
+      })
     } catch {
       safeError(res, 500, 'Failed to fetch membership')
     }
   }))
 
-  router.post('/subscribe', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/subscribe', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     const validation = validateSubscribeBody(req.body)
     if (!validation.valid) {
       safeError(res, 400, validation.errors.join('; '))
@@ -88,15 +125,21 @@ export function createMembershipRouter(): Router {
       return
     }
     try {
-      const subscription = {
-        id: `sub-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      const existing = await membershipRepo.findByUserId(body.userId)
+      if (existing && existing.status === 'active') {
+        safeError(res, 409, 'Already subscribed')
+        return
+      }
+      const days = planToDuration(body.plan)
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + days)
+      const membership = await membershipRepo.create({
         userId: body.userId,
         plan: body.plan,
-        channel: body.channel,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      }
-      res.status(201).json(subscription)
+        expiresAt: expiresAt.toISOString(),
+        autoRenew: false
+      })
+      res.status(201).json(toMembershipResponse(membership))
     } catch {
       safeError(res, 500, 'Failed to subscribe')
     }

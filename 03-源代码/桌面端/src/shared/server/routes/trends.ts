@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { petProfileRepo, petHealthEntryRepo, petHealthTrendRepo } from '../db'
+import type { DbPetHealthEntry } from '../db'
 
 const PET_ID_PATTERN = /^pet-[a-zA-Z0-9_-]{6,64}$/
 const MONTH_PATTERN = /^\d{4}-\d{2}$/
@@ -31,7 +33,7 @@ function validateMonth(month: string): boolean {
 export function createTrendsRouter(): Router {
   const router = Router()
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -47,28 +49,38 @@ export function createTrendsRouter(): Router {
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const trends = {
-        petId: req.params.petId,
-        metric: metric || 'weight',
-        days: daysParam,
-        data: []
-      }
-      res.json(trends)
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - daysParam)
+      const startDateStr = startDate.toISOString().split('T')[0]
+      const checkins = await petHealthEntryRepo.findByPetId(req.params.petId, req.auth!.userId!, { limit: daysParam })
+      const filteredCheckins = checkins.filter((c: DbPetHealthEntry) => c.entry_date >= startDateStr)
+      const metricField = metric || 'weight'
+      const data = filteredCheckins.map((c: DbPetHealthEntry) => {
+        const point: Record<string, unknown> = { date: c.entry_date }
+        switch (metricField) {
+          case 'weight': point.value = c.weight; break
+          case 'appetite': point.value = c.appetite; break
+          case 'energy': point.value = c.energy; break
+          case 'mood': point.value = c.mood; break
+        }
+        return point
+      }).filter((p: Record<string, unknown>) => p.value !== null && p.value !== undefined)
+      res.json({ petId: req.params.petId, metric: metricField, days: daysParam, data })
     } catch {
       safeError(res, 500, 'Failed to fetch trends')
     }
   }))
 
-  router.get('/monthly-report', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/monthly-report', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -79,23 +91,33 @@ export function createTrendsRouter(): Router {
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const report = {
-        petId: req.params.petId,
-        month: month || new Date().toISOString().slice(0, 7),
-        summary: null,
-        checkinCount: 0,
-        alerts: []
-      }
-      res.json(report)
+      const reportMonth = month || new Date().toISOString().slice(0, 7)
+      const monthStart = `${reportMonth}-01`
+      const nextMonth = new Date(reportMonth + '-01')
+      nextMonth.setMonth(nextMonth.getMonth() + 1)
+      const monthEnd = nextMonth.toISOString().split('T')[0]
+      const checkins = await petHealthEntryRepo.findByPetId(req.params.petId, req.auth!.userId!, { limit: 31 })
+      const monthCheckins = checkins.filter((c: DbPetHealthEntry) => c.entry_date >= monthStart && c.entry_date < monthEnd)
+      const alerts: string[] = []
+      monthCheckins.forEach((c: DbPetHealthEntry) => {
+        if (c.mood === 'terrible' || c.mood === 'bad') alerts.push(`${c.entry_date}: mood is ${c.mood}`)
+        if (c.appetite === 'none' || c.appetite === 'vomiting') alerts.push(`${c.entry_date}: appetite is ${c.appetite}`)
+      })
+      const summary = monthCheckins.length > 0 ? {
+        totalCheckins: monthCheckins.length,
+        averageMood: monthCheckins.filter((c: DbPetHealthEntry) => c.mood).map((c: DbPetHealthEntry) => c.mood).join(', ') || null,
+        averageAppetite: monthCheckins.filter((c: DbPetHealthEntry) => c.appetite).map((c: DbPetHealthEntry) => c.appetite).join(', ') || null
+      } : null
+      res.json({ petId: req.params.petId, month: reportMonth, summary, checkinCount: monthCheckins.length, alerts })
     } catch {
       safeError(res, 500, 'Failed to fetch monthly report')
     }

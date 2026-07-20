@@ -43,7 +43,7 @@ export default function FoodShareCard({
         <View className='food-share-card__pet'>
           <View className='food-share-card__pet-avatar'>
             {petAvatar ? (
-              <Image className='food-share-card__pet-avatar-img' src={petAvatar} mode='aspectFill' />
+              <Image className='food-share-card__pet-avatar-img' src={petAvatar} mode='aspectFill' lazyLoad />
             ) : (
               <Text className='food-share-card__pet-avatar-emoji'>🐾</Text>
             )}

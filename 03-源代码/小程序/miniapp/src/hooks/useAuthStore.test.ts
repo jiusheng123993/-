@@ -4,10 +4,16 @@ const {
   mockLoginWithCode,
   mockLogout,
   mockRefreshToken,
+  mockRequestAccountDeletion,
+  mockCancelDeletion,
+  mockGetDataPrivacyStatus,
 } = vi.hoisted(() => ({
   mockLoginWithCode: vi.fn(),
   mockLogout: vi.fn(),
   mockRefreshToken: vi.fn(),
+  mockRequestAccountDeletion: vi.fn(),
+  mockCancelDeletion: vi.fn(),
+  mockGetDataPrivacyStatus: vi.fn(),
 }))
 
 vi.mock('../config/supabase', () => ({
@@ -20,6 +26,10 @@ vi.mock('../config/supabase', () => ({
     TOKEN: 'token',
     REFRESH_TOKEN: 'refresh_token',
     USER: 'user',
+  },
+  ENV: {
+    development: { apiBaseUrl: 'http://localhost:3000', useMock: true },
+    production: { apiBaseUrl: 'https://api.example.com', useMock: false },
   },
 }))
 
@@ -35,6 +45,12 @@ vi.mock('@tarojs/taro', () => ({
   },
 }))
 
+vi.mock('../services/dataPrivacyService', () => ({
+  requestAccountDeletion: mockRequestAccountDeletion,
+  cancelAccountDeletion: mockCancelDeletion,
+  getDataPrivacyStatus: mockGetDataPrivacyStatus,
+}))
+
 import { useAuthStore } from '../stores/authStore'
 
 describe('useAuthStore', () => {
@@ -47,6 +63,7 @@ describe('useAuthStore', () => {
       isAuthenticated: false,
       loading: false,
       error: null,
+      accountDeletionStatus: null,
     })
   })
 

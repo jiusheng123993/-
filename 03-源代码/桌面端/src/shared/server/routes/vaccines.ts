@@ -1,6 +1,8 @@
 import { Router, type Response, type NextFunction, type Request } from 'express'
 import { requireAuth, canAccessUserResource } from '../auth/authMiddleware'
 import type { AuthenticatedRequest } from '../auth/authTypes'
+import { petProfileRepo, petVaccinationRepo } from '../db'
+import type { DbPetVaccination } from '../db'
 
 const PET_ID_PATTERN = /^pet-[a-zA-Z0-9_-]{6,64}$/
 const VACCINE_ID_PATTERN = /^vaccine-[a-zA-Z0-9_-]{6,64}$/
@@ -106,10 +108,32 @@ function validateUpdateVaccineBody(body: unknown): { valid: boolean; errors: str
   return { valid: errors.length === 0, errors }
 }
 
+function toVaccineResponse(vaccination: DbPetVaccination) {
+  let status: string = 'pending'
+  if (vaccination.completed_date) {
+    status = 'completed'
+  } else if (vaccination.is_overdue) {
+    status = 'overdue'
+  }
+  return {
+    id: vaccination.id,
+    petId: vaccination.pet_id,
+    name: vaccination.vaccine_name,
+    vaccineType: vaccination.vaccine_type,
+    scheduledDate: vaccination.scheduled_date,
+    completedDate: vaccination.completed_date,
+    status,
+    note: vaccination.notes,
+    isOverdue: vaccination.is_overdue,
+    createdAt: vaccination.created_at,
+    updatedAt: vaccination.updated_at
+  }
+}
+
 export function createVaccinesRouter(): Router {
   const router = Router()
 
-  router.post('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.post('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -121,78 +145,76 @@ export function createVaccinesRouter(): Router {
     }
     const body = req.body as CreateVaccineBody
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const vaccine = {
-        id: `vaccine-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      const vaccination = await petVaccinationRepo.create({
         petId: req.params.petId,
-        name: body.name,
+        userId: req.auth!.userId!,
+        vaccineName: body.name,
         vaccineType: body.vaccineType,
         scheduledDate: body.scheduledDate,
-        completedDate: body.completedDate || null,
-        status: body.completedDate ? 'completed' : 'pending',
-        note: body.note || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-      res.status(201).json(vaccine)
+        completedDate: body.completedDate,
+        notes: body.note || undefined
+      })
+      res.status(201).json(toVaccineResponse(vaccination))
     } catch {
       safeError(res, 500, 'Failed to create vaccine record')
     }
   }))
 
-  router.get('/upcoming', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/upcoming', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const upcoming: unknown[] = []
-      res.json(upcoming)
+      const allVaccines = await petVaccinationRepo.findByPetId(req.params.petId, req.auth!.userId!)
+      const upcoming = allVaccines.filter(v => !v.completed_date)
+      res.json(upcoming.map(toVaccineResponse))
     } catch {
       safeError(res, 500, 'Failed to fetch upcoming vaccines')
     }
   }))
 
-  router.get('/', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.get('/', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const vaccines: unknown[] = []
-      res.json(vaccines)
+      const vaccines = await petVaccinationRepo.findByPetId(req.params.petId, req.auth!.userId!)
+      res.json(vaccines.map(toVaccineResponse))
     } catch {
       safeError(res, 500, 'Failed to fetch vaccines')
     }
   }))
 
-  router.put('/:vaccineId', requireAuth, asyncHandler((req: AuthenticatedRequest, res) => {
+  router.put('/:vaccineId', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!validatePetId(req.params.petId)) {
       safeError(res, 400, 'Invalid petId format')
       return
@@ -207,33 +229,38 @@ export function createVaccinesRouter(): Router {
       return
     }
     try {
-      const pet: { userId: string } | null = null
+      const pet = await petProfileRepo.findById(req.params.petId, req.auth!.userId!)
       if (!pet) {
         safeError(res, 404, 'Pet not found')
         return
       }
-      if (!canAccessUserResource(req.auth, pet.userId)) {
+      if (!canAccessUserResource(req.auth, pet.user_id)) {
         safeError(res, 403, 'Forbidden')
         return
       }
-      const existingVaccine: { petId: string; status: string } | null = null
+      const existingVaccine = await petVaccinationRepo.findById(req.params.vaccineId, req.auth!.userId!)
       if (!existingVaccine) {
         safeError(res, 404, 'Vaccine not found')
         return
       }
-      if (existingVaccine.petId !== req.params.petId) {
+      if (existingVaccine.pet_id !== req.params.petId) {
         safeError(res, 403, 'Forbidden')
         return
       }
       const body = req.body as UpdateVaccineBody
-      const updated = {
-        ...existingVaccine,
-        status: body.status || existingVaccine.status,
-        completedDate: body.completedDate || null,
-        note: body.note || null,
-        updatedAt: new Date().toISOString()
+      const updates: Record<string, unknown> = {}
+      if (body.status === 'completed' && !body.completedDate) {
+        updates.completed_date = new Date().toISOString().split('T')[0]
+      } else if (body.completedDate !== undefined) {
+        updates.completed_date = body.completedDate
       }
-      res.json(updated)
+      if (body.note !== undefined) updates.notes = body.note
+      const updated = await petVaccinationRepo.update(req.params.vaccineId, req.auth!.userId!, updates as any)
+      if (!updated) {
+        safeError(res, 500, 'Failed to update vaccine')
+        return
+      }
+      res.json(toVaccineResponse(updated))
     } catch {
       safeError(res, 500, 'Failed to update vaccine')
     }

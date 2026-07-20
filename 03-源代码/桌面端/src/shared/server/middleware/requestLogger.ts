@@ -54,8 +54,8 @@ export function requestLogger() {
           const payload = parts[1].split('.')
           if (payload.length === 3) {
             const decoded = Buffer.from(payload[1], 'base64').toString('utf8')
-            const parsed = JSON.parse(decoded) as { sub?: string }
-            userId = parsed.sub
+            const parsed = JSON.parse(decoded) as { sub?: string; userId?: string }
+            userId = parsed.userId || parsed.sub
           }
         }
       } catch {

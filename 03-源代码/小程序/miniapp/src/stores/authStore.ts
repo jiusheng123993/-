@@ -3,6 +3,16 @@ import { create } from 'zustand';
 import Taro from '@tarojs/taro';
 import { supabaseAuth, STORAGE_KEYS } from '../config/supabase';
 import { verifyToken } from '../utils/jwt';
+import {
+  requestAccountDeletion,
+  cancelAccountDeletion as cancelDeletion,
+  getDataPrivacyStatus,
+} from '../services/dataPrivacyService';
+import type {
+  AccountDeletionReason,
+  AccountDeletionResult,
+  DataPrivacyStatus,
+} from '../types/dataPrivacyTypes';
 
 /** 用户信息 */
 export interface UserProfile {
@@ -10,6 +20,7 @@ export interface UserProfile {
   openid: string;
   nickname?: string;
   avatarUrl?: string;
+  createdAt?: string;
 }
 
 /** 登录结果 */
@@ -28,21 +39,22 @@ export interface RefreshTokenResult {
 
 /** 认证状态 */
 interface AuthState {
-  // 数据
   token: string | null;
   refreshTokenValue: string | null;
   user: UserProfile | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  accountDeletionStatus: DataPrivacyStatus | null;
 
-  // 操作
   initialize: () => Promise<void>;
   login: (code: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   refreshAuthToken: () => Promise<RefreshTokenResult>;
   updateUser: (user: Partial<UserProfile>) => void;
   clearError: () => void;
+  deleteAccount: (reason: AccountDeletionReason, customReason: string, confirmCode: string) => Promise<AccountDeletionResult>;
+  cancelAccountDeletion: () => Promise<boolean>;
 }
 
 /** 从本地存储加载认证状态 */
@@ -92,13 +104,13 @@ function clearStorage(): void {
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  // 初始状态
   token: null,
   refreshTokenValue: null,
   user: null,
   isAuthenticated: false,
   loading: false,
   error: null,
+  accountDeletionStatus: null,
 
   /** 初始化：从本地存储加载认证状态 */
   initialize: async () => {
@@ -245,5 +257,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   /** 清除错误 */
   clearError: () => {
     set({ error: null });
+  },
+
+  deleteAccount: async (reason: AccountDeletionReason, customReason: string, confirmCode: string) => {
+    const userId = get().user?.id;
+    if (!userId) {
+      return { success: false, error: '未登录', gracePeriodDays: 30 };
+    }
+
+    const result = await requestAccountDeletion(userId, { reason, customReason, confirmCode });
+    if (result.success) {
+      set({ accountDeletionStatus: getDataPrivacyStatus() });
+    }
+    return result;
+  },
+
+  cancelAccountDeletion: async () => {
+    const userId = get().user?.id;
+    if (!userId) return false;
+
+    const success = await cancelDeletion(userId);
+    if (success) {
+      set({ accountDeletionStatus: getDataPrivacyStatus() });
+    }
+    return success;
   },
 }));
