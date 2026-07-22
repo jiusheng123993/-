@@ -1,341 +1,186 @@
-import { View, Text } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePet } from '../../hooks/usePet'
-import { useAnalytics } from '../../hooks/useAnalytics'
-import type { PetProfile } from '../../services/petService'
-import PetCard from '../../components/PetCard'
-import PetSwitcher from '../../components/PetSwitcher'
-import PetDeceasedModal from '../../components/PetDeceasedModal'
-import GriefCompanion from '../../components/GriefCompanion'
-import { PageLoading, PageError } from '../../components'
+import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
-import { BREED_DATA } from '../../data/petKnowledge/breeds'
-import type { BreedItem } from '../../data/petKnowledge/breeds'
+import { usePetStore } from '../../stores/petStore'
 import './index.scss'
 
-function adaptPetForCard(pet: PetProfile): PetProfile & { avatarUrl?: string } {
-  return {
-    ...pet,
-    avatarUrl: pet.avatarPhotoUrl,
-  }
-}
-
 export default function PetProfile() {
-  const {
-    pets,
-    currentPet,
-    isLoading,
-    initUser,
-    switchPet,
-    removePet,
-    markPetDeceased,
-  } = usePet()
-  const { trackPageView, trackEvent } = useAnalytics()
-  const [deceasedModalVisible, setDeceasedModalVisible] = useState(false)
-  const [deceasedPet, setDeceasedPet] = useState<PetProfile | null>(null)
-  const [showGriefCompanion, setShowGriefCompanion] = useState(false)
-  const [griefPet, setGriefPet] = useState<PetProfile | null>(null)
-  const [error, setError] = useState('')
-
-  const userId = useAuthStore(s => s.user?.id)
-
-  const currentBreedInfo = useMemo<BreedItem | null>(() => {
-    if (!currentPet?.breedId) return null
-    return BREED_DATA.find((b) => b.id === currentPet.breedId) ?? null
-  }, [currentPet?.breedId])
+  const user = useAuthStore(state => state.user)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const isInitialized = useAuthStore(state => state.isInitialized)
+  const { pets, currentPet, fetchPets, setCurrentPet } = usePetStore()
+  const [pageReady, setPageReady] = useState(false)
 
   useEffect(() => {
-    trackPageView('pet_profile')
-  }, [trackPageView])
-
-  useEffect(() => {
-    if (userId) {
-      initUser(userId).catch((err) => {
-        setError(err instanceof Error ? err.message : '加载失败，请重试')
-      })
+    if (!isInitialized) return
+    if (!isAuthenticated || !user) {
+      Taro.reLaunch({ url: '/pages/login/index' })
+      return
     }
-  }, [userId, initUser])
-
-  const handleRetry = useCallback(() => {
-    setError('')
-    if (userId) {
-      initUser(userId).catch((err) => {
-        setError(err instanceof Error ? err.message : '加载失败，请重试')
-      })
-    }
-  }, [userId, initUser])
-
-  const handlePetClick = useCallback(
-    async (pet: PetProfile) => {
-      trackEvent('click_pet_card', { petId: pet.id, isDeceased: pet.isDeceased })
-      if (pet.isDeceased) {
-        setGriefPet(pet)
-        setShowGriefCompanion(true)
-        return
-      }
-      if (currentPet?.id === pet.id) {
-        return
-      }
+    const loadData = async () => {
       try {
-        await switchPet(pet.id)
-        trackEvent('switch_pet', { petId: pet.id, petName: pet.name })
-        Taro.showToast({ title: `已切换到${pet.name}`, icon: 'success' })
-      } catch {
-        Taro.showToast({ title: '切换失败', icon: 'none' })
+        await fetchPets(user.id)
+      } catch (err) {
+        console.error('Failed to load pets:', err)
       }
-    },
-    [currentPet, switchPet, trackEvent]
-  )
-
-  const handleLongPress = useCallback((pet: PetProfile) => {
-    trackEvent('long_press_pet', { petId: pet.id })
-    const itemList = ['编辑信息']
-    if (!pet.isDeceased) {
-      itemList.push('标记离世')
+      setPageReady(true)
     }
-    itemList.push('删除宠物')
+    loadData()
+  }, [isInitialized, isAuthenticated, user])
 
-    Taro.showActionSheet({
-      itemList,
-      itemColor: '#2C2C2C',
-      success: (res) => {
-        const action = itemList[res.tapIndex]
-        if (action === '编辑信息') {
-          Taro.navigateTo({ url: `/pagesPet/edit/index?id=${pet.id}` })
-        } else if (action === '标记离世') {
-          setDeceasedPet(pet)
-          setDeceasedModalVisible(true)
-        } else if (action === '删除宠物') {
-          handleDeletePet(pet)
-        }
-      },
-    })
-  }, [trackEvent])
-
-  const handleDeletePet = useCallback(
-    (pet: PetProfile) => {
-      Taro.showModal({
-        title: '确认删除',
-        content: `确定要删除「${pet.name}」的档案吗？此操作不可恢复。`,
-        confirmText: '删除',
-        confirmColor: '#FF4D4F',
-        cancelText: '取消',
-        success: async (res) => {
-          if (res.confirm) {
-            trackEvent('delete_pet', { petId: pet.id })
-            try {
-              await removePet(pet.id)
-              Taro.showToast({ title: '已删除', icon: 'success' })
-            } catch {
-              Taro.showToast({ title: '删除失败', icon: 'none' })
-            }
-          }
-        },
-      })
-    },
-    [removePet, trackEvent]
-  )
-
-  const handleDeceasedConfirm = useCallback(
-    async (date: string) => {
-      if (!deceasedPet) return
-      try {
-        await markPetDeceased(deceasedPet.id, date)
-        trackEvent('mark_deceased', { petId: deceasedPet.id })
-        setGriefPet(deceasedPet)
-        setShowGriefCompanion(true)
-      } catch {
-        Taro.showToast({ title: '操作失败', icon: 'none' })
-      } finally {
-        setDeceasedModalVisible(false)
-        setDeceasedPet(null)
-      }
-    },
-    [deceasedPet, markPetDeceased, trackEvent]
-  )
-
-  const handleDeceasedCancel = useCallback(() => {
-    setDeceasedModalVisible(false)
-    setDeceasedPet(null)
-  }, [])
-
-  const handleGriefComplete = useCallback(() => {
-    setShowGriefCompanion(false)
-    setGriefPet(null)
-  }, [])
-
-  const handleSwitchPet = useCallback(
-    (petId: string) => {
-      const pet = pets.find((p) => p.id === petId)
-      if (pet) {
-        handlePetClick(pet)
-      }
-    },
-    [pets, handlePetClick]
-  )
-
-  const handleAddPet = useCallback(() => {
-    trackEvent('add_pet_click')
-    Taro.navigateTo({ url: '/pagesPet/add/index' })
-  }, [trackEvent])
-
-  if (isLoading && pets.length === 0) {
-    return (
-      <View className='pet-profile'>
-        <PageLoading />
-      </View>
-    )
+  const navigateTo = (url: string) => {
+    Taro.navigateTo({ url })
   }
 
-  if (error && pets.length === 0) {
-    return (
-      <View className='pet-profile'>
-        <PageError message={error} onRetry={handleRetry} />
-      </View>
-    )
+  if (!pageReady) {
+    return <View className='profile-loading'>加载中...</View>
   }
 
-  return (
-    <View className='pet-profile'>
-      <View className='pet-profile__header'>
-        <Text className='pet-profile__title'>宠物档案</Text>
-        {pets.length > 0 && (
-          <Text className='pet-profile__count'>共{pets.length}只</Text>
-        )}
-      </View>
-
-      {pets.length === 0 ? (
-        <View className='pet-profile__empty'>
-          <Text className='pet-profile__empty-icon'>🐾</Text>
-          <Text className='pet-profile__empty-text'>
-            还没有添加宠物{'\n'}快来记录你的小伙伴吧
-          </Text>
-          <View className='pet-profile__empty-btn' onClick={handleAddPet}>
+  if (pets.length === 0) {
+    return (
+      <View className='profile-page'>
+        <View className='profile-empty'>
+          <View className='profile-empty-icon'>🐾</View>
+          <Text className='profile-empty-text'>还没有添加宠物</Text>
+          <Text className='profile-empty-hint'>添加你的毛孩子，开始记录健康数据</Text>
+          <View className='profile-empty-btn' onClick={() => navigateTo('/pagesPet/add/index')}>
             <Text>添加宠物</Text>
           </View>
         </View>
-      ) : (
-        <>
-          <PetSwitcher
-            pets={pets}
-            currentPetId={currentPet?.id ?? null}
-            onSwitch={handleSwitchPet}
-            onAdd={handleAddPet}
-          />
+      </View>
+    )
+  }
 
-          <View className='pet-profile__list'>
-            {pets.map((pet) => {
-              const adaptedPet = adaptPetForCard(pet)
-              const isCurrentPet = currentPet?.id === pet.id
-              return (
-                <View key={pet.id}>
-                  <PetCard
-                    pet={adaptedPet}
-                    isCurrent={isCurrentPet}
-                    onClick={handlePetClick}
-                    onLongPress={handleLongPress}
-                  />
-                  {isCurrentPet && currentBreedInfo && (
-                    <View className='pet-profile__breed-traits'>
-                      <View className='pet-profile__breed-traits-header'>
-                        <Text className='pet-profile__breed-traits-title'>📋 {currentBreedInfo.name}品种特征</Text>
-                      </View>
-                      {currentBreedInfo.commonDiseases.length > 0 && (
-                        <View className='pet-profile__breed-traits-row'>
-                          <Text className='pet-profile__breed-traits-label'>🏥 常见疾病</Text>
-                          <View className='pet-profile__breed-traits-tags'>
-                            {currentBreedInfo.commonDiseases.map((d) => (
-                              <Text key={d} className='pet-profile__breed-traits-tag pet-profile__breed-traits-tag--warn'>{d}</Text>
-                            ))}
-                          </View>
-                        </View>
-                      )}
-                      <View className='pet-profile__breed-traits-row'>
-                        <Text className='pet-profile__breed-traits-label'>⚖️ 标准体重</Text>
-                        <Text className='pet-profile__breed-traits-value'>{currentBreedInfo.weightRange.min} ~ {currentBreedInfo.weightRange.max} kg</Text>
-                      </View>
-                      {currentBreedInfo.dietRestrictions.length > 0 && (
-                        <View className='pet-profile__breed-traits-row'>
-                          <Text className='pet-profile__breed-traits-label'>🚫 饮食禁忌</Text>
-                          <View className='pet-profile__breed-traits-tags'>
-                            {currentBreedInfo.dietRestrictions.map((d) => (
-                              <Text key={d} className='pet-profile__breed-traits-tag pet-profile__breed-traits-tag--danger'>{d}</Text>
-                            ))}
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  )}
-                  {isCurrentPet && (
-                    <View className='pet-profile__health-info'>
-                      <View className='pet-profile__health-info-header'>
-                        <Text className='pet-profile__health-info-title'>🏥 健康信息</Text>
-                      </View>
-                      <View className='pet-profile__health-info-row'>
-                        <Text className='pet-profile__health-info-label'>毛色</Text>
-                        <Text className={pet.coatColor ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
-                          {pet.coatColor || '未填写'}
-                        </Text>
-                      </View>
-                      <View className='pet-profile__health-info-row'>
-                        <Text className='pet-profile__health-info-label'>芯片号</Text>
-                        <Text className={pet.microchipId ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
-                          {pet.microchipId || '未填写'}
-                        </Text>
-                      </View>
-                      <View className='pet-profile__health-info-row'>
-                        <Text className='pet-profile__health-info-label'>过敏史</Text>
-                        <Text className={pet.allergies.length > 0 ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
-                          {pet.allergies.length > 0 ? pet.allergies.join('、') : '未填写'}
-                        </Text>
-                      </View>
-                      <View className='pet-profile__health-info-row'>
-                        <Text className='pet-profile__health-info-label'>用药史</Text>
-                        <Text className={pet.medications.length > 0 ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
-                          {pet.medications.length > 0 ? pet.medications.join('、') : '未填写'}
-                        </Text>
-                      </View>
-                      <View className='pet-profile__health-info-row'>
-                        <Text className='pet-profile__health-info-label'>慢性病</Text>
-                        <Text className={pet.chronicConditions.length > 0 ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
-                          {pet.chronicConditions.length > 0 ? pet.chronicConditions.join('、') : '未填写'}
-                        </Text>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              )
-            })}
+  const pet = currentPet || pets[0]
+
+  return (
+    <ScrollView className='profile-page' scrollY>
+      <View className='profile-header'>
+        <View className='profile-avatar'>
+          <Text className='profile-avatar-emoji'>{pet.species === 'cat' ? '🐱' : '🐶'}</Text>
+        </View>
+        <Text className='profile-name'>{pet.name}</Text>
+        <Text className='profile-breed'>{pet.breed || '未知品种'}</Text>
+        <View className='profile-tags'>
+          {pet.gender && <Text className='profile-tag'>{pet.gender === 'male' ? '♂ 公' : '♀ 母'}</Text>}
+          {pet.birthday && <Text className='profile-tag'>{calcAge(pet.birthday)}</Text>}
+          {pet.weight && <Text className='profile-tag'>{pet.weight}kg</Text>}
+        </View>
+      </View>
+
+      {pets.length > 1 && (
+        <View className='profile-pet-switcher'>
+          {pets.map(p => (
+            <View
+              key={p.id}
+              className={`profile-pet-tab ${currentPet?.id === p.id ? 'profile-pet-tab-active' : ''}`}
+              onClick={() => setCurrentPet(p)}
+            >
+              <Text>{p.species === 'cat' ? '🐱' : '🐶'}</Text>
+              <Text>{p.name}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <View className='profile-section'>
+        <Text className='profile-section-title'>基本信息</Text>
+        <View className='profile-info-grid'>
+          <View className='profile-info-item'>
+            <Text className='profile-info-label'>品种</Text>
+            <Text className='profile-info-value'>{pet.breed || '未设置'}</Text>
           </View>
-        </>
-      )}
-
-      {pets.length > 0 && (
-        <View className='pet-profile__add-btn' onClick={handleAddPet}>
-          <Text className='pet-profile__add-icon'>+</Text>
-          <Text>添加宠物</Text>
+          <View className='profile-info-item'>
+            <Text className='profile-info-label'>性别</Text>
+            <Text className='profile-info-value'>{pet.gender === 'male' ? '公' : pet.gender === 'female' ? '母' : '未设置'}</Text>
+          </View>
+          <View className='profile-info-item'>
+            <Text className='profile-info-label'>生日</Text>
+            <Text className='profile-info-value'>{pet.birthday || '未设置'}</Text>
+          </View>
+          <View className='profile-info-item'>
+            <Text className='profile-info-label'>体重</Text>
+            <Text className='profile-info-value'>{pet.weight ? `${pet.weight}kg` : '未设置'}</Text>
+          </View>
         </View>
-      )}
+      </View>
 
-      <PetDeceasedModal
-        visible={deceasedModalVisible}
-        petName={deceasedPet?.name ?? ''}
-        onConfirm={handleDeceasedConfirm}
-        onCancel={handleDeceasedCancel}
-      />
-
-      {showGriefCompanion && griefPet && (
-        <View className='pet-profile__grief-overlay'>
-          <GriefCompanion
-            petId={griefPet.id}
-            petName={griefPet.name}
-            species={griefPet.species as 'dog' | 'cat'}
-            deceasedDate={griefPet.deceasedDate ?? ''}
-            onComplete={handleGriefComplete}
-          />
+      <View className='profile-section'>
+        <Text className='profile-section-title'>品种特征</Text>
+        <View className='profile-feature-card'>
+          <View className='profile-feature-item'>
+            <Text className='profile-feature-label'>体型</Text>
+            <Text className='profile-feature-value'>{pet.size || '未设置'}</Text>
+          </View>
+          <View className='profile-feature-item'>
+            <Text className='profile-feature-label'>毛发</Text>
+            <Text className='profile-feature-value'>{pet.coatType || '未设置'}</Text>
+          </View>
+          <View className='profile-feature-item'>
+            <Text className='profile-feature-label'>性格</Text>
+            <Text className='profile-feature-value'>{pet.personality || '未设置'}</Text>
+          </View>
         </View>
-      )}
-    </View>
+      </View>
+
+      <View className='profile-section'>
+        <Text className='profile-section-title'>健康信息</Text>
+        <View className='profile-health-card'>
+          <View className='profile-health-item'>
+            <Text className='profile-health-label'>过敏史</Text>
+            <Text className='profile-health-value'>{pet.allergies || '无'}</Text>
+          </View>
+          <View className='profile-health-item'>
+            <Text className='profile-health-label'>用药史</Text>
+            <Text className='profile-health-value'>{pet.medications || '无'}</Text>
+          </View>
+          <View className='profile-health-item'>
+            <Text className='profile-health-label'>绝育状态</Text>
+            <Text className='profile-health-value'>{pet.neutered ? '已绝育' : '未绝育'}</Text>
+          </View>
+          <View className='profile-health-item'>
+            <Text className='profile-health-label'>芯片编号</Text>
+            <Text className='profile-health-value'>{pet.chipId || '无'}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View className='profile-section'>
+        <View className='profile-actions'>
+          <View className='profile-action-btn' onClick={() => navigateTo(`/pagesPet/edit/index?id=${pet.id}`)}>
+            <Text className='profile-action-icon'>✏️</Text>
+            <Text className='profile-action-label'>编辑档案</Text>
+          </View>
+          <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/diary/index')}>
+            <Text className='profile-action-icon'>📔</Text>
+            <Text className='profile-action-label'>成长日记</Text>
+          </View>
+          <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/avatar-customize/index')}>
+            <Text className='profile-action-icon'>🎨</Text>
+            <Text className='profile-action-label'>形象定制</Text>
+          </View>
+        </View>
+      </View>
+
+      <View className='profile-section'>
+        <View className='profile-danger-zone'>
+          <Text className='profile-danger-title'>危险操作</Text>
+          <View className='profile-danger-btn'>
+            <Text>标记宠物离世</Text>
+          </View>
+        </View>
+      </View>
+
+      <View className='profile-bottom-safe' />
+    </ScrollView>
   )
+}
+
+function calcAge(birthday: string): string {
+  const birth = new Date(birthday)
+  const now = new Date()
+  const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
+  if (months < 12) return `${months}个月`
+  return `${Math.floor(months / 12)}岁`
 }

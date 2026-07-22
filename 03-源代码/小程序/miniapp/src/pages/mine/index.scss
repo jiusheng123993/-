@@ -1,117 +1,202 @@
 .mine-page {
   min-height: 100vh;
-  background: #F8F4E9;
+  background: #F5F7FA;
+}
 
-  &__header {
-    display: flex;
-    align-items: center;
-    padding: 40px 20px 24px;
-    background: linear-gradient(135deg, #FF8C42, #FF6B35);
-  }
+.mine-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #999;
+  font-size: 28px;
+}
 
-  &__avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 14px;
-  }
+.mine-header {
+  padding: 32px;
+  background: linear-gradient(180deg, #E8F0FE 0%, #F5F7FA 100%);
+}
 
-  &__avatar-text {
-    font-size: 24px;
-    color: #fff;
-    font-weight: 700;
-  }
+.mine-user-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
-  &__info {
-    flex: 1;
-  }
+.mine-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #4A90D9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+}
 
-  &__nickname {
-    display: block;
-    font-size: 18px;
-    color: #fff;
-    font-weight: 600;
-  }
+.mine-avatar-text {
+  font-size: 48px;
+  color: #FFF;
+  font-weight: 600;
+}
 
-  &__member-tag {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-    padding: 2px 10px;
-    margin-top: 6px;
-  }
+.mine-user-info {
+  flex: 1;
+}
 
-  &__member-tag-text {
-    font-size: 11px;
-    color: #fff;
-    font-weight: 600;
-  }
+.mine-user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 
-  &__free-tag {
-    display: block;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.75);
-    margin-top: 6px;
-  }
+.mine-user-name {
+  font-size: 36px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
 
-  &__section {
-    margin: 12px 16px;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  }
+.mine-vip-badge {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border-radius: 8px;
+  font-size: 20px;
+  color: #FFF;
+  font-weight: 600;
+}
 
-  &__menu-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    border-bottom: 1px solid #f5f0e8;
+.mine-user-desc {
+  font-size: 26px;
+  color: #999;
+}
 
-    &:last-child {
-      border-bottom: none;
-    }
+.mine-edit-btn {
+  padding: 10px 24px;
+  background: #FFF;
+  border-radius: 20px;
+  font-size: 26px;
+  color: #4A90D9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
 
-    &:active {
-      background: #f9f6f0;
-    }
-  }
+.mine-stats {
+  display: flex;
+  margin: 16px 32px;
+  padding: 24px;
+  background: #FFF;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
-  &__menu-left {
-    display: flex;
-    align-items: center;
-  }
+.mine-stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
 
-  &__menu-icon {
-    font-size: 18px;
-    margin-right: 12px;
-  }
+.mine-stat-num {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1A1A1A;
+}
 
-  &__menu-title {
-    font-size: 15px;
-    color: #333;
-  }
+.mine-stat-label {
+  font-size: 24px;
+  color: #999;
+}
 
-  &__menu-right {
-    display: flex;
-    align-items: center;
-  }
+.mine-vip-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 32px 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #FFF8E8 0%, #FFF0D0 100%);
+  border-radius: 16px;
+}
 
-  &__menu-badge {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #FF6B35;
-    margin-right: 8px;
-  }
+.mine-vip-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-  &__menu-arrow {
-    font-size: 18px;
-    color: #ccc;
-  }
+.mine-vip-banner-icon {
+  font-size: 40px;
+}
+
+.mine-vip-banner-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.mine-vip-banner-desc {
+  font-size: 24px;
+  color: #999;
+  margin-top: 4px;
+  display: block;
+}
+
+.mine-vip-banner-arrow {
+  font-size: 36px;
+  color: #CCC;
+}
+
+.mine-menu-group {
+  margin: 0 32px 16px;
+  background: #FFF;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.mine-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 28px 24px;
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.mine-menu-item:last-child {
+  border-bottom: none;
+}
+
+.mine-menu-icon {
+  font-size: 32px;
+  margin-right: 16px;
+}
+
+.mine-menu-label {
+  flex: 1;
+  font-size: 28px;
+  color: #333;
+}
+
+.mine-menu-arrow {
+  font-size: 32px;
+  color: #CCC;
+}
+
+.mine-section {
+  margin: 16px 32px;
+}
+
+.mine-logout-btn {
+  height: 88px;
+  line-height: 88px;
+  text-align: center;
+  background: #FFF;
+  border-radius: 16px;
+  font-size: 28px;
+  color: #F5222D;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.mine-bottom-safe {
+  height: 40px;
 }

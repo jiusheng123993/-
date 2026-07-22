@@ -1,128 +1,267 @@
 .member-page {
   min-height: 100vh;
-  background: #F8F4E9;
+  background: #F5F7FA;
+}
 
-  &__hero {
-    background: linear-gradient(135deg, #FF8C42, #FF6B35);
-    padding: 40px 20px 30px;
-    text-align: center;
-  }
+.member-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #999;
+  font-size: 28px;
+}
 
-  &__hero-title {
-    display: block;
-    font-size: 24px;
-    color: #fff;
-    font-weight: 700;
-  }
+.member-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  background: #FFF;
+}
 
-  &__hero-subtitle {
-    display: block;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.85);
-    margin-top: 8px;
-  }
+.member-header-title {
+  font-size: 36px;
+  font-weight: 600;
+  color: #1A1A1A;
+}
 
-  &__status {
-    padding: 16px;
-  }
+.member-badge {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border-radius: 20px;
+  font-size: 24px;
+  color: #FFF;
+  font-weight: 600;
+}
 
-  &__status-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 8px;
-  }
+.member-hero {
+  position: relative;
+  margin: 16px 32px;
+  border-radius: 20px;
+  overflow: hidden;
+}
 
-  &__status-label {
-    font-size: 14px;
-    color: #999;
-  }
+.member-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+}
 
-  &__status-value {
-    font-size: 14px;
-    color: #333;
-    font-weight: 600;
+.member-hero-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+}
 
-    &--active {
-      color: #FF8C42;
-    }
-  }
+.member-hero-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
 
-  &__actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-  }
+.member-hero-title {
+  font-size: 34px;
+  font-weight: 600;
+  color: #FFF;
+  margin-bottom: 12px;
+}
 
-  &__action-btn {
-    flex: 1;
-    text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #e8e0d4;
+.member-hero-desc {
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  line-height: 1.5;
+}
 
-    &--cancel {
-      background: #fff;
-    }
+.member-section {
+  margin: 16px 32px;
+}
 
-    &--restore {
-      background: #fff;
-    }
-  }
+.member-section-title {
+  font-size: 30px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 16px;
+  display: block;
+}
 
-  &__action-btn-text {
-    font-size: 13px;
-    color: #666;
-  }
+.member-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
 
-  &__subscribe {
-    padding: 0 0 16px;
-  }
+.member-benefit-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 12px;
+  background: #FFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
-  &__pay-btn {
-    margin: 0 16px;
-    background: linear-gradient(135deg, #FF8C42, #FF6B35);
-    border-radius: 24px;
-    padding: 14px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+.member-benefit-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
 
-    &--disabled {
-      opacity: 0.6;
-      box-shadow: none;
-    }
-  }
+.member-benefit-title {
+  font-size: 24px;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
 
-  &__pay-btn-text {
-    font-size: 16px;
-    color: #fff;
-    font-weight: 700;
-  }
+.member-benefit-desc {
+  font-size: 20px;
+  color: #999;
+  text-align: center;
+}
 
-  &__restore {
-    text-align: center;
-    margin-top: 12px;
-    padding: 8px;
-  }
+.member-plans {
+  display: flex;
+  gap: 16px;
+}
 
-  &__restore-text {
-    font-size: 13px;
-    color: #999;
-    text-decoration: underline;
-  }
+.member-plan-card {
+  flex: 1;
+  position: relative;
+  padding: 32px 24px;
+  background: #FFF;
+  border-radius: 16px;
+  border: 2px solid #E8E8E8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
-  &__error {
-    margin: 16px;
-    padding: 12px;
-    background: #FFF0F0;
-    border-radius: 8px;
-  }
+.member-plan-card-active {
+  border-color: #4A90D9;
+  background: #F0F7FF;
+}
 
-  &__error-text {
-    font-size: 13px;
-    color: #FF4444;
-  }
+.member-plan-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border-radius: 0 14px 0 14px;
+  font-size: 20px;
+  color: #FFF;
+  font-weight: 600;
+}
+
+.member-plan-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1A1A1A;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.member-plan-price-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.member-plan-price {
+  font-size: 40px;
+  font-weight: 700;
+  color: #4A90D9;
+}
+
+.member-plan-period {
+  font-size: 24px;
+  color: #999;
+}
+
+.member-plan-original {
+  font-size: 22px;
+  color: #CCC;
+  text-decoration: line-through;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.member-plan-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member-plan-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-plan-check {
+  font-size: 22px;
+  color: #4A90D9;
+  font-weight: 600;
+}
+
+.member-plan-feature-text {
+  font-size: 22px;
+  color: #666;
+}
+
+.member-subscribe-btn {
+  height: 96px;
+  line-height: 96px;
+  text-align: center;
+  background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
+  border-radius: 48px;
+  font-size: 32px;
+  font-weight: 600;
+  color: #FFF;
+  box-shadow: 0 4px 16px rgba(74, 144, 217, 0.3);
+}
+
+.member-subscribe-hint {
+  font-size: 22px;
+  color: #999;
+  text-align: center;
+  margin-top: 16px;
+  display: block;
+}
+
+.member-manage-card {
+  padding: 24px;
+  background: #FFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.member-manage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+.member-manage-item:last-child {
+  border-bottom: none;
+}
+
+.member-manage-label {
+  font-size: 26px;
+  color: #666;
+}
+
+.member-manage-value {
+  font-size: 26px;
+  color: #1A1A1A;
+  font-weight: 500;
+}
+
+.member-bottom-safe {
+  height: 40px;
 }

@@ -1,158 +1,185 @@
-import { useState, useCallback, useEffect } from 'react'
-import { View, Text } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useMembership } from '../../hooks/useMembership'
+import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
-import { useAnalytics } from '../../hooks/useAnalytics'
-import { AnalyticsEventName } from '../../types/analyticsTypes'
-import PlanSelector from '../../components/PlanSelector'
-import UsageCounter from '../../components/UsageCounter'
-import type { MembershipPlan } from '../../services/membershipService'
+import { useMembershipStore } from '../../stores/membershipStore'
 import './index.scss'
 
-export default function MemberPage() {
-  const [selectedPlan, setSelectedPlan] = useState<MembershipPlan>('yearly')
-  const [paymentProcessing, setPaymentProcessing] = useState(false)
-  const {
-    membership,
-    isLoading,
-    isMember,
-    initUser,
-    subscribePlan,
-    cancelSubscription,
-    restorePurchaseStatus,
-    refreshMembership,
-    clearError,
-    error,
-  } = useMembership()
+const PLANS = [
+  {
+    key: 'monthly',
+    name: '月度会员',
+    price: '¥29.9',
+    period: '/月',
+    originalPrice: '¥39.9',
+    tag: '热门',
+    features: [
+      '无限次食物查询',
+      'AI症状初筛（每日5次）',
+      '疫苗驱虫提醒',
+      '健康趋势分析',
+      '宠物成长日记',
+    ],
+  },
+  {
+    key: 'yearly',
+    name: '年度会员',
+    price: '¥199',
+    period: '/年',
+    originalPrice: '¥358.8',
+    tag: '最划算',
+    features: [
+      '月度会员全部权益',
+      'AI症状初筛（无限次）',
+      '专属宠物形象定制',
+      '健康报告导出',
+      '优先客服支持',
+      '家庭共享（最多3人）',
+    ],
+  },
+]
 
-  const userId = useAuthStore(s => s.user?.id || '')
-  const { trackPageView, trackEvent } = useAnalytics()
+const BENEFITS = [
+  { icon: '🔍', title: '无限食物查询', desc: '随时查询食物安全性' },
+  { icon: '🤖', title: 'AI症状初筛', desc: '智能分析宠物健康状况' },
+  { icon: '📅', title: '疫苗提醒', desc: '自动提醒疫苗接种时间' },
+  { icon: '📊', title: '健康趋势', desc: '可视化健康数据变化' },
+  { icon: '📔', title: '成长日记', desc: '记录宠物成长点滴' },
+  { icon: '🎨', title: '形象定制', desc: '专属宠物虚拟形象' },
+]
+
+export default function Member() {
+  const user = useAuthStore(state => state.user)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const isInitialized = useAuthStore(state => state.isInitialized)
+  const { membership, fetchMembership } = useMembershipStore()
+  const [pageReady, setPageReady] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('yearly')
 
   useEffect(() => {
-    trackPageView('member')
-    trackEvent(AnalyticsEventName.MemberPageView, { source: 'direct', isFreeUser: !isMember })
-  }, [])
-
-  useEffect(() => {
-    if (userId) {
-      initUser(userId)
+    if (!isInitialized) return
+    if (!isAuthenticated || !user) {
+      Taro.reLaunch({ url: '/pages/login/index' })
+      return
     }
-  }, [userId, initUser])
-
-  const handleSubscribe = useCallback(async () => {
-    if (paymentProcessing) return
-    setPaymentProcessing(true)
-    clearError()
-    trackEvent('select_plan', { plan: selectedPlan })
-
-    try {
-      const order = await subscribePlan(selectedPlan)
-
-      if (order.status === 'pending') {
-        trackEvent('subscribe_pending', { plan: selectedPlan })
-        Taro.showToast({ title: '支付未完成', icon: 'none' })
-      } else {
-        trackEvent(AnalyticsEventName.MemberSubscribe, { plan: selectedPlan, price: selectedPlan === 'yearly' ? 198 : 29.9, source: 'member_page' })
-        Taro.showToast({ title: '支付成功', icon: 'success' })
-        await refreshMembership()
+    const loadData = async () => {
+      try {
+        await fetchMembership(user.id)
+      } catch (err) {
+        console.error('Failed to load membership:', err)
       }
-    } catch {
-      trackEvent('subscribe_failure', { plan: selectedPlan })
-      Taro.showToast({ title: '操作失败', icon: 'error' })
-    } finally {
-      setPaymentProcessing(false)
+      setPageReady(true)
     }
-  }, [selectedPlan, paymentProcessing, subscribePlan, refreshMembership, clearError, trackEvent])
+    loadData()
+  }, [isInitialized, isAuthenticated, user])
 
-  const handleCancel = useCallback(async () => {
-    Taro.showModal({
-      title: '取消会员',
-      content: '确认取消会员订阅？取消后会员权益将在到期日失效。',
-      confirmText: '确认取消',
-      confirmColor: '#FF6B35',
-      success: async (res) => {
-        if (res.confirm) {
-          trackEvent('cancel_subscription')
-          try {
-            await cancelSubscription()
-            Taro.showToast({ title: '已取消', icon: 'success' })
-            await refreshMembership()
-          } catch {
-            Taro.showToast({ title: '操作失败', icon: 'error' })
-          }
-        }
-      },
-    })
-  }, [cancelSubscription, refreshMembership, trackEvent])
-
-  const handleRestore = useCallback(async () => {
-    try {
-      await restorePurchaseStatus()
-      trackEvent('restore_purchase')
-      Taro.showToast({ title: '已恢复', icon: 'success' })
-      await refreshMembership()
-    } catch {
-      Taro.showToast({ title: '恢复失败', icon: 'error' })
-    }
-  }, [restorePurchaseStatus, refreshMembership, trackEvent])
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return ''
-    const d = new Date(dateStr)
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  if (!pageReady) {
+    return <View className='member-loading'>加载中...</View>
   }
 
+  const isVip = membership?.level !== 'free'
+
   return (
-    <View className='member-page'>
-      <View className='member-page__hero'>
-        <Text className='member-page__hero-title'>星寰海会员</Text>
-        <Text className='member-page__hero-subtitle'>守护毛孩子每一天</Text>
+    <ScrollView className='member-page' scrollY>
+      <View className='member-header'>
+        <Text className='member-header-title'>会员中心</Text>
+        {isVip && (
+          <View className='member-badge'>
+            <Text>{membership?.level?.toUpperCase()}会员</Text>
+          </View>
+        )}
       </View>
 
-      {isMember && membership ? (
-        <View className='member-page__status'>
-          <View className='member-page__status-card'>
-            <Text className='member-page__status-label'>当前状态</Text>
-            <Text className='member-page__status-value member-page__status-value--active'>会员生效中</Text>
-          </View>
-          <View className='member-page__status-card'>
-            <Text className='member-page__status-label'>到期时间</Text>
-            <Text className='member-page__status-value'>{formatDate(membership.expiresAt)}</Text>
-          </View>
-          <View className='member-page__actions'>
-            <View className='member-page__action-btn member-page__action-btn--cancel' onClick={handleCancel}>
-              <Text className='member-page__action-btn-text'>取消订阅</Text>
-            </View>
-            <View className='member-page__action-btn member-page__action-btn--restore' onClick={handleRestore}>
-              <Text className='member-page__action-btn-text'>恢复购买</Text>
-            </View>
-          </View>
+      <View className='member-hero'>
+        <View className='member-hero-bg' />
+        <View className='member-hero-content'>
+          <Text className='member-hero-icon'>👑</Text>
+          <Text className='member-hero-title'>
+            {isVip ? '尊享会员特权' : '开通会员，解锁全部功能'}
+          </Text>
+          <Text className='member-hero-desc'>
+            {isVip
+              ? `您的${membership?.level}会员有效期至 ${membership?.expireDate || '--'}`
+              : '享受无限次查询、AI分析、健康报告等专属权益'}
+          </Text>
         </View>
-      ) : (
-        <View className='member-page__subscribe'>
-          <PlanSelector selectedPlan={selectedPlan} onSelectPlan={setSelectedPlan} />
-          <View
-            className={`member-page__pay-btn ${paymentProcessing || isLoading ? 'member-page__pay-btn--disabled' : ''}`}
-            onClick={handleSubscribe}
-          >
-            <Text className='member-page__pay-btn-text'>
-              {paymentProcessing ? '处理中...' : '立即开通'}
-            </Text>
-          </View>
-          <View className='member-page__restore' onClick={handleRestore}>
-            <Text className='member-page__restore-text'>恢复购买</Text>
+      </View>
+
+      <View className='member-section'>
+        <Text className='member-section-title'>会员权益对比</Text>
+        <View className='member-benefits'>
+          {BENEFITS.map(benefit => (
+            <View key={benefit.title} className='member-benefit-item'>
+              <Text className='member-benefit-icon'>{benefit.icon}</Text>
+              <Text className='member-benefit-title'>{benefit.title}</Text>
+              <Text className='member-benefit-desc'>{benefit.desc}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {!isVip && (
+        <View className='member-section'>
+          <Text className='member-section-title'>选择套餐</Text>
+          <View className='member-plans'>
+            {PLANS.map(plan => (
+              <View
+                key={plan.key}
+                className={`member-plan-card ${selectedPlan === plan.key ? 'member-plan-card-active' : ''}`}
+                onClick={() => setSelectedPlan(plan.key)}
+              >
+                {plan.tag && <View className='member-plan-tag'><Text>{plan.tag}</Text></View>}
+                <Text className='member-plan-name'>{plan.name}</Text>
+                <View className='member-plan-price-row'>
+                  <Text className='member-plan-price'>{plan.price}</Text>
+                  <Text className='member-plan-period'>{plan.period}</Text>
+                </View>
+                <Text className='member-plan-original'>原价 {plan.originalPrice}</Text>
+                <View className='member-plan-features'>
+                  {plan.features.map(f => (
+                    <View key={f} className='member-plan-feature'>
+                      <Text className='member-plan-check'>✓</Text>
+                      <Text className='member-plan-feature-text'>{f}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
           </View>
         </View>
       )}
 
-      <UsageCounter isMember={isMember} />
-
-      {error && (
-        <View className='member-page__error'>
-          <Text className='member-page__error-text'>{error}</Text>
+      {!isVip && (
+        <View className='member-section'>
+          <View className='member-subscribe-btn'>
+            <Text>立即开通</Text>
+          </View>
+          <Text className='member-subscribe-hint'>
+            开通即表示同意《会员服务协议》和《自动续费协议》
+          </Text>
         </View>
       )}
-    </View>
+
+      {isVip && (
+        <View className='member-section'>
+          <View className='member-manage-card'>
+            <View className='member-manage-item'>
+              <Text className='member-manage-label'>当前套餐</Text>
+              <Text className='member-manage-value'>{membership?.level}会员</Text>
+            </View>
+            <View className='member-manage-item'>
+              <Text className='member-manage-label'>到期时间</Text>
+              <Text className='member-manage-value'>{membership?.expireDate || '--'}</Text>
+            </View>
+            <View className='member-manage-item'>
+              <Text className='member-manage-label'>自动续费</Text>
+              <Text className='member-manage-value'>{membership?.autoRenew ? '已开启' : '未开启'}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      <View className='member-bottom-safe' />
+    </ScrollView>
   )
 }
