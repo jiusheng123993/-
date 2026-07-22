@@ -17,7 +17,10 @@ export default defineAppConfig({
         'vaccine/index',
         'symptom-check/index',
         'trends/index',
-        'breed/index'
+        'breed/index',
+        'breed-detail/index',
+        'avatar-customize/index',
+        'diary/index'
       ]
     },
     {
@@ -26,6 +29,7 @@ export default defineAppConfig({
         'profile/index',
         'onboarding/index',
         'settings/index',
+        'invite/index',
         'agreement/index'
       ]
     }
@@ -51,8 +55,8 @@ export default defineAppConfig({
       {
         pagePath: 'pages/member/index',
         text: '会员',
-        iconPath: 'assets/tabbar/mood.png',
-        selectedIconPath: 'assets/tabbar/mood-active.png'
+        iconPath: 'assets/tabbar/health.png',
+        selectedIconPath: 'assets/tabbar/health-active.png'
       },
       {
         pagePath: 'pages/mine/index',

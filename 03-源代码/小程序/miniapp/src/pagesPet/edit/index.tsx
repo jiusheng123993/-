@@ -5,6 +5,8 @@ import FloatingNav from '../../components/FloatingNav'
 import { BREED_DATA } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect } from 'react'
+import { useAnalytics } from '../../hooks/useAnalytics'
+import type { BreedItem } from '../../data/petKnowledge/breeds'
 import '../add/index.scss'
 
 interface FormData {
@@ -15,8 +17,12 @@ interface FormData {
   gender: 'male' | 'female' | ''
   birthDate: string
   weight: string
+  coatColor: string
   isNeutered: boolean
   microchipId: string
+  allergies: string
+  medications: string
+  chronicConditions: string
   notes: string
   avatarUrl: string
 }
@@ -29,18 +35,28 @@ const INITIAL_FORM: FormData = {
   gender: '',
   birthDate: '',
   weight: '',
+  coatColor: '',
   isNeutered: false,
   microchipId: '',
+  allergies: '',
+  medications: '',
+  chronicConditions: '',
   notes: '',
   avatarUrl: '',
 }
 
 export default function EditPet() {
   const { pets, updatePet } = usePet()
+  const { trackPageView, trackEvent } = useAnalytics()
   const userId = useAuthStore(s => s.user?.id) || ''
   const [formData, setFormData] = useState<FormData>({ ...INITIAL_FORM })
   const [submitting, setSubmitting] = useState(false)
   const [petId, setPetId] = useState('')
+  const [selectedBreed, setSelectedBreed] = useState<BreedItem | null>(null)
+
+  useEffect(() => {
+    trackPageView('edit_pet')
+  }, [trackPageView])
 
   useEffect(() => {
     const instance = Taro.getCurrentInstance()
@@ -61,11 +77,19 @@ export default function EditPet() {
         gender: pet.gender === 'male' || pet.gender === 'female' ? pet.gender : '',
         birthDate: pet.birthDate,
         weight: pet.weight ? String(pet.weight) : '',
+        coatColor: pet.coatColor || '',
         isNeutered: pet.isNeutered,
         microchipId: pet.microchipId || '',
+        allergies: (pet.allergies || []).join('、'),
+        medications: (pet.medications || []).join('、'),
+        chronicConditions: (pet.chronicConditions || []).join('、'),
         notes: pet.notes || '',
         avatarUrl: pet.avatarPhotoUrl || '',
       })
+      if (pet.breedId) {
+        const breed = BREED_DATA.find(b => b.id === pet.breedId)
+        if (breed) setSelectedBreed(breed)
+      }
     }
   }, [pets])
 
@@ -90,9 +114,11 @@ export default function EditPet() {
   }
 
   const handleSpeciesChange = (species: 'dog' | 'cat') => {
+    trackEvent('select_species', { species })
     updateField('species', species)
     updateField('breedId', '')
     updateField('breedName', '')
+    setSelectedBreed(null)
   }
 
   const handleBreedChange = (e: { detail: { value: number } }) => {
@@ -101,6 +127,7 @@ export default function EditPet() {
     if (breed) {
       updateField('breedId', breed.id)
       updateField('breedName', breed.name)
+      setSelectedBreed(breed)
     }
   }
 
@@ -109,6 +136,7 @@ export default function EditPet() {
   }
 
   const handleChooseAvatar = () => {
+    trackEvent('choose_avatar')
     Taro.chooseImage({
       count: 1,
       sizeType: ['compressed'],
@@ -157,19 +185,25 @@ export default function EditPet() {
         gender: formData.gender as 'male' | 'female',
         birthDate: formData.birthDate,
         weight: formData.weight ? parseFloat(formData.weight) : 0,
+        coatColor: formData.coatColor.trim(),
         avatarPhotoUrl: formData.avatarUrl,
         photos: formData.avatarUrl ? [formData.avatarUrl] : [],
         isNeutered: formData.isNeutered,
         microchipId: formData.microchipId.trim(),
+        allergies: formData.allergies ? formData.allergies.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
+        medications: formData.medications ? formData.medications.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
+        chronicConditions: formData.chronicConditions ? formData.chronicConditions.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
         notes: formData.notes.trim(),
         userId,
       })
 
+      trackEvent('edit_pet_success', { petId })
       Taro.showToast({ title: '保存成功', icon: 'success' })
       setTimeout(() => {
         Taro.navigateBack()
       }, 1500)
     } catch (err) {
+      trackEvent('edit_pet_failure')
       const message = err instanceof Error ? err.message : '保存失败，请重试'
       Taro.showToast({ title: message, icon: 'none' })
     } finally {
@@ -231,6 +265,35 @@ export default function EditPet() {
           </Picker>
         </View>
 
+        {selectedBreed && (selectedBreed.geneticDiseases.length > 0 || selectedBreed.dietRestrictions.length > 0) && (
+          <View className='add-pet__breed-info'>
+            {selectedBreed.geneticDiseases.length > 0 && (
+              <View className='add-pet__breed-info-row'>
+                <Text className='add-pet__breed-info-label'>遗传病易感</Text>
+                <View className='add-pet__breed-info-tags'>
+                  {selectedBreed.geneticDiseases.map((d) => (
+                    <Text key={d} className='add-pet__breed-info-tag add-pet__breed-info-tag--warn'>⚠️{d}</Text>
+                  ))}
+                </View>
+              </View>
+            )}
+            {selectedBreed.dietRestrictions.length > 0 && (
+              <View className='add-pet__breed-info-row'>
+                <Text className='add-pet__breed-info-label'>饮食禁忌</Text>
+                <View className='add-pet__breed-info-tags'>
+                  {selectedBreed.dietRestrictions.map((d) => (
+                    <Text key={d} className='add-pet__breed-info-tag add-pet__breed-info-tag--danger'>🚫{d}</Text>
+                  ))}
+                </View>
+              </View>
+            )}
+            <View className='add-pet__breed-info-row'>
+              <Text className='add-pet__breed-info-label'>建议体重</Text>
+              <Text className='add-pet__breed-info-value'>{selectedBreed.weightRange.min}-{selectedBreed.weightRange.max}kg</Text>
+            </View>
+          </View>
+        )}
+
         <View className='add-pet__form-item'>
           <Text className='add-pet__label add-pet__label--required'>性别</Text>
           <View className='add-pet__gender-group'>
@@ -281,6 +344,17 @@ export default function EditPet() {
         </View>
 
         <View className='add-pet__form-item'>
+          <Text className='add-pet__label'>毛色</Text>
+          <Input
+            className='add-pet__input'
+            placeholder='如：橘色、黑白、三花'
+            placeholderClass='add-pet__input-placeholder'
+            value={formData.coatColor}
+            onInput={(e) => updateField('coatColor', e.detail.value)}
+          />
+        </View>
+
+        <View className='add-pet__form-item'>
           <Text className='add-pet__label'>是否绝育</Text>
           <View className='add-pet__switch-row'>
             <Text className='add-pet__switch-label'>
@@ -303,6 +377,39 @@ export default function EditPet() {
             value={formData.microchipId}
             onInput={(e) => updateField('microchipId', e.detail.value)}
             maxlength={30}
+          />
+        </View>
+
+        <View className='add-pet__form-item'>
+          <Text className='add-pet__label'>过敏史</Text>
+          <Input
+            className='add-pet__input'
+            placeholder='如：鸡肉、花粉（逗号分隔）'
+            placeholderClass='add-pet__input-placeholder'
+            value={formData.allergies}
+            onInput={(e) => updateField('allergies', e.detail.value)}
+          />
+        </View>
+
+        <View className='add-pet__form-item'>
+          <Text className='add-pet__label'>用药史</Text>
+          <Input
+            className='add-pet__input'
+            placeholder='如：心脏药、关节保健品（逗号分隔）'
+            placeholderClass='add-pet__input-placeholder'
+            value={formData.medications}
+            onInput={(e) => updateField('medications', e.detail.value)}
+          />
+        </View>
+
+        <View className='add-pet__form-item'>
+          <Text className='add-pet__label'>慢性病</Text>
+          <Input
+            className='add-pet__input'
+            placeholder='如：糖尿病、关节炎（逗号分隔）'
+            placeholderClass='add-pet__input-placeholder'
+            value={formData.chronicConditions}
+            onInput={(e) => updateField('chronicConditions', e.detail.value)}
           />
         </View>
 

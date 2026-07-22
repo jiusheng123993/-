@@ -1,130 +1,153 @@
 import { create } from 'zustand'
 import {
-  getTopEmotionMatch,
-  matchByKeywords,
-  buildEmotionContext,
-  detectNewUserAnxiety,
-  detectIllnessAnxiety,
-  formatResponseContent,
-  formatSuggestions,
-  type EmotionEngineContext,
-  type EmotionMatchResult
-} from '../engines/emotion/EmotionEngine'
-import { getStorage, setStorage } from '../utils/storage'
+  detectSickAnxiety,
+  getSickAnxietyMessage,
+  getSickAnxietyLevel,
+  detectNewOwnerAnxiety,
+  getNewOwnerAnxietyMessage,
+  createIntervention,
+} from '../engines/emotion'
+import type { EmotionIntervention, EmotionSceneType, AnxietyLevel } from '../engines/emotion'
+import type { EmotionCheckRecord } from '../types/emotionTypes'
+import { getStorageArray, setStorage } from '../utils/storage'
 
-interface EmotionState {
-  activeCard: EmotionMatchResult | null
-  formattedContent: string
-  formattedSuggestions: string[]
-  isCardVisible: boolean
+const DISMISSED_KEY = 'emotion_dismissed'
+const CHECK_RECORDS_KEY = 'emotion_check_records'
 
-  evaluateContext: (ctx: EmotionEngineContext) => void
-  evaluateInput: (input: string, ctx: EmotionEngineContext) => void
-  dismissCard: () => void
-  clearAll: () => void
+interface EmotionStoreState {
+  activeIntervention: EmotionIntervention | null
+  dismissedIds: string[]
+  checkRecords: EmotionCheckRecord[]
+  isLoading: boolean
+
+  checkSickAnxiety: (
+    petId: string,
+    petName: string,
+    consecutiveAnomalyDays: number,
+    userOpenFrequency: number,
+    lastAnomalyItems: string[],
+    previousRecoveryCount: number,
+    userId: string,
+  ) => void
+  checkNewOwnerAnxiety: (
+    userId: string,
+    accountAgeDays: number,
+    foodQueryCount: number,
+    symptomCheckCount: number,
+    petAgeDays: number,
+    hasVaccineSchedule: boolean,
+    petName: string,
+    species: string,
+  ) => void
+  dismissIntervention: () => void
+  respondToIntervention: () => void
+  clearExpiredRecords: () => void
+  reset: () => void
 }
 
-const BEHAVIOR_KEY = 'emotion_behavior'
-
-interface BehaviorData {
-  foodQueryCount: number
-  symptomCheckCount: number
-  firstSeenAt: string | null
-  lastUpdatedAt: string | null
+function loadDismissedIds(): string[] {
+  return getStorageArray<string>(DISMISSED_KEY)
 }
 
-function getBehaviorData(): BehaviorData {
-  return getStorage<BehaviorData>(BEHAVIOR_KEY) || {
-    foodQueryCount: 0,
-    symptomCheckCount: 0,
-    firstSeenAt: null,
-    lastUpdatedAt: null
-  }
+function loadCheckRecords(): EmotionCheckRecord[] {
+  return getStorageArray<EmotionCheckRecord>(CHECK_RECORDS_KEY)
 }
 
-function saveBehaviorData(data: BehaviorData): void {
-  setStorage(BEHAVIOR_KEY, data)
+function saveDismissedIds(ids: string[]): void {
+  setStorage(DISMISSED_KEY, ids)
 }
 
-export function incrementFoodQueryCount(): void {
-  const data = getBehaviorData()
-  const now = new Date().toISOString()
-  data.foodQueryCount++
-  data.lastUpdatedAt = now
-  if (!data.firstSeenAt) data.firstSeenAt = now
-  saveBehaviorData(data)
+function saveCheckRecords(records: EmotionCheckRecord[]): void {
+  setStorage(CHECK_RECORDS_KEY, records)
 }
 
-export function incrementSymptomCheckCount(): void {
-  const data = getBehaviorData()
-  const now = new Date().toISOString()
-  data.symptomCheckCount++
-  data.lastUpdatedAt = now
-  if (!data.firstSeenAt) data.firstSeenAt = now
-  saveBehaviorData(data)
-}
-
-export function isNewUser(): boolean {
-  const data = getBehaviorData()
-  if (!data.firstSeenAt) return true
-  const firstSeen = new Date(data.firstSeenAt)
-  const daysSince = Math.floor(
-    (Date.now() - firstSeen.getTime()) / (24 * 60 * 60 * 1000)
+function isRecentlyChecked(
+  records: EmotionCheckRecord[],
+  type: EmotionSceneType,
+  petId: string | undefined,
+  cooldownMs: number,
+): boolean {
+  const now = Date.now()
+  return records.some(
+    r => r.type === type && r.petId === petId && now - r.checkedAt < cooldownMs,
   )
-  return daysSince <= 7
 }
 
-export function getRecentFoodQueryCount(): number {
-  return getBehaviorData().foodQueryCount
+function isDismissed(dismissedIds: string[], interventionId: string): boolean {
+  return dismissedIds.includes(interventionId)
 }
 
-export function getRecentSymptomCheckCount(): number {
-  return getBehaviorData().symptomCheckCount
-}
+export const useEmotionStore = create<EmotionStoreState>((set, get) => ({
+  activeIntervention: null,
+  dismissedIds: loadDismissedIds(),
+  checkRecords: loadCheckRecords(),
+  isLoading: false,
 
-export const useEmotionStore = create<EmotionState>((set) => ({
-  activeCard: null,
-  formattedContent: '',
-  formattedSuggestions: [],
-  isCardVisible: false,
+  checkSickAnxiety: (petId, petName, consecutiveAnomalyDays, userOpenFrequency, lastAnomalyItems, previousRecoveryCount, userId) => {
+    const { checkRecords, dismissedIds } = get()
+    if (isRecentlyChecked(checkRecords, 'sick_anxiety', petId, 24 * 60 * 60 * 1000)) return
 
-  evaluateContext: (ctx: EmotionEngineContext) => {
-    const match = getTopEmotionMatch(ctx)
-    if (!match) return
+    const context = { petId, petName, consecutiveAnomalyDays, userOpenFrequency, lastAnomalyItems, previousRecoveryCount }
+    if (!detectSickAnxiety(context)) return
 
-    set({
-      activeCard: match,
-      formattedContent: formatResponseContent(match.response.content, ctx.petName),
-      formattedSuggestions: formatSuggestions(match.response.suggestions, ctx.petName),
-      isCardVisible: true
-    })
+    const message = getSickAnxietyMessage(context)
+    const level = getSickAnxietyLevel(context)
+    const intervention = createIntervention('sick_anxiety', userId, message, context, petId, level)
+    if (isDismissed(dismissedIds, intervention.id)) return
+
+    const newRecord: EmotionCheckRecord = { type: 'sick_anxiety', petId, checkedAt: Date.now() }
+    const newRecords = [...checkRecords, newRecord]
+    saveCheckRecords(newRecords)
+    set({ activeIntervention: intervention, checkRecords: newRecords })
   },
 
-  evaluateInput: (input: string, ctx: EmotionEngineContext) => {
-    const match = matchByKeywords(input, ctx)
-    if (!match) return
+  checkNewOwnerAnxiety: (userId, accountAgeDays, foodQueryCount, symptomCheckCount, petAgeDays, hasVaccineSchedule, petName, species) => {
+    const { checkRecords, dismissedIds } = get()
+    if (isRecentlyChecked(checkRecords, 'new_owner_anxiety', undefined, 7 * 24 * 60 * 60 * 1000)) return
 
-    set({
-      activeCard: match,
-      formattedContent: formatResponseContent(match.response.content, ctx.petName),
-      formattedSuggestions: formatSuggestions(match.response.suggestions, ctx.petName),
-      isCardVisible: true
-    })
+    const context = { userId, accountAgeDays, foodQueryCount, symptomCheckCount, petAgeDays, hasVaccineSchedule }
+    if (!detectNewOwnerAnxiety(context)) return
+
+    const message = getNewOwnerAnxietyMessage(context, species, petName)
+    const queryTotal = context.foodQueryCount + context.symptomCheckCount
+    const level: AnxietyLevel = queryTotal >= 15 ? 'severe' : queryTotal >= 8 ? 'moderate' : 'mild'
+    const intervention = createIntervention('new_owner_anxiety', userId, message, context, undefined, level)
+    if (isDismissed(dismissedIds, intervention.id)) return
+
+    const newRecord: EmotionCheckRecord = { type: 'new_owner_anxiety', checkedAt: Date.now() }
+    const newRecords = [...checkRecords, newRecord]
+    saveCheckRecords(newRecords)
+    set({ activeIntervention: intervention, checkRecords: newRecords })
   },
 
-  dismissCard: () => {
-    set({ isCardVisible: false, activeCard: null })
+  dismissIntervention: () => {
+    const { activeIntervention, dismissedIds } = get()
+    if (!activeIntervention) return
+    const newDismissed = [...dismissedIds, activeIntervention.id]
+    saveDismissedIds(newDismissed)
+    set({ activeIntervention: null, dismissedIds: newDismissed })
   },
 
-  clearAll: () => {
+  respondToIntervention: () => {
+    const { activeIntervention } = get()
+    if (!activeIntervention) return
+    set({ activeIntervention: { ...activeIntervention, userResponded: true } })
+  },
+
+  clearExpiredRecords: () => {
+    const { checkRecords } = get()
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const filtered = checkRecords.filter(r => r.checkedAt > sevenDaysAgo)
+    saveCheckRecords(filtered)
+    set({ checkRecords: filtered })
+  },
+
+  reset: () => {
     set({
-      activeCard: null,
-      formattedContent: '',
-      formattedSuggestions: [],
-      isCardVisible: false
+      activeIntervention: null,
+      dismissedIds: [],
+      checkRecords: [],
+      isLoading: false,
     })
-  }
+  },
 }))
-
-export { buildEmotionContext, detectNewUserAnxiety, detectIllnessAnxiety }
-export type { EmotionEngineContext, EmotionMatchResult }

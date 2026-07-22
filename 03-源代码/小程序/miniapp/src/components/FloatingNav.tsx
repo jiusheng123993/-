@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { key: 'symptom', label: '症状', path: '/pagesPet/symptom-check/index', icon: 'medical' },
   { key: 'vaccine', label: '疫苗', path: '/pagesPet/vaccine/index', icon: 'shield' },
   { key: 'trends', label: '趋势', path: '/pagesPet/trends/index', icon: 'chart' },
+  { key: 'diary', label: '日记', path: '/pagesPet/diary/index', icon: 'book' },
   { key: 'profile', label: '我的', path: '/pagesUser/profile/index', icon: 'user' }
 ]
 
@@ -30,6 +31,7 @@ const NavIcon = ({ name, size = 20, color = '#8C8C8C' }: { name: string; size?: 
     shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
     medical: 'M12 2v4M12 6l-4 4h8l-4-4M8 14h8M8 14a4 4 0 000 8h8a4 4 0 000-8M10 18h4',
     chart: 'M3 3v18h18M7 16l4-4 4 4 5-5M7 10l4-4 4 4 5-5',
+    book: 'M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z',
     user: 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z'
   }
   return (

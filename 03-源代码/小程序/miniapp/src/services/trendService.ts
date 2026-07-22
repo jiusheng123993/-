@@ -11,13 +11,14 @@ function entryDateStr(entry: PetHealthEntry): string {
   return String(entry.createdAt).slice(0, 10)
 }
 
-function mapAppetiteLevel(level: AppetiteLevel): 'normal' | 'decreased' | 'increased' | 'none' {
+function mapAppetiteLevel(level: AppetiteLevel): 'normal' | 'decreased' | 'increased' | 'none' | 'vomiting' {
   switch (level) {
     case 1: return 'none'
     case 2: return 'decreased'
     case 3: return 'normal'
     case 4: return 'increased'
     case 5: return 'increased'
+    case 6: return 'vomiting'
   }
 }
 
@@ -44,7 +45,7 @@ function mapPoopLevel(level: PoopLevel): 'normal' | 'soft' | 'diarrhea' | 'const
 export interface TrendDataPoint {
   date: string
   weight?: number
-  appetite?: 'normal' | 'decreased' | 'increased' | 'none'
+  appetite?: 'normal' | 'decreased' | 'increased' | 'none' | 'vomiting'
   energy?: 'normal' | 'low' | 'high' | 'lethargic'
   stool?: 'normal' | 'soft' | 'diarrhea' | 'constipation' | 'bloody'
   vomiting?: boolean

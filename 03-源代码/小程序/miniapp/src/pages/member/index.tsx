@@ -3,6 +3,8 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useMembership } from '../../hooks/useMembership'
 import { useAuthStore } from '../../stores/authStore'
+import { useAnalytics } from '../../hooks/useAnalytics'
+import { AnalyticsEventName } from '../../types/analyticsTypes'
 import PlanSelector from '../../components/PlanSelector'
 import UsageCounter from '../../components/UsageCounter'
 import type { MembershipPlan } from '../../services/membershipService'
@@ -25,6 +27,12 @@ export default function MemberPage() {
   } = useMembership()
 
   const userId = useAuthStore(s => s.user?.id || '')
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  useEffect(() => {
+    trackPageView('member')
+    trackEvent(AnalyticsEventName.MemberPageView, { source: 'direct', isFreeUser: !isMember })
+  }, [])
 
   useEffect(() => {
     if (userId) {
@@ -36,22 +44,26 @@ export default function MemberPage() {
     if (paymentProcessing) return
     setPaymentProcessing(true)
     clearError()
+    trackEvent('select_plan', { plan: selectedPlan })
 
     try {
       const order = await subscribePlan(selectedPlan)
 
       if (order.status === 'pending') {
+        trackEvent('subscribe_pending', { plan: selectedPlan })
         Taro.showToast({ title: '支付未完成', icon: 'none' })
       } else {
+        trackEvent(AnalyticsEventName.MemberSubscribe, { plan: selectedPlan, price: selectedPlan === 'yearly' ? 198 : 29.9, source: 'member_page' })
         Taro.showToast({ title: '支付成功', icon: 'success' })
         await refreshMembership()
       }
     } catch {
+      trackEvent('subscribe_failure', { plan: selectedPlan })
       Taro.showToast({ title: '操作失败', icon: 'error' })
     } finally {
       setPaymentProcessing(false)
     }
-  }, [selectedPlan, paymentProcessing, subscribePlan, refreshMembership, clearError])
+  }, [selectedPlan, paymentProcessing, subscribePlan, refreshMembership, clearError, trackEvent])
 
   const handleCancel = useCallback(async () => {
     Taro.showModal({
@@ -61,6 +73,7 @@ export default function MemberPage() {
       confirmColor: '#FF6B35',
       success: async (res) => {
         if (res.confirm) {
+          trackEvent('cancel_subscription')
           try {
             await cancelSubscription()
             Taro.showToast({ title: '已取消', icon: 'success' })
@@ -71,17 +84,18 @@ export default function MemberPage() {
         }
       },
     })
-  }, [cancelSubscription, refreshMembership])
+  }, [cancelSubscription, refreshMembership, trackEvent])
 
   const handleRestore = useCallback(async () => {
     try {
       await restorePurchaseStatus()
+      trackEvent('restore_purchase')
       Taro.showToast({ title: '已恢复', icon: 'success' })
       await refreshMembership()
     } catch {
       Taro.showToast({ title: '恢复失败', icon: 'error' })
     }
-  }, [restorePurchaseStatus, refreshMembership])
+  }, [restorePurchaseStatus, refreshMembership, trackEvent])
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return ''

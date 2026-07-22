@@ -2,8 +2,7 @@ import { getCheckinsByDateRange } from './checkinService'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
 import { getVaccineRecords } from './vaccineService'
 import { getPetById, type PetProfile } from './petService'
-import { generateHealthReportPDF, downloadPDF } from '../utils/pdfGenerator'
-import { HealthReportData } from '../types/reportTypes'
+import { requirePetOwnership } from '../utils/petOwnership'
 
 export interface HealthReport {
   title: string
@@ -122,6 +121,7 @@ export async function generateHealthReport(
   petId: string,
   days: number = 30
 ): Promise<HealthReport | null> {
+  requirePetOwnership(petId, userId);
   const pet = await getPetById(userId, petId)
   if (!pet) return null
 
@@ -230,65 +230,6 @@ export async function generateHealthReport(
       trend: calculateRiskTrend(sortedEntries),
     },
   }
-}
-
-export async function generateHealthReportPDFData(
-  userId: string,
-  petId: string,
-  days: number = 30
-): Promise<string> {
-  const pet = await getPetById(userId, petId)
-  if (!pet) throw new Error('Pet not found')
-
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - days)
-
-  const entries = await getCheckinsByDateRange(petId, userId, formatDate(startDate), formatDate(endDate))
-  const vaccines = await getVaccineRecords(petId)
-
-  const reportData: HealthReportData = {
-    pet: {
-      id: pet.id,
-      name: pet.name,
-      species: pet.species,
-      breed: pet.breed || '未知',
-      birthDate: pet.birthDate || '未知',
-      gender: pet.gender || 'unknown',
-      neutered: pet.isNeutered || false,
-      weight: pet.weight || 0,
-      photoUrl: pet.avatarPhotoUrl,
-      allergies: [],
-      medications: [],
-      chronicConditions: [],
-    },
-    entries: entries.map(entry => ({
-      date: entry.createdAt instanceof Date
-        ? formatDate(entry.createdAt)
-        : formatDate(new Date(entry.createdAt)),
-      bowel: entry.poopLevel === 3 ? '正常' : entry.poopLevel === 5 ? '便秘' : entry.poopLevel === 4 ? '软便' : entry.poopLevel === 2 ? '腹泻' : '血便',
-      appetite: entry.appetiteLevel === 3 ? '正常' : entry.appetiteLevel >= 4 ? '亢进' : entry.appetiteLevel === 2 ? '减退' : '拒食',
-      energy: entry.spiritLevel === 3 ? '正常' : entry.spiritLevel >= 4 ? '兴奋' : entry.spiritLevel === 2 ? '低落' : '萎靡',
-      exercise: entry.exerciseLevel === 3 ? '正常' : entry.exerciseLevel >= 4 ? '活跃' : entry.exerciseLevel === 2 ? '减少' : '无',
-      weight: entry.weight,
-    })),
-    symptoms: [],
-    vaccines: vaccines.map(v => ({
-      name: v.category,
-      dateGiven: v.date,
-      dateDue: v.nextDate || v.date,
-      status: v.status === 'completed' ? 'done' : v.status === 'pending' ? 'pending' : 'overdue',
-    })),
-    generatedAt: new Date().toLocaleDateString('zh-CN'),
-    period: `${formatDate(startDate)} 至 ${formatDate(endDate)}`,
-  }
-
-  return generateHealthReportPDF(reportData, 'health-report-preview')
-}
-
-export function downloadHealthReportPDF(pdfData: string, petName: string): void {
-  const filename = `${petName}-健康报告-${new Date().toISOString().split('T')[0]}.pdf`
-  downloadPDF(pdfData, filename)
 }
 
 export function formatReportAsText(report: HealthReport): string {

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { useAnalytics } from '../../hooks/useAnalytics'
 import './index.scss'
 
 interface OnboardingSlide {
@@ -33,6 +34,15 @@ const SLIDES: OnboardingSlide[] = [
 
 export default function OnboardingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  useEffect(() => { trackPageView('onboarding') }, [trackPageView])
+
+  const slide = SLIDES[currentSlide]
+
+  useEffect(() => {
+    trackEvent('onboarding_step_view', { step: currentSlide + 1, stepKey: slide.key })
+  }, [currentSlide, slide.key, trackEvent])
 
   const handleNext = () => {
     if (currentSlide < SLIDES.length - 1) {
@@ -41,16 +51,16 @@ export default function OnboardingPage() {
   }
 
   const handleStart = () => {
+    trackEvent('onboarding_complete')
     Taro.setStorageSync('onboarding_completed', 'true')
     Taro.redirectTo({ url: '/pagesPet/add/index' })
   }
 
   const handleSkip = () => {
+    trackEvent('onboarding_skip', { step: currentSlide + 1 })
     Taro.setStorageSync('onboarding_completed', 'true')
     Taro.switchTab({ url: '/pages/index/index' })
   }
-
-  const slide = SLIDES[currentSlide]
 
   return (
     <View className='onboarding-page'>

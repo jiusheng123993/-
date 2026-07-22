@@ -108,7 +108,7 @@ describe('membershipService', () => {
       expect(status.tier).toBe('member')
       expect(status.status).toBe('active')
       expect(status.plan).toBe('monthly')
-      expect(api.get).toHaveBeenCalledWith(`/membership?userId=${userId}`)
+      expect(api.get).toHaveBeenCalledWith('/membership')
     })
 
     it('should fallback to local storage when API fails', async () => {
@@ -188,7 +188,7 @@ describe('membershipService', () => {
       expect(result.channel).toBe('wechat')
       expect(result.paymentParams).toBeDefined()
       expect(result.paymentParams?.appId).toBe('wx123')
-      expect(api.post).toHaveBeenCalledWith('/orders', { userId, productId: 'membership_monthly', channel: 'wechat' })
+      expect(api.post).toHaveBeenCalledWith('/orders', { productId: 'membership_monthly', channel: 'wechat' })
     })
 
     it('should throw when userId is empty', async () => {
@@ -206,7 +206,7 @@ describe('membershipService', () => {
       expect(info.tier).toBe('member')
       expect(info.status).toBe('active')
       expect(info.plan).toBe('monthly')
-      expect(api.post).toHaveBeenCalledWith('/membership/payment-callback', { userId, orderId: 'order_001' })
+      expect(api.post).toHaveBeenCalledWith('/membership/payment-callback', { orderId: 'order_001' })
     })
 
     it('should throw when userId is empty', async () => {
@@ -223,7 +223,7 @@ describe('membershipService', () => {
 
       expect(info.status).toBe('cancelled')
       expect(info.cancelledAt).not.toBeNull()
-      expect(api.post).toHaveBeenCalledWith('/membership/cancel', { userId })
+      expect(api.post).toHaveBeenCalledWith('/membership/cancel', {})
     })
 
     it('should set status to cancelled locally when API fails', async () => {
@@ -256,7 +256,7 @@ describe('membershipService', () => {
 
       expect(info.tier).toBe('member')
       expect(info.status).toBe('active')
-      expect(api.post).toHaveBeenCalledWith('/membership/restore', { userId })
+      expect(api.post).toHaveBeenCalledWith('/membership/restore', {})
     })
 
     it('should fallback to local membership when API fails', async () => {
@@ -294,7 +294,7 @@ describe('membershipService', () => {
       expect(orders).toHaveLength(2)
       expect(orders[0].id).toBe('order_001')
       expect(orders[1].id).toBe('order_002')
-      expect(api.get).toHaveBeenCalledWith(`/membership/orders?userId=${userId}`)
+      expect(api.get).toHaveBeenCalledWith('/membership/orders')
     })
 
     it('should fallback to local orders when API fails', async () => {
@@ -417,7 +417,7 @@ describe('membershipService', () => {
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(10)
       expect(result.isMember).toBe(false)
-      expect(api.get).toHaveBeenCalledWith(`/quotas/check?userId=${userId}&featureKey=food_query`)
+      expect(api.get).toHaveBeenCalledWith('/quotas/check?featureKey=food_query')
     })
 
     it('should throw when userId is empty', async () => {

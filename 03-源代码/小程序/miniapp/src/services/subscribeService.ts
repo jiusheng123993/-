@@ -1,6 +1,15 @@
 import Taro from '@tarojs/taro';
 import { getStorage, setStorage } from '../utils/storage';
+import { logger } from '../logger';
 import { checkFrequency, recordSend } from './frequencyControlService';
+import { getEdgeFunctionUrl } from '../config/supabase';
+import {
+  FOLLOWUP_TEMPLATE_ID,
+  CARE_PLAN_REMINDER_TEMPLATE_ID,
+  HEALTH_CHECKIN_TEMPLATE_ID,
+  TEMPLATE_IDS,
+  type TemplateId,
+} from '../constants/templateIds';
 
 const SUBSCRIBE_STATUS_KEY = 'subscribe_status';
 
@@ -12,33 +21,7 @@ export interface SubscribeStatus {
   usageCount: number;
 }
 
-function getTemplateId(envKey: string, fallback: string): string {
-  const value = (process.env as Record<string, string | undefined>)[envKey]
-  return value && value !== fallback ? value : fallback
-}
-
-export const FOLLOWUP_TEMPLATE_ID = getTemplateId(
-  'TARO_APP_FOLLOWUP_TEMPLATE_ID',
-  'FOLLOWUP_TEMPLATE_ID_PLACEHOLDER'
-);
-
-export const INTERVENTION_REMINDER_TEMPLATE_ID = getTemplateId(
-  'TARO_APP_INTERVENTION_TEMPLATE_ID',
-  'INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER'
-);
-
-export const MOOD_CHECKIN_TEMPLATE_ID = getTemplateId(
-  'TARO_APP_MOOD_CHECKIN_TEMPLATE_ID',
-  'MOOD_CHECKIN_TEMPLATE_ID_PLACEHOLDER'
-);
-
-export const TEMPLATE_IDS = {
-  FOLLOWUP: FOLLOWUP_TEMPLATE_ID,
-  INTERVENTION_REMINDER: INTERVENTION_REMINDER_TEMPLATE_ID,
-  MOOD_CHECKIN: MOOD_CHECKIN_TEMPLATE_ID,
-};
-
-export type TemplateId = typeof TEMPLATE_IDS[keyof typeof TEMPLATE_IDS];
+export { FOLLOWUP_TEMPLATE_ID, CARE_PLAN_REMINDER_TEMPLATE_ID, HEALTH_CHECKIN_TEMPLATE_ID, TEMPLATE_IDS, type TemplateId };
 
 export interface SubscribeMessageData {
   [key: string]: { value: string };
@@ -58,16 +41,16 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     description: '急救后第二天跟进，询问用户感受',
     requiredFields: ['thing1', 'time2', 'thing3'],
   },
-  [INTERVENTION_REMINDER_TEMPLATE_ID]: {
-    id: INTERVENTION_REMINDER_TEMPLATE_ID,
-    name: '干预任务提醒',
-    description: '3天拆解干预每日任务提醒',
+  [CARE_PLAN_REMINDER_TEMPLATE_ID]: {
+    id: CARE_PLAN_REMINDER_TEMPLATE_ID,
+    name: '护理任务提醒',
+    description: '3天护理计划每日任务提醒',
     requiredFields: ['thing1', 'time2', 'thing3'],
   },
-  [MOOD_CHECKIN_TEMPLATE_ID]: {
-    id: MOOD_CHECKIN_TEMPLATE_ID,
-    name: '情绪打卡提醒',
-    description: '定时情绪记录提醒',
+  [HEALTH_CHECKIN_TEMPLATE_ID]: {
+    id: HEALTH_CHECKIN_TEMPLATE_ID,
+    name: '健康打卡提醒',
+    description: '定时健康记录提醒',
     requiredFields: ['thing1', 'time2', 'thing3'],
   },
 };
@@ -105,16 +88,16 @@ export async function requestFollowupSubscribe(): Promise<boolean> {
   return results[FOLLOWUP_TEMPLATE_ID] ?? false;
 }
 
-export async function requestInterventionSubscribe(): Promise<boolean> {
-  const results = await requestSubscribe([INTERVENTION_REMINDER_TEMPLATE_ID]);
-  return results[INTERVENTION_REMINDER_TEMPLATE_ID] ?? false;
+export async function requestCarePlanSubscribe(): Promise<boolean> {
+  const results = await requestSubscribe([CARE_PLAN_REMINDER_TEMPLATE_ID]);
+  return results[CARE_PLAN_REMINDER_TEMPLATE_ID] ?? false;
 }
 
 export async function requestAllSubscribes(): Promise<Record<string, boolean>> {
   return requestSubscribe([
     FOLLOWUP_TEMPLATE_ID,
-    INTERVENTION_REMINDER_TEMPLATE_ID,
-    MOOD_CHECKIN_TEMPLATE_ID,
+    CARE_PLAN_REMINDER_TEMPLATE_ID,
+    HEALTH_CHECKIN_TEMPLATE_ID,
   ]);
 }
 
@@ -190,16 +173,15 @@ export async function sendSubscribeMessage(
   // 频率检查
   const freqCheck = checkFrequency(templateId);
   if (!freqCheck.allowed) {
-    console.warn(`[subscribeService] Frequency check failed: ${freqCheck.reason}`);
+    logger.warn('subscribeService', `Frequency check failed: ${freqCheck.reason}`);
     return false;
   }
 
   try {
     const token = Taro.getStorageSync('xhh_token');
-    const apiBaseUrl = process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000';
 
     const res = await Taro.request({
-      url: `${apiBaseUrl}/api/subscribe/send`,
+      url: getEdgeFunctionUrl('subscribe-send'),
       method: 'POST',
       data: { templateId, data, page },
       header: {

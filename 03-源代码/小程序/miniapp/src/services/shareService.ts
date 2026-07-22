@@ -3,13 +3,16 @@ import { supabaseClient } from './supabaseClient';
 import {
   INVITE_CODE_LENGTH,
   INVITE_CODE_MAX_USE,
+  SHARE_REWARD_INVITES,
 } from '../constants';
+import { getEdgeFunctionUrl } from '../config/supabase';
 import type {
   ShareCardType,
   ShareRecord,
   InviteCode,
   ReferralRecord,
   ShareStats,
+  ShareRewardResult,
 } from '../types/shareTypes';
 
 const SHARE_HISTORY_KEY = 'xhh_share_history';
@@ -82,6 +85,7 @@ export async function getShareStats(userId: string): Promise<ShareStats> {
   const foodShares = history.filter(r => r.cardType === 'food').length;
   const trendShares = history.filter(r => r.cardType === 'health_trend').length;
   const vaccineShares = history.filter(r => r.cardType === 'vaccine').length;
+  const achievementShares = history.filter(r => r.cardType === 'achievement').length;
 
   const referralsResult = await supabaseClient.select<ReferralRecord>(
     'referral_records',
@@ -95,6 +99,7 @@ export async function getShareStats(userId: string): Promise<ShareStats> {
     foodShares,
     trendShares,
     vaccineShares,
+    achievementShares,
     totalInvites: referrals.length,
     successfulInvites: referrals.filter(r => r.rewardGranted).length,
   };
@@ -138,4 +143,52 @@ export function getLocalShareHistory(): ShareRecord[] {
 
 export function clearLocalShareHistory(): void {
   Taro.removeStorageSync(SHARE_HISTORY_KEY);
+}
+
+export async function grantShareReward(userId: string): Promise<ShareRewardResult> {
+  try {
+    const token = Taro.getStorageSync('xhh_token');
+
+    const res = await Taro.request({
+      url: getEdgeFunctionUrl('share-grant-reward'),
+      method: 'POST',
+      data: {},
+      header: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (res.statusCode === 200 && res.data?.success) {
+      return {
+        rewardGranted: true,
+        rewardType: res.data.rewardType || 'membership_days',
+        rewardValue: res.data.rewardValue || 7,
+        message: `邀请${SHARE_REWARD_INVITES}位好友，奖励7天会员`,
+      };
+    }
+
+    if (res.statusCode === 200 && res.data?.error) {
+      return {
+        rewardGranted: false,
+        rewardType: 'none',
+        rewardValue: 0,
+        message: res.data.error as string,
+      };
+    }
+
+    return {
+      rewardGranted: false,
+      rewardType: 'none',
+      rewardValue: 0,
+      message: '奖励发放失败',
+    };
+  } catch {
+    return {
+      rewardGranted: false,
+      rewardType: 'none',
+      rewardValue: 0,
+      message: '网络异常，请稍后重试',
+    };
+  }
 }

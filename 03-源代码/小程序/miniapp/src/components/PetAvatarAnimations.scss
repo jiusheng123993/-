@@ -1,0 +1,148 @@
+@keyframes pet-avatar-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pet-avatar-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pet-avatar-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes pet-avatar-flash {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes pet-avatar-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  33% {
+    transform: translateY(-4px);
+  }
+  66% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes pet-avatar-glow {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes pet-avatar-jump {
+  0% {
+    transform: translateY(0) scaleY(1);
+  }
+  20% {
+    transform: translateY(0) scaleY(0.9) scaleX(1.1);
+  }
+  50% {
+    transform: translateY(-16px) scaleY(1.05) scaleX(0.95);
+  }
+  80% {
+    transform: translateY(0) scaleY(0.95) scaleX(1.05);
+  }
+  100% {
+    transform: translateY(0) scaleY(1) scaleX(1);
+  }
+}
+
+@keyframes pet-avatar-tremble {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-1px, -1px);
+  }
+  20% {
+    transform: translate(1px, 0);
+  }
+  30% {
+    transform: translate(-1px, 1px);
+  }
+  40% {
+    transform: translate(1px, -1px);
+  }
+  50% {
+    transform: translate(-1px, 0);
+  }
+  60% {
+    transform: translate(1px, 1px);
+  }
+  70% {
+    transform: translate(0, -1px);
+  }
+  80% {
+    transform: translate(-1px, 1px);
+  }
+  90% {
+    transform: translate(1px, 0);
+  }
+}
+
+.pet-avatar__image--bounce {
+  animation: pet-avatar-bounce 1.2s ease-in-out infinite;
+}
+
+.pet-avatar__image--pulse {
+  animation: pet-avatar-pulse 1.5s ease-in-out infinite;
+}
+
+.pet-avatar__image--shake {
+  animation: pet-avatar-shake 0.8s ease-in-out infinite;
+}
+
+.pet-avatar__image--flash {
+  animation: pet-avatar-flash 1s ease-in-out infinite;
+}
+
+.pet-avatar__image--float {
+  animation: pet-avatar-float 2s ease-in-out infinite;
+}
+
+.pet-avatar__image--glow {
+  animation: pet-avatar-glow 1.5s ease-in-out infinite;
+}
+
+.pet-avatar__image--jump {
+  animation: pet-avatar-jump 1s ease-in-out infinite;
+}
+
+.pet-avatar__image--tremble {
+  animation: pet-avatar-tremble 0.5s ease-in-out infinite;
+}

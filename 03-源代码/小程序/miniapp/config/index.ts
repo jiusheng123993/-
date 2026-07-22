@@ -30,15 +30,33 @@ const config: UserConfigExport = {
   mini: {
     webpackChain(chain) {
       chain.resolve.alias.set('@', path.resolve(__dirname, '..', 'src'))
-      // 确保只有一个 React 实例，避免 Hook 错误
       chain.resolve.alias.set('react', path.resolve(__dirname, '..', 'node_modules', 'react'))
       chain.resolve.alias.set('react-dom', path.resolve(__dirname, '..', 'node_modules', 'react-dom'))
-      // 小程序环境不需要 Node.js crypto 模块，使用 crypto-js 替代
       chain.resolve.set('fallback', {
         crypto: false,
         stream: false,
         buffer: false
       })
+      chain.optimization.splitChunks({
+        chunks: 'all',
+        maxInitialRequests: Infinity,
+        minSize: 0,
+        cacheGroups: {
+          pdfLibs: {
+            name: 'pagesPet/pdf-libs',
+            test: /[\\/]node_modules[\\/](jspdf|html2canvas|pako|canvg|dompurify|css-line-break|html-entities)[\\/]/,
+            priority: 200,
+            reuseExistingChunk: true,
+          },
+          cryptoCore: {
+            name: 'crypto-core',
+            test: /[\\/]node_modules[\\/]crypto-js[\\/]/,
+            priority: 100,
+            reuseExistingChunk: true,
+          },
+        },
+      })
+      chain.performance.hints(false)
     },
     sass: {
       data: `@import "@/styles/global.scss";`

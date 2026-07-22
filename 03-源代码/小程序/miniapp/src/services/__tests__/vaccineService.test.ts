@@ -35,6 +35,201 @@ vi.mock('@tarojs/taro', () => ({
   },
 }))
 
+const mockAutoScheduleItems = [
+  {
+    id: 'dog_puppy_0_0',
+    vaccineName: 'DHPP（第一针）',
+    scheduledDate: '2024-02-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 30,
+    isCore: true,
+    notes: '首次免疫',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'dog_puppy_0_1',
+    vaccineName: '窝咳疫苗（可选，鼻内型）',
+    scheduledDate: '2024-02-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 30,
+    isCore: false,
+    notes: '窝咳疫苗鼻内型可3周龄起用',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'dog_puppy_1_0',
+    vaccineName: 'DHPP（第二针）',
+    scheduledDate: '2024-03-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 60,
+    isCore: true,
+    notes: '钩端螺旋体疫苗根据当地流行情况决定',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'dog_puppy_1_1',
+    vaccineName: '钩端螺旋体（第一针，可选）',
+    scheduledDate: '2024-03-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 60,
+    isCore: false,
+    notes: '钩端螺旋体疫苗根据当地流行情况决定',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'dog_puppy_2_0',
+    vaccineName: 'DHPP（第三针/最后一针）',
+    scheduledDate: '2024-04-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 90,
+    isCore: true,
+    notes: '最后一针DHPP必须在16周龄或以上',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'dog_puppy_2_2',
+    vaccineName: '狂犬病（12-16周龄）',
+    scheduledDate: '2024-04-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 90,
+    isCore: true,
+    notes: '狂犬病按当地法规',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+]
+
+const mockCatScheduleItems = [
+  {
+    id: 'cat_kitten_0_0',
+    vaccineName: 'FVRCP（第一针）',
+    scheduledDate: '2024-02-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 30,
+    isCore: true,
+    notes: '首次免疫',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'cat_kitten_2_0',
+    vaccineName: 'FVRCP（第三针/最后一针）',
+    scheduledDate: '2024-04-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 90,
+    isCore: true,
+    notes: '最后一针FVRCP必须在16周龄或以上',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'cat_kitten_2_2',
+    vaccineName: '狂犬病（12-16周龄）',
+    scheduledDate: '2024-04-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 90,
+    isCore: true,
+    notes: '狂犬病按当地法规',
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+]
+
+const mockDewormingItems = [
+  {
+    id: 'internal_adult',
+    type: 'internal' as const,
+    scheduledDate: '2024-04-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 90,
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+  {
+    id: 'external_adult',
+    type: 'external' as const,
+    scheduledDate: '2024-01-15',
+    status: 'upcoming' as const,
+    daysUntilDue: 30,
+    reminderLevel: 0 as 0 | 1 | 2 | 3,
+  },
+]
+
+vi.mock('../../engines/vaccineScheduler', () => ({
+  generateAutoVaccineSchedule: vi.fn((pet: { species: string; birthDate: string }) => {
+    if (pet.species === 'cat') return mockCatScheduleItems
+    return mockAutoScheduleItems
+  }),
+  generateDewormingSchedule: vi.fn(() => mockDewormingItems),
+}))
+
+vi.mock('../../data/petKnowledge/vaccineSchedule', () => ({
+  BREED_VACCINE_RECOMMENDATIONS: [
+    {
+      breedIds: ['golden_retriever', 'labrador_retriever', 'german_shepherd', 'poodle_standard', 'rottweiler', 'samoyed', 'doberman', 'boxer', 'akita', 'husky_siberian'],
+      species: 'dog',
+      recommendedVaccines: ['leptospirosis'],
+      healthCheckReminders: [],
+      notes: '户外活动多/大型犬品种，推荐接种钩端螺旋体疫苗',
+    },
+    {
+      breedIds: ['great_dane', 'bernese_mountain_dog'],
+      species: 'dog',
+      recommendedVaccines: ['leptospirosis'],
+      healthCheckReminders: [],
+      notes: '巨型犬品种，推荐接种钩端螺旋体疫苗',
+    },
+    {
+      breedIds: ['french_bulldog', 'pug', 'bulldog', 'shih_tzu'],
+      species: 'dog',
+      recommendedVaccines: ['bordetella'],
+      healthCheckReminders: [],
+      notes: '短头品种，推荐接种窝咳疫苗',
+    },
+    {
+      breedIds: ['border_collie', 'shetland_sheepdog', 'australian_shepherd'],
+      species: 'dog',
+      recommendedVaccines: [],
+      healthCheckReminders: [],
+      notes: '柯利系品种，携带MDR1基因突变，对伊维菌素等药物敏感',
+    },
+    {
+      breedIds: ['golden_retriever', 'labrador_retriever', 'german_shepherd', 'beagle', 'poodle_standard', 'rottweiler', 'doberman', 'boxer', 'husky_siberian', 'border_collie', 'australian_shepherd', 'samoyed'],
+      species: 'dog',
+      recommendedVaccines: ['canine_influenza'],
+      healthCheckReminders: [],
+      notes: '活跃/群居倾向品种，推荐接种犬流感疫苗',
+    },
+    {
+      breedIds: ['siamese_cat', 'bengal_cat', 'abyssinian', 'oriental_shorthair', 'devon_rex', 'somali_cat'],
+      species: 'cat',
+      recommendedVaccines: ['felv'],
+      healthCheckReminders: [],
+      notes: '户外/活跃猫品种，推荐接种猫白血病病毒疫苗',
+    },
+    {
+      breedIds: ['persian_cat', 'maine_coon', 'british_shorthair', 'ragdoll', 'scottish_fold', 'exotic_shorthair', 'norwegian_forest_cat', 'american_shorthair', 'birman'],
+      species: 'cat',
+      recommendedVaccines: [],
+      healthCheckReminders: ['定期肾脏超声检查（多囊肾病PKD筛查）'],
+      notes: '多囊肾病高发品种，建议定期肾脏超声检查',
+    },
+    {
+      breedIds: ['persian_cat', 'siamese_cat', 'maine_coon', 'british_shorthair', 'ragdoll', 'scottish_fold', 'sphynx', 'bengal_cat', 'russian_blue', 'norwegian_forest_cat', 'american_shorthair', 'birman', 'oriental_shorthair', 'devon_rex', 'burmese_cat', 'tonkinese'],
+      species: 'cat',
+      recommendedVaccines: [],
+      healthCheckReminders: ['定期心脏超声检查（肥厚型心肌病HCM筛查）'],
+      notes: '肥厚型心肌病高发品种，建议定期心脏超声检查',
+    },
+  ],
+}))
+
+vi.mock('../../data/petKnowledge/breeds', () => ({
+  BREED_DATA: [
+    { id: 'golden_retriever', name: '金毛寻回犬', species: 'dog', exerciseNeeds: 'high', size: 'large', geneticDiseases: ['髋关节发育不良'] },
+    { id: 'french_bulldog', name: '法国斗牛犬', species: 'dog', exerciseNeeds: 'low', size: 'small', geneticDiseases: ['短头综合征'] },
+    { id: 'border_collie', name: '边境牧羊犬', species: 'dog', exerciseNeeds: 'high', size: 'medium', geneticDiseases: ['柯利眼异常（CEA）', '多重药物敏感性（MDR1基因突变）'] },
+    { id: 'ragdoll', name: '布偶猫', species: 'cat', exerciseNeeds: 'low', size: 'large', geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）'] },
+    { id: 'siamese_cat', name: '暹罗猫', species: 'cat', exerciseNeeds: 'high', size: 'medium', geneticDiseases: ['肥厚型心肌病（HCM）'] },
+    { id: 'british_shorthair', name: '英国短毛猫', species: 'cat', exerciseNeeds: 'low', size: 'medium', geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）'] },
+  ],
+}))
+
 import { api } from '../api'
 import {
   getVaccineRecords,
@@ -348,6 +543,102 @@ describe('vaccineService', () => {
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('vac_existing')
+    })
+
+    it('should generate multi-shot series for puppy', async () => {
+      const petInfo = { species: 'dog' as const, breed: '混血犬', birthDate: '2024-01-01' }
+
+      const result = await generateInitialPlan('pet_dog_puppy', petInfo)
+
+      const dhppRecords = result.filter((r) => r.category === 'DHPP')
+      expect(dhppRecords.length).toBe(1)
+
+      const categories = result.map((r) => r.category)
+      expect(categories).toContain('DHPP')
+      expect(categories).toContain('rabies')
+      expect(categories).toContain('internal_deworm')
+      expect(categories).toContain('external_deworm')
+    })
+
+    it('should recommend leptospirosis for golden retriever', async () => {
+      const petInfo = { species: 'dog' as const, breed: '金毛寻回犬', birthDate: '2020-01-01', breedId: 'golden_retriever' }
+
+      const result = await generateInitialPlan('pet_golden', petInfo)
+
+      const categories = result.map((r) => r.category)
+      expect(categories).toContain('leptospirosis')
+      expect(categories).toContain('canine_influenza')
+
+      const leptoRecord = result.find((r) => r.category === 'leptospirosis')
+      expect(leptoRecord?.notes).toContain('品种特异性推荐')
+    })
+
+    it('should recommend bordetella for french bulldog', async () => {
+      const petInfo = { species: 'dog' as const, breed: '法国斗牛犬', birthDate: '2020-01-01', breedId: 'french_bulldog' }
+
+      const result = await generateInitialPlan('pet_french_bulldog', petInfo)
+
+      const categories = result.map((r) => r.category)
+      expect(categories).toContain('bordetella')
+
+      const bordetellaRecord = result.find((r) => r.category === 'bordetella')
+      expect(bordetellaRecord?.notes).toContain('品种特异性推荐')
+    })
+
+    it('should recommend FeLV for ragdoll cat with breed health reminders', async () => {
+      const petInfo = { species: 'cat' as const, breed: '布偶猫', birthDate: '2020-01-01', breedId: 'ragdoll' }
+
+      const result = await generateInitialPlan('pet_ragdoll', petInfo)
+
+      const categories = result.map((r) => r.category)
+      expect(categories).toContain('breed_health_reminder')
+
+      const reminderRecord = result.find((r) => r.category === 'breed_health_reminder')
+      expect(reminderRecord?.notes).toContain('肾脏超声')
+      expect(reminderRecord?.notes).toContain('心脏超声')
+    })
+
+    it('should recommend FeLV for siamese cat', async () => {
+      const petInfo = { species: 'cat' as const, breed: '暹罗猫', birthDate: '2020-01-01', breedId: 'siamese_cat' }
+
+      const result = await generateInitialPlan('pet_siamese', petInfo)
+
+      const categories = result.map((r) => r.category)
+      expect(categories).toContain('felv')
+
+      const felvRecord = result.find((r) => r.category === 'felv')
+      expect(felvRecord?.notes).toContain('品种特异性推荐')
+    })
+
+    it('should not duplicate vaccines already in schedule from breed recommendations', async () => {
+      const petInfo = { species: 'dog' as const, breed: '金毛寻回犬', birthDate: '2024-01-01', breedId: 'golden_retriever' }
+
+      const result = await generateInitialPlan('pet_golden_dup', petInfo)
+
+      const leptoRecords = result.filter((r) => r.category === 'leptospirosis')
+      expect(leptoRecords.length).toBeLessThanOrEqual(2)
+    })
+
+    it('should include MDR1 note for border collie', async () => {
+      const petInfo = { species: 'dog' as const, breed: '边境牧羊犬', birthDate: '2020-01-01', breedId: 'border_collie' }
+
+      const result = await generateInitialPlan('pet_border_collie', petInfo)
+
+      const reminderRecord = result.find((r) => r.category === 'breed_health_reminder')
+      expect(reminderRecord?.notes).toContain('MDR1')
+    })
+
+    it('should work without breedId (backward compatible)', async () => {
+      const petInfo = { species: 'dog' as const, breed: '混血犬', birthDate: '2020-01-01' }
+
+      const result = await generateInitialPlan('pet_no_breed_id', petInfo)
+
+      expect(result.length).toBeGreaterThan(0)
+      const categories = result.map((r) => r.category)
+      expect(categories).toContain('DHPP')
+      expect(categories).toContain('rabies')
+      expect(categories).toContain('internal_deworm')
+      expect(categories).toContain('external_deworm')
     })
   })
 

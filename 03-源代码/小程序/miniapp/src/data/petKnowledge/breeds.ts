@@ -14,6 +14,13 @@ export interface BreedItem {
   commonHealthIssues: string[]
   specialCare: string[]
   suitableFor: string[]
+  dietRestrictions: string[]
+  weightRange: { min: number; max: number }
+  toxicFoods: string[]
+  commonDiseases: string[]
+  careTips: string[]
+  lifespan: string
+  weightRangeStr: string
 }
 
 export const BREED_DATA: BreedItem[] = [
@@ -32,7 +39,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '肘关节发育不良', '进行性视网膜萎缩（PRA）', '遗传性白内障', '主动脉瓣下狭窄', '鱼鳞病'],
     commonHealthIssues: ['肥胖', '耳部感染', '过敏性皮炎', '甲状腺功能减退', '肿瘤（血管肉瘤/淋巴瘤）'],
     specialCare: ['每日至少1小时运动', '定期梳毛（换毛季每日）', '定期耳道清洁', '控制体重'],
-    suitableFor: ['家庭', '新手', '儿童', '活跃人群']
+    suitableFor: ['家庭', '新手', '儿童', '活跃人群'],
+    dietRestrictions: ['控制生长速度', '关节营养补充', '避免高钙饮食', '控制体重防肥胖'],
+    weightRange: { min: 25, max: 34 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '肥胖', '耳部感染', '过敏性皮炎', '肿瘤'],
+    careTips: ['每日至少1小时运动，游泳是最佳选择', '定期梳毛，换毛季每日梳理', '定期清洁耳道，预防耳部感染', '严格控制饮食，防止肥胖', '定期体检，关注关节和心脏健康'],
+    lifespan: '10-12年',
+    weightRangeStr: '25-34kg'
   },
   {
     id: 'labrador_retriever',
@@ -49,7 +63,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '肘关节发育不良', '进行性视网膜萎缩（PRA）', '运动诱发虚脱（EIC）', '遗传性鼻角化不全', '中心核肌病'],
     commonHealthIssues: ['肥胖', '耳部感染', '食物过敏', '前十字韧带撕裂', '甲状腺功能减退'],
     specialCare: ['严格控制饮食防肥胖', '每日至少1小时运动', '定期耳道检查', '游泳后擦干耳朵'],
-    suitableFor: ['家庭', '新手', '儿童', '活跃人群', '工作犬']
+    suitableFor: ['家庭', '新手', '儿童', '活跃人群', '工作犬'],
+    dietRestrictions: ['严格控制热量防肥胖', '关节营养补充', '避免高钙饮食', '低敏饮食（易食物过敏）'],
+    weightRange: { min: 25, max: 36 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '肥胖', '耳部感染', '食物过敏', '前十字韧带撕裂'],
+    careTips: ['严格控制饮食，防止肥胖是首要任务', '每日至少1小时运动，喜欢游泳', '定期检查耳道，游泳后务必擦干', '注意食物过敏，选择低敏狗粮', '定期体检，关注关节健康'],
+    lifespan: '10-12年',
+    weightRangeStr: '25-36kg'
   },
   {
     id: 'german_shepherd',
@@ -66,7 +87,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '肘关节发育不良', '退行性脊髓病（DM）', '胰腺外分泌功能不全', '血友病A', '先天性巨食管症'],
     commonHealthIssues: ['胃扩张扭转（GDV）', '肛门疖病', '过敏性皮炎', '角膜炎', '癫痫'],
     specialCare: ['每日至少1-2小时高强度运动', '早期社会化训练', '精神刺激（工作/训练）', '换毛季每日梳毛'],
-    suitableFor: ['经验丰富的主人', '活跃人群', '工作犬', '护卫']
+    suitableFor: ['经验丰富的主人', '活跃人群', '工作犬', '护卫'],
+    dietRestrictions: ['控制生长速度', '关节营养补充', '避免高钙饮食', '注意消化系统健康'],
+    weightRange: { min: 22, max: 40 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '胃扩张扭转', '退行性脊髓病', '过敏性皮炎'],
+    careTips: ['每日至少1-2小时高强度运动', '早期社会化训练至关重要', '提供精神刺激，如训练和工作任务', '换毛季每日梳毛', '注意胃扩张扭转，饭后避免剧烈运动'],
+    lifespan: '9-13年',
+    weightRangeStr: '22-40kg'
   },
   {
     id: 'french_bulldog',
@@ -83,7 +111,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['短头综合征', '椎间盘疾病（IVDD）', '先天性半椎体', '腭裂', '遗传性白内障', '高尿酸尿症'],
     commonHealthIssues: ['呼吸困难', '中暑风险', '皮肤褶皱感染', '眼部疾病（樱桃眼/角膜溃疡）', '髋关节发育不良'],
     specialCare: ['避免高温环境', '控制运动强度', '清洁面部褶皱', '定期眼部检查'],
-    suitableFor: ['公寓', '家庭', '新手', '老年人']
+    suitableFor: ['公寓', '家庭', '新手', '老年人'],
+    dietRestrictions: ['控制体重', '低敏饮食', '避免高碳水', '少食多餐'],
+    weightRange: { min: 8, max: 14 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['短头综合征', '呼吸困难', '皮肤褶皱感染', '眼部疾病'],
+    careTips: ['避免高温环境，极易中暑', '控制运动强度，短距离散步即可', '每日清洁面部褶皱，防止感染', '定期眼部检查', '控制体重，避免加重呼吸负担'],
+    lifespan: '10-12年',
+    weightRangeStr: '8-14kg'
   },
   {
     id: 'poodle_toy',
@@ -100,7 +135,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['进行性视网膜萎缩（PRA）', '髌骨脱位', 'Legg-Calvé-Perthes病', '癫痫', '先天性门体分流', '血管性血友病'],
     commonHealthIssues: ['牙科疾病', '泪痕', '耳部感染', '气管塌陷', '库欣综合征'],
     specialCare: ['每4-6周专业美容', '每日梳毛防打结', '定期洁牙', '注意保暖'],
-    suitableFor: ['公寓', '家庭', '新手', '过敏体质人群']
+    suitableFor: ['公寓', '家庭', '新手', '过敏体质人群'],
+    dietRestrictions: ['低脂饮食', '少食多餐', '注意钙磷比', '注意牙齿健康饮食'],
+    weightRange: { min: 2, max: 4 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髌骨脱位', '牙科疾病', '泪痕', '气管塌陷'],
+    careTips: ['每4-6周专业美容修剪', '每日梳毛防止打结', '定期洁牙，预防牙科疾病', '注意保暖，小型犬怕冷', '避免高处跳跃，保护膝关节'],
+    lifespan: '12-15年',
+    weightRangeStr: '2-4kg'
   },
   {
     id: 'poodle_standard',
@@ -117,7 +159,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '进行性视网膜萎缩（PRA）', '皮脂腺炎', '血管性血友病', 'Addison病', '胃扩张扭转（GDV）'],
     commonHealthIssues: ['耳部感染', '过敏性皮炎', '甲状腺功能减退', '牙科疾病'],
     specialCare: ['每4-6周专业美容', '每日至少1小时运动', '精神刺激训练', '定期耳道清洁'],
-    suitableFor: ['家庭', '活跃人群', '过敏体质人群', '经验丰富的主人']
+    suitableFor: ['家庭', '活跃人群', '过敏体质人群', '经验丰富的主人'],
+    dietRestrictions: ['控制生长速度', '关节营养补充', '避免高钙饮食', '低敏饮食（易过敏性皮炎）'],
+    weightRange: { min: 20, max: 32 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '耳部感染', '过敏性皮炎', '胃扩张扭转'],
+    careTips: ['每4-6周专业美容修剪', '每日至少1小时运动', '定期清洁耳道', '提供精神刺激训练', '注意胃扩张扭转风险'],
+    lifespan: '12-15年',
+    weightRangeStr: '20-32kg'
   },
   {
     id: 'corgi_pembroke',
@@ -134,7 +183,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['椎间盘疾病（IVDD）', '髋关节发育不良', '退行性脊髓病（DM）', '进行性视网膜萎缩（PRA）', '血管性血友病'],
     commonHealthIssues: ['肥胖', '髌骨脱位', '牙科疾病', '癫痫'],
     specialCare: ['控制体重（易胖）', '避免高处跳下', '每日适量运动', '换毛季勤梳毛'],
-    suitableFor: ['家庭', '活跃人群', '公寓', '新手']
+    suitableFor: ['家庭', '活跃人群', '公寓', '新手'],
+    dietRestrictions: ['严格控制热量防肥胖', '注意钙磷比', '关节营养补充', '低脂饮食'],
+    weightRange: { min: 10, max: 14 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['椎间盘疾病', '肥胖', '髋关节发育不良', '退行性脊髓病'],
+    careTips: ['严格控制体重，肥胖是最大威胁', '避免高处跳下，保护脊椎', '每日适量运动，短距离散步即可', '换毛季勤梳毛', '使用胸背带代替项圈'],
+    lifespan: '12-15年',
+    weightRangeStr: '10-14kg'
   },
   {
     id: 'husky_siberian',
@@ -151,7 +207,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['青少年白内障', '进行性视网膜萎缩（PRA）', '角膜营养不良', '锌反应性皮肤病', '喉麻痹'],
     commonHealthIssues: ['髋关节发育不良', '甲状腺功能减退', '过敏性皮炎', '逃跑行为'],
     specialCare: ['每日至少1-2小时高强度运动', '安全围栏（擅长逃跑）', '换毛季大量掉毛', '避免高温'],
-    suitableFor: ['活跃人群', '经验丰富的主人', '寒冷地区', '户外运动爱好者']
+    suitableFor: ['活跃人群', '经验丰富的主人', '寒冷地区', '户外运动爱好者'],
+    dietRestrictions: ['高蛋白饮食', '注意锌补充', '避免高碳水', '充足脂肪摄入'],
+    weightRange: { min: 16, max: 27 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果', '夏威夷果'],
+    commonDiseases: ['青少年白内障', '髋关节发育不良', '甲状腺功能减退', '锌反应性皮肤病'],
+    careTips: ['每日至少1-2小时高强度运动', '确保围栏安全，擅长逃跑', '换毛季大量掉毛，需勤梳理', '避免高温环境', '提供精神刺激，防止拆家'],
+    lifespan: '12-14年',
+    weightRangeStr: '16-27kg'
   },
   {
     id: 'chihuahua',
@@ -168,7 +231,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髌骨脱位', '气管塌陷', '脑积水', '先天性心脏病（PDA）', 'Legg-Calvé-Perthes病'],
     commonHealthIssues: ['牙科疾病', '低血糖', '眼部疾病', '骨折风险', '寒冷不耐受'],
     specialCare: ['注意保暖', '防止高处坠落', '定期洁牙', '小心儿童互动'],
-    suitableFor: ['公寓', '老年人', '单身', '温暖地区']
+    suitableFor: ['公寓', '老年人', '单身', '温暖地区'],
+    dietRestrictions: ['少食多餐', '注意低血糖预防', '注意钙磷比', '注意牙齿健康饮食'],
+    weightRange: { min: 1, max: 3 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果', '咖啡因'],
+    commonDiseases: ['髌骨脱位', '气管塌陷', '牙科疾病', '低血糖'],
+    careTips: ['注意保暖，小型犬极易失温', '防止高处坠落，骨折风险高', '少食多餐，预防低血糖', '定期洁牙，牙科疾病高发', '小心与儿童互动'],
+    lifespan: '12-20年',
+    weightRangeStr: '1-3kg'
   },
   {
     id: 'border_collie',
@@ -185,7 +255,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['柯利眼异常（CEA）', '进行性视网膜萎缩（PRA）', '髋关节发育不良', '神经元蜡样脂褐质沉积症', '多重药物敏感性（MDR1基因突变）', '癫痫'],
     commonHealthIssues: ['强迫行为', '噪音恐惧', '运动损伤', '牙科疾病'],
     specialCare: ['每日至少2小时高强度运动+精神刺激', '需要工作/任务', '早期社会化', 'MDR1基因检测'],
-    suitableFor: ['经验丰富的主人', '活跃人群', '工作犬', '敏捷运动']
+    suitableFor: ['经验丰富的主人', '活跃人群', '工作犬', '敏捷运动'],
+    dietRestrictions: ['避免MDR1基因敏感药物相关食物', '高蛋白饮食', '注意锌补充', '避免高碳水'],
+    weightRange: { min: 14, max: 20 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '伊维菌素类'],
+    commonDiseases: ['柯利眼异常', '髋关节发育不良', '强迫行为', '癫痫'],
+    careTips: ['每日至少2小时运动加精神刺激', '需要工作任务或敏捷训练', '早期社会化训练', 'MDR1基因检测，避免敏感药物', '注意眼部健康检查'],
+    lifespan: '12-15年',
+    weightRangeStr: '14-20kg'
   },
   {
     id: 'pug',
@@ -202,7 +279,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['短头综合征', '半椎体畸形', '角膜溃疡', '干眼症', 'Legg-Calvé-Perthes病', '脑炎'],
     commonHealthIssues: ['呼吸困难', '中暑风险', '皮肤褶皱感染', '肥胖', '眼部损伤'],
     specialCare: ['避免高温/高湿环境', '控制运动强度', '清洁面部褶皱', '严格控制体重'],
-    suitableFor: ['公寓', '家庭', '老年人', '新手']
+    suitableFor: ['公寓', '家庭', '老年人', '新手'],
+    dietRestrictions: ['控制体重', '低敏饮食', '避免高碳水', '少食多餐'],
+    weightRange: { min: 6, max: 8 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['短头综合征', '角膜溃疡', '皮肤褶皱感染', '肥胖'],
+    careTips: ['避免高温高湿环境', '控制运动强度', '每日清洁面部褶皱', '严格控制体重', '定期眼部检查'],
+    lifespan: '12-15年',
+    weightRangeStr: '6-8kg'
   },
   {
     id: 'shiba_inu',
@@ -219,7 +303,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髌骨脱位', '髋关节发育不良', '青光眼', '过敏性疾病', 'GM1神经节苷脂贮积症'],
     commonHealthIssues: ['过敏性皮炎', '甲状腺功能减退', '牙科疾病', '逃跑行为'],
     specialCare: ['安全牵引（易逃跑）', '早期社会化训练', '换毛季大量掉毛', '耐心训练'],
-    suitableFor: ['经验丰富的主人', '活跃人群', '公寓', '单身']
+    suitableFor: ['经验丰富的主人', '活跃人群', '公寓', '单身'],
+    dietRestrictions: ['低敏饮食（易过敏性皮炎）', '注意钙磷比', '避免高碳水', '适量脂肪'],
+    weightRange: { min: 8, max: 10 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['过敏性皮炎', '髌骨脱位', '甲状腺功能减退', '青光眼'],
+    careTips: ['外出务必牵引，易逃跑', '早期社会化训练，减少攻击性', '换毛季大量掉毛需勤梳理', '耐心训练，性格固执', '注意皮肤过敏问题'],
+    lifespan: '12-16年',
+    weightRangeStr: '8-10kg'
   },
   {
     id: 'yorkshire_terrier',
@@ -236,7 +327,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['气管塌陷', '髌骨脱位', 'Legg-Calvé-Perthes病', '门体分流', '进行性视网膜萎缩（PRA）'],
     commonHealthIssues: ['牙科疾病', '低血糖', '骨折风险', '泪痕', '皮肤过敏'],
     specialCare: ['每日梳毛防打结', '定期美容', '注意保暖', '定期洁牙'],
-    suitableFor: ['公寓', '老年人', '家庭', '过敏体质人群']
+    suitableFor: ['公寓', '老年人', '家庭', '过敏体质人群'],
+    dietRestrictions: ['少食多餐', '注意低血糖预防', '注意钙磷比', '注意牙齿健康饮食'],
+    weightRange: { min: 2, max: 3 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['气管塌陷', '髌骨脱位', '牙科疾病', '低血糖'],
+    careTips: ['每日梳毛防止打结', '定期美容修剪', '注意保暖，小型犬怕冷', '定期洁牙', '少食多餐预防低血糖'],
+    lifespan: '13-16年',
+    weightRangeStr: '2-3kg'
   },
   {
     id: 'dachshund',
@@ -253,7 +351,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['椎间盘疾病（IVDD）', '进行性视网膜萎缩（PRA）', '髌骨脱位', '癫痫', '先天性耳聋（斑纹色）'],
     commonHealthIssues: ['肥胖', '牙科疾病', '耳部感染', '背部损伤'],
     specialCare: ['避免跳高/爬楼梯', '控制体重', '使用胸背带', '支撑背部'],
-    suitableFor: ['公寓', '家庭', '老年人', '新手']
+    suitableFor: ['公寓', '家庭', '老年人', '新手'],
+    dietRestrictions: ['严格控制热量防肥胖', '关节营养补充', '注意钙磷比', '低脂饮食'],
+    weightRange: { min: 4, max: 15 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['椎间盘疾病', '肥胖', '背部损伤', '牙科疾病'],
+    careTips: ['避免跳高和爬楼梯，保护脊椎', '严格控制体重', '使用胸背带代替项圈', '支撑背部，避免过度弯曲', '定期检查脊椎健康'],
+    lifespan: '12-16年',
+    weightRangeStr: '4-15kg'
   },
   {
     id: 'rottweiler',
@@ -270,7 +375,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '肘关节发育不良', '主动脉瓣下狭窄', '骨肉瘤', '血管性血友病', '青少年喉麻痹'],
     commonHealthIssues: ['胃扩张扭转（GDV）', '肥胖', '前十字韧带撕裂', '过敏性皮炎'],
     specialCare: ['早期社会化训练', '每日至少1小时运动', '精神刺激', '定期心脏检查'],
-    suitableFor: ['经验丰富的主人', '家庭', '护卫', '活跃人群']
+    suitableFor: ['经验丰富的主人', '家庭', '护卫', '活跃人群'],
+    dietRestrictions: ['控制生长速度', '关节营养补充', '避免高钙饮食', '注意心脏健康饮食'],
+    weightRange: { min: 35, max: 60 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '胃扩张扭转', '肥胖', '前十字韧带撕裂'],
+    careTips: ['早期社会化训练至关重要', '每日至少1小时运动', '提供精神刺激', '定期心脏检查', '注意胃扩张扭转风险'],
+    lifespan: '8-10年',
+    weightRangeStr: '35-60kg'
   },
   {
     id: 'bulldog',
@@ -287,7 +399,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['短头综合征', '髋关节发育不良', '先天性心脏病', '腭裂', '皮肤褶皱感染', '眼睑内翻'],
     commonHealthIssues: ['呼吸困难', '中暑风险', '皮肤问题', '眼部疾病', '关节疾病'],
     specialCare: ['避免高温', '清洁面部和尾部褶皱', '控制运动强度', '定期眼部检查'],
-    suitableFor: ['公寓', '家庭', '老年人', '新手']
+    suitableFor: ['公寓', '家庭', '老年人', '新手'],
+    dietRestrictions: ['控制体重', '低敏饮食', '避免高碳水', '少食多餐'],
+    weightRange: { min: 18, max: 25 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['短头综合征', '呼吸困难', '皮肤褶皱感染', '眼部疾病'],
+    careTips: ['避免高温环境', '清洁面部和尾部褶皱', '控制运动强度', '定期眼部检查', '严格控制体重'],
+    lifespan: '8-10年',
+    weightRangeStr: '18-25kg'
   },
   {
     id: 'beagle',
@@ -304,7 +423,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '椎间盘疾病', '癫痫', '甲状腺功能减退', '先天性心脏病', '青光眼'],
     commonHealthIssues: ['肥胖', '耳部感染', '过敏性皮炎', '牙科疾病'],
     specialCare: ['安全围栏（嗅觉驱动易走失）', '控制饮食防肥胖', '定期耳道清洁', '每日适量运动'],
-    suitableFor: ['家庭', '新手', '儿童', '活跃人群']
+    suitableFor: ['家庭', '新手', '儿童', '活跃人群'],
+    dietRestrictions: ['严格控制热量防肥胖', '低敏饮食（易过敏性皮炎）', '注意钙磷比', '少食多餐'],
+    weightRange: { min: 9, max: 11 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['肥胖', '耳部感染', '过敏性皮炎', '癫痫'],
+    careTips: ['安全围栏，嗅觉驱动易走失', '严格控制饮食防肥胖', '定期耳道清洁', '每日适量运动', '注意体重管理'],
+    lifespan: '12-15年',
+    weightRangeStr: '9-11kg'
   },
   {
     id: 'samoyed',
@@ -321,7 +447,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '进行性视网膜萎缩（PRA）', '遗传性肾小球病', '糖尿病', '肺动脉瓣狭窄'],
     commonHealthIssues: ['过敏性皮炎', '甲状腺功能减退', '牙科疾病', '中暑'],
     specialCare: ['每日至少1小时运动', '每日梳毛（双层被毛）', '避免高温', '定期美容'],
-    suitableFor: ['家庭', '活跃人群', '寒冷地区', '过敏体质人群（相对）']
+    suitableFor: ['家庭', '活跃人群', '寒冷地区', '过敏体质人群（相对）'],
+    dietRestrictions: ['控制生长速度', '关节营养补充', '低敏饮食（易过敏性皮炎）', '避免高钙饮食'],
+    weightRange: { min: 16, max: 30 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '过敏性皮炎', '糖尿病', '甲状腺功能减退'],
+    careTips: ['每日至少1小时运动', '每日梳毛，双层被毛需精心护理', '避免高温环境', '定期美容', '注意皮肤过敏问题'],
+    lifespan: '12-14年',
+    weightRangeStr: '16-30kg'
   },
   {
     id: 'bichon_frise',
@@ -338,7 +471,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髌骨脱位', '白内障', '进行性视网膜萎缩（PRA）', '免疫介导性溶血性贫血', 'Legg-Calvé-Perthes病'],
     commonHealthIssues: ['牙科疾病', '泪痕', '皮肤过敏', '耳部感染', '膀胱结石'],
     specialCare: ['每4-6周专业美容', '每日梳毛', '定期洁牙', '清洁泪痕'],
-    suitableFor: ['公寓', '家庭', '新手', '过敏体质人群']
+    suitableFor: ['公寓', '家庭', '新手', '过敏体质人群'],
+    dietRestrictions: ['低敏饮食（易皮肤过敏）', '注意钙磷比', '少食多餐', '注意牙齿健康饮食'],
+    weightRange: { min: 5, max: 10 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髌骨脱位', '牙科疾病', '皮肤过敏', '泪痕'],
+    careTips: ['每4-6周专业美容', '每日梳毛防止打结', '定期洁牙', '清洁泪痕保持面部整洁', '注意皮肤过敏反应'],
+    lifespan: '12-15年',
+    weightRangeStr: '5-10kg'
   },
   {
     id: 'shih_tzu',
@@ -355,7 +495,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['短头综合征', '髌骨脱位', '进行性视网膜萎缩（PRA）', '干眼症', '肾发育不良'],
     commonHealthIssues: ['眼部疾病（角膜溃疡/眼睑内翻）', '耳部感染', '牙科疾病', '皮肤过敏'],
     specialCare: ['每日梳毛防打结', '定期美容', '清洁面部', '定期眼部检查'],
-    suitableFor: ['公寓', '家庭', '老年人', '新手']
+    suitableFor: ['公寓', '家庭', '老年人', '新手'],
+    dietRestrictions: ['控制体重', '低敏饮食', '避免高碳水', '少食多餐'],
+    weightRange: { min: 4, max: 7 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['短头综合征', '眼部疾病', '耳部感染', '牙科疾病'],
+    careTips: ['每日梳毛防打结', '定期美容修剪', '清洁面部保持卫生', '定期眼部检查', '避免高温环境'],
+    lifespan: '10-16年',
+    weightRangeStr: '4-7kg'
   },
   {
     id: 'doberman',
@@ -372,7 +519,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['扩张型心肌病（DCM）', '髋关节发育不良', '血管性血友病', '颈椎不稳（Wobbler综合征）', '白化病', '慢性活动性肝炎'],
     commonHealthIssues: ['胃扩张扭转（GDV）', '甲状腺功能减退', '皮肤问题', '前列腺疾病'],
     specialCare: ['每年心脏超声检查', '每日至少1小时高强度运动', '早期社会化', '注意保暖（短毛）'],
-    suitableFor: ['经验丰富的主人', '活跃人群', '护卫', '工作犬']
+    suitableFor: ['经验丰富的主人', '活跃人群', '护卫', '工作犬'],
+    dietRestrictions: ['注意心脏健康饮食', '控制生长速度', '关节营养补充', '避免高钙饮食'],
+    weightRange: { min: 27, max: 45 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['扩张型心肌病', '胃扩张扭转', '颈椎不稳', '甲状腺功能减退'],
+    careTips: ['每年心脏超声检查', '每日至少1小时高强度运动', '早期社会化训练', '注意保暖，短毛怕冷', '注意胃扩张扭转风险'],
+    lifespan: '10-13年',
+    weightRangeStr: '27-45kg'
   },
   {
     id: 'maltese',
@@ -389,7 +543,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髌骨脱位', '气管塌陷', '门体分流', '先天性耳聋', 'Legg-Calvé-Perthes病'],
     commonHealthIssues: ['牙科疾病', '泪痕', '皮肤过敏', '低血糖', '眼部疾病'],
     specialCare: ['每日梳毛', '定期美容', '定期洁牙', '注意保暖'],
-    suitableFor: ['公寓', '老年人', '家庭', '过敏体质人群']
+    suitableFor: ['公寓', '老年人', '家庭', '过敏体质人群'],
+    dietRestrictions: ['少食多餐', '注意低血糖预防', '注意钙磷比', '注意牙齿健康饮食'],
+    weightRange: { min: 2, max: 4 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髌骨脱位', '气管塌陷', '牙科疾病', '泪痕'],
+    careTips: ['每日梳毛防止打结', '定期美容修剪', '注意保暖，小型犬怕冷', '定期洁牙', '少食多餐预防低血糖'],
+    lifespan: '12-15年',
+    weightRangeStr: '2-4kg'
   },
   {
     id: 'great_dane',
@@ -406,7 +567,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['扩张型心肌病（DCM）', '髋关节发育不良', '胃扩张扭转（GDV）', '骨肉瘤', '颈椎不稳（Wobbler综合征）', '甲状腺功能减退'],
     commonHealthIssues: ['关节疾病', '心脏疾病', '寿命较短', '麻醉风险'],
     specialCare: ['控制幼犬期生长速度', '避免饭前后剧烈运动', '大型犬专用粮', '定期心脏检查'],
-    suitableFor: ['经验丰富的主人', '有足够空间', '家庭', '活跃人群']
+    suitableFor: ['经验丰富的主人', '有足够空间', '家庭', '活跃人群'],
+    dietRestrictions: ['严格控制幼犬期生长速度', '大型犬专用粮', '关节营养补充', '避免高钙饮食'],
+    weightRange: { min: 45, max: 90 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['扩张型心肌病', '胃扩张扭转', '骨肉瘤', '关节疾病'],
+    careTips: ['控制幼犬期生长速度', '避免饭前后剧烈运动', '使用大型犬专用粮', '定期心脏检查', '注意胃扩张扭转风险'],
+    lifespan: '7-10年',
+    weightRangeStr: '45-90kg'
   },
   {
     id: 'pomeranian',
@@ -423,7 +591,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['气管塌陷', '髌骨脱位', 'Legg-Calvé-Perthes病', '甲状腺功能减退', '癫痫'],
     commonHealthIssues: ['牙科疾病', '泪痕', '脱毛症（黑皮病）', '低血糖'],
     specialCare: ['每日梳毛', '定期美容', '定期洁牙', '注意保暖'],
-    suitableFor: ['公寓', '老年人', '家庭', '新手']
+    suitableFor: ['公寓', '老年人', '家庭', '新手'],
+    dietRestrictions: ['少食多餐', '注意低血糖预防', '注意钙磷比', '注意牙齿健康饮食'],
+    weightRange: { min: 1.5, max: 3 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['气管塌陷', '髌骨脱位', '牙科疾病', '脱毛症'],
+    careTips: ['每日梳毛保持蓬松', '定期美容修剪', '定期洁牙', '注意保暖', '少食多餐预防低血糖'],
+    lifespan: '12-16年',
+    weightRangeStr: '1.5-3kg'
   },
   {
     id: 'boxer',
@@ -440,7 +615,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['扩张型心肌病', '主动脉瓣下狭窄', '髋关节发育不良', '退行性脊髓病（DM）', '肿瘤（肥大细胞瘤/淋巴瘤）', '短头综合征'],
     commonHealthIssues: ['中暑风险', '过敏性皮炎', '甲状腺功能减退', '角膜溃疡'],
     specialCare: ['避免高温', '每年心脏检查', '每日至少1小时运动', '注意肿瘤筛查'],
-    suitableFor: ['家庭', '活跃人群', '儿童', '经验丰富的主人']
+    suitableFor: ['家庭', '活跃人群', '儿童', '经验丰富的主人'],
+    dietRestrictions: ['注意心脏健康饮食', '控制体重', '低敏饮食（易过敏性皮炎）', '避免高温环境饮食'],
+    weightRange: { min: 25, max: 32 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['扩张型心肌病', '中暑', '过敏性皮炎', '肿瘤'],
+    careTips: ['避免高温环境', '每年心脏检查', '每日至少1小时运动', '注意肿瘤筛查', '短头品种注意呼吸问题'],
+    lifespan: '10-12年',
+    weightRangeStr: '25-32kg'
   },
   {
     id: 'cavalier_king_charles',
@@ -457,7 +639,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['二尖瓣疾病（MVD）', '脊髓空洞症（SM）', '髌骨脱位', '干眼症', '先天性耳聋'],
     commonHealthIssues: ['心脏疾病', '耳部感染', '眼部疾病', '牙科疾病'],
     specialCare: ['每年心脏超声检查', '定期耳道清洁', '注意神经系统症状', '定期梳毛'],
-    suitableFor: ['家庭', '老年人', '公寓', '新手']
+    suitableFor: ['家庭', '老年人', '公寓', '新手'],
+    dietRestrictions: ['注意心脏健康饮食', '低脂饮食', '少食多餐', '注意钙磷比'],
+    weightRange: { min: 5, max: 8 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['二尖瓣疾病', '脊髓空洞症', '耳部感染', '眼部疾病'],
+    careTips: ['每年心脏超声检查', '定期耳道清洁', '注意神经系统症状', '定期梳毛', '注意心脏健康饮食'],
+    lifespan: '9-14年',
+    weightRangeStr: '5-8kg'
   },
   {
     id: 'shetland_sheepdog',
@@ -474,7 +663,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['柯利眼异常（CEA）', '进行性视网膜萎缩（PRA）', '髋关节发育不良', '多重药物敏感性（MDR1基因突变）', '皮肌炎', '血管性血友病'],
     commonHealthIssues: ['甲状腺功能减退', '癫痫', '牙科疾病', '过敏性皮炎'],
     specialCare: ['每日梳毛', 'MDR1基因检测', '精神刺激训练', '定期美容'],
-    suitableFor: ['家庭', '活跃人群', '公寓', '敏捷运动']
+    suitableFor: ['家庭', '活跃人群', '公寓', '敏捷运动'],
+    dietRestrictions: ['避免MDR1基因敏感药物相关食物', '注意钙磷比', '低敏饮食（易过敏性皮炎）', '适量脂肪'],
+    weightRange: { min: 6, max: 12 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '伊维菌素类'],
+    commonDiseases: ['柯利眼异常', '甲状腺功能减退', '癫痫', '皮肌炎'],
+    careTips: ['每日梳毛', 'MDR1基因检测', '精神刺激训练', '定期美容', '注意眼部健康检查'],
+    lifespan: '12-14年',
+    weightRangeStr: '6-12kg'
   },
   {
     id: 'australian_shepherd',
@@ -491,7 +687,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['柯利眼异常（CEA）', '进行性视网膜萎缩（PRA）', '髋关节发育不良', '多重药物敏感性（MDR1基因突变）', '遗传性白内障', '癫痫'],
     commonHealthIssues: ['甲状腺功能减退', '过敏性皮炎', '运动损伤', '牙科疾病'],
     specialCare: ['每日至少1-2小时运动+精神刺激', 'MDR1基因检测', '需要工作/任务', '换毛季勤梳毛'],
-    suitableFor: ['经验丰富的主人', '活跃人群', '工作犬', '敏捷运动']
+    suitableFor: ['经验丰富的主人', '活跃人群', '工作犬', '敏捷运动'],
+    dietRestrictions: ['避免MDR1基因敏感药物相关食物', '高蛋白饮食', '避免高碳水', '注意锌补充'],
+    weightRange: { min: 16, max: 32 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '伊维菌素类'],
+    commonDiseases: ['柯利眼异常', '髋关节发育不良', '甲状腺功能减退', '癫痫'],
+    careTips: ['每日至少1-2小时运动加精神刺激', 'MDR1基因检测', '需要工作任务或敏捷训练', '换毛季勤梳毛', '注意眼部健康'],
+    lifespan: '13-15年',
+    weightRangeStr: '16-32kg'
   },
   {
     id: 'bernese_mountain_dog',
@@ -508,7 +711,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['组织细胞肉瘤', '髋关节发育不良', '肘关节发育不良', '胃扩张扭转（GDV）', '进行性视网膜萎缩（PRA）', '血管性血友病'],
     commonHealthIssues: ['肿瘤（高发）', '关节疾病', '寿命较短', '中暑'],
     specialCare: ['定期肿瘤筛查', '避免高温', '每日梳毛', '控制幼犬生长速度'],
-    suitableFor: ['家庭', '有足够空间', '寒冷地区', '经验丰富的主人']
+    suitableFor: ['家庭', '有足够空间', '寒冷地区', '经验丰富的主人'],
+    dietRestrictions: ['严格控制幼犬期生长速度', '大型犬专用粮', '关节营养补充', '避免高钙饮食'],
+    weightRange: { min: 35, max: 55 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['组织细胞肉瘤', '肿瘤', '关节疾病', '胃扩张扭转'],
+    careTips: ['定期肿瘤筛查', '避免高温环境', '每日梳毛', '控制幼犬生长速度', '注意胃扩张扭转风险'],
+    lifespan: '7-10年',
+    weightRangeStr: '35-55kg'
   },
   {
     id: 'miniature_schnauzer',
@@ -525,7 +735,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['胰腺炎', '膀胱结石', '白内障', '进行性视网膜萎缩（PRA）', '先天性门体分流', '肌强直'],
     commonHealthIssues: ['牙科疾病', '皮肤过敏', '高脂血症', '糖尿病'],
     specialCare: ['低脂饮食', '定期美容', '定期洁牙', '监测尿液'],
-    suitableFor: ['公寓', '家庭', '活跃人群', '过敏体质人群']
+    suitableFor: ['公寓', '家庭', '活跃人群', '过敏体质人群'],
+    dietRestrictions: ['低脂饮食（易胰腺炎）', '注意钙磷比', '少食多餐', '监测尿液pH'],
+    weightRange: { min: 5, max: 9 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果', '高脂食物'],
+    commonDiseases: ['胰腺炎', '膀胱结石', '牙科疾病', '糖尿病'],
+    careTips: ['低脂饮食预防胰腺炎', '定期美容修剪', '定期洁牙', '监测尿液pH值', '注意血糖水平'],
+    lifespan: '12-15年',
+    weightRangeStr: '5-9kg'
   },
   {
     id: 'akita',
@@ -542,7 +759,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['髋关节发育不良', '进行性视网膜萎缩（PRA）', '皮脂腺炎', '免疫介导性疾病', '甲状腺功能减退', '胃扩张扭转（GDV）'],
     commonHealthIssues: ['过敏性皮炎', '青光眼', '十字韧带撕裂', '肥胖'],
     specialCare: ['早期社会化训练', '换毛季大量掉毛', '每日适量运动', '注意同性别攻击性'],
-    suitableFor: ['经验丰富的主人', '家庭', '护卫', '寒冷地区']
+    suitableFor: ['经验丰富的主人', '家庭', '护卫', '寒冷地区'],
+    dietRestrictions: ['控制生长速度', '关节营养补充', '避免高钙饮食', '低敏饮食（易过敏性皮炎）'],
+    weightRange: { min: 32, max: 59 },
+    toxicFoods: ['巧克力', '葡萄/葡萄干', '洋葱', '大蒜', '木糖醇', '澳洲坚果'],
+    commonDiseases: ['髋关节发育不良', '过敏性皮炎', '胃扩张扭转', '甲状腺功能减退'],
+    careTips: ['早期社会化训练', '换毛季大量掉毛需勤梳理', '每日适量运动', '注意同性别攻击性', '注意胃扩张扭转风险'],
+    lifespan: '10-13年',
+    weightRangeStr: '32-59kg'
   },
   {
     id: 'persian_cat',
@@ -559,7 +783,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['多囊肾病（PKD）', '进行性视网膜萎缩（PRA）', '短头综合征', '肥厚型心肌病（HCM）', '先天性门体分流'],
     commonHealthIssues: ['泪痕/眼部疾病', '呼吸困难', '牙科疾病', '毛球症', '皮肤问题'],
     specialCare: ['每日梳毛防打结', '每日清洁面部和眼部', '定期肾脏超声（PKD筛查）', '室内饲养'],
-    suitableFor: ['公寓', '家庭', '老年人', '安静环境']
+    suitableFor: ['公寓', '家庭', '老年人', '安静环境'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '低敏饮食（易皮肤问题）'],
+    weightRange: { min: 3, max: 7 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['多囊肾病', '泪痕/眼部疾病', '呼吸困难', '毛球症'],
+    careTips: ['每日梳毛防止打结', '每日清洁面部和眼部', '定期肾脏超声PKD筛查', '室内饲养', '注意呼吸问题'],
+    lifespan: '12-17年',
+    weightRangeStr: '3-7kg'
   },
   {
     id: 'siamese_cat',
@@ -576,7 +807,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['进行性视网膜萎缩（PRA）', '肥厚型心肌病（HCM）', '哮喘/支气管疾病', '先天性前庭疾病', '青光眼'],
     commonHealthIssues: ['牙科疾病', '行为问题（分离焦虑）', '食物过敏', '呼吸道感染'],
     specialCare: ['需要陪伴和互动', '提供攀爬空间', '定期牙科检查', '注意呼吸道健康'],
-    suitableFor: ['家庭', '活跃人群', '多宠物家庭', '喜欢互动的主人']
+    suitableFor: ['家庭', '活跃人群', '多宠物家庭', '喜欢互动的主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '低敏饮食（易食物过敏）'],
+    weightRange: { min: 3, max: 6 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '牙科疾病', '呼吸道感染', '食物过敏'],
+    careTips: ['需要大量陪伴和互动', '提供攀爬空间和玩具', '定期牙科检查', '注意呼吸道健康', '避免长时间独处'],
+    lifespan: '12-20年',
+    weightRangeStr: '3-6kg'
   },
   {
     id: 'maine_coon',
@@ -593,7 +831,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '髋关节发育不良', '脊髓性肌萎缩（SMA）', '多囊肾病（PKD）', '髌骨脱位'],
     commonHealthIssues: ['牙科疾病', '肥胖', '毛球症', '关节疾病'],
     specialCare: ['每周2-3次梳毛', '定期心脏超声（HCM筛查）', '提供大号猫砂盆', '控制体重'],
-    suitableFor: ['家庭', '儿童', '多宠物家庭', '新手']
+    suitableFor: ['家庭', '儿童', '多宠物家庭', '新手'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 4, max: 11 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '髋关节发育不良', '毛球症', '肥胖'],
+    careTips: ['每周2-3次梳毛', '定期心脏超声HCM筛查', '提供大号猫砂盆', '控制体重', '鼓励适量运动'],
+    lifespan: '12-15年',
+    weightRangeStr: '4-11kg'
   },
   {
     id: 'british_shorthair',
@@ -610,7 +855,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）', '血友病B', '进行性视网膜萎缩（PRA）'],
     commonHealthIssues: ['肥胖', '牙科疾病', '毛球症', '尿路问题'],
     specialCare: ['控制饮食防肥胖', '定期心脏检查', '鼓励运动', '定期梳毛（换毛季）'],
-    suitableFor: ['公寓', '家庭', '老年人', '新手']
+    suitableFor: ['公寓', '家庭', '老年人', '新手'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 4, max: 8 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '多囊肾病', '肥胖', '尿路问题'],
+    careTips: ['控制饮食防止肥胖', '定期心脏检查', '鼓励运动', '定期梳毛换毛季', '注意尿路健康'],
+    lifespan: '12-20年',
+    weightRangeStr: '4-8kg'
   },
   {
     id: 'ragdoll',
@@ -627,7 +879,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）', '膀胱结石', '髌骨脱位'],
     commonHealthIssues: ['肥胖', '毛球症', '牙科疾病', '尿路感染'],
     specialCare: ['每周2-3次梳毛', '定期心脏超声（HCM筛查）', '控制体重', '室内饲养'],
-    suitableFor: ['家庭', '儿童', '公寓', '新手']
+    suitableFor: ['家庭', '儿童', '公寓', '新手'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 4, max: 9 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '多囊肾病', '肥胖', '毛球症'],
+    careTips: ['每周2-3次梳毛', '定期心脏超声HCM筛查', '控制体重', '室内饲养', '注意尿路健康'],
+    lifespan: '12-17年',
+    weightRangeStr: '4-9kg'
   },
   {
     id: 'scottish_fold',
@@ -644,7 +903,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['骨软骨发育不良（折耳基因病）', '肥厚型心肌病（HCM）', '多囊肾病（PKD）', '进行性视网膜萎缩（PRA）'],
     commonHealthIssues: ['关节疼痛/僵硬', '尾部僵硬', '耳部感染', '牙科疾病'],
     specialCare: ['定期关节检查', '关节保健品（葡萄糖胺/软骨素）', '避免肥胖加重关节负担', '注意尾部活动度'],
-    suitableFor: ['公寓', '家庭', '安静环境', '有经验的猫主人']
+    suitableFor: ['公寓', '家庭', '安静环境', '有经验的猫主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '关节营养补充'],
+    weightRange: { min: 3, max: 6 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['骨软骨发育不良', '关节疼痛', '肥厚型心肌病', '耳部感染'],
+    careTips: ['定期关节检查', '关节保健品补充', '避免肥胖加重关节负担', '注意尾部活动度', '室内饲养'],
+    lifespan: '11-14年',
+    weightRangeStr: '3-6kg'
   },
   {
     id: 'sphynx',
@@ -661,7 +927,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '遗传性肌病', '牙科疾病', '皮肤问题'],
     commonHealthIssues: ['皮肤油脂堆积', '皮肤感染', '晒伤', '寒冷不耐受', '耳部感染'],
     specialCare: ['每周洗澡', '定期清洁耳朵和皮肤褶皱', '注意保暖', '防晒'],
-    suitableFor: ['公寓', '过敏体质人群（相对）', '温暖地区', '经验丰富的主人']
+    suitableFor: ['公寓', '过敏体质人群（相对）', '温暖地区', '经验丰富的主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '高代谢需高热量饮食'],
+    weightRange: { min: 3, max: 6 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '皮肤油脂堆积', '皮肤感染', '耳部感染'],
+    careTips: ['每周洗澡清洁皮肤', '定期清洁耳朵和皮肤褶皱', '注意保暖，无毛怕冷', '防晒避免晒伤', '高热量饮食满足代谢需求'],
+    lifespan: '8-14年',
+    weightRangeStr: '3-6kg'
   },
   {
     id: 'bengal_cat',
@@ -678,7 +951,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '进行性视网膜萎缩（PRA）', '丙酮酸激酶缺乏症（PK Deficiency）', '髌骨脱位'],
     commonHealthIssues: ['食物过敏/敏感肠胃', '行为问题（精力过剩）', '牙科疾病'],
     specialCare: ['需要大量运动和攀爬空间', '精神刺激（益智玩具）', '安全环境（擅长逃脱）', '定期心脏检查'],
-    suitableFor: ['经验丰富的主人', '活跃人群', '有足够空间', '喜欢互动的主人']
+    suitableFor: ['经验丰富的主人', '活跃人群', '有足够空间', '喜欢互动的主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '低敏饮食（易敏感肠胃）'],
+    weightRange: { min: 4, max: 7 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '食物过敏', '敏感肠胃', '牙科疾病'],
+    careTips: ['需要大量运动和攀爬空间', '精神刺激益智玩具', '安全环境防止逃脱', '定期心脏检查', '注意肠胃敏感问题'],
+    lifespan: '12-16年',
+    weightRangeStr: '4-7kg'
   },
   {
     id: 'russian_blue',
@@ -695,7 +975,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '膀胱结石', '进行性视网膜萎缩（PRA）'],
     commonHealthIssues: ['肥胖', '牙科疾病', '尿路问题', '应激相关疾病'],
     specialCare: ['提供安静安全环境', '控制饮食', '定期牙科检查', '缓慢引入新事物'],
-    suitableFor: ['公寓', '安静环境', '单身', '过敏体质人群（相对）']
+    suitableFor: ['公寓', '安静环境', '单身', '过敏体质人群（相对）'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 3, max: 6 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '肥胖', '牙科疾病', '尿路问题'],
+    careTips: ['提供安静安全环境', '控制饮食防止肥胖', '定期牙科检查', '缓慢引入新事物', '注意应激相关疾病'],
+    lifespan: '15-20年',
+    weightRangeStr: '3-6kg'
   },
   {
     id: 'abyssinian',
@@ -712,7 +999,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['进行性视网膜萎缩（PRA）', '丙酮酸激酶缺乏症（PK Deficiency）', '髌骨脱位', '肾淀粉样变性'],
     commonHealthIssues: ['牙科疾病（牙龈炎高发）', '食物过敏', '行为问题（精力过剩）'],
     specialCare: ['需要大量互动和攀爬空间', '定期牙科护理', '精神刺激', '安全环境'],
-    suitableFor: ['活跃人群', '家庭', '多宠物家庭', '喜欢互动的主人']
+    suitableFor: ['活跃人群', '家庭', '多宠物家庭', '喜欢互动的主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '注意牙齿健康饮食'],
+    weightRange: { min: 3, max: 5 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['进行性视网膜萎缩', '牙龈炎', '食物过敏', '肾淀粉样变性'],
+    careTips: ['需要大量互动和攀爬空间', '定期牙科护理', '精神刺激益智玩具', '安全环境防止逃脱', '注意肾脏健康'],
+    lifespan: '12-15年',
+    weightRangeStr: '3-5kg'
   },
   {
     id: 'norwegian_forest_cat',
@@ -729,7 +1023,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '糖原贮积症IV型（GSD IV）', '髋关节发育不良', '多囊肾病（PKD）'],
     commonHealthIssues: ['毛球症', '肥胖', '牙科疾病', '关节疾病'],
     specialCare: ['每周2-3次梳毛（换毛季每日）', '提供攀爬空间', '控制体重', '定期心脏检查'],
-    suitableFor: ['家庭', '有足够空间', '寒冷地区', '多宠物家庭']
+    suitableFor: ['家庭', '有足够空间', '寒冷地区', '多宠物家庭'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 4, max: 9 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '毛球症', '肥胖', '关节疾病'],
+    careTips: ['每周2-3次梳毛换毛季每日', '提供攀爬空间', '控制体重', '定期心脏检查', '注意毛球症问题'],
+    lifespan: '14-16年',
+    weightRangeStr: '4-9kg'
   },
   {
     id: 'american_shorthair',
@@ -746,7 +1047,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '髋关节发育不良', '多囊肾病（PKD）'],
     commonHealthIssues: ['肥胖', '牙科疾病', '毛球症', '尿路问题'],
     specialCare: ['控制饮食防肥胖', '鼓励运动', '定期牙科检查', '定期梳毛'],
-    suitableFor: ['家庭', '儿童', '新手', '多宠物家庭']
+    suitableFor: ['家庭', '儿童', '新手', '多宠物家庭'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 4, max: 7 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '肥胖', '牙科疾病', '毛球症'],
+    careTips: ['控制饮食防止肥胖', '鼓励运动', '定期牙科检查', '定期梳毛', '注意尿路健康'],
+    lifespan: '15-20年',
+    weightRangeStr: '4-7kg'
   },
   {
     id: 'birman',
@@ -763,7 +1071,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）', '进行性视网膜萎缩（PRA）', '先天性白内障'],
     commonHealthIssues: ['毛球症', '牙科疾病', '肥胖', '尿路问题'],
     specialCare: ['每周2次梳毛', '定期心脏检查', '控制体重', '室内饲养'],
-    suitableFor: ['家庭', '公寓', '老年人', '新手']
+    suitableFor: ['家庭', '公寓', '老年人', '新手'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 3, max: 6 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '毛球症', '牙科疾病', '肥胖'],
+    careTips: ['每周2次梳毛', '定期心脏检查', '控制体重', '室内饲养', '注意尿路健康'],
+    lifespan: '12-16年',
+    weightRangeStr: '3-6kg'
   },
   {
     id: 'oriental_shorthair',
@@ -780,7 +1095,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '进行性视网膜萎缩（PRA）', '哮喘/支气管疾病', '先天性前庭疾病'],
     commonHealthIssues: ['牙科疾病', '行为问题（分离焦虑）', '食物过敏', '呼吸道感染'],
     specialCare: ['需要大量陪伴', '提供攀爬空间', '定期牙科检查', '注意呼吸道健康'],
-    suitableFor: ['活跃人群', '家庭', '多宠物家庭', '喜欢互动的主人']
+    suitableFor: ['活跃人群', '家庭', '多宠物家庭', '喜欢互动的主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '低敏饮食（易食物过敏）'],
+    weightRange: { min: 3, max: 5 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '牙科疾病', '食物过敏', '呼吸道感染'],
+    careTips: ['需要大量陪伴', '提供攀爬空间', '定期牙科检查', '注意呼吸道健康', '避免长时间独处'],
+    lifespan: '12-15年',
+    weightRangeStr: '3-5kg'
   },
   {
     id: 'devon_rex',
@@ -797,7 +1119,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '髌骨脱位', '遗传性肌病', '先天性稀毛症'],
     commonHealthIssues: ['皮肤油脂堆积', '耳部感染', '牙科疾病', '寒冷不耐受'],
     specialCare: ['定期清洁耳朵和皮肤', '注意保暖', '提供攀爬空间', '定期心脏检查'],
-    suitableFor: ['公寓', '活跃人群', '家庭', '过敏体质人群（相对）']
+    suitableFor: ['公寓', '活跃人群', '家庭', '过敏体质人群（相对）'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '高代谢需高热量饮食'],
+    weightRange: { min: 3, max: 4 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '皮肤油脂堆积', '耳部感染', '寒冷不耐受'],
+    careTips: ['定期清洁耳朵和皮肤', '注意保暖卷毛猫怕冷', '提供攀爬空间', '定期心脏检查', '高热量饮食满足代谢'],
+    lifespan: '9-15年',
+    weightRangeStr: '3-4kg'
   },
   {
     id: 'exotic_shorthair',
@@ -814,7 +1143,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['多囊肾病（PKD）', '肥厚型心肌病（HCM）', '短头综合征', '进行性视网膜萎缩（PRA）'],
     commonHealthIssues: ['泪痕/眼部疾病', '呼吸困难', '牙科疾病', '皮肤褶皱感染'],
     specialCare: ['每日清洁面部和眼部', '定期肾脏超声（PKD筛查）', '避免高温', '控制体重'],
-    suitableFor: ['公寓', '家庭', '老年人', '安静环境']
+    suitableFor: ['公寓', '家庭', '老年人', '安静环境'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '低敏饮食（易皮肤问题）'],
+    weightRange: { min: 3, max: 7 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['多囊肾病', '泪痕/眼部疾病', '呼吸困难', '皮肤褶皱感染'],
+    careTips: ['每日清洁面部和眼部', '定期肾脏超声PKD筛查', '避免高温环境', '控制体重', '注意呼吸问题'],
+    lifespan: '12-15年',
+    weightRangeStr: '3-7kg'
   },
   {
     id: 'burmese_cat',
@@ -831,7 +1167,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '糖尿病', '低钾血症性多肌病', '先天性前庭疾病'],
     commonHealthIssues: ['牙科疾病', '肥胖', '行为问题（分离焦虑）', '眼部疾病'],
     specialCare: ['需要陪伴', '控制饮食防肥胖', '定期牙科检查', '监测血糖'],
-    suitableFor: ['家庭', '活跃人群', '多宠物家庭', '新手']
+    suitableFor: ['家庭', '活跃人群', '多宠物家庭', '新手'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '控制热量防肥胖'],
+    weightRange: { min: 3, max: 6 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '糖尿病', '牙科疾病', '肥胖'],
+    careTips: ['需要陪伴互动', '控制饮食防止肥胖', '定期牙科检查', '监测血糖', '注意分离焦虑'],
+    lifespan: '12-16年',
+    weightRangeStr: '3-6kg'
   },
   {
     id: 'tonkinese',
@@ -848,7 +1191,14 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['肥厚型心肌病（HCM）', '进行性视网膜萎缩（PRA）', '哮喘/支气管疾病', '先天性前庭疾病'],
     commonHealthIssues: ['牙科疾病', '行为问题（分离焦虑）', '食物过敏'],
     specialCare: ['需要陪伴和互动', '提供攀爬空间', '定期牙科检查', '注意呼吸道健康'],
-    suitableFor: ['家庭', '活跃人群', '多宠物家庭', '公寓']
+    suitableFor: ['家庭', '活跃人群', '多宠物家庭', '公寓'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '低敏饮食（易食物过敏）'],
+    weightRange: { min: 3, max: 5 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['肥厚型心肌病', '牙科疾病', '食物过敏', '呼吸道感染'],
+    careTips: ['需要陪伴和互动', '提供攀爬空间', '定期牙科检查', '注意呼吸道健康', '避免长时间独处'],
+    lifespan: '12-16年',
+    weightRangeStr: '3-5kg'
   },
   {
     id: 'somali_cat',
@@ -865,6 +1215,13 @@ export const BREED_DATA: BreedItem[] = [
     geneticDiseases: ['进行性视网膜萎缩（PRA）', '丙酮酸激酶缺乏症（PK Deficiency）', '髌骨脱位', '肾淀粉样变性'],
     commonHealthIssues: ['牙科疾病（牙龈炎高发）', '毛球症', '食物过敏'],
     specialCare: ['每周2-3次梳毛', '需要大量互动和攀爬空间', '定期牙科护理', '精神刺激'],
-    suitableFor: ['活跃人群', '家庭', '经验丰富的主人', '喜欢互动的主人']
+    suitableFor: ['活跃人群', '家庭', '经验丰富的主人', '喜欢互动的主人'],
+    dietRestrictions: ['牛磺酸必需', '避免高碳水', '注意水分摄入', '注意牙齿健康饮食'],
+    weightRange: { min: 3, max: 5 },
+    toxicFoods: ['巧克力', '洋葱', '大蒜', '葡萄/葡萄干', '百合花', '木糖醇', '酒精', '咖啡因'],
+    commonDiseases: ['进行性视网膜萎缩', '牙龈炎', '毛球症', '食物过敏'],
+    careTips: ['每周2-3次梳毛', '需要大量互动和攀爬空间', '定期牙科护理', '精神刺激益智玩具', '注意肾脏健康'],
+    lifespan: '11-16年',
+    weightRangeStr: '3-5kg'
   }
 ]

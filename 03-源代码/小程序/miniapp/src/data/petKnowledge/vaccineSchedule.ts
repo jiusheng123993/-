@@ -297,6 +297,143 @@ export const DOG_VACCINE_SCHEDULE: VaccineScheduleTemplate[] = [
   }
 ]
 
+export interface BreedVaccineRecommendation {
+  breedIds: string[]
+  species: 'dog' | 'cat'
+  recommendedVaccines: string[]
+  healthCheckReminders: string[]
+  notes: string
+}
+
+export const BREED_VACCINE_RECOMMENDATIONS: BreedVaccineRecommendation[] = [
+  {
+    breedIds: [
+      'golden_retriever',
+      'labrador_retriever',
+      'german_shepherd',
+      'poodle_standard',
+      'rottweiler',
+      'samoyed',
+      'doberman',
+      'boxer',
+      'akita',
+      'husky_siberian',
+    ],
+    species: 'dog',
+    recommendedVaccines: ['leptospirosis'],
+    healthCheckReminders: [],
+    notes: '户外活动多/大型犬品种，推荐接种钩端螺旋体疫苗（人畜共患病，户外接触水源风险高）',
+  },
+  {
+    breedIds: [
+      'great_dane',
+      'bernese_mountain_dog',
+    ],
+    species: 'dog',
+    recommendedVaccines: ['leptospirosis'],
+    healthCheckReminders: [],
+    notes: '巨型犬品种，推荐接种钩端螺旋体疫苗',
+  },
+  {
+    breedIds: [
+      'french_bulldog',
+      'pug',
+      'bulldog',
+      'shih_tzu',
+    ],
+    species: 'dog',
+    recommendedVaccines: ['bordetella'],
+    healthCheckReminders: [],
+    notes: '短头品种，呼吸道结构特殊，推荐接种窝咳疫苗（犬传染性气管支气管炎）',
+  },
+  {
+    breedIds: [
+      'border_collie',
+      'shetland_sheepdog',
+      'australian_shepherd',
+    ],
+    species: 'dog',
+    recommendedVaccines: [],
+    healthCheckReminders: [],
+    notes: '柯利系品种，携带MDR1基因突变，对伊维菌素等药物敏感，用药前务必告知兽医',
+  },
+  {
+    breedIds: [
+      'golden_retriever',
+      'labrador_retriever',
+      'german_shepherd',
+      'beagle',
+      'poodle_standard',
+      'rottweiler',
+      'doberman',
+      'boxer',
+      'husky_siberian',
+      'border_collie',
+      'australian_shepherd',
+      'samoyed',
+    ],
+    species: 'dog',
+    recommendedVaccines: ['canine_influenza'],
+    healthCheckReminders: [],
+    notes: '活跃/群居倾向品种，经常接触其他犬只，推荐接种犬流感疫苗',
+  },
+  {
+    breedIds: [
+      'siamese_cat',
+      'bengal_cat',
+      'abyssinian',
+      'oriental_shorthair',
+      'devon_rex',
+      'somali_cat',
+    ],
+    species: 'cat',
+    recommendedVaccines: ['felv'],
+    healthCheckReminders: [],
+    notes: '户外/活跃猫品种，推荐接种猫白血病病毒疫苗（FeLV），接种前需FeLV检测阴性',
+  },
+  {
+    breedIds: [
+      'persian_cat',
+      'maine_coon',
+      'british_shorthair',
+      'ragdoll',
+      'scottish_fold',
+      'exotic_shorthair',
+      'norwegian_forest_cat',
+      'american_shorthair',
+      'birman',
+    ],
+    species: 'cat',
+    recommendedVaccines: [],
+    healthCheckReminders: ['定期肾脏超声检查（多囊肾病PKD筛查）'],
+    notes: '多囊肾病高发品种，建议定期肾脏超声检查',
+  },
+  {
+    breedIds: [
+      'persian_cat',
+      'siamese_cat',
+      'maine_coon',
+      'british_shorthair',
+      'ragdoll',
+      'scottish_fold',
+      'sphynx',
+      'bengal_cat',
+      'russian_blue',
+      'norwegian_forest_cat',
+      'american_shorthair',
+      'birman',
+      'oriental_shorthair',
+      'devon_rex',
+      'burmese_cat',
+      'tonkinese',
+    ],
+    species: 'cat',
+    recommendedVaccines: [],
+    healthCheckReminders: ['定期心脏超声检查（肥厚型心肌病HCM筛查）'],
+    notes: '肥厚型心肌病高发品种，建议定期心脏超声检查',
+  },
+]
+
 export const CAT_VACCINE_SCHEDULE: VaccineScheduleTemplate[] = [
   {
     id: 'cat_kitten',

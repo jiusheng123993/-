@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const { mockSupabaseAuth, mockVerifyToken, mockTaro, mockRequestAccountDeletion, mockCancelDeletion, mockGetDataPrivacyStatus } = vi.hoisted(() => {
+const { mockSupabaseAuth, mockVerifyToken, mockIsTokenFormatValid, mockTaro, mockRequestAccountDeletion, mockCancelDeletion, mockGetDataPrivacyStatus } = vi.hoisted(() => {
   return {
     mockSupabaseAuth: {
       loginWithCode: vi.fn(),
@@ -8,6 +8,7 @@ const { mockSupabaseAuth, mockVerifyToken, mockTaro, mockRequestAccountDeletion,
       refreshToken: vi.fn(),
     },
     mockVerifyToken: vi.fn(),
+    mockIsTokenFormatValid: vi.fn(),
     mockTaro: {
       getStorageSync: vi.fn(),
       setStorageSync: vi.fn(),
@@ -35,6 +36,7 @@ vi.mock('../../config/supabase', () => ({
 
 vi.mock('../../utils/jwt', () => ({
   verifyToken: mockVerifyToken,
+  isTokenFormatValid: mockIsTokenFormatValid,
 }))
 
 vi.mock('@tarojs/taro', () => ({
@@ -110,7 +112,7 @@ describe('authStore', () => {
         if (key === 'xhh_user') return JSON.stringify(user)
         return ''
       })
-      mockVerifyToken.mockReturnValue(true)
+      mockIsTokenFormatValid.mockReturnValue(true)
 
       await useAuthStore.getState().initialize()
 
@@ -129,7 +131,7 @@ describe('authStore', () => {
         if (key === 'xhh_user') return JSON.stringify(user)
         return ''
       })
-      mockVerifyToken.mockReturnValue(false)
+      mockIsTokenFormatValid.mockReturnValue(false)
       mockSupabaseAuth.refreshToken.mockResolvedValue({
         success: true,
         token: 'new_token',
@@ -153,7 +155,7 @@ describe('authStore', () => {
         if (key === 'xhh_user') return JSON.stringify(user)
         return ''
       })
-      mockVerifyToken.mockReturnValue(false)
+      mockIsTokenFormatValid.mockReturnValue(false)
       mockSupabaseAuth.refreshToken.mockResolvedValue({
         success: false,
         error: '刷新失败',
@@ -177,7 +179,7 @@ describe('authStore', () => {
         if (key === 'xhh_user') return JSON.stringify(user)
         return ''
       })
-      mockVerifyToken.mockReturnValue(false)
+      mockIsTokenFormatValid.mockReturnValue(false)
 
       await useAuthStore.getState().initialize()
 
@@ -206,7 +208,7 @@ describe('authStore', () => {
         if (key === 'xhh_user') return 'invalid-json'
         return ''
       })
-      mockVerifyToken.mockReturnValue(true)
+      mockIsTokenFormatValid.mockReturnValue(true)
 
       await useAuthStore.getState().initialize()
 

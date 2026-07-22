@@ -3,9 +3,9 @@ import { getStorage, setStorage } from '../utils/storage';
 import { ToxicFoodFilter } from '../engines/petSafety';
 import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes';
 export type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes';
-import { FOOD_SAFETY_DATA } from '../data/petKnowledge/foodSafety';
 import { getQuotaLimit, isMember } from './membershipService';
 import { queueSync } from './syncHelper';
+import { requirePetOwnership } from '../utils/petOwnership';
 
 export interface FoodQueryStats {
   totalQueries: number;
@@ -14,19 +14,27 @@ export interface FoodQueryStats {
   isMemberUser: boolean;
 }
 
-const toxicFoodFilter = new ToxicFoodFilter(
-  FOOD_SAFETY_DATA.map(item => ({
-    id: item.id,
-    name: item.name,
-    aliases: item.aliases,
-    safetyLevel: item.safetyLevel,
-    speciesSafety: {} as Partial<Record<'dog' | 'cat', typeof item.safetyLevel>>,
-    dangerousCompounds: item.dangerousCompounds ?? [],
-    symptoms: item.symptoms ?? [],
-    breedWarnings: (item.breedWarnings ?? []).map(w => ({ breed: '', note: w })),
-    description: item.detail,
-  }))
-);
+let toxicFoodFilter: ToxicFoodFilter | null = null;
+
+async function getToxicFoodFilter(): Promise<ToxicFoodFilter> {
+  if (!toxicFoodFilter) {
+    const { FOOD_SAFETY_DATA } = await import('../data/petKnowledge/foodSafety');
+    toxicFoodFilter = new ToxicFoodFilter(
+      FOOD_SAFETY_DATA.map(item => ({
+        id: item.id,
+        name: item.name,
+        aliases: item.aliases,
+        safetyLevel: item.safetyLevel,
+        speciesSafety: {} as Partial<Record<'dog' | 'cat', typeof item.safetyLevel>>,
+        dangerousCompounds: item.dangerousCompounds ?? [],
+        symptoms: item.symptoms ?? [],
+        breedWarnings: (item.breedWarnings ?? []).map(w => ({ breed: '', note: w })),
+        description: item.detail,
+      }))
+    );
+  }
+  return toxicFoodFilter;
+}
 
 function generateId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -55,15 +63,17 @@ export async function queryFood(
   species: 'dog' | 'cat',
   breed?: string
 ): Promise<PetFoodQuery> {
+  requirePetOwnership(petId, userId);
   try {
-    const result = await api.post<PetFoodQuery>('/api/food-queries', { userId, petId, foodName, species, breed });
+    const result = await api.post<PetFoodQuery>('/api/food-queries', { petId, foodName, species, breed });
     const queries = getLocalQueries(petId, userId);
     queries.unshift(result);
     saveLocalQueries(petId, userId, queries);
     queueSync('pet_food_queries', result.id, 'insert', result, userId);
     return result;
   } catch (error) {
-    const filterResult = toxicFoodFilter.filter(foodName, species, breed);
+    const filter = await getToxicFoodFilter();
+    const filterResult = filter.filter(foodName, species, breed);
 
     let result: PetFoodQuery;
 
@@ -104,8 +114,9 @@ export async function queryFood(
 }
 
 export async function getQueryHistory(petId: string, userId: string): Promise<PetFoodQuery[]> {
+  requirePetOwnership(petId, userId);
   try {
-    const result = await api.get<PetFoodQuery[]>(`/api/pets/${petId}/food-queries?userId=${userId}`);
+    const result = await api.get<PetFoodQuery[]>(`/api/pets/${petId}/food-queries`);
     saveLocalQueries(petId, userId, result);
     return result;
   } catch (error) {
@@ -115,7 +126,7 @@ export async function getQueryHistory(petId: string, userId: string): Promise<Pe
 
 export async function getQueryStats(petId: string, userId: string): Promise<FoodQueryStats> {
   try {
-    const result = await api.get<FoodQueryStats>(`/api/food-queries/stats?petId=${petId}&userId=${userId}`);
+    const result = await api.get<FoodQueryStats>(`/api/food-queries/stats?petId=${petId}`);
     return result;
   } catch (error) {
     const queries = getLocalQueries(petId, userId);
@@ -141,7 +152,7 @@ export async function getQueryStats(petId: string, userId: string): Promise<Food
 
 export async function getTodayQueryCount(petId: string, userId: string): Promise<number> {
   try {
-    const result = await api.get<{ count: number }>(`/api/food-queries/today-count?petId=${petId}&userId=${userId}`);
+    const result = await api.get<{ count: number }>(`/api/food-queries/today-count?petId=${petId}`);
     return result.count;
   } catch (error) {
     const queries = getLocalQueries(petId, userId);

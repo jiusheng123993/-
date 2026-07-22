@@ -3,12 +3,32 @@ import { getStorage, setStorage } from '../utils/storage'
 import { queueSync } from './syncHelper'
 import type { PetHealthEntry } from './checkinService'
 import type { PetProfile } from './petService'
+import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes'
+import { BREED_DATA } from '../data/petKnowledge/breeds'
 
 function entryDateStr(entry: PetHealthEntry): string {
   if (entry.createdAt instanceof Date) {
     return entry.createdAt.toISOString().slice(0, 10)
   }
   return String(entry.createdAt).slice(0, 10)
+}
+
+export interface HistoricalMemoryInsight {
+  type: 'similar_past_event' | 'seasonal_pattern' | 'recovery_reference'
+  icon: string
+  title: string
+  message: string
+  pastDate: string
+  recoveryDays?: number
+}
+
+export interface PersonalizedInsight {
+  type: 'consecutive_anomaly' | 'food_query_warning' | 'breed_disease_risk' | 'similar_past_event' | 'seasonal_pattern' | 'recovery_reference' | 'allergy_warning' | 'medication_side_effect' | 'chronic_condition_alert'
+  icon: string
+  message: string
+  title?: string
+  pastDate?: string
+  recoveryDays?: number
 }
 
 export interface SymptomCheckResult {
@@ -18,6 +38,7 @@ export interface SymptomCheckResult {
   additionalInfo?: {
     duration?: string
     frequency?: string
+    severity?: string
     appetite?: string
     energy?: string
     otherNotes?: string
@@ -26,6 +47,7 @@ export interface SymptomCheckResult {
   possibleConditions: string[]
   aiAdvice: string
   recommendedActions: string[]
+  personalizedInsights?: PersonalizedInsight[]
   createdAt: string
 }
 
@@ -207,6 +229,56 @@ const CONDITION_MAP: Record<string, string[]> = {
   ear_odor: ['耳螨', '外耳炎', '真菌感染'],
   bad_breath: ['牙结石', '口腔感染', '消化系统疾病'],
   gum_swelling: ['牙龈炎', '牙周病', '口腔感染'],
+}
+
+const SYMPTOM_DISEASE_ASSOCIATION: Record<string, string[]> = {
+  vomiting: ['肠胃', '肾', '肝'],
+  diarrhea: ['肠胃', '吸收不良'],
+  appetite_loss: ['肾', '肝', '肠胃', '牙'],
+  cough: ['心脏', '气管', '呼吸道', '瓣', '血管'],
+  dyspnea: ['心脏', '气管', '呼吸道', '肺', '瓣', '血管'],
+  wheezing: ['哮喘', '气管'],
+  itching: ['皮肤', '过敏', '异位性'],
+  hair_loss: ['皮肤', '内分泌', '甲状腺'],
+  rash: ['皮肤', '过敏', '异位性'],
+  frequent_urination: ['肾', '糖尿病', '尿路'],
+  hematuria: ['肾', '膀胱', '尿路'],
+  dysuria: ['尿路', '膀胱', '结石'],
+  seizure: ['癫痫', '神经'],
+  head_tilt: ['前庭', '中耳', '神经'],
+  ataxia: ['神经', '前庭'],
+  lethargy: ['心脏', '肾', '肝', '内分泌', '瓣', '血管'],
+  excessive_licking: ['皮肤', '过敏', '焦虑'],
+  eye_discharge: ['眼', '结膜'],
+  tearing: ['眼', '结膜', '泪管'],
+  ear_odor: ['耳', '外耳'],
+  bad_breath: ['牙', '口腔', '肾'],
+  gum_swelling: ['牙', '口腔', '牙周'],
+}
+
+const ALLERGY_SYMPTOM_ASSOCIATION: Record<string, string[]> = {
+  skin: ['itching', 'rash', 'hair_loss', 'excessive_licking', 'dander'],
+  food: ['vomiting', 'diarrhea', 'appetite_loss', 'itching', 'rash'],
+  environmental: ['itching', 'sneeze', 'runny_nose', 'wheezing', 'tearing'],
+  drug: ['vomiting', 'diarrhea', 'lethargy', 'rash', 'itching'],
+}
+
+const ALLERGY_CATEGORY_ALIASES: Record<string, string[]> = {
+  skin: ['皮肤', '皮屑', '接触性'],
+  food: ['食物', '饮食', '食入'],
+  environmental: ['环境', '花粉', '尘螨', '季节性'],
+  drug: ['药物', '药'],
+}
+
+const MEDICATION_SIDE_EFFECT_MAP: Record<string, string[]> = {
+  '抗生素': ['vomiting', 'diarrhea', 'appetite_loss', 'lethargy'],
+  '抗炎药': ['vomiting', 'diarrhea', 'appetite_loss', 'lethargy'],
+  '类固醇': ['appetite_loss', 'lethargy', 'excessive_licking', 'frequent_urination'],
+  '驱虫': ['vomiting', 'diarrhea', 'lethargy', 'appetite_loss'],
+  '止痛': ['vomiting', 'lethargy', 'appetite_loss', 'constipation'],
+  '心脏': ['lethargy', 'appetite_loss', 'cough', 'dyspnea'],
+  '胰岛素': ['lethargy', 'ataxia', 'seizure'],
+  '甲状腺': ['appetite_loss', 'lethargy', 'hair_loss', 'frequent_urination'],
 }
 
 function getStorageKey(petId: string): string {
@@ -466,7 +538,8 @@ function applyPersonalizedAdjustments(
 function generatePersonalizedAdvice(
   baseAdvice: string,
   petProfile?: PetProfile,
-  recentCheckins?: PetHealthEntry[]
+  recentCheckins?: PetHealthEntry[],
+  symptomIds?: string[]
 ): string {
   const extras: string[] = []
 
@@ -486,6 +559,37 @@ function generatePersonalizedAdvice(
     if (petProfile.species === 'cat') {
       extras.push('猫咪善于隐藏不适，表面症状可能比实际病情轻，请密切观察。')
     }
+
+    if (symptomIds && symptomIds.length > 0) {
+      const skinDigestiveSymptoms = ['itching', 'rash', 'hair_loss', 'excessive_licking', 'dander', 'vomiting', 'diarrhea']
+      if (petProfile.allergies && petProfile.allergies.length > 0 && symptomIds.some((s) => skinDigestiveSymptoms.includes(s))) {
+        extras.push(`${petProfile.name}有过敏记录，当前出现的皮肤或消化症状可能与过敏有关，建议排查近期是否接触过敏原。`)
+      }
+
+      if (petProfile.chronicConditions && petProfile.chronicConditions.length > 0) {
+        const hasRelatedSymptom = symptomIds.some((symptomId) => {
+          const keywords = SYMPTOM_DISEASE_ASSOCIATION[symptomId]
+          return keywords && petProfile.chronicConditions!.some((c) => keywords.some((kw) => c.includes(kw)))
+        })
+        if (hasRelatedSymptom) {
+          extras.push(`${petProfile.name}有慢性病史，当前症状可能与慢性病波动有关，建议关注是否加重。`)
+        }
+      }
+
+      if (petProfile.medications && petProfile.medications.length > 0) {
+        const hasMedicationSideEffect = petProfile.medications.some((med) => {
+          for (const [keyword, sideEffects] of Object.entries(MEDICATION_SIDE_EFFECT_MAP)) {
+            if (med.includes(keyword) && symptomIds.some((s) => sideEffects.includes(s))) {
+              return true
+            }
+          }
+          return false
+        })
+        if (hasMedicationSideEffect) {
+          extras.push(`${petProfile.name}正在用药，当前症状可能是药物副作用，建议咨询兽医是否需要调整。`)
+        }
+      }
+    }
   }
 
   if (recentCheckins && recentCheckins.length > 0) {
@@ -504,6 +608,538 @@ function generatePersonalizedAdvice(
   return `${baseAdvice}\n\n📋 个性化提示：${extras.join('')}`
 }
 
+function getRecentFoodQueries(petId: string, days: number = 7): PetFoodQuery[] {
+  const all: PetFoodQuery[] = getStorage(`food_queries_${petId}`) || []
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000
+  return all.filter((q) => {
+    const ts = q.createdAt instanceof Date ? q.createdAt.getTime() : new Date(q.createdAt).getTime()
+    return ts >= cutoff
+  })
+}
+
+function findBreedDiseases(breed: string, species: 'dog' | 'cat'): string[] {
+  if (!breed) return []
+  const matched = BREED_DATA.find(
+    (b) => b.species === species && (b.name === breed || b.aliases.includes(breed) || b.id === breed)
+  )
+  return matched ? matched.commonDiseases.slice(0, 3) : []
+}
+
+function findGeneticDiseaseInsights(
+  petProfile: PetProfile,
+  symptomIds: string[]
+): PersonalizedInsight[] {
+  if (!petProfile.breed) return []
+
+  const matched = BREED_DATA.find(
+    (b) => b.species === petProfile.species && (b.name === petProfile.breed || b.aliases.includes(petProfile.breed) || b.id === petProfile.breed)
+  )
+  if (!matched || matched.geneticDiseases.length === 0) return []
+
+  const insights: PersonalizedInsight[] = []
+  const relatedDiseases: string[] = []
+
+  for (const disease of matched.geneticDiseases) {
+    for (const symptomId of symptomIds) {
+      const keywords = SYMPTOM_DISEASE_ASSOCIATION[symptomId]
+      if (keywords && keywords.some((kw) => disease.includes(kw))) {
+        relatedDiseases.push(disease)
+        break
+      }
+    }
+  }
+
+  if (relatedDiseases.length > 0) {
+    const uniqueDiseases = [...new Set(relatedDiseases)].slice(0, 3)
+    insights.push({
+      type: 'breed_disease_risk',
+      icon: '🧬',
+      title: '品种遗传疾病关联',
+      message: `${petProfile.name}（${petProfile.breed}）的遗传疾病中，${uniqueDiseases.join('、')}与当前症状可能相关，建议重点排查`,
+    })
+  }
+
+  return insights
+}
+
+function findAllergyInsights(
+  petProfile: PetProfile,
+  symptomIds: string[]
+): PersonalizedInsight[] {
+  if (!petProfile.allergies || petProfile.allergies.length === 0) return []
+
+  const insights: PersonalizedInsight[] = []
+  const matchedAllergies: string[] = []
+
+  for (const allergy of petProfile.allergies) {
+    for (const [category, associatedSymptoms] of Object.entries(ALLERGY_SYMPTOM_ASSOCIATION)) {
+      const aliases = ALLERGY_CATEGORY_ALIASES[category] || []
+      const isMatch = allergy.toLowerCase().includes(category) ||
+        category.includes(allergy.toLowerCase()) ||
+        aliases.some((alias) => allergy.includes(alias))
+      if (isMatch) {
+        const overlap = symptomIds.filter((s) => associatedSymptoms.includes(s))
+        if (overlap.length > 0) {
+          matchedAllergies.push(allergy)
+          break
+        }
+      }
+    }
+  }
+
+  if (matchedAllergies.length > 0) {
+    insights.push({
+      type: 'allergy_warning',
+      icon: '⚠️',
+      title: '过敏关联提示',
+      message: `${petProfile.name}有过敏记录（${matchedAllergies.join('、')}），当前症状可能与过敏反应有关，建议观察是否接触了过敏原`,
+    })
+  }
+
+  return insights
+}
+
+function findMedicationInsights(
+  petProfile: PetProfile,
+  symptomIds: string[]
+): PersonalizedInsight[] {
+  if (!petProfile.medications || petProfile.medications.length === 0) return []
+
+  const insights: PersonalizedInsight[] = []
+  const matchedMedications: string[] = []
+
+  for (const medication of petProfile.medications) {
+    for (const [keyword, sideEffects] of Object.entries(MEDICATION_SIDE_EFFECT_MAP)) {
+      if (medication.includes(keyword)) {
+        const overlap = symptomIds.filter((s) => sideEffects.includes(s))
+        if (overlap.length > 0) {
+          matchedMedications.push(medication)
+          break
+        }
+      }
+    }
+  }
+
+  if (matchedMedications.length > 0) {
+    insights.push({
+      type: 'medication_side_effect',
+      icon: '💊',
+      title: '药物副作用提示',
+      message: `${petProfile.name}正在使用${matchedMedications.join('、')}，当前症状可能是药物副作用，建议咨询兽医是否需要调整用药`,
+    })
+  }
+
+  return insights
+}
+
+function findChronicConditionInsights(
+  petProfile: PetProfile,
+  symptomIds: string[]
+): PersonalizedInsight[] {
+  if (!petProfile.chronicConditions || petProfile.chronicConditions.length === 0) return []
+
+  const insights: PersonalizedInsight[] = []
+  const matchedConditions: string[] = []
+
+  for (const condition of petProfile.chronicConditions) {
+    for (const symptomId of symptomIds) {
+      const keywords = SYMPTOM_DISEASE_ASSOCIATION[symptomId]
+      if (keywords && keywords.some((kw) => condition.includes(kw))) {
+        matchedConditions.push(condition)
+        break
+      }
+    }
+  }
+
+  if (matchedConditions.length > 0) {
+    const uniqueConditions = [...new Set(matchedConditions)]
+    insights.push({
+      type: 'chronic_condition_alert',
+      icon: '📋',
+      title: '慢性病关联提示',
+      message: `${petProfile.name}的慢性病（${uniqueConditions.join('、')}）与当前症状相关，可能是慢性病加重或波动，建议尽快复查`,
+    })
+  }
+
+  return insights
+}
+
+const SYMPTOM_TO_CHECKIN_MAP: Record<string, (entry: PetHealthEntry) => boolean> = {
+  vomiting: (e) => e.appetiteLevel === 6,
+  appetite_loss: (e) => e.appetiteLevel <= 2,
+  diarrhea: (e) => e.poopLevel <= 2,
+  constipation: (e) => e.poopLevel >= 4,
+  lethargy: (e) => e.spiritLevel <= 2,
+}
+
+interface HistoricalEvent {
+  symptomId: string
+  startDate: string
+  endDate: string
+  recoveryDays: number
+  source: 'checkin' | 'symptom_check'
+  relatedSymptoms?: string[]
+  riskLevel?: string
+}
+
+function getCheckinsForDays(petId: string, days: number): PetHealthEntry[] {
+  const key = `xhh_checkins_${petId}`
+  const all = getStorage<PetHealthEntry[]>(key.replace('xhh_', '')) || []
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  return all.filter((e) => entryDateStr(e) >= cutoffStr)
+}
+
+function calculateRecoveryDays(
+  entries: PetHealthEntry[],
+  matchFn: (entry: PetHealthEntry) => boolean,
+  anomalyStartDate: string
+): number {
+  const sorted = entries
+    .filter((e) => entryDateStr(e) >= anomalyStartDate)
+    .sort((a, b) => entryDateStr(a).localeCompare(entryDateStr(b)))
+
+  let consecutiveNormal = 0
+  let lastAnomalyDate = anomalyStartDate
+
+  for (const entry of sorted) {
+    const dateStr = entryDateStr(entry)
+    if (dateStr < anomalyStartDate) continue
+
+    if (matchFn(entry)) {
+      consecutiveNormal = 0
+      lastAnomalyDate = dateStr
+    } else {
+      consecutiveNormal++
+      if (consecutiveNormal >= 2) {
+        const start = new Date(anomalyStartDate + 'T00:00:00.000Z')
+        const end = new Date(lastAnomalyDate + 'T00:00:00.000Z')
+        const diffDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+        return Math.max(diffDays, 1)
+      }
+    }
+  }
+
+  const start = new Date(anomalyStartDate + 'T00:00:00.000Z')
+  const now = new Date()
+  return Math.round((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+}
+
+function findHistoricalSimilarEvents(
+  petId: string,
+  currentSymptomIds: string[],
+  petProfile?: PetProfile
+): HistoricalEvent[] {
+  const events: HistoricalEvent[] = []
+  const now = new Date()
+
+  const checkins30 = getCheckinsForDays(petId, 30)
+  const checkins365 = getCheckinsForDays(petId, 365)
+  const symptomChecks: SymptomCheckResult[] = getStorage<SymptomCheckResult[]>(`symptom_checks_${petId}`) || []
+
+  for (const symptomId of currentSymptomIds) {
+    const matchFn = SYMPTOM_TO_CHECKIN_MAP[symptomId]
+    if (matchFn) {
+      const anomalyEntries = checkins30
+        .filter(matchFn)
+        .sort((a, b) => entryDateStr(a).localeCompare(entryDateStr(b)))
+
+      if (anomalyEntries.length > 0) {
+        let groupStart = entryDateStr(anomalyEntries[0])
+        let groupEnd = entryDateStr(anomalyEntries[0])
+        const groupEntries: PetHealthEntry[] = [anomalyEntries[0]]
+
+        for (let i = 1; i < anomalyEntries.length; i++) {
+          const currentDate = entryDateStr(anomalyEntries[i])
+          const prevDate = new Date(groupEnd + 'T00:00:00.000Z')
+          const currDate = new Date(currentDate + 'T00:00:00.000Z')
+          const gapDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24))
+
+          if (gapDays <= 2) {
+            groupEnd = currentDate
+            groupEntries.push(anomalyEntries[i])
+          } else {
+            const recoveryDays = calculateRecoveryDays(checkins30, matchFn, groupStart)
+            events.push({
+              symptomId,
+              startDate: groupStart,
+              endDate: groupEnd,
+              recoveryDays,
+              source: 'checkin',
+            })
+            groupStart = currentDate
+            groupEnd = currentDate
+            groupEntries.length = 0
+            groupEntries.push(anomalyEntries[i])
+          }
+        }
+
+        const recoveryDays = calculateRecoveryDays(checkins30, matchFn, groupStart)
+        events.push({
+          symptomId,
+          startDate: groupStart,
+          endDate: groupEnd,
+          recoveryDays,
+          source: 'checkin',
+        })
+      }
+
+      const seasonalEntries = checkins365.filter(matchFn)
+      const currentMonth = now.getMonth()
+      const sameMonthLastYear = seasonalEntries.filter((e) => {
+        const entryDate = new Date(entryDateStr(e) + 'T00:00:00.000Z')
+        return entryDate.getMonth() === currentMonth &&
+          entryDate.getFullYear() === now.getFullYear() - 1
+      })
+
+      if (sameMonthLastYear.length >= 2) {
+        const dates = sameMonthLastYear.map((e) => entryDateStr(e)).sort()
+        events.push({
+          symptomId,
+          startDate: dates[0],
+          endDate: dates[dates.length - 1],
+          recoveryDays: 0,
+          source: 'checkin',
+        })
+      }
+    }
+
+    const matchingChecks = symptomChecks.filter((check) =>
+      check.symptoms.includes(symptomId) &&
+      new Date(check.createdAt) < now
+    )
+
+    for (const check of matchingChecks) {
+      const checkDate = new Date(check.createdAt)
+      const daysSinceCheck = Math.round((now.getTime() - checkDate.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (daysSinceCheck <= 365) {
+        events.push({
+          symptomId,
+          startDate: check.createdAt.slice(0, 10),
+          endDate: check.createdAt.slice(0, 10),
+          recoveryDays: 0,
+          source: 'symptom_check',
+          relatedSymptoms: check.symptoms,
+          riskLevel: check.riskLevel,
+        })
+      }
+    }
+  }
+
+  const seen = new Set<string>()
+  return events.filter((e) => {
+    const key = `${e.symptomId}_${e.startDate}_${e.source}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+const SEASON_NAMES: Record<number, string> = {
+  0: '冬天', 1: '冬天', 2: '春天',
+  3: '春天', 4: '春天', 5: '夏天',
+  6: '夏天', 7: '夏天', 8: '秋天',
+  9: '秋天', 10: '秋天', 11: '冬天',
+}
+
+function getSymptomName(symptomId: string): string {
+  for (const cat of BUILTIN_CATEGORIES) {
+    const found = cat.symptoms.find((s) => s.id === symptomId)
+    if (found) return found.name
+  }
+  return symptomId
+}
+
+function generateHistoricalMemoryInsights(
+  petId: string,
+  currentSymptomIds: string[],
+  petProfile?: PetProfile
+): PersonalizedInsight[] {
+  const events = findHistoricalSimilarEvents(petId, currentSymptomIds, petProfile)
+  const insights: PersonalizedInsight[] = []
+  const petName = petProfile?.name || '宠物'
+  const now = new Date()
+
+  const pastEvents = events.filter((e) => {
+    const eventDate = new Date(e.startDate + 'T00:00:00.000Z')
+    const daysDiff = Math.round((now.getTime() - eventDate.getTime()) / (1000 * 60 * 60 * 24))
+    return daysDiff > 3 && e.source === 'checkin'
+  })
+
+  if (pastEvents.length > 0) {
+    const latestPast = pastEvents.sort((a, b) => b.startDate.localeCompare(a.startDate))[0]
+    const symptomName = getSymptomName(latestPast.symptomId)
+    const eventDate = new Date(latestPast.startDate + 'T00:00:00.000Z')
+    const monthDay = `${eventDate.getMonth() + 1}月${eventDate.getDate()}日`
+
+    if (latestPast.recoveryDays > 0) {
+      insights.push({
+        type: 'similar_past_event',
+        icon: '💭',
+        title: '历史相似症状',
+        message: `${petName}上次出现${symptomName}是在${monthDay}，${latestPast.recoveryDays}天后恢复了`,
+        pastDate: latestPast.startDate,
+        recoveryDays: latestPast.recoveryDays,
+      })
+
+      if (latestPast.recoveryDays <= 3) {
+        insights.push({
+          type: 'recovery_reference',
+          icon: '💡',
+          title: '恢复参考',
+          message: `上次类似情况，${latestPast.recoveryDays}天就好了。如果这次原因相同，可能也会很快恢复`,
+          pastDate: latestPast.startDate,
+          recoveryDays: latestPast.recoveryDays,
+        })
+      }
+    } else {
+      insights.push({
+        type: 'similar_past_event',
+        icon: '💭',
+        title: '历史相似症状',
+        message: `${petName}在${monthDay}也出现过${symptomName}`,
+        pastDate: latestPast.startDate,
+      })
+    }
+  }
+
+  const currentMonth = now.getMonth()
+  const seasonalEvents = events.filter((e) => {
+    const eventDate = new Date(e.startDate + 'T00:00:00.000Z')
+    return eventDate.getMonth() === currentMonth &&
+      eventDate.getFullYear() === now.getFullYear() - 1
+  })
+
+  if (seasonalEvents.length > 0) {
+    const symptomIds = [...new Set(seasonalEvents.map((e) => e.symptomId))]
+    const symptomNames = symptomIds.map(getSymptomName).join('、')
+    const seasonName = SEASON_NAMES[currentMonth] || ''
+
+    insights.push({
+      type: 'seasonal_pattern',
+      icon: '🔄',
+      title: '季节性规律',
+      message: `去年${seasonName}（这个时期）${petName}也出现过${symptomNames}，可能是季节性问题`,
+      pastDate: seasonalEvents[0].startDate,
+    })
+  }
+
+  const pastSymptomChecks = events.filter((e) => e.source === 'symptom_check')
+  if (pastSymptomChecks.length > 0) {
+    const latestCheck = pastSymptomChecks.sort((a, b) => b.startDate.localeCompare(a.startDate))[0]
+    const symptomName = getSymptomName(latestCheck.symptomId)
+    const checkDate = new Date(latestCheck.startDate + 'T00:00:00.000Z')
+    const monthDay = `${checkDate.getMonth() + 1}月${checkDate.getDate()}日`
+
+    if (latestCheck.relatedSymptoms && latestCheck.relatedSymptoms.length > 1) {
+      const otherSymptoms = latestCheck.relatedSymptoms
+        .filter((s) => s !== latestCheck.symptomId && !currentSymptomIds.includes(s))
+        .map(getSymptomName)
+
+      if (otherSymptoms.length > 0) {
+        insights.push({
+          type: 'similar_past_event',
+          icon: '💭',
+          title: '历史相似症状',
+          message: `${petName}在${monthDay}检查${symptomName}时，还伴随${otherSymptoms.join('、')}，请留意是否也有类似表现`,
+          pastDate: latestCheck.startDate,
+        })
+      }
+    }
+
+    if (latestCheck.riskLevel === 'warning' || latestCheck.riskLevel === 'emergency') {
+      const checkDate2 = new Date(latestCheck.startDate + 'T00:00:00.000Z')
+      const monthDay2 = `${checkDate2.getMonth() + 1}月${checkDate2.getDate()}日`
+      const existingSimilar = insights.find(
+        (i) => i.type === 'similar_past_event' && i.pastDate === latestCheck.startDate
+      )
+      if (!existingSimilar) {
+        insights.push({
+          type: 'similar_past_event',
+          icon: '💭',
+          title: '历史相似症状',
+          message: `${petName}在${monthDay2}也检查过${symptomName}，当时评估为${latestCheck.riskLevel === 'emergency' ? '紧急' : '需关注'}级别`,
+          pastDate: latestCheck.startDate,
+        })
+      }
+    }
+  }
+
+  return insights.slice(0, 4)
+}
+
+function generatePersonalizedInsights(
+  petProfile?: PetProfile,
+  recentCheckins?: PetHealthEntry[],
+  recentFoodQueries?: PetFoodQuery[],
+  symptomIds?: string[]
+): PersonalizedInsight[] {
+  const insights: PersonalizedInsight[] = []
+
+  if (recentCheckins && recentCheckins.length > 0) {
+    const sorted = [...recentCheckins].sort((a, b) => {
+      const aStr = entryDateStr(a)
+      const bStr = entryDateStr(b)
+      return bStr.localeCompare(aStr)
+    })
+    const seenDates = new Set<string>()
+    let consecutiveAnomaly = 0
+    for (const entry of sorted) {
+      const dateStr = entryDateStr(entry)
+      if (seenDates.has(dateStr)) continue
+      seenDates.add(dateStr)
+      if (entry.hasAnomaly || entry.riskLevel === 'high' || entry.riskLevel === 'emergency') {
+        consecutiveAnomaly++
+      } else {
+        break
+      }
+    }
+    if (consecutiveAnomaly >= 3) {
+      insights.push({
+        type: 'consecutive_anomaly',
+        icon: '⚠️',
+        message: `您的宠物最近${consecutiveAnomaly}天持续出现异常指标，建议尽快就医`,
+      })
+    }
+  }
+
+  if (recentFoodQueries && recentFoodQueries.length > 0) {
+    const cautionFoods = recentFoodQueries.filter(
+      (q) => q.safetyLevel === 'caution' || q.safetyLevel === 'dangerous'
+    )
+    if (cautionFoods.length > 0) {
+      const foodNames = [...new Set(cautionFoods.map((q) => q.foodName))].slice(0, 3)
+      insights.push({
+        type: 'food_query_warning',
+        icon: '📋',
+        message: `根据近期食物查询记录，请注意${foodNames.join('、')}的摄入`,
+      })
+    }
+  }
+
+  if (petProfile && petProfile.breed) {
+    const diseases = findBreedDiseases(petProfile.breed, petProfile.species)
+    if (diseases.length > 0) {
+      insights.push({
+        type: 'breed_disease_risk',
+        icon: '🏥',
+        message: `${petProfile.breed}易患${diseases.slice(0, 2).join('、')}，请关注相关症状`,
+      })
+    }
+  }
+
+  if (petProfile && symptomIds && symptomIds.length > 0) {
+    insights.push(...findGeneticDiseaseInsights(petProfile, symptomIds))
+    insights.push(...findAllergyInsights(petProfile, symptomIds))
+    insights.push(...findMedicationInsights(petProfile, symptomIds))
+    insights.push(...findChronicConditionInsights(petProfile, symptomIds))
+  }
+
+  return insights
+}
+
 export async function analyzeSymptoms(
   petId: string,
   symptoms: string[],
@@ -511,12 +1147,16 @@ export async function analyzeSymptoms(
   petProfile?: PetProfile
 ): Promise<SymptomCheckResult> {
   const recentCheckins = getRecentCheckins(petId)
+  const recentFoodQueries = getRecentFoodQueries(petId)
   const baseRiskLevel = calculateRiskLevel(symptoms, additionalInfo)
   const riskLevel = applyPersonalizedAdjustments(baseRiskLevel, symptoms, petProfile, recentCheckins)
   const possibleConditions = generatePossibleConditions(symptoms)
   const baseAdvice = generateAiAdvice(symptoms, riskLevel, additionalInfo)
-  const aiAdvice = generatePersonalizedAdvice(baseAdvice, petProfile, recentCheckins)
+  const aiAdvice = generatePersonalizedAdvice(baseAdvice, petProfile, recentCheckins, symptoms)
   const recommendedActions = generateRecommendedActions(riskLevel)
+  const personalizedInsights = generatePersonalizedInsights(petProfile, recentCheckins, recentFoodQueries, symptoms)
+  const historicalInsights = generateHistoricalMemoryInsights(petId, symptoms, petProfile)
+  const allInsights = [...historicalInsights, ...personalizedInsights]
 
   const result: SymptomCheckResult = {
     id: generateId(),
@@ -527,6 +1167,7 @@ export async function analyzeSymptoms(
     possibleConditions,
     aiAdvice,
     recommendedActions,
+    personalizedInsights: allInsights,
     createdAt: new Date().toISOString(),
   }
 

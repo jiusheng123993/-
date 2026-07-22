@@ -210,6 +210,177 @@
   color: #8C8C8C;
 }
 
+.pet-vaccine__auto-schedule {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.pet-vaccine__schedule-toggle {
+  padding: 8rpx 20rpx;
+  background: #F0F7FF;
+  border-radius: 20rpx;
+}
+
+.pet-vaccine__schedule-toggle-text {
+  font-size: 22rpx;
+  color: #1890FF;
+}
+
+.pet-vaccine__schedule-list {
+  margin-top: 16rpx;
+}
+
+.pet-vaccine__schedule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.pet-vaccine__schedule-item:last-child {
+  border-bottom: none;
+}
+
+.pet-vaccine__schedule-item--overdue {
+  background: #FFF2F0;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+.pet-vaccine__schedule-item--due {
+  background: #FFFBE6;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+.pet-vaccine__schedule-item-left {
+  flex: 1;
+}
+
+.pet-vaccine__schedule-item-name {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  display: block;
+}
+
+.pet-vaccine__schedule-item-notes {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.pet-vaccine__schedule-item-right {
+  text-align: right;
+}
+
+.pet-vaccine__schedule-item-date {
+  font-size: 22rpx;
+  color: #666;
+  display: block;
+}
+
+.pet-vaccine__schedule-item-status {
+  font-size: 22rpx;
+  font-weight: 500;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.pet-vaccine__schedule-item-status--overdue {
+  color: #FF4D4F;
+}
+
+.pet-vaccine__schedule-item-status--due {
+  color: #FA8C16;
+}
+
+.pet-vaccine__schedule-item-status--upcoming {
+  color: #52C41A;
+}
+
+.pet-vaccine__deworming {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.pet-vaccine__deworming-list {
+  margin-top: 16rpx;
+}
+
+.pet-vaccine__deworming-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.pet-vaccine__deworming-item:last-child {
+  border-bottom: none;
+}
+
+.pet-vaccine__deworming-item--overdue {
+  background: #FFF2F0;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+.pet-vaccine__deworming-item--due {
+  background: #FFFBE6;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+.pet-vaccine__deworming-item-left {
+  flex: 1;
+}
+
+.pet-vaccine__deworming-item-type {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.pet-vaccine__deworming-item-right {
+  text-align: right;
+}
+
+.pet-vaccine__deworming-item-date {
+  font-size: 22rpx;
+  color: #666;
+  display: block;
+}
+
+.pet-vaccine__deworming-item-status {
+  font-size: 22rpx;
+  font-weight: 500;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.pet-vaccine__deworming-item-status--overdue {
+  color: #FF4D4F;
+}
+
+.pet-vaccine__deworming-item-status--due {
+  color: #FA8C16;
+}
+
+.pet-vaccine__deworming-item-status--upcoming {
+  color: #52C41A;
+}
+
 .pet-vaccine__list-empty {
   display: flex;
   flex-direction: column;
@@ -261,6 +432,17 @@
 .pet-vaccine__load-more-text {
   font-size: 26rpx;
   color: #8C8C8C;
+}
+
+.pet-vaccine__disclaimer {
+  padding: 16rpx 24rpx;
+  margin-top: 16rpx;
+}
+
+.pet-vaccine__disclaimer-text {
+  font-size: 22rpx;
+  color: #999;
+  line-height: 1.5;
 }
 
 .pet-vaccine__fab {

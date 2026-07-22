@@ -94,7 +94,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ isLoading: true });
     try {
       clearStorageKey(CHECKIN_DATA_KEY);
-      memoryStore.clearMoodEntries();
+      memoryStore.clearHealthEntries();
       set({ isLoading: false });
     } catch {
       set({ isLoading: false, error: '清除打卡记录失败' });

@@ -671,7 +671,7 @@ export const SYMPTOM_DATA: SymptomItem[] = [
     urgencyBase: 'yellow',
     relatedSymptoms: ['食欲轻微下降', '睡眠增多'],
     description: '宠物比平时安静一些，活动量减少，但仍会对感兴趣的事物做出反应。',
-    commonCauses: ['天气炎热', '前一天运动量大', '轻微不适', '睡眠不足', '情绪变化'],
+    commonCauses: ['天气炎热', '前一天运动量大', '轻微不适', '睡眠不足', '行为变化'],
     homeObservation: ['观察是否对零食/玩具仍有兴趣', '注意有无其他症状', '提供安静舒适环境', '记录持续时间'],
     vetRequired: false,
     redFlags: ['完全无反应', '持续超过2天', '伴随其他症状', '拒绝进食']

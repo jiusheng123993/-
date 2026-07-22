@@ -13,21 +13,9 @@ const { mockEncrypt, mockDecrypt } = vi.hoisted(() => ({
   }),
 }))
 
-vi.mock('crypto-js', () => ({
-  default: {
-    AES: {
-      encrypt: vi.fn((data: string, key: string) => ({
-        toString: () => mockEncrypt(data, key),
-      })),
-      decrypt: vi.fn((data: string, key: string) => ({
-        toString: () => mockDecrypt(data, key),
-      })),
-    },
-    SHA256: vi.fn((input: string) => ({
-      toString: () => `hash_${input}`,
-    })),
-    enc: { Utf8: 'Utf8', Base64: 'Base64' },
-  },
+vi.mock('../crypto', () => ({
+  encrypt: mockEncrypt,
+  decrypt: mockDecrypt,
 }))
 
 vi.mock('@tarojs/taro', () => {
@@ -143,7 +131,7 @@ describe('storage', () => {
     it('encrypts sensitive keys when encryption enabled and userId set', () => {
       setStorageUserId('user123')
       setStorage('health_entries', { heartRate: 72 })
-      expect(mockEncrypt).toHaveBeenCalledWith('{"heartRate":72}', 'hash_xhh-v2-aes-salt-2026:user123')
+      expect(mockEncrypt).toHaveBeenCalledWith('{"heartRate":72}', 'user123')
       expect(mockStore['xhh_health_entries']).toContain('enc:')
     })
 
@@ -171,14 +159,14 @@ describe('storage', () => {
     it('encrypts vaccination keys', () => {
       setStorageUserId('user123')
       setStorage('vaccinations', [{ name: 'flu' }])
-      expect(mockEncrypt).toHaveBeenCalledWith('[{"name":"flu"}]', 'hash_xhh-v2-aes-salt-2026:user123')
+      expect(mockEncrypt).toHaveBeenCalledWith('[{"name":"flu"}]', 'user123')
       expect(mockStore['xhh_vaccinations']).toContain('enc:')
     })
 
     it('encrypts membership keys', () => {
       setStorageUserId('user123')
       setStorage('membership', { level: 'gold' })
-      expect(mockEncrypt).toHaveBeenCalledWith('{"level":"gold"}', 'hash_xhh-v2-aes-salt-2026:user123')
+      expect(mockEncrypt).toHaveBeenCalledWith('{"level":"gold"}', 'user123')
       expect(mockStore['xhh_membership']).toContain('enc:')
     })
 
@@ -257,7 +245,7 @@ describe('storage', () => {
       expect(mockEncrypt).not.toHaveBeenCalled()
       setEncryptionEnabled(true)
       setStorage('health_entries', { data: 'b' })
-      expect(mockEncrypt).toHaveBeenCalledWith('{"data":"b"}', 'hash_xhh-v2-aes-salt-2026:user123')
+      expect(mockEncrypt).toHaveBeenCalledWith('{"data":"b"}', 'user123')
     })
   })
 
@@ -268,12 +256,12 @@ describe('storage', () => {
       expect(mockEncrypt).not.toHaveBeenCalled()
       setStorageUserId('user456')
       setStorage('health_entries', { data: 'after' })
-      expect(mockEncrypt).toHaveBeenCalledWith('{"data":"after"}', 'hash_xhh-v2-aes-salt-2026:user456')
+      expect(mockEncrypt).toHaveBeenCalledWith('{"data":"after"}', 'user456')
     })
 
     it('allows decryption with the set userId', () => {
       setStorageUserId('user789')
-      mockStore['xhh_health_entries'] = 'enc:encrypted_hash_xhh-v2-aes-salt-2026:user789_{"value":1}'
+      mockStore['xhh_health_entries'] = 'enc:encrypted_user789_{"value":1}'
       getStorage('health_entries')
       expect(mockDecrypt).toHaveBeenCalled()
     })
@@ -299,13 +287,13 @@ describe('storage', () => {
       expect(mockEncrypt).toHaveBeenCalled()
     })
 
-    it('detects mood_entries as sensitive', () => {
-      setStorage('mood_entries', [])
+    it('detects health_entries as sensitive', () => {
+      setStorage('health_entries', [])
       expect(mockEncrypt).toHaveBeenCalled()
     })
 
-    it('detects crisis_alerts as sensitive', () => {
-      setStorage('crisis_alerts', [])
+    it('detects vaccinations as sensitive', () => {
+      setStorage('vaccinations', [])
       expect(mockEncrypt).toHaveBeenCalled()
     })
 
@@ -314,9 +302,9 @@ describe('storage', () => {
       expect(mockEncrypt).not.toHaveBeenCalled()
     })
 
-    it('does not treat token as sensitive', () => {
+    it('treats token as sensitive', () => {
       setStorage('token', 'abc')
-      expect(mockEncrypt).not.toHaveBeenCalled()
+      expect(mockEncrypt).toHaveBeenCalled()
     })
 
     it('detects keys containing sensitive pattern as substring', () => {

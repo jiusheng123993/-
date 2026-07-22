@@ -600,6 +600,125 @@
   line-height: 1.5;
 }
 
+.pet-symptom-check__insights {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.pet-symptom-check__insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: #FFF5F0;
+  border-left: 6rpx solid #FF8C42;
+}
+
+.pet-symptom-check__insight--historical {
+  background: #E6F7FF;
+  border-left-color: #1890FF;
+}
+
+.pet-symptom-check__insight--similar_past_event {
+  background: #E6F7FF;
+  border-left-color: #1890FF;
+}
+
+.pet-symptom-check__insight--seasonal_pattern {
+  background: #F0F5FF;
+  border-left-color: #597EF7;
+}
+
+.pet-symptom-check__insight--recovery_reference {
+  background: #F6FFED;
+  border-left-color: #52C41A;
+}
+
+.pet-symptom-check__insight--consecutive_anomaly {
+  background: #FFF1F0;
+  border-left-color: #FF4D4F;
+}
+
+.pet-symptom-check__insight--food_query_warning {
+  background: #FFFBE6;
+  border-left-color: #FAAD14;
+}
+
+.pet-symptom-check__insight--breed_disease_risk {
+  background: #F0F5FF;
+  border-left-color: #597EF7;
+}
+
+.pet-symptom-check__insight-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+  margin-top: 2rpx;
+}
+
+.pet-symptom-check__insight-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.pet-symptom-check__insight-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2C2C2C;
+}
+
+.pet-symptom-check__insight-message {
+  font-size: 26rpx;
+  color: #4A4A4A;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.pet-symptom-check__insight-date {
+  font-size: 22rpx;
+  color: #8C8C8C;
+  margin-top: 4rpx;
+}
+
+.pet-symptom-check__insight--historical .pet-symptom-check__insight-title {
+  color: #1890FF;
+}
+
+.pet-symptom-check__insight--historical .pet-symptom-check__insight-message {
+  color: #096DD9;
+}
+
+.pet-symptom-check__insight--historical .pet-symptom-check__insight-date {
+  color: #69C0FF;
+}
+
+.pet-symptom-check__insight--similar_past_event .pet-symptom-check__insight-message {
+  color: #096DD9;
+}
+
+.pet-symptom-check__insight--seasonal_pattern .pet-symptom-check__insight-message {
+  color: #2F54EB;
+}
+
+.pet-symptom-check__insight--recovery_reference .pet-symptom-check__insight-message {
+  color: #389E0D;
+}
+
+.pet-symptom-check__insight--consecutive_anomaly .pet-symptom-check__insight-message {
+  color: #CF1322;
+}
+
+.pet-symptom-check__insight--food_query_warning .pet-symptom-check__insight-message {
+  color: #D48806;
+}
+
+.pet-symptom-check__insight--breed_disease_risk .pet-symptom-check__insight-message {
+  color: #2F54EB;
+}
+
 .pet-symptom-check__result-actions-bar {
   display: flex;
   gap: 16rpx;
@@ -633,6 +752,15 @@
 
 .pet-symptom-check__btn--primary:active {
   box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.2);
+}
+
+.pet-symptom-check__btn--hospital {
+  background: #FF4D4F;
+  box-shadow: 0 8rpx 32rpx rgba(255, 77, 79, 0.3);
+}
+
+.pet-symptom-check__btn--hospital:active {
+  box-shadow: 0 4rpx 16rpx rgba(255, 77, 79, 0.2);
 }
 
 .pet-symptom-check__btn--outline {

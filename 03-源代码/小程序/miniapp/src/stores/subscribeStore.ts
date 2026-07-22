@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import {
   requestAllSubscribes,
   requestFollowupSubscribe,
-  requestInterventionSubscribe,
+  requestCarePlanSubscribe,
   getAllSubscribeStatus,
   hasAcceptedSubscribe,
   clearSubscribeStatus,
@@ -18,7 +18,7 @@ interface SubscribeStoreState {
   fetchStatuses: () => void
   requestAll: () => Promise<Record<string, boolean>>
   requestFollowup: () => Promise<boolean>
-  requestIntervention: () => Promise<boolean>
+  requestCarePlan: () => Promise<boolean>
   isAccepted: (templateId: string) => boolean
   hasAnyAccepted: () => boolean
   clearAll: () => void
@@ -63,10 +63,10 @@ export const useSubscribeStore = create<SubscribeStoreState>((set, get) => ({
     }
   },
 
-  requestIntervention: async () => {
+  requestCarePlan: async () => {
     set({ isLoading: true, error: null })
     try {
-      const result = await requestInterventionSubscribe()
+      const result = await requestCarePlanSubscribe()
       const statuses = getAllSubscribeStatus()
       set({ statuses, isLoading: false })
       return result

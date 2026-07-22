@@ -51,11 +51,13 @@ export default function PetAvatar({
     )
   }, [showDiary, expressionContext])
 
+  const animationClass = `pet-avatar__image--${expression.animation}`
+
   return (
     <View className={`pet-avatar ${className}`}>
       <View className='pet-avatar__face'>
         <Image
-          className='pet-avatar__image'
+          className={`pet-avatar__image ${animationClass}`}
           src={faceUri}
           mode='aspectFit'
           style={{ width: `${size}px`, height: `${size}px` }}

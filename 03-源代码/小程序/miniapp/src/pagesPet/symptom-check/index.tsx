@@ -1,16 +1,29 @@
 import { View, Text, Textarea } from '@tarojs/components'
-import Taro, { useShareAppMessage } from '@tarojs/taro'
+import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { usePet } from '../../hooks/usePet'
 import { useSymptom } from '../../hooks/useSymptom'
 import { useMembership } from '../../hooks/useMembership'
 import { useAuthStore } from '../../stores/authStore'
+import { useShareStore } from '../../stores/shareStore'
 import PetSwitcher from '../../components/PetSwitcher'
 import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
-import { PageLoading, PageError, EmotionResponseCard, PetAvatar } from '../../components'
-import { useEmotionStore, buildEmotionContext, incrementSymptomCheckCount, isNewUser, getRecentFoodQueryCount, getRecentSymptomCheckCount } from '../../stores/emotionStore'
+import AnxietyIntervention from '../../components/AnxietyIntervention'
+import CrisisReferralCard from '../../components/CrisisReferralCard'
+import { PageLoading, PageError, PetAvatar, EmergencyAlert } from '../../components'
+import { incrementSymptomCheckCount, isNewUser, getRecentFoodQueryCount, getRecentSymptomCheckCount } from '../../utils/usageTracking'
+import { useAnxietyDetection } from '../../hooks/useAnxietyDetection'
+import { useEmotionTracking } from '../../hooks/useEmotionTracking'
+import type { EmotionSeverity } from '../../services/emotionTrackingService'
+import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { AnalyticsEventName } from '../../types/analyticsTypes'
+import { EVENT } from '../../constants/analyticsEvents'
 import type { ExpressionContext } from '../../engines/petAvatar'
+import { getCrisisMessage } from '../../engines/emotion'
+import type { CrisisTriggerSource } from '../../engines/emotion'
+import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import type { UrgencyLevel } from '../../engines/petSafety/PetSafetyHandler'
 import './index.scss'
 
 const DURATION_OPTIONS = [
@@ -24,6 +37,12 @@ const FREQUENCY_OPTIONS = [
   { value: 'occasional', label: '偶尔' },
   { value: 'frequent', label: '频繁' },
   { value: 'continuous', label: '持续' },
+]
+
+const SEVERITY_OPTIONS = [
+  { value: 'mild', label: '轻微', emoji: '🟢' },
+  { value: 'moderate', label: '明显', emoji: '🟡' },
+  { value: 'severe', label: '严重', emoji: '🔴' },
 ]
 
 const APPETITE_OPTIONS = [
@@ -74,12 +93,14 @@ export default function PetSymptomCheck() {
   } = useSymptom()
   const { isMember, checkAccess, shouldShowPaywall, markPaywallShown } = useMembership()
   const user = useAuthStore(s => s.user)
+  const inviteCode = useShareStore(s => s.inviteCode)
 
   const [step, setStep] = useState(0)
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [additionalInfo, setAdditionalInfo] = useState({
     duration: 'today',
     frequency: 'occasional',
+    severity: 'mild',
     appetite: 'normal',
     energy: 'normal',
     otherNotes: '',
@@ -87,20 +108,38 @@ export default function PetSymptomCheck() {
   const [analyzing, setAnalyzing] = useState(false)
   const [paywallVisible, setPaywallVisible] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [showSymptomCrisisReferral, setShowSymptomCrisisReferral] = useState(false)
+  const { anxietyState, checkSickAnxiety, dismissSickAnxiety } = useAnxietyDetection()
+  const { showCrisisReferral, crisisSeverity, trackEvent: trackEmotion, dismissCrisisReferral, handleFollowUp } = useEmotionTracking(currentPet?.id || null)
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  usePageView('symptom_check')
+  const RISK_TO_URGENCY: Record<string, UrgencyLevel> = {
+    normal: 'green',
+    caution: 'yellow',
+    warning: 'orange',
+    emergency: 'red',
+  }
+
+  const disclaimerText = useMemo(() => {
+    if (!currentResult) return new MedicalDisclaimer().getSymptomDisclaimer('green')
+    return new MedicalDisclaimer().getSymptomDisclaimer(RISK_TO_URGENCY[currentResult.riskLevel] || 'green')
+  }, [currentResult])
 
   useShareAppMessage(() => {
     return {
       title: currentResult
         ? `我家毛孩子的症状分析结果，快来看看！`
         : '星寰海 - 宠物健康管家',
-      path: '/pagesPet/symptom-check/index',
+      path: `/pagesPet/symptom-check/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
     }
   })
-
-  const emotionCard = useEmotionStore((s) => s.activeCard)
-  const isCardVisible = useEmotionStore((s) => s.isCardVisible)
-  const evaluateContext = useEmotionStore((s) => s.evaluateContext)
-  const dismissCard = useEmotionStore((s) => s.dismissCard)
+  useShareTimeline(() => ({
+    title: currentResult
+      ? `我家毛孩子的症状分析结果`
+      : '星寰海 - 宠物健康管家',
+    query: inviteCode ? `inviteCode=${inviteCode}` : '',
+  }))
 
   const loadSymptomData = useCallback(async () => {
     setLoadError('')
@@ -123,6 +162,12 @@ export default function PetSymptomCheck() {
       clearError()
     }
   }, [error, clearError])
+
+  useEffect(() => {
+    if (currentPet) {
+      checkSickAnxiety(currentPet.id, currentPet.name)
+    }
+  }, [currentPet, checkSickAnxiety])
 
   const handleToggleCategory = (categoryId: string) => {
     setExpandedCategory((prev) => (prev === categoryId ? null : categoryId))
@@ -160,6 +205,7 @@ export default function PetSymptomCheck() {
         const showPaywall = await shouldShowPaywall('symptom_check')
         if (showPaywall) {
           await markPaywallShown('symptom_check')
+          trackEvent('show_paywall', { feature: 'symptom_check' })
           setPaywallVisible(true)
         } else {
           Taro.navigateTo({ url: '/pages/member/index' })
@@ -170,11 +216,12 @@ export default function PetSymptomCheck() {
     setStep(2)
     setAnalyzing(true)
     try {
-      await analyzeSymptoms(
+      const result = await analyzeSymptoms(
         currentPet.id,
         {
           duration: additionalInfo.duration,
           frequency: additionalInfo.frequency,
+          severity: additionalInfo.severity,
           appetite: additionalInfo.appetite,
           energy: additionalInfo.energy,
           otherNotes: additionalInfo.otherNotes || undefined,
@@ -183,7 +230,21 @@ export default function PetSymptomCheck() {
       )
       setStep(3)
       incrementSymptomCheckCount()
-      checkNewUserAnxiety()
+      const riskToSeverity: Record<string, EmotionSeverity> = {
+        normal: 'mild',
+        caution: 'mild',
+        warning: 'moderate',
+        emergency: 'severe',
+      }
+      trackEmotion('symptom_check', riskToSeverity[result.riskLevel] || 'mild')
+      trackEvent(AnalyticsEventName.SymptomCheck, {
+        petId: currentPet.id,
+        symptoms: selectedSymptoms,
+        urgencyLevel: RISK_TO_URGENCY[result.riskLevel] || 'green',
+      })
+      if (result.riskLevel === 'emergency') {
+        setShowSymptomCrisisReferral(true)
+      }
     } catch {
       setStep(1)
     } finally {
@@ -198,6 +259,7 @@ export default function PetSymptomCheck() {
     setAdditionalInfo({
       duration: 'today',
       frequency: 'occasional',
+      severity: 'mild',
       appetite: 'normal',
       energy: 'normal',
       otherNotes: '',
@@ -221,23 +283,10 @@ export default function PetSymptomCheck() {
     }
   }, [currentPet])
 
-  const checkNewUserAnxiety = useCallback(() => {
-    if (!currentPet) return
-    if (isNewUser() && (getRecentSymptomCheckCount() >= 2 || getRecentFoodQueryCount() >= 3)) {
-      const ctx = buildEmotionContext(currentPet.id, currentPet.name, currentPet.species as 'dog' | 'cat', {
-        isNewUser: true,
-        recentFoodQueryCount: getRecentFoodQueryCount(),
-        recentSymptomCheckCount: getRecentSymptomCheckCount(),
-        isDeceased: currentPet.isDeceased,
-      })
-      evaluateContext(ctx)
-    }
-  }, [currentPet, evaluateContext])
-
   if (isLoading && pets.length === 0) {
     return (
       <View className='pet-symptom-check'>
-        <PageLoading />
+          <PageLoading />
         <FloatingNav />
       </View>
     )
@@ -418,6 +467,25 @@ export default function PetSymptomCheck() {
               </View>
 
               <View className='pet-symptom-check__form-section'>
+                <Text className='pet-symptom-check__form-label'>📊 严重程度</Text>
+                <View className='pet-symptom-check__options'>
+                  {SEVERITY_OPTIONS.map((option) => (
+                    <View
+                      key={option.value}
+                      className={`pet-symptom-check__option${
+                        additionalInfo.severity === option.value ? ' pet-symptom-check__option--active' : ''
+                      }`}
+                      onClick={() =>
+                        setAdditionalInfo((prev) => ({ ...prev, severity: option.value }))
+                      }
+                    >
+                      <Text className='pet-symptom-check__option-label'>{option.emoji} {option.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              <View className='pet-symptom-check__form-section'>
                 <Text className='pet-symptom-check__form-label'>🍽️ 食欲状况</Text>
                 <View className='pet-symptom-check__options'>
                   {APPETITE_OPTIONS.map((option) => (
@@ -542,6 +610,35 @@ export default function PetSymptomCheck() {
                   </View>
                 )}
 
+                {currentResult.personalizedInsights && currentResult.personalizedInsights.length > 0 && (
+                  <View className='pet-symptom-check__result-section'>
+                    <Text className='pet-symptom-check__result-section-title'>🧠 基于记忆的个性化判断</Text>
+                    <View className='pet-symptom-check__insights'>
+                      {currentResult.personalizedInsights.map((insight, index) => {
+                        const isHistorical = insight.type === 'similar_past_event' || insight.type === 'seasonal_pattern' || insight.type === 'recovery_reference'
+                        return (
+                          <View
+                            key={index}
+                            className={`pet-symptom-check__insight pet-symptom-check__insight--${insight.type}${isHistorical ? ' pet-symptom-check__insight--historical' : ''}`}
+                          >
+                            <Text className='pet-symptom-check__insight-icon'>{insight.icon}</Text>
+                            <View className='pet-symptom-check__insight-content'>
+                              {insight.title && <Text className='pet-symptom-check__insight-title'>{insight.title}</Text>}
+                              <Text className='pet-symptom-check__insight-message'>{insight.message}</Text>
+                              {insight.pastDate && (
+                                <Text className='pet-symptom-check__insight-date'>
+                                  📅 {insight.pastDate.replace(/-/g, '/')}
+                                  {insight.recoveryDays != null && insight.recoveryDays > 0 ? ` · 恢复用时${insight.recoveryDays}天` : ''}
+                                </Text>
+                              )}
+                            </View>
+                          </View>
+                        )
+                      })}
+                    </View>
+                  </View>
+                )}
+
                 <View className='pet-symptom-check__result-disclaimer'>
                   <Text className='pet-symptom-check__result-disclaimer-text'>
                     ⚠️ 以上建议仅供参考，不替代兽医诊断。如症状持续或加重，请及时就医。
@@ -550,6 +647,17 @@ export default function PetSymptomCheck() {
               </View>
 
               <View className='pet-symptom-check__result-actions-bar'>
+                {(currentResult.riskLevel === 'warning' || currentResult.riskLevel === 'emergency') && (
+                  <View
+                    className='pet-symptom-check__btn pet-symptom-check__btn--hospital'
+                    onClick={() => {
+                      trackEvent(AnalyticsEventName.FindHospital, { petId: currentPet?.id || '', urgencyLevel: RISK_TO_URGENCY[currentResult?.riskLevel || ''] || 'green', source: 'symptom_check' })
+                      Taro.navigateTo({ url: '/pagesPet/food-query/index' })
+                    }}
+                  >
+                    <Text className='pet-symptom-check__btn-text pet-symptom-check__btn-text--white'>🏥 找医院</Text>
+                  </View>
+                )}
                 <View className='pet-symptom-check__btn pet-symptom-check__btn--outline' onClick={handleReset}>
                   <Text className='pet-symptom-check__btn-text'>重新检查</Text>
                 </View>
@@ -585,14 +693,6 @@ export default function PetSymptomCheck() {
         </View>
       )}
 
-      {isCardVisible && emotionCard && currentPet && (
-        <EmotionResponseCard
-          match={emotionCard}
-          petName={currentPet.name}
-          onDismiss={dismissCard}
-        />
-      )}
-
       <PaywallPopup
         visible={paywallVisible}
         featureName="AI症状初筛"
@@ -600,6 +700,50 @@ export default function PetSymptomCheck() {
         onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
+
+      <EmergencyAlert
+        visible={step === 3 && !!currentResult && currentResult.riskLevel === 'emergency'}
+        title='紧急症状预警'
+        message={currentResult?.aiAdvice || '检测到紧急症状信号，建议立即联系宠物医院进行专业诊断。'}
+        showSymptomButton={false}
+        showFoodButton={false}
+        petId={currentPet?.id || ''}
+        symptoms={selectedSymptoms}
+        alertType='symptom_emergency'
+        onClose={() => {}}
+      />
+
+      {anxietyState.showSickAnxiety && anxietyState.sickAnxietyContext && currentPet && (
+        <AnxietyIntervention
+          type='sick_anxiety'
+          context={anxietyState.sickAnxietyContext}
+          petName={currentPet.name}
+          species={currentPet.species as 'dog' | 'cat'}
+          petId={currentPet.id}
+          onDismiss={dismissSickAnxiety}
+          onCrisisReferral={() => { dismissSickAnxiety() }}
+        />
+      )}
+
+      {showCrisisReferral && (
+        <CrisisReferralCard
+          message='我们注意到你最近频繁关注毛孩子的健康状况，持续焦虑可能影响你的判断和状态。'
+          severity={crisisSeverity}
+          onDismiss={dismissCrisisReferral}
+          onFollowUp={handleFollowUp}
+        />
+      )}
+
+      {showSymptomCrisisReferral && (
+        <CrisisReferralCard
+          message={getCrisisMessage('sick_anxiety', 'severe')}
+          severity='severe'
+          triggerSource='symptom_emergency'
+          onDismiss={() => setShowSymptomCrisisReferral(false)}
+          onFollowUp={handleFollowUp}
+        />
+      )}
+
       <FloatingNav />
     </View>
   )

@@ -1,7 +1,8 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { usePet } from '../../hooks/usePet'
+import { useAnalytics } from '../../hooks/useAnalytics'
 import type { PetProfile } from '../../services/petService'
 import PetCard from '../../components/PetCard'
 import PetSwitcher from '../../components/PetSwitcher'
@@ -9,6 +10,8 @@ import PetDeceasedModal from '../../components/PetDeceasedModal'
 import GriefCompanion from '../../components/GriefCompanion'
 import { PageLoading, PageError } from '../../components'
 import { useAuthStore } from '../../stores/authStore'
+import { BREED_DATA } from '../../data/petKnowledge/breeds'
+import type { BreedItem } from '../../data/petKnowledge/breeds'
 import './index.scss'
 
 function adaptPetForCard(pet: PetProfile): PetProfile & { avatarUrl?: string } {
@@ -28,6 +31,7 @@ export default function PetProfile() {
     removePet,
     markPetDeceased,
   } = usePet()
+  const { trackPageView, trackEvent } = useAnalytics()
   const [deceasedModalVisible, setDeceasedModalVisible] = useState(false)
   const [deceasedPet, setDeceasedPet] = useState<PetProfile | null>(null)
   const [showGriefCompanion, setShowGriefCompanion] = useState(false)
@@ -35,6 +39,15 @@ export default function PetProfile() {
   const [error, setError] = useState('')
 
   const userId = useAuthStore(s => s.user?.id)
+
+  const currentBreedInfo = useMemo<BreedItem | null>(() => {
+    if (!currentPet?.breedId) return null
+    return BREED_DATA.find((b) => b.id === currentPet.breedId) ?? null
+  }, [currentPet?.breedId])
+
+  useEffect(() => {
+    trackPageView('pet_profile')
+  }, [trackPageView])
 
   useEffect(() => {
     if (userId) {
@@ -55,17 +68,10 @@ export default function PetProfile() {
 
   const handlePetClick = useCallback(
     async (pet: PetProfile) => {
+      trackEvent('click_pet_card', { petId: pet.id, isDeceased: pet.isDeceased })
       if (pet.isDeceased) {
-        Taro.showActionSheet({
-          itemList: ['查看纪念'],
-          itemColor: '#2C2C2C',
-          success: (res) => {
-            if (res.tapIndex === 0) {
-              setGriefPet(pet)
-              setShowGriefCompanion(true)
-            }
-          },
-        })
+        setGriefPet(pet)
+        setShowGriefCompanion(true)
         return
       }
       if (currentPet?.id === pet.id) {
@@ -73,15 +79,17 @@ export default function PetProfile() {
       }
       try {
         await switchPet(pet.id)
+        trackEvent('switch_pet', { petId: pet.id, petName: pet.name })
         Taro.showToast({ title: `已切换到${pet.name}`, icon: 'success' })
       } catch {
         Taro.showToast({ title: '切换失败', icon: 'none' })
       }
     },
-    [currentPet, switchPet]
+    [currentPet, switchPet, trackEvent]
   )
 
   const handleLongPress = useCallback((pet: PetProfile) => {
+    trackEvent('long_press_pet', { petId: pet.id })
     const itemList = ['编辑信息']
     if (!pet.isDeceased) {
       itemList.push('标记离世')
@@ -103,7 +111,7 @@ export default function PetProfile() {
         }
       },
     })
-  }, [])
+  }, [trackEvent])
 
   const handleDeletePet = useCallback(
     (pet: PetProfile) => {
@@ -115,6 +123,7 @@ export default function PetProfile() {
         cancelText: '取消',
         success: async (res) => {
           if (res.confirm) {
+            trackEvent('delete_pet', { petId: pet.id })
             try {
               await removePet(pet.id)
               Taro.showToast({ title: '已删除', icon: 'success' })
@@ -125,7 +134,7 @@ export default function PetProfile() {
         },
       })
     },
-    [removePet]
+    [removePet, trackEvent]
   )
 
   const handleDeceasedConfirm = useCallback(
@@ -133,7 +142,7 @@ export default function PetProfile() {
       if (!deceasedPet) return
       try {
         await markPetDeceased(deceasedPet.id, date)
-        Taro.showToast({ title: '已标记', icon: 'success' })
+        trackEvent('mark_deceased', { petId: deceasedPet.id })
         setGriefPet(deceasedPet)
         setShowGriefCompanion(true)
       } catch {
@@ -143,12 +152,17 @@ export default function PetProfile() {
         setDeceasedPet(null)
       }
     },
-    [deceasedPet, markPetDeceased]
+    [deceasedPet, markPetDeceased, trackEvent]
   )
 
   const handleDeceasedCancel = useCallback(() => {
     setDeceasedModalVisible(false)
     setDeceasedPet(null)
+  }, [])
+
+  const handleGriefComplete = useCallback(() => {
+    setShowGriefCompanion(false)
+    setGriefPet(null)
   }, [])
 
   const handleSwitchPet = useCallback(
@@ -162,8 +176,9 @@ export default function PetProfile() {
   )
 
   const handleAddPet = useCallback(() => {
+    trackEvent('add_pet_click')
     Taro.navigateTo({ url: '/pagesPet/add/index' })
-  }, [])
+  }, [trackEvent])
 
   if (isLoading && pets.length === 0) {
     return (
@@ -212,14 +227,84 @@ export default function PetProfile() {
           <View className='pet-profile__list'>
             {pets.map((pet) => {
               const adaptedPet = adaptPetForCard(pet)
+              const isCurrentPet = currentPet?.id === pet.id
               return (
-                <PetCard
-                  key={pet.id}
-                  pet={adaptedPet}
-                  isCurrent={currentPet?.id === pet.id}
-                  onClick={handlePetClick}
-                  onLongPress={handleLongPress}
-                />
+                <View key={pet.id}>
+                  <PetCard
+                    pet={adaptedPet}
+                    isCurrent={isCurrentPet}
+                    onClick={handlePetClick}
+                    onLongPress={handleLongPress}
+                  />
+                  {isCurrentPet && currentBreedInfo && (
+                    <View className='pet-profile__breed-traits'>
+                      <View className='pet-profile__breed-traits-header'>
+                        <Text className='pet-profile__breed-traits-title'>📋 {currentBreedInfo.name}品种特征</Text>
+                      </View>
+                      {currentBreedInfo.commonDiseases.length > 0 && (
+                        <View className='pet-profile__breed-traits-row'>
+                          <Text className='pet-profile__breed-traits-label'>🏥 常见疾病</Text>
+                          <View className='pet-profile__breed-traits-tags'>
+                            {currentBreedInfo.commonDiseases.map((d) => (
+                              <Text key={d} className='pet-profile__breed-traits-tag pet-profile__breed-traits-tag--warn'>{d}</Text>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                      <View className='pet-profile__breed-traits-row'>
+                        <Text className='pet-profile__breed-traits-label'>⚖️ 标准体重</Text>
+                        <Text className='pet-profile__breed-traits-value'>{currentBreedInfo.weightRange.min} ~ {currentBreedInfo.weightRange.max} kg</Text>
+                      </View>
+                      {currentBreedInfo.dietRestrictions.length > 0 && (
+                        <View className='pet-profile__breed-traits-row'>
+                          <Text className='pet-profile__breed-traits-label'>🚫 饮食禁忌</Text>
+                          <View className='pet-profile__breed-traits-tags'>
+                            {currentBreedInfo.dietRestrictions.map((d) => (
+                              <Text key={d} className='pet-profile__breed-traits-tag pet-profile__breed-traits-tag--danger'>{d}</Text>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                  {isCurrentPet && (
+                    <View className='pet-profile__health-info'>
+                      <View className='pet-profile__health-info-header'>
+                        <Text className='pet-profile__health-info-title'>🏥 健康信息</Text>
+                      </View>
+                      <View className='pet-profile__health-info-row'>
+                        <Text className='pet-profile__health-info-label'>毛色</Text>
+                        <Text className={pet.coatColor ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
+                          {pet.coatColor || '未填写'}
+                        </Text>
+                      </View>
+                      <View className='pet-profile__health-info-row'>
+                        <Text className='pet-profile__health-info-label'>芯片号</Text>
+                        <Text className={pet.microchipId ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
+                          {pet.microchipId || '未填写'}
+                        </Text>
+                      </View>
+                      <View className='pet-profile__health-info-row'>
+                        <Text className='pet-profile__health-info-label'>过敏史</Text>
+                        <Text className={pet.allergies.length > 0 ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
+                          {pet.allergies.length > 0 ? pet.allergies.join('、') : '未填写'}
+                        </Text>
+                      </View>
+                      <View className='pet-profile__health-info-row'>
+                        <Text className='pet-profile__health-info-label'>用药史</Text>
+                        <Text className={pet.medications.length > 0 ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
+                          {pet.medications.length > 0 ? pet.medications.join('、') : '未填写'}
+                        </Text>
+                      </View>
+                      <View className='pet-profile__health-info-row'>
+                        <Text className='pet-profile__health-info-label'>慢性病</Text>
+                        <Text className={pet.chronicConditions.length > 0 ? 'pet-profile__health-info-value' : 'pet-profile__health-info-empty'}>
+                          {pet.chronicConditions.length > 0 ? pet.chronicConditions.join('、') : '未填写'}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
               )
             })}
           </View>
@@ -241,16 +326,14 @@ export default function PetProfile() {
       />
 
       {showGriefCompanion && griefPet && (
-        <View className='pet-profile__grief-overlay' onClick={() => { setShowGriefCompanion(false); setGriefPet(null) }}>
-          <View onClick={(e) => e.stopPropagation()}>
-            <GriefCompanion
-              petName={griefPet.name}
-              petAvatar={griefPet.avatarPhotoUrl}
-              species={griefPet.species as 'dog' | 'cat'}
-              deceasedDate={griefPet.deceasedDate || ''}
-              onStageChange={() => {}}
-            />
-          </View>
+        <View className='pet-profile__grief-overlay'>
+          <GriefCompanion
+            petId={griefPet.id}
+            petName={griefPet.name}
+            species={griefPet.species as 'dog' | 'cat'}
+            deceasedDate={griefPet.deceasedDate ?? ''}
+            onComplete={handleGriefComplete}
+          />
         </View>
       )}
     </View>

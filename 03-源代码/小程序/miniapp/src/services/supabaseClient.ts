@@ -16,6 +16,63 @@ export interface SupabaseResponse<T> {
   status: number
 }
 
+const JSONB_KEYS = new Set([
+  'additional_info',
+  'additionalInfo',
+  'knowledge_match',
+  'knowledgeMatch',
+])
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date)
+}
+
+function camelToSnakeKey(key: string): string {
+  if (key === 'id' || key.startsWith('_')) return key
+  return key.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`)
+}
+
+function snakeToCamelKey(key: string): string {
+  if (key === 'id' || key.startsWith('_')) return key
+  return key.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
+}
+
+function toSnakeCase<T>(obj: T): T {
+  if (obj === null || obj === undefined) return obj
+  if (obj instanceof Date) return obj
+  if (Array.isArray(obj)) return obj.map((item) => toSnakeCase(item)) as T
+  if (!isPlainObject(obj)) return obj
+
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = camelToSnakeKey(key)
+    if (JSONB_KEYS.has(snakeKey) || JSONB_KEYS.has(key)) {
+      result[snakeKey] = value
+    } else {
+      result[snakeKey] = toSnakeCase(value)
+    }
+  }
+  return result as T
+}
+
+function toCamelCase<T>(obj: T): T {
+  if (obj === null || obj === undefined) return obj
+  if (obj instanceof Date) return obj
+  if (Array.isArray(obj)) return obj.map((item) => toCamelCase(item)) as T
+  if (!isPlainObject(obj)) return obj
+
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    const camelKey = snakeToCamelKey(key)
+    if (JSONB_KEYS.has(key) || JSONB_KEYS.has(camelKey)) {
+      result[camelKey] = value
+    } else {
+      result[camelKey] = toCamelCase(value)
+    }
+  }
+  return result as T
+}
+
 export class SupabaseClient {
   private baseUrl: string
   private anonKey: string
@@ -56,19 +113,25 @@ export class SupabaseClient {
       return { data: null, error: 'Mock模式，无云端连接', status: 0 }
     }
 
+    if (!this.baseUrl || !this.anonKey) {
+      return { data: null, error: '服务未配置，请检查网络设置', status: 0 }
+    }
+
     const { method = 'GET', body, headers = {}, params } = options
+
+    const transformedBody = body !== undefined ? toSnakeCase(body) : undefined
 
     try {
       const res = await Taro.request({
         url: this.buildUrl(path, params),
         method,
-        data: body,
-        header: { ...this.getAuthHeaders(), ...headers },
-        timeout: 15000
+        data: transformedBody,
+        header: { ...this.getAuthHeaders(), ...headers }
       })
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        return { data: res.data as T, error: null, status: res.statusCode }
+        const transformedData = toCamelCase(res.data as T)
+        return { data: transformedData, error: null, status: res.statusCode }
       }
 
       return {

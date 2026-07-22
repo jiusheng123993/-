@@ -1,4 +1,4 @@
-export type ShareCardType = 'food' | 'health_trend' | 'vaccine';
+export type ShareCardType = 'food' | 'health_trend' | 'vaccine' | 'achievement';
 
 export interface ShareRecord {
   id: string;
@@ -32,6 +32,7 @@ export interface ShareStats {
   foodShares: number;
   trendShares: number;
   vaccineShares: number;
+  achievementShares: number;
   totalInvites: number;
   successfulInvites: number;
 }
@@ -50,4 +51,20 @@ export interface VaccineShareData {
   vaccineName: string;
   completedDate: string;
   badgeTitle: string;
+}
+
+export interface AchievementShareData {
+  petName: string;
+  petAvatar: string;
+  achievementType: string;
+  achievementTitle: string;
+  achievementSubtitle: string;
+  achievementIcon: string;
+}
+
+export interface ShareRewardResult {
+  rewardGranted: boolean;
+  rewardType: 'membership_days' | 'feature_unlock' | 'none';
+  rewardValue: number;
+  message: string;
 }

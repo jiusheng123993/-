@@ -1,17 +1,29 @@
 import { View, Text, Input } from '@tarojs/components'
-import Taro, { useShareAppMessage } from '@tarojs/taro'
+import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { usePet } from '../../hooks/usePet'
 import { useFoodQuery } from '../../hooks/useFoodQuery'
 import { useMembership } from '../../hooks/useMembership'
 import { useAuthStore } from '../../stores/authStore'
+import { useShareStore } from '../../stores/shareStore'
 import PetSwitcher from '../../components/PetSwitcher'
 import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
 import FoodShareCard from '../../components/FoodShareCard'
-import { PageLoading, PageError, EmotionResponseCard, PetAvatar } from '../../components'
-import { useEmotionStore, buildEmotionContext, incrementFoodQueryCount, isNewUser, getRecentFoodQueryCount, getRecentSymptomCheckCount } from '../../stores/emotionStore'
+import AnxietyIntervention from '../../components/AnxietyIntervention'
+import CrisisReferralCard from '../../components/CrisisReferralCard'
+import { PageLoading, PageError, PetAvatar, EmergencyAlert } from '../../components'
+import { incrementFoodQueryCount, isNewUser, getRecentFoodQueryCount, getRecentSymptomCheckCount } from '../../utils/usageTracking'
+import { useAnxietyDetection } from '../../hooks/useAnxietyDetection'
+import { useEmotionTracking } from '../../hooks/useEmotionTracking'
+import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { AnalyticsEventName } from '../../types/analyticsTypes'
+import { EVENT } from '../../constants/analyticsEvents'
 import type { ExpressionContext } from '../../engines/petAvatar'
+import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import { checkNpsEligibility, submitNpsResponse, dismissNpsSurvey } from '../../services/npsService'
+import NpsSurvey from '../../components/NpsSurvey'
+import type { NpsTriggerEvent } from '../../types/npsTypes'
 import './index.scss'
 
 const SAFETY_LEVEL_LABELS: Record<string, string> = {
@@ -34,24 +46,34 @@ export default function PetFoodQuery() {
   const { isMember, checkAccess, shouldShowPaywall, markPaywallShown } = useMembership()
   const user = useAuthStore(s => s.user)
   const userId = user?.id || ''
+  const inviteCode = useShareStore(s => s.inviteCode)
   const [searchText, setSearchText] = useState('')
   const [paywallVisible, setPaywallVisible] = useState(false)
   const [showShareCard, setShowShareCard] = useState(false)
   const [error, setError] = useState('')
+  const [showNpsSurvey, setShowNpsSurvey] = useState(false)
+  const [npsTriggerEvent, setNpsTriggerEvent] = useState<NpsTriggerEvent>('manual')
+  const [showToxicAlert, setShowToxicAlert] = useState(false)
+  const { anxietyState, checkNewOwnerAnxiety, dismissNewOwnerAnxiety } = useAnxietyDetection()
+  const { showCrisisReferral, crisisSeverity, trackEvent: trackEmotion, dismissCrisisReferral, handleFollowUp } = useEmotionTracking(currentPet?.id || null)
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  usePageView('food_query')
 
   useShareAppMessage(() => {
     return {
       title: lastResult
         ? `我家毛孩子能吃${lastResult.foodName}吗？快查查！`
         : '星寰海 - 宠物健康管家',
-      path: '/pagesPet/food-query/index',
+      path: `/pagesPet/food-query/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
     }
   })
-
-  const emotionCard = useEmotionStore((s) => s.activeCard)
-  const isCardVisible = useEmotionStore((s) => s.isCardVisible)
-  const evaluateContext = useEmotionStore((s) => s.evaluateContext)
-  const dismissCard = useEmotionStore((s) => s.dismissCard)
+  useShareTimeline(() => ({
+    title: lastResult
+      ? `我家毛孩子能吃${lastResult.foodName}吗？`
+      : '星寰海 - 宠物健康管家',
+    query: inviteCode ? `inviteCode=${inviteCode}` : '',
+  }))
 
   const loadInitialData = useCallback(async () => {
     setError('')
@@ -71,6 +93,12 @@ export default function PetFoodQuery() {
     loadInitialData()
   }, [loadInitialData])
 
+  useEffect(() => {
+    if (currentPet) {
+      checkNewOwnerAnxiety(currentPet.id)
+    }
+  }, [currentPet, checkNewOwnerAnxiety])
+
   const handleSearch = async () => {
     if (!currentPet || !searchText.trim()) return
     if (!isMember && user?.id) {
@@ -79,6 +107,7 @@ export default function PetFoodQuery() {
         const showPaywall = await shouldShowPaywall('food_query')
         if (showPaywall) {
           await markPaywallShown('food_query')
+          trackEvent('show_paywall', { feature: 'food_query' })
           setPaywallVisible(true)
         } else {
           Taro.navigateTo({ url: '/pages/member/index' })
@@ -91,9 +120,13 @@ export default function PetFoodQuery() {
       return
     }
     try {
-      await queryFood(userId, currentPet.id, searchText.trim(), currentPet.species)
+      const result = await queryFood(userId, currentPet.id, searchText.trim(), currentPet.species)
+      trackEvent(AnalyticsEventName.FoodQuery, { keyword: searchText.trim(), resultSafetyLevel: result.safetyLevel, isMember })
       incrementFoodQueryCount()
-      checkNewUserAnxiety()
+      if (result.safetyLevel === 'toxic') {
+        setShowToxicAlert(true)
+        trackEmotion('food_query', 'moderate')
+      }
     } catch {
       Taro.showToast({ title: '查询失败，请重试', icon: 'none' })
     }
@@ -127,6 +160,11 @@ export default function PetFoodQuery() {
 
   const isLoading = petLoading || queryLoading
 
+  const disclaimerText = useMemo(() => {
+    if (!lastResult) return new MedicalDisclaimer().getFoodDisclaimer('caution')
+    return new MedicalDisclaimer().getFoodDisclaimer(lastResult.safetyLevel)
+  }, [lastResult])
+
   const expressionContext = useMemo((): ExpressionContext | null => {
     if (!currentPet) return null
     return {
@@ -141,19 +179,6 @@ export default function PetFoodQuery() {
       isDeceased: currentPet.isDeceased || false,
     }
   }, [currentPet])
-
-  const checkNewUserAnxiety = useCallback(() => {
-    if (!currentPet) return
-    if (isNewUser() && getRecentFoodQueryCount() >= 3) {
-      const ctx = buildEmotionContext(currentPet.id, currentPet.name, currentPet.species as 'dog' | 'cat', {
-        isNewUser: true,
-        recentFoodQueryCount: getRecentFoodQueryCount(),
-        recentSymptomCheckCount: getRecentSymptomCheckCount(),
-        isDeceased: currentPet.isDeceased,
-      })
-      evaluateContext(ctx)
-    }
-  }, [currentPet, evaluateContext])
 
   if (isLoading && pets.length === 0) {
     return (
@@ -314,7 +339,19 @@ export default function PetFoodQuery() {
                   dangerousCompounds={lastResult.dangerousCompounds}
                   symptoms={lastResult.symptoms}
                   detail={lastResult.detail}
-                  onShare={() => { Taro.showShareMenu({ withShareTicket: true }); setShowShareCard(false) }}
+                  inviteCode={inviteCode}
+                  onShare={() => {
+                    trackEvent(AnalyticsEventName.ShareAction, { type: 'food', platform: 'wechat' })
+                    Taro.showShareMenu({ withShareTicket: true })
+                    setShowShareCard(false)
+                    if (user?.id) {
+                      const npsStatus = checkNpsEligibility(user.id, user.createdAt || new Date().toISOString())
+                      if (npsStatus.isEligible) {
+                        setShowNpsSurvey(true)
+                        setNpsTriggerEvent('after_share')
+                      }
+                    }
+                  }}
                 />
               )}
             </View>
@@ -355,16 +392,22 @@ export default function PetFoodQuery() {
         </>
       )}
 
-      {isCardVisible && emotionCard && currentPet && (
-        <EmotionResponseCard
-          match={emotionCard}
-          petName={currentPet.name}
-          onDismiss={dismissCard}
+      {showNpsSurvey && user && (
+        <NpsSurvey
+          triggerEvent={npsTriggerEvent}
+          onSubmit={(score, feedback) => {
+            submitNpsResponse(user.id, score, npsTriggerEvent, feedback)
+            setShowNpsSurvey(false)
+          }}
+          onDismiss={() => {
+            dismissNpsSurvey()
+            setShowNpsSurvey(false)
+          }}
         />
       )}
 
       <View className='pet-food-query__disclaimer'>
-        <Text className='pet-food-query__disclaimer-text'>⚠️ 食物安全信息仅供参考，不替代兽医诊断。如有疑问请咨询专业兽医。</Text>
+        <Text className='pet-food-query__disclaimer-text'>{disclaimerText}</Text>
       </View>
 
       <PaywallPopup
@@ -374,6 +417,39 @@ export default function PetFoodQuery() {
         onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
+
+      <EmergencyAlert
+        visible={showToxicAlert}
+        title='有毒食物警告'
+        message={`"${lastResult?.foodName || '该食物'}" 对宠物有毒！如果您的宠物已经误食，请立即联系宠物医院。常见中毒症状：呕吐、腹泻、精神萎靡、抽搐。`}
+        showSymptomButton
+        showFoodButton={false}
+        petId={currentPet?.id || ''}
+        symptoms={lastResult?.symptoms || []}
+        alertType='food_toxic'
+        onClose={() => setShowToxicAlert(false)}
+      />
+
+      {anxietyState.showNewOwnerAnxiety && anxietyState.newOwnerAnxietyContext && currentPet && (
+        <AnxietyIntervention
+          type='new_owner_anxiety'
+          context={anxietyState.newOwnerAnxietyContext}
+          petName={currentPet.name}
+          species={currentPet.species as 'dog' | 'cat'}
+          petId={currentPet.id}
+          onDismiss={dismissNewOwnerAnxiety}
+          onCrisisReferral={() => { dismissNewOwnerAnxiety() }}
+        />
+      )}
+
+      {showCrisisReferral && (
+        <CrisisReferralCard
+          message='查询到有毒食物可能会让你感到焦虑，请保持冷静，及时采取正确的措施。'
+          severity={crisisSeverity}
+          onDismiss={dismissCrisisReferral}
+          onFollowUp={handleFollowUp}
+        />
+      )}
 
       <FloatingNav />
     </View>

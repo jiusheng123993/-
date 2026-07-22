@@ -32,6 +32,11 @@ vi.mock('../membershipService', () => ({
   getQuotaLimit: vi.fn(),
 }))
 
+vi.mock('../../utils/petOwnership', () => ({
+  requirePetOwnership: vi.fn(),
+  isPetOwnerLocal: vi.fn(() => true),
+}))
+
 import { api } from '../api'
 import { isMember, getQuotaLimit } from '../membershipService'
 import {
@@ -75,7 +80,6 @@ describe('foodService', () => {
       expect(result.foodName).toBe('苹果')
       expect(result.safetyLevel).toBe('safe')
       expect(api.post).toHaveBeenCalledWith('/api/food-queries', {
-        userId: 'user_001',
         petId: 'pet_001',
         foodName: '苹果',
         species: 'dog',
@@ -126,7 +130,7 @@ describe('foodService', () => {
       expect(result).toHaveLength(2)
       expect(result[0].foodName).toBe('巧克力')
       expect(result[1].foodName).toBe('苹果')
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet_001/food-queries?userId=user_001')
+      expect(api.get).toHaveBeenCalledWith('/api/pets/pet_001/food-queries')
     })
 
     it('should fallback to local storage when API fails', async () => {
@@ -168,7 +172,7 @@ describe('foodService', () => {
       expect(result.todayQueries).toBe(3)
       expect(result.remainingFree).toBe(2)
       expect(result.isMemberUser).toBe(false)
-      expect(api.get).toHaveBeenCalledWith('/api/food-queries/stats?petId=pet_001&userId=user_001')
+      expect(api.get).toHaveBeenCalledWith('/api/food-queries/stats?petId=pet_001')
     })
 
     it('should fallback to local calculation when API fails', async () => {
@@ -213,7 +217,7 @@ describe('foodService', () => {
       const result = await getTodayQueryCount('pet_001', 'user_001')
 
       expect(result).toBe(5)
-      expect(api.get).toHaveBeenCalledWith('/api/food-queries/today-count?petId=pet_001&userId=user_001')
+      expect(api.get).toHaveBeenCalledWith('/api/food-queries/today-count?petId=pet_001')
     })
 
     it('should fallback to local calculation when API fails', async () => {

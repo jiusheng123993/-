@@ -79,7 +79,7 @@ describe('SupabaseClient', () => {
       mockGetStorage.mockReturnValue('my-jwt-token')
       mockRequest.mockResolvedValue({ statusCode: 200, data: {} })
       await client.request('users')
-      const callArgs = mockRequest.mock.calls[0][0] as { header: Record<string, string> }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { header: Record<string, string> }
       expect(callArgs.header['Authorization']).toBe('Bearer my-jwt-token')
     })
 
@@ -87,7 +87,7 @@ describe('SupabaseClient', () => {
       mockGetStorage.mockReturnValue('')
       mockRequest.mockResolvedValue({ statusCode: 200, data: {} })
       await client.request('users')
-      const callArgs = mockRequest.mock.calls[0][0] as { header: Record<string, string> }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { header: Record<string, string> }
       expect(callArgs.header['Authorization']).toBeUndefined()
     })
 
@@ -138,7 +138,7 @@ describe('SupabaseClient', () => {
     it('builds URL with query params', async () => {
       mockRequest.mockResolvedValue({ statusCode: 200, data: [] })
       await client.request('users', { params: { select: '*', id: 'eq.1' } })
-      const callArgs = mockRequest.mock.calls[0][0] as { url: string }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { url: string }
       expect(callArgs.url).toContain('select=*')
       expect(callArgs.url).toContain('id=eq.1')
       expect(callArgs.url).toContain('?')
@@ -147,7 +147,7 @@ describe('SupabaseClient', () => {
     it('includes apikey and Content-Type headers', async () => {
       mockRequest.mockResolvedValue({ statusCode: 200, data: {} })
       await client.request('users')
-      const callArgs = mockRequest.mock.calls[0][0] as { header: Record<string, string> }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { header: Record<string, string> }
       expect(callArgs.header['apikey']).toBe('test-anon-key')
       expect(callArgs.header['Content-Type']).toBe('application/json')
     })
@@ -155,14 +155,14 @@ describe('SupabaseClient', () => {
     it('sets timeout to 15000', async () => {
       mockRequest.mockResolvedValue({ statusCode: 200, data: {} })
       await client.request('users')
-      const callArgs = mockRequest.mock.calls[0][0] as { timeout: number }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { timeout: number }
       expect(callArgs.timeout).toBe(15000)
     })
 
     it('merges custom headers with auth headers', async () => {
       mockRequest.mockResolvedValue({ statusCode: 200, data: {} })
       await client.request('users', { headers: { 'X-Custom': 'value' } })
-      const callArgs = mockRequest.mock.calls[0][0] as { header: Record<string, string> }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { header: Record<string, string> }
       expect(callArgs.header['apikey']).toBe('test-anon-key')
       expect(callArgs.header['X-Custom']).toBe('value')
     })
@@ -197,7 +197,7 @@ describe('SupabaseClient', () => {
     it('appends limit=1 to params', async () => {
       mockRequest.mockResolvedValue({ statusCode: 200, data: [] })
       await client.selectOne('users', { id: 'eq.1' })
-      const callArgs = mockRequest.mock.calls[0][0] as { url: string }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { url: string }
       expect(callArgs.url).toContain('limit=1')
     })
   })
@@ -234,7 +234,7 @@ describe('SupabaseClient', () => {
     it('passes params to request', async () => {
       mockRequest.mockResolvedValue({ statusCode: 200, data: [] })
       await client.update('users', { name: 'Bob' }, { id: 'eq.1' })
-      const callArgs = mockRequest.mock.calls[0][0] as { url: string }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { url: string }
       expect(callArgs.url).toContain('id=eq.1')
     })
   })
@@ -244,16 +244,16 @@ describe('SupabaseClient', () => {
       const upsertData = { id: 1, name: 'Alice' }
       mockRequest.mockResolvedValue({ statusCode: 200, data: [{ id: 1, name: 'Alice' }] })
       await client.upsert('users', upsertData)
-      const callArgs = mockRequest.mock.calls[0][0] as { header: Record<string, string>; method: string; data: unknown }
+      const callArgs = (mockRequest.mock.calls[0] as unknown[])[0] as { header: Record<string, string>; method: string; data: unknown }
       expect(callArgs.method).toBe('POST')
-      expect(callArgs.data).toBe(upsertData)
+      expect(callArgs.data).toStrictEqual(upsertData)
       expect(callArgs.header['Prefer']).toBe('resolution=merge-duplicates,return=representation')
     })
   })
 
   describe('delete', () => {
     it('calls request with DELETE', async () => {
-      mockRequest.mockResolvedValue({ statusCode: 200, data: null })
+      mockRequest.mockResolvedValue({ statusCode: 200, data: {} })
       const result = await client.delete('users', { id: 'eq.1' })
       expect(mockRequest).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -25,13 +25,37 @@ export const ENV: Record<string, EnvConfig> = {
 function resolveCurrentEnv(): EnvConfig {
   const envName = process.env.NODE_ENV || 'development';
   const envConfig = ENV[envName] || ENV.development;
-  if (envConfig.apiBaseUrl) {
-    return { ...envConfig, useMock: envConfig.useMock };
+
+  if (envName === 'production' && envConfig.useMock) {
+    throw new Error('[Security] Mock mode is forbidden in production environment');
   }
+
+  if (envName === 'production' && !envConfig.apiBaseUrl) {
+    throw new Error('[Security] Production API base URL is not configured');
+  }
+
+  if (envName === 'production' && !envConfig.supabaseUrl) {
+    throw new Error('[Security] Production Supabase URL is not configured');
+  }
+
+  if (envName === 'production' && !envConfig.supabaseKey) {
+    throw new Error('[Security] Production Supabase key is not configured');
+  }
+
+  const hasFullConfig = envConfig.apiBaseUrl && envConfig.supabaseUrl && envConfig.supabaseKey;
+  if (envName === 'development' && !hasFullConfig && !envConfig.useMock) {
+    return { ...envConfig, useMock: true };
+  }
+
   return envConfig;
 }
 
 const currentEnv = resolveCurrentEnv();
+
+export function getEdgeFunctionUrl(functionName: string): string {
+  const base = currentEnv.supabaseUrl || currentEnv.apiBaseUrl
+  return `${base}/functions/v1/${functionName}`
+}
 
 export const TOKEN_EXPIRY = 7 * 24 * 60 * 60;
 

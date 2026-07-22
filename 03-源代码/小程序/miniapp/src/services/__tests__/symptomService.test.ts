@@ -39,6 +39,7 @@ import {
   searchSymptoms,
 } from '../symptomService'
 import type { SymptomCheckResult } from '../symptomService'
+import type { PetProfile } from '../petService'
 
 function makeSymptomCheckResult(overrides: Partial<SymptomCheckResult> = {}): SymptomCheckResult {
   return {
@@ -50,6 +51,32 @@ function makeSymptomCheckResult(overrides: Partial<SymptomCheckResult> = {}): Sy
     aiAdvice: '建议观察',
     recommendedActions: ['持续观察'],
     createdAt: '2024-01-01T00:00:00.000Z',
+    ...overrides,
+  }
+}
+
+function makePetProfile(overrides: Partial<PetProfile> = {}): PetProfile {
+  return {
+    id: 'pet_001',
+    userId: 'user_001',
+    name: '旺财',
+    species: 'dog',
+    breed: '金毛寻回犬',
+    breedId: 'golden_retriever',
+    gender: 'male',
+    birthDate: '2020-01-01',
+    weight: 30,
+    coatColor: '金色',
+    photos: [],
+    isNeutered: false,
+    microchipId: '',
+    notes: '',
+    isDeceased: false,
+    allergies: [],
+    medications: [],
+    chronicConditions: [],
+    createdAt: '2020-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z',
     ...overrides,
   }
 }
@@ -226,6 +253,222 @@ describe('symptomService', () => {
       const result = searchSymptoms('xyz_nonexistent')
 
       expect(result).toEqual([])
+    })
+  })
+
+  describe('personalized insights - genetic disease', () => {
+    it('should generate breed_disease_risk insight when golden retriever has cough', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ breed: '金毛寻回犬', species: 'dog' })
+
+      const result = await analyzeSymptoms('pet_001', ['cough'], undefined, petProfile)
+
+      const geneticInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'breed_disease_risk' && i.title === '品种遗传疾病关联'
+      )
+      expect(geneticInsight).toBeDefined()
+      expect(geneticInsight!.message).toContain('金毛寻回犬')
+    })
+
+    it('should not generate genetic disease insight when breed has no matching genetic diseases', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ breed: '金毛寻回犬', species: 'dog' })
+
+      const result = await analyzeSymptoms('pet_001', ['constipation'], undefined, petProfile)
+
+      const geneticInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'breed_disease_risk' && i.title === '品种遗传疾病关联'
+      )
+      expect(geneticInsight).toBeUndefined()
+    })
+  })
+
+  describe('personalized insights - allergy warning', () => {
+    it('should generate allergy_warning insight when pet has skin allergy and itching symptom', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ allergies: ['皮肤过敏'] })
+
+      const result = await analyzeSymptoms('pet_001', ['itching', 'rash'], undefined, petProfile)
+
+      const allergyInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'allergy_warning'
+      )
+      expect(allergyInsight).toBeDefined()
+      expect(allergyInsight!.message).toContain('过敏')
+    })
+
+    it('should generate allergy_warning insight when pet has food allergy and digestive symptoms', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ allergies: ['食物过敏'] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting', 'diarrhea'], undefined, petProfile)
+
+      const allergyInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'allergy_warning'
+      )
+      expect(allergyInsight).toBeDefined()
+      expect(allergyInsight!.message).toContain('过敏')
+    })
+
+    it('should not generate allergy_warning when pet has no allergies', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ allergies: [] })
+
+      const result = await analyzeSymptoms('pet_001', ['itching'], undefined, petProfile)
+
+      const allergyInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'allergy_warning'
+      )
+      expect(allergyInsight).toBeUndefined()
+    })
+  })
+
+  describe('personalized insights - medication side effect', () => {
+    it('should generate medication_side_effect insight when pet on antibiotics has vomiting', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ medications: ['抗生素阿莫西林'] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting', 'diarrhea'], undefined, petProfile)
+
+      const medInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'medication_side_effect'
+      )
+      expect(medInsight).toBeDefined()
+      expect(medInsight!.message).toContain('药物副作用')
+    })
+
+    it('should generate medication_side_effect insight when pet on heart medication has cough', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ medications: ['心脏病药'] })
+
+      const result = await analyzeSymptoms('pet_001', ['cough', 'lethargy'], undefined, petProfile)
+
+      const medInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'medication_side_effect'
+      )
+      expect(medInsight).toBeDefined()
+      expect(medInsight!.message).toContain('药物副作用')
+    })
+
+    it('should not generate medication_side_effect when pet has no medications', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ medications: [] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting'], undefined, petProfile)
+
+      const medInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'medication_side_effect'
+      )
+      expect(medInsight).toBeUndefined()
+    })
+  })
+
+  describe('personalized insights - chronic condition alert', () => {
+    it('should generate chronic_condition_alert insight when pet with kidney disease has vomiting', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ chronicConditions: ['慢性肾病'] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting', 'appetite_loss'], undefined, petProfile)
+
+      const chronicInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'chronic_condition_alert'
+      )
+      expect(chronicInsight).toBeDefined()
+      expect(chronicInsight!.message).toContain('慢性病')
+    })
+
+    it('should generate chronic_condition_alert insight when pet with heart disease has cough', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ chronicConditions: ['心脏病'] })
+
+      const result = await analyzeSymptoms('pet_001', ['cough', 'dyspnea'], undefined, petProfile)
+
+      const chronicInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'chronic_condition_alert'
+      )
+      expect(chronicInsight).toBeDefined()
+      expect(chronicInsight!.message).toContain('慢性病')
+    })
+
+    it('should not generate chronic_condition_alert when pet has no chronic conditions', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ chronicConditions: [] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting'], undefined, petProfile)
+
+      const chronicInsight = result.personalizedInsights?.find(
+        (i) => i.type === 'chronic_condition_alert'
+      )
+      expect(chronicInsight).toBeUndefined()
+    })
+  })
+
+  describe('personalized insights - no extra insights without memory', () => {
+    it('should not generate allergy/medication/chronic insights when pet has no memory fields', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({
+        allergies: [],
+        medications: [],
+        chronicConditions: [],
+      })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting', 'itching'], undefined, petProfile)
+
+      const allergyInsight = result.personalizedInsights?.find((i) => i.type === 'allergy_warning')
+      const medInsight = result.personalizedInsights?.find((i) => i.type === 'medication_side_effect')
+      const chronicInsight = result.personalizedInsights?.find((i) => i.type === 'chronic_condition_alert')
+      expect(allergyInsight).toBeUndefined()
+      expect(medInsight).toBeUndefined()
+      expect(chronicInsight).toBeUndefined()
+    })
+  })
+
+  describe('personalized insights - multiple dimensions', () => {
+    it('should generate multiple insights when allergy, medication, and chronic conditions all match', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({
+        allergies: ['皮肤过敏'],
+        medications: ['抗生素'],
+        chronicConditions: ['慢性肾病'],
+      })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting', 'itching', 'lethargy'], undefined, petProfile)
+
+      const allergyInsight = result.personalizedInsights?.find((i) => i.type === 'allergy_warning')
+      const medInsight = result.personalizedInsights?.find((i) => i.type === 'medication_side_effect')
+      const chronicInsight = result.personalizedInsights?.find((i) => i.type === 'chronic_condition_alert')
+      expect(allergyInsight).toBeDefined()
+      expect(medInsight).toBeDefined()
+      expect(chronicInsight).toBeDefined()
+    })
+  })
+
+  describe('personalized advice - enhanced tips', () => {
+    it('should include allergy tip in advice when pet has allergies and skin/digestive symptoms', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ allergies: ['皮肤过敏'] })
+
+      const result = await analyzeSymptoms('pet_001', ['itching'], undefined, petProfile)
+
+      expect(result.aiAdvice).toContain('过敏')
+    })
+
+    it('should include chronic condition tip in advice when pet has chronic conditions with related symptoms', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ chronicConditions: ['慢性肾病'] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting'], undefined, petProfile)
+
+      expect(result.aiAdvice).toContain('慢性病')
+    })
+
+    it('should include medication side effect tip in advice when pet on medication with side effect symptoms', async () => {
+      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      const petProfile = makePetProfile({ medications: ['抗生素'] })
+
+      const result = await analyzeSymptoms('pet_001', ['vomiting'], undefined, petProfile)
+
+      expect(result.aiAdvice).toContain('药物副作用')
     })
   })
 })

@@ -1,8 +1,8 @@
 # 星寰海小程序 - 项目状态
 
-## 当前阶段: Phase 1 AI宠物管家 MVP 开发中
+## 当前阶段: Phase 1.5 真实服务集成 — 安全审查+修复完成
 
-### 最后更新: 2026-07-18
+### 最后更新: 2026-07-21
 
 ### PRD版本: v3.1 (2026-07-17)
 ### 技术设计版本: v3.1 (2026-07-17)
@@ -11,70 +11,106 @@
 
 ## 产品定位
 
-**星寰海 — 以memory-body记忆引擎为核心壁垒，先做"有记忆的AI宠物管家"，后做"有记忆的AI职业顾问"，情绪感知作为底层能力融入双场景的微信小程序。**
+**星寰海 — 以memory-body记忆引擎为核心壁垒，先做"有记忆的AI宠物管家"，后做"有记忆的AI职业顾问"的微信小程序。**
 
 ---
 
-## Phase 1 开发排期（14天 MVP）
+## 当前质量指标
 
-| 天数 | 任务 | 交付物 | 依赖 | 代码状态 |
-|------|------|--------|------|----------|
-| Day 1-2 | PetSafetyHandler安全拦截器（P0阻断项） | 安全过滤引擎+测试用例 | 无 | ✅ 已有代码 |
-| Day 3-4 | memory-body引擎扩展（PetHealthEntry） | 数据类型+存储+同步 | Day 2 | ✅ 已有代码 |
-| Day 5-6 | 宠物档案（多宠管理） | 档案CRUD+品种关联 | Day 4 | ✅ 已有代码 |
-| Day 7-8 | 3秒健康打卡+食物安全查询 | 打卡组件+知识库查询 | Day 6 | ✅ 已有代码 |
-| Day 9-10 | AI症状初筛（规则引擎版） | 症状选择+评估+结果 | Day 8 | ✅ 已有代码 |
-| Day 11 | 疫苗驱虫日历 | 日历组件+提醒 | Day 8 | ✅ 已有代码 |
-| Day 12 | 健康趋势图+情绪底层 | 图表+场景触发 | Day 10 | ✅ 已有代码 |
-| Day 13 | 会员体系+付费流程 | 权益+支付+限制 | Day 8 | ✅ M7已完成 |
-| Day 14 | 集成测试+Bug修复+提交审核 | 测试报告+提审 | Day 13 | ✅ M7已完成 |
+| 指标 | 数值 |
+|------|------|
+| TypeScript 错误 | **0** |
+| 测试文件 | **80** |
+| 测试用例 | **1538** |
+| 构建状态 | ✅ 成功 (21.73s) |
+| 测试通过率 | **100%** |
+| 主包体积 | **661 KB** (限制 2048KB，占 32.3%) |
+| pagesPet 分包 | **972 KB** (限制 2048KB) |
+| pagesUser 分包 | **96 KB** (限制 2048KB) |
+| console.*残留 | **0** (仅logger模块内部) |
+| 死代码 | **0** (无debugger/@ts-ignore/空catch) |
 
 ---
 
-## 关键里程碑
+## 构建体积优化记录（2026-07-21）
 
-- Day 2：安全拦截器就绪（P0解除）→ ✅ 已有代码
-- Day 8：核心功能闭环（打卡+食物+症状）→ ✅ 已有代码
-- Day 14：提审上线 → ✅ M7已完成
+### 优化前 vs 优化后
+
+| 包 | 优化前 | 优化后 | 变化 |
+|---|---|---|---|
+| 主包 | 1367 KB | 661 KB | **-706 KB (-51.7%)** |
+| pagesPet | 382 KB | 972 KB | +590 KB (含pdf-libs) |
+| pagesUser | 96 KB | 96 KB | 不变 |
+
+### 优化措施
+
+1. **CryptoJS 按需引入**：`import CryptoJS from 'crypto-js'` → `import AES from 'crypto-js/aes'` + `import SHA256 from 'crypto-js/sha256'` + `import Utf8 from 'crypto-js/enc-utf8'` + `import Base64 from 'crypto-js/enc-base64'`
+   - crypto-core.js: 18KB（仅 AES + SHA256 + enc）
+   - 注意：7157.js (118KB) 仍包含 CryptoJS cipher-core 的 legacy ciphers 依赖链（DES/TripleDES/RC4/Rabbit），这是 CryptoJS 内部模块设计导致的，无法通过 tree-shake 消除。后续可考虑替换为更轻量的加密库（tweetnacl 或 Web Crypto API）
+
+2. **PDF 生成功能移到分包**：
+   - 从 `reportService.ts` 分离 PDF 功能到 `pagesPet/services/healthReportPdfService.ts`
+   - jspdf + html2canvas + pako 打包为 `pagesPet/pdf-libs.js` (681KB)
+   - 主包不再包含 PDF 相关依赖
+
+3. **splitChunks 配置优化**：
+   - `pdfLibs` cacheGroup: 匹配 jspdf/html2canvas/pako，输出到 `pagesPet/pdf-libs`
+   - `cryptoCore` cacheGroup: 匹配 crypto-js，输出为独立 chunk
 
 ---
 
 ## 技术栈
 
-- **框架**: Taro 3 + React 19 + TypeScript
-- **构建**: Vite
+- **框架**: Taro 3 + React 17 + TypeScript (strict)
+- **构建**: Webpack (Taro内置)
 - **状态管理**: Zustand
-- **样式**: Tailwind CSS + CSS Modules + Sass
+- **样式**: Sass + CSS Modules
 - **后端**: Supabase (PostgreSQL + Auth + Realtime + Storage)
-- **记忆引擎**: memory-body（5层架构，18模块，70%复用自情绪项目）
+- **记忆引擎**: memory-body（5层架构，精简为宠物健康类型）
 - **AI策略**: MVP纯规则引擎（0成本），后续小模型→大模型
 - **推送**: 微信订阅消息
-- **宠物形象**: Seedream API
-- **测试**: Vitest
+- **宠物形象**: Seedream API (环境变量驱动，自动stub回退)
+- **测试**: Vitest + jsdom
 
 ---
 
-## 已实现的新方向模块（PRD v3.1 匹配）
+## 已实现模块（PRD v3.1 匹配）
 
 ### 引擎层
 - [x] PetSafetyHandler 安全拦截器（P0）
 - [x] ToxicFoodFilter 有毒食物过滤
 - [x] MedicalDisclaimer 医疗免责声明
+- [x] expressionEngine 宠物表情引擎
+- [x] svgRenderer SVG面部渲染
+- [x] diaryEngine 日记模板引擎
+- [x] seedreamAdapter Seedream图片适配器（环境变量驱动，自动stub回退）
+- [x] emotion 哀伤陪伴引擎（自包含，仅保留宠物哀伤场景）
 
 ### 数据层
 - [x] data/petKnowledge/breeds.ts 品种数据
 - [x] data/petKnowledge/foodSafety.ts 食物安全数据
 - [x] data/petKnowledge/symptoms.ts 症状数据
 - [x] data/petKnowledge/vaccineSchedule.ts 疫苗排程数据
+- [x] data/petKnowledge/urgencyRules.ts 紧急规则数据
 
 ### 页面层
-- [x] pages/pet-checkin/ 3秒健康打卡
-- [x] pages/pet-food-query/ 食物安全查询
-- [x] pages/pet-profile/ 宠物档案
-- [x] pages/pet-profile/add/ 添加宠物
-- [x] pages/pet-symptom-check/ AI症状初筛
-- [x] pages/pet-trends/ 健康趋势图
-- [x] pages/pet-vaccine/ 疫苗驱虫日历
+- [x] pages/index/ 首页
+- [x] pages/login/ 登录页
+- [x] pages/mine/ 我的页面
+- [x] pages/profile/ 个人资料
+- [x] pages/settings/ 设置页面
+- [x] pages/agreement/ 用户协议
+- [x] pages/onboarding/ 引导页
+- [x] pages/member/ 会员页面
+- [x] pagesPet/checkin/ 3秒健康打卡
+- [x] pagesPet/food-query/ 食物安全查询
+- [x] pagesPet/symptom-check/ AI症状初筛
+- [x] pagesPet/trends/ 健康趋势图
+- [x] pagesPet/vaccine/ 疫苗驱虫日历
+- [x] pagesPet/breed/ 品种百科
+- [x] pagesPet/profile/ 宠物档案
+- [x] pagesPet/profile/add/ 添加宠物
+- [x] pagesPet/profile/edit/ 编辑宠物
 
 ### Store层
 - [x] petStore 宠物状态管理
@@ -83,6 +119,12 @@
 - [x] symptomStore 症状初筛状态管理
 - [x] trendStore 健康趋势状态管理
 - [x] vaccineStore 疫苗日历状态管理
+- [x] membershipStore 会员状态管理
+- [x] authStore 认证状态管理
+- [x] subscribeStore 订阅状态管理
+- [x] settingsStore 设置状态管理
+- [x] reminderStore 提醒状态管理
+- [x] cloudSyncStore 云同步状态管理
 
 ### Service层
 - [x] petService 宠物服务
@@ -91,8 +133,22 @@
 - [x] symptomService 症状初筛服务
 - [x] trendService 健康趋势服务
 - [x] vaccineService 疫苗日历服务
-- [x] quotaManager 配额管理
+- [x] membershipService 会员服务
 - [x] subscribeService 订阅服务
+- [x] notificationService 通知服务
+- [x] reminderService 提醒服务
+- [x] reportService 健康报告服务（纯文本功能）
+- [x] healthReportPdfService PDF报告服务（分包专用）
+- [x] authService 认证服务
+- [x] syncService 同步服务
+- [x] syncHelper 同步辅助
+- [x] supabaseClient Supabase客户端
+- [x] api HTTP请求封装
+- [x] shareService 分享服务
+- [x] npsService NPS服务
+- [x] dataPrivacyService 数据隐私服务
+- [x] frequencyControlService 频率控制服务
+- [x] avatarService 宠物头像服务
 
 ### Hook层
 - [x] usePet 宠物Hook
@@ -102,68 +158,167 @@
 - [x] useTrend 健康趋势Hook
 - [x] useVaccine 疫苗日历Hook
 - [x] useReminder 提醒Hook
+- [x] useAuth 认证Hook
+- [x] useUserStats 用户统计Hook
+- [x] useMembership 会员Hook
 
 ### 组件层
-- [x] VaccineCalendar 疫苗日历组件
-- [x] VaccineAddModal 疫苗添加弹窗
-- [x] VaccineRecordCard 疫苗记录卡片
+- [x] PetAvatar 宠物头像（表情+日记）
+- [x] AchievementCard 成就卡片
+- [x] PaywallPopup 付费墙弹窗
+- [x] UsageCounter 用量计数器
+- [x] PlanSelector 套餐选择器
 - [x] PetCard 宠物卡片
 - [x] PetSwitcher 宠物切换器
 - [x] PetDeceasedModal 宠物离世弹窗
-- [x] PaywallPopup 付费墙弹窗
+- [x] PrivacyPopup 隐私弹窗
+- [x] PageError 错误页面
+- [x] PageLoading 加载页面
+- [x] AccountDeletionConfirm 账号注销确认
+- [x] HealthReportPreview 健康报告预览
+- [x] FoodShareCard 食物分享卡片
+- [x] AnomalyMarker 异常标记
+- [x] GriefCompanion 哀伤伤陪伴（自包含，不依赖EmotionEngine）
+- [x] FloatingNav 浮动导航
+- [x] NpsSurvey NPS调查
+- [x] VaccineCalendar 疫苗日历
+- [x] VaccineAddModal 疫苗添加弹窗
+- [x] VaccineRecordCard 疫苗记录卡片
+- [x] HealthTrendShareCard 健康趋势分享卡片
+- [x] VaccineShareCard 疫苗分享卡片
 
-### 测试层
-- [x] services/__tests__/ 新方向服务测试
-- [x] stores/__tests__/ 新方向Store测试
-- [x] engines/petSafety/PetSafetyHandler.test.ts
+### Utils层
+- [x] storage 存储封装（加密/解密/敏感key检测）
+- [x] crypto 加密工具（AES + SHA256，按需引入crypto-js子模块）
+- [x] jwt JWT解析工具
+- [x] pdfGenerator PDF生成
+- [x] usageTracking 行为计数工具（食物查询/症状初筛计数）
 
-### memory-body适配器
-- [x] vaccineTrackerAdapter 疫苗追踪适配器
-
----
-
-## 旧方向代码（PRD v3.1 已废弃/降级，待清理）
-
-### 已废弃（暂不开发）
-- engines/emergency/ EmergencyEngine（降级为底层能力，非独立入口）
-- engines/outreach/ Day3InterventionEngine, OutreachScheduler, ProactiveEngine
-- engines/analysis/EmotionYearRingEngine
-- engines/ritual/DailyRitualEngine
-- engines/test/EmotionTestEngine（情绪测试暂不开发）
-- pages/emergency/ 紧急页面
-- pages/mood/ 情绪页面
-- pages/calendar/ 情绪日历页面
-- pages/ritual/ 仪式页面
-- pages/test/ 情绪测试页面
-- pages/treehole/ 树洞页面（暂不开发）
-- stores/emergencyStore, moodStore, outreachStore, scheduleStore, treeholeStore
-- services/emergencyService, moodService, outreachService, treeholeService
-- hooks/useEmergency, useMood, useOutreach, useCrisisDetection, useDailyRitual, useDay3Intervention, useEmotionTest, useEmotionYearRing, useFollowup, usePersonalizedMemory
-- components/ 旧组件: CrisisAlert, EmergencyAlert, EmergencyStep*, EmotionCalendar, DayDetailModal, MonthlySummary, MoodSelector, IntensitySlider, Treehole*, WhiteNoisePlayer, BreathingAnimation, ContextTagSelector, FloatingNav, AIFeedbackPopup
-- data/ 旧数据: crisisKeywords, emergencyFlows, emotionScenes, emotionTests, moodTags, outreachSuggestions, urgencyRules, whiteNoiseTracks
-
-### 降级为底层能力（保留但非独立入口）
-- EmergencyEngine → 情绪急救箱降级为底层能力，融入场景触发
-- 情绪感知能力 → 隐形化，不出现在功能列表和Tab Bar中
+### Logger层
+- [x] logger 日志模块（debug/info/warn/error）
 
 ---
 
-## M7 完成记录（2026-07-18）
+## 旧方向代码清理记录（2026-07-21 完成）
 
-- M7-1: 会员体系数据层 - membershipService.ts, membershipStore.ts, useMembership.ts
-- M7-2: 会员页面+权益对比+支付流程 - PlanSelector.tsx, UsageCounter.tsx, member/index.tsx, mine/index.tsx
-- M7-3: 首页重写+引导页+TabBar更新 - index/index.tsx重写, onboarding/index.tsx, app.config.ts TabBar, pet-profile移除FloatingNav
-- M7-4: 配额管理集成 - quotaManager升级会员感知, PaywallPopup连接会员页, food-query/symptom-check/trends集成PaywallPopup
-- M7-5: 集成测试 - membershipService.test.ts(29用例), quotaManager.test.ts更新(12用例), 全部通过
-- 新增文件: 15个, 修改文件: 8个
-- TypeScript编译: M7相关文件零错误
-- 测试: 41个用例全部通过
+### 已删除文件（30+）
+- 5 memory-body adapters: emotionIndexAdapter, crisisSafetyNetAdapter, outreachCoordinatorAdapter, interventionTrackerAdapter, patternDiscoveryAdapter
+- 11 memory-body core: memoryEvolution, memoryRetrieval, memoryIngestor, promptContextComposer, memoryBodyConfig, memoryBodyGuards, memoryGraph, contradictionDetector, sensitiveMemoryClassifier, forbiddenMemoryFilter, memoryFeedback, memoryDecay
+- 1 memory-body test: MemoryBodyHealth.test.ts
+- 1 memory-body safety: memoryPrivacyGuard.ts
+- 9 emotion files: emotionStore.ts, emotionStore.test.ts, EmotionResponseCard.tsx, EmotionResponseCard.scss, EmotionEngine.ts, EmotionEngine.test.ts, emotion/index.ts, emotionScenes.ts, emotionScenes.test.ts
+- 2 moodHelper files: moodHelper.ts, moodHelper.test.ts
+- 1 types file: emotionTypes.ts
+
+### 术语替换（P1-P3 全部完成）
+- login/index.tsx: "情绪急救箱"→"宠物健康守护", "3秒情绪打卡"→"3秒健康打卡", "情绪急救箱"→"健康急救指南", "深夜树洞"→"深夜陪伴"
+- subscribeService.ts: "干预任务提醒"→"护理任务提醒", "3天拆解干预每日任务提醒"→"3天护理计划每日任务提醒", "情绪打卡提醒"→"健康打卡提醒", "定时情绪记录提醒"→"定时健康记录提醒"
+- 常量重命名: INTERVENTION_REMINDER_TEMPLATE_ID→CARE_PLAN_REMINDER_TEMPLATE_ID, MOOD_CHECKIN_TEMPLATE_ID→HEALTH_CHECKIN_TEMPLATE_ID, requestInterventionSubscribe→requestCarePlanSubscribe
+- notificationService.ts: mood→healthStatus, interventionPlanId→carePlanId, sendInterventionReminder→sendCarePlanReminder
+- AccountDeletionConfirm.tsx: "情绪记录等"→"行为记录等"
+- app.config.ts: mood.png→health.png, mood-active.png→health-active.png
+- symptoms.ts: "情绪变化"→"行为变化"
+- global.scss/app.scss: 移除6个legacy emotion颜色变量
+- storage.ts: 移除9个legacy敏感key模式
+
+### 页面重构
+- checkin/index.tsx: 移除emotionStore/EmotionResponseCard依赖
+- food-query/index.tsx: 替换emotionStore为usageTracking
+- symptom-check/index.tsx: 替换emotionStore为usageTracking
+- index/index.tsx: 移除useEmotionStore/EmotionResponseCard/情绪干预逻辑
+- GriefCompanion.tsx: 自包含实现，内联哀伤关键词匹配逻辑
+
+### 类型清理
+- memoryBodyTypes.ts: 移除28个legacy类型，保留20+宠物健康类型
+- avatarTypes.ts: style类型从'q_cute'/'japanese_healing'/'american_cartoon'→'cartoon'/'realistic'
 
 ---
 
 ## 下一步行动
 
-1. M8: 最终集成测试+Bug修复+提交审核
-2. 验证完整用户流程
-3. 清理旧方向代码（删除或归档）
-4. 提交微信小程序审核
+1. Phase 2: AI职业顾问功能
+2. 后续优化: 替换 CryptoJS 为更轻量加密库（tweetnacl/Web Crypto API），可再减 ~118KB
+3. 后端代理服务搭建: /api/share/grant-reward, /api/pet-avatar/generate, /api/subscribe/send
+4. Supabase RLS 策略部署: 在 Supabase Dashboard 执行 init.sql
+
+---
+
+## Phase 1.5 真实服务集成记录（2026-07-21）
+
+### 模块1: 数据库 Schema 重写
+- 重写 `04-数据库/supabase/init.sql`：17张表 + RLS策略 + 存储桶 + 归属验证触发器
+- 核心设计：`pet_profiles.id` 为 TEXT（前端生成），`users.id` 为 UUID（Supabase Auth）
+- RLS 使用 `auth.uid() = user_id` 模式，所有用户数据表启用 RLS
+
+### 模块2: Supabase Client 集成
+- `supabaseClient.ts` 添加 camelCase ↔ snake_case 自动映射
+- `syncService.ts` 修复字段映射（userId/syncedAt 改为 camelCase）
+- `config/supabase.ts` 改进环境解析（开发环境自动启用 mock）
+- 创建 `.env.example`（Phase 1.5 全部环境变量）
+
+### 模块3: Seedream API 真实集成
+- `seedreamAdapter.ts` 重写：真实 API 调用 + 自动 SVG stub 回退
+- `avatarService.ts` 修复：移除硬编码 ID，使用真实 pet/user ID
+- 环境变量驱动 stub 开关：`shouldUseStub = !(process.env.TARO_APP_API_BASE_URL)`
+
+### 模块4: 微信订阅消息模板ID统一管理
+- 创建 `constants/templateIds.ts`：4个模板ID集中管理，环境变量读取
+- `subscribeService.ts`：移除本地模板ID定义，改为从 constants 导入
+- `frequencyControlService.ts`：DEFAULT_RULES 引用 constants 常量（修复循环依赖）
+- `reminderService.ts`：VACCINE_REMINDER_TEMPLATE_ID 改为从 constants 导入
+
+### 安全审查修复（P0+P1）
+
+**P0-1: JWT 签名验证缺失**
+- `jwt.ts`：`verifyToken` 重命名为 `isTokenFormatValid`（仅本地过期检查），保留别名兼容
+- 新增 `validateTokenWithServer`：通过 Supabase Auth API 真实验证 token
+- `authGuard.ts`：新增 `requireAuthAsync`（服务端验证），`requireAuth` 保留本地快速检查
+
+**P0-2: 奖励值无后端校验**
+- `shareService.ts`：`grantShareReward` 改为调用后端代理 `/api/share/grant-reward`
+- 移除直接向 Supabase 插入 reward_value 的代码
+
+**P1-1: 加密盐值硬编码**
+- `crypto.ts`：`APP_SALT` 改为从环境变量 `TARO_APP_CRYPTO_SALT` 读取，开发环境 fallback
+
+**P1-2: Token 明文存储**
+- `storage.ts`：`SENSITIVE_KEY_PATTERNS` 新增 `token`、`refresh_token`、`user`
+
+**P1-3/P1-4: 宠物归属校验缺失**
+- 新增 `utils/petOwnership.ts`：`requirePetOwnership` + `isPetOwnerLocal`
+- `checkinService.ts`：createCheckin/getCheckins/getCheckinsByDateRange 添加归属校验
+- `foodService.ts`：queryFood/getQueryHistory 添加归属校验
+- `reportService.ts`：generateHealthReport 添加归属校验
+
+---
+
+## 安全审查记录（2026-07-21）
+
+### P0 风险修复（6项，全部已修复）
+
+1. **API请求传递userId可伪造** → 移除所有API请求中的userId参数，后端从JWT token提取
+2. **Supabase RLS未配置** → 前端SupabaseClient已携带Authorization header，需在Supabase侧配置RLS策略 `user_id = auth.uid()`
+3. **生产环境Mock模式回退** → supabase.ts添加生产环境硬禁用检查
+4. **会员/订单接口userId可伪造** → membershipService移除所有API请求中的userId参数
+5. **宠物数据归属校验** → petService API路径不含userId，后端从token提取
+6. **支付回调userId验证** → confirmPayment移除userId参数，后端从token提取
+
+### 新增安全模块
+
+- `src/utils/authGuard.ts` — 统一认证守卫（getAuthenticatedUserId/requireAuth/isAuthenticated）
+- `src/utils/__tests__/authGuard.test.ts` — 12个测试用例
+
+### P1 风险修复
+
+- SupabaseClient添加baseUrl/anonKey配置检查
+- api.ts添加403状态码处理
+- api.ts错误信息长度限制（<100字符），防止泄露内部堆栈
+- authGuard catch块区分AuthenticationError和JSON解析错误
+
+### 用户流程走查结果
+
+- ✅ 路由完整性：18个页面全部注册，TabBar 4项配置正确
+- ✅ 页面入口可达性：所有功能页面都有导航入口
+- ✅ 功能闭环：8个核心流程完整
+- ⚠️ 分享功能：vaccine/checkin页面已补充useShareAppMessage
+- ✅ 错误处理：关键页面都有PageLoading/PageError

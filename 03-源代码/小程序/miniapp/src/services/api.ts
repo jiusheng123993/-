@@ -44,8 +44,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         url: `${BASE_URL}${path}`,
         method,
         data,
-        header: headers,
-        timeout: REQUEST_TIMEOUT
+        header: headers
       });
 
       if (res.statusCode === 200 || res.statusCode === 201) {
@@ -55,6 +54,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         Taro.removeStorageSync('xhh_refresh_token');
         Taro.navigateTo({ url: '/pages/login/index' });
         throw new Error('未授权，请重新登录');
+      } else if (res.statusCode === 403) {
+        throw new Error('无权访问该资源');
       } else if (res.statusCode === 429) {
         throw new Error('请求过于频繁，请稍后再试');
       } else if (res.statusCode >= 500) {
@@ -64,8 +65,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         }
         throw new Error(`服务器错误: ${res.statusCode}`);
       } else {
-        const errMsg = res.data?.message || res.data?.error || `API错误: ${res.statusCode}`;
-        throw new Error(typeof errMsg === 'string' ? errMsg : `API错误: ${res.statusCode}`);
+        const errMsg = res.data?.message || res.data?.error;
+        const safeMsg = typeof errMsg === 'string' && errMsg.length < 100 ? errMsg : `API错误: ${res.statusCode}`;
+        throw new Error(safeMsg);
       }
     } catch (err) {
       if (err instanceof Error && err.message.includes('request:fail')) {

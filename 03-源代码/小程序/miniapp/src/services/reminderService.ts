@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro';
 import type { VaccineRecord } from './vaccineService';
 import { getStorage, setStorage } from '../utils/storage';
+import { VACCINE_REMINDER_TEMPLATE_ID } from '../constants/templateIds';
 
 export interface ReminderItem {
   record: VaccineRecord;
@@ -20,7 +21,6 @@ export interface LocalReminder {
 
 const SUBSCRIPTION_STATUS_KEY = 'vaccine_reminder_subscribed';
 const LOCAL_REMINDERS_KEY = 'vaccine_local_reminders';
-const VACCINE_REMINDER_TEMPLATE_ID = (process.env as Record<string, string | undefined>).TARO_APP_VACCINE_REMINDER_TEMPLATE_ID || 'VACCINE_REMINDER_TEMPLATE_ID_PLACEHOLDER';
 
 function getTodayStr(): string {
   const now = new Date();
@@ -160,4 +160,4 @@ export function clearLocalReminders(petId: string): void {
   setStorage(LOCAL_REMINDERS_KEY, filtered);
 }
 
-export { VACCINE_REMINDER_TEMPLATE_ID };
+export { VACCINE_REMINDER_TEMPLATE_ID } from '../constants/templateIds'

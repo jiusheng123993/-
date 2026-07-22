@@ -19,6 +19,9 @@ const SYMPTOM_YELLOW_DISCLAIMER = '建议持续观察，如症状持续或加重
 const SYMPTOM_GREEN_DISCLAIMER = GENERAL_DISCLAIMER;
 const CHECKIN_ANOMALY_DISCLAIMER = '检测到健康指标异常，建议持续关注。如持续异常请及时就医。本评估不替代专业诊断。';
 const CHECKIN_NORMAL_DISCLAIMER = GENERAL_DISCLAIMER;
+const TREND_DISCLAIMER = '⚠️ 健康趋势分析仅供参考，不替代兽医诊断。如发现异常请及时就医。';
+const VACCINE_DISCLAIMER = '️ 疫苗提醒仅供参考，请遵循兽医建议按时接种。具体接种方案请咨询专业兽医。';
+const BREED_DISCLAIMER = '⚠️ 品种健康信息仅供参考，不替代专业兽医诊断。如有健康疑虑请及时就医。';
 
 const FOOD_SAFETY_TO_HEALTH_RISK: Record<FoodSafetyLevel, HealthRiskLevel> = {
   toxic: 'emergency',
@@ -39,7 +42,7 @@ const HEALTH_RISK_DISCLAIMER_MAP: Record<HealthRiskLevel, string> = {
 };
 
 export class MedicalDisclaimer {
-  getDisclaimer(urgency: UrgencyLevel, context: 'food' | 'symptom' | 'checkin'): string {
+  getDisclaimer(urgency: UrgencyLevel, context: 'food' | 'symptom' | 'checkin' | 'trend' | 'vaccine' | 'breed'): string {
     switch (context) {
       case 'food':
         return this.getFoodDisclaimerByUrgency(urgency);
@@ -47,6 +50,12 @@ export class MedicalDisclaimer {
         return this.getSymptomDisclaimer(urgency);
       case 'checkin':
         return this.getCheckinDisclaimer(urgency !== 'green');
+      case 'trend':
+        return this.getTrendDisclaimer();
+      case 'vaccine':
+        return this.getVaccineDisclaimer();
+      case 'breed':
+        return this.getBreedDisclaimer();
       default:
         return GENERAL_DISCLAIMER;
     }
@@ -92,6 +101,18 @@ export class MedicalDisclaimer {
 
   getCheckinDisclaimer(hasAnomaly: boolean): string {
     return hasAnomaly ? CHECKIN_ANOMALY_DISCLAIMER : CHECKIN_NORMAL_DISCLAIMER;
+  }
+
+  getTrendDisclaimer(): string {
+    return TREND_DISCLAIMER;
+  }
+
+  getVaccineDisclaimer(): string {
+    return VACCINE_DISCLAIMER;
+  }
+
+  getBreedDisclaimer(): string {
+    return BREED_DISCLAIMER;
   }
 
   private getFoodDisclaimerByUrgency(urgency: UrgencyLevel): string {

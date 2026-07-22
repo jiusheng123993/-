@@ -2,18 +2,6 @@ export { PetSafetyHandler } from '../engines/petSafety/PetSafetyHandler'
 export { ToxicFoodFilter } from '../engines/petSafety/ToxicFoodFilter'
 export { MedicalDisclaimer } from '../engines/petSafety/MedicalDisclaimer'
 export {
-  matchEmotionScenes,
-  getTopEmotionMatch,
-  matchByKeywords,
-  formatResponseContent,
-  formatSuggestions,
-  buildEmotionContext,
-  detectNewUserAnxiety,
-  detectIllnessAnxiety,
-  type EmotionEngineContext,
-  type EmotionMatchResult
-} from '../engines/emotion/EmotionEngine'
-export {
   calculateExpression,
   getExpressionForFoodResult,
   getExpressionForSymptomResult,
@@ -30,3 +18,26 @@ export {
   type SvgPetFace,
   type DiaryEntry
 } from '../engines/petAvatar'
+
+export {
+  evaluateTrigger,
+  detectGriefStage,
+  getGriefResponse,
+  getGriefOpening,
+  getGriefClosing,
+  getGriefFollowUp,
+  detectSickAnxiety,
+  getSickAnxietyMessage,
+  detectNewOwnerAnxiety,
+  getNewOwnerAnxietyMessage,
+  shouldTriggerEmotionIntervention,
+  createIntervention,
+  getDisclaimer,
+  type GriefStage,
+  type EmotionSceneType,
+  type AnxietyLevel,
+  type SickAnxietyContext,
+  type NewOwnerAnxietyContext,
+  type EmotionIntervention,
+} from '../engines/emotion'
+

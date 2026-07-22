@@ -30,7 +30,7 @@ vi.mock('@tarojs/taro', () => ({
 vi.mock('../subscribeService', () => ({
   hasAcceptedSubscribe: vi.fn(() => false),
   FOLLOWUP_TEMPLATE_ID: 'FOLLOWUP_TEMPLATE_ID_PLACEHOLDER',
-  INTERVENTION_REMINDER_TEMPLATE_ID: 'INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER',
+  CARE_PLAN_REMINDER_TEMPLATE_ID: 'CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER',
   requestFollowupSubscribe: vi.fn(() => Promise.resolve(false)),
   sendSubscribeMessage: vi.fn(() => Promise.resolve(false)),
 }))
@@ -40,17 +40,13 @@ vi.mock('../frequencyControlService', () => ({
   recordSend: vi.fn(),
 }))
 
-vi.mock('../../utils/moodHelper', () => ({
-  getMoodDisplayName: vi.fn((mood: string) => mood),
-}))
-
 import {
   scheduleFollowup,
   cancelFollowup,
   getPendingFollowups,
   getFollowupBySessionId,
   checkAndSendFollowups,
-  sendInterventionReminder,
+  sendCarePlanReminder,
   updateFollowupStatus,
   clearExpiredFollowups,
   getFollowupStats,
@@ -59,14 +55,13 @@ import type { PendingFollowup } from '../notificationService'
 import { hasAcceptedSubscribe, requestFollowupSubscribe, sendSubscribeMessage } from '../subscribeService'
 import { checkFrequency, recordSend } from '../frequencyControlService'
 import { getStorage, setStorage } from '../../utils/storage'
-import { getMoodDisplayName } from '../../utils/moodHelper'
 import Taro from '@tarojs/taro'
 
 function makeFollowup(overrides: Partial<PendingFollowup> = {}): PendingFollowup {
   return {
     sessionId: 'session-001',
     flowId: 'flow-001',
-    mood: 'sad',
+    healthStatus: 'sad',
     scheduledDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     createdAt: Date.now(),
     status: 'pending',
@@ -88,7 +83,7 @@ describe('notificationService', () => {
 
       expect(result.sessionId).toBe('session-001')
       expect(result.flowId).toBe('flow-001')
-      expect(result.mood).toBe('sad')
+      expect(result.healthStatus).toBe('sad')
       expect(result.status).toBe('pending')
       expect(result.sendAttempts).toBe(0)
       expect(result.subscribeAccepted).toBe(false)
@@ -105,7 +100,7 @@ describe('notificationService', () => {
 
       expect(result.sessionId).toBe('session-001')
       expect(result.flowId).toBe('flow-001')
-      expect(result.mood).toBe('sad')
+      expect(result.healthStatus).toBe('sad')
     })
 
     it('should return existing sent followup if one exists for the session', () => {
@@ -125,7 +120,7 @@ describe('notificationService', () => {
       const result = scheduleFollowup('session-001', 'flow-002', 'anxious')
 
       expect(result.flowId).toBe('flow-002')
-      expect(result.mood).toBe('anxious')
+      expect(result.healthStatus).toBe('anxious')
       expect(result.status).toBe('pending')
     })
 
@@ -528,7 +523,7 @@ describe('notificationService', () => {
       await vi.waitFor(() => {
         expect(Taro.showToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            title: expect.stringContaining('sad'),
+            title: expect.stringContaining('健康提醒'),
             icon: 'none',
             duration: 3000,
           })
@@ -536,7 +531,7 @@ describe('notificationService', () => {
       })
     })
 
-    it('should use getMoodDisplayName for toast message', async () => {
+    it('should use mood string directly for toast message', async () => {
       vi.mocked(checkFrequency).mockReturnValue({ allowed: true, remainingToday: 2, remainingThisWeek: 5 })
 
       const pastFollowup = makeFollowup({
@@ -544,38 +539,36 @@ describe('notificationService', () => {
         status: 'pending',
         scheduledDate: new Date(Date.now() - 1000).toISOString(),
         subscribeAccepted: false,
-        mood: 'anxious',
+        healthStatus: 'anxious',
       })
       mockStorage['xhh_pending_followups'] = JSON.stringify([pastFollowup])
-      vi.mocked(getMoodDisplayName).mockReturnValue('焦虑')
 
       checkAndSendFollowups()
 
       await vi.waitFor(() => {
-        expect(getMoodDisplayName).toHaveBeenCalledWith('anxious')
         expect(Taro.showToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            title: expect.stringContaining('焦虑'),
+            title: expect.stringContaining('健康提醒'),
           })
         )
       })
     })
   })
 
-  describe('sendInterventionReminder', () => {
+  describe('sendCarePlanReminder', () => {
     it('should call sendSubscribeMessage with correct template and data', async () => {
       vi.mocked(sendSubscribeMessage).mockResolvedValue(true)
 
-      const result = await sendInterventionReminder('plan-001', 1, '深呼吸练习', '每天做3次深呼吸')
+      const result = await sendCarePlanReminder('plan-001', 1, '深呼吸练习', '每天做3次深呼吸')
 
       expect(sendSubscribeMessage).toHaveBeenCalledWith(
-        'INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER',
+        'CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER',
         expect.objectContaining({
           thing1: { value: expect.stringContaining('深呼吸练习') },
           time2: { value: expect.any(String) },
           thing3: { value: expect.stringContaining('每天做3次深呼吸') },
         }),
-        '/pages/index/index?interventionPlanId=plan-001&day=1'
+        '/pages/index/index?carePlanId=plan-001&day=1'
       )
       expect(result).toBe(true)
     })
@@ -583,7 +576,7 @@ describe('notificationService', () => {
     it('should return false when sendSubscribeMessage returns false', async () => {
       vi.mocked(sendSubscribeMessage).mockResolvedValue(false)
 
-      const result = await sendInterventionReminder('plan-001', 2, '散步', '去公园走走')
+      const result = await sendCarePlanReminder('plan-001', 2, '散步', '去公园走走')
 
       expect(result).toBe(false)
     })
@@ -592,7 +585,7 @@ describe('notificationService', () => {
       vi.mocked(sendSubscribeMessage).mockResolvedValue(true)
       const longTitle = '这是一个非常非常非常非常非常非常非常长的任务标题'
 
-      await sendInterventionReminder('plan-001', 3, longTitle, 'desc')
+      await sendCarePlanReminder('plan-001', 3, longTitle, 'desc')
 
       const callArgs = vi.mocked(sendSubscribeMessage).mock.calls[0][1]
       expect(callArgs.thing1.value.length).toBeLessThanOrEqual(20)
@@ -601,12 +594,12 @@ describe('notificationService', () => {
     it('should pass correct page path with planId and day', async () => {
       vi.mocked(sendSubscribeMessage).mockResolvedValue(true)
 
-      await sendInterventionReminder('plan-abc', 3, 'task', 'desc')
+      await sendCarePlanReminder('plan-abc', 3, 'task', 'desc')
 
       expect(sendSubscribeMessage).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(Object),
-        '/pages/index/index?interventionPlanId=plan-abc&day=3'
+        '/pages/index/index?carePlanId=plan-abc&day=3'
       )
     })
   })

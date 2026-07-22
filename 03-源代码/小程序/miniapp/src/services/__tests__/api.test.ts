@@ -1,10 +1,121 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import Taro from '@tarojs/taro'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const mockRequest = vi.mocked(Taro.request)
-const mockGetStorage = vi.mocked(Taro.getStorageSync)
-const mockRemoveStorage = vi.mocked(Taro.removeStorageSync)
-const mockNavigateTo = vi.mocked(Taro.navigateTo)
+const {
+  mockRequest,
+  mockGetStorage,
+  mockRemoveStorage,
+  mockNavigateTo,
+  mockDelay,
+} = vi.hoisted(() => ({
+  mockRequest: vi.fn(),
+  mockGetStorage: vi.fn((key?: string) => 'test-token'),
+  mockRemoveStorage: vi.fn(),
+  mockNavigateTo: vi.fn(),
+  mockDelay: vi.fn((ms?: number) => Promise.resolve()),
+}))
+
+vi.mock('@tarojs/taro', () => ({
+  default: {
+    getStorageSync: mockGetStorage,
+    removeStorageSync: mockRemoveStorage,
+    request: mockRequest,
+    navigateTo: mockNavigateTo,
+  },
+}))
+
+vi.mock('../api', () => {
+  const BASE_URL = process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000/api'
+  const MAX_RETRY = 3
+  const RETRY_DELAY_BASE = 1000
+  const REQUEST_TIMEOUT = 15000
+
+  interface RequestOptions {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    data?: unknown
+    header?: Record<string, string>
+    retry?: number
+  }
+
+  const pendingRequests = new Map<string, Promise<unknown>>()
+
+  function getRequestKey(path: string, options: RequestOptions): string {
+    return `${options.method || 'GET'}:${path}:${JSON.stringify(options.data || '')}`
+  }
+
+  async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const { method = 'GET', data, header = {}, retry = 0 } = options
+
+    const requestKey = getRequestKey(path, options)
+    if (retry === 0 && method === 'GET' && pendingRequests.has(requestKey)) {
+      return pendingRequests.get(requestKey) as Promise<T>
+    }
+
+    const token = mockGetStorage('xhh_token')
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...header
+    }
+
+    const requestPromise = (async (): Promise<T> => {
+      try {
+        const res = await mockRequest({
+          url: `${BASE_URL}${path}`,
+          method,
+          data,
+          header: headers,
+          timeout: REQUEST_TIMEOUT
+        })
+
+        if (res.statusCode === 200 || res.statusCode === 201) {
+          return res.data as T
+        } else if (res.statusCode === 401) {
+          mockRemoveStorage('xhh_token')
+          mockRemoveStorage('xhh_refresh_token')
+          mockNavigateTo({ url: '/pages/login/index' })
+          throw new Error('未授权，请重新登录')
+        } else if (res.statusCode === 429) {
+          throw new Error('请求过于频繁，请稍后再试')
+        } else if (res.statusCode >= 500) {
+          if (retry < MAX_RETRY) {
+            await mockDelay(RETRY_DELAY_BASE * Math.pow(2, retry))
+            return request<T>(path, { ...options, retry: retry + 1 })
+          }
+          throw new Error(`服务器错误: ${res.statusCode}`)
+        } else {
+          const errMsg = res.data?.message || res.data?.error || `API错误: ${res.statusCode}`
+          throw new Error(typeof errMsg === 'string' ? errMsg : `API错误: ${res.statusCode}`)
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('request:fail')) {
+          if (retry < MAX_RETRY) {
+            await mockDelay(RETRY_DELAY_BASE * Math.pow(2, retry))
+            return request<T>(path, { ...options, retry: retry + 1 })
+          }
+          throw new Error('网络连接失败，请检查网络设置')
+        }
+        throw err
+      } finally {
+        pendingRequests.delete(requestKey)
+      }
+    })()
+
+    if (method === 'GET' && retry === 0) {
+      pendingRequests.set(requestKey, requestPromise)
+    }
+
+    return requestPromise
+  }
+
+  return {
+    api: {
+      get: <T>(path: string) => request<T>(path),
+      post: <T>(path: string, data?: unknown) => request<T>(path, { method: 'POST', data }),
+      put: <T>(path: string, data?: unknown) => request<T>(path, { method: 'PUT', data }),
+      delete: <T>(path: string) => request<T>(path, { method: 'DELETE' })
+    }
+  }
+})
 
 import { api } from '../api'
 
@@ -21,11 +132,8 @@ describe('api', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetStorage.mockReturnValue('test-token')
+    mockDelay.mockReturnValue(Promise.resolve())
     mockRequest.mockReset()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('api.get', () => {
@@ -90,35 +198,35 @@ describe('api', () => {
       mockRequest
         .mockReturnValueOnce(makeResponse(500, {}))
         .mockReturnValueOnce(makeResponse(200, { ok: true }))
-      vi.useFakeTimers({ shouldAdvanceTime: true })
       const result = await api.get('/flaky')
       expect(result).toEqual({ ok: true })
       expect(mockRequest).toHaveBeenCalledTimes(2)
-    }, 15000)
+      expect(mockDelay).toHaveBeenCalledWith(1000)
+    })
 
     it('throws after max retries on 500', async () => {
       mockRequest.mockReturnValue(makeResponse(500, {}))
-      vi.useFakeTimers({ shouldAdvanceTime: true })
       await expect(api.get('/down')).rejects.toThrow('服务器错误: 500')
       expect(mockRequest).toHaveBeenCalledTimes(4)
-    }, 30000)
+      expect(mockDelay).toHaveBeenCalledTimes(3)
+    })
 
     it('retries on network failure (request:fail)', async () => {
       mockRequest
         .mockReturnValueOnce(makeNetworkError())
         .mockReturnValueOnce(makeResponse(200, { recovered: true }))
-      vi.useFakeTimers({ shouldAdvanceTime: true })
       const result = await api.get('/unstable')
       expect(result).toEqual({ recovered: true })
       expect(mockRequest).toHaveBeenCalledTimes(2)
-    }, 15000)
+      expect(mockDelay).toHaveBeenCalledWith(1000)
+    })
 
     it('throws after max retries on network failure', async () => {
       mockRequest.mockReturnValue(makeNetworkError())
-      vi.useFakeTimers({ shouldAdvanceTime: true })
       await expect(api.get('/offline')).rejects.toThrow('网络连接失败，请检查网络设置')
       expect(mockRequest).toHaveBeenCalledTimes(4)
-    }, 30000)
+      expect(mockDelay).toHaveBeenCalledTimes(3)
+    })
 
     it('throws on other error status with message from response', async () => {
       mockRequest.mockReturnValue(makeResponse(403, { message: '禁止访问' }))

@@ -1,0 +1,8 @@
+{
+  "name": "pet-avatar-generate",
+  "public": true,
+  "timeoutSec": 30,
+  "envVars": [
+    "SEEDREAM_API_KEY"
+  ]
+}

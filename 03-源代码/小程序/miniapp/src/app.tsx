@@ -34,8 +34,12 @@ function App({ children }: PropsWithChildren<{}>) {
             useMembershipStore.getState().initUser(user.id),
             useTrendStore.getState().initUser(user.id),
           ])
+        } else {
+          // 用户未登录，跳转到登录页面
+          Taro.redirectTo({ url: '/pages/login/index' })
         }
       } catch (err) {
+        console.error('App initialization error:', err)
       }
     }
     initApp()

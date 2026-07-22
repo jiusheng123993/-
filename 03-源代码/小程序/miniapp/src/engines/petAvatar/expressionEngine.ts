@@ -1,24 +1,6 @@
-import type { PetHealthEntry, HealthRiskLevel } from '../../memory-body/types/memoryBodyTypes'
+import type { PetHealthEntry, HealthRiskLevel, PetExpression, ExpressionConfig, ExpressionContext, AnimationType } from '../../types/avatarTypes'
 
-export type PetExpression =
-  | 'happy'
-  | 'worried'
-  | 'concerned'
-  | 'anxious'
-  | 'sleepy'
-  | 'proud'
-  | 'excited'
-  | 'scared'
-
-export interface ExpressionConfig {
-  expression: PetExpression
-  label: string
-  color: string
-  eyes: string
-  mouth: string
-  accessory: string
-  animation: string
-}
+export type { PetExpression, ExpressionConfig, ExpressionContext }
 
 export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
   happy: {
@@ -28,7 +10,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'happy',
     mouth: 'smile',
     accessory: 'blush',
-    animation: 'bounce'
+    animation: 'bounce' as AnimationType,
   },
   worried: {
     expression: 'worried',
@@ -37,7 +19,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'half',
     mouth: 'frown',
     accessory: 'cold_bubble',
-    animation: 'pulse'
+    animation: 'pulse' as AnimationType,
   },
   concerned: {
     expression: 'concerned',
@@ -46,7 +28,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'round',
     mouth: 'worried',
     accessory: 'hospital',
-    animation: 'shake'
+    animation: 'shake' as AnimationType,
   },
   anxious: {
     expression: 'anxious',
@@ -55,7 +37,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'wide',
     mouth: 'gasp',
     accessory: 'sweat',
-    animation: 'flash'
+    animation: 'flash' as AnimationType,
   },
   sleepy: {
     expression: 'sleepy',
@@ -64,7 +46,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'closed',
     mouth: 'zzz',
     accessory: 'drool',
-    animation: 'float'
+    animation: 'float' as AnimationType,
   },
   proud: {
     expression: 'proud',
@@ -73,7 +55,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'sparkle',
     mouth: 'big_smile',
     accessory: 'crown',
-    animation: 'glow'
+    animation: 'glow' as AnimationType,
   },
   excited: {
     expression: 'excited',
@@ -82,7 +64,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'star',
     mouth: 'open_smile',
     accessory: 'confetti',
-    animation: 'jump'
+    animation: 'jump' as AnimationType,
   },
   scared: {
     expression: 'scared',
@@ -91,20 +73,8 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
     eyes: 'shocked',
     mouth: 'gasp',
     accessory: 'warning',
-    animation: 'tremble'
-  }
-}
-
-export interface ExpressionContext {
-  todayEntry: PetHealthEntry | null
-  hasAnomaly: boolean
-  anomalyCount: number
-  riskLevel: HealthRiskLevel | null
-  streakDays: number
-  isBirthday: boolean
-  isVaccineComplete: boolean
-  isRecovery: boolean
-  isDeceased: boolean
+    animation: 'tremble' as AnimationType,
+  },
 }
 
 export function calculateExpression(ctx: ExpressionContext): ExpressionConfig {

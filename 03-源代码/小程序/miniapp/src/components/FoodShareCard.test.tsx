@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 
+const mockShowShareMenu = vi.hoisted(() => vi.fn())
+const mockShowToast = vi.hoisted(() => vi.fn())
+
 vi.mock('@tarojs/components', () => ({
   View: ({ children, className, style, onClick }: any) => (
     <div className={className} style={style} onClick={onClick}>{children}</div>
@@ -11,6 +14,22 @@ vi.mock('@tarojs/components', () => ({
   Image: ({ src, className, mode }: any) => (
     <img className={className} src={src} alt="" data-mode={mode} />
   ),
+  Canvas: (props: any) => <canvas {...props} />,
+}))
+
+vi.mock('@tarojs/taro', () => ({
+  default: {
+    showShareMenu: mockShowShareMenu,
+    showToast: mockShowToast,
+    createSelectorQuery: vi.fn(),
+    canvasToTempFilePath: vi.fn(),
+    saveImageToPhotosAlbum: vi.fn(),
+  },
+}))
+
+vi.mock('../utils/shareCanvasRenderer', () => ({
+  renderShareCardToCanvas: vi.fn().mockRejectedValue(new Error('no canvas')),
+  saveShareImage: vi.fn(),
 }))
 
 import FoodShareCard from './FoodShareCard'
@@ -62,13 +81,15 @@ describe('FoodShareCard', () => {
     expect(screen.getByText('+2')).toBeDefined()
   })
 
-  it('点击分享按钮触发 onShare 回调', () => {
-    render(<FoodShareCard {...baseProps} />)
+  it('点击分享按钮触发 showShareMenu 和 onShare', () => {
+    const onShare = vi.fn()
+    render(<FoodShareCard {...baseProps} onShare={onShare} />)
 
     const shareBtn = screen.getByText('分享给好友').closest('div')
     fireEvent.click(shareBtn!)
 
-    expect(baseProps.onShare).toHaveBeenCalledTimes(1)
+    expect(mockShowShareMenu).toHaveBeenCalledWith({ withShareTicket: true })
+    expect(onShare).toHaveBeenCalledTimes(1)
   })
 
   it('宠物头像和名字正确显示', () => {
@@ -83,5 +104,10 @@ describe('FoodShareCard', () => {
     render(<FoodShareCard {...baseProps} petAvatar={undefined} />)
 
     expect(screen.getByText('🐾')).toBeDefined()
+  })
+
+  it('渲染保存图片按钮', () => {
+    render(<FoodShareCard {...baseProps} />)
+    expect(screen.getByText('保存图片')).toBeDefined()
   })
 })

@@ -30,6 +30,11 @@ vi.mock('../api', () => ({
   },
 }))
 
+vi.mock('../../utils/petOwnership', () => ({
+  requirePetOwnership: vi.fn(),
+  isPetOwnerLocal: vi.fn(() => true),
+}))
+
 import { api } from '../api'
 import {
   createCheckin,

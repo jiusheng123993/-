@@ -1,0 +1,215 @@
+.crisis-referral {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 32px;
+
+  &--moderate {
+    .crisis-referral__card {
+      border-top: 6px solid #F59E0B;
+    }
+
+    .crisis-referral__hotline {
+      background: #FFFBEB;
+      border-color: #F59E0B;
+    }
+
+    .crisis-referral__hotline-number {
+      color: #D97706;
+    }
+
+    .crisis-referral__call-btn {
+      background: #F59E0B;
+    }
+  }
+
+  &--severe {
+    .crisis-referral__card {
+      border-top: 6px solid #EF4444;
+    }
+
+    .crisis-referral__hotline {
+      background: #FFF3E0;
+      border-color: #FF9800;
+    }
+
+    .crisis-referral__hotline-number {
+      color: #FF6F00;
+    }
+
+    .crisis-referral__call-btn {
+      background: #EF4444;
+    }
+  }
+
+  &__card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 48px 32px 32px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+  }
+
+  &__icon {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  &__message {
+    font-size: 28px;
+    color: #333;
+    line-height: 1.6;
+    display: block;
+    margin-bottom: 32px;
+  }
+
+  &__hotline {
+    border: 2px solid #FF9800;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  &__hotline-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  &__hotline-number {
+    font-size: 40px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  &__hotline-label {
+    font-size: 22px;
+    color: #999;
+    display: block;
+  }
+
+  &__emergency-section {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  &__emergency-item {
+    flex: 1;
+    background: #FEF2F2;
+    border: 2px solid #FECACA;
+    border-radius: 16px;
+    padding: 16px 8px;
+  }
+
+  &__emergency-icon {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  &__emergency-text {
+    font-size: 22px;
+    color: #DC2626;
+    display: block;
+  }
+
+  &__moderate-tips {
+    background: #FFFBEB;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  &__tip-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  &__tip-icon {
+    font-size: 28px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  &__tip-text {
+    font-size: 24px;
+    color: #92400E;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  &__call-btn {
+    flex: 1;
+    background: #FF6F00;
+    border-radius: 40px;
+    padding: 20px 0;
+  }
+
+  &__call-text {
+    color: #fff;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  &__dismiss-btn {
+    flex: 1;
+    background: #f5f5f5;
+    border-radius: 40px;
+    padding: 20px 0;
+  }
+
+  &__dismiss-text {
+    color: #666;
+    font-size: 28px;
+  }
+
+  &__follow-up {
+    display: flex;
+    gap: 16px;
+  }
+
+  &__follow-up-btn {
+    flex: 1;
+    border-radius: 40px;
+    padding: 16px 0;
+
+    &--primary {
+      background: #F0F9FF;
+      border: 2px solid #3B82F6;
+    }
+
+    &--secondary {
+      background: #F9FAFB;
+      border: 2px solid #E5E7EB;
+    }
+  }
+
+  &__follow-up-text {
+    font-size: 24px;
+
+    .crisis-referral__follow-up-btn--primary & {
+      color: #3B82F6;
+    }
+
+    .crisis-referral__follow-up-btn--secondary & {
+      color: #9CA3AF;
+    }
+  }
+}

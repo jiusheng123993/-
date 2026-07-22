@@ -156,7 +156,7 @@ function saveLocalOrders(userId: string, orders: PaymentOrder[]): void {
 export async function getMembershipStatus(userId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
   try {
-    const result = await api.get<MembershipInfo>(`/membership?userId=${userId}`)
+    const result = await api.get<MembershipInfo>('/membership')
     saveLocalMembership(userId, result)
     return result
   } catch {
@@ -183,7 +183,6 @@ export async function createPaymentOrder(userId: string, plan: MembershipPlan): 
   if (!userId) throw new Error('[MembershipService] userId is required')
   const productId = `membership_${plan}`
   const result = await api.post<CreateOrderResult>('/orders', {
-    userId,
     productId,
     channel: 'wechat',
   })
@@ -230,7 +229,7 @@ export async function pollOrderStatus(orderId: string, maxAttempts: number = 10,
 
 export async function confirmPayment(userId: string, orderId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
-  const result = await api.post<MembershipInfo>('/membership/payment-callback', { userId, orderId })
+  const result = await api.post<MembershipInfo>('/membership/payment-callback', { orderId })
   saveLocalMembership(userId, result)
   return result
 }
@@ -239,7 +238,7 @@ export async function cancelMembership(userId: string): Promise<MembershipInfo> 
   if (!userId) throw new Error('[MembershipService] userId is required')
 
   try {
-    const result = await api.post<MembershipInfo>('/membership/cancel', { userId })
+    const result = await api.post<MembershipInfo>('/membership/cancel', {})
     saveLocalMembership(userId, result)
     return result
   } catch {
@@ -258,7 +257,7 @@ export async function cancelMembership(userId: string): Promise<MembershipInfo> 
 export async function restorePurchase(userId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
   try {
-    const result = await api.post<MembershipInfo>('/membership/restore', { userId })
+    const result = await api.post<MembershipInfo>('/membership/restore', {})
     saveLocalMembership(userId, result)
     return result
   } catch {
@@ -269,7 +268,7 @@ export async function restorePurchase(userId: string): Promise<MembershipInfo> {
 export async function getOrders(userId: string): Promise<PaymentOrder[]> {
   if (!userId) throw new Error('[MembershipService] userId is required')
   try {
-    const result = await api.get<PaymentOrder[]>(`/membership/orders?userId=${userId}`)
+    const result = await api.get<PaymentOrder[]>('/membership/orders')
     saveLocalOrders(userId, result)
     return result
   } catch {
@@ -298,7 +297,7 @@ export async function checkFeatureAccess(userId: string, featureKey: string): Pr
   if (!userId) throw new Error('[MembershipService] userId is required')
 
   try {
-    const result = await api.get<{ allowed: boolean; remaining: number; isMember: boolean }>(`/quotas/check?userId=${userId}&featureKey=${featureKey}`)
+    const result = await api.get<{ allowed: boolean; remaining: number; isMember: boolean }>(`/quotas/check?featureKey=${featureKey}`)
     return result
   } catch {
     const memberFlag = await isMember(userId)

@@ -26,6 +26,8 @@
   background-color: #F8F4E9;
   border-radius: 32rpx 32rpx 0 0;
   padding: 0 40rpx 48rpx;
+  max-height: 85vh;
+  overflow-y: auto;
   animation: paywallSlideUp 0.35s ease-out;
 }
 
@@ -81,11 +83,7 @@
   color: #FF8C42;
 }
 
-.paywall-popup__benefits {
-  margin-bottom: 40rpx;
-}
-
-.paywall-popup__benefits-title {
+.paywall-popup__section-title {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
@@ -93,21 +91,179 @@
   margin-bottom: 20rpx;
 }
 
-.paywall-popup__benefit-item {
+.paywall-popup__plans {
+  margin-bottom: 32rpx;
+}
+
+.paywall-popup__plan-options {
+  display: flex;
+  gap: 16rpx;
+}
+
+.paywall-popup__plan {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 12rpx 20rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  border: 3rpx solid #E8E0D0;
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.paywall-popup__plan--active {
+  border-color: #FF8C42;
+  background: #FFF8F0;
+  box-shadow: 0 4rpx 20rpx rgba(255, 140, 66, 0.2);
+}
+
+.paywall-popup__plan--best {
+  border-color: #FF8C42;
+}
+
+.paywall-popup__plan-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: linear-gradient(135deg, #FF8C42, #FF6B35);
+  padding: 4rpx 16rpx;
+  border-radius: 0 16rpx 0 12rpx;
+}
+
+.paywall-popup__plan-badge-text {
+  font-size: 18rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.paywall-popup__plan-label {
+  font-size: 24rpx;
+  color: #6B6B6B;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+  margin-top: 8rpx;
+}
+
+.paywall-popup__plan--active .paywall-popup__plan-label {
+  color: #FF8C42;
+  font-weight: 600;
+}
+
+.paywall-popup__plan-price {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #2C2C2C;
+  line-height: 1;
+}
+
+.paywall-popup__plan-price-symbol {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.paywall-popup__plan--active .paywall-popup__plan-price {
+  color: #FF8C42;
+}
+
+.paywall-popup__plan-discount {
+  font-size: 20rpx;
+  color: #FF6B35;
+  margin-top: 8rpx;
+  background: #FFF0E5;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.paywall-popup__plan-check {
+  position: absolute;
+  bottom: 8rpx;
+  right: 8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  background: #FF8C42;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 20rpx;
   display: flex;
   align-items: center;
-  margin-bottom: 12rpx;
+  justify-content: center;
+  font-weight: 700;
 }
 
-.paywall-popup__benefit-dot {
-  font-size: 28rpx;
+.paywall-popup__compare {
+  margin-bottom: 32rpx;
+}
+
+.paywall-popup__compare-table {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.paywall-popup__compare-header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  background: #FFF5F0;
+  border-bottom: 2rpx solid #FFE8D6;
+}
+
+.paywall-popup__compare-header-feature {
+  flex: 1;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #6B6B6B;
+}
+
+.paywall-popup__compare-header-free {
+  width: 140rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #8C8C8C;
+}
+
+.paywall-popup__compare-header-member {
+  width: 140rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 600;
   color: #FF8C42;
-  margin-right: 12rpx;
 }
 
-.paywall-popup__benefit-text {
-  font-size: 26rpx;
+.paywall-popup__compare-row {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 24rpx;
+  border-bottom: 1rpx solid #F5F0E8;
+}
+
+.paywall-popup__compare-row:last-child {
+  border-bottom: none;
+}
+
+.paywall-popup__compare-feature {
+  flex: 1;
+  font-size: 24rpx;
   color: #4A4A4A;
+}
+
+.paywall-popup__compare-free {
+  width: 140rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #8C8C8C;
+}
+
+.paywall-popup__compare-member {
+  width: 140rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #FF8C42;
+  font-weight: 600;
 }
 
 .paywall-popup__actions {
@@ -169,5 +325,9 @@
 
   .paywall-popup__info-value {
     font-size: 32rpx;
+  }
+
+  .paywall-popup__plan-price {
+    font-size: 36rpx;
   }
 }

@@ -129,7 +129,7 @@ describe('usePet', () => {
     const newPet = { id: 'p1', name: 'Kitty', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
     mockAddPet.mockResolvedValue(newPet)
     const result = usePet()
-    const petData = { name: 'Kitty', species: 'cat' as any, breed: '', breedId: '', gender: 'male' as any, birthDate: '', weight: 0, photos: [], isNeutered: false, microchipId: '', notes: '', isDeceased: false, userId: 'u1' }
+    const petData = { name: 'Kitty', species: 'cat' as any, breed: '', breedId: '', gender: 'male' as any, birthDate: '', weight: 0, coatColor: '', photos: [], isNeutered: false, microchipId: '', notes: '', isDeceased: false, allergies: [], medications: [], chronicConditions: [], userId: 'u1' }
     const returned = await result.addPet(petData)
     expect(mockAddPet).toHaveBeenCalledWith(petData)
     expect(returned).toEqual(newPet)

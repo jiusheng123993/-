@@ -1,10 +1,6 @@
-import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
+import type { PetHealthEntry, DiaryTone, DiaryEntry } from '../../types/avatarTypes'
 
-export interface DiaryEntry {
-  text: string
-  tone: 'happy' | 'neutral' | 'tired' | 'sick' | 'proud'
-  emoji: string
-}
+export type { DiaryTone, DiaryEntry }
 
 const DIARY_TEMPLATES: Record<string, DiaryEntry[]> = {
   all_normal: [

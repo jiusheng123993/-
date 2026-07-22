@@ -7,6 +7,7 @@ const { mockCheckinService, mockStorage } = vi.hoisted(() => {
       createCheckin: vi.fn(),
       getTodayCheckin: vi.fn(),
       getCheckinStats: vi.fn(),
+      calculateConsecutiveAnomalyDays: vi.fn().mockReturnValue(0),
     },
     mockStorage: {
       setStorageUserId: vi.fn(),
@@ -63,6 +64,9 @@ function makeStats(overrides: Partial<HealthCheckinStats> = {}): HealthCheckinSt
     lastCheckinDate: '2024-06-01',
     weeklyCount: 3,
     monthlyCount: 8,
+    consecutiveAnomalyDays: 0,
+    totalAnomalyDays: 0,
+    lastAnomalyDate: null,
     ...overrides,
   }
 }
@@ -75,6 +79,7 @@ describe('checkinStore', () => {
       entries: [],
       todayEntry: null,
       stats: null,
+      consecutiveAnomalyDays: 0,
       isLoading: false,
       error: null,
     })

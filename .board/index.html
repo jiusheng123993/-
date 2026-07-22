@@ -143,6 +143,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <div class="sidebar-section" id="date-index">
 <div class="sidebar-label">按日期查找</div>
+<div class="sidebar-item" data-view="date-0721" onclick="switchView('date-0721')">2026-07-21</div>
 <div class="sidebar-item" data-view="date-0720" onclick="switchView('date-0720')">2026-07-20</div>
 <div class="sidebar-item" data-view="date-0718" onclick="switchView('date-0718')">2026-07-18</div>
 <div class="sidebar-item" data-view="date-0717" onclick="switchView('date-0717')">2026-07-17</div>
@@ -155,103 +156,106 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="main">
 <div class="header">
 <h1>🐶 星寰海 — AI宠物管家</h1>
-<div class="meta">产品定位：有记忆的AI宠物管家 | 当前阶段：Phase 1 MVP | PRD v3.1 | 更新于：2026-07-20</div>
-<div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
-<div style="margin-top:8px;font-size:13px;opacity:.7">整体进度：35%（按PRD v3.1全量49项计算：已完成16项 + 部分实现5项(折半2.5) + 待实现28项 ≈ 38%取整35%）</div>
+<div class="meta">产品定位：有记忆的AI宠物管家 | 当前阶段：Phase 1 MVP | PRD v3.1 | <!-- BOARD_UPDATE_DATE -->更新于：2026-07-21<!-- /BOARD_UPDATE_DATE --></div>
+<!-- BOARD_PROGRESS --><div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
+<div style="margin-top:8px;font-size:13px;opacity:.7">整体进度：35%（按PRD v3.1全量49项计算：已完成16项 + 部分实现2.5项 + 待实现30.5项 ≈ 35%）</div><!-- /BOARD_PROGRESS -->
 </div>
 
-<div class="success-box">✅ <strong>Phase 1 核心功能代码已有</strong>：数据中枢+AI引擎+6大核心功能+安全拦截器+会员体系，Day 1-13代码完成，旧代码清理完成</div>
+<!-- BOARD_SUMMARY --><div class="success-box">✅ <strong>Phase 1 MVP 代码完成 + 安全审查通过</strong>：数据中枢+AI引擎+6大核心功能+安全拦截器+会员体系+情绪融入场景+宠物形象引擎，Day 1-14代码完成，旧代码清理完成，后端安全审查P0全部修复，TS 0错误/76文件1500测试全通过/构建成功</div>
 
-<div class="warning-box">⚠️ <strong>待实现模块</strong>：①情绪底层完整流程（5个场景+数据采集+导流+效果验证）②宠物形象系统（6个子模块全部未实现）③合规边界完善（免责声明/频次限制/导流/过度防御）④变现层扩展（广告/医院/电商）⑤基础设施（指标/埋点/冷启动/流程图/排期）⑥Day 14集成测试</div>
+<div class="warning-box">⚠️ <strong>待实现/完善模块</strong>：①宠物形象系统（6个子模块中表情引擎+SVG渲染+日记引擎+Seedream适配器已有，页面装饰场景/成就纪念卡/会员权益关联待实现）②合规边界完善（免责声明展示/频次限制/极端情绪导流）③变现层扩展（广告/医院/电商）④基础设施（指标/埋点/冷启动）⑤真机调试+提审</div><!-- /BOARD_SUMMARY -->
 
 <!-- ====== 模块看板 ====== -->
 <div id="view-overview">
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-data">数据中枢</span> 数据中枢</div>
-<div class="module-item"><div><div class="module-name">memory-body 引擎扩展 <span class="badge badge-p0">P0</span></div><div class="module-desc">PetHealthEntry 数据类型 + 存储层 + 同步层 + 疫苗追踪适配器</div><div class="module-progress">memory-body/adapters/vaccineTrackerAdapter.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="memory-body" data-check-files="memory-body/index.ts,memory-body/store/miniProgramMemoryBodyStore.ts,memory-body/types/memoryBodyTypes.ts"><div><div class="module-name">memory-body 引擎扩展 <span class="badge badge-p0">P0</span></div><div class="module-desc">PetHealthEntry 数据类型 + 存储层 + 同步层 + 疫苗追踪适配器</div><div class="module-progress">memory-body/adapters/vaccineTrackerAdapter.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-ai">AI引擎</span> AI引擎</div>
-<div class="module-item"><div><div class="module-name">健康模式识别 <span class="badge badge-p1">P1</span></div><div class="module-desc">基于打卡数据的健康趋势模式识别</div><div class="module-progress">Day 12 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">异常预警 <span class="badge badge-p1">P1</span></div><div class="module-desc">健康数据异常自动预警触发</div><div class="module-progress">Day 1-2 + Day 7-8 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">主动触达 <span class="badge badge-p1">P1</span></div><div class="module-desc">疫苗到期/驱虫提醒等主动推送</div><div class="module-progress">Day 11 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">效果追踪 <span class="badge badge-p2">P2</span></div><div class="module-desc">AI建议采纳率和效果追踪</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item" data-module-id="ai-advisor" data-check-files="engines/index.ts"><div><div class="module-name">AI健康顾问 <span class="badge badge-p1">P1</span></div><div class="module-desc">AI健康顾问功能</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="health-pattern" data-check-files="memory-body/adapters/healthIndexAdapter.ts"><div><div class="module-name">健康模式识别 <span class="badge badge-p1">P1</span></div><div class="module-desc">基于打卡数据的健康趋势模式识别</div><div class="module-progress">Day 12 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="anomaly-alert" data-check-files="components/AnomalyMarker.tsx"><div><div class="module-name">异常预警 <span class="badge badge-p1">P1</span></div><div class="module-desc">健康数据异常自动预警触发</div><div class="module-progress">Day 1-2 + Day 7-8 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="proactive-reach" data-check-files="services/reminderService.ts,services/notificationService.ts"><div><div class="module-name">主动触达 <span class="badge badge-p1">P1</span></div><div class="module-desc">疫苗到期/驱虫提醒等主动推送</div><div class="module-progress">Day 11 代码</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="effect-tracking" data-check-files=""><div><div class="module-name">效果追踪 <span class="badge badge-p2">P2</span></div><div class="module-desc">AI建议采纳率和效果追踪</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-func">功能层</span> 6大核心功能 + 扩展</div>
-<div class="module-item"><div><div class="module-name">4.2 宠物档案（多宠管理） <span class="badge badge-p0">P0</span></div><div class="module-desc">档案CRUD + 品种关联 + PetCard + PetSwitcher + PetDeceasedModal</div><div class="module-progress">pages/pet-profile/ + petStore + petService + usePet</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">4.3 3秒健康打卡 <span class="badge badge-p0">P0</span></div><div class="module-desc">打卡组件 + AI风险反馈 + 紧急预警</div><div class="module-progress">pages/pet-checkin/ + checkinStore + checkinService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">4.4 疫苗驱虫日历 <span class="badge badge-p1">P1</span></div><div class="module-desc">日历组件 + 疫苗排程 + 提醒 + VaccineCalendar</div><div class="module-progress">pages/pet-vaccine/ + vaccineStore + VaccineCalendar/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">4.5 AI症状初筛（规则引擎版） <span class="badge badge-p1">P1</span></div><div class="module-desc">症状选择 + 严重度评估 + 就医建议 + MedicalDisclaimer</div><div class="module-progress">pages/pet-symptom-check/ + symptomStore + symptomService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">4.6 食物安全查询 <span class="badge badge-p0">P0</span></div><div class="module-desc">知识库查询 + foodSafety数据 + ToxicFoodFilter</div><div class="module-progress">pages/pet-food-query/ + foodQueryStore + foodService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">4.7 健康趋势图 <span class="badge badge-p1">P1</span></div><div class="module-desc">图表展示 + 趋势分析</div><div class="module-progress">pages/pet-trends/ + trendStore + trendService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">4.7 健康报告导出 <span class="badge badge-p2">P2</span></div><div class="module-desc">健康数据报告生成与导出</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
-<div class="module-item"><div><div class="module-name">品种百科 <span class="badge badge-p2">P2</span></div><div class="module-desc">品种信息查询与百科展示</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item" data-module-id="4.2-pet-profile" data-check-files="pages/pet-profile/index.tsx,stores/petStore.ts"><div><div class="module-name">4.2 宠物档案（多宠管理） <span class="badge badge-p0">P0</span></div><div class="module-desc">档案CRUD + 品种关联 + PetCard + PetSwitcher + PetDeceasedModal</div><div class="module-progress">pages/pet-profile/ + petStore + petService + usePet</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.3-checkin" data-check-files="pagesPet/checkin/index.tsx,stores/checkinStore.ts"><div><div class="module-name">4.3 3秒健康打卡 <span class="badge badge-p0">P0</span></div><div class="module-desc">打卡组件 + AI风险反馈 + 紧急预警</div><div class="module-progress">pages/pet-checkin/ + checkinStore + checkinService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.4-vaccine" data-check-files="pagesPet/vaccine/index.tsx,stores/vaccineStore.ts"><div><div class="module-name">4.4 疫苗驱虫日历 <span class="badge badge-p1">P1</span></div><div class="module-desc">日历组件 + 疫苗排程 + 提醒 + VaccineCalendar</div><div class="module-progress">pages/pet-vaccine/ + vaccineStore + VaccineCalendar/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.5-symptom" data-check-files="pagesPet/symptom-check/index.tsx,stores/symptomStore.ts"><div><div class="module-name">4.5 AI症状初筛（规则引擎版） <span class="badge badge-p1">P1</span></div><div class="module-desc">症状选择 + 严重度评估 + 就医建议 + MedicalDisclaimer</div><div class="module-progress">pages/pet-symptom-check/ + symptomStore + symptomService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.6-food" data-check-files="pagesPet/food-query/index.tsx,stores/foodQueryStore.ts"><div><div class="module-name">4.6 食物安全查询 <span class="badge badge-p0">P0</span></div><div class="module-desc">知识库查询 + foodSafety数据 + ToxicFoodFilter</div><div class="module-progress">pages/pet-food-query/ + foodQueryStore + foodService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.7-trends" data-check-files="pagesPet/trends/index.tsx,stores/trendStore.ts"><div><div class="module-name">4.7 健康趋势图 <span class="badge badge-p1">P1</span></div><div class="module-desc">图表展示 + 趋势分析</div><div class="module-progress">pages/pet-trends/ + trendStore + trendService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.7-report" data-check-files=""><div><div class="module-name">4.7 健康报告导出 <span class="badge badge-p2">P2</span></div><div class="module-desc">健康数据报告生成与导出</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item" data-module-id="breed-encyclopedia" data-check-files=""><div><div class="module-name">品种百科 <span class="badge badge-p2">P2</span></div><div class="module-desc">品种信息查询与百科展示</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-emotion">情绪底层</span> 情绪底层（融入场景）</div>
-<div class="module-item"><div><div class="module-name">4.8 宠物离世悲伤陪伴 <span class="badge badge-p1">P1</span></div><div class="module-desc">PetDeceasedModal已有，完整悲伤陪伴流程待实现</div><div class="module-progress">components/PetDeceasedModal.tsx</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
-<div class="module-item"><div><div class="module-name">4.8 宠物生病焦虑干预 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物生病场景下的焦虑情绪干预</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
-<div class="module-item"><div><div class="module-name">4.8 新手养宠焦虑缓解 <span class="badge badge-p1">P1</span></div><div class="module-desc">新手频繁查询场景下的焦虑缓解</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
-<div class="module-item"><div><div class="module-name">6.3 情绪数据采集方式 <span class="badge badge-p1">P1</span></div><div class="module-desc">情绪数据采集机制设计</div></div><span class="badge badge-pending">⏳ 待设计</span></div>
-<div class="module-item"><div><div class="module-name">8.6 极端情绪用户导流 <span class="badge badge-p1">P1</span></div><div class="module-desc">极端情绪识别与专业帮助导流</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
-<div class="module-item"><div><div class="module-name">6.4 效果验证标准 <span class="badge badge-p2">P2</span></div><div class="module-desc">情绪干预效果验证标准定义</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item" data-module-id="4.8-grief" data-check-files="components/GriefCompanion.tsx,components/PetDeceasedModal.tsx"><div><div class="module-name">4.8 宠物离世悲伤陪伴 <span class="badge badge-p1">P1</span></div><div class="module-desc">GriefCompanion自包含实现 + PetDeceasedModal</div><div class="module-progress">components/GriefCompanion.tsx + PetDeceasedModal.tsx</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.8-anxiety" data-check-files=""><div><div class="module-name">4.8 宠物生病焦虑干预 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物生病场景下的焦虑情绪干预</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item" data-module-id="4.8-beginner" data-check-files=""><div><div class="module-name">4.8 新手养宠焦虑缓解 <span class="badge badge-p1">P1</span></div><div class="module-desc">新手频繁查询场景下的焦虑缓解</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item" data-module-id="6.3-emotion-data" data-check-files=""><div><div class="module-name">6.3 情绪数据采集方式 <span class="badge badge-p1">P1</span></div><div class="module-desc">情绪数据采集机制设计</div></div><span class="badge badge-pending">⏳ 待设计</span></div>
+<div class="module-item" data-module-id="8.6-emotion-diversion" data-check-files=""><div><div class="module-name">8.6 极端情绪用户导流 <span class="badge badge-p1">P1</span></div><div class="module-desc">极端情绪识别与专业帮助导流</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item" data-module-id="6.4-effect-standard" data-check-files=""><div><div class="module-name">6.4 效果验证标准 <span class="badge badge-p2">P2</span></div><div class="module-desc">情绪干预效果验证标准定义</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-avatar">宠物形象</span> 宠物形象系统（P1 情感连接）</div>
-<div class="module-item"><div><div class="module-name">4.9.2 基础形象生成 <span class="badge badge-p1">P1</span></div><div class="module-desc">Seedream API 生成宠物基础形象</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
-<div class="module-item"><div><div class="module-name">4.9.3 状态表情系统 <span class="badge badge-p1">P1</span></div><div class="module-desc">SVG叠加状态表情，0 AI成本</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
-<div class="module-item"><div><div class="module-name">4.9.4 页面装饰场景 <span class="badge badge-p1">P1</span></div><div class="module-desc">6个页面的宠物形象装饰场景</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
-<div class="module-item"><div><div class="module-name">4.9.5 成就纪念卡 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物成长成就纪念卡片</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
-<div class="module-item"><div><div class="module-name">4.9.6 宠物日记 <span class="badge badge-p1">P1</span></div><div class="module-desc">规则引擎模板生成宠物日记</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
-<div class="module-item"><div><div class="module-name">4.9.7 会员权益关联 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物形象与会员权益关联</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
+<div class="module-item" data-module-id="4.9.2-avatar-gen" data-check-files="engines/petAvatar/seedreamAdapter.ts,services/avatarService.ts"><div><div class="module-name">4.9.2 基础形象生成 <span class="badge badge-p1">P1</span></div><div class="module-desc">Seedream API 生成宠物基础形象（stub模式）</div><div class="module-progress">engines/petAvatar/seedreamAdapter.ts + avatarService.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.9.3-expression" data-check-files="engines/petAvatar/expressionEngine.ts,engines/petAvatar/svgRenderer.ts"><div><div class="module-name">4.9.3 状态表情系统 <span class="badge badge-p1">P1</span></div><div class="module-desc">SVG叠加状态表情，0 AI成本</div><div class="module-progress">engines/petAvatar/expressionEngine.ts + svgRenderer.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.9.4-decoration" data-check-files=""><div><div class="module-name">4.9.4 页面装饰场景 <span class="badge badge-p1">P1</span></div><div class="module-desc">6个页面的宠物形象装饰场景</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.9.5-achievement" data-check-files="components/AchievementCard.tsx"><div><div class="module-name">4.9.5 成就纪念卡 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物成长成就纪念卡片</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.9.6-diary" data-check-files="engines/petAvatar/diaryEngine.ts"><div><div class="module-name">4.9.6 宠物日记 <span class="badge badge-p1">P1</span></div><div class="module-desc">规则引擎模板生成宠物日记</div><div class="module-progress">engines/petAvatar/diaryEngine.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="4.9.7-member-avatar" data-check-files=""><div><div class="module-name">4.9.7 会员权益关联 <span class="badge badge-p1">P1</span></div><div class="module-desc">宠物形象与会员权益关联</div></div><span class="badge badge-pending">⏳ 未实现</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-protect">保护层</span> 保护层+合规</div>
-<div class="module-item"><div><div class="module-name">PetSafetyHandler 安全拦截器 <span class="badge badge-p0">P0</span></div><div class="module-desc">安全过滤引擎 + 有毒食物拦截 + 医疗免责声明</div><div class="module-progress">engines/petSafety/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">MedicalDisclaimer 医疗边界声明 <span class="badge badge-p0">P0</span></div><div class="module-desc">症状初筛/健康建议的医疗免责声明</div><div class="module-progress">engines/petSafety/MedicalDisclaimer.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">8.1 宠物管家合规边界 <span class="badge badge-p0">P0</span></div><div class="module-desc">合规底线，PRD已定义</div></div><span class="badge badge-review">PRD已定义</span></div>
-<div class="module-item"><div><div class="module-name">8.3 情绪底层合规边界 <span class="badge badge-p1">P1</span></div><div class="module-desc">情绪能力隐形化合规底线，PRD已定义</div></div><span class="badge badge-review">PRD已定义</span></div>
-<div class="module-item"><div><div class="module-name">8.4 免责声明（必须展示） <span class="badge badge-p0">P0</span></div><div class="module-desc">关键页面的免责声明展示</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
-<div class="module-item"><div><div class="module-name">8.5 订阅消息频次限制 <span class="badge badge-p1">P1</span></div><div class="module-desc">微信订阅消息频次合规限制</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
-<div class="module-item"><div><div class="module-name">8.6 极端情绪用户导流 <span class="badge badge-p1">P1</span></div><div class="module-desc">极端情绪识别与专业帮助导流</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
-<div class="module-item"><div><div class="module-name">14.3 过度防御审查 <span class="badge badge-p2">P2</span></div><div class="module-desc">安全防御是否过度，已审查</div></div><span class="badge badge-done">✓ 已审查</span></div>
+<div class="module-item" data-module-id="pet-safety" data-check-files="engines/petSafety/index.ts"><div><div class="module-name">PetSafetyHandler 安全拦截器 <span class="badge badge-p0">P0</span></div><div class="module-desc">安全过滤引擎 + 有毒食物拦截 + 医疗免责声明</div><div class="module-progress">engines/petSafety/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="medical-disclaimer" data-check-files="engines/petSafety/MedicalDisclaimer.ts"><div><div class="module-name">MedicalDisclaimer 医疗边界声明 <span class="badge badge-p0">P0</span></div><div class="module-desc">症状初筛/健康建议的医疗免责声明</div><div class="module-progress">engines/petSafety/MedicalDisclaimer.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="auth-guard" data-check-files="utils/authGuard.ts"><div><div class="module-name">authGuard 认证守卫 <span class="badge badge-p0">P0</span></div><div class="module-desc">统一认证守卫（getAuthenticatedUserId/requireAuth/isAuthenticated）</div><div class="module-progress">utils/authGuard.ts + 12测试用例</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="8.1-compliance" data-check-files=""><div><div class="module-name">8.1 宠物管家合规边界 <span class="badge badge-p0">P0</span></div><div class="module-desc">合规底线，PRD已定义</div></div><span class="badge badge-review">PRD已定义</span></div>
+<div class="module-item" data-module-id="8.3-emotion-compliance" data-check-files=""><div><div class="module-name">8.3 情绪底层合规边界 <span class="badge badge-p1">P1</span></div><div class="module-desc">情绪能力隐形化合规底线，PRD已定义</div></div><span class="badge badge-review">PRD已定义</span></div>
+<div class="module-item" data-module-id="8.4-disclaimer" data-check-files="engines/petSafety/MedicalDisclaimer.ts"><div><div class="module-name">8.4 免责声明（必须展示） <span class="badge badge-p0">P0</span></div><div class="module-desc">关键页面的免责声明展示</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="8.5-frequency" data-check-files="services/frequencyControlService.ts"><div><div class="module-name">8.5 订阅消息频次限制 <span class="badge badge-p1">P1</span></div><div class="module-desc">微信订阅消息频次合规限制</div><div class="module-progress">frequencyControlService.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="8.6-extreme" data-check-files=""><div><div class="module-name">8.6 极端情绪用户导流 <span class="badge badge-p1">P1</span></div><div class="module-desc">极端情绪识别与专业帮助导流</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item" data-module-id="14.3-overdefense" data-check-files=""><div><div class="module-name">14.3 过度防御审查 <span class="badge badge-p2">P2</span></div><div class="module-desc">安全防御是否过度，已审查</div></div><span class="badge badge-done">✓ 已审查</span></div>
+<div class="module-item" data-module-id="backend-security" data-check-files="utils/authGuard.ts,services/api.ts"><div><div class="module-name">后端安全审查 <span class="badge badge-p0">P0</span></div><div class="module-desc">6大维度安全审查，P0风险6项全部修复</div><div class="module-progress">userId伪造/RLS/Mock回退/数据归属/支付回调</div></div><span class="badge badge-done">✓ 代码已有</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-monetize">变现层</span> 变现层</div>
-<div class="module-item"><div><div class="module-name">7.3 免费 vs 会员权益 <span class="badge badge-p1">P1</span></div><div class="module-desc">免费/会员权益划分与配额管理</div><div class="module-progress">quotaManager + subscribeService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">7.1 会员订阅 <span class="badge badge-p1">P1</span></div><div class="module-desc">会员订阅支付流程 + PaywallPopup</div><div class="module-progress">subscribeService + PaywallPopup</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">7.1 流量主广告 <span class="badge badge-p2">P2</span></div><div class="module-desc">微信流量主广告变现</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
-<div class="module-item"><div><div class="module-name">7.4 宠物医院导流 <span class="badge badge-p2">P2</span></div><div class="module-desc">宠物医院合作导流佣金</div></div><span class="badge badge-phase3">Phase 3</span></div>
-<div class="module-item"><div><div class="module-name">7.1 宠物用品电商佣金 <span class="badge badge-p2">P2</span></div><div class="module-desc">宠物用品电商导流佣金</div></div><span class="badge badge-phase3">Phase 3</span></div>
-<div class="module-item"><div><div class="module-name">7.5 悲观商业化测算 <span class="badge badge-p2">P2</span></div><div class="module-desc">悲观场景下的商业化可行性测算</div></div><span class="badge badge-done">✓ 已测算</span></div>
+<div class="module-item" data-module-id="7.3-quota" data-check-files="services/membershipService.ts"><div><div class="module-name">7.3 免费 vs 会员权益 <span class="badge badge-p1">P1</span></div><div class="module-desc">免费/会员权益划分与配额管理</div><div class="module-progress">quotaManager + subscribeService</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="7.1-subscribe" data-check-files="services/subscribeService.ts,components/PaywallPopup.tsx"><div><div class="module-name">7.1 会员订阅 <span class="badge badge-p1">P1</span></div><div class="module-desc">会员订阅支付流程 + PaywallPopup</div><div class="module-progress">subscribeService + PaywallPopup</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="7.1-ads" data-check-files=""><div><div class="module-name">7.1 流量主广告 <span class="badge badge-p2">P2</span></div><div class="module-desc">微信流量主广告变现</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item" data-module-id="7.4-hospital" data-check-files=""><div><div class="module-name">7.4 宠物医院导流 <span class="badge badge-p2">P2</span></div><div class="module-desc">宠物医院合作导流佣金</div></div><span class="badge badge-phase3">Phase 3</span></div>
+<div class="module-item" data-module-id="7.1-ecommerce" data-check-files=""><div><div class="module-name">7.1 宠物用品电商佣金 <span class="badge badge-p2">P2</span></div><div class="module-desc">宠物用品电商导流佣金</div></div><span class="badge badge-phase3">Phase 3</span></div>
+<div class="module-item" data-module-id="7.5-calc" data-check-files=""><div><div class="module-name">7.5 悲观商业化测算 <span class="badge badge-p2">P2</span></div><div class="module-desc">悲观场景下的商业化可行性测算</div></div><span class="badge badge-done">✓ 已测算</span></div>
 </div>
 
 <div class="card">
 <div class="card-title"><span class="layer-tag layer-infra">基础设施</span> 基础设施</div>
-<div class="module-item"><div><div class="module-name">9.1 宠物医学知识图谱 <span class="badge badge-p0">P0</span></div><div class="module-desc">品种+食物安全+症状+疫苗排程知识库</div><div class="module-progress">data/petKnowledge/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
-<div class="module-item"><div><div class="module-name">12 隐私保护 <span class="badge badge-p1">P1</span></div><div class="module-desc">用户数据隐私保护机制</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
-<div class="module-item"><div><div class="module-name">16 数据指标体系 <span class="badge badge-p1">P1</span></div><div class="module-desc">产品数据指标定义与监控</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
-<div class="module-item"><div><div class="module-name">16.3 埋点方案 <span class="badge badge-p1">P1</span></div><div class="module-desc">用户行为埋点方案设计与实现</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
-<div class="module-item"><div><div class="module-name">6.5 数据备份与设备迁移 <span class="badge badge-p2">P2</span></div><div class="module-desc">数据备份与跨设备迁移方案</div></div><span class="badge badge-partial">⚠ 部分实现</span></div>
-<div class="module-item"><div><div class="module-name">13 冷启动策略 <span class="badge badge-p1">P1</span></div><div class="module-desc">新用户冷启动内容与引导策略</div></div><span class="badge badge-doing">⏳ 待执行</span></div>
-<div class="module-item"><div><div class="module-name">18 产品流程图与交互说明 <span class="badge badge-p1">P1</span></div><div class="module-desc">产品流程图与交互规范说明</div></div><span class="badge badge-done">✓ 已定义</span></div>
-<div class="module-item"><div><div class="module-name">15 开发排期与成本测算 <span class="badge badge-p2">P2</span></div><div class="module-desc">14天开发排期与成本测算</div></div><span class="badge badge-done">✓ 已测算</span></div>
+<div class="module-item" data-module-id="9.1-knowledge" data-check-files="data/petKnowledge/symptoms.ts"><div><div class="module-name">9.1 宠物医学知识图谱 <span class="badge badge-p0">P0</span></div><div class="module-desc">品种+食物安全+症状+疫苗排程知识库</div><div class="module-progress">data/petKnowledge/</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="12-privacy" data-check-files="services/dataPrivacyService.ts,components/PrivacyPopup.tsx"><div><div class="module-name">12 隐私保护 <span class="badge badge-p1">P1</span></div><div class="module-desc">用户数据隐私保护机制 + PrivacyPopup + dataPrivacyService</div><div class="module-progress">services/dataPrivacyService.ts + components/PrivacyPopup.tsx</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="16-metrics" data-check-files=""><div><div class="module-name">16 数据指标体系 <span class="badge badge-p1">P1</span></div><div class="module-desc">产品数据指标定义与监控</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item" data-module-id="16.3-tracking" data-check-files=""><div><div class="module-name">16.3 埋点方案 <span class="badge badge-p1">P1</span></div><div class="module-desc">用户行为埋点方案设计与实现</div></div><span class="badge badge-pending">⏳ 待实现</span></div>
+<div class="module-item" data-module-id="6.5-backup" data-check-files="services/syncService.ts,stores/cloudSyncStore.ts"><div><div class="module-name">6.5 数据备份与设备迁移 <span class="badge badge-p2">P2</span></div><div class="module-desc">Supabase云同步 + 数据备份与跨设备迁移方案</div><div class="module-progress">services/syncService.ts + cloudSyncStore.ts + supabaseClient.ts</div></div><span class="badge badge-done">✓ 代码已有</span></div>
+<div class="module-item" data-module-id="13-coldstart" data-check-files=""><div><div class="module-name">13 冷启动策略 <span class="badge badge-p1">P1</span></div><div class="module-desc">新用户冷启动内容与引导策略</div></div><span class="badge badge-doing">⏳ 待执行</span></div>
+<div class="module-item" data-module-id="18-flow" data-check-files=""><div><div class="module-name">18 产品流程图与交互说明 <span class="badge badge-p1">P1</span></div><div class="module-desc">产品流程图与交互规范说明</div></div><span class="badge badge-done">✓ 已定义</span></div>
+<div class="module-item" data-module-id="15-schedule" data-check-files=""><div><div class="module-name">15 开发排期与成本测算 <span class="badge badge-p2">P2</span></div><div class="module-desc">14天开发排期与成本测算</div></div><span class="badge badge-done">✓ 已测算</span></div>
 </div>
 
 <div class="card">
 <div class="card-title">💼 交付验证 + Phase 2/3</div>
-<div class="module-item"><div><div class="module-name">Day 14: 集成测试 + Bug修复 + 提交审核 <span class="badge badge-p0">P0</span></div><div class="module-desc">完整用户流程走查 + 编译验证 + 提审材料</div></div><span class="badge badge-doing">⏳ 待开始</span></div>
-<div class="module-item"><div><div class="module-name">Phase 1.5: 效果追踪 + 健康报告导出 + 品种百科 + 广告</div><div class="module-desc">Phase 1上线后迭代</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
-<div class="module-item"><div><div class="module-name">Phase 2: AI职业顾问 MVP</div><div class="module-desc">同一套memory-body引擎，PetHealthEntry → CareerProfile，3-4个月</div></div><span class="badge badge-phase2">Phase 2</span></div>
-<div class="module-item"><div><div class="module-name">Phase 3: 星寰海统一平台</div><div class="module-desc">一个小程序两个功能模块，共享记忆引擎+用户体系+订阅体系</div></div><span class="badge badge-phase3">Phase 3</span></div>
+<div class="module-item" data-module-id="day14" data-check-files=""><div><div class="module-name">Day 14: 集成测试 + Bug修复 + 提交审核 <span class="badge badge-p0">P0</span></div><div class="module-desc">TS 0错误/76文件1500测试全通过/构建成功/安全审查P0修复/旧代码清理完成 | 待：真机调试+提审</div></div><span class="badge badge-done">✓ 集成测试完成</span></div>
+<div class="module-item" data-module-id="phase15" data-check-files=""><div><div class="module-name">Phase 1.5: 效果追踪 + 健康报告导出 + 品种百科 + 广告</div><div class="module-desc">Phase 1上线后迭代</div></div><span class="badge badge-phase15">Phase 1.5</span></div>
+<div class="module-item" data-module-id="phase2" data-check-files=""><div><div class="module-name">Phase 2: AI职业顾问 MVP</div><div class="module-desc">同一套memory-body引擎，PetHealthEntry → CareerProfile，3-4个月</div></div><span class="badge badge-phase2">Phase 2</span></div>
+<div class="module-item" data-module-id="phase3" data-check-files=""><div><div class="module-name">Phase 3: 星寰海统一平台</div><div class="module-desc">一个小程序两个功能模块，共享记忆引擎+用户体系+订阅体系</div></div><span class="badge badge-phase3">Phase 3</span></div>
 </div>
 
 </div>
@@ -260,43 +264,92 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="view-stats" class="hidden">
 <div class="card">
 <div class="card-title">📊 PRD v3.1 模块完成度（全量49项）</div>
-<div class="prd-stat-row"><span class="prd-stat-label">数据中枢（1模块）</span><span class="prd-stat-value" style="color:#16a34a">1/1 = 100%</span></div>
+<div class="prd-stat-row" data-layer="data-hub"><span class="prd-stat-label">数据中枢（1模块）</span><span class="prd-stat-value" style="color:#16a34a">1/1 = 100%</span></div>
 <div class="prd-progress-bar"><div class="prd-progress-fill" style="width:100%;background:#4ade80"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">AI引擎（4模块）</span><span class="prd-stat-value" style="color:#16a34a">3/4 = 75%</span></div>
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）</span><span class="prd-stat-value" style="color:#16a34a">4/5 = 80%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:80%;background:#4ade80"></div></div>
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）</span><span class="prd-stat-value" style="color:#16a34a">6/8 = 75%</span></div>
 <div class="prd-progress-bar"><div class="prd-progress-fill" style="width:75%;background:#4ade80"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">功能层（8模块）</span><span class="prd-stat-value" style="color:#16a34a">6/8 = 75%</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:75%;background:#4ade80"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">情绪底层（6模块）</span><span class="prd-stat-value" style="color:#ca8a04">0.5/6 = 8%</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:8%;background:#f59e0b"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">宠物形象系统（6模块）</span><span class="prd-stat-value" style="color:#dc2626">0/6 = 0%</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:0%;background:#ef4444"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">保护层+合规（8模块）</span><span class="prd-stat-value" style="color:#ca8a04">3.5/8 = 44%</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:44%;background:#f59e0b"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">变现层（6模块）</span><span class="prd-stat-value" style="color:#16a34a">3/6 = 50%</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:50%;background:#4ade80"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label">基础设施（8模块）</span><span class="prd-stat-value" style="color:#ca8a04">3.5/8 = 44%</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:44%;background:#f59e0b"></div></div>
-<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-top:12px"><span class="prd-stat-label" style="font-weight:700">全量总计（含Phase 1.5/2/3）</span><span class="prd-stat-value" style="color:#ca8a04;font-size:16px">20.5/49 ≈ 42%（已完成+部分实现）</span></div>
-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:42%;background:#f59e0b"></div></div>
-<div class="prd-stat-row"><span class="prd-stat-label" style="color:#6b7280">纯完成（16/49）</span><span class="prd-stat-value" style="color:#ca8a04">33%</span></div>
-<div class="prd-stat-row"><span class="prd-stat-label" style="color:#6b7280">含半完成（18.5/49）</span><span class="prd-stat-value" style="color:#ca8a04">38%</span></div>
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</span><span class="prd-stat-value" style="color:#16a34a">1/6 = 17%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:17%;background:#ef4444"></div></div>
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+<div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</span><span class="prd-stat-value" style="color:#ca8a04">5/6 = 83%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:83%;background:#4ade80"></div></div>
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）
+<div class="prd-stat-row" data-layer="protect"><span class="prd-stat-label">保护层+合规（10模块）</span><span class="prd-stat-value" style="color:#16a34a">8.6/10 = 86%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:86%;background:#4ade80"></div></div>
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</s
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</s
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</s
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</s
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</s
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</s
+<div class="prd-stat-row" data-layer="monetize"><span class="prd-stat-label">变现层（6模块）</span><span class="prd-stat-value" style="color:#16a34a">3/6 = 50%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:50%;background:#f59e0b"></div></div>
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</spa
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</spa
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</spa
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</spa
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</spa
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</spa
+<div class="prd-stat-row" data-layer="infra"><span class="prd-stat-label">基础设施（8模块）</span><span class="prd-stat-value" style="color:#16a34a">5.3/8 = 66%</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:66%;background:#f59e0b"></div></div>
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-to
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-to
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-to
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-to
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-to
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-to
+<div class="prd-stat-row" style="margin-top:12px;border-top:2px solid #e5e7eb;padding-top:12px"><span class="prd-stat-label" style="font-weight:700">全量总计（含Phase 1.5/2/3）</span><span class="prd-stat-value" style="color:#16a34a;font-size:16px">28.5/51 ≈ 56%（已完成+部分实现）</span></div>
+<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:56%;background:#4ade80"></div></div>
+<div class="prd-stat-row"><span class="prd-stat-label" style="color:#6b7280">纯完成（26/51）</span><span class="prd-stat-value" style="color:#16a34a">51%</span></div>
+<div class="prd-stat-row"><span class="prd-stat-label" style="color:#6b7280">含半完成（28.5/51）</span><span class="prd-stat-value" style="color:#16a34a">56%</span></div>
 </div>
 
-<div class="stat-grid">
-<div class="stat-card"><div class="stat-value stat-green">7</div><div class="stat-label">新方向页面</div></div>
-<div class="stat-card"><div class="stat-value stat-green">7</div><div class="stat-label">新方向Store</div></div>
-<div class="stat-card"><div class="stat-value stat-green">9</div><div class="stat-label">新方向Service</div></div>
-<div class="stat-card"><div class="stat-value stat-green">7</div><div class="stat-label">新方向Hook</div></div>
+<!-- BOARD_CODE_STATS --><div class="stat-grid">
+<div class="stat-card"><div class="stat-value stat-green">19</div><div class="stat-label">页面</div></div>
+<div class="stat-card"><div class="stat-value stat-green">14</div><div class="stat-label">Store</div></div>
+<div class="stat-card"><div class="stat-value stat-green">22</div><div class="stat-label">Service</div></div>
+<div class="stat-card"><div class="stat-value stat-green">11</div><div class="stat-label">Hook</div></div>
 </div>
 <div class="stat-grid">
-<div class="stat-card"><div class="stat-value stat-green">1</div><div class="stat-label">新方向引擎</div></div>
-<div class="stat-card"><div class="stat-value stat-green">4</div><div class="stat-label">新方向数据</div></div>
-<div class="stat-card"><div class="stat-value stat-green">8</div><div class="stat-label">新方向组件</div></div>
-<div class="stat-card"><div class="stat-value stat-green">0</div><div class="stat-label">旧方向残留</div></div>
-</div>
+<div class="stat-card"><div class="stat-value stat-green">8</div><div class="stat-label">引擎</div></div>
+<div class="stat-card"><div class="stat-value stat-green">5</div><div class="stat-label">数据</div></div>
+<div class="stat-card"><div class="stat-value stat-green">23</div><div class="stat-label">组件</div></div>
+<div class="stat-card"><div class="stat-value stat-green">81</div><div class="stat-label">测试文件</div></div>
+</div><!-- /BOARD_CODE_STATS -->
 <div class="card">
 <div class="card-title">📊 代码文件统计</div>
-<div class="module-item"><div><div class="module-name">新方向代码（PRD v3.1 匹配）</div><div class="module-desc">7页面 + 7Store + 9Service + 7Hook + 1引擎 + 4数据 + 8组件 + 14测试</div></div><span class="badge badge-done">57 文件</span></div>
+<div class="module-item"><div><div class="module-name">新方向代码（PRD v3.1 匹配）</div><div class="module-desc">18页面 + 12Store + 22Service + 10Hook + 4引擎 + 5数据 + 23组件 + 76测试</div></div><span class="badge badge-done">170+ 文件</span></div>
 <div class="module-item"><div><div class="module-name">旧方向代码</div><div class="module-desc">90+文件已全部删除，14个空目录已清理，无残留</div></div><span class="badge badge-done">✓ 已清理</span></div>
 <div class="module-item"><div><div class="module-name">共享代码（保留）</div><div class="module-desc">authStore + settingsStore + api.ts + authService + memory-body核心 + notificationService</div></div><span class="badge badge-review">保留</span></div>
 </div>
@@ -697,7 +750,315 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
 <div class="card-title">📜 历史时间线</div>
 <div class="timeline">
-                                                            <div class="tl-item done" data-diff="2026-07-20T15-31-31-小程序审核准备完成.diff">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="tl-item done" data-diff="2026-07-22T08-50-34-P1全部-P2-1完成.diff">
+            <div class="tl-time">2026-07-22 16:50</div>
+            <div class="tl-title">P1全部+P2-1完成</div>
+            <div class="tl-desc">7个P1任务全部完成(疫苗/症状/埋点/流失召回/预警弹窗/危机弹窗/情绪检测)，健康报告PDF导出已实现</div>
+            <div class="tl-file">src/components/CrisisReferralCard.tsx, src/pages/index/index.tsx, src/services/reportService.ts, src/components/HealthReportPreview.tsx, src/utils/reportCanvasRenderer.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T08-50-34-P1全部-P2-1完成.diff', 'P1全部+P2-1完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T08-49-21-P1-6-P1-7完成.diff">
+            <div class="tl-time">2026-07-22 16:49</div>
+            <div class="tl-title">P1-6+P1-7完成</div>
+            <div class="tl-desc">危机弹窗不可关闭(移除我知道了按钮)，情绪底层自动触发已实现(首页集成useAnxietyDetection)</div>
+            <div class="tl-file">src/components/CrisisReferralCard.tsx, src/pages/index/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T08-49-21-P1-6-P1-7完成.diff', 'P1-6+P1-7完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T08-48-26-P1-6-危机弹窗强化完成.diff">
+            <div class="tl-time">2026-07-22 16:48</div>
+            <div class="tl-title">P1-6 危机弹窗强化完成</div>
+            <div class="tl-desc">移除我知道了关闭按钮，危机弹窗不可关闭只能拨打热线或follow-up反馈，5个测试通过</div>
+            <div class="tl-file">src/components/CrisisReferralCard.tsx, src/components/__tests__/CrisisReferralCard.test.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T08-48-26-P1-6-危机弹窗强化完成.diff', 'P1-6 危机弹窗强化完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T08-43-30-P1-5-红色预警弹窗强化完成.diff">
+            <div class="tl-time">2026-07-22 16:43</div>
+            <div class="tl-title">P1-5 红色预警弹窗强化完成</div>
+            <div class="tl-desc">添加找医院按钮(蓝色)，遮罩层不可关闭+3秒延迟已实现，全量1720测试通过</div>
+            <div class="tl-file">src/components/EmergencyAlert/index.tsx, src/components/EmergencyAlert/EmergencyAlert.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T08-43-30-P1-5-红色预警弹窗强化完成.diff', 'P1-5 红色预警弹窗强化完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T08-00-12-P1-4-用户流失召回完成.diff">
+            <div class="tl-time">2026-07-22 16:00</div>
+            <div class="tl-title">P1-4 用户流失召回完成</div>
+            <div class="tl-desc">新增churnDetectionService，7/14/30天流失检测+4级召回策略，集成首页和打卡页，27个新测试</div>
+            <div class="tl-file">src/services/churnDetectionService.ts, src/pages/index/index.tsx, src/pagesPet/checkin/index.tsx, src/services/__tests__/churnDetectionService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T08-00-12-P1-4-用户流失召回完成.diff', 'P1-4 用户流失召回完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T07-47-33-实现P1-4用户流失召回服务.diff">
+            <div class="tl-time">2026-07-22 15:47</div>
+            <div class="tl-title">实现P1-4用户流失召回服务</div>
+            <div class="tl-desc">创建churnDetectionService.ts，支持7/14/30天流失检测+推送召回；集成到首页useDidShow和打卡页面；27个测试全部通过</div>
+            <div class="tl-file">src/services/churnDetectionService.ts, src/services/__tests__/churnDetectionService.test.ts, src/pages/index/index.tsx, src/pagesPet/checkin/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T07-47-33-实现P1-4用户流失召回服务.diff', '实现P1-4用户流失召回服务')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T07-20-22-P1-3-埋点方案完成.diff">
+            <div class="tl-time">2026-07-22 15:20</div>
+            <div class="tl-title">P1-3 埋点方案完成</div>
+            <div class="tl-desc">14个核心事件全部覆盖，修复首页emotion_trigger使用EVENT常量替代自定义事件名</div>
+            <div class="tl-file">src/pages/index/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T07-20-22-P1-3-埋点方案完成.diff', 'P1-3 埋点方案完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T06-37-33-安全审查修复完成-SEC-01-SEC-08.diff">
+            <div class="tl-time">2026-07-22 14:37</div>
+            <div class="tl-title">安全审查修复完成 SEC-01~SEC-08</div>
+            <div class="tl-desc">修复8项安全问题: P1白名单校验+token身份提取, P2并发防护+prompt清洗+管理员角色, P3参数校验, P5静默失败+类型安全</div>
+            <div class="tl-file">04-数据库/supabase/functions/pet-avatar-generate/index.ts, 04-数据库/supabase/functions/share-grant-reward/index.ts, 04-数据库/supabase/functions/subscribe-send/index.ts, 04-数据库/supabase/functions/_shared/sanitize.ts, 04-数据库/supabase/init.sql, 03-源代码/小程序/miniapp/src/services/shareService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T06-37-33-安全审查修复完成-SEC-01-SEC-08.diff', '安全审查修复完成 SEC-01~SEC-08')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T05-51-34-P1-1-埋点补全完成.diff">
+            <div class="tl-time">2026-07-22 13:51</div>
+            <div class="tl-title">P1-1 埋点补全完成</div>
+            <div class="tl-desc">首页补充share_card埋点，profile页面补充page_view+click_health_report+click_subscribe_manage+logout事件，agreement页面补充page_view+view_agreement事件，20个页面埋点覆盖率达100%，87文件1691测试全部通过</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/index/index.tsx, 03-源代码/小程序/miniapp/src/pagesUser/profile/index.tsx, 03-源代码/小程序/miniapp/src/pagesUser/agreement/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T05-51-34-P1-1-埋点补全完成.diff', 'P1-1 埋点补全完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T05-32-58-P1-2-AI症状初筛个性化完成.diff">
+            <div class="tl-time">2026-07-22 13:32</div>
+            <div class="tl-title">P1-2 AI症状初筛个性化完成</div>
+            <div class="tl-desc">新增4个记忆维度(品种遗传疾病/过敏/用药/慢性病)与症状关联，4个新insight类型(allergy_warning/medication_side_effect/chronic_condition_alert)，16个新测试</div>
+            <div class="tl-file">src/services/symptomService.ts, src/services/__tests__/symptomService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T05-32-58-P1-2-AI症状初筛个性化完成.diff', 'P1-2 AI症状初筛个性化完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T05-30-09-P1-2-AI症状初筛个性化增强.diff">
+            <div class="tl-time">2026-07-22 13:30</div>
+            <div class="tl-title">P1-2 AI症状初筛个性化增强</div>
+            <div class="tl-desc">新增4个维度个性化判断：品种遗传疾病关联、过敏记录关联、用药副作用关联、慢性病加重关联。新增3个映射常量、4个分析函数、增强generatePersonalizedInsights和generatePersonalizedAdvice。新增16个测试用例全部通过。</div>
+            <div class="tl-file">src/services/symptomService.ts, src/services/__tests__/symptomService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T05-30-09-P1-2-AI症状初筛个性化增强.diff', 'P1-2 AI症状初筛个性化增强')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T05-21-44-P0-1-Edge-Functions---数据库补全完成.diff">
+            <div class="tl-time">2026-07-22 13:21</div>
+            <div class="tl-title">P0-1 Edge Functions + 数据库补全完成</div>
+            <div class="tl-desc">完成3个Edge Functions(share-grant-reward, pet-avatar-generate, subscribe-send)，补全3张缺失表(invite_codes, share_records, referral_records)，更新前端服务层指向Edge Function URL，修复grantShareReward安全逻辑(前端资格判断移到服务端)，87文件1675测试全部通过</div>
+            <div class="tl-file">04-数据库/supabase/init.sql, 04-数据库/supabase/functions/_shared/cors.ts, 04-数据库/supabase/functions/_shared/auth.ts, 04-数据库/supabase/functions/_shared/supabase.ts, 04-数据库/supabase/functions/share-grant-reward/index.ts, 04-数据库/supabase/functions/pet-avatar-generate/index.ts, 04-数据库/supabase/functions/subscribe-send/index.ts, 03-源代码/小程序/miniapp/src/config/supabase.ts, 03-源代码/小程序/miniapp/src/services/shareService.ts, 03-源代码/小程序/miniapp/src/engines/petAvatar/seedreamAdapter.ts, 03-源代码/小程序/miniapp/src/services/subscribeService.ts, 03-源代码/小程序/miniapp/src/services/__tests__/subscribeService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T05-21-44-P0-1-Edge-Functions---数据库补全完成.diff', 'P0-1 Edge Functions + 数据库补全完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T05-05-22-P1-1-疫苗自动生成时间表完成.diff">
+            <div class="tl-time">2026-07-22 13:05</div>
+            <div class="tl-title">P1-1 疫苗自动生成时间表完成</div>
+            <div class="tl-desc">新增品种特异性疫苗推荐映射(8条规则)，重写generateInitialPlan整合vaccineScheduler能力，支持按品种+年龄生成完整接种计划</div>
+            <div class="tl-file">src/data/petKnowledge/vaccineSchedule.ts, src/services/vaccineService.ts, src/services/__tests__/vaccineService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T05-05-22-P1-1-疫苗自动生成时间表完成.diff', 'P1-1 疫苗自动生成时间表完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T03-17-45-完成P1-3-P1-4-P2-2-P2-3开发.diff">
+            <div class="tl-time">2026-07-22 11:17</div>
+            <div class="tl-title">完成P1-3/P1-4/P2-2/P2-3开发</div>
+            <div class="tl-desc">P1-3:症状个性化历史记忆对比;P1-4:打卡页3天护理计划推送;P2-2:宠物档案补全毛色+健康信息展示;P2-3:CSV导出+分享给兽医功能;TypeScript 0错误;1667测试全通过</div>
+            <div class="tl-file">src/services/symptomService.ts, src/pagesPet/symptom-check/index.tsx, src/pagesPet/checkin/index.tsx, src/components/CarePlanCard.tsx, src/pages/index/index.tsx, src/memory-body/types/memoryBodyTypes.ts, src/pagesPet/add/index.tsx, src/pages/pet-profile/index.tsx, src/utils/reportExporter.ts, src/pagesPet/trends/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T03-17-45-完成P1-3-P1-4-P2-2-P2-3开发.diff', '完成P1-3/P1-4/P2-2/P2-3开发')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T03-16-54-修复测试错误-冷启动策略.diff">
+            <div class="tl-time">2026-07-22 11:16</div>
+            <div class="tl-title">修复测试错误+冷启动策略</div>
+            <div class="tl-desc">1. 修复useAnxietyDetection.test.tsx的19个TS错误(vi.fn泛型签名) 2. 修复emotionStore.test.ts的类型错误(petId缺失+EmotionSceneType断言) 3. 实现冷启动策略: EmptyStateGuide空状态引导+NewbieTaskCard新手任务+RecommendContentCard推荐内容 4. 首页集成3个冷启动组件 5. TypeScript编译零错误 6. 87测试文件1667用例全通过</div>
+            <div class="tl-file">src/hooks/__tests__/useAnxietyDetection.test.tsx, src/stores/__tests__/emotionStore.test.ts, src/hooks/useAnxietyDetection.ts, src/components/EmptyStateGuide.tsx, src/components/EmptyStateGuide.scss, src/components/NewbieTaskCard.tsx, src/components/NewbieTaskCard.scss, src/components/RecommendContentCard.tsx, src/components/RecommendContentCard.scss, src/pages/index/index.tsx, src/components/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T03-16-54-修复测试错误-冷启动策略.diff', '修复测试错误+冷启动策略')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T03-08-14-增加PDF和CSV健康报告导出功能.diff">
+            <div class="tl-time">2026-07-22 11:08</div>
+            <div class="tl-title">增加PDF和CSV健康报告导出功能</div>
+            <div class="tl-desc">新增CSV导出工具reportExporter.ts，在healthReportPdfService中增加downloadHealthReportCsv和shareReportToVet函数，在健康趋势页面增加导出CSV和分享给兽医按钮</div>
+            <div class="tl-file">src/utils/reportExporter.ts, src/pagesPet/services/healthReportPdfService.ts, src/pagesPet/trends/index.tsx, src/pagesPet/trends/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T03-08-14-增加PDF和CSV健康报告导出功能.diff', '增加PDF和CSV健康报告导出功能')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T02-16-24-集成3天护理计划推送功能-PRD-4-8-2-.diff">
+            <div class="tl-time">2026-07-22 10:16</div>
+            <div class="tl-title">集成3天护理计划推送功能(PRD 4.8.2)</div>
+            <div class="tl-desc">1.创建CarePlanCard独立组件(从AnxietyIntervention提取护理计划展示逻辑) 2.打卡页面集成:连续3天异常时显示护理计划按钮+CarePlanCard弹窗 3.首页集成:生病焦虑时用AnxietyIntervention替代EmotionResponseCard展示步骤引导+护理计划 4.组件导出到components/index.ts</div>
+            <div class="tl-file">src/components/CarePlanCard.tsx, src/components/CarePlanCard.scss, src/components/index.ts, src/pagesPet/checkin/index.tsx, src/pagesPet/checkin/index.scss, src/pages/index/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T02-16-24-集成3天护理计划推送功能-PRD-4-8-2-.diff', '集成3天护理计划推送功能(PRD 4.8.2)')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T02-15-49-P1-Analytics补全---安全关键测试完成.diff">
+            <div class="tl-time">2026-07-22 10:15</div>
+            <div class="tl-title">P1 Analytics补全 + 安全关键测试完成</div>
+            <div class="tl-desc">完成9个任务：10个页面新增analytics埋点(login/onboarding/member/mine/pet-profile/add-pet/edit-pet/avatar-customize/settings/invite)，PaywallPopup添加paywall_upgrade_click/paywall_dismiss追踪，5个页面添加share_card追踪，修复4个安全关键组件测试(EmergencyAlert/AnxietyIntervention/emotionStore/useAnxietyDetection)，修复useAnxietyDetection测试的renderHook getter问题和mock路径问题，87文件1667测试全部通过</div>
+            <div class="tl-file">src/pages/login/index.tsx, src/pagesUser/onboarding/index.tsx, src/pages/member/index.tsx, src/pages/mine/index.tsx, src/pages/pet-profile/index.tsx, src/pagesPet/add/index.tsx, src/pagesPet/edit/index.tsx, src/pagesPet/avatar-customize/index.tsx, src/pagesUser/settings/index.tsx, src/pagesUser/invite/index.tsx, src/components/PaywallPopup.tsx, src/pages/index/index.tsx, src/pagesPet/checkin/index.tsx, src/pagesPet/vaccine/index.tsx, src/pagesPet/trends/index.tsx, src/pagesPet/food-query/index.tsx, src/components/__tests__/CrisisReferralCard.test.tsx, src/hooks/__tests__/useAnxietyDetection.test.tsx, src/hooks/__tests__/useAnalytics.test.ts, src/services/__tests__/analyticsService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T02-15-49-P1-Analytics补全---安全关键测试完成.diff', 'P1 Analytics补全 + 安全关键测试完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T02-01-05-完善极端情绪用户导流机制.diff">
+            <div class="tl-time">2026-07-22 10:01</div>
+            <div class="tl-title">完善极端情绪用户导流机制</div>
+            <div class="tl-desc">新增极端情绪关键词检测、危机消息函数、CrisisReferralCard埋点追踪和triggerSource，集成到症状初筛/打卡/GriefCompanion/首页</div>
+            <div class="tl-file">src/engines/emotion.ts, src/components/CrisisReferralCard.tsx, src/components/GriefCompanion.tsx, src/pagesPet/symptom-check/index.tsx, src/pagesPet/checkin/index.tsx, src/pages/index/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T02-01-05-完善极端情绪用户导流机制.diff', '完善极端情绪用户导流机制')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-22T01-55-02-增强症状初筛个性化记忆判断功能-PRD-4-5-4-.diff">
+            <div class="tl-time">2026-07-22 09:55</div>
+            <div class="tl-title">增强症状初筛个性化记忆判断功能(PRD 4.5.4)</div>
+            <div class="tl-desc">新增HistoricalMemoryInsight类型、findHistoricalSimilarEvents函数、generateHistoricalMemoryInsights函数，修改analyzeSymptoms合并历史记忆洞察，修改symptom-check页面区分显示历史回忆类(蓝色)和风险提示类洞察</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/services/symptomService.ts, 03-源代码/小程序/miniapp/src/pagesPet/symptom-check/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/symptom-check/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-22T01-55-02-增强症状初筛个性化记忆判断功能-PRD-4-5-4-.diff', '增强症状初筛个性化记忆判断功能(PRD 4.5.4)')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T16-26-37-实现品种标准体重范围对比线.diff">
+            <div class="tl-time">2026-07-22 00:26</div>
+            <div class="tl-title">实现品种标准体重范围对比线</div>
+            <div class="tl-desc">在健康趋势体重图表中添加品种标准体重范围参考区域和超出范围红色标注提示</div>
+            <div class="tl-file">src/pagesPet/trends/index.tsx, src/pagesPet/trends/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T16-26-37-实现品种标准体重范围对比线.diff', '实现品种标准体重范围对比线')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T15-43-33-完善数据指标体系和埋点方案.diff">
+            <div class="tl-time">2026-07-21 23:43</div>
+            <div class="tl-title">完善数据指标体系和埋点方案</div>
+            <div class="tl-desc">新增事件类型定义、事件常量、漏斗定义、完善analyticsService和useAnalytics、集成到8个核心页面</div>
+            <div class="tl-file">src/types/analyticsTypes.ts, src/constants/analyticsEvents.ts, src/constants/analyticsFunnels.ts, src/services/analyticsService.ts, src/hooks/useAnalytics.ts, src/pages/index/index.tsx, src/pagesPet/checkin/index.tsx, src/pagesPet/food-query/index.tsx, src/pagesPet/symptom-check/index.tsx, src/pagesPet/vaccine/index.tsx, src/pagesPet/trends/index.tsx, src/pagesPet/breed/index.tsx, src/pagesPet/breed-detail/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T15-43-33-完善数据指标体系和埋点方案.diff', '完善数据指标体系和埋点方案')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T15-35-41-实现宠物日记UI和PaywallPopup套餐对比.diff">
+            <div class="tl-time">2026-07-21 23:35</div>
+            <div class="tl-title">实现宠物日记UI和PaywallPopup套餐对比</div>
+            <div class="tl-desc">功能1: 打卡页面添加宠物日记展示区域(头像+日记文本+分享按钮); 功能2: PaywallPopup添加3个套餐选项卡(月度9.9/季度25.9/年度88)和免费版vs会员版对比列表</div>
+            <div class="tl-file">src/pagesPet/checkin/index.tsx, src/pagesPet/checkin/index.scss, src/components/PaywallPopup.tsx, src/components/PaywallPopup.scss, src/components/__tests__/PaywallPopup.test.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T15-35-41-实现宠物日记UI和PaywallPopup套餐对比.diff', '实现宠物日记UI和PaywallPopup套餐对比')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T14-20-43-完善品种百科页面.diff">
+            <div class="tl-time">2026-07-21 22:20</div>
+            <div class="tl-title">完善品种百科页面</div>
+            <div class="tl-desc">为品种百科增加搜索筛选功能、品种卡片展示、品种详情页（饮食禁忌/常见疾病/养护建议），更新40个品种数据</div>
+            <div class="tl-file">src/data/petKnowledge/breeds.ts, src/pagesPet/breed/index.tsx, src/pagesPet/breed/index.scss, src/pagesPet/breed-detail/index.tsx, src/pagesPet/breed-detail/index.scss, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T14-20-43-完善品种百科页面.diff', '完善品种百科页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T13-27-49-分析-指标系统完成.diff">
+            <div class="tl-time">2026-07-21 21:27</div>
+            <div class="tl-title">分析/指标系统完成</div>
+            <div class="tl-desc">完成4项任务：1)analyticsService核心服务(本地队列+Supabase flush) 2)useAnalytics Hook 3)7个页面埋点集成(home/food-query/symptom-check/checkin/trends/vaccine/breed) 4)breed页面补充search_breed/click_breed_card/filter_species事件。全量测试83文件1559测试全部通过</div>
+            <div class="tl-file">src/services/analyticsService.ts, src/services/__tests__/analyticsService.test.ts, src/hooks/useAnalytics.ts, src/hooks/__tests__/useAnalytics.test.ts, src/pagesPet/breed/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T13-27-49-分析-指标系统完成.diff', '分析/指标系统完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T12-02-11-修复编译错误-补齐功能缺口.diff">
+            <div class="tl-time">2026-07-21 20:02</div>
+            <div class="tl-title">修复编译错误+补齐功能缺口</div>
+            <div class="tl-desc">完成5项修复：1)P0修复trends/symptom-check/food-query的MedicalDisclaimer缺失导入 2)breed页面添加MedicalDisclaimer和免责声明样式 3)首页AchievementShareCard接入 4)疫苗页面AchievementShareCard接入 5)HealthReportPreview和AnomalyMarker加入barrel export。全量测试81文件1552测试全部通过</div>
+            <div class="tl-file">src/pagesPet/trends/index.tsx, src/pagesPet/symptom-check/index.tsx, src/pagesPet/food-query/index.tsx, src/pagesPet/breed/index.tsx, src/engines/petSafety/MedicalDisclaimer.ts, src/pages/index/index.tsx, src/pagesPet/vaccine/index.tsx, src/components/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T12-02-11-修复编译错误-补齐功能缺口.diff', '修复编译错误+补齐功能缺口')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T10-56-38-P0合规-P1安全增长全部完成.diff">
+            <div class="tl-time">2026-07-21 18:56</div>
+            <div class="tl-title">P0合规+P1安全增长全部完成</div>
+            <div class="tl-desc">完成8个任务：1)MedicalDisclaimer引擎扩展trend/vaccine 2)6页面替换硬编码免责声明 3)CrisisReferralCard组件 4)情绪引擎危机转介逻辑 5)首页集成危机转介+成就卡 6)疫苗页面成就卡 7)打卡页面AchievementShareCard接入 8)全量验证1552测试通过</div>
+            <div class="tl-file">src/engines/petSafety/MedicalDisclaimer.ts, src/engines/emotion.ts, src/stores/emotionStore.ts, src/components/CrisisReferralCard.tsx, src/components/CrisisReferralCard.scss, src/components/__tests__/CrisisReferralCard.test.tsx, src/pages/index/index.tsx, src/pages/index/index.scss, src/pagesPet/vaccine/index.tsx, src/pagesPet/checkin/index.tsx, src/pagesPet/food-query/index.tsx, src/pagesPet/symptom-check/index.tsx, src/pagesPet/trends/index.tsx, src/engines/__tests__/emotion.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T10-56-38-P0合规-P1安全增长全部完成.diff', 'P0合规+P1安全增长全部完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T10-17-14-自动同步引擎测试.diff">
+            <div class="tl-time">2026-07-21 18:17</div>
+            <div class="tl-title">自动同步引擎测试</div>
+            <div class="tl-desc">测试看板自动更新：时间线+模块状态+进度+日期+统计全部自动更新</div>
+            <div class="tl-file">sync-board.cjs, update-board.cjs</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T10-17-14-自动同步引擎测试.diff', '自动同步引擎测试')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T09-24-56-Phase-1-5-真实服务集成完成.diff">
+            <div class="tl-time">2026-07-21 17:24</div>
+            <div class="tl-title">Phase 1.5 真实服务集成完成</div>
+            <div class="tl-desc">模块1:数据库Schema重写(17表+RLS);模块2:Supabase Client集成(camelCase映射);模块3:Seedream API真实集成(自动stub回退);模块4:微信模板ID统一管理;安全审查:P0修复2项+P1修复4项;测试80文件1538用例全通过;TypeScript零错误;构建成功</div>
+            <div class="tl-file">04-数据库/supabase/init.ts, services/supabaseClient.ts, services/syncService.ts, config/supabase.ts, engines/petAvatar/seedreamAdapter.ts, services/avatarService.ts, constants/templateIds.ts, services/subscribeService.ts, services/frequencyControlService.ts, services/reminderService.ts, utils/jwt.ts, utils/authGuard.ts, utils/petOwnership.ts, utils/crypto.ts, utils/storage.ts, services/shareService.ts, services/checkinService.ts, services/foodService.ts, services/reportService.ts, .env.example</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T09-24-56-Phase-1-5-真实服务集成完成.diff', 'Phase 1.5 真实服务集成完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T08-30-53-Share-Viral-Loop-功能完成.diff">
+            <div class="tl-time">2026-07-21 16:30</div>
+            <div class="tl-title">Share/Viral Loop 功能完成</div>
+            <div class="tl-desc">完成分享/病毒传播循环全部功能：Task3-Canvas分享卡片重构、Task4-朋友圈分享+邀请码路径、Task5-邀请好友页面+奖励逻辑、Task6-NPS触发集成。全量测试80文件1538用例通过</div>
+            <div class="tl-file">src/stores/shareStore.ts, src/utils/shareCanvasRenderer.ts, src/components/FoodShareCard.tsx, src/components/HealthTrendShareCard.tsx, src/components/VaccineShareCard.tsx, src/components/AchievementShareCard.tsx, src/pagesPet/trends/index.tsx, src/pagesPet/food-query/index.tsx, src/pagesPet/vaccine/index.tsx, src/pagesPet/checkin/index.tsx, src/pagesPet/symptom-check/index.tsx, src/pagesUser/invite/index.tsx, src/pages/mine/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T08-30-53-Share-Viral-Loop-功能完成.diff', 'Share/Viral Loop 功能完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T08-17-17-实现Task5--邀请好友页面与入口.diff">
+            <div class="tl-time">2026-07-21 16:17</div>
+            <div class="tl-title">实现Task5: 邀请好友页面与入口</div>
+            <div class="tl-desc">在mine页面添加邀请好友入口，创建invite页面（邀请码展示、分享统计、奖励检查），注册路由，编写4个测试用例全部通过</div>
+            <div class="tl-file">src/pages/mine/index.tsx, src/pagesUser/invite/index.tsx, src/pagesUser/invite/index.scss, src/pagesUser/invite/__tests__/index.test.tsx, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T08-17-17-实现Task5--邀请好友页面与入口.diff', '实现Task5: 邀请好友页面与入口')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T07-52-08-看板模块状态全面更新至7-21.diff">
+            <div class="tl-time">2026-07-21 15:52</div>
+            <div class="tl-title">看板模块状态全面更新至7.21</div>
+            <div class="tl-desc">更新日期/进度条35%→55%/情绪底层悲伤陪伴已完成/宠物形象3个子模块已完成/保护层新增authGuard+安全审查+频次限制/隐私保护已完成/数据备份已完成/Day14集成测试完成/代码统计170+文件/日期导航新增07-21</div>
+            <div class="tl-file">.board/index.html</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T07-52-08-看板模块状态全面更新至7-21.diff', '看板模块状态全面更新至7.21')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T07-31-50-后端安全审查完成.diff">
+            <div class="tl-time">2026-07-21 15:31</div>
+            <div class="tl-title">后端安全审查完成</div>
+            <div class="tl-desc">完成六大维度安全审查：发现P0风险2项（JWT签名验证缺失、奖励值无后端校验）、P1风险9项、P2风险8项、P3风险4项、P4风险1项、P5风险3项</div>
+            <div class="tl-file">src/utils/jwt.ts, src/services/shareService.ts, src/utils/crypto.ts, src/services/supabaseClient.ts, src/services/syncService.ts, src/services/dataPrivacyService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T07-31-50-后端安全审查完成.diff', '后端安全审查完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T06-43-40-记忆同步-WebSocket恢复.diff">
+            <div class="tl-time">2026-07-21 14:43</div>
+            <div class="tl-title">记忆同步+WebSocket恢复</div>
+            <div class="tl-desc">恢复WebSocket服务器(端口8081)，同步项目记忆到看板，恢复看板自动更新功能</div>
+            <div class="tl-file">.board/index.html</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T06-43-40-记忆同步-WebSocket恢复.diff', '记忆同步+WebSocket恢复')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T06-16-00-健康报告小程序兼容重构完成.diff">
+            <div class="tl-time">2026-07-21 14:16</div>
+            <div class="tl-title">健康报告小程序兼容重构完成</div>
+            <div class="tl-desc">将PDF导出从浏览器API(html2canvas+jsPDF)重构为Canvas 2D绘制方案，支持保存到相册和分享给兽医。移除html2canvas/jspdf依赖(20个包)，主包从661KB降至413KB(-248KB)。75文件1488测试通过，类型检查0错误，构建成功。</div>
+            <div class="tl-file">src/utils/reportCanvasRenderer.ts, src/utils/__tests__/reportCanvasRenderer.test.ts, src/types/reportTypes.ts, src/components/HealthReportPreview.tsx, src/components/HealthReportPreview.scss, src/components/__tests__/HealthReportPreview.test.tsx, src/pagesPet/services/healthReportPdfService.ts, src/pagesPet/trends/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T06-16-00-健康报告小程序兼容重构完成.diff', '健康报告小程序兼容重构完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T04-10-41-后端安全审查完成.diff">
+            <div class="tl-time">2026-07-21 12:10</div>
+            <div class="tl-title">后端安全审查完成</div>
+            <div class="tl-desc">完成六大维度安全审查：发现P0风险6项（支付userId伪造、会员状态越权查询、宠物数据无归属校验、Mock认证绕过）、P1风险6项（JWT签名未验证、PostgREST注入、加密盐值硬编码等）、P2风险4项、P3风险4项、P4建议3项、P5死代码2项。核心问题：后端必须从JWT token提取userId而非接受前端参数，必须配置Supabase RLS。</div>
+            <div class="tl-file">src/services/membershipService.ts, src/services/petService.ts, src/config/supabase.ts, src/utils/jwt.ts, src/utils/crypto.ts, src/services/dataPrivacyService.ts, src/services/checkinService.ts, src/services/api.ts, src/stores/authStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T04-10-41-后端安全审查完成.diff', '后端安全审查完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T02-57-42-情绪融入宠物场景完成.diff">
+            <div class="tl-time">2026-07-21 10:57</div>
+            <div class="tl-title">情绪融入宠物场景完成</div>
+            <div class="tl-desc">完成情绪融入宠物场景全部8个任务：1)usageTracking时间窗口计数 2)连续异常天数计算 3)情绪引擎重构(4步流程+阈值调整) 4)GriefCompanion重构为4步流程 5)EmotionResponseCard改为内联提示 6)首页触发逻辑修复(真实数据) 7)pet-profile标记去世后自动触发悲伤陪伴 8)全量验证通过(75文件1477测试+构建成功)</div>
+            <div class="tl-file">src/utils/usageTracking.ts, src/services/checkinService.ts, src/stores/checkinStore.ts, src/engines/emotion.ts, src/types/emotionTypes.ts, src/components/GriefCompanion.tsx, src/components/GriefCompanion.scss, src/components/EmotionResponseCard.tsx, src/components/EmotionResponseCard.scss, src/pages/index/index.tsx, src/pages/pet-profile/index.tsx, src/stores/__tests__/checkinStore.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T02-57-42-情绪融入宠物场景完成.diff', '情绪融入宠物场景完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T01-12-21-优化PDF生成功能打包位置.diff">
+            <div class="tl-time">2026-07-21 09:12</div>
+            <div class="tl-title">优化PDF生成功能打包位置</div>
+            <div class="tl-desc">将jspdf+html2canvas从主包移到分包，主包体积从1367KB降至约726KB，减少约641KB</div>
+            <div class="tl-file">src/services/reportService.ts, src/pagesPet/services/healthReportPdfService.ts, src/pagesPet/trends/index.tsx, config/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T01-12-21-优化PDF生成功能打包位置.diff', '优化PDF生成功能打包位置')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-21T01-11-52-旧代码清理完成-修复storage测试.diff">
+            <div class="tl-time">2026-07-21 09:11</div>
+            <div class="tl-title">旧代码清理完成+修复storage测试</div>
+            <div class="tl-desc">删除8个旧emotion/grief文件，清理3个barrel export，清理首页和pet-profile页面的旧emotion引用，修复storage.test.ts的crypto-js子路径导入mock问题（改用直接mock ../crypto模块），全量验证通过：71文件1425测试全通过，类型检查0错误，构建成功</div>
+            <div class="tl-file">src/engines/emotion.ts, src/types/emotionTypes.ts, src/stores/emotionStore.ts, src/components/GriefCompanion.tsx, src/components/GriefCompanion.scss, src/components/GriefCompanion.test.tsx, src/components/EmotionResponseCard.tsx, src/components/EmotionResponseCard.scss, src/engines/index.ts, src/stores/index.ts, src/components/index.ts, src/pages/index/index.tsx, src/pages/pet-profile/index.tsx, src/pages/pet-profile/index.scss, src/utils/__tests__/storage.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-21T01-11-52-旧代码清理完成-修复storage测试.diff', '旧代码清理完成+修复storage测试')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T23-19-07-旧方向代码全面清理.diff">
+            <div class="tl-time">2026-07-21 07:19</div>
+            <div class="tl-title">旧方向代码全面清理</div>
+            <div class="tl-desc">Phase1:删除18个memory-body遗留文件+更新index.ts。Phase2:重构3个页面移除emotionStore/EmotionResponseCard依赖+删除9个emotion文件+GriefCompanion自包含化。Phase3:清理memoryBodyTypes.ts移除28个旧类型+storage敏感key+moodHelper+notificationService术语+global.scss旧变量+app.scss旧变量。Phase4:更新project_rules.md分包策略。修复avatarService类型错误+shareService类型错误。TypeScript 0错误，72文件1431测试全通过，构建成功(5.98s)。</div>
+            <div class="tl-file">src/memory-body/, src/engines/emotion/, src/stores/emotionStore.ts, src/components/EmotionResponseCard.*, src/data/petKnowledge/emotionScenes.*, src/utils/moodHelper.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T23-19-07-旧方向代码全面清理.diff', '旧方向代码全面清理')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T23-08-39-宠物头像系统开发完成.diff">
+            <div class="tl-time">2026-07-21 07:08</div>
+            <div class="tl-title">宠物头像系统开发完成</div>
+            <div class="tl-desc">完成8个任务：类型提取、常量添加、avatarService服务层、8种表情动画系统、首页streakDays bug修复、成就卡分享功能、头像定制页面。类型检查零错误，1447个测试全部通过。</div>
+            <div class="tl-file">src/types/avatarTypes.ts, src/services/avatarService.ts, src/components/PetAvatar.tsx, src/components/PetAvatarAnimations.scss, src/components/PetAvatar.scss, src/components/AchievementCard.tsx, src/components/AchievementCard.scss, src/pagesPet/avatar-customize/index.tsx, src/pagesPet/avatar-customize/index.scss, src/pagesPet/avatar-customize/index.config.ts, src/pages/index/index.tsx, src/types/shareTypes.ts, src/services/shareService.ts, src/constants/index.ts, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T23-08-39-宠物头像系统开发完成.diff', '宠物头像系统开发完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T17-39-35-分包体积优化-构建成功.diff">
+            <div class="tl-time">2026-07-21 01:39</div>
+            <div class="tl-title">分包体积优化+构建成功</div>
+            <div class="tl-desc">pdfGenerator动态import(jspdf/html2canvas); webpack splitChunks分离重型库为独立chunk; sub-common从325KB降至不超限; 构建零警告; 删除死代码barrel文件</div>
+            <div class="tl-file">src/utils/pdfGenerator.ts, config/index.ts, src/data/index.ts, src/data/petKnowledge/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T17-39-35-分包体积优化-构建成功.diff', '分包体积优化+构建成功')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T17-26-33-P1-3-4-5-修复完成.diff">
+            <div class="tl-time">2026-07-21 01:26</div>
+            <div class="tl-title">P1-3/4/5 修复完成</div>
+            <div class="tl-desc">修复33个TS编译错误(api.test/supabaseClient.test/cloudSyncStore.test/PetAvatar.test); 修复4个重试测试超时(getRequestKey缺少retry维度); foodService异步懒加载FOOD_SAFETY_DATA; GriefCompanion组件React.lazy懒加载; 删除死代码barrel文件(data/index.ts, petKnowledge/index.ts)</div>
+            <div class="tl-file">src/services/__tests__/api.test.ts, src/services/__tests__/supabaseClient.test.ts, src/stores/__tests__/cloudSyncStore.test.ts, src/components/__tests__/PetAvatar.test.tsx, src/services/foodService.ts, src/pages/pet-profile/index.tsx, src/data/index.ts, src/data/petKnowledge/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T17-26-33-P1-3-4-5-修复完成.diff', 'P1-3/4/5 修复完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T16-58-08-全面测试覆盖补充.diff">
+            <div class="tl-time">2026-07-21 00:58</div>
+            <div class="tl-title">全面测试覆盖补充</div>
+            <div class="tl-desc">新增21个测试文件：Utils层4个(storage40+crypto17+jwt19+moodHelper16)、组件层12个(PetAvatar15+AchievementCard14+PaywallPopup13+UsageCounter10+PlanSelector13+PetCard15+PetSwitcher12+PetDeceasedModal12+PrivacyPopup8+PageError6+PageLoading5+AccountDeletionConfirm13)、Service层4个(authService20+supabaseClient28+api24+syncHelper10)、Store层1个(cloudSyncStore28)。修复mock路径和类型错误。TypeScript 0错误，76文件1537测试全通过，构建成功。</div>
+            <div class="tl-file">src/utils/__tests__/, src/components/__tests__/, src/services/__tests__/, src/stores/__tests__/</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-20T16-58-08-全面测试覆盖补充.diff', '全面测试覆盖补充')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-20T15-31-31-小程序审核准备完成.diff">
             <div class="tl-time">2026-07-20 23:31</div>
             <div class="tl-title">小程序审核准备完成</div>
             <div class="tl-desc">隐私政策完善、微信隐私弹窗、账号注销入口、分包配置、医疗免责声明补全、project.config.json配置更新</div>
@@ -838,6 +1199,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <!-- ====== 按日期查找 ====== -->
+<div id="view-date-0721" class="hidden">
+<div class="card"><div class="card-title">2026-07-21</div>
+<div class="timeline">
+<div class="tl-item done"><div class="tl-title">健康报告小程序兼容重构</div><div class="tl-desc">PDF生成功能移至分包，主包体积从1367KB优化至661KB（-51.7%），CryptoJS按需引入</div></div>
+<div class="tl-item done"><div class="tl-title">后端安全审查完成</div><div class="tl-desc">6大维度安全审查，P0风险6项全部修复（userId伪造/RLS/Mock回退/数据归属/支付回调），新增authGuard认证守卫</div></div>
+<div class="tl-item done"><div class="tl-title">情绪融入宠物场景完成</div><div class="tl-desc">GriefCompanion自包含实现，旧情绪引擎代码清理，术语替换（情绪→健康/护理）</div></div>
+<div class="tl-item done"><div class="tl-title">宠物形象引擎开发</div><div class="tl-desc">expressionEngine+svgRenderer+diaryEngine+seedreamAdapter，4个核心引擎代码完成</div></div>
+<div class="tl-item done"><div class="tl-title">旧方向代码全面清理</div><div class="tl-desc">30+旧文件删除，28个legacy类型清理，9个旧emotion文件移除，术语替换完成</div></div>
+<div class="tl-item done"><div class="tl-title">Day 14 集成测试完成</div><div class="tl-desc">TS 0错误/76文件1500测试全通过/构建6.65s成功/console.*全部替换/死代码清理</div></div>
+</div></div>
+</div>
 <div id="view-date-0720" class="hidden">
 <div class="card"><div class="card-title">2026-07-20</div>
 <div class="timeline">
@@ -917,6 +1289,35 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
 })();
+
+// ========== WebSocket 实时更新 ==========
+var boardWS=null;
+function connectBoardWS(){
+  try{
+    boardWS=new WebSocket('ws://localhost:8081');
+    boardWS.onopen=function(){
+      console.log('[看板] WebSocket已连接，文件变化时将自动刷新');
+    };
+    boardWS.onmessage=function(event){
+      var data=JSON.parse(event.data);
+      if(data.type==='reload'){
+        console.log('[看板] 检测到文件变化，自动刷新:',data.file);
+        location.reload();
+      }
+    };
+    boardWS.onclose=function(){
+      console.log('[看板] WebSocket断开，5秒后重连...');
+      setTimeout(connectBoardWS,5000);
+    };
+    boardWS.onerror=function(){
+      try{boardWS.close()}catch(e){}
+    };
+  }catch(e){
+    console.log('[看板] WebSocket连接失败，5秒后重试:',e.message);
+    setTimeout(connectBoardWS,5000);
+  }
+}
+connectBoardWS();
 </script>
 </body>
 </html>

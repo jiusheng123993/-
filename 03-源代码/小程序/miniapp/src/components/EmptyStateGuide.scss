@@ -1,0 +1,140 @@
+@import '../styles/global.scss';
+
+.empty-state-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 24px 48px;
+  animation: emptyStateFadeIn 0.5s ease-out;
+
+  @keyframes emptyStateFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  &__hero-emoji {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  &__hero-title {
+    font-size: 24px;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin-bottom: 8px;
+  }
+
+  &__hero-subtitle {
+    font-size: 14px;
+    color: $color-text-tertiary;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 40px;
+  }
+
+  &__primary-btn {
+    width: 100%;
+    padding: 14px 0;
+    background: $color-primary;
+    border-radius: $radius-full;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(176, 58, 46, 0.25);
+    transition: opacity $transition-fast;
+
+    &:active {
+      opacity: 0.85;
+    }
+  }
+
+  &__primary-btn-text {
+    font-size: 16px;
+    font-weight: $font-weight-bold;
+    color: #fff;
+  }
+
+  &__secondary-btn {
+    width: 100%;
+    padding: 12px 0;
+    background: transparent;
+    border: 1px solid $color-border;
+    border-radius: $radius-full;
+    text-align: center;
+    transition: background $transition-fast;
+
+    &:active {
+      background: $color-bg-secondary;
+    }
+  }
+
+  &__secondary-btn-text {
+    font-size: 14px;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+  }
+
+  &__highlights {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+
+  &__highlight-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border-radius: $radius-md;
+    padding: 16px 8px;
+    box-shadow: $shadow-sm;
+    border: 1px solid $color-border;
+  }
+
+  &__highlight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-sm;
+    background: $color-bg-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  &__highlight-emoji {
+    font-size: 20px;
+  }
+
+  &__highlight-title {
+    font-size: 13px;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin-bottom: 4px;
+  }
+
+  &__highlight-desc {
+    font-size: 11px;
+    color: $color-text-tertiary;
+    text-align: center;
+  }
+}

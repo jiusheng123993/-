@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import Taro from '@tarojs/taro';
 import { supabaseAuth, STORAGE_KEYS } from '../config/supabase';
-import { verifyToken } from '../utils/jwt';
+import { isTokenFormatValid } from '../utils/jwt';
 import {
   requestAccountDeletion,
   cancelAccountDeletion as cancelDeletion,
@@ -118,7 +118,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (token && user) {
       // 验证 Token 是否有效
-      const isValid = verifyToken(token);
+      const isValid = isTokenFormatValid(token);
 
       if (isValid) {
         set({

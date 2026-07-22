@@ -39,7 +39,7 @@ export const AccountDeletionConfirm: React.FC<Props> = ({
         <Text className="warning-icon">⚠️</Text>
         <Text className="warning-title">账号注销确认</Text>
         <Text className="warning-desc">
-          注销后，您的所有数据将在30天冷静期后永久删除，且无法恢复。包括：宠物档案、健康记录、疫苗记录、症状记录、情绪记录等。
+          注销后，您的所有数据将在30天冷静期后永久删除，且无法恢复。包括：宠物档案、健康记录、疫苗记录、症状记录、行为记录等。
         </Text>
       </View>
 

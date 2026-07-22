@@ -1,26 +1,11 @@
-import type { ExpressionConfig } from './expressionEngine'
+import Taro from '@tarojs/taro'
+import type { ExpressionConfig, PetSpecies, SeedreamGenerateParams, SeedreamGenerateResult, PetImageParams } from '../../types/avatarTypes'
+
+export type { SeedreamGenerateParams, SeedreamGenerateResult, PetImageParams }
+
 import { getPetFaceDataUri } from './svgRenderer'
-
-export interface SeedreamGenerateParams {
-  prompt: string
-  imageSize?: 'square_hd' | 'square' | 'portrait_4_3' | 'portrait_16_9' | 'landscape_4_3' | 'landscape_16_9'
-  negativePrompt?: string
-  style?: 'realistic' | 'cartoon' | 'anime'
-}
-
-export interface SeedreamGenerateResult {
-  success: boolean
-  imageUrl?: string
-  error?: string
-}
-
-export interface PetImageParams {
-  species: 'dog' | 'cat'
-  expression: ExpressionConfig
-  breed?: string
-  color?: string
-  style?: 'cartoon' | 'realistic'
-}
+import { EXPRESSION_MAP } from './expressionEngine'
+import { getEdgeFunctionUrl } from '../../config/supabase'
 
 function buildPetPrompt(params: PetImageParams): string {
   const speciesName = params.species === 'dog' ? '狗' : '猫'
@@ -43,7 +28,15 @@ export class SeedreamAdapter {
       return this.generateStubImage(params)
     }
 
-    return this.generateRealImage(params)
+    try {
+      const result = await this.generateRealImage(params)
+      if (!result.success) {
+        return this.generateStubImage(params)
+      }
+      return result
+    } catch {
+      return this.generateStubImage(params)
+    }
   }
 
   private generateStubImage(params: PetImageParams): SeedreamGenerateResult {
@@ -54,37 +47,94 @@ export class SeedreamAdapter {
     }
   }
 
-  private async generateRealImage(_params: PetImageParams): Promise<SeedreamGenerateResult> {
-    // TODO: 接入 Seedream API
-    // const prompt = buildPetPrompt(_params)
-    // const result = await seedreamApi.generate({
-    //   prompt,
-    //   imageSize: 'square',
-    //   style: _params.style === 'realistic' ? 'realistic' : 'cartoon',
-    // })
-    return {
-      success: false,
-      error: 'Seedream API 尚未接入',
+  private async generateRealImage(params: PetImageParams): Promise<SeedreamGenerateResult> {
+    const prompt = buildPetPrompt(params)
+    const apiParams: SeedreamGenerateParams = {
+      prompt,
+      imageSize: 'square',
+      negativePrompt: '低质量, 模糊, 变形, 多余肢体, 文字, 水印',
+      style: params.style === 'realistic' ? 'realistic' : 'cartoon',
     }
+
+    const token = Taro.getStorageSync('xhh_token')
+    const res = await Taro.request({
+      url: getEdgeFunctionUrl('pet-avatar-generate'),
+      method: 'POST',
+      data: apiParams,
+      header: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      }
+    })
+
+    if (res.statusCode === 200) {
+      const data = res.data as { success: boolean; imageUrl?: string; error?: string }
+      if (data.success && data.imageUrl) {
+        return { success: true, imageUrl: data.imageUrl }
+      }
+      return { success: false, error: data.error || '生成失败' }
+    }
+
+    if (res.statusCode === 402) {
+      return { success: false, error: '生成次数已用完' }
+    }
+
+    if (res.statusCode === 429) {
+      return { success: false, error: '请求过于频繁，请稍后再试' }
+    }
+
+    return { success: false, error: `请求失败: ${res.statusCode}` }
   }
 
   async generateAchievementImage(
     achievementType: string,
     petName: string,
-    species: 'dog' | 'cat'
+    species: PetSpecies
   ): Promise<SeedreamGenerateResult> {
     if (this.useStub) {
-      const expression = await import('./expressionEngine').then(m => m.EXPRESSION_MAP.excited)
+      const expression = EXPRESSION_MAP.excited
       const dataUri = getPetFaceDataUri(expression, species, 256)
       return { success: true, imageUrl: dataUri }
     }
 
-    // TODO: 接入 Seedream API 生成成就卡片
-    return {
-      success: false,
-      error: 'Seedream API 尚未接入',
+    try {
+      const prompt = `${petName}获得${achievementType}成就，庆祝场景，可爱卡通风格，高质量`
+      const apiParams: SeedreamGenerateParams = {
+        prompt,
+        imageSize: 'square',
+        style: 'cartoon',
+      }
+
+      const token = Taro.getStorageSync('xhh_token')
+      const res = await Taro.request({
+        url: getEdgeFunctionUrl('pet-avatar-generate'),
+        method: 'POST',
+        data: apiParams,
+        header: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        timeout: 30000,
+      })
+
+      if (res.statusCode === 200) {
+        const data = res.data as { success: boolean; imageUrl?: string; error?: string }
+        if (data.success && data.imageUrl) {
+          return { success: true, imageUrl: data.imageUrl }
+        }
+      }
+
+      const expression = EXPRESSION_MAP.excited
+      const dataUri = getPetFaceDataUri(expression, species, 256)
+      return { success: true, imageUrl: dataUri }
+    } catch {
+      const expression = EXPRESSION_MAP.excited
+      const dataUri = getPetFaceDataUri(expression, species, 256)
+      return { success: true, imageUrl: dataUri }
     }
   }
 }
 
-export const seedreamAdapter = new SeedreamAdapter(true)
+const shouldUseStub = !(process.env.TARO_APP_API_BASE_URL)
+
+export const seedreamAdapter = new SeedreamAdapter(shouldUseStub)

@@ -20,7 +20,7 @@ const mockExpression = {
   eyes: 'happy',
   mouth: 'smile',
   accessory: 'blush',
-  animation: 'bounce'
+  animation: 'bounce' as const
 }
 
 const mockDiary = { emoji: '😊', text: '今天很开心', tone: 'happy' as const }
@@ -36,7 +36,7 @@ vi.mock('../../engines/petAvatar', () => ({
       eyes: 'star',
       mouth: 'open_smile',
       accessory: 'confetti',
-      animation: 'jump',
+      animation: 'jump' as const,
       color: '#FF69B4'
     }
   },
@@ -119,7 +119,7 @@ describe('PetAvatar', () => {
       eyes: 'star',
       mouth: 'open_smile',
       accessory: 'confetti',
-      animation: 'jump'
+      animation: 'jump' as const
     }
     render(
       <PetAvatar
@@ -208,5 +208,36 @@ describe('PetAvatar', () => {
       <PetAvatar species='cat' petName='咪咪' expressionContext={defaultContext} showDiary />
     )
     expect(screen.getByText(/咪咪/)).toBeDefined()
+  })
+
+  it('applies animation class based on expression.animation', () => {
+    render(
+      <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />
+    )
+    const img = screen.getByRole('img')
+    expect(img.className).toContain('pet-avatar__image--bounce')
+  })
+
+  it('applies different animation class for customExpression', () => {
+    const customExpression = {
+      expression: 'excited' as const,
+      label: '兴奋',
+      color: '#FF69B4',
+      eyes: 'star',
+      mouth: 'open_smile',
+      accessory: 'confetti',
+      animation: 'jump' as const
+    }
+    render(
+      <PetAvatar
+        species='dog'
+        petName='旺财'
+        expressionContext={defaultContext}
+        customExpression={customExpression}
+      />
+    )
+    const img = screen.getByRole('img')
+    expect(img.className).toContain('pet-avatar__image--jump')
+    expect(img.className).not.toContain('pet-avatar__image--bounce')
   })
 })

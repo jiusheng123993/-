@@ -6,29 +6,34 @@ import {
   type FrequencyCheckResult,
   type FrequencyControlConfig,
 } from '../types/frequencyTypes'
+import {
+  FOLLOWUP_TEMPLATE_ID,
+  CARE_PLAN_REMINDER_TEMPLATE_ID,
+  HEALTH_CHECKIN_TEMPLATE_ID,
+} from '../constants/templateIds'
 
 const FREQUENCY_CONFIG_KEY = 'frequency_control_config'
 
 const DEFAULT_RULES: FrequencyRule[] = [
   {
-    templateId: 'FOLLOWUP_TEMPLATE_ID_PLACEHOLDER',
-    minInterval: 60, // 1小时
+    templateId: FOLLOWUP_TEMPLATE_ID,
+    minInterval: 60,
     dailyLimit: 3,
     weeklyLimit: 7,
     monthlyLimit: 20,
     enabled: true,
   },
   {
-    templateId: 'INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER',
-    minInterval: 30, // 30分钟
+    templateId: CARE_PLAN_REMINDER_TEMPLATE_ID,
+    minInterval: 30,
     dailyLimit: 5,
     weeklyLimit: 15,
     monthlyLimit: 50,
     enabled: true,
   },
   {
-    templateId: 'MOOD_CHECKIN_TEMPLATE_ID_PLACEHOLDER',
-    minInterval: 120, // 2小时
+    templateId: HEALTH_CHECKIN_TEMPLATE_ID,
+    minInterval: 120,
     dailyLimit: 2,
     weeklyLimit: 7,
     monthlyLimit: 30,

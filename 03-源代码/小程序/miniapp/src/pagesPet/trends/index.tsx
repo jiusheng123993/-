@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { View, Text, ScrollView, Button } from '@tarojs/components'
-import Taro, { useShareAppMessage } from '@tarojs/taro'
+import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useDidShow } from '@tarojs/taro'
+import { logger } from '../../logger'
 import PetSwitcher from '../../components/PetSwitcher'
 import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
@@ -11,14 +12,22 @@ import HealthReportPreview from '../../components/HealthReportPreview'
 import HealthTrendShareCard from '../../components/HealthTrendShareCard'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useShareStore } from '../../stores/shareStore'
 import { useTrend } from '../../hooks/useTrend'
 import { useMembership } from '../../hooks/useMembership'
-import { generateHealthReportPDFData, downloadHealthReportPDF } from '../../services/reportService'
+import { generateHealthReportData, downloadHealthReport, shareHealthReport, downloadHealthReportCsv, shareReportToVet } from '../services/healthReportPdfService'
 import { recordShare } from '../../services/shareService'
 import type { ExpressionContext } from '../../engines/petAvatar'
 import type { TrendDataPoint, TrendSummary, MonthlyReport } from '../../services/trendService'
 import type { HealthReportData } from '../../types/reportTypes'
 import type { HealthTrendShareData } from '../../types/shareTypes'
+import { checkNpsEligibility, submitNpsResponse, dismissNpsSurvey } from '../../services/npsService'
+import NpsSurvey from '../../components/NpsSurvey'
+import type { NpsTriggerEvent } from '../../types/npsTypes'
+import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import { BREED_DATA } from '../../data/petKnowledge/breeds'
+import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { AnalyticsEventName } from '../../types/analyticsTypes'
 import './index.scss'
 
 type TimeRange = 'week' | 'month' | 'quarter'
@@ -108,12 +117,17 @@ function getMonthStr(date: Date): string {
 export default function PetTrendsPage() {
   useShareAppMessage(() => ({
     title: '星寰海 - 宠物健康趋势',
-    path: '/pagesPet/trends/index',
+    path: `/pagesPet/trends/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
+  }))
+  useShareTimeline(() => ({
+    title: '星寰海 - 宠物健康趋势',
+    query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 
   const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const { isMember, checkAccess, shouldShowPaywall, markPaywallShown } = useMembership()
   const user = useAuthStore(s => s.user)
+  const inviteCode = useShareStore(s => s.inviteCode)
   const {
     trendData,
     summary,
@@ -136,6 +150,13 @@ export default function PetTrendsPage() {
   const [reportData, setReportData] = useState<HealthReportData | null>(null)
   const [showTrendShare, setShowTrendShare] = useState(false)
   const [trendShareData, setTrendShareData] = useState<HealthTrendShareData | null>(null)
+  const [showNpsSurvey, setShowNpsSurvey] = useState(false)
+  const [npsTriggerEvent, setNpsTriggerEvent] = useState<NpsTriggerEvent>('manual')
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  const disclaimerText = new MedicalDisclaimer().getTrendDisclaimer()
+
+  usePageView('trends')
 
   useDidShow(() => {
     fetchPets()
@@ -176,9 +197,11 @@ export default function PetTrendsPage() {
 
   const handleTimeRangeChange = useCallback((range: TimeRange) => {
     if (!isMember && (range === 'month' || range === 'quarter')) {
+      trackEvent('show_paywall', { feature: 'trends_time_range' })
       setPaywallVisible(true)
       return
     }
+    trackEvent('change_time_range', { range })
     setTimeRange(range)
   }, [isMember])
 
@@ -189,85 +212,53 @@ export default function PetTrendsPage() {
   const handleExportReport = useCallback(async () => {
     if (!currentPet?.id || !user?.id) return
 
+    const hasAccess = checkAccess('health_report_export')
+    if (!hasAccess) {
+      trackEvent('show_paywall', { feature: 'health_report_export' })
+      setPaywallVisible(true)
+      return
+    }
+    trackEvent('click_export_report')
+
     setGenerating(true)
     try {
-      const pdfData = await generateHealthReportPDFData(user.id, currentPet.id)
-      downloadHealthReportPDF(pdfData, currentPet.name)
+      const reportData = await generateHealthReportData(user.id, currentPet.id)
+      await downloadHealthReport(reportData, currentPet.name)
+      const npsStatus = checkNpsEligibility(user.id, user.createdAt || new Date().toISOString())
+      if (npsStatus.isEligible) {
+        setShowNpsSurvey(true)
+        setNpsTriggerEvent('after_export')
+      }
     } catch (error) {
-      console.error('Failed to generate report:', error)
-      Taro.showToast({ title: '生成报告失败', icon: 'none' })
+      logger.error('Trends', 'Failed to generate report', error)
+      Taro.showToast({ title: '导出报告失败', icon: 'none' })
     } finally {
       setGenerating(false)
     }
-  }, [currentPet, user])
+  }, [currentPet, user, checkAccess])
 
   const handlePreviewReport = useCallback(async () => {
     if (!currentPet?.id || !user?.id) return
 
+    const hasAccess = checkAccess('health_report_export')
+    if (!hasAccess) {
+      trackEvent('show_paywall', { feature: 'health_report_preview' })
+      setPaywallVisible(true)
+      return
+    }
+
     setGenerating(true)
     try {
-      const endDate = new Date()
-      const startDate = new Date()
-      startDate.setDate(startDate.getDate() - 30)
-
-      const { getCheckinsByDateRange } = await import('../../services/checkinService')
-      const { getVaccineRecords } = await import('../../services/vaccineService')
-      const { getPetById } = await import('../../services/petService')
-
-      const pet = await getPetById(user.id, currentPet.id)
-      if (!pet) {
-        Taro.showToast({ title: '获取宠物信息失败', icon: 'none' })
-        return
-      }
-
-      const entries = await getCheckinsByDateRange(currentPet.id, user.id, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0])
-      const vaccines = await getVaccineRecords(currentPet.id)
-
-      const data: HealthReportData = {
-        pet: {
-          id: pet.id,
-          name: pet.name,
-          species: pet.species,
-          breed: pet.breed || '未知',
-          birthDate: pet.birthDate || '未知',
-          gender: pet.gender || 'unknown',
-          neutered: pet.isNeutered || false,
-          weight: pet.weight || 0,
-          photoUrl: pet.avatarPhotoUrl,
-          allergies: [],
-          medications: [],
-          chronicConditions: [],
-        },
-        entries: entries.map(entry => ({
-          date: entry.createdAt instanceof Date
-            ? entry.createdAt.toLocaleDateString('zh-CN')
-            : new Date(entry.createdAt).toLocaleDateString('zh-CN'),
-          bowel: entry.poopLevel === 3 ? '正常' : entry.poopLevel === 5 ? '便秘' : entry.poopLevel === 4 ? '软便' : entry.poopLevel === 2 ? '腹泻' : '血便',
-          appetite: entry.appetiteLevel === 3 ? '正常' : entry.appetiteLevel >= 4 ? '亢进' : entry.appetiteLevel === 2 ? '减退' : '拒食',
-          energy: entry.spiritLevel === 3 ? '正常' : entry.spiritLevel >= 4 ? '兴奋' : entry.spiritLevel === 2 ? '低落' : '萎靡',
-          exercise: entry.exerciseLevel === 3 ? '正常' : entry.exerciseLevel >= 4 ? '活跃' : entry.exerciseLevel === 2 ? '减少' : '无',
-          weight: entry.weight,
-        })),
-        symptoms: [],
-        vaccines: vaccines.map(v => ({
-          name: v.category,
-          dateGiven: v.date,
-          dateDue: v.nextDate || v.date,
-          status: v.status === 'completed' ? 'done' : v.status === 'pending' ? 'pending' : 'overdue',
-        })),
-        generatedAt: new Date().toLocaleDateString('zh-CN'),
-        period: `${startDate.toLocaleDateString('zh-CN')} 至 ${endDate.toLocaleDateString('zh-CN')}`,
-      }
-
-      setReportData(data)
+      const reportData = await generateHealthReportData(user.id, currentPet.id)
+      setReportData(reportData)
       setShowReport(true)
     } catch (error) {
-      console.error('Failed to preview report:', error)
+      logger.error('Trends', 'Failed to preview report', error)
       Taro.showToast({ title: '预览报告失败', icon: 'none' })
     } finally {
       setGenerating(false)
     }
-  }, [currentPet, user])
+  }, [currentPet, user, checkAccess])
 
   const handleShareTrend = useCallback(() => {
     if (!currentPet || !summary) return
@@ -281,16 +272,70 @@ export default function PetTrendsPage() {
     setShowTrendShare(true)
   }, [currentPet, summary])
 
+  const handleExportCsv = useCallback(async () => {
+    if (!currentPet?.id || !user?.id) return
+
+    const hasAccess = checkAccess('health_report_export')
+    if (!hasAccess) {
+      trackEvent('show_paywall', { feature: 'health_report_export' })
+      setPaywallVisible(true)
+      return
+    }
+    trackEvent('click_export_csv')
+
+    setGenerating(true)
+    try {
+      const reportData = await generateHealthReportData(user.id, currentPet.id)
+      await downloadHealthReportCsv(reportData, currentPet.name)
+    } catch (error) {
+      logger.error('Trends', 'Failed to export CSV', error)
+      Taro.showToast({ title: '导出CSV失败', icon: 'none' })
+    } finally {
+      setGenerating(false)
+    }
+  }, [currentPet, user, checkAccess])
+
+  const handleShareToVet = useCallback(async () => {
+    if (!currentPet?.id || !user?.id) return
+
+    const hasAccess = checkAccess('health_report_export')
+    if (!hasAccess) {
+      trackEvent('show_paywall', { feature: 'health_report_export' })
+      setPaywallVisible(true)
+      return
+    }
+    trackEvent('click_share_to_vet')
+
+    setGenerating(true)
+    try {
+      const reportData = await generateHealthReportData(user.id, currentPet.id)
+      await shareReportToVet(reportData, currentPet.name)
+    } catch (error) {
+      logger.error('Trends', 'Failed to share to vet', error)
+      Taro.showToast({ title: '分享给兽医失败', icon: 'none' })
+    } finally {
+      setGenerating(false)
+    }
+  }, [currentPet, user, checkAccess])
+
   const handleTrendShareConfirm = useCallback(() => {
     if (!user?.id || !currentPet?.id) return
+    trackEvent(AnalyticsEventName.ShareAction, { type: 'trend', platform: 'wechat' })
     Taro.showShareMenu({ withShareTicket: true })
     recordShare(user.id, 'health_trend', currentPet.id, 'wechat')
     setShowTrendShare(false)
-  }, [user?.id, currentPet?.id])
+  }, [user?.id, currentPet?.id, trackEvent])
 
   const handleTrendShareClose = useCallback(() => {
     setShowTrendShare(false)
   }, [])
+
+  const breedWeightRange = useMemo(() => {
+    if (!currentPet?.breedId) return null
+    const breed = BREED_DATA.find((b) => b.id === currentPet.breedId)
+    if (!breed) return null
+    return { min: breed.weightRange.min, max: breed.weightRange.max, name: breed.name }
+  }, [currentPet?.breedId])
 
   const weightChartData = useMemo(() => {
     if (activeTab !== 'weight') return null
@@ -360,12 +405,43 @@ export default function PetTrendsPage() {
     const paddingBottom = 40
     const drawHeight = chartHeight - paddingTop - paddingBottom
 
+    const displayMin = breedWeightRange ? Math.min(minWeight, breedWeightRange.min) : minWeight
+    const displayMax = breedWeightRange ? Math.max(maxWeight, breedWeightRange.max) : maxWeight
+    const displayRange = displayMax - displayMin || 1
+
+    const latestWeight = points[points.length - 1]?.weight
+    const isOverWeight = breedWeightRange && latestWeight !== undefined
+      ? latestWeight > breedWeightRange.max
+      : false
+    const isUnderWeight = breedWeightRange && latestWeight !== undefined
+      ? latestWeight < breedWeightRange.min
+      : false
+    const isOutOfRange = isOverWeight || isUnderWeight
+
+    const breedRangeTopY = paddingTop + ((displayMax - breedWeightRange!.max) / displayRange) * drawHeight
+    const breedRangeBottomY = paddingTop + ((displayMax - breedWeightRange!.min) / displayRange) * drawHeight
+
     return (
       <View className='trend-chart__container'>
+        {breedWeightRange && (
+          <View className='trend-chart__breed-range-header'>
+            <Text className='trend-chart__breed-range-label'>
+              {breedWeightRange.name}标准体重范围
+            </Text>
+            <Text className={`trend-chart__breed-range-value${isOutOfRange ? ' trend-chart__breed-range-value--warning' : ''}`}>
+              {breedWeightRange.min} ~ {breedWeightRange.max} kg
+            </Text>
+            {isOutOfRange && (
+              <Text className='trend-chart__breed-range-warning'>
+                {isOverWeight ? '当前超重' : '当前偏轻'}
+              </Text>
+            )}
+          </View>
+        )}
         <View className='trend-chart__y-axis'>
-          <Text className='trend-chart__y-label'>{maxWeight.toFixed(1)}kg</Text>
-          <Text className='trend-chart__y-label'>{((maxWeight + minWeight) / 2).toFixed(1)}kg</Text>
-          <Text className='trend-chart__y-label'>{minWeight.toFixed(1)}kg</Text>
+          <Text className='trend-chart__y-label'>{displayMax.toFixed(1)}kg</Text>
+          <Text className='trend-chart__y-label'>{((displayMax + displayMin) / 2).toFixed(1)}kg</Text>
+          <Text className='trend-chart__y-label'>{displayMin.toFixed(1)}kg</Text>
         </View>
         <View className='trend-chart__plot-area'>
           <View className='trend-chart__grid'>
@@ -374,21 +450,37 @@ export default function PetTrendsPage() {
             <View className='trend-chart__grid-line' />
           </View>
           <View className='trend-chart__line-chart' style={{ height: `${chartHeight}rpx` }}>
+            {breedWeightRange && (
+              <View
+                className='trend-chart__breed-range-zone'
+                style={{
+                  top: `${breedRangeTopY}rpx`,
+                  height: `${breedRangeBottomY - breedRangeTopY}rpx`
+                }}
+              >
+                <View className='trend-chart__breed-range-line trend-chart__breed-range-line--top' />
+                <View className='trend-chart__breed-range-line trend-chart__breed-range-line--bottom' />
+              </View>
+            )}
             {points.map((point, index) => {
               const x = (index / (points.length - 1 || 1)) * chartWidth
-              const y = paddingTop + ((maxWeight - point.weight!) / range) * drawHeight
+              const y = paddingTop + ((displayMax - point.weight!) / displayRange) * drawHeight
               const isAbnormal = abnormalDateSet.has(point.date)
+              const pointOutOfRange = breedWeightRange
+                && (point.weight! > breedWeightRange.max || point.weight! < breedWeightRange.min)
               return (
                 <View
                   key={point.date}
-                  className='trend-chart__data-point'
+                  className={`trend-chart__data-point${pointOutOfRange ? ' trend-chart__data-point--out-of-range' : ''}`}
                   style={{
                     left: `${x}%`,
                     bottom: `${chartHeight - y}rpx`
                   }}
                 >
-                  <View className='trend-chart__dot' />
-                  <Text className='trend-chart__point-value'>{point.weight}kg</Text>
+                  <View className={`trend-chart__dot${pointOutOfRange ? ' trend-chart__dot--out-of-range' : ''}`} />
+                  <Text className={`trend-chart__point-value${pointOutOfRange ? ' trend-chart__point-value--out-of-range' : ''}`}>
+                    {point.weight}kg
+                  </Text>
                   {isAbnormal && (
                     <AnomalyMarker
                       date={point.date}
@@ -410,7 +502,7 @@ export default function PetTrendsPage() {
                   points={points
                     .map((point, index) => {
                       const x = (index / (points.length - 1 || 1)) * chartWidth
-                      const y = paddingTop + ((maxWeight - point.weight!) / range) * drawHeight
+                      const y = paddingTop + ((displayMax - point.weight!) / displayRange) * drawHeight
                       return `${x},${y}`
                     })
                     .join(' ')}
@@ -740,7 +832,21 @@ export default function PetTrendsPage() {
           onClick={handleExportReport}
           disabled={generating || !currentPet}
         >
-          {generating ? '生成中...' : '导出PDF报告'}
+          {generating ? '生成中...' : '保存图片'}
+        </Button>
+        <Button
+          className="csv-btn"
+          onClick={handleExportCsv}
+          disabled={generating || !currentPet}
+        >
+          {generating ? '生成中...' : '导出CSV'}
+        </Button>
+        <Button
+          className="vet-btn"
+          onClick={handleShareToVet}
+          disabled={generating || !currentPet}
+        >
+          分享给兽医
         </Button>
         <Button
           className="share-btn"
@@ -764,7 +870,7 @@ export default function PetTrendsPage() {
             </View>
             <View className="modal-footer">
               <Button className="download-btn" onClick={handleExportReport}>
-                下载PDF
+                保存到相册
               </Button>
             </View>
           </View>
@@ -774,13 +880,28 @@ export default function PetTrendsPage() {
       {showTrendShare && trendShareData && (
         <HealthTrendShareCard
           {...trendShareData}
+          inviteCode={inviteCode}
           onShare={handleTrendShareConfirm}
           onClose={handleTrendShareClose}
         />
       )}
 
+      {showNpsSurvey && user && (
+        <NpsSurvey
+          triggerEvent={npsTriggerEvent}
+          onSubmit={(score, feedback) => {
+            submitNpsResponse(user.id, score, npsTriggerEvent, feedback)
+            setShowNpsSurvey(false)
+          }}
+          onDismiss={() => {
+            dismissNpsSurvey()
+            setShowNpsSurvey(false)
+          }}
+        />
+      )}
+
       <View className='pet-trends__disclaimer'>
-        <Text className='pet-trends__disclaimer-text'>⚠️ 健康趋势分析仅供参考，不替代兽医诊断。如发现异常请及时就医。</Text>
+        <Text className='pet-trends__disclaimer-text'>{disclaimerText}</Text>
       </View>
 
       <FloatingNav />

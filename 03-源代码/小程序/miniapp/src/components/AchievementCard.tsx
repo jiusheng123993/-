@@ -4,6 +4,7 @@ import { getPetFaceDataUri, EXPRESSION_MAP } from '../engines/petAvatar'
 import './AchievementCard.scss'
 
 export interface AchievementConfig {
+  id?: string
   type: 'birthday' | 'vaccine_complete' | 'streak_7' | 'streak_30' | 'streak_100' | 'rainbow_bridge' | 'holiday'
   title: string
   subtitle: string
@@ -68,13 +69,15 @@ interface AchievementCardProps {
   petName: string
   species: 'dog' | 'cat'
   onClose?: () => void
+  onShare?: () => void
 }
 
 export default function AchievementCard({
   achievement,
   petName,
   species,
-  onClose
+  onClose,
+  onShare
 }: AchievementCardProps) {
   const faceUri = useMemo(
     () => getPetFaceDataUri(EXPRESSION_MAP.excited, species, 80),
@@ -115,6 +118,14 @@ export default function AchievementCard({
       <View className='achievement-card__footer' style={{ backgroundColor: achievement.color }}>
         <Text className='achievement-card__footer-text'>成就纪念卡</Text>
       </View>
+
+      {onShare && (
+        <View className='achievement-card__actions'>
+          <View className='achievement-card__share-btn' onClick={onShare}>
+            <Text className='achievement-card__share-btn-text'>炫耀一下</Text>
+          </View>
+        </View>
+      )}
     </View>
   )
 }

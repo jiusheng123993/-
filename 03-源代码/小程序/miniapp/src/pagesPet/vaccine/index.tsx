@@ -1,10 +1,11 @@
 import { View, Text, ScrollView } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { usePet } from '../../hooks/usePet'
 import { useVaccine } from '../../hooks/useVaccine'
 import { useReminder } from '../../hooks/useReminder'
 import { useAuthStore } from '../../stores/authStore'
+import { useShareStore } from '../../stores/shareStore'
 import PetSwitcher from '../../components/PetSwitcher'
 import FloatingNav from '../../components/FloatingNav'
 import VaccineCalendar from '../../components/VaccineCalendar'
@@ -16,11 +17,23 @@ import { recordShare } from '../../services/shareService'
 import type { ExpressionContext } from '../../engines/petAvatar'
 import type { VaccineRecord } from '../../services/vaccineService'
 import type { VaccineShareData } from '../../types/shareTypes'
+import { checkNpsEligibility, submitNpsResponse, dismissNpsSurvey } from '../../services/npsService'
+import NpsSurvey from '../../components/NpsSurvey'
+import type { NpsTriggerEvent } from '../../types/npsTypes'
+import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import { AchievementCard, AchievementShareCard } from '../../components'
+import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { AnalyticsEventName } from '../../types/analyticsTypes'
+import { checkVaccineCompleteAchievement } from '../../services/achievementService'
+import type { AchievementConfig } from '../../components/AchievementCard'
+import { generateAutoVaccineSchedule, generateDewormingSchedule, getVaccineReminders, getDewormingReminders, getReminderMessage } from '../../engines/vaccineScheduler'
+import type { AutoScheduleItem, DewormingScheduleItem } from '../../engines/vaccineScheduler'
 import './index.scss'
 
 export default function PetVaccine() {
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
   const user = useAuthStore((s) => s.user)
+  const inviteCode = useShareStore(s => s.inviteCode)
   const {
     records,
     isLoading: vaccineLoading,
@@ -43,12 +56,33 @@ export default function PetVaccine() {
     fetchOverdueReminders,
   } = useReminder()
 
+  useShareAppMessage(() => ({
+    title: '星寰海 - 宠物疫苗日历',
+    path: `/pagesPet/vaccine/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
+  }))
+  useShareTimeline(() => ({
+    title: '星寰海 - 宠物疫苗日历',
+    query: inviteCode ? `inviteCode=${inviteCode}` : '',
+  }))
+
   const [modalVisible, setModalVisible] = useState(false)
   const [editRecord, setEditRecord] = useState<VaccineRecord | null>(null)
   const [loadError, setLoadError] = useState('')
   const [displayCount, setDisplayCount] = useState(20)
   const [showVaccineShare, setShowVaccineShare] = useState(false)
   const [vaccineShareData, setVaccineShareData] = useState<VaccineShareData | null>(null)
+  const [showNpsSurvey, setShowNpsSurvey] = useState(false)
+  const [npsTriggerEvent, setNpsTriggerEvent] = useState<NpsTriggerEvent>('manual')
+  const [vaccineAchievement, setVaccineAchievement] = useState<AchievementConfig | null>(null)
+  const [autoSchedule, setAutoSchedule] = useState<AutoScheduleItem[]>([])
+  const [dewormingSchedule, setDewormingSchedule] = useState<DewormingScheduleItem[]>([])
+  const [showSchedulePanel, setShowSchedulePanel] = useState(false)
+  const [showAchievementShare, setShowAchievementShare] = useState(false)
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  const disclaimerText = new MedicalDisclaimer().getVaccineDisclaimer()
+
+  usePageView('vaccine')
 
   const loadVaccineData = useCallback(async () => {
     setLoadError('')
@@ -69,8 +103,37 @@ export default function PetVaccine() {
   }, [loadVaccineData])
 
   useEffect(() => {
+    if (!currentPet?.id) return
+    const allCompleted = records.length > 0 && records.every(r => r.status === 'completed')
+    if (allCompleted) {
+      const result = checkVaccineCompleteAchievement(currentPet.id, true)
+      if (result) {
+        trackEvent('show_achievement')
+        setVaccineAchievement(result)
+      }
+    }
+  }, [currentPet?.id, records])
+
+  useEffect(() => {
     fetchSubscriptionStatus()
   }, [fetchSubscriptionStatus])
+
+  useEffect(() => {
+    if (currentPet) {
+      const schedule = generateAutoVaccineSchedule({
+        species: currentPet.species as 'dog' | 'cat',
+        birthDate: currentPet.birthDate,
+        existingVaccines: records.filter(r => r.status === 'completed').map(r => ({ name: r.category, date: r.date })),
+      })
+      setAutoSchedule(schedule)
+
+      const deworming = generateDewormingSchedule({
+        species: currentPet.species as 'dog' | 'cat',
+        birthDate: currentPet.birthDate,
+      })
+      setDewormingSchedule(deworming)
+    }
+  }, [currentPet, records])
 
   useEffect(() => {
     if (error) {
@@ -91,6 +154,7 @@ export default function PetVaccine() {
   }, [records])
 
   const handleAdd = () => {
+    trackEvent('add_vaccine_record')
     setEditRecord(null)
     setModalVisible(true)
   }
@@ -119,7 +183,9 @@ export default function PetVaccine() {
 
   const handleComplete = async (id: string) => {
     try {
+      const record = records.find(r => r.id === id)
       await markCompleted(id)
+      trackEvent(AnalyticsEventName.VaccineDone, { petId: currentPet?.id || '', vaccineName: record?.category || '' })
       Taro.showToast({ title: '已标记完成', icon: 'success' })
       if (currentPet) {
         fetchRecords(currentPet.id)
@@ -143,16 +209,40 @@ export default function PetVaccine() {
 
   const handleVaccineShareConfirm = useCallback(() => {
     if (!user?.id || !currentPet?.id) return
+    trackEvent(AnalyticsEventName.ShareAction, { type: 'vaccine', platform: 'wechat' })
     Taro.showShareMenu({ withShareTicket: true })
     recordShare(user.id, 'vaccine', currentPet.id, 'wechat')
     setShowVaccineShare(false)
-  }, [user?.id, currentPet?.id])
+    if (user?.id) {
+      const npsStatus = checkNpsEligibility(user.id, user.createdAt || new Date().toISOString())
+      if (npsStatus.isEligible) {
+        setShowNpsSurvey(true)
+        setNpsTriggerEvent('after_share')
+      }
+    }
+  }, [user?.id, currentPet?.id, trackEvent])
 
   const handleVaccineShareClose = useCallback(() => {
     setShowVaccineShare(false)
   }, [])
 
+  const handleAchievementClose = useCallback(() => {
+    setVaccineAchievement(null)
+  }, [])
+
+  const handleAchievementShare = useCallback(() => {
+    trackEvent(AnalyticsEventName.ShareAction, { type: 'achievement', platform: 'wechat' })
+    setShowAchievementShare(true)
+  }, [trackEvent, vaccineAchievement?.id])
+
+  const handleAchievementShareClose = useCallback(() => {
+    setShowAchievementShare(false)
+  }, [])
+
   const handleReminderToggle = async () => {
+    if (currentPet) {
+      trackEvent(AnalyticsEventName.VaccineReminderClick, { petId: currentPet.id, vaccineType: 'subscription', action: subscriptionStatus ? 'disable' : 'enable' })
+    }
     try {
       await requestSubscription()
     } catch {
@@ -296,6 +386,71 @@ export default function PetVaccine() {
             </View>
           )}
 
+          {autoSchedule.length > 0 && (
+            <View className='pet-vaccine__auto-schedule'>
+              <View className='pet-vaccine__section-header'>
+                <Text className='pet-vaccine__section-title'>📅 推荐接种计划</Text>
+                <View
+                  className='pet-vaccine__schedule-toggle'
+                  onClick={() => setShowSchedulePanel(!showSchedulePanel)}
+                >
+                  <Text className='pet-vaccine__schedule-toggle-text'>
+                    {showSchedulePanel ? '收起' : '展开'}
+                  </Text>
+                </View>
+              </View>
+              {showSchedulePanel && (
+                <View className='pet-vaccine__schedule-list'>
+                  {autoSchedule.map((item) => (
+                    <View
+                      key={item.id}
+                      className={`pet-vaccine__schedule-item pet-vaccine__schedule-item--${item.status}`}
+                    >
+                      <View className='pet-vaccine__schedule-item-left'>
+                        <Text className='pet-vaccine__schedule-item-name'>{item.vaccineName}</Text>
+                        <Text className='pet-vaccine__schedule-item-notes'>{item.notes}</Text>
+                      </View>
+                      <View className='pet-vaccine__schedule-item-right'>
+                        <Text className='pet-vaccine__schedule-item-date'>{item.scheduledDate}</Text>
+                        <Text className={`pet-vaccine__schedule-item-status pet-vaccine__schedule-item-status--${item.status}`}>
+                          {item.status === 'overdue' ? '已逾期' : item.status === 'due' ? '今天' : `${item.daysUntilDue}天后`}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+
+          {dewormingSchedule.length > 0 && (
+            <View className='pet-vaccine__deworming'>
+              <View className='pet-vaccine__section-header'>
+                <Text className='pet-vaccine__section-title'>🐛 驱虫计划</Text>
+              </View>
+              <View className='pet-vaccine__deworming-list'>
+                {dewormingSchedule.map((item) => (
+                  <View
+                    key={item.id}
+                    className={`pet-vaccine__deworming-item pet-vaccine__deworming-item--${item.status}`}
+                  >
+                    <View className='pet-vaccine__deworming-item-left'>
+                      <Text className='pet-vaccine__deworming-item-type'>
+                        {item.type === 'internal' ? '💊 体内驱虫' : '🛡️ 体外驱虫'}
+                      </Text>
+                    </View>
+                    <View className='pet-vaccine__deworming-item-right'>
+                      <Text className='pet-vaccine__deworming-item-date'>{item.scheduledDate}</Text>
+                      <Text className={`pet-vaccine__deworming-item-status pet-vaccine__deworming-item-status--${item.status}`}>
+                        {item.status === 'overdue' ? '已逾期' : item.status === 'due' ? '今天' : `${item.daysUntilDue}天后`}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
           <VaccineCalendar records={records} />
 
           <View className='pet-vaccine__section'>
@@ -343,6 +498,10 @@ export default function PetVaccine() {
         </>
       )}
 
+      <View className='pet-vaccine__disclaimer'>
+        <Text className='pet-vaccine__disclaimer-text'>{disclaimerText}</Text>
+      </View>
+
       <View className='pet-vaccine__fab' onClick={handleAdd}>
         <Text className='pet-vaccine__fab-icon'>+</Text>
       </View>
@@ -362,8 +521,47 @@ export default function PetVaccine() {
       {showVaccineShare && vaccineShareData && (
         <VaccineShareCard
           {...vaccineShareData}
+          inviteCode={inviteCode}
           onShare={handleVaccineShareConfirm}
           onClose={handleVaccineShareClose}
+        />
+      )}
+
+      {vaccineAchievement && currentPet && (
+        <AchievementCard
+          achievement={vaccineAchievement}
+          petName={currentPet.name}
+          species={currentPet.species as 'dog' | 'cat'}
+          onClose={handleAchievementClose}
+          onShare={handleAchievementShare}
+        />
+      )}
+
+      {showAchievementShare && vaccineAchievement && currentPet && (
+        <AchievementShareCard
+          petName={currentPet.name}
+          petAvatar={currentPet.avatarPhotoUrl || ''}
+          achievementType={vaccineAchievement.type}
+          achievementTitle={vaccineAchievement.title}
+          achievementSubtitle={vaccineAchievement.subtitle}
+          achievementIcon={vaccineAchievement.icon}
+          achievementColor={vaccineAchievement.color}
+          inviteCode={inviteCode}
+          onClose={handleAchievementShareClose}
+        />
+      )}
+
+      {showNpsSurvey && user && (
+        <NpsSurvey
+          triggerEvent={npsTriggerEvent}
+          onSubmit={(score, feedback) => {
+            submitNpsResponse(user.id, score, npsTriggerEvent, feedback)
+            setShowNpsSurvey(false)
+          }}
+          onDismiss={() => {
+            dismissNpsSurvey()
+            setShowNpsSurvey(false)
+          }}
         />
       )}
 

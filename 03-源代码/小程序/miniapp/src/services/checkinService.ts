@@ -1,6 +1,7 @@
 import { api } from './api';
 import { getStorage, setStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
+import { requirePetOwnership } from '../utils/petOwnership';
 import type { PetHealthEntry, HealthRiskLevel, AnomalyItem } from '../memory-body/types/memoryBodyTypes';
 export type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes';
 
@@ -10,6 +11,9 @@ export interface HealthCheckinStats {
   lastCheckinDate: string | null;
   weeklyCount: number;
   monthlyCount: number;
+  consecutiveAnomalyDays: number;
+  totalAnomalyDays: number;
+  lastAnomalyDate: string | null;
 }
 
 function userKey(key: string, userId: string): string {
@@ -47,7 +51,7 @@ export interface CheckinInput {
   petId: string;
   userId: string;
   poopLevel: 1 | 2 | 3 | 4 | 5;
-  appetiteLevel: 1 | 2 | 3 | 4 | 5;
+  appetiteLevel: 1 | 2 | 3 | 4 | 5 | 6;
   spiritLevel: 1 | 2 | 3 | 4 | 5;
   exerciseLevel: 1 | 2 | 3;
   weight?: number;
@@ -60,12 +64,16 @@ function calculateRiskLevel(entry: CheckinInput): HealthRiskLevel {
   let legacy: LegacyRiskLevel = 'normal';
 
   if (entry.poopLevel === 1) legacy = 'emergency';
+  else if (entry.appetiteLevel === 6) legacy = 'emergency';
   else if (entry.appetiteLevel === 1 && entry.spiritLevel === 1) legacy = 'emergency';
   else if (entry.poopLevel === 2 && entry.appetiteLevel <= 2 && entry.spiritLevel <= 2) legacy = 'emergency';
+  else if (entry.appetiteLevel === 5 && entry.poopLevel <= 2) legacy = 'emergency';
   else if (entry.appetiteLevel <= 2 && entry.spiritLevel <= 2) legacy = 'warning';
   else if (entry.poopLevel === 2) legacy = 'warning';
   else if (entry.appetiteLevel <= 2) legacy = 'warning';
   else if (entry.spiritLevel <= 2) legacy = 'warning';
+  else if (entry.appetiteLevel === 5 && entry.spiritLevel <= 2) legacy = 'warning';
+  else if (entry.appetiteLevel === 5) legacy = 'caution';
   else if (entry.hasAnomaly) legacy = 'caution';
   else if (entry.appetiteLevel === 3 || entry.spiritLevel === 3) legacy = 'caution';
 
@@ -76,6 +84,8 @@ function generateAiFeedback(entry: CheckinInput, riskLevel: HealthRiskLevel): st
   const symptoms: string[] = [];
 
   if (entry.appetiteLevel <= 2) symptoms.push('食欲异常');
+  if (entry.appetiteLevel === 6) symptoms.push('呕吐');
+  if (entry.appetiteLevel === 5) symptoms.push('食欲亢进');
   if (entry.spiritLevel <= 2) symptoms.push('精神状态异常');
   if (entry.poopLevel <= 2) symptoms.push('排便异常');
   if (entry.hasAnomaly) symptoms.push(`异常项：${entry.anomalyItems.join('、')}`);
@@ -102,6 +112,7 @@ function entryDateStr(entry: PetHealthEntry): string {
 }
 
 export async function getCheckins(petId: string, userId: string): Promise<PetHealthEntry[]> {
+  requirePetOwnership(petId, userId);
   try {
     const result = await api.get<PetHealthEntry[]>(`/api/pets/${petId}/checkins`);
     saveLocalCheckins(petId, userId, result);
@@ -117,6 +128,7 @@ export async function getCheckinsByDateRange(
   startDate: string,
   endDate: string
 ): Promise<PetHealthEntry[]> {
+  requirePetOwnership(petId, userId);
   try {
     const result = await api.get<PetHealthEntry[]>(
       `/api/pets/${petId}/checkins?startDate=${startDate}&endDate=${endDate}`
@@ -132,6 +144,7 @@ export async function getCheckinsByDateRange(
 }
 
 export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry> {
+  requirePetOwnership(data.petId, data.userId);
   const riskLevel = calculateRiskLevel(data);
   const aiFeedback = generateAiFeedback(data, riskLevel);
   const now = new Date();
@@ -217,6 +230,30 @@ export async function getLatestCheckin(petId: string, userId: string): Promise<P
   }
 }
 
+export function calculateConsecutiveAnomalyDays(
+  entries: PetHealthEntry[],
+): number {
+  const sorted = [...entries]
+    .sort((a, b) => {
+      const aStr = entryDateStr(a)
+      const bStr = entryDateStr(b)
+      return bStr.localeCompare(aStr)
+    })
+  const seenDates = new Set<string>()
+  let count = 0
+  for (const entry of sorted) {
+    const dateStr = entryDateStr(entry)
+    if (seenDates.has(dateStr)) continue
+    seenDates.add(dateStr)
+    if (entry.hasAnomaly) {
+      count++
+    } else {
+      break
+    }
+  }
+  return count
+}
+
 function calculateLocalStats(entries: PetHealthEntry[]): HealthCheckinStats {
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
@@ -246,11 +283,21 @@ function calculateLocalStats(entries: PetHealthEntry[]): HealthCheckinStats {
     }
   }
 
+  const consecutiveAnomalyDays = calculateConsecutiveAnomalyDays(entries);
+  const anomalyEntries = entries.filter((e) => e.hasAnomaly);
+  const totalAnomalyDays = anomalyEntries.length;
+  const lastAnomalyDate = anomalyEntries.length > 0
+    ? entryDateStr(anomalyEntries.sort((a, b) => entryDateStr(b).localeCompare(entryDateStr(a)))[0])
+    : null;
+
   return {
     totalCheckins: entries.length,
     streak,
     lastCheckinDate: sortedDates.length > 0 ? sortedDates[0] : null,
     weeklyCount: entries.filter((e) => entryDateStr(e) >= weekStartStr).length,
     monthlyCount: entries.filter((e) => entryDateStr(e) >= monthStartStr).length,
+    consecutiveAnomalyDays,
+    totalAnomalyDays,
+    lastAnomalyDate,
   };
 }

@@ -14,13 +14,13 @@ describe('subscribeStore', () => {
   }
 
   const mockStatusRejected: SubscribeStatus = {
-    templateId: 'INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER',
+    templateId: 'CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER',
     accepted: false,
     usageCount: 0,
   }
 
-  const mockStatusMood: SubscribeStatus = {
-    templateId: 'MOOD_CHECKIN_TEMPLATE_ID_PLACEHOLDER',
+  const mockStatusHealth: SubscribeStatus = {
+    templateId: 'HEALTH_CHECKIN_TEMPLATE_ID_PLACEHOLDER',
     accepted: true,
     acceptedAt: 1700000001000,
     usageCount: 0,
@@ -56,14 +56,14 @@ describe('subscribeStore', () => {
     it('请求所有模板订阅成功时应更新 statuses 并返回结果', async () => {
       const mockResults: Record<string, boolean> = {
         FOLLOWUP_TEMPLATE_ID_PLACEHOLDER: true,
-        INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER: false,
-        MOOD_CHECKIN_TEMPLATE_ID_PLACEHOLDER: true,
+        CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER: false,
+        HEALTH_CHECKIN_TEMPLATE_ID_PLACEHOLDER: true,
       }
       vi.mocked(subscribeService.requestAllSubscribes).mockResolvedValue(mockResults)
       vi.mocked(subscribeService.getAllSubscribeStatus).mockReturnValue([
         mockStatusAccepted,
         mockStatusRejected,
-        mockStatusMood,
+        mockStatusHealth,
       ])
 
       const store = useSubscribeStore.getState()
@@ -73,7 +73,7 @@ describe('subscribeStore', () => {
       expect(subscribeService.requestAllSubscribes).toHaveBeenCalledOnce()
       expect(subscribeService.getAllSubscribeStatus).toHaveBeenCalledOnce()
       const state = useSubscribeStore.getState()
-      expect(state.statuses).toEqual([mockStatusAccepted, mockStatusRejected, mockStatusMood])
+      expect(state.statuses).toEqual([mockStatusAccepted, mockStatusRejected, mockStatusHealth])
       expect(state.isLoading).toBe(false)
       expect(state.error).toBeNull()
     })
@@ -175,16 +175,16 @@ describe('subscribeStore', () => {
     })
   })
 
-  describe('requestIntervention', () => {
-    it('请求干预模板订阅成功时应更新 statuses 并返回 true', async () => {
-      vi.mocked(subscribeService.requestInterventionSubscribe).mockResolvedValue(true)
+  describe('requestCarePlan', () => {
+    it('请求护理计划模板订阅成功时应更新 statuses 并返回 true', async () => {
+      vi.mocked(subscribeService.requestCarePlanSubscribe).mockResolvedValue(true)
       vi.mocked(subscribeService.getAllSubscribeStatus).mockReturnValue([mockStatusAccepted])
 
       const store = useSubscribeStore.getState()
-      const result = await store.requestIntervention()
+      const result = await store.requestCarePlan()
 
       expect(result).toBe(true)
-      expect(subscribeService.requestInterventionSubscribe).toHaveBeenCalledOnce()
+      expect(subscribeService.requestCarePlanSubscribe).toHaveBeenCalledOnce()
       expect(subscribeService.getAllSubscribeStatus).toHaveBeenCalledOnce()
       const state = useSubscribeStore.getState()
       expect(state.statuses).toEqual([mockStatusAccepted])
@@ -192,12 +192,12 @@ describe('subscribeStore', () => {
       expect(state.error).toBeNull()
     })
 
-    it('请求干预模板订阅被拒绝时应返回 false', async () => {
-      vi.mocked(subscribeService.requestInterventionSubscribe).mockResolvedValue(false)
+    it('请求护理计划模板订阅被拒绝时应返回 false', async () => {
+      vi.mocked(subscribeService.requestCarePlanSubscribe).mockResolvedValue(false)
       vi.mocked(subscribeService.getAllSubscribeStatus).mockReturnValue([mockStatusRejected])
 
       const store = useSubscribeStore.getState()
-      const result = await store.requestIntervention()
+      const result = await store.requestCarePlan()
 
       expect(result).toBe(false)
       const state = useSubscribeStore.getState()
@@ -206,12 +206,12 @@ describe('subscribeStore', () => {
     })
 
     it('请求失败时应设置 error 并返回 false', async () => {
-      vi.mocked(subscribeService.requestInterventionSubscribe).mockRejectedValue(
+      vi.mocked(subscribeService.requestCarePlanSubscribe).mockRejectedValue(
         new Error('请求超时')
       )
 
       const store = useSubscribeStore.getState()
-      const result = await store.requestIntervention()
+      const result = await store.requestCarePlan()
 
       expect(result).toBe(false)
       const state = useSubscribeStore.getState()
@@ -220,10 +220,10 @@ describe('subscribeStore', () => {
     })
 
     it('请求失败时非 Error 对象应使用默认错误信息', async () => {
-      vi.mocked(subscribeService.requestInterventionSubscribe).mockRejectedValue(undefined)
+      vi.mocked(subscribeService.requestCarePlanSubscribe).mockRejectedValue(undefined)
 
       const store = useSubscribeStore.getState()
-      const result = await store.requestIntervention()
+      const result = await store.requestCarePlan()
 
       expect(result).toBe(false)
       const state = useSubscribeStore.getState()
@@ -249,11 +249,11 @@ describe('subscribeStore', () => {
       vi.mocked(subscribeService.hasAcceptedSubscribe).mockReturnValue(false)
 
       const store = useSubscribeStore.getState()
-      const result = store.isAccepted('INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER')
+      const result = store.isAccepted('CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER')
 
       expect(result).toBe(false)
       expect(subscribeService.hasAcceptedSubscribe).toHaveBeenCalledWith(
-        'INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER'
+        'CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER'
       )
     })
   })
@@ -290,7 +290,7 @@ describe('subscribeStore', () => {
 
     it('所有模板都已接受时应返回 true', () => {
       useSubscribeStore.setState({
-        statuses: [mockStatusAccepted, mockStatusMood],
+        statuses: [mockStatusAccepted, mockStatusHealth],
       })
 
       const store = useSubscribeStore.getState()
@@ -303,7 +303,7 @@ describe('subscribeStore', () => {
   describe('clearAll', () => {
     it('应调用 clearSubscribeStatus 并清空 statuses', () => {
       useSubscribeStore.setState({
-        statuses: [mockStatusAccepted, mockStatusRejected, mockStatusMood],
+        statuses: [mockStatusAccepted, mockStatusRejected, mockStatusHealth],
       })
 
       const store = useSubscribeStore.getState()
@@ -340,14 +340,14 @@ describe('subscribeStore', () => {
     it('应从 service 获取状态并更新 statuses', () => {
       vi.mocked(subscribeService.getAllSubscribeStatus).mockReturnValue([
         mockStatusAccepted,
-        mockStatusMood,
+        mockStatusHealth,
       ])
 
       const store = useSubscribeStore.getState()
       store.fetchStatuses()
 
       const state = useSubscribeStore.getState()
-      expect(state.statuses).toEqual([mockStatusAccepted, mockStatusMood])
+      expect(state.statuses).toEqual([mockStatusAccepted, mockStatusHealth])
       expect(subscribeService.getAllSubscribeStatus).toHaveBeenCalledOnce()
     })
 

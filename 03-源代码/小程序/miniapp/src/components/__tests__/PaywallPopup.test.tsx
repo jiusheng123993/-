@@ -15,7 +15,20 @@ vi.mock('@tarojs/taro', () => ({
   default: { navigateTo: vi.fn() },
 }))
 
+vi.mock('../../services/analyticsService', () => ({
+  trackEvent: vi.fn(),
+}))
+
 vi.mock('../PaywallPopup.scss', () => ({}))
+
+vi.mock('../../services/membershipService', () => ({
+  MEMBERSHIP_PLANS: [
+    { plan: 'monthly', label: '月度会员', price: 9.9, originalPrice: 9.9, discountLabel: '', durationDays: 30 },
+    { plan: 'quarterly', label: '季度会员', price: 25.9, originalPrice: 29.7, discountLabel: '省3.8元', durationDays: 90 },
+    { plan: 'yearly', label: '年度会员', price: 88, originalPrice: 118.8, discountLabel: '省30.8元', durationDays: 365 },
+  ],
+  MEMBERSHIP_BENEFITS: [],
+}))
 
 import PaywallPopup from '../PaywallPopup'
 import Taro from '@tarojs/taro'
@@ -73,32 +86,33 @@ describe('PaywallPopup', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('upgrade button calls onClose then navigates to /pages/member/index', () => {
+  it('upgrade button calls onClose then navigates with selected plan', () => {
     const onClose = vi.fn()
     const { container } = render(<PaywallPopup {...defaultProps} onClose={onClose} />)
     const upgradeBtn = container.querySelector('.paywall-popup__btn--upgrade')!
     fireEvent.click(upgradeBtn)
     expect(onClose).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(Taro.navigateTo)).toHaveBeenCalledWith({ url: '/pages/member/index' })
+    expect(vi.mocked(Taro.navigateTo)).toHaveBeenCalledWith({ url: '/pages/member/index?plan=yearly' })
   })
 
-  it('shows benefits list items', () => {
+  it('shows plan options with prices', () => {
     render(<PaywallPopup {...defaultProps} />)
-    expect(screen.getByText('每日更多使用次数')).toBeDefined()
-    expect(screen.getByText('AI 深度健康分析')).toBeDefined()
-    expect(screen.getByText('专属健康报告')).toBeDefined()
+    expect(screen.getByText('月度会员')).toBeDefined()
+    expect(screen.getByText('季度会员')).toBeDefined()
+    expect(screen.getByText('年度会员')).toBeDefined()
   })
 
-  it('shows benefits title', () => {
+  it('shows comparison table', () => {
     render(<PaywallPopup {...defaultProps} />)
-    expect(screen.getByText('升级会员享以下权益：')).toBeDefined()
+    expect(screen.getByText('免费版 vs 会员版')).toBeDefined()
+    expect(screen.getByText('食物查询')).toBeDefined()
+    expect(screen.getByText('5次/天')).toBeDefined()
+    expect(screen.getAllByText('无限').length).toBeGreaterThanOrEqual(2)
   })
 
-  it('re-render with visible=false hides popup', () => {
-    const { container, rerender } = render(<PaywallPopup {...defaultProps} />)
-    expect(container.querySelector('.paywall-popup')).toBeDefined()
-    rerender(<PaywallPopup {...defaultProps} visible={false} />)
-    expect(container.innerHTML).toBe('')
+  it('shows section titles', () => {
+    render(<PaywallPopup {...defaultProps} />)
+    expect(screen.getByText('选择套餐')).toBeDefined()
   })
 
   it('shows info label for remaining free count', () => {
@@ -110,5 +124,24 @@ describe('PaywallPopup', () => {
     const { container } = render(<PaywallPopup {...defaultProps} />)
     expect(container.querySelector('.paywall-popup__card')).toBeDefined()
     expect(container.querySelector('.paywall-popup__bar')).toBeDefined()
+  })
+
+  it('re-render with visible=false hides popup', () => {
+    const { container, rerender } = render(<PaywallPopup {...defaultProps} />)
+    expect(container.querySelector('.paywall-popup')).toBeDefined()
+    rerender(<PaywallPopup {...defaultProps} visible={false} />)
+    expect(container.innerHTML).toBe('')
+  })
+
+  it('defaults to yearly plan selected', () => {
+    const { container } = render(<PaywallPopup {...defaultProps} />)
+    const yearlyPlan = container.querySelector('.paywall-popup__plan--active')
+    expect(yearlyPlan).toBeDefined()
+  })
+
+  it('shows best badge on yearly plan', () => {
+    const { container } = render(<PaywallPopup {...defaultProps} />)
+    const badge = container.querySelector('.paywall-popup__plan-badge')
+    expect(badge).toBeDefined()
   })
 })

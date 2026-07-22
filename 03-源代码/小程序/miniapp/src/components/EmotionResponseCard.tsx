@@ -1,73 +1,41 @@
 import { View, Text } from '@tarojs/components'
-import type { EmotionMatchResult } from '../engines/emotion/EmotionEngine'
-import { formatResponseContent, formatSuggestions } from '../engines/emotion/EmotionEngine'
+import { useCallback } from 'react'
+import type { EmotionIntervention } from '../engines/emotion'
 import './EmotionResponseCard.scss'
 
 interface EmotionResponseCardProps {
-  match: EmotionMatchResult
-  petName: string
-  onDismiss?: () => void
-  onSuggestionClick?: (suggestion: string) => void
+  intervention: EmotionIntervention
+  onAction: (intervention: EmotionIntervention) => void
+  onDismiss: (intervention: EmotionIntervention) => void
 }
 
-const CATEGORY_ICON: Record<string, string> = {
-  grief: '💜',
-  anxiety: '🤗',
-  celebration: '🎉',
-  daily_care: '☀️',
-  health_concern: '💊'
+const SCENE_CONFIG: Record<string, { icon: string; actionLabel: string }> = {
+  sick_anxiety: { icon: '💜', actionLabel: '深呼吸' },
+  new_owner_anxiety: { icon: '🌟', actionLabel: '看看建议' },
+  grief: { icon: '🤍', actionLabel: '想说说' },
 }
 
-const TONE_STYLE: Record<string, string> = {
-  gentle: 'emotion-card--gentle',
-  encouraging: 'emotion-card--encouraging',
-  empathetic: 'emotion-card--empathetic',
-  celebratory: 'emotion-card--celebratory',
-  informative: 'emotion-card--informative'
-}
+export default function EmotionResponseCard({ intervention, onAction, onDismiss }: EmotionResponseCardProps) {
+  const config = SCENE_CONFIG[intervention.type] || SCENE_CONFIG.sick_anxiety
 
-export default function EmotionResponseCard({
-  match,
-  petName,
-  onDismiss,
-  onSuggestionClick
-}: EmotionResponseCardProps) {
-  const { scene, response } = match
-  const icon = CATEGORY_ICON[scene.category] || '💬'
-  const toneClass = TONE_STYLE[response.tone] || ''
-  const content = formatResponseContent(response.content, petName)
-  const suggestions = formatSuggestions(response.suggestions, petName)
+  const handleAction = useCallback(() => {
+    onAction(intervention)
+  }, [intervention, onAction])
+
+  const handleDismiss = useCallback(() => {
+    onDismiss(intervention)
+  }, [intervention, onDismiss])
 
   return (
-    <View className={`emotion-card ${toneClass}`}>
-      <View className='emotion-card__header'>
-        <Text className='emotion-card__icon'>{icon}</Text>
-        <Text className='emotion-card__title'>{scene.name}</Text>
-        {onDismiss && (
-          <View className='emotion-card__dismiss' onClick={onDismiss}>
-            <Text className='emotion-card__dismiss-text'>✕</Text>
-          </View>
-        )}
+    <View className={`emotion-inline emotion-inline--${intervention.type}`}>
+      <Text className='emotion-inline__icon'>{config.icon}</Text>
+      <Text className='emotion-inline__message'>{intervention.message}</Text>
+      <View className='emotion-inline__action' onClick={handleAction}>
+        <Text className='emotion-inline__action-text'>{config.actionLabel}</Text>
       </View>
-
-      <View className='emotion-card__body'>
-        <Text className='emotion-card__content'>{content}</Text>
+      <View className='emotion-inline__dismiss' onClick={handleDismiss}>
+        <Text className='emotion-inline__dismiss-text'>✕</Text>
       </View>
-
-      {suggestions.length > 0 && (
-        <View className='emotion-card__suggestions'>
-          {suggestions.map((suggestion, index) => (
-            <View
-              key={`${scene.id}-suggestion-${index}`}
-              className='emotion-card__suggestion'
-              onClick={() => onSuggestionClick?.(suggestion)}
-            >
-              <Text className='emotion-card__suggestion-bullet'>•</Text>
-              <Text className='emotion-card__suggestion-text'>{suggestion}</Text>
-            </View>
-          ))}
-        </View>
-      )}
     </View>
   )
 }

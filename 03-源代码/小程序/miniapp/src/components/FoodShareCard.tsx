@@ -1,4 +1,7 @@
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, Canvas } from '@tarojs/components';
+import { useState, useCallback } from 'react';
+import Taro from '@tarojs/taro';
+import { renderShareCardToCanvas, saveShareImage } from '../utils/shareCanvasRenderer';
 import './FoodShareCard.scss';
 
 type SafetyLevel = 'safe' | 'caution' | 'dangerous' | 'toxic';
@@ -11,7 +14,9 @@ interface FoodShareCardProps {
   dangerousCompounds?: string[];
   symptoms?: string[];
   detail?: string;
+  inviteCode?: string;
   onShare: () => void;
+  onClose?: () => void;
 }
 
 const SAFETY_LEVEL_CONFIG: Record<SafetyLevel, { label: string; color: string; bgColor: string }> = {
@@ -22,6 +27,7 @@ const SAFETY_LEVEL_CONFIG: Record<SafetyLevel, { label: string; color: string; b
 };
 
 const MAX_VISIBLE_SYMPTOMS = 3;
+const CANVAS_ID = 'food-share-canvas';
 
 export default function FoodShareCard({
   foodName,
@@ -31,11 +37,38 @@ export default function FoodShareCard({
   dangerousCompounds,
   symptoms,
   detail,
+  inviteCode,
   onShare,
+  onClose,
 }: FoodShareCardProps) {
+  const [saving, setSaving] = useState(false);
   const config = SAFETY_LEVEL_CONFIG[safetyLevel];
   const visibleSymptoms = symptoms?.slice(0, MAX_VISIBLE_SYMPTOMS) ?? [];
   const remainingSymptoms = (symptoms?.length ?? 0) - MAX_VISIBLE_SYMPTOMS;
+
+  const handleSaveImage = useCallback(async () => {
+    setSaving(true);
+    try {
+      const result = await renderShareCardToCanvas('food', {
+        foodName,
+        safetyLevel,
+        petName,
+        dangerousCompounds,
+        symptoms,
+        inviteCode,
+      }, { canvasId: CANVAS_ID });
+      await saveShareImage(result.tempFilePath);
+    } catch {
+      Taro.showToast({ title: '保存失败', icon: 'none' });
+    } finally {
+      setSaving(false);
+    }
+  }, [foodName, safetyLevel, petName, dangerousCompounds, symptoms, inviteCode]);
+
+  const handleShareMessage = useCallback(() => {
+    Taro.showShareMenu({ withShareTicket: true });
+    onShare();
+  }, [onShare]);
 
   return (
     <View className='food-share-card'>
@@ -97,7 +130,16 @@ export default function FoodShareCard({
       </View>
 
       <View className='food-share-card__footer'>
-        <View className='food-share-card__share-btn' onClick={onShare}>
+        {inviteCode && (
+          <View className='food-share-card__invite'>
+            <Text className='food-share-card__invite-text'>邀请码: {inviteCode} | 扫码一起养宠</Text>
+          </View>
+        )}
+        <Canvas type='2d' id={CANVAS_ID} className='food-share-card__canvas' style={{ width: '750px', height: '1334px', position: 'absolute', left: '-9999px' }} />
+        <View className='food-share-card__save-btn' onClick={handleSaveImage}>
+          <Text className='food-share-card__save-btn-text'>{saving ? '生成中...' : '保存图片'}</Text>
+        </View>
+        <View className='food-share-card__share-btn' onClick={handleShareMessage}>
           <Text className='food-share-card__share-btn-text'>分享给好友</Text>
         </View>
       </View>

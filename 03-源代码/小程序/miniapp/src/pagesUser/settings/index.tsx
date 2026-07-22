@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro'
 import { useAuthStore } from '../../stores/authStore'
 import { useSettingsStore, type NotificationSettings } from '../../stores/settingsStore'
 import { useMembership } from '../../hooks/useMembership'
+import { useAnalytics } from '../../hooks/useAnalytics'
 import { APP_VERSION } from '../../constants'
 import {
   exportAllUserData,
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   const updateNotification = useSettingsStore(s => s.updateNotification)
   const clearCache = useSettingsStore(s => s.clearCache)
   const exportData = useSettingsStore(s => s.exportData)
+  const { trackPageView, trackEvent } = useAnalytics()
 
   const [privacyStatus, setPrivacyStatus] = useState<DataPrivacyStatus | null>(null)
   const [showDeletionModal, setShowDeletionModal] = useState(false)
@@ -37,6 +39,10 @@ export default function SettingsPage() {
     loadSettings()
     setPrivacyStatus(getDataPrivacyStatus())
   }, [loadSettings])
+
+  useEffect(() => {
+    trackPageView('settings')
+  }, [trackPageView])
 
   const deletionCountdown = useMemo(() => {
     if (!privacyStatus?.accountDeletionRequested || !privacyStatus.accountDeletionScheduledAt) {
@@ -51,8 +57,9 @@ export default function SettingsPage() {
   }, [privacyStatus?.accountDeletionRequested, privacyStatus?.accountDeletionScheduledAt])
 
   const handleToggleNotification = useCallback((key: keyof NotificationSettings, value: boolean) => {
+    trackEvent('toggle_notification', { key, value })
     updateNotification(key, value)
-  }, [updateNotification])
+  }, [updateNotification, trackEvent])
 
   const handleClearCache = useCallback(() => {
     Taro.showModal({
@@ -60,12 +67,13 @@ export default function SettingsPage() {
       content: '确认清除所有本地缓存数据？',
       success: (res) => {
         if (res.confirm) {
+          trackEvent('clear_cache')
           clearCache()
           Taro.showToast({ title: '缓存已清除', icon: 'success' })
         }
       },
     })
-  }, [clearCache])
+  }, [clearCache, trackEvent])
 
   const handleExportData = useCallback(async () => {
     if (!isMember) {
@@ -75,11 +83,12 @@ export default function SettingsPage() {
     try {
       const data = exportData()
       await Taro.setClipboardData({ data })
+      trackEvent('export_data')
       Taro.showToast({ title: '数据已复制到剪贴板', icon: 'success' })
     } catch {
       Taro.showToast({ title: '导出失败', icon: 'none' })
     }
-  }, [isMember, exportData])
+  }, [isMember, exportData, trackEvent])
 
   const handleExportAllData = useCallback(async () => {
     if (!user?.id) return
@@ -95,6 +104,7 @@ export default function SettingsPage() {
           const result = await exportAllUserData(user.id)
           if (result.success && result.data) {
             await Taro.setClipboardData({ data: result.data })
+            trackEvent('export_all_data')
             Taro.showToast({ title: `已导出${result.totalRecords}条记录`, icon: 'success' })
             setPrivacyStatus(getDataPrivacyStatus())
           } else {
@@ -107,7 +117,7 @@ export default function SettingsPage() {
         }
       },
     })
-  }, [user?.id, exportingData])
+  }, [user?.id, exportingData, trackEvent])
 
   const handleDeleteCloudData = useCallback(() => {
     if (!user?.id) return
@@ -121,6 +131,7 @@ export default function SettingsPage() {
         try {
           const result = await deleteUserData(user.id)
           if (result.success) {
+            trackEvent('delete_cloud_data')
             Taro.showToast({ title: `已删除${result.deletedTables.length}类数据`, icon: 'success' })
             setPrivacyStatus(getDataPrivacyStatus())
           } else {
@@ -131,19 +142,21 @@ export default function SettingsPage() {
         }
       },
     })
-  }, [user?.id])
+  }, [user?.id, trackEvent])
 
   const handleRequestDeletion = useCallback(() => {
+    trackEvent('request_account_deletion')
     const code = generateDeletionConfirmCode()
     setDeletionConfirmCode(code)
     setShowDeletionModal(true)
-  }, [])
+  }, [trackEvent])
 
   const handleDeletionConfirm = useCallback(async (reason: AccountDeletionReason, customReason: string, code: string) => {
     setDeletionLoading(true)
     try {
       const result = await deleteAccount(reason, customReason, code)
       if (result.success) {
+        trackEvent('confirm_account_deletion', { reason })
         setShowDeletionModal(false)
         Taro.showToast({
           title: `注销申请已提交，${result.gracePeriodDays}天冷静期`,
@@ -159,7 +172,7 @@ export default function SettingsPage() {
     } finally {
       setDeletionLoading(false)
     }
-  }, [deleteAccount])
+  }, [deleteAccount, trackEvent])
 
   const handleDeletionCancel = useCallback(() => {
     setShowDeletionModal(false)
@@ -193,12 +206,13 @@ export default function SettingsPage() {
       confirmColor: '#FF6B35',
       success: async (res) => {
         if (res.confirm) {
+          trackEvent('logout')
           await logout()
           Taro.reLaunch({ url: '/pages/login/index' })
         }
       },
     })
-  }, [logout])
+  }, [logout, trackEvent])
 
   return (
     <View className='settings-page'>

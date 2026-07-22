@@ -1,95 +1,79 @@
-.emotion-card {
-  margin: 24px 32px;
-  padding: 32px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+.emotion-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f0ff, #fff5f5);
+  margin: 8px 16px;
+  animation: emotion-inline-fade-in 0.3s ease-out;
 
-  &--gentle {
-    border-left: 6px solid #9b8ec4;
+  &--sick_anxiety {
+    background: linear-gradient(135deg, #f0f0ff, #f8f0ff);
   }
 
-  &--encouraging {
-    border-left: 6px solid #FF8C42;
+  &--new_owner_anxiety {
+    background: linear-gradient(135deg, #fff8f0, #fff5f0);
   }
 
-  &--empathetic {
-    border-left: 6px solid #6baed6;
-  }
-
-  &--celebratory {
-    border-left: 6px solid #f4a460;
-  }
-
-  &--informative {
-    border-left: 6px solid #7fc97f;
-  }
-
-  &__header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+  &--grief {
+    background: linear-gradient(135deg, #f8f0ff, #f5f0f8);
   }
 
   &__icon {
-    font-size: 40px;
-    margin-right: 16px;
+    font-size: 16px;
+    flex-shrink: 0;
   }
 
-  &__title {
-    font-size: 30px;
-    font-weight: 600;
-    color: #2C2C2C;
+  &__message {
     flex: 1;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background-color: #9b59b6;
+
+    &:active {
+      opacity: 0.85;
+    }
+  }
+
+  &__action-text {
+    font-size: 12px;
+    color: #fff;
   }
 
   &__dismiss {
-    width: 48px;
-    height: 48px;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    background: #f5f5f5;
+
+    &:active {
+      opacity: 0.6;
+    }
   }
 
   &__dismiss-text {
-    font-size: 24px;
-    color: #999;
+    font-size: 12px;
+    color: #ccc;
   }
+}
 
-  &__body {
-    margin-bottom: 20px;
+@keyframes emotion-inline-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
   }
-
-  &__content {
-    font-size: 28px;
-    line-height: 1.7;
-    color: #444;
-  }
-
-  &__suggestions {
-    padding-top: 20px;
-    border-top: 1px solid #f0f0f0;
-  }
-
-  &__suggestion {
-    display: flex;
-    align-items: flex-start;
-    padding: 12px 0;
-  }
-
-  &__suggestion-bullet {
-    font-size: 28px;
-    color: #FF8C42;
-    margin-right: 12px;
-    line-height: 1.6;
-  }
-
-  &__suggestion-text {
-    font-size: 26px;
-    color: #666;
-    line-height: 1.6;
-    flex: 1;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

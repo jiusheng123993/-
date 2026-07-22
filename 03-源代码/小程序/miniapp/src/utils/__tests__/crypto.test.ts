@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { mockEncrypt, mockDecrypt, mockSHA256 } = vi.hoisted(() => {
+const { mockEncrypt, mockDecrypt, mockSHA256, mockUtf8 } = vi.hoisted(() => {
   const SEP = '|||'
   const PREFIX_LEN = 3 + SEP.length
   const mockEncrypt = vi.fn((data: string, key: string) => ({
@@ -26,18 +26,27 @@ const { mockEncrypt, mockDecrypt, mockSHA256 } = vi.hoisted(() => {
   const mockSHA256 = vi.fn((input: string) => ({
     toString: () => `hash_${input}`,
   }))
-  return { mockEncrypt, mockDecrypt, mockSHA256 }
+  const mockUtf8 = Symbol('Utf8')
+  return { mockEncrypt, mockDecrypt, mockSHA256, mockUtf8 }
 })
 
-vi.mock('crypto-js', () => {
-  const mockUtf8 = Symbol('Utf8')
-  const mockCryptoJS = {
-    AES: { encrypt: mockEncrypt, decrypt: mockDecrypt },
-    SHA256: mockSHA256,
-    enc: { Utf8: mockUtf8, Base64: 'Base64' },
-  }
-  return { default: mockCryptoJS, ...mockCryptoJS }
-})
+vi.mock('crypto-js/aes', () => ({
+  default: { encrypt: mockEncrypt, decrypt: mockDecrypt },
+}))
+
+vi.mock('crypto-js/sha256', () => ({
+  default: mockSHA256,
+}))
+
+vi.mock('crypto-js/enc-utf8', () => ({
+  default: mockUtf8,
+}))
+
+vi.mock('crypto-js/enc-base64', () => ({
+  default: 'Base64',
+}))
+
+const DEV_SALT = 'xhh-v2-aes-salt-2026-dev'
 
 import { encrypt, decrypt, generateId, CryptoJS } from '../crypto'
 
@@ -54,10 +63,10 @@ describe('crypto', () => {
       expect(typeof result).toBe('string')
     })
 
-    it('calls CryptoJS.AES.encrypt with data and derived key', () => {
+    it('calls AES.encrypt with data and derived key', () => {
       encrypt('hello', 'user1')
-      expect(mockSHA256).toHaveBeenCalledWith('xhh-v2-aes-salt-2026:user1')
-      expect(mockEncrypt).toHaveBeenCalledWith('hello', 'hash_xhh-v2-aes-salt-2026:user1')
+      expect(mockSHA256).toHaveBeenCalledWith(`${DEV_SALT}:user1`)
+      expect(mockEncrypt).toHaveBeenCalledWith('hello', `hash_${DEV_SALT}:user1`)
     })
 
     it('produces different output for different userId', () => {
@@ -74,7 +83,7 @@ describe('crypto', () => {
 
     it('derives key using SHA256 with salt and userId', () => {
       encrypt('test', 'abc')
-      expect(mockSHA256).toHaveBeenCalledWith('xhh-v2-aes-salt-2026:abc')
+      expect(mockSHA256).toHaveBeenCalledWith(`${DEV_SALT}:abc`)
     })
   })
 
@@ -96,10 +105,10 @@ describe('crypto', () => {
       expect(result).toBe('')
     })
 
-    it('calls CryptoJS.AES.decrypt with encrypted string and derived key', () => {
+    it('calls AES.decrypt with encrypted string and derived key', () => {
       decrypt('ENC|||somekey|||somedata', 'user1')
-      expect(mockSHA256).toHaveBeenCalledWith('xhh-v2-aes-salt-2026:user1')
-      expect(mockDecrypt).toHaveBeenCalledWith('ENC|||somekey|||somedata', 'hash_xhh-v2-aes-salt-2026:user1')
+      expect(mockSHA256).toHaveBeenCalledWith(`${DEV_SALT}:user1`)
+      expect(mockDecrypt).toHaveBeenCalledWith('ENC|||somekey|||somedata', `hash_${DEV_SALT}:user1`)
     })
 
     it('returns empty string when decrypt throws', () => {

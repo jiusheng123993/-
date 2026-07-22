@@ -154,11 +154,12 @@ export class SyncService {
             continue
           }
         } else {
+          const { userId: _parsedUserId, ...restData } = parsed
           const result = await supabaseClient.upsert(table, {
-            ...parsed,
+            ...restData,
             id: record.record_id,
-            user_id: this.userId,
-            synced_at: new Date().toISOString()
+            userId: this.userId,
+            syncedAt: new Date().toISOString()
           })
           if (result.error) {
             lastError = result.error

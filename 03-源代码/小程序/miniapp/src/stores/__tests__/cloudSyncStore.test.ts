@@ -19,13 +19,13 @@ const {
     importData: mockImportData,
     clearCloudData: mockClearCloudData,
   })),
-  mockSyncAll: vi.fn(() => Promise.resolve({ success: true, pushed: 5, pulled: 3, errors: [] })),
-  mockPushTable: vi.fn(() => Promise.resolve({ pushed: 2, error: null })),
-  mockPullTable: vi.fn(() => Promise.resolve({ pulled: 1, error: null })),
-  mockGetAllStatuses: vi.fn(() => [{ table: 'pets', lastSync: '2026-01-01', status: 'synced' }]),
+  mockSyncAll: vi.fn(() => Promise.resolve({ success: true, pushed: 5, pulled: 3, errors: [] as string[] })),
+  mockPushTable: vi.fn(() => Promise.resolve({ pushed: 2, error: null as string | null })),
+  mockPullTable: vi.fn(() => Promise.resolve({ pulled: 1, error: null as string | null })),
+  mockGetAllStatuses: vi.fn(() => [{ table: 'pet_profiles' as const, lastPushAt: '2026-01-01', lastPullAt: '2026-01-01', pendingCount: 0, error: null }]),
   mockExportAllData: vi.fn(() => Promise.resolve({ pets: [] })),
-  mockImportData: vi.fn(() => Promise.resolve({ imported: 5, errors: [] })),
-  mockClearCloudData: vi.fn(() => Promise.resolve({ success: true, error: null })),
+  mockImportData: vi.fn(() => Promise.resolve({ imported: 5, errors: [] as string[] })),
+  mockClearCloudData: vi.fn(() => Promise.resolve({ success: true, error: null as string | null })),
 }))
 
 vi.mock('../../services/syncService', () => ({
@@ -37,13 +37,13 @@ import { useCloudSyncStore } from '../cloudSyncStore'
 describe('cloudSyncStore', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
-    mockSyncAll.mockImplementation(() => Promise.resolve({ success: true, pushed: 5, pulled: 3, errors: [] }))
-    mockPushTable.mockImplementation(() => Promise.resolve({ pushed: 2, error: null }))
-    mockPullTable.mockImplementation(() => Promise.resolve({ pulled: 1, error: null }))
-    mockGetAllStatuses.mockImplementation(() => [{ table: 'pets', lastSync: '2026-01-01', status: 'synced' }])
+    mockSyncAll.mockImplementation(() => Promise.resolve({ success: true, pushed: 5, pulled: 3, errors: [] as string[] }))
+    mockPushTable.mockImplementation(() => Promise.resolve({ pushed: 2, error: null as string | null }))
+    mockPullTable.mockImplementation(() => Promise.resolve({ pulled: 1, error: null as string | null }))
+    mockGetAllStatuses.mockImplementation(() => [{ table: 'pet_profiles' as const, lastPushAt: '2026-01-01', lastPullAt: '2026-01-01', pendingCount: 0, error: null }])
     mockExportAllData.mockImplementation(() => Promise.resolve({ pets: [] }))
-    mockImportData.mockImplementation(() => Promise.resolve({ imported: 5, errors: [] }))
-    mockClearCloudData.mockImplementation(() => Promise.resolve({ success: true, error: null }))
+    mockImportData.mockImplementation(() => Promise.resolve({ imported: 5, errors: [] as string[] }))
+    mockClearCloudData.mockImplementation(() => Promise.resolve({ success: true, error: null as string | null }))
     useCloudSyncStore.setState({
       syncService: null,
       statuses: [],
@@ -82,7 +82,7 @@ describe('cloudSyncStore', () => {
       expect(mockGetSyncService).toHaveBeenCalledWith('user_123')
       expect(useCloudSyncStore.getState().syncService).not.toBeNull()
       expect(mockGetAllStatuses).toHaveBeenCalled()
-      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pets', lastSync: '2026-01-01', status: 'synced' }])
+      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pet_profiles', lastPushAt: '2026-01-01', lastPullAt: '2026-01-01', pendingCount: 0, error: null }])
     })
   })
 
@@ -103,12 +103,12 @@ describe('cloudSyncStore', () => {
       expect(result.pushed).toBe(5)
       expect(result.pulled).toBe(3)
       expect(useCloudSyncStore.getState().lastSyncResult).toEqual(result)
-      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pets', lastSync: '2026-01-01', status: 'synced' }])
+      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pet_profiles', lastPushAt: '2026-01-01', lastPullAt: '2026-01-01', pendingCount: 0, error: null }])
     })
 
     it('should set isSyncing during sync', async () => {
-      let resolveSync: (value: any) => void
-      const syncPromise = new Promise(resolve => { resolveSync = resolve })
+      let resolveSync: (value: { success: boolean; pushed: number; pulled: number; errors: string[] }) => void
+      const syncPromise = new Promise<{ success: boolean; pushed: number; pulled: number; errors: string[] }>(resolve => { resolveSync = resolve })
       mockSyncAll.mockReturnValue(syncPromise)
       useCloudSyncStore.getState().init('user_123')
 
@@ -116,7 +116,7 @@ describe('cloudSyncStore', () => {
 
       expect(useCloudSyncStore.getState().isSyncing).toBe(true)
 
-      resolveSync!({ success: true, pushed: 0, pulled: 0, errors: [] })
+      resolveSync!({ success: true, pushed: 0, pulled: 0, errors: [] as string[] })
       await syncCall
 
       expect(useCloudSyncStore.getState().isSyncing).toBe(false)
@@ -155,7 +155,7 @@ describe('cloudSyncStore', () => {
 
   describe('syncTable', () => {
     it('should return error when syncService not initialized', async () => {
-      const result = await useCloudSyncStore.getState().syncTable('pets')
+      const result = await useCloudSyncStore.getState().syncTable('pet_profiles')
 
       expect(result).toEqual({ pushed: 0, pulled: 0, error: '同步服务未初始化' })
     })
@@ -163,10 +163,10 @@ describe('cloudSyncStore', () => {
     it('should call pushTable and pullTable', async () => {
       useCloudSyncStore.getState().init('user_123')
 
-      const result = await useCloudSyncStore.getState().syncTable('pets')
+      const result = await useCloudSyncStore.getState().syncTable('pet_profiles')
 
-      expect(mockPushTable).toHaveBeenCalledWith('pets')
-      expect(mockPullTable).toHaveBeenCalledWith('pets')
+      expect(mockPushTable).toHaveBeenCalledWith('pet_profiles')
+      expect(mockPullTable).toHaveBeenCalledWith('pet_profiles')
       expect(result.pushed).toBe(2)
       expect(result.pulled).toBe(1)
       expect(result.error).toBeNull()
@@ -175,17 +175,17 @@ describe('cloudSyncStore', () => {
     it('should update statuses after sync', async () => {
       useCloudSyncStore.getState().init('user_123')
 
-      await useCloudSyncStore.getState().syncTable('pets')
+      await useCloudSyncStore.getState().syncTable('pet_profiles')
 
       expect(mockGetAllStatuses).toHaveBeenCalled()
-      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pets', lastSync: '2026-01-01', status: 'synced' }])
+      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pet_profiles', lastPushAt: '2026-01-01', lastPullAt: '2026-01-01', pendingCount: 0, error: null }])
     })
 
     it('should set error when pushTable returns error', async () => {
       mockPushTable.mockResolvedValue({ pushed: 0, error: 'push failed' })
       useCloudSyncStore.getState().init('user_123')
 
-      const result = await useCloudSyncStore.getState().syncTable('pets')
+      const result = await useCloudSyncStore.getState().syncTable('pet_profiles')
 
       expect(result.error).toBe('push failed')
       expect(useCloudSyncStore.getState().error).toBe('push failed')
@@ -195,7 +195,7 @@ describe('cloudSyncStore', () => {
       mockPullTable.mockResolvedValue({ pulled: 0, error: 'pull failed' })
       useCloudSyncStore.getState().init('user_123')
 
-      const result = await useCloudSyncStore.getState().syncTable('pets')
+      const result = await useCloudSyncStore.getState().syncTable('pet_profiles')
 
       expect(result.error).toBe('pull failed')
       expect(useCloudSyncStore.getState().error).toBe('pull failed')
@@ -205,7 +205,7 @@ describe('cloudSyncStore', () => {
       mockPushTable.mockRejectedValue(new Error('Sync crash'))
       useCloudSyncStore.getState().init('user_123')
 
-      const result = await useCloudSyncStore.getState().syncTable('pets')
+      const result = await useCloudSyncStore.getState().syncTable('pet_profiles')
 
       expect(result.error).toBe('Sync crash')
       expect(useCloudSyncStore.getState().isSyncing).toBe(false)
@@ -215,7 +215,7 @@ describe('cloudSyncStore', () => {
       mockPushTable.mockRejectedValue('unknown')
       useCloudSyncStore.getState().init('user_123')
 
-      const result = await useCloudSyncStore.getState().syncTable('pets')
+      const result = await useCloudSyncStore.getState().syncTable('pet_profiles')
 
       expect(result.error).toBe('同步失败')
     })
@@ -224,11 +224,11 @@ describe('cloudSyncStore', () => {
   describe('refreshStatuses', () => {
     it('should update statuses from syncService', () => {
       useCloudSyncStore.getState().init('user_123')
-      mockGetAllStatuses.mockReturnValue([{ table: 'pets', lastSync: '2026-07-01', status: 'synced' }])
+      mockGetAllStatuses.mockReturnValue([{ table: 'pet_profiles' as const, lastPushAt: '2026-07-01', lastPullAt: '2026-07-01', pendingCount: 0, error: null }])
 
       useCloudSyncStore.getState().refreshStatuses()
 
-      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pets', lastSync: '2026-07-01', status: 'synced' }])
+      expect(useCloudSyncStore.getState().statuses).toEqual([{ table: 'pet_profiles', lastPushAt: '2026-07-01', lastPullAt: '2026-07-01', pendingCount: 0, error: null }])
     })
 
     it('should do nothing when syncService is null', () => {

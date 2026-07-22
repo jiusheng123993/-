@@ -116,9 +116,130 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
+}
+
+.pet-profile__breed-traits {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9F5 100%);
+  border: 2rpx solid #FFD4B8;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-top: -12rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.08);
+}
+
+.pet-profile__breed-traits-header {
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #FFE8D6;
+}
+
+.pet-profile__breed-traits-title {
+  font-size: 28rpx;
+  color: #FF8C42;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.pet-profile__breed-traits-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.pet-profile__breed-traits-label {
+  font-size: 26rpx;
+  color: #4A4A4A;
+  font-weight: 500;
+}
+
+.pet-profile__breed-traits-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.pet-profile__breed-traits-tag {
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  line-height: 1.4;
+}
+
+.pet-profile__breed-traits-tag--warn {
+  background: #FFF8E1;
+  color: #E65100;
+}
+
+.pet-profile__breed-traits-tag--danger {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.pet-profile__breed-traits-value {
+  font-size: 28rpx;
+  color: #2C2C2C;
+  font-weight: 600;
+}
+
+.pet-profile__health-info {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FFF4 100%);
+  border: 2rpx solid #B8E6CC;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-top: -12rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.08);
+}
+
+.pet-profile__health-info-header {
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #D4EDDA;
+}
+
+.pet-profile__health-info-title {
+  font-size: 28rpx;
+  color: #4CAF50;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.pet-profile__health-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pet-profile__health-info-label {
+  font-size: 26rpx;
+  color: #4A4A4A;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.pet-profile__health-info-value {
+  font-size: 26rpx;
+  color: #2C2C2C;
+  font-weight: 500;
+  text-align: right;
+  flex: 1;
+  margin-left: 24rpx;
+}
+
+.pet-profile__health-info-empty {
+  font-size: 26rpx;
+  color: #BFBFBF;
+  text-align: right;
+  flex: 1;
+  margin-left: 24rpx;
 }

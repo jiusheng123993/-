@@ -35,10 +35,18 @@ export interface HealthReportData {
   }[]
   generatedAt: string
   period: string
+  aiAnalysis?: string
 }
 
-export interface PDFGeneratorOptions {
-  scale?: number
-  quality?: number
-  pageSize?: 'a4' | 'letter'
+export interface CanvasRenderOptions {
+  canvasId: string
+  width?: number
+  height?: number
+  pixelRatio?: number
+}
+
+export interface ReportImageResult {
+  tempFilePath: string
+  width: number
+  height: number
 }

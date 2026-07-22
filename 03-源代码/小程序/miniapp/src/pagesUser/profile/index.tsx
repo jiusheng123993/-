@@ -7,6 +7,7 @@ import { useSubscribeStore } from '../../stores/subscribeStore';
 import { usePetStore } from '../../stores/petStore';
 import { generateHealthReport, formatReportAsText } from '../../services/reportService';
 import { APP_VERSION, HOTLINE_NUMBER } from '../../constants';
+import { useAnalytics, usePageView } from '../../hooks/useAnalytics';
 import FloatingNav from '../../components/FloatingNav';
 import { PageLoading, PageError } from '../../components';
 import './index.scss';
@@ -20,6 +21,8 @@ export default function Profile() {
   const hasAnyAccepted = useSubscribeStore((s) => s.hasAnyAccepted)
   const requestAll = useSubscribeStore((s) => s.requestAll)
   const currentPet = usePetStore((s) => s.currentPet)
+  const { trackEvent } = useAnalytics()
+  usePageView('profile')
 
   const loadProfileData = useCallback(async () => {
     setError('')
@@ -45,6 +48,7 @@ export default function Profile() {
   };
 
   const handleHealthReport = async () => {
+    trackEvent('click_health_report')
     if (!user?.id || !currentPet?.id) {
       Taro.showToast({ title: '请先添加宠物', icon: 'none' })
       return
@@ -80,6 +84,7 @@ export default function Profile() {
   }
 
   const handleSubscribeClick = () => {
+    trackEvent('click_subscribe_manage')
     if (hasAnyAccepted()) {
       Taro.showModal({
         title: '消息订阅管理',
@@ -128,6 +133,7 @@ export default function Profile() {
   };
 
   const handleLogout = async () => {
+    trackEvent('logout')
     const result = await Taro.showModal({
       title: '确认登出',
       content: '登出后需要重新登录才能使用完整功能',

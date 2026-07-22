@@ -46,8 +46,8 @@ vi.mock('../../services/subscribeService', () => ({
 }))
 
 vi.mock('../../memory-body/store/miniProgramMemoryBodyStore', () => {
-  function MockMiniProgramMemoryBodyStore(this: { clearMoodEntries: typeof mockClearMoodEntries; clearAll: typeof mockClearAll }) {
-    this.clearMoodEntries = mockClearMoodEntries
+  function MockMiniProgramMemoryBodyStore(this: { clearHealthEntries: typeof mockClearMoodEntries; clearAll: typeof mockClearAll }) {
+    this.clearHealthEntries = mockClearMoodEntries
     this.clearAll = mockClearAll
   }
   return { MiniProgramMemoryBodyStore: MockMiniProgramMemoryBodyStore }

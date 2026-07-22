@@ -13,6 +13,11 @@ vi.mock('../petService', () => ({
   getPetById: vi.fn(),
 }))
 
+vi.mock('../../utils/petOwnership', () => ({
+  requirePetOwnership: vi.fn(),
+  isPetOwnerLocal: vi.fn(() => true),
+}))
+
 import { getCheckinsByDateRange } from '../checkinService'
 import { getVaccineRecords } from '../vaccineService'
 import { getPetById } from '../petService'
@@ -36,11 +41,15 @@ function makePetProfile(overrides: Partial<PetProfile> = {}): PetProfile {
     gender: 'male',
     birthDate: '2020-06-15',
     weight: 25,
+    coatColor: '',
     photos: [],
     isNeutered: false,
     microchipId: '',
     notes: '',
     isDeceased: false,
+    allergies: [],
+    medications: [],
+    chronicConditions: [],
     createdAt: '2020-06-15T00:00:00.000Z',
     updatedAt: '2025-01-01T00:00:00.000Z',
     ...overrides,

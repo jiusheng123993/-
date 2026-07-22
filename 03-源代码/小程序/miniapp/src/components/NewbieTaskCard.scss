@@ -1,0 +1,139 @@
+@import '../styles/global.scss';
+
+.newbie-task-card {
+  margin: 0 16px 20px;
+  background: #fff;
+  border-radius: $radius-md;
+  padding: 16px;
+  box-shadow: $shadow-sm;
+  border: 1px solid $color-border;
+  animation: newbieTaskFadeIn 0.4s ease-out;
+
+  @keyframes newbieTaskFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &--celebrating {
+    animation: newbieTaskCelebrate 0.6s ease-out;
+  }
+
+  @keyframes newbieTaskCelebrate {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    font-size: 15px;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+  }
+
+  &__progress-text {
+    font-size: 13px;
+    color: $color-text-tertiary;
+    font-weight: $font-weight-medium;
+  }
+
+  &__progress-bar {
+    height: 4px;
+    background: $color-bg-tertiary;
+    border-radius: $radius-full;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: $color-primary;
+    border-radius: $radius-full;
+    transition: width 0.4s ease;
+  }
+
+  &__tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    &--completed {
+      .newbie-task-card__task-title {
+        color: $color-text-tertiary;
+        text-decoration: line-through;
+      }
+    }
+  }
+
+  &__task-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    background: $color-bg-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__task-emoji {
+    font-size: 16px;
+  }
+
+  &__task-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+  }
+
+  &__task-status {
+    flex-shrink: 0;
+  }
+
+  &__task-status-text {
+    font-size: 16px;
+  }
+
+  &__celebration {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+  }
+
+  &__celebration-emoji {
+    font-size: 40px;
+    margin-bottom: 8px;
+  }
+
+  &__celebration-text {
+    font-size: 15px;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+  }
+}

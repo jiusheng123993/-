@@ -182,4 +182,28 @@ describe('AchievementCard', () => {
       80
     )
   })
+
+  it('does not show share button when onShare not provided', () => {
+    render(
+      <AchievementCard achievement={birthdayAchievement} petName='旺财' species='dog' />
+    )
+    expect(screen.queryByText('炫耀一下')).toBeNull()
+  })
+
+  it('shows share button when onShare provided', () => {
+    const onShare = vi.fn()
+    render(
+      <AchievementCard achievement={birthdayAchievement} petName='旺财' species='dog' onShare={onShare} />
+    )
+    expect(screen.getByText('炫耀一下')).toBeDefined()
+  })
+
+  it('share button calls onShare', () => {
+    const onShare = vi.fn()
+    render(
+      <AchievementCard achievement={birthdayAchievement} petName='旺财' species='dog' onShare={onShare} />
+    )
+    fireEvent.click(screen.getByText('炫耀一下'))
+    expect(onShare).toHaveBeenCalledTimes(1)
+  })
 })

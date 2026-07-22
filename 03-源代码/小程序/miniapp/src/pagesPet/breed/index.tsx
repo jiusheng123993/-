@@ -1,9 +1,13 @@
 import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { BREED_DATA, type BreedItem } from '../../data/petKnowledge/breeds'
 import FloatingNav from '../../components/FloatingNav'
+import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import './index.scss'
+
+const disclaimerText = new MedicalDisclaimer().getDisclaimer('green', 'breed')
 
 type SpeciesFilter = 'all' | 'dog' | 'cat'
 type SizeFilter = 'all' | 'toy' | 'small' | 'medium' | 'large' | 'giant'
@@ -17,26 +21,21 @@ const SIZE_LABELS: Record<SizeFilter, string> = {
   giant: '巨型',
 }
 
-const EXERCISE_LABELS: Record<string, string> = {
-  low: '低',
-  medium: '中',
-  high: '高',
-}
-
-const GROOMING_LABELS: Record<string, string> = {
-  low: '低',
-  medium: '中',
-  high: '高',
+const SPECIES_EMOJI: Record<string, string> = {
+  dog: '🐶',
+  cat: '🐱',
 }
 
 export default function PetBreed() {
-  const [searchText, setSearchText] = useState('')
+  const [searchText, setSearchText] = useState<string>('')
   const [speciesFilter, setSpeciesFilter] = useState<SpeciesFilter>('all')
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all')
-  const [selectedBreed, setSelectedBreed] = useState<BreedItem | null>(null)
-  const [displayCount, setDisplayCount] = useState(20)
+  const [displayCount, setDisplayCount] = useState<number>(20)
+  const { trackPageView, trackEvent } = useAnalytics()
 
-  const filteredBreeds = useMemo(() => {
+  usePageView('breed')
+
+  const filteredBreeds = useMemo<BreedItem[]>(() => {
     let result = BREED_DATA
 
     if (speciesFilter !== 'all') {
@@ -58,21 +57,15 @@ export default function PetBreed() {
   }, [searchText, speciesFilter, sizeFilter])
 
   const handleBreedClick = useCallback((breed: BreedItem) => {
-    setSelectedBreed(breed)
-  }, [])
-
-  const handleBack = useCallback(() => {
-    setSelectedBreed(null)
-  }, [])
-
-  const handleNavigateToFood = useCallback(() => {
-    Taro.switchTab({ url: '/pages/index/index' })
-  }, [])
+    trackEvent('click_breed_card', { breedId: breed.id, breedName: breed.name })
+    Taro.navigateTo({ url: `/pagesPet/breed-detail/index?id=${breed.id}` })
+  }, [trackEvent])
 
   const handleSpeciesFilterChange = useCallback((value: SpeciesFilter) => {
     setSpeciesFilter(value)
     setDisplayCount(20)
-  }, [])
+    trackEvent('filter_species', { species: value })
+  }, [trackEvent])
 
   const handleSizeFilterChange = useCallback((value: SizeFilter) => {
     setSizeFilter(value)
@@ -82,131 +75,14 @@ export default function PetBreed() {
   const handleSearchInput = useCallback((e: { detail: { value: string } }) => {
     setSearchText(e.detail.value)
     setDisplayCount(20)
-  }, [])
+    if (e.detail.value.trim()) {
+      trackEvent('search_breed', { query: e.detail.value.trim() })
+    }
+  }, [trackEvent])
 
   const handleLoadMore = useCallback(() => {
     setDisplayCount((prev) => prev + 20)
   }, [])
-
-  if (selectedBreed) {
-    return (
-      <View className='breed-page'>
-        <View className='breed-detail'>
-          <View className='breed-detail__header'>
-            <View className='breed-detail__back' onClick={handleBack}>
-              <Text className='breed-detail__back-icon'>&lt;</Text>
-              <Text className='breed-detail__back-text'>返回列表</Text>
-            </View>
-            <Text className='breed-detail__species-tag'>
-              {selectedBreed.species === 'dog' ? '🐕 犬' : '🐈 猫'}
-            </Text>
-          </View>
-
-          <View className='breed-detail__title-section'>
-            <Text className='breed-detail__name'>{selectedBreed.name}</Text>
-            {selectedBreed.aliases.length > 0 && (
-              <Text className='breed-detail__aliases'>
-                {selectedBreed.aliases.join(' / ')}
-              </Text>
-            )}
-          </View>
-
-          <View className='breed-detail__info-grid'>
-            <View className='breed-detail__info-item'>
-              <Text className='breed-detail__info-label'>体型</Text>
-              <Text className='breed-detail__info-value'>{SIZE_LABELS[selectedBreed.size]}</Text>
-            </View>
-            <View className='breed-detail__info-item'>
-              <Text className='breed-detail__info-label'>原产地</Text>
-              <Text className='breed-detail__info-value'>{selectedBreed.origin}</Text>
-            </View>
-            <View className='breed-detail__info-item'>
-              <Text className='breed-detail__info-label'>平均寿命</Text>
-              <Text className='breed-detail__info-value'>{selectedBreed.avgLifespan}</Text>
-            </View>
-            <View className='breed-detail__info-item'>
-              <Text className='breed-detail__info-label'>平均体重</Text>
-              <Text className='breed-detail__info-value'>{selectedBreed.avgWeight}</Text>
-            </View>
-          </View>
-
-          <View className='breed-detail__section'>
-            <Text className='breed-detail__section-title'>性格特征</Text>
-            <View className='breed-detail__tags'>
-              {selectedBreed.temperament.map((t) => (
-                <View key={t} className='breed-detail__tag breed-detail__tag--temperament'>
-                  <Text>{t}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className='breed-detail__section'>
-            <Text className='breed-detail__section-title'>养护需求</Text>
-            <View className='breed-detail__care-grid'>
-              <View className='breed-detail__care-item'>
-                <Text className='breed-detail__care-label'>运动量</Text>
-                <Text className='breed-detail__care-value'>{EXERCISE_LABELS[selectedBreed.exerciseNeeds]}</Text>
-              </View>
-              <View className='breed-detail__care-item'>
-                <Text className='breed-detail__care-label'>美容需求</Text>
-                <Text className='breed-detail__care-value'>{GROOMING_LABELS[selectedBreed.groomingNeeds]}</Text>
-              </View>
-            </View>
-          </View>
-
-          <View className='breed-detail__section'>
-            <Text className='breed-detail__section-title breed-detail__section-title--warning'>遗传疾病风险</Text>
-            <View className='breed-detail__list'>
-              {selectedBreed.geneticDiseases.map((d) => (
-                <View key={d} className='breed-detail__list-item'>
-                  <Text className='breed-detail__list-bullet'>⚠</Text>
-                  <Text className='breed-detail__list-text'>{d}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className='breed-detail__section'>
-            <Text className='breed-detail__section-title breed-detail__section-title--info'>常见健康问题</Text>
-            <View className='breed-detail__list'>
-              {selectedBreed.commonHealthIssues.map((d) => (
-                <View key={d} className='breed-detail__list-item'>
-                  <Text className='breed-detail__list-bullet'>ℹ</Text>
-                  <Text className='breed-detail__list-text'>{d}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className='breed-detail__section'>
-            <Text className='breed-detail__section-title breed-detail__section-title--care'>特殊护理建议</Text>
-            <View className='breed-detail__list'>
-              {selectedBreed.specialCare.map((d) => (
-                <View key={d} className='breed-detail__list-item'>
-                  <Text className='breed-detail__list-bullet'>💡</Text>
-                  <Text className='breed-detail__list-text'>{d}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className='breed-detail__section'>
-            <Text className='breed-detail__section-title'>适合人群</Text>
-            <View className='breed-detail__tags'>
-              {selectedBreed.suitableFor.map((s) => (
-                <View key={s} className='breed-detail__tag breed-detail__tag--suitable'>
-                  <Text>{s}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-
-        <FloatingNav />
-      </View>
-    )
-  }
 
   return (
     <View className='breed-page'>
@@ -218,12 +94,21 @@ export default function PetBreed() {
       </View>
 
       <View className='breed-page__search'>
-        <Input
-          className='breed-page__search-input'
-          placeholder='搜索品种名称...'
-          value={searchText}
-          onInput={handleSearchInput}
-        />
+        <View className='breed-page__search-wrapper'>
+          <Text className='breed-page__search-icon'>🔍</Text>
+          <Input
+            className='breed-page__search-input'
+            placeholder='搜索品种名称...'
+            placeholderClass='breed-page__search-placeholder'
+            value={searchText}
+            onInput={handleSearchInput}
+          />
+          {searchText && (
+            <View className='breed-page__search-clear' onClick={() => { setSearchText(''); setDisplayCount(20) }}>
+              <Text className='breed-page__search-clear-icon'>✕</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       <View className='breed-page__filters'>
@@ -238,13 +123,13 @@ export default function PetBreed() {
             className={`breed-page__filter-chip ${speciesFilter === 'dog' ? 'breed-page__filter-chip--active' : ''}`}
             onClick={() => handleSpeciesFilterChange('dog')}
           >
-            <Text>🐕 犬类</Text>
+            <Text>🐶 犬类</Text>
           </View>
           <View
             className={`breed-page__filter-chip ${speciesFilter === 'cat' ? 'breed-page__filter-chip--active' : ''}`}
             onClick={() => handleSpeciesFilterChange('cat')}
           >
-            <Text>🐈 猫类</Text>
+            <Text>🐱 猫类</Text>
           </View>
         </ScrollView>
 
@@ -268,35 +153,36 @@ export default function PetBreed() {
           </Text>
         </View>
 
-        {filteredBreeds.slice(0, displayCount).map((breed) => (
-          <View
-            key={breed.id}
-            className='breed-page__card'
-            onClick={() => handleBreedClick(breed)}
-          >
-            <View className='breed-page__card-header'>
-              <Text className='breed-page__card-name'>{breed.name}</Text>
-              <Text className='breed-page__card-species'>
-                {breed.species === 'dog' ? '🐕' : '🐈'}
-              </Text>
-            </View>
-            <View className='breed-page__card-info'>
-              <Text className='breed-page__card-item'>体型: {SIZE_LABELS[breed.size]}</Text>
-              <Text className='breed-page__card-item'>寿命: {breed.avgLifespan}</Text>
-              <Text className='breed-page__card-item'>体重: {breed.avgWeight}</Text>
-            </View>
-            <View className='breed-page__card-temperament'>
-              {breed.temperament.slice(0, 4).map((t) => (
-                <View key={t} className='breed-page__card-tag'>
-                  <Text>{t}</Text>
+        <View className='breed-page__grid'>
+          {filteredBreeds.slice(0, displayCount).map((breed) => (
+            <View
+              key={breed.id}
+              className='breed-page__card'
+              onClick={() => handleBreedClick(breed)}
+            >
+              <View className='breed-page__card-emoji'>
+                <Text className='breed-page__card-emoji-text'>{SPECIES_EMOJI[breed.species]}</Text>
+              </View>
+              <View className='breed-page__card-body'>
+                <Text className='breed-page__card-name'>{breed.name}</Text>
+                <View className='breed-page__card-meta'>
+                  <Text className='breed-page__card-meta-item'>⏱ {breed.lifespan}</Text>
+                  <Text className='breed-page__card-meta-item'>⚖ {breed.weightRangeStr}</Text>
                 </View>
-              ))}
+                <View className='breed-page__card-tags'>
+                  {breed.temperament.slice(0, 3).map((t) => (
+                    <View key={t} className='breed-page__card-tag'>
+                      <Text>{t}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              <View className='breed-page__card-arrow'>
+                <Text>›</Text>
+              </View>
             </View>
-            <View className='breed-page__card-arrow'>
-              <Text>&gt;</Text>
-            </View>
-          </View>
-        ))}
+          ))}
+        </View>
 
         {filteredBreeds.length > 0 && displayCount < filteredBreeds.length && (
           <View className='breed-page__load-more' onClick={handleLoadMore}>
@@ -318,6 +204,10 @@ export default function PetBreed() {
       </ScrollView>
 
       <FloatingNav />
+
+      <View className='breed-page__disclaimer'>
+        <Text className='breed-page__disclaimer-text'>{disclaimerText}</Text>
+      </View>
     </View>
   )
 }

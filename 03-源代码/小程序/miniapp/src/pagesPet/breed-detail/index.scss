@@ -1,0 +1,318 @@
+@import '../../styles/global.scss';
+
+.breed-detail {
+  min-height: 100vh;
+  background: $color-bg-page;
+  position: relative;
+
+  &__scroll {
+    height: calc(100vh - 120px);
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  &__loading-text {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+  }
+
+  &__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $spacing-xl $spacing-lg $spacing-lg;
+    background: linear-gradient(135deg, $color-primary-light 0%, #fff 100%);
+  }
+
+  &__hero-emoji {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: $shadow-md;
+    margin-bottom: $spacing-md;
+  }
+
+  &__hero-emoji-text {
+    font-size: 64px;
+  }
+
+  &__hero-name {
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__hero-badges {
+    display: flex;
+    gap: $spacing-xs;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  &__hero-badge {
+    padding: 4px 16px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: $radius-full;
+    font-size: 22px;
+    color: $color-primary;
+  }
+
+  &__info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $spacing-xs;
+    padding: $spacing-md $spacing-lg;
+    margin: 0 $spacing-lg;
+    background: #fff;
+    border-radius: $radius-md;
+    box-shadow: $shadow-sm;
+    margin-top: -20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $spacing-xs 0;
+  }
+
+  &__info-label {
+    font-size: 20px;
+    color: $color-text-tertiary;
+    margin-bottom: 4px;
+  }
+
+  &__info-value {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+  }
+
+  &__section {
+    padding: $spacing-lg $spacing-lg 0;
+  }
+
+  &__section-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+    margin-bottom: $spacing-sm;
+    display: block;
+
+    &--danger {
+      color: #e74c3c;
+    }
+
+    &--warning {
+      color: #f39c12;
+    }
+
+    &--success {
+      color: #27ae60;
+    }
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+  }
+
+  &__tag {
+    padding: 6px 16px;
+    background: $color-bg-secondary;
+    border-radius: $radius-lg;
+    font-size: 22px;
+    color: $color-text-secondary;
+
+    &--primary {
+      background: $color-primary-light;
+      color: $color-primary;
+    }
+
+    &--green {
+      background: #e8f8f0;
+      color: #27ae60;
+    }
+  }
+
+  &__danger-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__danger-card {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    background: #fff5f5;
+    border-radius: $radius-md;
+    border-left: 6px solid #e74c3c;
+  }
+
+  &__danger-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  &__danger-text {
+    font-size: $font-size-xs;
+    color: #c0392b;
+    font-weight: $font-weight-medium;
+  }
+
+  &__warning-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__warning-card {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    background: #fffbeb;
+    border-radius: $radius-md;
+    border-left: 6px solid #f39c12;
+  }
+
+  &__warning-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  &__warning-text {
+    font-size: $font-size-xs;
+    color: #d68910;
+    font-weight: $font-weight-medium;
+  }
+
+  &__success-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__success-card {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-lg;
+    background: #f0fdf4;
+    border-radius: $radius-md;
+    border-left: 6px solid #27ae60;
+  }
+
+  &__success-index {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #27ae60;
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 32px;
+    text-align: center;
+  }
+
+  &__success-text {
+    font-size: $font-size-xs;
+    color: #1e8449;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-lg;
+    background: #fff;
+    border-radius: $radius-md;
+  }
+
+  &__list-dot {
+    font-size: $font-size-md;
+    color: $color-primary;
+    line-height: 1.6;
+  }
+
+  &__list-text {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  &__disclaimer {
+    padding: $spacing-lg;
+    margin-top: $spacing-md;
+  }
+
+  &__disclaimer-text {
+    font-size: 20px;
+    color: $color-text-tertiary;
+    line-height: 1.5;
+  }
+
+  &__bottom-spacer {
+    height: 140px;
+  }
+
+  &__footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: $spacing-md $spacing-lg;
+    padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+    background: #fff;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+    z-index: 100;
+  }
+
+  &__footer-btn {
+    background: $color-primary;
+    border-radius: $radius-full;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all $transition-fast;
+
+    &:active {
+      opacity: 0.85;
+      transform: scale(0.98);
+    }
+  }
+
+  &__footer-btn-text {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: $color-text-inverse;
+  }
+}

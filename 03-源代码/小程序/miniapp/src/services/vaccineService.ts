@@ -2,6 +2,11 @@ import Taro from '@tarojs/taro';
 import { api } from './api';
 import { getStorage, setStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
+import { generateAutoVaccineSchedule, generateDewormingSchedule } from '../engines/vaccineScheduler';
+import { BREED_VACCINE_RECOMMENDATIONS } from '../data/petKnowledge/vaccineSchedule';
+import { BREED_DATA } from '../data/petKnowledge/breeds';
+import type { BreedVaccineRecommendation } from '../data/petKnowledge/vaccineSchedule';
+import type { BreedItem } from '../data/petKnowledge/breeds';
 
 export interface VaccineRecord {
   id: string;
@@ -284,21 +289,42 @@ interface PetInfo {
   species: 'dog' | 'cat';
   breed: string;
   birthDate: string;
+  breedId?: string;
 }
 
-const CORE_VACCINES_DOG: string[] = ['DHPP', 'rabies'];
-const CORE_VACCINES_CAT: string[] = ['FVRCP', 'rabies'];
-const OPTIONAL_VACCINES_DOG: string[] = ['bordetella', 'leptospirosis', 'lyme'];
-const OPTIONAL_VACCINES_CAT: string[] = ['felv'];
-const DEWORM_CATEGORIES: string[] = ['internal_deworm', 'external_deworm'];
+function getBreedRecommendations(breedId: string | undefined, species: 'dog' | 'cat'): { recommendedVaccines: string[]; healthCheckReminders: string[]; notes: string[] } {
+  const result: { recommendedVaccines: string[]; healthCheckReminders: string[]; notes: string[] } = {
+    recommendedVaccines: [],
+    healthCheckReminders: [],
+    notes: [],
+  }
 
-function isPuppyOrKitten(birthDate: string): boolean {
-  const birth = new Date(birthDate + 'T00:00:00.000Z');
-  const now = new Date();
-  const ageInMonths =
-    (now.getUTCFullYear() - birth.getUTCFullYear()) * 12 +
-    (now.getUTCMonth() - birth.getUTCMonth());
-  return ageInMonths < 12;
+  if (!breedId) return result
+
+  const breed: BreedItem | undefined = BREED_DATA.find((b: BreedItem) => b.id === breedId)
+  if (!breed) return result
+
+  const matched: BreedVaccineRecommendation[] = BREED_VACCINE_RECOMMENDATIONS.filter(
+    (r: BreedVaccineRecommendation) => r.species === species && r.breedIds.includes(breedId)
+  )
+
+  for (const rec of matched) {
+    for (const vaccine of rec.recommendedVaccines) {
+      if (!result.recommendedVaccines.includes(vaccine)) {
+        result.recommendedVaccines.push(vaccine)
+      }
+    }
+    for (const reminder of rec.healthCheckReminders) {
+      if (!result.healthCheckReminders.includes(reminder)) {
+        result.healthCheckReminders.push(reminder)
+      }
+    }
+    if (rec.notes && !result.notes.includes(rec.notes)) {
+      result.notes.push(rec.notes)
+    }
+  }
+
+  return result
 }
 
 export async function generateInitialPlan(petId: string, petInfo: PetInfo): Promise<VaccineRecord[]> {
@@ -307,61 +333,99 @@ export async function generateInitialPlan(petId: string, petInfo: PetInfo): Prom
     return existing;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const isYoung = isPuppyOrKitten(petInfo.birthDate);
+  const now = new Date().toISOString();
   const records: VaccineRecord[] = [];
+  const existingCategories = new Set<string>();
 
-  const coreVaccines = petInfo.species === 'dog' ? CORE_VACCINES_DOG : CORE_VACCINES_CAT;
-  const optionalVaccines = petInfo.species === 'dog' ? OPTIONAL_VACCINES_DOG : OPTIONAL_VACCINES_CAT;
+  const scheduleItems = generateAutoVaccineSchedule({
+    species: petInfo.species,
+    birthDate: petInfo.birthDate,
+  });
 
-  for (const category of coreVaccines) {
-    const date = isYoung ? addMonths(today, 1) : today;
-    const nextDate = calculateNextDate(category, date);
-    const now = new Date().toISOString();
+  for (const item of scheduleItems) {
+    const category = mapVaccineNameToCategory(item.vaccineName);
+    if (!category || existingCategories.has(category)) continue;
+    existingCategories.add(category);
+
+    const nextDate = calculateNextDate(category, item.scheduledDate);
     records.push({
       id: generateId(),
       petId,
       type: 'vaccine',
       category,
-      date,
+      date: item.scheduledDate,
       nextDate,
       status: calculateStatus(nextDate),
-      notes: isYoung ? '幼年首针，建议咨询兽医确定具体接种时间' : undefined,
+      notes: item.notes || undefined,
       createdAt: now,
       updatedAt: now,
     });
   }
 
-  if (isYoung) {
-    for (const category of optionalVaccines) {
-      const date = addMonths(today, 2);
-      const nextDate = calculateNextDate(category, date);
-      const now = new Date().toISOString();
-      records.push({
-        id: generateId(),
-        petId,
-        type: 'vaccine',
-        category,
-        date,
-        nextDate,
-        status: calculateStatus(nextDate),
-        notes: '非核心疫苗，建议咨询兽医是否需要接种',
-        createdAt: now,
-        updatedAt: now,
-      });
+  const breedRec = getBreedRecommendations(petInfo.breedId, petInfo.species);
+
+  for (const vaccine of breedRec.recommendedVaccines) {
+    if (existingCategories.has(vaccine)) {
+      const existingRecord = records.find((r) => r.category === vaccine);
+      if (existingRecord) {
+        const breedNote = '品种特异性推荐疫苗，建议咨询兽医是否需要接种';
+        existingRecord.notes = existingRecord.notes
+          ? `${existingRecord.notes}；${breedNote}`
+          : breedNote;
+      }
+      continue;
     }
+    existingCategories.add(vaccine);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const nextDate = calculateNextDate(vaccine, today);
+    records.push({
+      id: generateId(),
+      petId,
+      type: 'vaccine',
+      category: vaccine,
+      date: today,
+      nextDate,
+      status: calculateStatus(nextDate),
+      notes: '品种特异性推荐疫苗，建议咨询兽医是否需要接种',
+      createdAt: now,
+      updatedAt: now,
+    });
   }
 
-  for (const category of DEWORM_CATEGORIES) {
-    const date = today;
-    const nextDate = calculateNextDate(category, date);
-    const now = new Date().toISOString();
+  if (breedRec.healthCheckReminders.length > 0 || breedRec.notes.length > 0) {
+    const allNotes = [...breedRec.healthCheckReminders, ...breedRec.notes].join('；');
+    records.push({
+      id: generateId(),
+      petId,
+      type: 'vaccine',
+      category: 'breed_health_reminder',
+      date: new Date().toISOString().slice(0, 10),
+      nextDate: addMonths(new Date().toISOString().slice(0, 10), 6),
+      status: 'pending',
+      notes: allNotes,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  const dewormingItems = generateDewormingSchedule({
+    species: petInfo.species,
+    birthDate: petInfo.birthDate,
+  });
+
+  for (const item of dewormingItems) {
+    const category = item.type === 'internal' ? 'internal_deworm' : 'external_deworm';
+    if (existingCategories.has(category)) continue;
+    existingCategories.add(category);
+
+    const nextDate = calculateNextDate(category, item.scheduledDate);
     records.push({
       id: generateId(),
       petId,
       type: 'deworm',
       category,
-      date,
+      date: item.scheduledDate,
       nextDate,
       status: calculateStatus(nextDate),
       createdAt: now,
@@ -371,6 +435,24 @@ export async function generateInitialPlan(petId: string, petInfo: PetInfo): Prom
 
   saveLocalRecords(petId, records);
   return records;
+}
+
+function mapVaccineNameToCategory(vaccineName: string): string | null {
+  const name = vaccineName.replace(/（[^）]+）/, '').trim();
+
+  if (name.includes('DHPP') || name.includes('犬瘟热') || name.includes('细小')) return 'DHPP';
+  if (name.includes('狂犬病')) return 'rabies';
+  if (name.includes('窝咳') || name.includes('Bordetella') || name.includes('支气管')) return 'bordetella';
+  if (name.includes('钩端螺旋体') || name.includes('Leptospirosis')) return 'leptospirosis';
+  if (name.includes('莱姆') || name.includes('Lyme')) return 'lyme';
+  if (name.includes('犬流感') || name.includes('Canine Influenza')) return 'canine_influenza';
+  if (name.includes('FVRCP') || name.includes('猫疱疹') || name.includes('猫瘟') || name.includes('泛白细胞')) return 'FVRCP';
+  if (name.includes('FeLV') || name.includes('猫白血病')) return 'felv';
+  if (name.includes('FIV') || name.includes('猫免疫缺陷')) return 'fiv';
+  if (name.includes('衣原体') || name.includes('Chlamydia')) return 'chlamydia';
+  if (name.includes('FIP') || name.includes('传染性腹膜炎')) return 'fip';
+
+  return null;
 }
 
 export { VACCINE_INTERVAL_RULES, calculateNextDate };

@@ -223,3 +223,67 @@
   opacity: 0.5;
   box-shadow: none;
 }
+
+.add-pet__breed-info {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9F5 100%);
+  border: 2rpx solid #FFD4B8;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 140, 66, 0.08);
+}
+
+.add-pet__breed-info-header {
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #FFE8D6;
+}
+
+.add-pet__breed-info-title {
+  font-size: 28rpx;
+  color: #FF8C42;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.add-pet__breed-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.add-pet__breed-info-label {
+  font-size: 26rpx;
+  color: #4A4A4A;
+  font-weight: 500;
+}
+
+.add-pet__breed-info-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.add-pet__breed-info-tag {
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  line-height: 1.4;
+}
+
+.add-pet__breed-info-tag--warn {
+  background: #FFF8E1;
+  color: #E65100;
+}
+
+.add-pet__breed-info-tag--danger {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.add-pet__breed-info-value {
+  font-size: 28rpx;
+  color: #2C2C2C;
+  font-weight: 600;
+}

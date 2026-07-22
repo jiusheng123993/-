@@ -1,22 +1,22 @@
 import Taro from '@tarojs/taro';
 import { getStorage, setStorage } from '../utils/storage';
+import { logger } from '../logger';
 import {
   hasAcceptedSubscribe,
   FOLLOWUP_TEMPLATE_ID,
-  INTERVENTION_REMINDER_TEMPLATE_ID,
+  CARE_PLAN_REMINDER_TEMPLATE_ID,
   requestFollowupSubscribe,
   sendSubscribeMessage,
   type SubscribeMessageData,
 } from './subscribeService';
 import { checkFrequency, recordSend } from './frequencyControlService';
-import { getMoodDisplayName } from '../utils/moodHelper';
 
 const PENDING_FOLLOWUPS_KEY = 'pending_followups';
 
 export interface PendingFollowup {
   sessionId: string;
   flowId: string;
-  mood: string;
+  healthStatus: string;
   scheduledDate: string;
   createdAt: number;
   status: 'pending' | 'sent' | 'responded' | 'cancelled' | 'expired';
@@ -36,7 +36,7 @@ export interface FollowupScheduleOptions {
 export function scheduleFollowup(
   sessionId: string,
   flowId: string,
-  mood: string,
+  healthStatus: string,
   options: FollowupScheduleOptions = {}
 ): PendingFollowup {
   const followups = getPendingFollowups();
@@ -66,7 +66,7 @@ export function scheduleFollowup(
   const followup: PendingFollowup = {
     sessionId,
     flowId,
-    mood,
+    healthStatus,
     scheduledDate: scheduled.toISOString(),
     createdAt: Date.now(),
     status: 'pending',
@@ -138,7 +138,7 @@ async function sendFollowupNotifications(followups: PendingFollowup[]): Promise<
       // 频率检查
       const freqCheck = checkFrequency(FOLLOWUP_TEMPLATE_ID);
       if (!freqCheck.allowed) {
-        console.warn(`[notificationService] Followup blocked: ${freqCheck.reason}`);
+        logger.warn('notificationService', `Followup blocked: ${freqCheck.reason}`);
         followup.status = 'cancelled';
         continue;
       }
@@ -170,12 +170,12 @@ async function sendFollowupNotifications(followups: PendingFollowup[]): Promise<
 }
 
 async function sendSingleFollowup(followup: PendingFollowup): Promise<boolean> {
-  const moodDisplay = getMoodDisplayName(followup.mood);
+  const moodDisplay = followup.healthStatus;
 
   const data: SubscribeMessageData = {
     thing1: { value: truncateForTemplate(moodDisplay, 20) },
     time2: { value: formatDateTime(followup.createdAt) },
-    thing3: { value: truncateForTemplate('昨天的情绪急救，今天感觉怎么样？', 20) },
+    thing3: { value: truncateForTemplate('昨天的健康提醒，今天感觉怎么样？', 20) },
   };
 
   const page = `/pagesPet/checkin/index?followupSessionId=${followup.sessionId}`;
@@ -187,7 +187,7 @@ async function sendSingleFollowup(followup: PendingFollowup): Promise<boolean> {
 
   try {
     Taro.showToast({
-      title: `跟进提醒：昨天的${moodDisplay}急救，今天感觉怎么样？`,
+      title: `跟进提醒：昨天的健康提醒，今天感觉怎么样？`,
       icon: 'none',
       duration: 3000,
     });
@@ -196,7 +196,7 @@ async function sendSingleFollowup(followup: PendingFollowup): Promise<boolean> {
   return true;
 }
 
-export async function sendInterventionReminder(
+export async function sendCarePlanReminder(
   planId: string,
   day: 1 | 2 | 3,
   taskTitle: string,
@@ -208,9 +208,9 @@ export async function sendInterventionReminder(
     thing3: { value: truncateForTemplate(taskDescription, 20) },
   };
 
-  const page = `/pages/index/index?interventionPlanId=${planId}&day=${day}`;
+  const page = `/pages/index/index?carePlanId=${planId}&day=${day}`;
 
-  return sendSubscribeMessage(INTERVENTION_REMINDER_TEMPLATE_ID, data, page);
+  return sendSubscribeMessage(CARE_PLAN_REMINDER_TEMPLATE_ID, data, page);
 }
 
 export function updateFollowupStatus(

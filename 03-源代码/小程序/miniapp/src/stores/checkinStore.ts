@@ -7,7 +7,8 @@ import {
   getCheckins,
   createCheckin,
   getTodayCheckin,
-  getCheckinStats
+  getCheckinStats,
+  calculateConsecutiveAnomalyDays,
 } from '../services/checkinService'
 import { setStorageUserId } from '../utils/storage'
 
@@ -16,6 +17,7 @@ interface CheckinStoreState {
   entries: PetHealthEntry[]
   todayEntry: PetHealthEntry | null
   stats: HealthCheckinStats | null
+  consecutiveAnomalyDays: number
   isLoading: boolean
   error: string | null
 
@@ -34,6 +36,7 @@ export const useCheckinStore = create<CheckinStoreState>((set, get) => ({
   entries: [],
   todayEntry: null,
   stats: null,
+  consecutiveAnomalyDays: 0,
   isLoading: false,
   error: null,
 
@@ -49,7 +52,8 @@ export const useCheckinStore = create<CheckinStoreState>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const entries = await getCheckins(petId, userId)
-      set({ entries, isLoading: false })
+      const consecutiveAnomalyDays = calculateConsecutiveAnomalyDays(entries)
+      set({ entries, consecutiveAnomalyDays, isLoading: false })
     } catch (err) {
       set({
         isLoading: false,

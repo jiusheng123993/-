@@ -1,0 +1,125 @@
+@import '../styles/global.scss';
+
+.recommend-content-card {
+  margin: 0 16px 20px;
+  background: #fff;
+  border-radius: $radius-md;
+  padding: 16px;
+  box-shadow: $shadow-sm;
+  border: 1px solid $color-border;
+  animation: recommendFadeIn 0.4s ease-out;
+
+  @keyframes recommendFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    font-size: 15px;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+  }
+
+  &__close {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background $transition-fast;
+
+    &:active {
+      background: $color-bg-tertiary;
+    }
+  }
+
+  &__close-text {
+    font-size: 12px;
+    color: $color-text-tertiary;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid $color-divider;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:active {
+      background: $color-bg-secondary;
+      margin: 0 -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+  }
+
+  &__item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-sm;
+    background: $color-bg-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  &__item-emoji {
+    font-size: 20px;
+  }
+
+  &__item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__item-title {
+    display: block;
+    font-size: 14px;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin-bottom: 2px;
+  }
+
+  &__item-desc {
+    display: block;
+    font-size: 12px;
+    color: $color-text-tertiary;
+  }
+
+  &__item-arrow {
+    font-size: 16px;
+    color: $color-text-tertiary;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+}

@@ -89,4 +89,23 @@
     font-weight: 500;
     letter-spacing: 4px;
   }
+
+  &__actions {
+    padding: 24px 0 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__share-btn {
+    padding: 16px 48px;
+    background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    border-radius: 40px;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+  }
+
+  &__share-btn-text {
+    font-size: 28px;
+    color: #fff;
+    font-weight: 600;
+  }
 }

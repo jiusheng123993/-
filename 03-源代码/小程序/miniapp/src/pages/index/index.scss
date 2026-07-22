@@ -280,4 +280,18 @@
     font-size: 12px;
     color: #bbb;
   }
+
+  &__disclaimer {
+    margin: 0 16px 12px;
+    padding: 10px 12px;
+    background: rgba(255, 152, 0, 0.06);
+    border-radius: 8px;
+    border-left: 3px solid rgba(255, 152, 0, 0.3);
+  }
+
+  &__disclaimer-text {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.5;
+  }
 }

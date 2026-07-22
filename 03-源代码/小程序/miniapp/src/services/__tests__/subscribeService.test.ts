@@ -31,13 +31,13 @@ import Taro from '@tarojs/taro'
 import { checkFrequency, recordSend } from '../frequencyControlService'
 import {
   FOLLOWUP_TEMPLATE_ID,
-  INTERVENTION_REMINDER_TEMPLATE_ID,
-  MOOD_CHECKIN_TEMPLATE_ID,
+  CARE_PLAN_REMINDER_TEMPLATE_ID,
+  HEALTH_CHECKIN_TEMPLATE_ID,
   TEMPLATE_IDS,
   TEMPLATE_CONFIGS,
   requestSubscribe,
   requestFollowupSubscribe,
-  requestInterventionSubscribe,
+  requestCarePlanSubscribe,
   requestAllSubscribes,
   updateSubscribeStatus,
   getSubscribeStatus,
@@ -61,28 +61,28 @@ describe('subscribeService', () => {
       expect(FOLLOWUP_TEMPLATE_ID).toBe('FOLLOWUP_TEMPLATE_ID_PLACEHOLDER')
     })
 
-    it('INTERVENTION_REMINDER_TEMPLATE_ID should have correct fallback value', () => {
-      expect(INTERVENTION_REMINDER_TEMPLATE_ID).toBe('INTERVENTION_REMINDER_TEMPLATE_ID_PLACEHOLDER')
+    it('CARE_PLAN_REMINDER_TEMPLATE_ID should have correct fallback value', () => {
+      expect(CARE_PLAN_REMINDER_TEMPLATE_ID).toBe('CARE_PLAN_REMINDER_TEMPLATE_ID_PLACEHOLDER')
     })
 
-    it('MOOD_CHECKIN_TEMPLATE_ID should have correct fallback value', () => {
-      expect(MOOD_CHECKIN_TEMPLATE_ID).toBe('MOOD_CHECKIN_TEMPLATE_ID_PLACEHOLDER')
+    it('HEALTH_CHECKIN_TEMPLATE_ID should have correct fallback value', () => {
+      expect(HEALTH_CHECKIN_TEMPLATE_ID).toBe('HEALTH_CHECKIN_TEMPLATE_ID_PLACEHOLDER')
     })
   })
 
   describe('TEMPLATE_IDS', () => {
     it('should contain all three template IDs', () => {
       expect(TEMPLATE_IDS.FOLLOWUP).toBe(FOLLOWUP_TEMPLATE_ID)
-      expect(TEMPLATE_IDS.INTERVENTION_REMINDER).toBe(INTERVENTION_REMINDER_TEMPLATE_ID)
-      expect(TEMPLATE_IDS.MOOD_CHECKIN).toBe(MOOD_CHECKIN_TEMPLATE_ID)
+      expect(TEMPLATE_IDS.CARE_PLAN_REMINDER).toBe(CARE_PLAN_REMINDER_TEMPLATE_ID)
+      expect(TEMPLATE_IDS.HEALTH_CHECKIN).toBe(HEALTH_CHECKIN_TEMPLATE_ID)
     })
   })
 
   describe('TEMPLATE_CONFIGS', () => {
     it('should have entries for all template IDs', () => {
       expect(TEMPLATE_CONFIGS[FOLLOWUP_TEMPLATE_ID]).toBeDefined()
-      expect(TEMPLATE_CONFIGS[INTERVENTION_REMINDER_TEMPLATE_ID]).toBeDefined()
-      expect(TEMPLATE_CONFIGS[MOOD_CHECKIN_TEMPLATE_ID]).toBeDefined()
+      expect(TEMPLATE_CONFIGS[CARE_PLAN_REMINDER_TEMPLATE_ID]).toBeDefined()
+      expect(TEMPLATE_CONFIGS[HEALTH_CHECKIN_TEMPLATE_ID]).toBeDefined()
     })
 
     it('each config should have id, name, description and requiredFields', () => {
@@ -126,25 +126,25 @@ describe('subscribeService', () => {
     it('should return all false when requestSubscribeMessage throws', async () => {
       vi.mocked(Taro.requestSubscribeMessage).mockRejectedValue(new Error('User denied'))
 
-      const result = await requestSubscribe([FOLLOWUP_TEMPLATE_ID, INTERVENTION_REMINDER_TEMPLATE_ID])
+      const result = await requestSubscribe([FOLLOWUP_TEMPLATE_ID, CARE_PLAN_REMINDER_TEMPLATE_ID])
 
       expect(result[FOLLOWUP_TEMPLATE_ID]).toBe(false)
-      expect(result[INTERVENTION_REMINDER_TEMPLATE_ID]).toBe(false)
+      expect(result[CARE_PLAN_REMINDER_TEMPLATE_ID]).toBe(false)
     })
 
     it('should update subscribe status for each template', async () => {
       vi.mocked(Taro.requestSubscribeMessage).mockResolvedValue({
         [FOLLOWUP_TEMPLATE_ID]: 'accept',
-        [INTERVENTION_REMINDER_TEMPLATE_ID]: 'reject',
+        [CARE_PLAN_REMINDER_TEMPLATE_ID]: 'reject',
       } as any)
 
-      await requestSubscribe([FOLLOWUP_TEMPLATE_ID, INTERVENTION_REMINDER_TEMPLATE_ID])
+      await requestSubscribe([FOLLOWUP_TEMPLATE_ID, CARE_PLAN_REMINDER_TEMPLATE_ID])
 
       const statusList = JSON.parse(mockStorage['xhh_subscribe_status']) as SubscribeStatus[]
       const followup = statusList.find((s) => s.templateId === FOLLOWUP_TEMPLATE_ID)
-      const intervention = statusList.find((s) => s.templateId === INTERVENTION_REMINDER_TEMPLATE_ID)
+      const carePlan = statusList.find((s) => s.templateId === CARE_PLAN_REMINDER_TEMPLATE_ID)
       expect(followup?.accepted).toBe(true)
-      expect(intervention?.accepted).toBe(false)
+      expect(carePlan?.accepted).toBe(false)
     })
   })
 
@@ -174,27 +174,27 @@ describe('subscribeService', () => {
     })
   })
 
-  describe('requestInterventionSubscribe', () => {
-    it('should delegate to requestSubscribe with intervention template ID', async () => {
+  describe('requestCarePlanSubscribe', () => {
+    it('should delegate to requestSubscribe with care plan template ID', async () => {
       vi.mocked(Taro.requestSubscribeMessage).mockResolvedValue({
-        [INTERVENTION_REMINDER_TEMPLATE_ID]: 'accept',
+        [CARE_PLAN_REMINDER_TEMPLATE_ID]: 'accept',
       } as any)
 
-      const result = await requestInterventionSubscribe()
+      const result = await requestCarePlanSubscribe()
 
       expect(result).toBe(true)
       expect(Taro.requestSubscribeMessage).toHaveBeenCalledWith({
-        tmplIds: [INTERVENTION_REMINDER_TEMPLATE_ID],
+        tmplIds: [CARE_PLAN_REMINDER_TEMPLATE_ID],
         entityIds: [],
       })
     })
 
     it('should return false when user rejects', async () => {
       vi.mocked(Taro.requestSubscribeMessage).mockResolvedValue({
-        [INTERVENTION_REMINDER_TEMPLATE_ID]: 'reject',
+        [CARE_PLAN_REMINDER_TEMPLATE_ID]: 'reject',
       } as any)
 
-      const result = await requestInterventionSubscribe()
+      const result = await requestCarePlanSubscribe()
 
       expect(result).toBe(false)
     })
@@ -204,17 +204,17 @@ describe('subscribeService', () => {
     it('should request all three templates', async () => {
       vi.mocked(Taro.requestSubscribeMessage).mockResolvedValue({
         [FOLLOWUP_TEMPLATE_ID]: 'accept',
-        [INTERVENTION_REMINDER_TEMPLATE_ID]: 'accept',
-        [MOOD_CHECKIN_TEMPLATE_ID]: 'reject',
+        [CARE_PLAN_REMINDER_TEMPLATE_ID]: 'accept',
+        [HEALTH_CHECKIN_TEMPLATE_ID]: 'reject',
       } as any)
 
       const result = await requestAllSubscribes()
 
       expect(result[FOLLOWUP_TEMPLATE_ID]).toBe(true)
-      expect(result[INTERVENTION_REMINDER_TEMPLATE_ID]).toBe(true)
-      expect(result[MOOD_CHECKIN_TEMPLATE_ID]).toBe(false)
+      expect(result[CARE_PLAN_REMINDER_TEMPLATE_ID]).toBe(true)
+      expect(result[HEALTH_CHECKIN_TEMPLATE_ID]).toBe(false)
       expect(Taro.requestSubscribeMessage).toHaveBeenCalledWith({
-        tmplIds: [FOLLOWUP_TEMPLATE_ID, INTERVENTION_REMINDER_TEMPLATE_ID, MOOD_CHECKIN_TEMPLATE_ID],
+        tmplIds: [FOLLOWUP_TEMPLATE_ID, CARE_PLAN_REMINDER_TEMPLATE_ID, HEALTH_CHECKIN_TEMPLATE_ID],
         entityIds: [],
       })
     })
@@ -471,7 +471,7 @@ describe('subscribeService', () => {
 
       expect(result).toBe(true)
       expect(Taro.request).toHaveBeenCalledWith({
-        url: expect.stringContaining('/api/subscribe/send'),
+        url: expect.stringContaining('subscribe-send'),
         method: 'POST',
         data: { templateId: realTemplateId, data: messageData, page: '/pages/index' },
         header: {

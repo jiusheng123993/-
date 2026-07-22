@@ -3,6 +3,10 @@ import { SeedreamAdapter, seedreamAdapter } from '../seedreamAdapter'
 import { getPetFaceDataUri } from '../svgRenderer'
 import type { ExpressionConfig } from '../expressionEngine'
 
+const { mockRequest } = vi.hoisted(() => ({
+  mockRequest: vi.fn(),
+}))
+
 vi.mock('../svgRenderer', () => ({
   getPetFaceDataUri: vi.fn(() => 'data:image/svg+xml;base64,stubdata'),
 }))
@@ -17,6 +21,13 @@ vi.mock('../expressionEngine', () => ({
     proud: { expression: 'proud', label: '骄傲', color: '#FFD700', eyes: 'sparkle', mouth: 'big_smile', accessory: 'crown', animation: 'glow' },
     excited: { expression: 'excited', label: '兴奋', color: '#FF69B4', eyes: 'star', mouth: 'open_smile', accessory: 'confetti', animation: 'jump' },
     scared: { expression: 'scared', label: '惊恐', color: '#E91E63', eyes: 'shocked', mouth: 'gasp', accessory: 'warning', animation: 'tremble' },
+  },
+}))
+
+vi.mock('@tarojs/taro', () => ({
+  default: {
+    request: mockRequest,
+    getStorageSync: vi.fn(() => 'mock_token'),
   },
 }))
 
@@ -64,6 +75,7 @@ describe('SeedreamAdapter', () => {
   beforeEach(() => {
     vi.mocked(getPetFaceDataUri).mockClear()
     vi.mocked(getPetFaceDataUri).mockReturnValue('data:image/svg+xml;base64,stubdata')
+    mockRequest.mockReset()
   })
 
   describe('constructor', () => {
@@ -74,9 +86,10 @@ describe('SeedreamAdapter', () => {
     })
 
     it('can set useStub to false', async () => {
+      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, imageUrl: 'https://cdn.example.com/avatar.png' } })
       const adapter = new SeedreamAdapter(false)
-      const result = adapter.generatePetImage({ species: 'dog', expression: happyExpression })
-      await expect(result).resolves.toEqual({ success: false, error: 'Seedream API 尚未接入' })
+      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      expect(result.success).toBe(true)
     })
   })
 
@@ -130,18 +143,44 @@ describe('SeedreamAdapter', () => {
   })
 
   describe('generatePetImage without stub', () => {
-    it('returns success=false with error message', async () => {
+    it('returns real image when API succeeds', async () => {
+      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, imageUrl: 'https://cdn.example.com/avatar.png' } })
       const adapter = new SeedreamAdapter(false)
       const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Seedream API 尚未接入')
-      expect(result.imageUrl).toBeUndefined()
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('https://cdn.example.com/avatar.png')
     })
 
-    it('does not call getPetFaceDataUri when useStub is false', async () => {
+    it('falls back to stub when API fails', async () => {
+      mockRequest.mockRejectedValue(new Error('Network error'))
       const adapter = new SeedreamAdapter(false)
-      await adapter.generatePetImage({ species: 'cat', expression: excitedExpression })
-      expect(getPetFaceDataUri).not.toHaveBeenCalled()
+      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
+    })
+
+    it('falls back to stub when API returns error', async () => {
+      mockRequest.mockResolvedValue({ statusCode: 500, data: { error: 'Internal error' } })
+      const adapter = new SeedreamAdapter(false)
+      const result = await adapter.generatePetImage({ species: 'cat', expression: excitedExpression })
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
+    })
+
+    it('handles 402 payment required', async () => {
+      mockRequest.mockResolvedValue({ statusCode: 402, data: {} })
+      const adapter = new SeedreamAdapter(false)
+      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
+    })
+
+    it('handles 429 rate limit', async () => {
+      mockRequest.mockResolvedValue({ statusCode: 429, data: {} })
+      const adapter = new SeedreamAdapter(false)
+      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
   })
 
@@ -167,12 +206,20 @@ describe('SeedreamAdapter', () => {
       expect(getPetFaceDataUri).toHaveBeenCalledWith(excitedFromMap, 'cat', 256)
     })
 
-    it('returns success=false with error when useStub is false', async () => {
+    it('returns real image when API succeeds with useStub false', async () => {
+      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, imageUrl: 'https://cdn.example.com/achievement.png' } })
       const adapter = new SeedreamAdapter(false)
       const result = await adapter.generateAchievementImage('streak7', '旺财', 'dog')
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Seedream API 尚未接入')
-      expect(result.imageUrl).toBeUndefined()
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('https://cdn.example.com/achievement.png')
+    })
+
+    it('falls back to stub when API fails with useStub false', async () => {
+      mockRequest.mockRejectedValue(new Error('Network error'))
+      const adapter = new SeedreamAdapter(false)
+      const result = await adapter.generateAchievementImage('streak7', '旺财', 'dog')
+      expect(result.success).toBe(true)
+      expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
   })
 

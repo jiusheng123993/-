@@ -1,13 +1,6 @@
-import type { ExpressionConfig, PetExpression } from './expressionEngine'
+import type { ExpressionConfig, PetSpecies, SvgPetFace } from '../../types/avatarTypes'
 
-export interface SvgPetFace {
-  body: string
-  ears: string
-  eyes: string
-  mouth: string
-  accessory: string
-  animation: string
-}
+export type { SvgPetFace }
 
 const DOG_BASE = {
   body: '<ellipse cx="50" cy="55" rx="42" ry="38" fill="#F5DEB3"/>',
@@ -53,7 +46,7 @@ const ACCESSORY_DEFS: Record<string, string> = {
 
 export function buildSvgFace(
   expression: ExpressionConfig,
-  species: 'dog' | 'cat' = 'dog',
+  species: PetSpecies = 'dog',
   size: number = 120
 ): string {
   const base = species === 'cat' ? CAT_BASE : DOG_BASE
@@ -93,7 +86,7 @@ export function svgToDataUri(svg: string): string {
 
 export function getPetFaceDataUri(
   expression: ExpressionConfig,
-  species: 'dog' | 'cat' = 'dog',
+  species: PetSpecies = 'dog',
   size: number = 120
 ): string {
   const svg = buildSvgFace(expression, species, size)

@@ -1,7 +1,9 @@
 import { View, Text, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../stores/authStore'
+import { useAnalytics } from '../../hooks/useAnalytics'
+import { AnalyticsEventName } from '../../types/analyticsTypes'
 import './index.scss'
 
 export default function LoginPage() {
@@ -10,6 +12,9 @@ export default function LoginPage() {
   const login = useAuthStore(s => s.login)
   const error = useAuthStore(s => s.error)
   const clearError = useAuthStore(s => s.clearError)
+  const { trackPageView, trackEvent } = useAnalytics()
+
+  useEffect(() => { trackPageView('login') }, [trackPageView])
 
   const handleLogin = async () => {
     if (!agreed) {
@@ -25,18 +30,22 @@ export default function LoginPage() {
       const result = await login(code)
 
       if (result.success) {
+        trackEvent('login_success')
         Taro.showToast({ title: '登录成功', icon: 'success' })
         setTimeout(() => {
           Taro.reLaunch({ url: '/pages/index/index' })
         }, 1500)
       } else if (result.error?.includes('未注册') || result.error?.includes('needRegister')) {
+        trackEvent(AnalyticsEventName.UserRegister, { source: 'wechat', method: 'phone' })
         Taro.navigateTo({
           url: `/pagesUser/onboarding/index?code=${encodeURIComponent(code)}`
         })
       } else {
+        trackEvent('login_failure', { reason: result.error || 'unknown' })
         Taro.showToast({ title: result.error || '登录失败，请重试', icon: 'none' })
       }
     } catch {
+      trackEvent('login_failure', { reason: 'exception' })
       Taro.showToast({ title: '登录失败，请重试', icon: 'none' })
     } finally {
       setIsLoading(false)
@@ -44,6 +53,7 @@ export default function LoginPage() {
   }
 
   const handleAgreementClick = (type: 'user' | 'privacy') => {
+    trackEvent('click_agreement', { type })
     Taro.navigateTo({ url: `/pagesUser/agreement/index?type=${type}` })
   }
 
@@ -63,21 +73,21 @@ export default function LoginPage() {
           </View>
           <Text className='login-title'>星寰海</Text>
           <View className='title-underline' />
-          <Text className='login-subtitle'>你的情绪急救箱</Text>
+          <Text className='login-subtitle'>你的宠物健康守护</Text>
         </View>
 
         <View className='login-features'>
           <View className='feature-item'>
             <Text className='feature-icon'>🫧</Text>
-            <Text className='feature-text'>3秒情绪打卡</Text>
+            <Text className='feature-text'>3秒健康打卡</Text>
           </View>
           <View className='feature-item'>
             <Text className='feature-icon'>🛟</Text>
-            <Text className='feature-text'>情绪急救箱</Text>
+            <Text className='feature-text'>健康急救指南</Text>
           </View>
           <View className='feature-item'>
             <Text className='feature-icon'>🌙</Text>
-            <Text className='feature-text'>深夜树洞</Text>
+            <Text className='feature-text'>深夜陪伴</Text>
           </View>
         </View>
 
