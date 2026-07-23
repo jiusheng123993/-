@@ -1,0 +1,50 @@
+appId: com.xinghuanhai.growth-workbench
+productName: "星寰海"
+copyright: "Copyright © 2026 星寰海"
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: "${productName}-${version}-setup.${ext}"
+  forceCodeSigning: false
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "星寰海"
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  category: public.app-category.productivity
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Office
+  artifactName: "${productName}-${version}.${ext}"
+
+extraMetadata:
+  main: electron/main.cjs

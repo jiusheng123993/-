@@ -1,0 +1,208 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.section {
+  margin-bottom: 24px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-secondary, #f8fafc);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text, #1e293b);
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.sectionHeader:hover {
+  background: var(--bg-secondary, #f1f5f9);
+}
+
+.sectionContent {
+  padding: 20px;
+  display: none;
+}
+
+.sectionContent.expanded {
+  display: block;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--text, #475569);
+  font-weight: 500;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text, #1e293b);
+  background: var(--surface, #fff);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.chipInput {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  min-height: 42px;
+  align-items: center;
+  background: var(--surface, #fff);
+  transition: border-color 0.15s ease;
+}
+
+.chipInput:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--primary-light, #e0e7ff);
+  color: var(--primary, #4338ca);
+  border-radius: 16px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.chipRemove:hover {
+  opacity: 1;
+}
+
+.chipInput input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  font-size: 14px;
+  padding: 2px 0;
+  color: var(--text, #1e293b);
+  background: transparent;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.saveButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.saveButton:hover {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.cancelButton {
+  padding: 12px 24px;
+  background: var(--bg-secondary, #f1f5f9);
+  color: var(--text, #1a1a2e);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cancelButton:hover {
+  background: var(--border, #e2e8f0);
+}
+
+.expandIcon {
+  transition: transform 0.2s ease;
+  display: inline-flex;
+  font-size: 12px;
+  color: var(--muted, #64748b);
+}
+
+.expandIcon.expanded {
+  transform: rotate(180deg);
+}
+
+.readOnly .input,
+.readOnly .select,
+.readOnly .textarea {
+  background: var(--bg-secondary, #f8fafc);
+  cursor: not-allowed;
+}
+
+.readOnly .chipInput {
+  background: var(--bg-secondary, #f8fafc);
+  cursor: not-allowed;
+}
+
+.readOnly .chipRemove {
+  display: none;
+}
+
+.readOnly .chipInput input {
+  cursor: not-allowed;
+}

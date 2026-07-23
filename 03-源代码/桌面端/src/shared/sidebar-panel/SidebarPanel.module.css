@@ -1,0 +1,109 @@
+.sidebarPanel {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  overflow-y: auto;
+  max-height: calc(100vh - 36px);
+  position: sticky;
+  top: 0;
+}
+
+.sidebarPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.sidebarPanelTitle {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sidebarPanelAddBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebarPanelAddBtn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 92%);
+  transform: scale(1.05);
+}
+
+.sidebarPanelAddBtn:active {
+  transform: scale(0.95);
+}
+
+.sidebarPanelSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  animation: selectorIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes selectorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sidebarPanelSelectorItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-gradient, color-mix(in srgb, var(--surface), white 50%));
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebarPanelSelectorItem:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary), transparent 92%);
+  transform: translateY(-1px);
+}
+
+.sidebarPanelSelectorIcon {
+  font-size: 15px;
+}
+
+.sidebarPanelModules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

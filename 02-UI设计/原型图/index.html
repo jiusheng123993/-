@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>星寰海 - 宠物智能助手</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Serif+SC:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg-deep: #0F1724;
+  --color-bg-card: #1A2332;
+  --color-bg-warm: #FFF8ED;
+  --color-gold: #E8A838;
+  --color-gold-light: #F5D78C;
+  --color-teal: #5B9A9B;
+  --color-sage: #8CAD7E;
+  --color-coral: #E0856B;
+  --color-text: #E8DFD5;
+  --color-text-dim: #8899AA;
+  --color-text-dark: #3D2C2C;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Noto Serif SC', serif;
+  background: linear-gradient(180deg, #0A0F1A 0%, #0F1724 50%, #162032 100%);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 414px;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: linear-gradient(180deg, #0A0F1A 0%, #0F1724 50%, #162032 100%);
+}
+
+.font-title { font-family: 'ZCOOL KuaiLe', cursive; }
+.font-decor { font-family: 'Playfair Display', serif; }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(232,168,56,0.3); border-radius: 3px; }
+
+/* ===== Button Styles ===== */
+.btn-gold {
+  background: linear-gradient(135deg, #E8A838 0%, #D4942C 100%);
+  color: #1A1A1A;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 16px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(232,168,56,0.25);
+}
+.btn-gold:active { transform: scale(0.96); opacity: 0.85; }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
+  padding: 8px 18px;
+  border-radius: 16px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:active { background: rgba(232,168,56,0.1); }
+
+.btn-chat-quick {
+  background: var(--color-bg-card);
+  border: 1px solid rgba(232,168,56,0.3);
+  color: var(--color-gold-light);
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-chat-quick:active { background: rgba(232,168,56,0.15); border-color: var(--color-gold); }
+
+.btn-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(26,35,50,0.8);
+  border: 1px solid rgba(232,168,56,0.2);
+  color: var(--color-text);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+.btn-option:active { background: rgba(232,168,56,0.15); border-color: var(--color-gold); }
+.btn-option.selected { border-color: var(--color-gold); background: rgba(232,168,56,0.1); }
+
+/* ===== Card ===== */
+.card {
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-warm {
+  background: var(--color-bg-warm);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  color: var(--color-text-dark);
+}
+
+/* ===== Top Bar ===== */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(15,23,36,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(232,168,56,0.08);
+}
+.top-bar-left { display:flex; align-items:center; gap:10px; }
+.top-bar-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-gold), #C47A20);
+  display: flex; align-items:center; justify-content:center;
+  font-size: 18px;
+}
+.top-bar-title { font-size:15px; font-weight:600; }
+.top-bar-sub { font-size:11px; color:var(--color-text-dim); }
+.top-bar-pet-switch {
+  background: rgba(232,168,56,0.1);
+  border: 1px solid rgba(232,168,56,0.2);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--color-gold-light);
+  cursor: pointer;
+}
+
+/* ===== TabBar ===== */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 414px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 12px;
+  background: rgba(15,23,36,0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(232,168,56,0.1);
+  z-index: 100;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 12px;
+  transition: all 0.2s;
+  border-radius: 12px;
+  min-width: 56px;
+}
+.tab-item .tab-icon { font-size: 22px; transition: all 0.2s; }
+.tab-item .tab-label { font-size: 10px; color: var(--color-text-dim); transition: all 0.2s; }
+.tab-item.active .tab-icon { color: var(--color-gold); }
+.tab-item.active .tab-label { color: var(--color-gold); }
+.tab-item:active { background: rgba(232,168,56,0.08); }
+
+/* ===== Views ===== */
+.view {
+  display: none;
+  padding-bottom: 80px;
+  min-height: 100vh;
+}
+.view.active { display: block; }
+.sub-view {
+  display: none;
+  padding-bottom: 80px;
+  min-height: 100vh;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, #0A0F1A 0%, #0F1724 50%, #162032 100%);
+  z-index: 60;
+}
+.sub-view.active { display: block; }
+
+/* ===== Chat View ===== */
+.chat-messages {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 170px);
+}
+
+.msg {
+  display: flex;
+  gap: 10px;
+  animation: msgIn 0.3s ease-out;
+}
+@keyframes msgIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.msg-ai { align-self: flex-start; max-width: 88%; }
+.msg-user { align-self: flex-end; max-width: 80%; flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 16px;
+}
+.msg-ai .msg-avatar { background: linear-gradient(135deg, var(--color-teal), #3D7A7B); }
+.msg-user .msg-avatar { background: linear-gradient(135deg, var(--color-gold), #C47A20); }
+
+.msg-bubble {
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.msg-ai .msg-bubble {
+  background: var(--color-bg-card);
+  border-top-left-radius: 4px;
+}
+.msg-user .msg-bubble {
+  background: linear-gradient(135deg, rgba(232,168,56,0.2), rgba(232,168,56,0.1));
+  border-top-right-radius: 4px;
+}
+
+.msg-quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.msg-card {
+  background: rgba(232,168,56,0.08);
+  border: 1px solid rgba(232,168,56,0.2);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.msg-card-title { font-size:13px; font-weight:600; color:var(--color-gold-light); margin-bottom:6px; }
+.msg-card-text { font-size:12px; color:var(--color-text-dim); line-height:1.5; }
+.msg-card-stat { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; }
+.msg-card-stat-label { color:var(--color-text-dim); }
+.msg-card-stat-val { color:var(--color-gold-light); font-weight:600; }
+
+.chat-input-area {
+  position: fixed;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 414px;
+  padding: 10px 16px;
+  background: rgba(15,23,36,0.95);
+  backdrop-filter: blur(12px);
+  z-index: 99;
+}
+.chat-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg-card);
+  border-radius: 24px;
+  padding: 6px 6px 6px 16px;
+  border: 1px solid rgba(232,168,56,0.15);
+}
+.chat-input-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: 'Noto Serif SC', serif;
+  outline: none;
+  padding: 6px 0;
+}
+.chat-input-row input::placeholder { color: var(--color-text-dim); }
+.chat-btn-send {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-gold), #D4942C);
+  border: none;
+  color: #1A1A1A;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items:center; justify-content:center;
+}
+.chat-btn-plus {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(232,168,56,0.1);
+  border: 1px solid rgba(232,168,56,0.25);
+  color: var(--color-gold-light);
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items:center; justify-content:center;
+  transition: all 0.2s;
+}
+.chat-btn-plus:active { background: rgba(232,168,56,0.2); }
+
+.chat-plus-menu {
+  position: absolute;
+  bottom: 56px;
+  left: 16px;
+  right: 16px;
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid rgba(232,168,56,0.2);
+  display: none;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.chat-plus-menu.show { display: block; animation: slideUp 0.2s ease-out; }
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(12px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.chat-plus-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chat-plus-item:active { background: rgba(232,168,56,0.08); }
+.chat-plus-item .plus-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.chat-plus-item .plus-label { font-size:14px; }
+.chat-plus-item .plus-sub { font-size:11px; color:var(--color-text-dim); }
+
+/* ===== Timeline View ===== */
+.timeline-header {
+  padding: 20px 16px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.timeline-header h2 { font-size: 20px; }
+.timeline-add {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(232,168,56,0.12);
+  border: 1px solid rgba(232,168,56,0.25);
+  color: var(--color-gold-light);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+}
+.timeline-banner {
+  margin: 8px 16px 16px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(232,168,56,0.12), rgba(245,215,140,0.06));
+  border: 1px solid rgba(232,168,56,0.25);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: breathe 3s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 8px rgba(232,168,56,0.15); }
+  50% { box-shadow: 0 0 20px rgba(232,168,56,0.35); }
+}
+.timeline-banner-icon { font-size:22px; }
+.timeline-banner-text { font-size:13px; color:var(--color-gold-light); line-height:1.5; }
+.timeline-banner-text strong { color:var(--color-gold); }
+
+.timeline-list { padding: 0 16px 40px; position:relative; }
+.timeline-list::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--color-gold) 0%, rgba(232,168,56,0.1) 100%);
+}
+.timeline-item { display:flex; gap:14px; margin-bottom:24px; position:relative; }
+.timeline-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+  border: 2px solid rgba(15,23,36,1);
+}
+.timeline-dot.gold { background: var(--color-gold); box-shadow: 0 0 8px rgba(232,168,56,0.5); }
+.timeline-dot.teal { background: var(--color-teal); }
+.timeline-dot.coral { background: var(--color-coral); }
+.timeline-dot.sage { background: var(--color-sage); }
+.timeline-dot.dim { background: rgba(136,153,170,0.4); }
+
+.timeline-content {
+  flex: 1;
+  background: var(--color-bg-card);
+  border-radius: 14px;
+  padding: 14px;
+  min-height: 70px;
+}
+.timeline-content.ghost {
+  background: rgba(26,35,50,0.4);
+  border: 1px dashed rgba(136,153,170,0.25);
+}
+.timeline-date { font-size:11px; color:var(--color-text-dim); margin-bottom:4px; }
+.timeline-event-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.timeline-event-desc { font-size:12px; color:var(--color-text-dim); line-height:1.5; }
+.timeline-photo {
+  width: 100%;
+  height: 140px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2A3A4A, #1A2A3A);
+  margin-top: 8px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 40px;
+  color: rgba(232,168,56,0.4);
+}
+.timeline-milestone {
+  display: inline-block;
+  background: rgba(232,168,56,0.12);
+  border: 1px solid rgba(232,168,56,0.25);
+  border-radius: 8px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--color-gold-light);
+  margin-top: 6px;
+}
+
+/* ===== Family View ===== */
+.family-header {
+  padding: 20px 16px 8px;
+}
+.family-header h2 { font-size:20px; margin-bottom:2px; }
+.family-header .family-sub { font-size:12px; color:var(--color-text-dim); }
+
+.family-weekly-card {
+  margin: 0 16px 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(232,168,56,0.08), rgba(26,35,50,0.8));
+  border: 1px solid rgba(232,168,56,0.3);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.family-weekly-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  animation: shimmer 2s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%,100% { opacity:0.4; }
+  50% { opacity:1; }
+}
+.family-weekly-title { font-size:14px; font-weight:600; color:var(--color-gold-light); margin-bottom:8px; }
+.family-weekly-text { font-size:13px; line-height:1.7; color:var(--color-text); }
+.family-weekly-text .good { color:var(--color-sage); }
+.family-weekly-text .warn { color:var(--color-gold); }
+
+.pet-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 16px 16px;
+  scroll-snap-type: x mandatory;
+}
+.pet-scroll::-webkit-scrollbar { display:none; }
+.pet-card {
+  min-width: 130px;
+  background: var(--color-bg-card);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.pet-card:active { border-color: rgba(232,168,56,0.3); transform:scale(0.97); }
+.pet-card .pet-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.pet-card .pet-name { font-size:15px; font-weight:600; }
+.pet-card .pet-role { font-size:10px; color:var(--color-gold-light); margin-bottom:6px; }
+.pet-card .pet-health { font-size:11px; color:var(--color-text-dim); line-height:1.4; }
+
+.family-quick-entries {
+  padding: 0 16px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.family-quick-entry {
+  background: var(--color-bg-card);
+  border-radius: 14px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.family-quick-entry:active { border-color: rgba(232,168,56,0.3); background: rgba(26,35,50,0.6); }
+.family-quick-entry .q-icon { font-size: 28px; margin-bottom: 6px; }
+.family-quick-entry .q-label { font-size: 12px; color: var(--color-text-dim); }
+
+/* ===== Family Tree View ===== */
+.tree-back-row {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-dim);
+}
+.tree-header {
+  text-align: center;
+  padding: 8px 16px 20px;
+}
+.tree-header h2 { font-size:20px; }
+.tree-header .tree-sub { font-size:12px; color:var(--color-text-dim); margin-top:4px; }
+
+.tree-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 40px;
+  gap: 0;
+}
+.tree-node {
+  background: var(--color-bg-card);
+  border-radius: 14px;
+  padding: 12px 20px;
+  text-align: center;
+  position: relative;
+  border: 1px solid rgba(232,168,56,0.15);
+  min-width: 100px;
+}
+.tree-node.root {
+  background: linear-gradient(135deg, rgba(232,168,56,0.15), rgba(232,168,56,0.05));
+  border-color: rgba(232,168,56,0.4);
+  box-shadow: 0 0 20px rgba(232,168,56,0.15);
+  animation: rootGlow 3s ease-in-out infinite;
+}
+@keyframes rootGlow {
+  0%,100% { box-shadow: 0 0 15px rgba(232,168,56,0.1); }
+  50% { box-shadow: 0 0 30px rgba(232,168,56,0.25); }
+}
+.tree-node .tn-name { font-size:14px; font-weight:600; }
+.tree-node .tn-role { font-size:10px; color:var(--color-gold-light); }
+
+.tree-connector {
+  width: 2px;
+  height: 20px;
+  background: rgba(232,168,56,0.3);
+}
+.tree-branch {
+  display: flex;
+  gap: 40px;
+  position: relative;
+}
+.tree-branch::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0; right: 0;
+  height: 2px;
+  background: rgba(232,168,56,0.2);
+}
+.tree-branch-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tree-branch-col .tree-connector {
+  height: 12px;
+  width: 2px;
+  background: rgba(232,168,56,0.2);
+}
+.tree-node.sub {
+  border-style: dashed;
+  border-color: rgba(136,153,170,0.3);
+  opacity: 0.8;
+}
+.tree-node.mother {
+  border-color: rgba(224,133,107,0.4);
+  background: linear-gradient(135deg, rgba(224,133,107,0.1), rgba(224,133,107,0.03));
+}
+.tree-node.child {
+  border-color: rgba(91,154,155,0.4);
+  background: linear-gradient(135deg, rgba(91,154,155,0.1), rgba(91,154,155,0.03));
+}
+
+/* ===== Family Calendar View ===== */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 16px;
+}
+.calendar-month { font-size:16px; font-weight:600; }
+.calendar-nav { display:flex; gap:8px; }
+.calendar-nav-btn {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(232,168,56,0.2);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 16px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 0 16px;
+  text-align: center;
+}
+.calendar-dow {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  padding: 6px 0;
+}
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.calendar-day.today { background: rgba(232,168,56,0.12); color: var(--color-gold); font-weight:600; }
+.calendar-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--color-gold);
+}
+.calendar-day.has-event.pet-dog::after { background: var(--color-teal); }
+.calendar-day.has-event.pet-cat::after { background: var(--color-coral); }
+.calendar-day.other-month { color: rgba(136,153,170,0.3); }
+.calendar-events {
+  padding: 16px;
+  margin-top: 8px;
+}
+.calendar-event-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--color-gold);
+}
+.calendar-event-item.pet-dog { border-left-color: var(--color-teal); }
+.calendar-event-item.pet-cat { border-left-color: var(--color-coral); }
+.calendar-event-date { font-size:11px; color:var(--color-text-dim); min-width:40px; }
+.calendar-event-text { font-size:13px; flex:1; }
+
+/* ===== Profile View ===== */
+.profile-header {
+  padding: 24px 16px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.profile-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-teal), #3D6A6B);
+  display: flex; align-items:center; justify-content:center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.profile-info .pi-name { font-size:16px; font-weight:600; }
+.profile-info .pi-sub { font-size:12px; color:var(--color-text-dim); margin-top:2px; }
+
+.profile-pets-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 16px 16px;
+}
+.profile-pets-scroll::-webkit-scrollbar { display:none; }
+.profile-pet-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-card);
+  border-radius: 20px;
+  padding: 6px 14px 6px 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.profile-pet-chip .pp-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 16px;
+}
+.profile-pet-chip .pp-name { font-size:12px; }
+
+.profile-menu { padding: 0 16px 20px; }
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--color-bg-card);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.profile-menu-item:active { background: rgba(26,35,50,0.6); }
+.profile-menu-item .pm-left { display:flex; align-items:center; gap:12px; }
+.profile-menu-item .pm-icon { font-size:20px; width:24px; text-align:center; }
+.profile-menu-item .pm-label { font-size:14px; }
+.profile-menu-item .pm-arrow { font-size:14px; color:var(--color-text-dim); }
+
+.profile-logout {
+  text-align: center;
+  padding: 20px;
+  color: var(--color-coral);
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+/* ===== Health Trend View ===== */
+.health-trend-container {
+  padding: 16px;
+}
+.health-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+  padding: 8px 0;
+}
+.health-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.health-bar {
+  width: 100%;
+  max-width: 32px;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.5s ease-out;
+  position: relative;
+}
+.health-bar.good { background: linear-gradient(180deg, var(--color-sage), rgba(140,173,126,0.4)); }
+.health-bar.warn { background: linear-gradient(180deg, var(--color-gold), rgba(232,168,56,0.4)); }
+.health-bar.bad { background: linear-gradient(180deg, var(--color-coral), rgba(224,133,107,0.4)); }
+.health-bar-label { font-size: 10px; color: var(--color-text-dim); }
+.health-bar-val { font-size: 10px; color: var(--color-gold-light); }
+
+.health-ai-card {
+  margin-top: 16px;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(91,154,155,0.3);
+  border-radius: 14px;
+  padding: 16px;
+}
+.health-ai-card .hai-title { font-size:14px; color:var(--color-teal); margin-bottom:8px; }
+.health-ai-card .hai-text { font-size:13px; line-height:1.7; color:var(--color-text-dim); }
+
+/* ===== Pet Profile Modal ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  justify-content: center;
+  align-items: flex-end;
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  width: 100%;
+  max-width: 414px;
+  background: linear-gradient(180deg, #1A2332 0%, #0F1724 100%);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px 32px;
+  animation: sheetUp 0.3s ease-out;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: rgba(136,153,170,0.3);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-pet-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.modal-pet-avatar {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 32px;
+}
+.modal-pet-name { font-size:20px; font-weight:600; }
+.modal-pet-breed { font-size:12px; color:var(--color-text-dim); }
+.modal-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.modal-info-item {
+  background: rgba(26,35,50,0.6);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.modal-info-item .mii-label { font-size:10px; color:var(--color-text-dim); }
+.modal-info-item .mii-val { font-size:13px; font-weight:500; margin-top:2px; }
+.modal-btn-row { display:flex; gap:10px; }
+.modal-btn-row button { flex:1; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold-light);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  z-index: 300;
+  animation: toastIn 0.3s ease-out;
+  pointer-events: none;
+}
+@keyframes toastIn {
+  from { opacity:0; transform:translateX(-50%) translateY(-10px); }
+  to { opacity:1; transform:translateX(-50%) translateY(0); }
+}
+
+/* ===== Typing indicator ===== */
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+}
+.typing-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-dim);
+  animation: dotBounce 1.4s ease-in-out infinite both;
+}
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce {
+  0%,80%,100% { transform:scale(0.6); }
+  40% { transform:scale(1); }
+}
+
+/* ===== Score Stars ===== */
+.score-stars { color: var(--color-gold); font-size: 16px; letter-spacing: 2px; }
+.score-stars .empty { color: rgba(136,153,170,0.3); }
+
+/* ===== Divider ===== */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232,168,56,0.15), transparent);
+  margin: 8px 0 16px;
+}
+</style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+
+  <!-- ==================== CHAT VIEW (Tab1) ==================== -->
+  <div class="view active" id="chatView">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="top-bar-avatar">🐕</div>
+        <div>
+          <div class="top-bar-title">青橘</div>
+          <div class="top-bar-sub">金毛寻回犬 · 2岁</div>
+        </div>
+      </div>
+      <button class="btn-outline top-bar-pet-switch" onclick="showToast('切换宠物')">切换</button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <!-- Initial AI greeting -->
+      <div class="msg msg-ai">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            早安呀 <span class="font-title">小张</span>！我是青橘的AI小助手 ✦<br><br>
+            青橘今天怎么样？来打个卡吧～ 或者告诉我你想了解什么？
+          </div>
+          <div class="msg-quick-actions">
+            <button class="btn-chat-quick" onclick="startCheckIn()">💩 打卡</button>
+            <button class="btn-chat-quick" onclick="startFoodCheck()">🔍 查食物</button>
+            <button class="btn-chat-quick" onclick="startSymptomCheck()">💊 症状初筛</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="chat-plus-menu" id="chatPlusMenu">
+        <div class="chat-plus-item" onclick="startCheckIn();togglePlusMenu()">
+          <div class="plus-icon" style="background:rgba(232,168,56,0.12);">📋</div>
+          <div><div class="plus-label">健康打卡</div><div class="plus-sub">5项日常检查，1分钟完成</div></div>
+        </div>
+        <div class="chat-plus-item" onclick="startNaming();togglePlusMenu()">
+          <div class="plus-icon" style="background:rgba(91,154,155,0.12);">✨</div>
+          <div><div class="plus-label">AI 取名</div><div class="plus-sub">智能推荐 + 寓意解读</div></div>
+        </div>
+        <div class="chat-plus-item" onclick="startRecordMemory();togglePlusMenu()">
+          <div class="plus-icon" style="background:rgba(140,173,126,0.12);">📸</div>
+          <div><div class="plus-label">记录回忆</div><div class="plus-sub">上传照片 + 写一段话</div></div>
+        </div>
+        <div class="chat-plus-item" onclick="switchTab('family');togglePlusMenu()">
+          <div class="plus-icon" style="background:rgba(224,133,107,0.12);">🏠</div>
+          <div><div class="plus-label">看家庭</div><div class="plus-sub">家人动态 + 家庭周报</div></div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <button class="chat-btn-plus" onclick="togglePlusMenu()">+</button>
+        <input type="text" id="chatInput" placeholder="说说青橘今天的情况..." onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="chat-btn-send" onclick="sendMessage()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TIMELINE VIEW (Tab2) ==================== -->
+  <div class="view" id="timelineView">
+    <div class="timeline-header">
+      <h2 class="font-title">青橘的时光 ✦</h2>
+      <button class="timeline-add" onclick="showToast('即将支持添加回忆')">+</button>
+    </div>
+
+    <div class="timeline-banner">
+      <div class="timeline-banner-icon">📷</div>
+      <div class="timeline-banner-text">
+        <strong>旧时光提醒</strong><br>去年今天，青橘第一次去海边，翻看那时的照片吧～
+      </div>
+    </div>
+
+    <div class="timeline-list">
+      <div class="timeline-item">
+        <div class="timeline-dot gold"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2026年7月20日</div>
+          <div class="timeline-event-title">第一次自己洗澡 🛁</div>
+          <div class="timeline-event-desc">青橘今天洗澡超级乖，全程趴在水盆里不动，吹风的时候还舒服得睡着了。对比三个月前简直像换了一只狗！</div>
+          <div class="timeline-photo">🛁 🐕 ✨</div>
+          <span class="timeline-milestone">里程碑</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot teal"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2026年7月1日</div>
+          <div class="timeline-event-title">到家一周年 🎂</div>
+          <div class="timeline-event-desc">从救助站接回来的整整一年！青橘从瘦弱的小家伙变成了健康活泼的大宝贝。谢谢这一年有你陪伴的每一天。</div>
+          <div class="timeline-photo">🎂 🎉 ❤️</div>
+          <span class="timeline-milestone">里程碑</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot coral"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2026年6月12日</div>
+          <div class="timeline-event-title">居然会自己开柜门</div>
+          <div class="timeline-event-desc">今天下班回家发现零食柜大开，青橘趴在旁边一脸无辜。查了监控才发现它用鼻子和爪子配合打开了柜门！这智商也太高了……</div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot dim"></div>
+        <div class="timeline-content ghost">
+          <div class="timeline-date">即将上线</div>
+          <div class="timeline-event-title">AI 年度记忆卡片</div>
+          <div class="timeline-event-desc">AI 正在为你整理这一年青橘的精彩瞬间，敬请期待 ✦</div>
+          <span class="timeline-milestone" style="opacity:0.6;">即将上线</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot sage"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2025年7月1日</div>
+          <div class="timeline-event-title">到家第一天</div>
+          <div class="timeline-event-desc">从救助站接回青橘。它缩在笼子角落不敢动，喂了一块鸡肉干才慢慢探出头。那时候只有6公斤……</div>
+          <div class="timeline-photo">🐕 🏠 💛</div>
+          <span class="timeline-milestone">起点</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FAMILY VIEW (Tab3) ==================== -->
+  <div class="view" id="familyView">
+    <div class="family-header">
+      <h2 class="font-title">🏠 星澜小筑</h2>
+      <div class="family-sub">4位家人</div>
+    </div>
+
+    <div class="family-weekly-card">
+      <div class="family-weekly-title">🤖 AI 家庭周报</div>
+      <div class="family-weekly-text">
+        <span class="good">本周全员打卡完成</span> · 青橘连续<span class="good">4天满分</span>！<br>
+        花花恢复顺利，伤口愈合良好<br>
+        <span class="warn">⚠ 墨团体重偏轻</span>，建议增加营养
+      </div>
+    </div>
+
+    <div class="pet-scroll">
+      <div class="pet-card" onclick="openPetProfile('qingju')">
+        <div class="pet-avatar" style="background:linear-gradient(135deg,#E8A838,#C47A20);">🐕</div>
+        <div class="pet-name">青橘</div>
+        <div class="pet-role">金毛寻回犬 · 2岁</div>
+        <div class="pet-health">体重 28kg · 健康分 98</div>
+      </div>
+
+      <div class="pet-card" onclick="openPetProfile('huahua')">
+        <div class="pet-avatar" style="background:linear-gradient(135deg,#E0856B,#C06050);">🐱</div>
+        <div class="pet-name">花花</div>
+        <div class="pet-role">三花猫 · 3岁</div>
+        <div class="pet-health">术后恢复中 · 健康分 85</div>
+      </div>
+
+      <div class="pet-card" onclick="openPetProfile('motuan')">
+        <div class="pet-avatar" style="background:linear-gradient(135deg,#5B9A9B,#3D7A7B);">🐈</div>
+        <div class="pet-name">墨团</div>
+        <div class="pet-role">黑猫 · 8个月</div>
+        <div class="pet-health">体重偏轻 · 健康分 72</div>
+      </div>
+
+      <div class="pet-card" onclick="openPetProfile('xiaoxue')">
+        <div class="pet-avatar" style="background:linear-gradient(135deg,#8CAD7E,#6A8B5E);">🐈</div>
+        <div class="pet-name">小雪</div>
+        <div class="pet-role">白猫 · 8个月</div>
+        <div class="pet-health">健康成长 · 健康分 95</div>
+      </div>
+    </div>
+
+    <div class="family-quick-entries">
+      <div class="family-quick-entry" onclick="openFamilyTree()">
+        <div class="q-icon">🧬</div>
+        <div class="q-label">家族图谱</div>
+      </div>
+      <div class="family-quick-entry" onclick="openFamilyCalendar()">
+        <div class="q-icon">📅</div>
+        <div class="q-label">家庭日历</div>
+      </div>
+      <div class="family-quick-entry" onclick="showToast('全家福功能即将上线')">
+        <div class="q-icon">📷</div>
+        <div class="q-label">全家福</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PROFILE VIEW (Tab4) ==================== -->
+  <div class="view" id="profileView">
+    <div class="profile-header">
+      <div class="profile-avatar">😊</div>
+      <div class="profile-info">
+        <div class="pi-name">小张</div>
+        <div class="pi-sub">星澜小筑 · 4位家人</div>
+      </div>
+    </div>
+
+    <div class="profile-pets-scroll">
+      <div class="profile-pet-chip" onclick="switchToPet('青橘')">
+        <div class="pp-avatar" style="background:linear-gradient(135deg,#E8A838,#C47A20);">🐕</div>
+        <div class="pp-name">青橘</div>
+      </div>
+      <div class="profile-pet-chip" onclick="switchToPet('花花')">
+        <div class="pp-avatar" style="background:linear-gradient(135deg,#E0856B,#C06050);">🐱</div>
+        <div class="pp-name">花花</div>
+      </div>
+      <div class="profile-pet-chip" onclick="switchToPet('墨团')">
+        <div class="pp-avatar" style="background:linear-gradient(135deg,#5B9A9B,#3D7A7B);">🐈</div>
+        <div class="pp-name">墨团</div>
+      </div>
+      <div class="profile-pet-chip" onclick="switchToPet('小雪')">
+        <div class="pp-avatar" style="background:linear-gradient(135deg,#8CAD7E,#6A8B5E);">🐈</div>
+        <div class="pp-name">小雪</div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="profile-menu">
+      <div class="profile-menu-item" onclick="showToast('会员中心即将上线')">
+        <div class="pm-left"><span class="pm-icon">⭐</span><span class="pm-label">会员中心</span></div>
+        <span class="pm-arrow">›</span>
+      </div>
+      <div class="profile-menu-item" onclick="showToast('暂无新消息')">
+        <div class="pm-left"><span class="pm-icon">🔔</span><span class="pm-label">消息通知</span></div>
+        <span class="pm-arrow">›</span>
+      </div>
+      <div class="profile-menu-item" onclick="showToast('隐私设置')">
+        <div class="pm-left"><span class="pm-icon">🔒</span><span class="pm-label">隐私设置</span></div>
+        <span class="pm-arrow">›</span>
+      </div>
+      <div class="profile-menu-item" onclick="showToast('星寰海 v1.0.0')">
+        <div class="pm-left"><span class="pm-icon">ℹ</span><span class="pm-label">关于</span></div>
+        <span class="pm-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="profile-logout" onclick="showToast('退出登录')">退出登录</div>
+  </div>
+
+  <!-- ==================== SUB-VIEW: Family Tree ==================== -->
+  <div class="sub-view" id="familyTreeView">
+    <div class="tree-back-row" onclick="closeSubView()">
+      <span>←</span> 返回家庭看板
+    </div>
+    <div class="tree-header">
+      <h2 class="font-title">星澜小筑 · 族谱</h2>
+      <div class="tree-sub">家族成员关系图谱</div>
+    </div>
+
+    <div class="tree-container">
+      <div class="tree-node root">
+        <div class="tn-name font-title">🏡 星澜小筑</div>
+        <div class="tn-role">温暖的家</div>
+      </div>
+      <div class="tree-connector"></div>
+      <div class="tree-branch">
+        <div class="tree-branch-col">
+          <div class="tree-connector"></div>
+          <div class="tree-node sub">
+            <div class="tn-name">🐕 青橘</div>
+            <div class="tn-role">家人 · 金毛</div>
+          </div>
+        </div>
+        <div class="tree-branch-col">
+          <div class="tree-connector"></div>
+          <div class="tree-node mother">
+            <div class="tn-name">🐱 花花</div>
+            <div class="tn-role">母亲 · 三花猫</div>
+          </div>
+          <div class="tree-connector"></div>
+          <div class="tree-branch" style="gap:24px;">
+            <div class="tree-branch-col">
+              <div class="tree-connector" style="height:10px;"></div>
+              <div class="tree-node child">
+                <div class="tn-name">🐈 墨团</div>
+                <div class="tn-role">儿子 · 黑猫</div>
+              </div>
+            </div>
+            <div class="tree-branch-col">
+              <div class="tree-connector" style="height:10px;"></div>
+              <div class="tree-node child">
+                <div class="tn-name">🐈 小雪</div>
+                <div class="tn-role">女儿 · 白猫</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SUB-VIEW: Family Calendar ==================== -->
+  <div class="sub-view" id="familyCalendarView">
+    <div class="tree-back-row" onclick="closeSubView()">
+      <span>←</span> 返回家庭看板
+    </div>
+    <div class="calendar-header">
+      <div class="calendar-month font-title">2026年 7月</div>
+      <div class="calendar-nav">
+        <button class="calendar-nav-btn">‹</button>
+        <button class="calendar-nav-btn">›</button>
+      </div>
+    </div>
+
+    <div class="calendar-grid">
+      <div class="calendar-dow">一</div><div class="calendar-dow">二</div><div class="calendar-dow">三</div>
+      <div class="calendar-dow">四</div><div class="calendar-dow">五</div><div class="calendar-dow">六</div><div class="calendar-dow">日</div>
+
+      <!-- Week 1 -->
+      <div class="calendar-day other-month">29</div>
+      <div class="calendar-day other-month">30</div>
+      <div class="calendar-day">1</div>
+      <div class="calendar-day has-event pet-dog">2</div>
+      <div class="calendar-day">3</div>
+      <div class="calendar-day">4</div>
+      <div class="calendar-day">5</div>
+      <!-- Week 2 -->
+      <div class="calendar-day">6</div>
+      <div class="calendar-day">7</div>
+      <div class="calendar-day has-event pet-cat">8</div>
+      <div class="calendar-day">9</div>
+      <div class="calendar-day has-event pet-dog">10</div>
+      <div class="calendar-day">11</div>
+      <div class="calendar-day">12</div>
+      <!-- Week 3 -->
+      <div class="calendar-day">13</div>
+      <div class="calendar-day">14</div>
+      <div class="calendar-day">15</div>
+      <div class="calendar-day has-event pet-cat">16</div>
+      <div class="calendar-day">17</div>
+      <div class="calendar-day">18</div>
+      <div class="calendar-day">19</div>
+      <!-- Week 4 -->
+      <div class="calendar-day">20</div>
+      <div class="calendar-day">21</div>
+      <div class="calendar-day has-event pet-dog">22</div>
+      <div class="calendar-day today">23</div>
+      <div class="calendar-day">24</div>
+      <div class="calendar-day has-event pet-cat">25</div>
+      <div class="calendar-day">26</div>
+      <!-- Week 5 -->
+      <div class="calendar-day">27</div>
+      <div class="calendar-day">28</div>
+      <div class="calendar-day">29</div>
+      <div class="calendar-day">30</div>
+      <div class="calendar-day has-event pet-dog">31</div>
+    </div>
+
+    <div class="calendar-events">
+      <div class="calendar-event-item pet-dog">
+        <div class="calendar-event-date">7月22日</div>
+        <div class="calendar-event-text">青橘年度疫苗接种</div>
+      </div>
+      <div class="calendar-event-item pet-cat">
+        <div class="calendar-event-date">7月25日</div>
+        <div class="calendar-event-text">花花术后拆线复查</div>
+      </div>
+      <div class="calendar-event-item pet-dog">
+        <div class="calendar-event-date">7月31日</div>
+        <div class="calendar-event-text">青橘美容SPA日</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SUB-VIEW: Health Trend ==================== -->
+  <div class="sub-view" id="healthTrendView">
+    <div class="tree-back-row" onclick="closeSubView()">
+      <span>←</span> 返回对话
+    </div>
+    <div class="timeline-header">
+      <h2 class="font-title">青橘 · 健康趋势</h2>
+    </div>
+
+    <div class="health-trend-container">
+      <div style="font-size:13px;color:var(--color-text-dim);margin-bottom:8px;">最近7天健康综合评分</div>
+      <div class="health-chart-bars">
+        <div class="health-bar-col">
+          <div class="health-bar good" style="height:130px;"></div>
+          <div class="health-bar-val">96</div>
+          <div class="health-bar-label">7/17</div>
+        </div>
+        <div class="health-bar-col">
+          <div class="health-bar good" style="height:128px;"></div>
+          <div class="health-bar-val">94</div>
+          <div class="health-bar-label">7/18</div>
+        </div>
+        <div class="health-bar-col">
+          <div class="health-bar good" style="height:135px;"></div>
+          <div class="health-bar-val">98</div>
+          <div class="health-bar-label">7/19</div>
+        </div>
+        <div class="health-bar-col">
+          <div class="health-bar good" style="height:132px;"></div>
+          <div class="health-bar-val">97</div>
+          <div class="health-bar-label">7/20</div>
+        </div>
+        <div class="health-bar-col">
+          <div class="health-bar warn" style="height:110px;"></div>
+          <div class="health-bar-val">88</div>
+          <div class="health-bar-label">7/21</div>
+        </div>
+        <div class="health-bar-col">
+          <div class="health-bar good" style="height:125px;"></div>
+          <div class="health-bar-val">93</div>
+          <div class="health-bar-label">7/22</div>
+        </div>
+        <div class="health-bar-col">
+          <div class="health-bar good" style="height:134px;"></div>
+          <div class="health-bar-val">98</div>
+          <div class="health-bar-label">今天</div>
+        </div>
+      </div>
+
+      <div class="health-ai-card">
+        <div class="hai-title">🤖 AI 健康分析</div>
+        <div class="hai-text">
+          青橘本周整体健康状态良好，平均健康分 <strong style="color:var(--color-sage);">95.2</strong> 分。<br><br>
+          7月21日分数略低（88分），原因是当天排便评分偏软（3/5），可能与前一天换了新零食有关。建议新食物过渡期至少3天。<br><br>
+          整体趋势：食欲稳定、精神活跃、体重维持良好。继续保持每日打卡，下周目标冲击连续7天满分！✦
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PET PROFILE MODAL ==================== -->
+  <div class="modal-overlay" id="petProfileModal" onclick="if(event.target===this)closePetProfile()">
+    <div class="modal-sheet" id="petProfileSheet">
+      <div class="modal-handle"></div>
+      <div id="petProfileContent"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST ==================== -->
+  <div class="toast" id="toast" style="display:none;"></div>
+
+  <!-- ==================== TAB BAR ==================== -->
+  <div class="tabbar">
+    <div class="tab-item active" data-tab="chat" onclick="switchTab('chat')">
+      <div class="tab-icon">💬</div>
+      <div class="tab-label">聊天</div>
+    </div>
+    <div class="tab-item" data-tab="timeline" onclick="switchTab('timeline')">
+      <div class="tab-icon">📜</div>
+      <div class="tab-label">时光</div>
+    </div>
+    <div class="tab-item" data-tab="family" onclick="switchTab('family')">
+      <div class="tab-icon">🏠</div>
+      <div class="tab-label">家庭</div>
+    </div>
+    <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+      <div class="tab-icon">👤</div>
+      <div class="tab-label">我的</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===== Navigation ===== */
+function switchTab(tab) {
+  closeAllSubViews();
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+
+  const viewMap = { chat:'chatView', timeline:'timelineView', family:'familyView', profile:'profileView' };
+  const targetView = document.getElementById(viewMap[tab]);
+  if (targetView) targetView.classList.add('active');
+
+  const tabEl = document.querySelector(`.tab-item[data-tab="${tab}"]`);
+  if (tabEl) tabEl.classList.add('active');
+
+  if (tab === 'chat') {
+    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+  }
+}
+
+function closeAllSubViews() {
+  document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('petProfileModal').classList.remove('show');
+}
+
+function openFamilyTree() {
+  closeAllSubViews();
+  document.getElementById('familyTreeView').classList.add('active');
+  document.getElementById('familyView').classList.remove('active');
+}
+
+function openFamilyCalendar() {
+  closeAllSubViews();
+  document.getElementById('familyCalendarView').classList.add('active');
+  document.getElementById('familyView').classList.remove('active');
+}
+
+function closeSubView() {
+  var wasHealthTrend = document.getElementById('healthTrendView').classList.contains('active');
+  document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
+  if (wasHealthTrend) {
+    document.getElementById('chatView').classList.add('active');
+    if (document.querySelector('.tab-item[data-tab="chat"]')) {
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.querySelector('.tab-item[data-tab="chat"]').classList.add('active');
+    }
+  } else {
+    document.getElementById('familyView').classList.add('active');
+  }
+}
+
+/* ===== Plus Menu ===== */
+function togglePlusMenu() {
+  const menu = document.getElementById('chatPlusMenu');
+  menu.classList.toggle('show');
+}
+
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('chatPlusMenu');
+  if (menu.classList.contains('show') && !e.target.closest('.chat-plus-menu') && !e.target.closest('.chat-btn-plus')) {
+    menu.classList.remove('show');
+  }
+});
+
+/* ===== Chat Messages ===== */
+function addMessage(type, html) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg msg-${type}`;
+  const avatarEmoji = type === 'ai' ? '🤖' : '😊';
+  div.innerHTML = `<div class="msg-avatar">${avatarEmoji}</div><div class="msg-content">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function addAIMessage(text) {
+  return addMessage('ai', `<div class="msg-bubble">${text}</div>`);
+}
+
+function addUserMessage(text) {
+  return addMessage('user', `<div class="msg-bubble">${text}</div>`);
+}
+
+function addAIOptions(text, options) {
+  let html = `<div class="msg-bubble">${text}</div><div style="margin-top:8px;">`;
+  options.forEach((opt, i) => {
+    html += `<button class="btn-option" data-opt-idx="${i}">${opt.label}</button>`;
+  });
+  html += '</div>';
+  const msgEl = addMessage('ai', html);
+
+  msgEl.querySelectorAll('.btn-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.dataset.optIdx);
+      msgEl.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      if (options[idx].onSelect) options[idx].onSelect(this, msgEl);
+    });
+  });
+  return msgEl;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.id = 'typingIndicator';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-content"><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMessage(text);
+
+  const typing = addTyping();
+  setTimeout(() => {
+    removeTyping();
+    if (text.includes('打卡') || text.includes('健康')) {
+      startCheckIn();
+    } else if (text.includes('食物') || text.includes('能不能吃')) {
+      addAIMessage('好的！你想查询哪种食物呢？<br><br>可以告诉我具体的食物名称，比如"巧克力""葡萄""苹果""鸡肉"等，我来帮你分析青橘能不能吃～');
+    } else if (text.includes('症状') || text.includes('不舒服') || text.includes('生病')) {
+      startSymptomCheck();
+    } else if (text.includes('取名') || text.includes('名字')) {
+      startNaming();
+    } else if (text.includes('趋势') || text.includes('健康报告')) {
+      addAIMessage('好的！让我为你打开青橘的健康趋势图～');
+      setTimeout(() => openHealthTrend(), 500);
+    } else {
+      addAIMessage('收到啦！青橘的情况我记下了 ✦<br><br>你还可以试试：<br>· 打卡记录今天的健康状况<br>· 查询某种食物能不能吃<br>· 做一次症状初筛评估<br>· 让我帮新宠物取个好名字');
+    }
+  }, 800);
+}
+
+/* ===== Health Trend Sub-View ===== */
+function openHealthTrend() {
+  closeAllSubViews();
+  document.getElementById('healthTrendView').classList.add('active');
+  document.getElementById('chatView').classList.remove('active');
+}
+
+/* ===== Check-in Flow (5 items) ===== */
+var checkInData = {};
+var checkInStep = 0;
+var checkInItems = [
+  { key: 'stool', emoji: '💩', label: '大便情况', question: '青橘今天的大便怎么样？', options: [
+    { label: '成型正常', score: 5 },
+    { label: '偏软但不稀', score: 3 },
+    { label: '拉稀/软便', score: 1 },
+    { label: '没拉 / 未观察', score: 0 }
+  ]},
+  { key: 'pee', emoji: '💧', label: '小便情况', question: '小便颜色和频率正常吗？', options: [
+    { label: '清亮，次数正常', score: 5 },
+    { label: '颜色偏黄', score: 3 },
+    { label: '频次异常', score: 1 },
+    { label: '没注意', score: 0 }
+  ]},
+  { key: 'appetite', emoji: '🍖', label: '食欲状况', question: '青橘今天吃饭怎么样？', options: [
+    { label: '胃口很好，光盘', score: 5 },
+    { label: '正常吃完', score: 4 },
+    { label: '吃得比较少', score: 2 },
+    { label: '完全不吃', score: 1 }
+  ]},
+  { key: 'energy', emoji: '⚡', label: '精神活力', question: '青橘今天精神头怎么样？', options: [
+    { label: '活力满满，拆家选手', score: 5 },
+    { label: '正常活动', score: 4 },
+    { label: '有点蔫，不太想动', score: 2 },
+    { label: '趴着不动，精神差', score: 1 }
+  ]},
+  { key: 'weight', emoji: '⚖', label: '体重确认', question: '体重今天称了吗？（参考：上周28.0kg）', options: [
+    { label: '28.0kg 左右，稳定', score: 5 },
+    { label: '27.5-27.9kg，小幅下降', score: 3 },
+    { label: '28.5kg 以上，小幅上升', score: 3 },
+    { label: '今天没称', score: 0 }
+  ]}
+];
+
+function startCheckIn() {
+  checkInData = {};
+  checkInStep = 0;
+  addAIMessage('好的！让我们来给青橘做个快速打卡 ✦<br><br>一共5项，大概1分钟完成～<br>准备好了吗？我们从第一项开始：');
+  setTimeout(() => askCheckInItem(), 600);
+}
+
+function askCheckInItem() {
+  if (checkInStep >= checkInItems.length) {
+    finishCheckIn();
+    return;
+  }
+  var item = checkInItems[checkInStep];
+  var progress = (checkInStep + 1) + '/5';
+  addAIOptions(item.emoji + ' <strong>' + progress + ' ' + item.label + '</strong><br>' + item.question, item.options.map(function(opt) {
+    return {
+      label: opt.label,
+      onSelect: function(btn, msgEl) {
+        checkInData[item.key] = { label: opt.label, score: opt.score };
+        setTimeout(function() {
+          addUserMessage(opt.label);
+          checkInStep++;
+          setTimeout(askCheckInItem, 400);
+        }, 200);
+      }
+    };
+  }));
+}
+
+function finishCheckIn() {
+  var total = 0;
+  var keys = Object.keys(checkInData);
+  keys.forEach(function(k) { total += checkInData[k].score; });
+  var maxScore = keys.length * 5;
+  var rate = Math.round((total / maxScore) * 100);
+  var starCount = rate >= 90 ? 5 : rate >= 70 ? 4 : rate >= 50 ? 3 : rate >= 30 ? 2 : 1;
+
+  var starsHtml = '';
+  for (var i = 0; i < 5; i++) {
+    starsHtml += i < starCount ? '★' : '<span class="empty">★</span>';
+  }
+
+  var summaryHtml = '<div class="msg-bubble">打卡完成！青橘今天的健康报告出炉啦 ✦</div>';
+  summaryHtml += '<div class="msg-card">';
+  summaryHtml += '<div class="msg-card-title">📊 今日健康报告</div>';
+  summaryHtml += '<div class="score-stars" style="margin-bottom:8px;">' + starsHtml + '</div>';
+  summaryHtml += '<div class="msg-card-stat"><span class="msg-card-stat-label">综合评分</span><span class="msg-card-stat-val">' + rate + ' 分</span></div>';
+  keys.forEach(function(k) {
+    var d = checkInData[k];
+    var item = checkInItems.find(function(it) { return it.key === k; });
+    summaryHtml += '<div class="msg-card-stat"><span class="msg-card-stat-label">' + item.emoji + ' ' + item.label + '</span><span class="msg-card-stat-val">' + d.label + '</span></div>';
+  });
+  summaryHtml += '</div>';
+
+  if (rate >= 90) {
+    summaryHtml += '<div class="msg-bubble" style="margin-top:8px;">太棒了！青橘今天状态满分 ✦<br>连续4天表现优秀，继续保持！<br><br>想<a href="javascript:void(0)" onclick="openHealthTrend()" style="color:var(--color-gold);text-decoration:underline;">查看健康趋势</a>吗？</div>';
+  } else if (rate >= 70) {
+    summaryHtml += '<div class="msg-bubble" style="margin-top:8px;">整体还不错！不过有些项目需要注意一下～<br>明天继续加油 ✦</div>';
+  } else {
+    summaryHtml += '<div class="msg-bubble" style="margin-top:8px;">青橘今天状态不太理想，建议多观察。<br>如果持续这样，可以做个<a href="javascript:void(0)" onclick="startSymptomCheck()" style="color:var(--color-coral);text-decoration:underline;">症状初筛</a>看看是否需要就医。</div>';
+  }
+
+  addMessage('ai', summaryHtml);
+}
+
+/* ===== Food Check Flow ===== */
+var foodData = {
+  '巧克力': { safe: false, risk: 'P0', icon: '🍫', desc: '巧克力含有可可碱，对狗有剧毒。即使少量也可能导致呕吐、腹泻、心率异常，严重可致死。青橘绝对不能吃！', advice: '绝对禁止！如果误食请立即联系兽医。' },
+  '葡萄': { safe: false, risk: 'P0', icon: '🍇', desc: '葡萄和葡萄干对犬类有肾毒性，少量即可导致急性肾衰竭。目前尚不清楚具体毒素成分，但所有品种的狗都有风险。', advice: '绝对禁止！即使是1-2颗也可能造成伤害。' },
+  '苹果': { safe: true, icon: '🍎', desc: '苹果果肉是安全的，富含维生素A和C，还有膳食纤维。但要去掉苹果核和籽（含氰化物），切成小块喂食，每次不超过1/4个。', advice: '安全适量，去核切小块作为零食。' },
+  '鸡胸肉': { safe: true, icon: '🍗', desc: '煮熟的鸡胸肉是优质蛋白质来源，低脂肪，非常适合狗狗。不要加盐和调味料，白水煮熟即可。青橘可以放心吃！', advice: '安全推荐！煮熟无调味，适量喂食。' },
+  '胡萝卜': { safe: true, icon: '🥕', desc: '胡萝卜是低热量的健康零食，富含β-胡萝卜素和纤维。可以生吃（磨牙）或煮熟，切小块防止噎到。', advice: '安全推荐！洗净切小块，生的煮熟都行。' },
+  '洋葱': { safe: false, risk: 'P0', icon: '🧅', desc: '洋葱（包括蒜、韭菜等葱属植物）含有硫代硫酸盐，会破坏犬的红细胞，导致溶血性贫血。无论生熟都有毒。', advice: '绝对禁止！任何形式的洋葱都不能吃。' },
+  '西瓜': { safe: true, icon: '🍉', desc: '西瓜果肉是安全的水分补充零食（去籽去皮），含水量高，夏天适量喂食可以帮助补水。不要给瓜皮和瓜籽。', advice: '安全适量，去籽去皮，夏天解暑好选择。' },
+  '牛油果': { safe: false, risk: 'P1', icon: '🥑', desc: '牛油果含有persin（一种杀菌毒素），对狗可能引起呕吐和腹泻。果核还有窒息风险。不推荐喂食。', advice: '不推荐！虽然有争议，但安全起见不要喂。' }
+};
+
+function startFoodCheck() {
+  var foodList = Object.keys(foodData);
+  var options = foodList.map(function(name) {
+    return {
+      label: foodData[name].icon + ' ' + name,
+      onSelect: function(btn, msgEl) {
+        addUserMessage('查一下「' + name + '」');
+        var typing = addTyping();
+        setTimeout(function() {
+          removeTyping();
+          showFoodResult(name);
+        }, 700);
+      }
+    };
+  });
+  addAIOptions('请选择你想查询的食物，我来帮你分析青橘能不能吃：', options);
+}
+
+function showFoodResult(name) {
+  var d = foodData[name];
+  if (!d) { addAIMessage('抱歉，我暂时没有这种食物的数据。你可以输入其他食物名称试试～'); return; }
+  var color = d.safe ? 'var(--color-sage)' : 'var(--color-coral)';
+  var verdict = d.safe ? '✅ 可以吃（适量）' : '🚫 不能吃';
+  var html = '<div class="msg-bubble"><strong>' + d.icon + ' ' + name + '</strong> <span style="color:' + color + '">' + verdict + '</span></div>';
+  html += '<div class="msg-card">';
+  html += '<div class="msg-card-title">📋 分析结果</div>';
+  html += '<div class="msg-card-text">' + d.desc + '</div>';
+  if (!d.safe) {
+    html += '<div style="margin-top:8px;padding:8px;background:rgba(224,133,107,0.1);border-radius:8px;font-size:12px;color:var(--color-coral);"><strong>⚠ 建议：</strong>' + d.advice + '</div>';
+  } else {
+    html += '<div style="margin-top:8px;padding:8px;background:rgba(140,173,126,0.1);border-radius:8px;font-size:12px;color:var(--color-sage);"><strong>👍 建议：</strong>' + d.advice + '</div>';
+  }
+  html += '</div>';
+  html += '<div style="margin-top:8px;"><button class="btn-chat-quick" onclick="startFoodCheck()">查询其他食物</button></div>';
+  addMessage('ai', html);
+}
+
+/* ===== Symptom Check Flow (4 steps) ===== */
+var symptomData = {};
+var symptomStep = 0;
+var symptomSteps = [
+  {
+    key: 'symptom', title: '第1步：主要症状',
+    question: '青橘出现了什么症状？',
+    options: [
+      { label: '呕吐 / 反胃' },
+      { label: '腹泻 / 软便' },
+      { label: '食欲不振' },
+      { label: '精神萎靡 / 嗜睡' },
+      { label: '皮肤瘙痒 / 掉毛' },
+      { label: '咳嗽 / 打喷嚏' }
+    ]
+  },
+  {
+    key: 'duration', title: '第2步：持续时间',
+    question: '这个症状持续多久了？',
+    options: [
+      { label: '刚开始，不到半天' },
+      { label: '今天一整天了' },
+      { label: '2-3天了' },
+      { label: '超过3天了' }
+    ]
+  },
+  {
+    key: 'severity', title: '第3步：严重程度',
+    question: '症状的严重程度如何？',
+    options: [
+      { label: '轻微的，不太影响日常', risk: 'low' },
+      { label: '中等，能看出不舒服', risk: 'mid' },
+      { label: '比较严重，明显异常', risk: 'high' },
+      { label: '非常严重，需要急救', risk: 'critical' }
+    ]
+  },
+  {
+    key: 'other', title: '第4步：其他信息',
+    question: '还有没有其他异常？',
+    options: [
+      { label: '没有其他异常' },
+      { label: '体温偏高 / 发烧' },
+      { label: '有外伤或肿块' },
+      { label: '眼睛/鼻子有分泌物' }
+    ]
+  }
+];
+
+function startSymptomCheck() {
+  symptomData = {};
+  symptomStep = 0;
+  addAIMessage('了解！让我帮青橘做一个症状初筛 ✦<br><br>⚠ 提示：这是AI预评估，不能替代专业兽医诊断。如果情况紧急请直接就医。<br><br>一共4个问题，准备好了吗？');
+  setTimeout(askSymptomStep, 600);
+}
+
+function askSymptomStep() {
+  if (symptomStep >= symptomSteps.length) {
+    finishSymptomCheck();
+    return;
+  }
+  var step = symptomSteps[symptomStep];
+  addAIOptions('<strong>' + step.title + '</strong><br>' + step.question, step.options.map(function(opt) {
+    return {
+      label: opt.label,
+      onSelect: function(btn, msgEl) {
+        symptomData[step.key] = { label: opt.label, risk: opt.risk || '' };
+        addUserMessage(opt.label);
+        symptomStep++;
+        setTimeout(askSymptomStep, 400);
+      }
+    };
+  }));
+}
+
+function finishSymptomCheck() {
+  var riskLevel = symptomData.severity ? symptomData.severity.risk : 'low';
+  var riskColor, riskLabel, advice;
+
+  if (riskLevel === 'critical') {
+    riskColor = '#E04040'; riskLabel = '紧急';
+    advice = '🚨 症状紧急！建议立即带青橘前往最近的宠物医院。<br><br>不要等待，不要自行用药。';
+  } else if (riskLevel === 'high') {
+    riskColor = 'var(--color-coral)'; riskLabel = '建议尽快就医';
+    advice = '⚠ 症状比较明显，建议24小时内带青橘去看兽医。<br><br>暂时可以让青橘保持安静，提供充足的清水。';
+  } else if (riskLevel === 'mid') {
+    riskColor = 'var(--color-gold)'; riskLabel = '可先观察';
+    advice = '⚡ 可以先在家观察1-2天。<br><br>如果症状加重或出现新症状，再考虑就医。记得多给青橘喝水，注意休息。';
+  } else {
+    riskColor = 'var(--color-sage)'; riskLabel = '暂不严重';
+    advice = '👍 看起来暂时不严重，继续观察即可。<br><br>保持正常饮食和作息，如果持续超过3天再考虑咨询兽医。';
+  }
+
+  var duration = symptomData.duration ? symptomData.duration.label : '未知';
+
+  var html = '<div class="msg-bubble"><strong>初筛完成 ✦</strong></div>';
+  html += '<div class="msg-card">';
+  html += '<div class="msg-card-title">📋 症状评估报告</div>';
+  html += '<div class="msg-card-stat"><span class="msg-card-stat-label">主要症状</span><span class="msg-card-stat-val">' + (symptomData.symptom ? symptomData.symptom.label : '-') + '</span></div>';
+  html += '<div class="msg-card-stat"><span class="msg-card-stat-label">持续时间</span><span class="msg-card-stat-val">' + duration + '</span></div>';
+  html += '<div class="msg-card-stat"><span class="msg-card-stat-label">严重程度</span><span class="msg-card-stat-val" style="color:' + riskColor + '">' + (symptomData.severity ? symptomData.severity.label : '-') + '</span></div>';
+  html += '<div style="margin-top:8px;padding:10px;border-radius:8px;font-size:12px;line-height:1.6;background:rgba(0,0,0,0.2);color:var(--color-text);">' + advice + '</div>';
+  html += '</div>';
+
+  if (riskLevel === 'critical' || riskLevel === 'high') {
+    html += '<div style="margin-top:8px;padding:12px;background:rgba(224,133,107,0.1);border:1px solid rgba(224,133,107,0.3);border-radius:12px;text-align:center;">';
+    html += '<div style="font-size:13px;color:var(--color-coral);margin-bottom:6px;">🏥 附近的宠物医院</div>';
+    html += '<div style="font-size:12px;color:var(--color-text-dim);">瑞鹏宠物医院 · 1.2km<br>美联众合 · 2.5km<br>芭比堂 · 3.1km</div>';
+    html += '</div>';
+  }
+
+  addMessage('ai', html);
+}
+
+/* ===== Naming Flow ===== */
+var namingData = {};
+var namingStep = 0;
+var namingSteps = [
+  {
+    key: 'gender', title: '性别',
+    question: '新宝贝是男生还是女生呀？',
+    options: [{ label: '男生 ♂' }, { label: '女生 ♀' }, { label: '还不知道 / 无所谓' }]
+  },
+  {
+    key: 'style', title: '风格偏好',
+    question: '你喜欢什么风格的名字？',
+    options: [
+      { label: '古风诗意（如：墨韵、云栖）' },
+      { label: '可爱萌系（如：团团、布丁）' },
+      { label: '食物系列（如：年糕、汤圆）' },
+      { label: '自然元素（如：星河、山月）' }
+    ]
+  }
+];
+
+function startNaming() {
+  namingData = {};
+  namingStep = 0;
+  addAIMessage('要给新宝贝取名字吗？太开心了！让我来帮你 ✦<br><br>请先告诉我一些基本信息～');
+  setTimeout(askNamingStep, 500);
+}
+
+function askNamingStep() {
+  if (namingStep >= namingSteps.length) {
+    finishNaming();
+    return;
+  }
+  var step = namingSteps[namingStep];
+  addAIOptions(step.question, step.options.map(function(opt) {
+    return {
+      label: opt.label,
+      onSelect: function(btn, msgEl) {
+        namingData[step.key] = opt.label;
+        addUserMessage(opt.label);
+        namingStep++;
+        setTimeout(askNamingStep, 400);
+      }
+    };
+  }));
+}
+
+function finishNaming() {
+  var gender = namingData.gender || '还不知道';
+  var style = namingData.style || '';
+
+  var names = [];
+  if (style.includes('古风')) {
+    names = [
+      { name: '墨韵', meaning: '墨香氤氲，韵味悠长。适合气质优雅的宝贝', score: 95 },
+      { name: '云栖', meaning: '云深不知处，栖居于心。安静温柔的好名字', score: 92 },
+      { name: '霁月', meaning: '雨过天晴，月明如洗。寓意拨云见日，好运连连', score: 88 }
+    ];
+  } else if (style.includes('可爱')) {
+    names = [
+      { name: '布丁', meaning: '甜甜蜜蜜，软软糯糯。让人忍不住想rua', score: 93 },
+      { name: '泡芙', meaning: '外表酥脆内心柔软，可爱又有个性', score: 90 },
+      { name: '奶糖', meaning: '奶香四溢，甜而不腻。治愈系首选', score: 87 }
+    ];
+  } else if (style.includes('食物')) {
+    names = [
+      { name: '年糕', meaning: '年年高升，黏人暖心。适合粘人的小可爱', score: 94 },
+      { name: '汤圆', meaning: '团团圆圆，白白胖胖。寓意家庭美满幸福', score: 91 },
+      { name: '麻薯', meaning: 'Q弹软糯，外表朴素内有惊喜。独一无二的小特别', score: 85 }
+    ];
+  } else {
+    names = [
+      { name: '星河', meaning: '璀璨星河，独一无二。愿它成为你生命中最亮的光', score: 96 },
+      { name: '山月', meaning: '山间明月，清辉婉转。安静而坚定的陪伴', score: 90 },
+      { name: '朝露', meaning: '清晨的露珠，纯净珍贵。每一天都是新的开始', score: 87 }
+    ];
+  }
+
+  var html = '<div class="msg-bubble">基于你的偏好，我为你推荐以下3个名字 ✦</div>';
+  names.forEach(function(n, i) {
+    var starHtml = '';
+    for (var s = 0; s < 5; s++) {
+      starHtml += s < Math.round(n.score / 20) ? '★' : '<span class="empty">★</span>';
+    }
+    html += '<div class="msg-card" style="position:relative;">';
+    if (i === 0) html += '<span style="position:absolute;top:8px;right:10px;font-size:10px;background:var(--color-gold);color:#1A1A1A;padding:2px 6px;border-radius:6px;">推荐</span>';
+    html += '<div class="msg-card-title" style="font-size:16px;">' + n.name + '</div>';
+    html += '<div class="score-stars">' + starHtml + '</div>';
+    html += '<div class="msg-card-text">' + n.meaning + '</div>';
+    html += '</div>';
+  });
+  html += '<div style="margin-top:8px;display:flex;gap:8px;">';
+  html += '<button class="btn-chat-quick" onclick="startNaming()">换一批风格</button>';
+  html += '<button class="btn-chat-quick" onclick="showToast(\'已收藏到取名记录\')">收藏</button>';
+  html += '</div>';
+  addMessage('ai', html);
+}
+
+/* ===== Record Memory ===== */
+function startRecordMemory() {
+  addAIMessage('要记录一段回忆吗？太棒了 ✦<br><br>你可以：<br>1. 上传一张照片（即将支持）<br>2. 写一段话描述这个瞬间<br><br>现在可以先输入文字描述，我来帮你整理成回忆卡片～');
+  var input = document.getElementById('chatInput');
+  input.placeholder = '写下这个值得记住的瞬间...';
+  input.focus();
+  input.dataset.memoryMode = 'true';
+  input.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Enter' && input.dataset.memoryMode === 'true') {
+      input.removeEventListener('keydown', handler);
+      input.dataset.memoryMode = '';
+      input.placeholder = '说说青橘今天的情况...';
+      var text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      addUserMessage(text);
+      var typing = addTyping();
+      setTimeout(function() {
+        removeTyping();
+        var html = '<div class="msg-bubble">回忆已收录 ✦ 我会帮你好好保存这段时光。</div>';
+        html += '<div class="msg-card" style="background:rgba(140,173,126,0.06);border-color:rgba(140,173,126,0.2);">';
+        html += '<div class="msg-card-title">📸 新回忆</div>';
+        html += '<div class="msg-card-text">' + text + '</div>';
+        html += '<div style="font-size:10px;color:var(--color-text-dim);margin-top:6px;">已添加到青橘的时光线</div>';
+        html += '</div>';
+        addMessage('ai', html);
+      }, 800);
+    }
+  }, { once: true });
+}
+
+/* ===== Pet Profile Modal ===== */
+var petProfiles = {
+  qingju: {
+    name: '青橘', emoji: '🐕', breed: '金毛寻回犬', age: '2岁', gender: '♂ 男生',
+    color: '#E8A838', weight: '28.0kg', bday: '2024年3月15日', homeSince: '2025年7月1日',
+    personality: '活泼开朗、好奇心强、粘人精', favFood: '鸡胸肉、苹果', favToy: '黄色尖叫鸡',
+    health: '健康分 98 · 疫苗齐全 · 已绝育',
+    notes: '从救助站领养的宝贝，到家时只有6kg，现在已经是个健康的大家伙了。最喜欢的事情是跟小张一起跑步。'
+  },
+  huahua: {
+    name: '花花', emoji: '🐱', breed: '三花猫', age: '3岁', gender: '♀ 女生',
+    color: '#E0856B', weight: '4.2kg', bday: '2023年5月20日', homeSince: '2024年2月14日',
+    personality: '温柔独立、爱晒太阳、偶尔傲娇', favFood: '三文鱼、猫条', favToy: '羽毛逗猫棒',
+    health: '健康分 85 · 术后恢复中 · 已绝育',
+    notes: '两周前做了绝育手术，恢复情况良好。是墨团和小雪的妈妈，性格温柔但也有自己的小脾气。'
+  },
+  motuan: {
+    name: '墨团', emoji: '🐈', breed: '黑猫（孟买猫混血）', age: '8个月', gender: '♂ 男生',
+    color: '#5B9A9B', weight: '3.1kg', bday: '2025年11月8日', homeSince: '2026年1月15日',
+    personality: '调皮好动、话痨、喜欢钻盒子', favFood: '鸡肉冻干', favToy: '激光笔',
+    health: '健康分 72 · 体重偏轻 · 未绝育',
+    notes: '花花的儿子，和小雪是同一胎。体重一直偏轻，最近在调整饮食增加营养。精力旺盛，最喜欢追着激光笔跑。'
+  },
+  xiaoxue: {
+    name: '小雪', emoji: '🐈', breed: '白猫（英短混血）', age: '8个月', gender: '♀ 女生',
+    color: '#8CAD7E', weight: '3.8kg', bday: '2025年11月8日', homeSince: '2026年1月15日',
+    personality: '文静优雅、爱干净、喜欢窗台', favFood: '猫罐头、营养膏', favToy: '毛线球',
+    health: '健康分 95 · 健康成长 · 未绝育',
+    notes: '花花的女儿，毛发纯白如雪。比哥哥墨团安静很多，最喜欢趴在窗台上看外面的鸟。'
+  }
+};
+
+function openPetProfile(petId) {
+  var p = petProfiles[petId];
+  if (!p) return;
+  var html = '';
+  html += '<div class="modal-pet-header">';
+  html += '<div class="modal-pet-avatar" style="background:linear-gradient(135deg,' + p.color + ',rgba(0,0,0,0.3));">' + p.emoji + '</div>';
+  html += '<div><div class="modal-pet-name">' + p.name + '</div><div class="modal-pet-breed">' + p.breed + ' · ' + p.age + ' · ' + p.gender + '</div></div>';
+  html += '</div>';
+  html += '<div class="modal-info-grid">';
+  html += '<div class="modal-info-item"><div class="mii-label">体重</div><div class="mii-val">' + p.weight + '</div></div>';
+  html += '<div class="modal-info-item"><div class="mii-label">生日</div><div class="mii-val">' + p.bday + '</div></div>';
+  html += '<div class="modal-info-item"><div class="mii-label">到家日期</div><div class="mii-val">' + p.homeSince + '</div></div>';
+  html += '<div class="modal-info-item"><div class="mii-label">健康状况</div><div class="mii-val">' + p.health + '</div></div>';
+  html += '</div>';
+  html += '<div class="modal-info-item" style="margin-bottom:8px;"><div class="mii-label">性格特点</div><div class="mii-val">' + p.personality + '</div></div>';
+  html += '<div class="modal-info-item" style="margin-bottom:8px;"><div class="mii-label">最爱食物</div><div class="mii-val">' + p.favFood + '</div></div>';
+  html += '<div class="modal-info-item" style="margin-bottom:8px;"><div class="mii-label">最爱玩具</div><div class="mii-val">' + p.favToy + '</div></div>';
+  html += '<div class="modal-info-item" style="margin-bottom:12px;"><div class="mii-label">小记</div><div class="mii-val" style="font-size:12px;line-height:1.5;">' + p.notes + '</div></div>';
+  html += '<div class="modal-btn-row">';
+  html += '<button class="btn-gold" onclick="showToast(\'编辑功能即将上线\')">编辑档案</button>';
+  html += '<button class="btn-outline" onclick="closePetProfile()">关闭</button>';
+  html += '</div>';
+
+  document.getElementById('petProfileContent').innerHTML = html;
+  document.getElementById('petProfileModal').classList.add('show');
+}
+
+function closePetProfile() {
+  document.getElementById('petProfileModal').classList.remove('show');
+}
+
+/* ===== Utility Functions ===== */
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(function() {
+    toast.style.display = 'none';
+  }, 1800);
+}
+
+function switchToPet(name) {
+  var nameMap = { '青橘': 'qingju', '花花': 'huahua', '墨团': 'motuan', '小雪': 'xiaoxue' };
+  var petId = nameMap[name];
+  if (petId) {
+    closePetProfile();
+    setTimeout(function() { openPetProfile(petId); }, 200);
+  }
+}
+</script>
+</body>
+</html>
