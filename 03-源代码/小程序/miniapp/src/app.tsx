@@ -1,24 +1,23 @@
 import { View, Text } from '@tarojs/components'
-import { PropsWithChildren, useState } from 'react'
+import { PropsWithChildren } from 'react'
 import Taro, { useLaunch } from '@tarojs/taro'
 import { useAuthStore } from './stores/authStore'
 import './app.scss'
+import { useState } from 'react'
 
-function App({ children }: PropsWithChildren<{}>) {
+function AppSafe({ children }: PropsWithChildren<{}>) {
   const [appReady, setAppReady] = useState(false)
 
   useLaunch(() => {
-    useAuthStore.getState().initialize().then(() => {
-      const isAuth = useAuthStore.getState().isAuthenticated
-      if (!isAuth) {
-        Taro.reLaunch({ url: '/pages/login/index' })
-      }
-    }).catch((err) => {
-      // 静默处理初始化错误
-      Taro.reLaunch({ url: '/pages/login/index' })
-    }).finally(() => {
+    try {
+      useAuthStore.getState().initialize().then(() => {
+        setAppReady(true)
+      }).catch(() => {
+        setAppReady(true)
+      })
+    } catch {
       setAppReady(true)
-    })
+    }
   })
 
   if (!appReady) {
@@ -32,4 +31,4 @@ function App({ children }: PropsWithChildren<{}>) {
   return <>{children}</>
 }
 
-export default App
+export default AppSafe
