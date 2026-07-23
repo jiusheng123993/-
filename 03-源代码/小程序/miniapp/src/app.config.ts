@@ -60,6 +60,7 @@ export default defineAppConfig({
         'feeding-advice/index',
         'naming/index',
         'family/dashboard/index',
+        'family/calendar/index',
         'timeline/index',
       ],
     },
