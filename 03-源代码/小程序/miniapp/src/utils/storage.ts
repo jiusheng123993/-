@@ -92,5 +92,3 @@ export function clearAllStorage() {
   })
 }
 
-export function setEncryptionEnabled(_enabled: boolean) {
-}

@@ -1,12 +1,31 @@
-import { chat } from './aiProvider'
+import { chat, guardCheck } from './aiProvider'
+import { checkInput } from '../utils/ruleGuard'
+
+function sanitizeInput(text: string): string {
+  return text.replace(/[<>\n\r]/g, '').substring(0, 50)
+}
 
 export async function interpretName(
   name: string,
   breed: string,
   birthDate: string
 ): Promise<string> {
+  const safeName = sanitizeInput(name)
+  const safeBreed = sanitizeInput(breed)
+  const safeBirthDate = sanitizeInput(birthDate)
+
+  const ruleResult = checkInput(safeName + safeBreed + safeBirthDate)
+  if (ruleResult.blocked) {
+    return '抱歉，检测到不安全的输入，请使用其他名字重试。'
+  }
+
+  const guardResult = await guardCheck(safeName + safeBreed)
+  if (guardResult.isHarmful) {
+    return '抱歉，检测到不安全的输入，请使用其他名字重试。'
+  }
+
   const { buildInterpretPrompt } = await import('../utils/namingPrompts')
-  const prompt = buildInterpretPrompt(name, breed, birthDate)
+  const prompt = buildInterpretPrompt(safeName, safeBreed, safeBirthDate)
   return await chat({
     messages: [
       { role: 'system', content: '你是一位精通中国传统文化的取名大师。' },
@@ -21,9 +40,18 @@ export async function recommendNames(
   birthDate: string,
   gender: string
 ): Promise<string> {
+  const safeBreed = sanitizeInput(breed)
+  const safeBirthDate = sanitizeInput(birthDate)
+  const safeGender = sanitizeInput(gender)
+
+  const ruleResult = checkInput(safeBreed + safeGender)
+  if (ruleResult.blocked) {
+    return '抱歉，检测到不安全的输入，请使用其他内容重试。'
+  }
+
   const { buildRecommendPrompt } = await import('../utils/namingPrompts')
-  const season = getBirthSeason(birthDate)
-  const prompt = buildRecommendPrompt(breed, birthDate, gender, season)
+  const season = getBirthSeason(safeBirthDate)
+  const prompt = buildRecommendPrompt(safeBreed, safeBirthDate, safeGender, season)
   return await chat({
     messages: [
       { role: 'system', content: '你是一位精通中国文化的宠物取名大师。' },

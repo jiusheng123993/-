@@ -34,7 +34,6 @@ import {
   setStorage,
   removeStorage,
   clearAllStorage,
-  setEncryptionEnabled,
   setStorageUserId,
 } from '../storage'
 
@@ -43,7 +42,6 @@ describe('storage', () => {
     Object.keys(mockStore).forEach(k => delete mockStore[k])
     mockEncrypt.mockClear()
     mockDecrypt.mockClear()
-    setEncryptionEnabled(true)
     setStorageUserId('')
   })
 
@@ -123,7 +121,6 @@ describe('storage', () => {
 
   describe('setStorage', () => {
     it('stores JSON string with prefix', () => {
-      setEncryptionEnabled(false)
       setStorage('settings', { theme: 'light' })
       expect(mockStore['xhh_settings']).toBe('{"theme":"light"}')
     })
@@ -136,7 +133,6 @@ describe('storage', () => {
     })
 
     it('does not encrypt when encryption disabled', () => {
-      setEncryptionEnabled(false)
       setStorageUserId('user123')
       setStorage('health_entries', { heartRate: 72 })
       expect(mockEncrypt).not.toHaveBeenCalled()
@@ -178,13 +174,11 @@ describe('storage', () => {
     })
 
     it('stores string values as JSON', () => {
-      setEncryptionEnabled(false)
       setStorage('token', 'abc123')
       expect(mockStore['xhh_token']).toBe('"abc123"')
     })
 
     it('stores null value as JSON', () => {
-      setEncryptionEnabled(false)
       setStorage('nullable', null)
       expect(mockStore['xhh_nullable']).toBe('null')
     })
@@ -229,29 +223,8 @@ describe('storage', () => {
     })
   })
 
-  describe('setEncryptionEnabled', () => {
-    it('disables encryption when set to false', () => {
-      setStorageUserId('user123')
-      setEncryptionEnabled(false)
-      setStorage('health_entries', { data: 'secret' })
-      expect(mockEncrypt).not.toHaveBeenCalled()
-      expect(mockStore['xhh_health_entries']).toBe('{"data":"secret"}')
-    })
-
-    it('re-enables encryption when set to true', () => {
-      setStorageUserId('user123')
-      setEncryptionEnabled(false)
-      setStorage('health_entries', { data: 'a' })
-      expect(mockEncrypt).not.toHaveBeenCalled()
-      setEncryptionEnabled(true)
-      setStorage('health_entries', { data: 'b' })
-      expect(mockEncrypt).toHaveBeenCalledWith('{"data":"b"}', 'user123')
-    })
-  })
-
   describe('setStorageUserId', () => {
     it('enables encryption for sensitive keys when userId is set', () => {
-      setEncryptionEnabled(true)
       setStorage('health_entries', { data: 'before' })
       expect(mockEncrypt).not.toHaveBeenCalled()
       setStorageUserId('user456')
