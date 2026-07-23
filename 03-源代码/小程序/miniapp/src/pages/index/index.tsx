@@ -42,7 +42,7 @@ export default function Index() {
   useEffect(() => {
     if (!isInitialized) return
     if (!isAuthenticated || !user) {
-      Taro.reLaunch({ url: '/pages/login/index' })
+      setPageReady(true)
       return
     }
     const loadData = async () => {
