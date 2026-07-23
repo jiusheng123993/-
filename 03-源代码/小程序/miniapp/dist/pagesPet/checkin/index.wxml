@@ -1,1 +1,2 @@
-<view class="container"><text>pagesPet/checkin/index</text></view>
+<import src="../../base.wxml"/>
+<template is="taro_tmpl" data="{{root:root}}" />

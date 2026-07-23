@@ -1,10 +1,8 @@
 export default defineAppConfig({
   pages: [
-    'pagesPet/chat/index',
-    'pagesPet/family/dashboard/index',
-    'pages/mine/index',
     'pages/index/index',
     'pages/pet-profile/index',
+    'pages/mine/index',
     'pages/member/index',
     'pages/login/index',
   ],
@@ -22,14 +20,14 @@ export default defineAppConfig({
     borderStyle: 'white',
     list: [
       {
-        pagePath: 'pagesPet/chat/index',
-        text: '聊天',
+        pagePath: 'pages/index/index',
+        text: '首页',
         iconPath: 'assets/icons/home.png',
         selectedIconPath: 'assets/icons/home-active.png',
       },
       {
-        pagePath: 'pagesPet/family/dashboard/index',
-        text: '家庭',
+        pagePath: 'pages/pet-profile/index',
+        text: '宠物',
         iconPath: 'assets/icons/pet.png',
         selectedIconPath: 'assets/icons/pet-active.png',
       },
@@ -45,6 +43,7 @@ export default defineAppConfig({
     {
       root: 'pagesPet',
       pages: [
+        'chat/index',
         'add/index',
         'edit/index',
         'breed/index',
@@ -60,6 +59,7 @@ export default defineAppConfig({
         'chronic-tracking/index',
         'feeding-advice/index',
         'naming/index',
+        'family/dashboard/index',
         'family/calendar/index',
         'timeline/index',
       ],

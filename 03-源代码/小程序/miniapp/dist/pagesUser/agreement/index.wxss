@@ -1,1 +1,1 @@
-.container { padding: 40px; text-align: center; color: #8899AA; }
+.agreement-page{background-color:#fff;min-height:100vh}.agreement-page__header{border-bottom:1rpx solid #f0f0f0;padding:32rpx}.agreement-page__title{color:#333;font-size:36rpx;font-weight:700}.agreement-page__content{color:#666;font-size:28rpx;line-height:1.8;padding:32rpx}.agreement-page__content h3{color:#333;font-size:30rpx;font-weight:700;margin:32rpx 0 16rpx}.agreement-page__content p{margin:12rpx 0}
