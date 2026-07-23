@@ -7,17 +7,17 @@ export default defineAppConfig({
     'pages/login/index',
   ],
   window: {
-    navigationBarBackgroundColor: '#F5F7FA',
-    navigationBarTextStyle: 'black',
+    navigationBarBackgroundColor: '#1A2332',
+    navigationBarTextStyle: 'white',
     navigationBarTitleText: '星寰海',
-    backgroundColor: '#F5F7FA',
-    backgroundTextStyle: 'light',
+    backgroundColor: '#0F1724',
+    backgroundTextStyle: 'dark',
   },
   tabBar: {
-    color: '#999',
-    selectedColor: '#C88520',
-    backgroundColor: '#FFF',
-    borderStyle: 'white',
+    color: '#8899AA',
+    selectedColor: '#E8A838',
+    backgroundColor: '#1A2332',
+    borderStyle: 'black',
     list: [
       {
         pagePath: 'pages/index/index',

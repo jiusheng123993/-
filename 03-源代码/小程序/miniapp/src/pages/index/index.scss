@@ -339,29 +339,30 @@
   align-items: center;
   justify-content: space-between;
   padding: $spacing-lg;
-  background: linear-gradient(135deg, #FFF8E8 0%, #FFF0D0 100%);
+  background: linear-gradient(135deg, #2A1F10 0%, #3D2A14 100%);
   border-radius: $radius-md;
+  border: 1px solid rgba($color-primary, 0.2);
   @include press-feedback;
 }
 
 .home-member-level {
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
-  color: $color-text-primary;
+  color: $color-primary-light;
   display: block;
 }
 
 .home-member-hint {
   font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  color: $color-text-secondary;
   margin-top: 4rpx;
   display: block;
 }
 
 .home-member-btn {
   padding: $spacing-sm 28rpx;
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: $color-text-inverse;
+  background: linear-gradient(135deg, #E8A838 0%, #C88520 100%);
+  color: #0F1724;
   font-size: 26rpx;
   font-weight: $font-weight-semibold;
   border-radius: $radius-xl;
