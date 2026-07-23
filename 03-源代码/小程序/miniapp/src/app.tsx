@@ -1,55 +1,51 @@
 import { View, Text } from '@tarojs/components'
-import Taro, { useLaunch, useRouter } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { useAuthStore } from './stores/authStore'
 import './app.scss'
 
 let _ready = false
-let _listeners: Array<() => void> = []
+let _initializing = false
 
-function notifyReady() {
-  _ready = true
-  _listeners.forEach(fn => fn())
-  _listeners = []
-}
-
-function onReady(fn: () => void) {
-  if (_ready) { fn(); return }
-  _listeners.push(fn)
-}
-
-function Initializer({ children }: any) {
-  useLaunch(() => {
-    try {
-      useAuthStore.getState().initialize().then(() => {
-        notifyReady()
-      }).catch(() => {
-        notifyReady()
-      })
-    } catch {
-      notifyReady()
-    }
-  })
-
-  return children
-}
-
-class App extends Taro.Component<any, { ready: boolean }> {
-  state = { ready: false }
-  _unsub: (() => void) | null = null
-
-  componentDidMount() {
-    this._unsub = this.forceUpdate.bind(this)
-    onReady(() => {
-      this.setState({ ready: true })
+function initApp() {
+  if (_initializing || _ready) return
+  _initializing = true
+  try {
+    useAuthStore.getState().initialize().then(() => {
+      _ready = true
+    }).catch(() => {
+      _ready = true
     })
+  } catch {
+    _ready = true
+  }
+}
+
+class App extends Taro.Component<
+  { children?: Taro.ReactNode },
+  { ready: boolean }
+> {
+  state: { ready: boolean } = { ready: false }
+
+  constructor(props: any) {
+    super(props)
+    initApp()
   }
 
-  componentWillUnmount() {
-    this._unsub = null
+  componentDidMount() {
+    this.checkReady()
+  }
+
+  checkReady = () => {
+    if (_ready) {
+      this.setState({ ready: true })
+    } else {
+      setTimeout(() => this.checkReady(), 100)
+    }
   }
 
   render() {
-    if (!this.state.ready) {
+    if (!this.state.ready && !_ready) {
+      this.checkReady()
       return (
         <View className='app-loading'>
           <Text>星寰海</Text>
@@ -57,12 +53,7 @@ class App extends Taro.Component<any, { ready: boolean }> {
       )
     }
 
-    const { children } = this.props
-    return (
-      <Initializer>
-        {children}
-      </Initializer>
-    )
+    return this.props.children || null
   }
 }
 
