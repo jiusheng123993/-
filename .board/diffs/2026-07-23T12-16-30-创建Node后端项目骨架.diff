@@ -1,0 +1,6 @@
+# 改动说明
+# 问题：创建Node后端项目骨架
+# 原因：在 03-源代码/server 下创建 Node.js + Express + TypeScript + PostgreSQL 项目基础文件：package.json, tsconfig.json, .env.example, config.ts, db.ts, migrate.ts, auth中间件, error中间件, index.ts 入口
+# 改动：
+#   1. 创建Node后端项目骨架
+# 影响：在 03-源代码/server 下创建 Node.js + Express + TypeScript + PostgreSQL 项目基础文件：package.json, tsconfig.json, .env.example, config.ts, db.ts, migrate.ts, auth中间件, error中间件, index.ts 入口

@@ -1,7 +1,6 @@
 import Taro from '@tarojs/taro'
 import { getStorage, setStorage } from '../utils/storage'
-import { supabaseClient } from './supabaseClient'
-import { ENV, STORAGE_KEYS } from '../config/supabase'
+import { api } from './api'
 import {
   type DataExportResult,
   type DataDeleteResult,
@@ -12,8 +11,6 @@ import {
 
 const PRIVACY_STATUS_KEY = 'data_privacy_status'
 const DELETION_CONFIRM_KEY = 'account_deletion_confirm_code'
-
-const currentEnv = ENV[process.env.NODE_ENV || 'development'] || ENV.development
 
 const ALL_USER_TABLES = [
   'pet_profiles',
@@ -68,11 +65,28 @@ export async function exportAllUserData(userId: string): Promise<DataExportResul
     const allData: Record<string, unknown[]> = {}
     let totalRecords = 0
 
+    const exportEndpoints: Record<string, () => Promise<unknown[]>> = {
+      pet_profiles: async () => {
+        try { return await api.get('/api/pets') as unknown[]; } catch { return []; }
+      },
+      memberships: async () => {
+        try { const r = await api.get('/api/membership/status'); return [r]; } catch { return []; }
+      },
+      pet_food_queries: async () => {
+        try { return await api.get('/api/food/history') as unknown[]; } catch { return []; }
+      },
+    }
+
     for (const table of EXPORT_TABLES) {
       try {
-        const result = await supabaseClient.select(table, { user_id: `eq.${userId}` })
-        allData[table] = result.data || []
-        totalRecords += (result.data || []).length
+        const fetcher = exportEndpoints[table]
+        if (fetcher) {
+          const data = await fetcher()
+          allData[table] = data
+          totalRecords += data.length
+        } else {
+          allData[table] = []
+        }
       } catch {
         allData[table] = []
       }
@@ -136,9 +150,14 @@ export async function deleteUserData(
 
     for (const table of tablesToDelete) {
       try {
-        await supabaseClient.delete(table, { user_id: `eq.${userId}` })
-        deletedTables.push(table)
-        deletedRecords += 1
+        if (table === 'pet_profiles') {
+          const pets = await api.get<Array<{ id: string }>>('/api/pets')
+          for (const pet of pets) {
+            await api.delete(`/api/pets/${pet.id}`)
+            deletedRecords++
+          }
+          deletedTables.push(table)
+        }
       } catch {
         // empty tables may fail, ignore
       }
@@ -192,40 +211,22 @@ export async function requestAccountDeletion(
   }
 
   try {
-    const token = Taro.getStorageSync(STORAGE_KEYS.TOKEN)
-
-    const res = await Taro.request({
-      url: `${currentEnv.apiBaseUrl}/api/auth/delete-account`,
-      method: 'POST',
-      data: {
-        reason: request.reason,
-        custom_reason: request.customReason,
-      },
-      header: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    await api.post('/api/auth/delete-account', {
+      reason: request.reason,
+      custom_reason: request.customReason,
     })
 
-    if (res.statusCode === 200 || currentEnv.useMock) {
-      const scheduledAt = new Date()
-      scheduledAt.setDate(scheduledAt.getDate() + 30)
+    const scheduledAt = new Date()
+    scheduledAt.setDate(scheduledAt.getDate() + 30)
 
-      const status = getPrivacyStatus()
-      status.accountDeletionRequested = true
-      status.accountDeletionScheduledAt = scheduledAt.toISOString()
-      savePrivacyStatus(status)
-
-      return {
-        success: true,
-        scheduledDeletionAt: scheduledAt.toISOString(),
-        gracePeriodDays: 30,
-      }
-    }
+    const status = getPrivacyStatus()
+    status.accountDeletionRequested = true
+    status.accountDeletionScheduledAt = scheduledAt.toISOString()
+    savePrivacyStatus(status)
 
     return {
-      success: false,
-      error: res.data?.error || '注销请求失败',
+      success: true,
+      scheduledDeletionAt: scheduledAt.toISOString(),
       gracePeriodDays: 30,
     }
   } catch (error) {
@@ -239,26 +240,13 @@ export async function requestAccountDeletion(
 
 export async function cancelAccountDeletion(userId: string): Promise<boolean> {
   try {
-    const token = Taro.getStorageSync(STORAGE_KEYS.TOKEN)
+    await api.post('/api/auth/cancel-deletion')
 
-    const res = await Taro.request({
-      url: `${currentEnv.apiBaseUrl}/api/auth/cancel-deletion`,
-      method: 'POST',
-      header: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (res.statusCode === 200 || currentEnv.useMock) {
-      const status = getPrivacyStatus()
-      status.accountDeletionRequested = false
-      status.accountDeletionScheduledAt = null
-      savePrivacyStatus(status)
-      return true
-    }
-
-    return false
+    const status = getPrivacyStatus()
+    status.accountDeletionRequested = false
+    status.accountDeletionScheduledAt = null
+    savePrivacyStatus(status)
+    return true
   } catch {
     return false
   }

@@ -1,11 +1,10 @@
 import Taro from '@tarojs/taro';
-import { supabaseClient } from './supabaseClient';
+import { api } from './api';
 import {
   INVITE_CODE_LENGTH,
   INVITE_CODE_MAX_USE,
   SHARE_REWARD_INVITES,
 } from '../constants';
-import { getEdgeFunctionUrl } from '../config/supabase';
 import type {
   ShareCardType,
   ShareRecord,
@@ -31,20 +30,17 @@ export async function getOrCreateInviteCode(userId: string): Promise<string> {
   const cached = Taro.getStorageSync(INVITE_CODE_KEY);
   if (cached) return cached;
 
-  const result = await supabaseClient.select<InviteCode>(
-    'invite_codes',
-    { user_id: `eq.${userId}` }
-  );
-  if (result.data && result.data.length > 0) {
-    Taro.setStorageSync(INVITE_CODE_KEY, result.data[0].code);
-    return result.data[0].code;
+  try {
+    const result = await api.get<{ code: string }>('/api/invite-code')
+    if (result.code) {
+      Taro.setStorageSync(INVITE_CODE_KEY, result.code);
+      return result.code;
+    }
+  } catch {
+    // fall through to local generation
   }
 
   const code = generateInviteCode();
-  await supabaseClient.insert(
-    'invite_codes',
-    { code, user_id: userId, use_count: 0, max_use_count: INVITE_CODE_MAX_USE }
-  );
   Taro.setStorageSync(INVITE_CODE_KEY, code);
   return code;
 }
@@ -57,26 +53,23 @@ export async function recordShare(
 ): Promise<ShareRecord | null> {
   const inviteCode = await getOrCreateInviteCode(userId);
 
-  const result = await supabaseClient.insert(
-    'share_records',
-    {
+  try {
+    const record = await api.post<ShareRecord>('/api/shares', {
       user_id: userId,
       card_type: cardType,
       pet_id: petId,
       platform,
       invite_code: inviteCode,
-    }
-  );
+    });
 
-  const record = (result.data as ShareRecord[] | null)?.[0] || null;
-
-  const history: ShareRecord[] = Taro.getStorageSync(SHARE_HISTORY_KEY) || [];
-  if (record) {
+    const history: ShareRecord[] = Taro.getStorageSync(SHARE_HISTORY_KEY) || [];
     history.push(record);
     Taro.setStorageSync(SHARE_HISTORY_KEY, history);
-  }
 
-  return record;
+    return record;
+  } catch {
+    return null;
+  }
 }
 
 export async function getShareStats(userId: string): Promise<ShareStats> {
@@ -87,54 +80,43 @@ export async function getShareStats(userId: string): Promise<ShareStats> {
   const vaccineShares = history.filter(r => r.cardType === 'vaccine').length;
   const achievementShares = history.filter(r => r.cardType === 'achievement').length;
 
-  const referralsResult = await supabaseClient.select<ReferralRecord>(
-    'referral_records',
-    { inviter_id: `eq.${userId}` }
-  );
-
-  const referrals = referralsResult.data || [];
-
-  return {
-    totalShares: history.length,
-    foodShares,
-    trendShares,
-    vaccineShares,
-    achievementShares,
-    totalInvites: referrals.length,
-    successfulInvites: referrals.filter(r => r.rewardGranted).length,
-  };
+  try {
+    const referrals = await api.get<ReferralRecord[]>('/api/referrals')
+    return {
+      totalShares: history.length,
+      foodShares,
+      trendShares,
+      vaccineShares,
+      achievementShares,
+      totalInvites: referrals.length,
+      successfulInvites: referrals.filter(r => r.rewardGranted).length,
+    };
+  } catch {
+    return {
+      totalShares: history.length,
+      foodShares,
+      trendShares,
+      vaccineShares,
+      achievementShares,
+      totalInvites: 0,
+      successfulInvites: 0,
+    };
+  }
 }
 
 export async function processReferral(
   inviteCode: string,
   newUserId: string
 ): Promise<boolean> {
-  const codeResult = await supabaseClient.selectOne<InviteCode>(
-    'invite_codes',
-    { code: `eq.${inviteCode}` }
-  );
-
-  if (!codeResult.data || codeResult.data.useCount >= codeResult.data.maxUseCount) {
+  try {
+    await api.post('/api/referrals/process', {
+      invite_code: inviteCode,
+      invitee_id: newUserId,
+    });
+    return true;
+  } catch {
     return false;
   }
-
-  await supabaseClient.insert(
-    'referral_records',
-    {
-      inviter_id: codeResult.data.userId,
-      invitee_id: newUserId,
-      invite_code: inviteCode,
-      reward_granted: false,
-    }
-  );
-
-  await supabaseClient.update(
-    'invite_codes',
-    { use_count: codeResult.data.useCount + 1 },
-    { code: `eq.${inviteCode}` }
-  );
-
-  return true;
 }
 
 export function getLocalShareHistory(): ShareRecord[] {
@@ -147,33 +129,19 @@ export function clearLocalShareHistory(): void {
 
 export async function grantShareReward(userId: string): Promise<ShareRewardResult> {
   try {
-    const token = Taro.getStorageSync('xhh_token');
+    const result = await api.post<{
+      success?: boolean;
+      rewardType?: string;
+      rewardValue?: number;
+      error?: string;
+    }>('/api/shares/grant-reward')
 
-    const res = await Taro.request({
-      url: getEdgeFunctionUrl('share-grant-reward'),
-      method: 'POST',
-      data: {},
-      header: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      },
-    });
-
-    if (res.statusCode === 200 && res.data?.success) {
+    if (result.success) {
       return {
         rewardGranted: true,
-        rewardType: res.data.rewardType || 'membership_days',
-        rewardValue: res.data.rewardValue || 7,
+        rewardType: result.rewardType || 'membership_days',
+        rewardValue: result.rewardValue || 7,
         message: `邀请${SHARE_REWARD_INVITES}位好友，奖励7天会员`,
-      };
-    }
-
-    if (res.statusCode === 200 && res.data?.error) {
-      return {
-        rewardGranted: false,
-        rewardType: 'none',
-        rewardValue: 0,
-        message: res.data.error as string,
       };
     }
 
@@ -181,7 +149,7 @@ export async function grantShareReward(userId: string): Promise<ShareRewardResul
       rewardGranted: false,
       rewardType: 'none',
       rewardValue: 0,
-      message: '奖励发放失败',
+      message: (result as { error?: string }).error || '奖励发放失败',
     };
   } catch {
     return {

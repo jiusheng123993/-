@@ -1,6 +1,7 @@
 // 星寰海 v2.0 - 认证服务
 import Taro from '@tarojs/taro';
-import { supabaseAuth } from '../config/supabase';
+import { api } from './api';
+import { storage } from '../utils/storage';
 import type { User as UserProfile } from '../types';
 
 /** 登录结果 */
@@ -23,17 +24,20 @@ export async function loginWithCode(): Promise<LoginResult> {
       return { success: false, error: '未获取到微信登录凭证' };
     }
 
-    // 2. 将 code 发送到后端换取 openid 和 token
-    const result = await supabaseAuth.loginWithCode(code);
+    // 2. 将 code 发送到后端换取 token
+    const result = await api.post<{ token: string; user: { id: string; nickname?: string; avatarUrl?: string } }>(
+      '/api/auth/login',
+      { provider: 'wechat', code }
+    );
 
-    if (result.success && result.token && result.user) {
-      const raw = result.user;
+    if (result.token && result.user) {
       const user: UserProfile = {
-        id: raw.id,
-        nickname: raw.nickname ?? '',
-        avatar: raw.avatarUrl ?? '',
+        id: result.user.id,
+        nickname: result.user.nickname ?? '',
+        avatar: result.user.avatarUrl ?? '',
         createdAt: new Date().toISOString(),
       };
+      storage.setToken(result.token);
       return {
         success: true,
         token: result.token,
@@ -41,7 +45,7 @@ export async function loginWithCode(): Promise<LoginResult> {
       };
     }
 
-    return { success: false, error: result.error || '登录失败' };
+    return { success: false, error: '登录失败' };
   } catch (err) {
     return {
       success: false,
@@ -55,10 +59,9 @@ export async function loginWithCode(): Promise<LoginResult> {
  */
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   try {
-    const result = await supabaseAuth.getUserProfile(userId);
+    const raw = await api.get<{ id: string; nickname?: string; avatarUrl?: string }>('/api/auth/profile');
 
-    if (result.success && result.user) {
-      const raw = result.user;
+    if (raw) {
       const user: UserProfile = {
         id: raw.id,
         nickname: raw.nickname ?? '',
@@ -75,7 +78,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 }
 
 /**
- * 刷新 Token
+ * 刷新 Token（当前后端未提供专用刷新端点，保留接口兼容）
  */
 export async function refreshToken(refreshToken: string): Promise<{
   success: boolean;
@@ -83,8 +86,12 @@ export async function refreshToken(refreshToken: string): Promise<{
   error?: string;
 }> {
   try {
-    const result = await supabaseAuth.refreshToken(refreshToken);
-    return result;
+    const result = await api.post<{ token: string }>('/api/auth/refresh', { refreshToken });
+    if (result.token) {
+      storage.setToken(result.token);
+      return { success: true, token: result.token };
+    }
+    return { success: false, error: '刷新失败' };
   } catch (err) {
     return {
       success: false,
@@ -97,5 +104,5 @@ export async function refreshToken(refreshToken: string): Promise<{
  * 退出登录
  */
 export async function logout(): Promise<void> {
-  await supabaseAuth.logout();
+  storage.removeToken();
 }

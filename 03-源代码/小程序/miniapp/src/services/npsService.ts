@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro';
-import { supabaseClient } from './supabaseClient';
+import { api } from './api';
 import {
   NPS_COOLDOWN_DAYS,
   NPS_DAY7_TRIGGER,
@@ -72,28 +72,36 @@ export async function submitNpsResponse(
     return null;
   }
 
-  const result = await supabaseClient.insert(
-    'nps_responses',
-    {
+  try {
+    const response = await api.post<NpsResponse>('/api/nps/responses', {
       user_id: userId,
       score,
       trigger_event: triggerEvent,
       feedback,
-    }
-  );
+    });
 
-  const response = (result.data as NpsResponse[] | null)?.[0] || null;
+    const statusData = Taro.getStorageSync(NPS_STATUS_KEY) || {};
+    Taro.setStorageSync(NPS_STATUS_KEY, {
+      lastSurveyAt: new Date().toISOString(),
+      lastScore: score,
+      totalSurveys: (statusData.totalSurveys || 0) + 1,
+    });
 
-  const statusData = Taro.getStorageSync(NPS_STATUS_KEY) || {};
-  Taro.setStorageSync(NPS_STATUS_KEY, {
-    lastSurveyAt: new Date().toISOString(),
-    lastScore: score,
-    totalSurveys: (statusData.totalSurveys || 0) + 1,
-  });
+    Taro.removeStorageSync(NPS_DISMISSED_KEY);
 
-  Taro.removeStorageSync(NPS_DISMISSED_KEY);
+    return response;
+  } catch {
+    const statusData = Taro.getStorageSync(NPS_STATUS_KEY) || {};
+    Taro.setStorageSync(NPS_STATUS_KEY, {
+      lastSurveyAt: new Date().toISOString(),
+      lastScore: score,
+      totalSurveys: (statusData.totalSurveys || 0) + 1,
+    });
 
-  return response;
+    Taro.removeStorageSync(NPS_DISMISSED_KEY);
+
+    return null;
+  }
 }
 
 export function dismissNpsSurvey(): void {

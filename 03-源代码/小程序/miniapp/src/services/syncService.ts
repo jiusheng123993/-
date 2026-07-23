@@ -1,4 +1,4 @@
-import { supabaseClient } from './supabaseClient'
+import { api } from './api'
 import { encrypt, decrypt } from '../utils/crypto'
 import { getStorage, setStorage } from '../utils/storage'
 
@@ -44,6 +44,16 @@ const SENSITIVE_TABLES: SyncTable[] = [
   'emotion_triggers',
   'pet_grief_sessions'
 ]
+
+const TABLE_ENDPOINTS: Record<SyncTable, { list: string; item: (id: string) => string } | null> = {
+  pet_profiles: { list: '/api/pets', item: (id: string) => `/api/pets/${id}` },
+  pet_health_entries: { list: '/api/checkins', item: (id: string) => `/api/checkins/${id}` },
+  pet_vaccinations: { list: '/api/vaccines', item: (id: string) => `/api/vaccines/${id}` },
+  pet_symptom_checks: { list: '/api/symptom-checks', item: (id: string) => `/api/symptom-checks/${id}` },
+  pet_food_queries: { list: '/api/food-queries', item: (id: string) => `/api/food-queries/${id}` },
+  emotion_triggers: null,
+  pet_grief_sessions: null,
+}
 
 function getSyncTimestamps(): Record<string, string> {
   return getStorage<Record<string, string>>(SYNC_LAST_KEY) || {}
@@ -101,7 +111,7 @@ export class SyncService {
   }
 
   isAvailable(): boolean {
-    return !supabaseClient.isMock && !!this.userId
+    return !!this.userId
   }
 
   queueForSync(table: SyncTable, recordId: string, action: 'insert' | 'update' | 'delete', data: unknown): void {
@@ -133,6 +143,11 @@ export class SyncService {
       return { pushed: 0, error: '云端不可用' }
     }
 
+    const mapping = TABLE_ENDPOINTS[table]
+    if (!mapping) {
+      return { pushed: 0, error: '不支持的表' }
+    }
+
     const queue = getSyncQueue()
     const pending = queue.filter((r) => r.table_name === table && !r.synced)
 
@@ -148,23 +163,16 @@ export class SyncService {
         const parsed = JSON.parse(record.data)
 
         if (record.action === 'delete') {
-          const result = await supabaseClient.delete(table, { id: `eq.${record.record_id}` })
-          if (result.error) {
-            lastError = result.error
-            continue
-          }
+          await api.delete(mapping.item(record.record_id))
         } else {
           const { userId: _parsedUserId, ...restData } = parsed
-          const result = await supabaseClient.upsert(table, {
+          const payload = {
             ...restData,
             id: record.record_id,
             userId: this.userId,
             syncedAt: new Date().toISOString()
-          })
-          if (result.error) {
-            lastError = result.error
-            continue
           }
+          await api.put(mapping.item(record.record_id), payload)
         }
 
         record.synced = true
@@ -188,34 +196,26 @@ export class SyncService {
       return { pulled: 0, error: '云端不可用' }
     }
 
+    const mapping = TABLE_ENDPOINTS[table]
+    if (!mapping) {
+      return { pulled: 0, error: null }
+    }
+
     try {
-      const lastTimestamp = getSyncTimestamps()[table]
-      const params: Record<string, string> = {
-        user_id: `eq.${this.userId}`,
-        order: 'updated_at.desc',
-        limit: '100'
-      }
-      if (lastTimestamp) {
-        params.updated_at = `gt.${lastTimestamp}`
-      }
+      const params: Record<string, string> = { limit: '100' }
+      const result = await api.get<Record<string, unknown>[]>(mapping.list, params)
 
-      const result = await supabaseClient.select<Record<string, unknown>>(table, params)
-
-      if (result.error) {
-        return { pulled: 0, error: result.error }
-      }
-
-      if (!result.data || result.data.length === 0) {
+      if (!result || result.length === 0) {
         return { pulled: 0, error: null }
       }
 
       let pulled = 0
-      for (const record of result.data) {
+      for (const record of result) {
         try {
           let data = record
 
-          if (SENSITIVE_TABLES.includes(table) && record.data) {
-            const decrypted = this.decryptData(record.data as string)
+          if (SENSITIVE_TABLES.includes(table) && (record as Record<string, unknown>).data) {
+            const decrypted = this.decryptData((record as Record<string, unknown>).data as string)
             if (decrypted) {
               data = { ...record, data: decrypted }
             }
@@ -342,17 +342,22 @@ export class SyncService {
       'pet_health_entries',
       'pet_vaccinations',
       'pet_symptom_checks',
-      'pet_food_queries',
-      'emotion_triggers',
-      'pet_grief_sessions'
+      'pet_food_queries'
     ]
 
     let lastError: string | null = null
 
     for (const table of tables) {
-      const result = await supabaseClient.delete(table, { user_id: `eq.${this.userId}` })
-      if (result.error) {
-        lastError = result.error
+      const mapping = TABLE_ENDPOINTS[table]
+      if (!mapping) continue
+
+      try {
+        const records = await api.get<Array<{ id: string }>>(mapping.list)
+        for (const record of records) {
+          await api.delete(mapping.item(record.id))
+        }
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : '删除失败'
       }
     }
 

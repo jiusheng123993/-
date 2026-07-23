@@ -1,0 +1,161 @@
+import { config } from '../config.js';
+
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatOptions {
+  temperature?: number;
+  max_tokens?: number;
+}
+
+export interface GuardResult {
+  isHarmful: boolean;
+  score: number;
+  isCrisis: boolean;
+}
+
+export interface GuardOutputResult {
+  isUnsafeMedicalAdvice: boolean;
+}
+
+interface ChatCompletionResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+function getApiKey(): string {
+  return config.ai.apiKey || '';
+}
+
+function getBaseUrl(): string {
+  return config.ai.baseUrl || 'https://api.deepseek.com/v1';
+}
+
+function getModel(): string {
+  return config.ai.model || 'deepseek-chat';
+}
+
+export async function chat(
+  messages: ChatMessage[],
+  options?: ChatOptions,
+): Promise<string> {
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    return 'AI 服务暂未配置，请联系管理员设置 AI_API_KEY 环境变量。';
+  }
+
+  const temperature = options?.temperature ?? 0.7;
+  const maxTokens = options?.max_tokens ?? 1024;
+
+  const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: getModel(),
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`AI API error: ${response.status} ${errorText}`);
+  }
+
+  const data = (await response.json()) as ChatCompletionResponse;
+  return data.choices[0].message.content;
+}
+
+export async function guardCheck(text: string): Promise<GuardResult> {
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    return { isHarmful: false, score: 0, isCrisis: false };
+  }
+
+  const guardPrompt =
+    '你是一个安全检测助手。请分析以下用户输入是否包含有害意图（0-10分）以及是否处于情绪危机状态。只回复JSON格式：{"score":<0-10>,"isCrisis":<true/false>}';
+
+  const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: getModel(),
+      messages: [
+        { role: 'system', content: guardPrompt },
+        { role: 'user', content: text },
+      ],
+      temperature: 0,
+      max_tokens: 100,
+    }),
+  });
+
+  if (!response.ok) {
+    return { isHarmful: false, score: 0, isCrisis: false };
+  }
+
+  const data = (await response.json()) as ChatCompletionResponse;
+  try {
+    const parsed = JSON.parse(data.choices[0].message.content);
+    return {
+      isHarmful: (parsed.score as number) >= 5,
+      score: parsed.score as number,
+      isCrisis: parsed.isCrisis as boolean,
+    };
+  } catch {
+    return { isHarmful: false, score: 0, isCrisis: false };
+  }
+}
+
+export async function guardCheckOutput(text: string): Promise<GuardOutputResult> {
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    return { isUnsafeMedicalAdvice: false };
+  }
+
+  const prompt =
+    '你是一个安全检测助手。请分析以下AI回答是否包含不安全的医疗建议（如推荐具体药物、处方、替代兽医诊断等）。只回复JSON格式：{"isUnsafeMedicalAdvice":<true/false>}';
+
+  const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: getModel(),
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: text },
+      ],
+      temperature: 0,
+      max_tokens: 50,
+    }),
+  });
+
+  if (!response.ok) {
+    return { isUnsafeMedicalAdvice: false };
+  }
+
+  const data = (await response.json()) as ChatCompletionResponse;
+  try {
+    const parsed = JSON.parse(data.choices[0].message.content);
+    return { isUnsafeMedicalAdvice: parsed.isUnsafeMedicalAdvice as boolean };
+  } catch {
+    return { isUnsafeMedicalAdvice: false };
+  }
+}

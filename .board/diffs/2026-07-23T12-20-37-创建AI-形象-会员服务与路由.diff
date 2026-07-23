@@ -1,0 +1,20 @@
+diff --git a/.board/index.html b/.board/index.html
+index f54c37a..6f594e3 100644
+--- a/.board/index.html
++++ b/.board/index.html
+@@ -744,7 +744,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ <div class="card">
+ <div class="card-title">📜 历史时间线</div>
+ <div class="timeline">
+-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <div class="tl-item done" data-diff="2026-07-23T11-41-34-创建家庭日历页面.diff">
++                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="tl-item done" data-diff="2026-07-23T12-16-30-创建Node后端项目骨架.diff">
++            <div class="tl-time">2026-07-23 20:16</div>
++            <div class="tl-title">创建Node后端项目骨架</div>
++            <div class="tl-desc">在 03-源代码/server 下创建 Node.js + Express + TypeScript + PostgreSQL 项目基础文件：package.json, tsconfig.json, .env.example, config.ts, db.ts, migrate.ts, auth中间件, error中间件, index.ts 入口</div>
++            <div class="tl-file">03-源代码/server/package.json, 03-源代码/server/tsconfig.json, 03-源代码/server/.env.example, 03-源代码/server/src/config.ts, 03-源代码/server/src/db.ts, 03-源代码/server/src/migrate.ts, 03-源代码/server/src/middleware/auth.ts, 03-源代码/server/src/middleware/error.ts, 03-源代码/server/src/index.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T12-16-30-创建Node后端项目骨架.diff', '创建Node后端项目骨架')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-23T11-41-34-创建家庭日历页面.diff">
+             <div class="tl-time">2026-07-23 19:41</div>
+             <div class="tl-title">创建家庭日历页面</div>
+             <div class="tl-desc">新增family/calendar页面，含月视图日历、事件标注、数据从familyStore+vaccineService获取</div>

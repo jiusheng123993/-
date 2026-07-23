@@ -1,56 +1,33 @@
-import { supabaseClient } from './supabaseClient'
+import { api } from './api'
 import type { PetFamily, PetFamilyMember, PetLineage } from '../types/familyTypes'
 
 export const familyService = {
   async getFamilies(): Promise<PetFamily[]> {
-    const { data, error } = await supabaseClient.select<PetFamily>('pet_families', {
-      order: 'created_at.desc',
-    })
-    if (error) throw new Error(error)
+    const data = await api.get<PetFamily[]>('/api/families')
     return data || []
   },
 
   async createFamily(name: string): Promise<PetFamily> {
-    const { data, error } = await supabaseClient.insert<PetFamily>('pet_families', {
-      name,
-    } as any)
-    if (error) throw new Error(error)
-    return (data || [])[0] as PetFamily
+    const data = await api.post<PetFamily>('/api/families', { name })
+    return data
   },
 
   async getMembers(familyId: string): Promise<PetFamilyMember[]> {
-    const { data, error } = await supabaseClient.select<PetFamilyMember>(
-      'pet_family_members',
-      { family_id: `eq.${familyId}` },
-    )
-    if (error) throw new Error(error)
+    const data = await api.get<PetFamilyMember[]>(`/api/families/${familyId}/members`)
     return data || []
   },
 
   async addMember(familyId: string, petId: string, role?: string): Promise<void> {
-    const { error } = await supabaseClient.insert('pet_family_members', {
-      family_id: familyId,
-      pet_id: petId,
-      role,
-    })
-    if (error) throw new Error(error)
+    await api.post(`/api/families/${familyId}/members`, { pet_id: petId, role })
   },
 
   async getLineage(
     petId: string,
   ): Promise<{ parents: PetLineage[]; children: PetLineage[] }> {
-    const [parentRes, childRes] = await Promise.all([
-      supabaseClient.select<PetLineage>('pet_lineage', {
-        child_id: `eq.${petId}`,
-      }),
-      supabaseClient.select<PetLineage>('pet_lineage', {
-        parent_id: `eq.${petId}`,
-      }),
-    ])
-    return {
-      parents: parentRes.data || [],
-      children: childRes.data || [],
-    }
+    const data = await api.get<{ parents: PetLineage[]; children: PetLineage[] }>(
+      `/api/pets/${petId}/lineage`
+    )
+    return { parents: data?.parents || [], children: data?.children || [] }
   },
 
   async addLineage(
@@ -58,11 +35,10 @@ export const familyService = {
     childId: string,
     litterDate?: string,
   ): Promise<void> {
-    const { error } = await supabaseClient.insert('pet_lineage', {
+    await api.post(`/api/pets/${childId}/lineage`, {
       parent_id: parentId,
       child_id: childId,
       litter_date: litterDate,
     })
-    if (error) throw new Error(error)
   },
 }

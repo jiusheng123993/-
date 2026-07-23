@@ -744,7 +744,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
 <div class="card-title">📜 历史时间线</div>
 <div class="timeline">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <div class="tl-item done" data-diff="2026-07-23T11-41-34-创建家庭日历页面.diff">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="tl-item done" data-diff="2026-07-23T12-31-07-Supabase-自家后端迁移完成.diff">
+            <div class="tl-time">2026-07-23 20:31</div>
+            <div class="tl-title">Supabase→自家后端迁移完成</div>
+            <div class="tl-desc">数据库从Supabase迁移到自有Node.js+PostgreSQL后端。新增server目录(11个路由组+AI代理+JWT认证)，前端Service层全部迁移，删除supabaseClient/supabase配置，AI Key从前端剥离到后端</div>
+            <div class="tl-file">server/src, 小程序/src/services, 小程序/src/config</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T12-31-07-Supabase-自家后端迁移完成.diff', 'Supabase→自家后端迁移完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T12-28-49-services层supabaseClient迁移至api统.diff">
+            <div class="tl-time">2026-07-23 20:28</div>
+            <div class="tl-title">services层supabaseClient迁移至api统一HTTP层</div>
+            <div class="tl-desc">将8个service文件中的supabaseClient调用全部改为api.get/post/put/delete，统一通过api.ts进行后端API调用，自动注入token。涉及authService/avatarService/dataPrivacyService/familyService/syncService/shareService/timelineService/npsService</div>
+            <div class="tl-file">src/services/authService.ts, src/services/avatarService.ts, src/services/dataPrivacyService.ts, src/services/familyService.ts, src/services/syncService.ts, src/services/shareService.ts, src/services/timelineService.ts, src/services/npsService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T12-28-49-services层supabaseClient迁移至api统.diff', 'services层supabaseClient迁移至api统一HTTP层')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T12-22-22-创建宠物管家路由模块.diff">
+            <div class="tl-time">2026-07-23 20:22</div>
+            <div class="tl-title">创建宠物管家路由模块</div>
+            <div class="tl-desc">创建4个路由文件：symptoms.ts(症状初筛)、vaccines.ts(疫苗驱虫)、trends.ts(健康趋势)、families.ts(宠物家庭)，均通过TypeScript编译验证</div>
+            <div class="tl-file">src/routes/symptoms.ts, src/routes/vaccines.ts, src/routes/trends.ts, src/routes/families.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T12-22-22-创建宠物管家路由模块.diff', '创建宠物管家路由模块')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T12-20-37-创建AI-形象-会员服务与路由.diff">
+            <div class="tl-time">2026-07-23 20:20</div>
+            <div class="tl-title">创建AI/形象/会员服务与路由</div>
+            <div class="tl-desc">新增 aiService、avatarService、AI路由、形象路由、会员路由，config.ts AI默认值改为DeepSeek</div>
+            <div class="tl-file">server/src/services/aiService.ts, server/src/services/avatarService.ts, server/src/routes/ai.ts, server/src/routes/avatar.ts, server/src/routes/membership.ts, server/src/config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T12-20-37-创建AI-形象-会员服务与路由.diff', '创建AI/形象/会员服务与路由')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T12-16-30-创建Node后端项目骨架.diff">
+            <div class="tl-time">2026-07-23 20:16</div>
+            <div class="tl-title">创建Node后端项目骨架</div>
+            <div class="tl-desc">在 03-源代码/server 下创建 Node.js + Express + TypeScript + PostgreSQL 项目基础文件：package.json, tsconfig.json, .env.example, config.ts, db.ts, migrate.ts, auth中间件, error中间件, index.ts 入口</div>
+            <div class="tl-file">03-源代码/server/package.json, 03-源代码/server/tsconfig.json, 03-源代码/server/.env.example, 03-源代码/server/src/config.ts, 03-源代码/server/src/db.ts, 03-源代码/server/src/migrate.ts, 03-源代码/server/src/middleware/auth.ts, 03-源代码/server/src/middleware/error.ts, 03-源代码/server/src/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T12-16-30-创建Node后端项目骨架.diff', '创建Node后端项目骨架')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T11-41-34-创建家庭日历页面.diff">
             <div class="tl-time">2026-07-23 19:41</div>
             <div class="tl-title">创建家庭日历页面</div>
             <div class="tl-desc">新增family/calendar页面，含月视图日历、事件标注、数据从familyStore+vaccineService获取</div>

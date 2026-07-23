@@ -3,7 +3,7 @@ import { getPetFaceDataUri } from '../engines/petAvatar/svgRenderer'
 import { calculateExpression } from '../engines/petAvatar/expressionEngine'
 import { generateDiaryForToday } from '../engines/petAvatar/diaryEngine'
 import { seedreamAdapter } from '../engines/petAvatar/seedreamAdapter'
-import { supabaseClient } from './supabaseClient'
+import { api } from './api'
 import type { ExpressionContext, AvatarCustomization, PetSpecies, PetImageParams, SeedreamGenerateResult } from '../types/avatarTypes'
 import { AVATAR_FREE_GENERATIONS } from '../constants'
 
@@ -116,13 +116,13 @@ export async function saveAvatarCustomization(custom: AvatarCustomization): Prom
   Taro.setStorageSync(STORAGE_KEYS.AVATAR_CUSTOM, custom)
   try {
     const petId = Taro.getStorageSync(STORAGE_KEYS.CURRENT_PET_ID)
-    if (!petId || supabaseClient.isMock) return
+    if (!petId) return
 
-    await supabaseClient.update('pet_profiles', {
+    await api.put(`/api/pets/${petId}`, {
       avatarStyle: custom.style,
       avatarCartoonUrl: custom.cartoonUrl,
       avatarGeneratedAt: custom.generatedAt,
-    }, { id: `eq.${petId}` })
+    })
   } catch {
     // local save succeeded, DB save is best-effort
   }
@@ -145,16 +145,11 @@ export function canGenerateAvatar(isMember: boolean): boolean {
 
 async function checkMemberStatus(): Promise<boolean> {
   try {
-    if (supabaseClient.isMock) return false
-
     const userId = Taro.getStorageSync('xhh_user')
     if (!userId) return false
 
-    const result = await supabaseClient.selectOne('memberships', {
-      userId: `eq.${userId}`,
-      status: 'eq.active',
-    })
-    return !!result.data
+    const result = await api.get<{ status: string }>('/api/membership/status')
+    return result.status === 'active'
   } catch {
     return false
   }

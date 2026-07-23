@@ -1,34 +1,27 @@
-import { supabaseClient } from './supabaseClient'
+import { api } from './api'
 import type { PetMoment, PetMilestone } from '../types/familyTypes'
 
 export const timelineService = {
   async getMoments(petId?: string, familyId?: string): Promise<PetMoment[]> {
-    const params: Record<string, string> = { order: 'created_at.desc', limit: '50' }
-    if (petId) params.pet_id = `eq.${petId}`
-    if (familyId) params.family_id = `eq.${familyId}`
-    const { data, error } = await supabaseClient.select<PetMoment>('pet_moments', params)
-    if (error) throw new Error(error)
+    const params: Record<string, string> = { limit: '50' }
+    if (petId) params.pet_id = petId
+    if (familyId) params.family_id = familyId
+    const data = await api.get<PetMoment[]>('/api/timeline/moments', params)
     return data || []
   },
 
   async addMoment(moment: Omit<PetMoment, 'id' | 'createdAt'>): Promise<PetMoment> {
-    const { data, error } = await supabaseClient.insert<PetMoment>('pet_moments', moment as any)
-    if (error) throw new Error(error)
-    return (data || [])[0] as PetMoment
+    const data = await api.post<PetMoment>('/api/timeline/moments', moment)
+    return data
   },
 
   async getMilestones(petId: string): Promise<PetMilestone[]> {
-    const { data, error } = await supabaseClient.select<PetMilestone>('pet_milestones', {
-      pet_id: `eq.${petId}`,
-      order: 'date.desc',
-    })
-    if (error) throw new Error(error)
+    const data = await api.get<PetMilestone[]>('/api/timeline/milestones', { pet_id: petId })
     return data || []
   },
 
   async addMilestone(milestone: Omit<PetMilestone, 'id' | 'createdAt'>): Promise<PetMilestone> {
-    const { data, error } = await supabaseClient.insert<PetMilestone>('pet_milestones', milestone as any)
-    if (error) throw new Error(error)
-    return (data || [])[0] as PetMilestone
+    const data = await api.post<PetMilestone>('/api/timeline/milestones', milestone)
+    return data
   },
 }

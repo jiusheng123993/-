@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro';
 import { getStorage, setStorage } from '../utils/storage';
 import { logger } from '../logger';
 import { checkFrequency, recordSend } from './frequencyControlService';
-import { getEdgeFunctionUrl } from '../config/supabase';
+import { CONFIG } from '../config';
 import {
   FOLLOWUP_TEMPLATE_ID,
   CARE_PLAN_REMINDER_TEMPLATE_ID,
@@ -178,10 +178,10 @@ export async function sendSubscribeMessage(
   }
 
   try {
-    const token = Taro.getStorageSync('xhh_token');
+    const token = Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN);
 
     const res = await Taro.request({
-      url: getEdgeFunctionUrl('subscribe-send'),
+      url: `${CONFIG.API_BASE_URL}/api/subscribe/send`,
       method: 'POST',
       data: { templateId, data, page },
       header: {

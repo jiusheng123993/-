@@ -1,6 +1,8 @@
 import Taro from '@tarojs/taro'
-import { isTokenFormatValid, validateTokenWithServer } from './jwt'
-import { STORAGE_KEYS } from '../config/supabase'
+import { isTokenFormatValid } from './jwt'
+import { CONFIG } from '../config'
+
+const { TOKEN, USER, REFRESH_TOKEN } = CONFIG.STORAGE_KEYS
 
 export class AuthenticationError extends Error {
   constructor(message: string) {
@@ -10,19 +12,19 @@ export class AuthenticationError extends Error {
 }
 
 export function getAuthenticatedUserId(): string {
-  const token = Taro.getStorageSync(STORAGE_KEYS.TOKEN)
+  const token = Taro.getStorageSync(TOKEN)
   if (!token) {
     throw new AuthenticationError('未登录，请先登录')
   }
 
   if (!isTokenFormatValid(token)) {
-    Taro.removeStorageSync(STORAGE_KEYS.TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.REFRESH_TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.USER)
+    Taro.removeStorageSync(TOKEN)
+    Taro.removeStorageSync(REFRESH_TOKEN)
+    Taro.removeStorageSync(USER)
     throw new AuthenticationError('登录已过期，请重新登录')
   }
 
-  const userRaw = Taro.getStorageSync(STORAGE_KEYS.USER)
+  const userRaw = Taro.getStorageSync(USER)
   if (!userRaw) {
     throw new AuthenticationError('用户信息缺失，请重新登录')
   }
@@ -43,22 +45,13 @@ export function getAuthenticatedUserId(): string {
 }
 
 export async function requireAuthAsync(): Promise<{ userId: string; token: string }> {
-  const token = Taro.getStorageSync(STORAGE_KEYS.TOKEN)
+  const token = Taro.getStorageSync(TOKEN)
   if (!token || !isTokenFormatValid(token)) {
-    Taro.removeStorageSync(STORAGE_KEYS.TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.REFRESH_TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.USER)
+    Taro.removeStorageSync(TOKEN)
+    Taro.removeStorageSync(REFRESH_TOKEN)
+    Taro.removeStorageSync(USER)
     Taro.navigateTo({ url: '/pages/login/index' })
     throw new AuthenticationError('登录已过期，请重新登录')
-  }
-
-  const isValid = await validateTokenWithServer(token)
-  if (!isValid) {
-    Taro.removeStorageSync(STORAGE_KEYS.TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.REFRESH_TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.USER)
-    Taro.navigateTo({ url: '/pages/login/index' })
-    throw new AuthenticationError('登录验证失败，请重新登录')
   }
 
   const userId = getAuthenticatedUserId()
@@ -66,11 +59,11 @@ export async function requireAuthAsync(): Promise<{ userId: string; token: strin
 }
 
 export function requireAuth(): { userId: string; token: string } {
-  const token = Taro.getStorageSync(STORAGE_KEYS.TOKEN)
+  const token = Taro.getStorageSync(TOKEN)
   if (!token || !isTokenFormatValid(token)) {
-    Taro.removeStorageSync(STORAGE_KEYS.TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.REFRESH_TOKEN)
-    Taro.removeStorageSync(STORAGE_KEYS.USER)
+    Taro.removeStorageSync(TOKEN)
+    Taro.removeStorageSync(REFRESH_TOKEN)
+    Taro.removeStorageSync(USER)
     Taro.navigateTo({ url: '/pages/login/index' })
     throw new AuthenticationError('登录已过期，请重新登录')
   }
@@ -80,6 +73,6 @@ export function requireAuth(): { userId: string; token: string } {
 }
 
 export function isAuthenticated(): boolean {
-  const token = Taro.getStorageSync(STORAGE_KEYS.TOKEN)
+  const token = Taro.getStorageSync(TOKEN)
   return !!token && isTokenFormatValid(token)
 }

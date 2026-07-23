@@ -9,7 +9,6 @@ export { FOLLOWUP_TEMPLATE_ID, CARE_PLAN_REMINDER_TEMPLATE_ID, HEALTH_CHECKIN_TE
 export { checkUpcomingReminders, saveSubscriptionStatus, getSubscriptionStatus, scheduleLocalReminder, getOverdueReminders, getUpcomingReminders, getLocalReminders, markReminderTriggered, clearLocalReminders } from './reminderService'
 export { scheduleFollowup, cancelFollowup, getPendingFollowups, getFollowupBySessionId, checkAndSendFollowups, updateFollowupStatus, clearExpiredFollowups, getFollowupStats } from './notificationService'
 export { MEMBERSHIP_PLANS, MEMBERSHIP_BENEFITS, type MembershipPlanConfig, type MembershipBenefit } from './membershipService'
-export { supabaseClient, SupabaseClient, type SupabaseResponse } from './supabaseClient'
 export { SyncService, getSyncService, type SyncRecord, type SyncStatus, type SyncResult, type SyncTable } from './syncService'
 export { familyService } from './familyService'
 export { timelineService } from './timelineService'
