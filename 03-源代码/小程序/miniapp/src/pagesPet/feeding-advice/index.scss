@@ -1,0 +1,429 @@
+.feeding-page {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding-bottom: 40px;
+}
+
+.feeding-header {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  padding: 40px 24px 60px;
+  color: #fff;
+}
+
+.feeding-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.feeding-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.feeding-advice-section {
+  margin: -30px 16px 16px;
+}
+
+.feeding-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.feeding-advice-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.feeding-advice-high {
+  border-left: 4px solid #f5222d;
+}
+
+.feeding-advice-medium {
+  border-left: 4px solid #faad14;
+}
+
+.feeding-advice-low {
+  border-left: 4px solid #52c41a;
+}
+
+.feeding-advice-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.feeding-advice-content {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.feeding-actions {
+  padding: 0 16px 16px;
+}
+
+.feeding-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #52c41a;
+  color: #fff;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.feeding-add-icon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.feeding-records-section {
+  padding: 0 16px;
+}
+
+.feeding-record-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.feeding-record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.feeding-record-date {
+  font-size: 14px;
+  color: #666;
+}
+
+.feeding-record-appetite {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.feeding-appetite-good {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.feeding-appetite-normal {
+  background: #fffbe6;
+  color: #faad14;
+}
+
+.feeding-appetite-poor {
+  background: #fff0f0;
+  color: #f5222d;
+}
+
+.feeding-record-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feeding-record-food {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+.feeding-record-amount {
+  font-size: 14px;
+  color: #666;
+}
+
+.feeding-record-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.feeding-record-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.feeding-stool-normal {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.feeding-stool-loose {
+  background: #fffbe6;
+  color: #faad14;
+}
+
+.feeding-stool-hard {
+  background: #fff0f0;
+  color: #f5222d;
+}
+
+.feeding-energy-high {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.feeding-energy-normal {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.feeding-energy-low {
+  background: #fff0f0;
+  color: #f5222d;
+}
+
+.feeding-record-notes {
+  font-size: 13px;
+  color: #999;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed #f0f0f0;
+}
+
+.feeding-empty-state {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.feeding-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.feeding-empty-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.feeding-empty-hint {
+  font-size: 14px;
+  color: #999;
+}
+
+.feeding-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.feeding-modal {
+  background: #fff;
+  width: 100%;
+  max-height: 80vh;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.feeding-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.feeding-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.feeding-modal-close {
+  font-size: 24px;
+  color: #999;
+  padding: 4px 8px;
+}
+
+.feeding-modal-body {
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.feeding-form-group {
+  margin-bottom: 16px;
+}
+
+.feeding-form-label {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.feeding-form-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.feeding-form-picker {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.feeding-form-amount {
+  display: flex;
+  gap: 8px;
+}
+
+.feeding-form-amount-input {
+  flex: 1;
+}
+
+.feeding-form-unit {
+  width: 60px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fafafa;
+}
+
+.feeding-form-meals {
+  display: flex;
+  gap: 8px;
+}
+
+.feeding-meal-option {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.feeding-meal-active {
+  background: #52c41a;
+  color: #fff;
+  border-color: #52c41a;
+}
+
+.feeding-form-rating {
+  display: flex;
+  gap: 12px;
+}
+
+.feeding-rating-option {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.feeding-rating-active {
+  background: #52c41a;
+  color: #fff;
+  border-color: #52c41a;
+}
+
+.feeding-rating-emoji {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.feeding-rating-label {
+  font-size: 12px;
+}
+
+.feeding-form-textarea {
+  width: 100%;
+  height: 80px;
+  padding: 8px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.feeding-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.feeding-modal-btn {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.feeding-modal-btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.feeding-modal-btn-confirm {
+  background: #52c41a;
+  color: #fff;
+}
+
+.feeding-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.feeding-empty-text {
+  font-size: 16px;
+  color: #999;
+}
+
+.feeding-bottom-safe {
+  height: 40px;
+}

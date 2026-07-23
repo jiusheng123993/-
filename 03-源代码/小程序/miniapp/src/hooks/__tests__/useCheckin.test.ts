@@ -4,17 +4,11 @@ import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
 const {
   mockInitUser,
   mockFetchCheckins,
-  mockFetchTodayCheckin,
-  mockAddCheckin,
-  mockFetchStats,
-  mockClearError,
+  mockDoCheckin,
 } = vi.hoisted(() => ({
   mockInitUser: vi.fn(),
   mockFetchCheckins: vi.fn(),
-  mockFetchTodayCheckin: vi.fn(),
-  mockAddCheckin: vi.fn(),
-  mockFetchStats: vi.fn(),
-  mockClearError: vi.fn(),
+  mockDoCheckin: vi.fn(),
 }))
 
 vi.mock('react', () => {
@@ -23,17 +17,13 @@ vi.mock('react', () => {
 })
 
 const defaultMockStore = {
-  entries: [] as PetHealthEntry[],
-  todayEntry: null as PetHealthEntry | null,
-  stats: null,
+  checkins: [] as PetHealthEntry[],
+  todayCheckin: null as PetHealthEntry | null,
+  streakDays: 0,
   isLoading: false,
-  error: null as string | null,
   initUser: mockInitUser,
   fetchCheckins: mockFetchCheckins,
-  fetchTodayCheckin: mockFetchTodayCheckin,
-  addCheckin: mockAddCheckin,
-  fetchStats: mockFetchStats,
-  clearError: mockClearError,
+  doCheckin: mockDoCheckin,
 }
 
 vi.mock('../../stores/checkinStore', () => ({
@@ -69,17 +59,13 @@ describe('useCheckin', () => {
 
   it('返回值包含所有预期字段', () => {
     const result = useCheckin()
-    expect(result).toHaveProperty('entries')
-    expect(result).toHaveProperty('todayEntry')
-    expect(result).toHaveProperty('stats')
+    expect(result).toHaveProperty('checkins')
+    expect(result).toHaveProperty('todayCheckin')
+    expect(result).toHaveProperty('streakDays')
     expect(result).toHaveProperty('isLoading')
-    expect(result).toHaveProperty('error')
     expect(result).toHaveProperty('initUser')
-    expect(result).toHaveProperty('addCheckin')
-    expect(result).toHaveProperty('fetchTodayCheckin')
-    expect(result).toHaveProperty('fetchStats')
-    expect(result).toHaveProperty('refreshCheckins')
-    expect(result).toHaveProperty('clearError')
+    expect(result).toHaveProperty('doCheckin')
+    expect(result).toHaveProperty('fetchCheckins')
   })
 
   it('initUser 调用 store 的 initUser', () => {
@@ -88,9 +74,9 @@ describe('useCheckin', () => {
     expect(mockInitUser).toHaveBeenCalledWith('user-123')
   })
 
-  it('addCheckin 调用 store 的 addCheckin 并返回结果', async () => {
+  it('doCheckin 调用 store 的 doCheckin 并返回结果', async () => {
     const mockEntry = createMockEntry()
-    mockAddCheckin.mockResolvedValue(mockEntry)
+    mockDoCheckin.mockResolvedValue(mockEntry)
     const result = useCheckin()
     const data: Omit<PetHealthEntry, 'id' | 'createdAt' | 'aiFeedback' | 'riskLevel'> = {
       petId: 'pet-1',
@@ -102,57 +88,36 @@ describe('useCheckin', () => {
       hasAnomaly: false,
       anomalyItems: [],
     }
-    const entry = await result.addCheckin(data)
-    expect(mockAddCheckin).toHaveBeenCalledWith(data)
+    const entry = await result.doCheckin(data)
+    expect(mockDoCheckin).toHaveBeenCalledWith(data)
     expect(entry).toEqual(mockEntry)
   })
 
-  it('fetchTodayCheckin 调用 store 的 fetchTodayCheckin', async () => {
-    mockFetchTodayCheckin.mockResolvedValue(undefined)
-    const result = useCheckin()
-    await result.fetchTodayCheckin('pet-1')
-    expect(mockFetchTodayCheckin).toHaveBeenCalledWith('pet-1')
-  })
-
-  it('fetchStats 调用 store 的 fetchStats', async () => {
-    mockFetchStats.mockResolvedValue(undefined)
-    const result = useCheckin()
-    await result.fetchStats('pet-1')
-    expect(mockFetchStats).toHaveBeenCalledWith('pet-1')
-  })
-
-  it('refreshCheckins 调用 store 的 fetchCheckins', async () => {
+  it('fetchCheckins 调用 store 的 fetchCheckins', async () => {
     mockFetchCheckins.mockResolvedValue(undefined)
     const result = useCheckin()
-    await result.refreshCheckins('pet-1')
+    await result.fetchCheckins('pet-1')
     expect(mockFetchCheckins).toHaveBeenCalledWith('pet-1')
   })
 
-  it('clearError 调用 store 的 clearError', () => {
+  it('返回 store 中的 checkins', () => {
+    const mockCheckins = [createMockEntry({ id: 'e1' })]
+    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, checkins: mockCheckins })
     const result = useCheckin()
-    result.clearError()
-    expect(mockClearError).toHaveBeenCalled()
+    expect(result.checkins).toEqual(mockCheckins)
   })
 
-  it('返回 store 中的 entries', () => {
-    const mockEntries = [createMockEntry({ id: 'e1' })]
-    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, entries: mockEntries })
-    const result = useCheckin()
-    expect(result.entries).toEqual(mockEntries)
-  })
-
-  it('返回 store 中的 todayEntry', () => {
+  it('返回 store 中的 todayCheckin', () => {
     const mockToday = createMockEntry({ id: 'e2' })
-    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, todayEntry: mockToday })
+    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, todayCheckin: mockToday })
     const result = useCheckin()
-    expect(result.todayEntry).toEqual(mockToday)
+    expect(result.todayCheckin).toEqual(mockToday)
   })
 
-  it('返回 store 中的 stats', () => {
-    const mockStats = { totalCheckins: 10, streak: 5, lastCheckinDate: '2026-07-20' }
-    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, stats: mockStats })
+  it('返回 store 中的 streakDays', () => {
+    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, streakDays: 5 })
     const result = useCheckin()
-    expect(result.stats).toEqual(mockStats)
+    expect(result.streakDays).toBe(5)
   })
 
   it('返回 store 中的 isLoading', () => {
@@ -161,24 +126,13 @@ describe('useCheckin', () => {
     expect(result.isLoading).toBe(true)
   })
 
-  it('返回 store 中的 error', () => {
-    vi.mocked(useCheckinStore).mockReturnValue({ ...defaultMockStore, error: '加载失败' })
+  it('todayCheckin 为 null 时正确返回', () => {
     const result = useCheckin()
-    expect(result.error).toBe('加载失败')
+    expect(result.todayCheckin).toBeNull()
   })
 
-  it('todayEntry 为 null 时正确返回', () => {
+  it('streakDays 为 0 时正确返回', () => {
     const result = useCheckin()
-    expect(result.todayEntry).toBeNull()
-  })
-
-  it('stats 为 null 时正确返回', () => {
-    const result = useCheckin()
-    expect(result.stats).toBeNull()
-  })
-
-  it('error 为 null 时正确返回', () => {
-    const result = useCheckin()
-    expect(result.error).toBeNull()
+    expect(result.streakDays).toBe(0)
   })
 })

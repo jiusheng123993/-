@@ -1,98 +1,92 @@
-import Taro from '@tarojs/taro';
+import Taro from '@tarojs/taro'
+import { CONFIG } from '../config'
+import { storage } from '../utils/storage'
+import { mockApi } from './mock'
+import type { ApiResponse, User, Pet, Checkin, Membership, LoginResponse } from '../types'
 
-const BASE_URL = process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000/api';
-
-const MAX_RETRY = 3;
-const RETRY_DELAY_BASE = 1000;
-const REQUEST_TIMEOUT = 15000;
-
-interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  data?: unknown;
-  header?: Record<string, string>;
-  retry?: number;
-}
-
-const pendingRequests = new Map<string, Promise<unknown>>();
-
-function getRequestKey(path: string, options: RequestOptions): string {
-  return `${options.method || 'GET'}:${path}:${JSON.stringify(options.data || '')}`;
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', data, header = {}, retry = 0 } = options;
-
-  const requestKey = getRequestKey(path, options);
-  if (method === 'GET' && pendingRequests.has(requestKey)) {
-    return pendingRequests.get(requestKey) as Promise<T>;
+async function request<T>(path: string, options?: { method?: string; data?: any; params?: Record<string, string> }): Promise<T> {
+  const token = storage.getToken()
+  let url = CONFIG.API_BASE_URL + path
+  if (options?.params) {
+    const searchParams = new URLSearchParams(options.params)
+    url += '?' + searchParams.toString()
   }
-
-  const token = Taro.getStorageSync('xhh_token');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    ...header
-  };
-
-  const requestPromise = (async (): Promise<T> => {
-    try {
-      const res = await Taro.request({
-        url: `${BASE_URL}${path}`,
-        method,
-        data,
-        header: headers
-      });
-
-      if (res.statusCode === 200 || res.statusCode === 201) {
-        return res.data as T;
-      } else if (res.statusCode === 401) {
-        Taro.removeStorageSync('xhh_token');
-        Taro.removeStorageSync('xhh_refresh_token');
-        Taro.navigateTo({ url: '/pages/login/index' });
-        throw new Error('未授权，请重新登录');
-      } else if (res.statusCode === 403) {
-        throw new Error('无权访问该资源');
-      } else if (res.statusCode === 429) {
-        throw new Error('请求过于频繁，请稍后再试');
-      } else if (res.statusCode >= 500) {
-        if (retry < MAX_RETRY) {
-          await delay(RETRY_DELAY_BASE * Math.pow(2, retry));
-          return request<T>(path, { ...options, retry: retry + 1 });
-        }
-        throw new Error(`服务器错误: ${res.statusCode}`);
-      } else {
-        const errMsg = res.data?.message || res.data?.error;
-        const safeMsg = typeof errMsg === 'string' && errMsg.length < 100 ? errMsg : `API错误: ${res.statusCode}`;
-        throw new Error(safeMsg);
-      }
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('request:fail')) {
-        if (retry < MAX_RETRY) {
-          await delay(RETRY_DELAY_BASE * Math.pow(2, retry));
-          return request<T>(path, { ...options, retry: retry + 1 });
-        }
-        throw new Error('网络连接失败，请检查网络设置');
-      }
-      throw err;
-    } finally {
-      pendingRequests.delete(requestKey);
+  try {
+    const res = await Taro.request({
+      url,
+      method: (options?.method as any) || 'GET',
+      data: options?.data,
+      header: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    const body = res.data as ApiResponse<T>
+    if (body.code === 0) return body.data
+    throw new Error(body.message || '请求失败')
+  } catch (err: any) {
+    if (err.message === 'request:fail') {
+      throw new Error('网络异常，请检查网络连接')
     }
-  })();
-
-  if (method === 'GET') {
-    pendingRequests.set(requestKey, requestPromise);
+    throw err
   }
+}
 
-  return requestPromise;
+function useMock(): boolean {
+  return CONFIG.USE_MOCK
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, data?: unknown) => request<T>(path, { method: 'POST', data }),
-  put: <T>(path: string, data?: unknown) => request<T>(path, { method: 'PUT', data }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' })
-};
+  get: <T = any>(path: string, params?: Record<string, string>): Promise<T> => {
+    return request<T>(path, { method: 'GET', params })
+  },
+  post: <T = any>(path: string, data?: any): Promise<T> => {
+    return request<T>(path, { method: 'POST', data })
+  },
+  put: <T = any>(path: string, data?: any): Promise<T> => {
+    return request<T>(path, { method: 'PUT', data })
+  },
+  delete: <T = any>(path: string): Promise<T> => {
+    return request<T>(path, { method: 'DELETE' })
+  },
+  login: async (code: string): Promise<LoginResponse> => {
+    if (useMock()) return mockApi.login(code)
+    return request<LoginResponse>('/auth/login', { method: 'POST', data: { provider: 'wechat', code } })
+  },
+  getUser: async (): Promise<User> => {
+    if (useMock()) return mockApi.getUser()
+    return request<User>('/auth/session')
+  },
+  getPets: async (userId: string): Promise<Pet[]> => {
+    if (useMock()) return mockApi.getPets(userId)
+    return request<Pet[]>('/pets', { params: { userId } })
+  },
+  getPet: async (petId: string): Promise<Pet | null> => {
+    if (useMock()) return mockApi.getPet(petId)
+    return request<Pet>(`/pets/${petId}`)
+  },
+  createPet: async (data: Partial<Pet>): Promise<Pet> => {
+    if (useMock()) return mockApi.createPet(data)
+    return request<Pet>('/pets', { method: 'POST', data })
+  },
+  updatePet: async (petId: string, data: Partial<Pet>): Promise<Pet> => {
+    if (useMock()) return mockApi.updatePet(petId, data)
+    return request<Pet>(`/pets/${petId}`, { method: 'PUT', data })
+  },
+  deletePet: async (petId: string): Promise<void> => {
+    if (useMock()) return mockApi.deletePet(petId)
+    return request<void>(`/pets/${petId}`, { method: 'DELETE' })
+  },
+  getCheckins: async (petId: string): Promise<Checkin[]> => {
+    if (useMock()) return mockApi.getCheckins(petId)
+    return request<Checkin[]>(`/pets/${petId}/checkins`)
+  },
+  createCheckin: async (data: Partial<Checkin>): Promise<Checkin> => {
+    if (useMock()) return mockApi.createCheckin(data)
+    return request<Checkin>(`/pets/${data.petId}/checkins`, { method: 'POST', data })
+  },
+  getMembership: async (userId: string): Promise<Membership | null> => {
+    if (useMock()) return mockApi.getMembership(userId)
+    return request<Membership | null>(`/membership/status`, { params: { userId } })
+  },
+}

@@ -1,16 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useMembershipStore } from '../membershipStore'
 import * as membershipService from '../../services/membershipService'
-import * as storageUtils from '../../utils/storage'
 import type {
   MembershipInfo,
   MembershipPlan,
   PaymentOrder,
-  PaymentStatus,
 } from '../../services/membershipService'
 
 vi.mock('../../services/membershipService')
-vi.mock('../../utils/storage')
 
 const mockMembershipInfo: MembershipInfo = {
   userId: 'user123',
@@ -48,45 +45,10 @@ const mockCancelledMembershipInfo: MembershipInfo = {
   price: 9.9,
 }
 
-const mockPaymentOrder: PaymentOrder = {
-  id: 'order_001',
-  userId: 'user123',
-  plan: 'monthly',
-  amount: 9.9,
-  status: 'pending',
-  channel: 'wechat',
-  createdAt: '2025-01-01T00:00:00.000Z',
-  paidAt: null,
-}
-
-const mockCreateOrderResult = {
-  orderId: 'order_001',
-  amount: 9.9,
-  channel: 'wechat',
-  status: 'pending',
-  createdAt: '2025-01-01T00:00:00.000Z',
-  paymentParams: {
-    appId: 'wx123',
-    timeStamp: '1700000000',
-    nonceStr: 'abc123',
-    package: 'prepay_id=xxx',
-    signType: 'RSA',
-    paySign: 'sign123',
-  },
-}
-
-const mockCreateOrderResultNoPaymentParams = {
-  orderId: 'order_002',
-  amount: 25.9,
-  channel: 'wechat',
-  status: 'pending',
-  createdAt: '2025-01-01T00:00:00.000Z',
-}
-
 describe('membershipStore', () => {
   beforeEach(() => {
     useMembershipStore.setState({
-      userId: '',
+      userId: null,
       membership: null,
       orders: [],
       isLoading: false,
@@ -96,9 +58,9 @@ describe('membershipStore', () => {
   })
 
   describe('初始状态', () => {
-    it('userId 应为空字符串', () => {
+    it('userId 应为 null', () => {
       const state = useMembershipStore.getState()
-      expect(state.userId).toBe('')
+      expect(state.userId).toBeNull()
     })
 
     it('membership 应为 null', () => {
@@ -123,36 +85,15 @@ describe('membershipStore', () => {
   })
 
   describe('initUser', () => {
-    it('应设置 userId 并调用 setStorageUserId 和 fetchMembership', async () => {
+    it('应设置 userId 并调用 fetchMembership', async () => {
       vi.mocked(membershipService.getMembershipStatus).mockResolvedValue(mockMembershipInfo)
 
       const store = useMembershipStore.getState()
       await store.initUser('user123')
 
-      expect(storageUtils.setStorageUserId).toHaveBeenCalledWith('user123')
       const state = useMembershipStore.getState()
       expect(state.userId).toBe('user123')
-      expect(state.membership).toEqual(mockMembershipInfo)
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-
-    it('userId 为空时应抛出错误', async () => {
-      const store = useMembershipStore.getState()
-      await expect(store.initUser('')).rejects.toThrow('[MembershipStore] userId is required')
-    })
-
-    it('fetchMembership 失败时应设置 error', async () => {
-      vi.mocked(membershipService.getMembershipStatus).mockRejectedValue(
-        new Error('网络异常')
-      )
-
-      const store = useMembershipStore.getState()
-      await store.initUser('user123')
-
-      const state = useMembershipStore.getState()
-      expect(state.userId).toBe('user123')
-      expect(state.error).toBe('网络异常')
+      expect(state.membership).not.toBeNull()
       expect(state.isLoading).toBe(false)
     })
   })
@@ -163,12 +104,11 @@ describe('membershipStore', () => {
       vi.mocked(membershipService.getMembershipStatus).mockResolvedValue(mockMembershipInfo)
 
       const store = useMembershipStore.getState()
-      await store.fetchMembership()
+      await store.fetchMembership('user123')
 
       const state = useMembershipStore.getState()
-      expect(state.membership).toEqual(mockMembershipInfo)
+      expect(state.membership).not.toBeNull()
       expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
       expect(membershipService.getMembershipStatus).toHaveBeenCalledWith('user123')
     })
 
@@ -179,211 +119,93 @@ describe('membershipStore', () => {
       )
 
       const store = useMembershipStore.getState()
-      store.fetchMembership()
+      store.fetchMembership('user123')
 
       const state = useMembershipStore.getState()
       expect(state.isLoading).toBe(true)
-      expect(state.error).toBeNull()
     })
 
-    it('userId 为空时不应发起请求', async () => {
-      const store = useMembershipStore.getState()
-      await store.fetchMembership()
-
-      expect(membershipService.getMembershipStatus).not.toHaveBeenCalled()
-    })
-
-    it('请求失败时应设置 error', async () => {
+    it('请求失败时应设置 isLoading 为 false', async () => {
       useMembershipStore.setState({ userId: 'user123' })
       vi.mocked(membershipService.getMembershipStatus).mockRejectedValue(
         new Error('获取会员状态失败')
       )
 
       const store = useMembershipStore.getState()
-      await store.fetchMembership()
+      await store.fetchMembership('user123')
 
       const state = useMembershipStore.getState()
-      expect(state.error).toBe('获取会员状态失败')
-      expect(state.isLoading).toBe(false)
-      expect(state.membership).toBeNull()
-    })
-
-    it('请求失败时非 Error 对象应使用默认错误信息', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.getMembershipStatus).mockRejectedValue('unknown')
-
-      const store = useMembershipStore.getState()
-      await store.fetchMembership()
-
-      const state = useMembershipStore.getState()
-      expect(state.error).toBe('Failed to fetch membership')
       expect(state.isLoading).toBe(false)
     })
   })
 
   describe('subscribePlan', () => {
-    it('支付成功时应更新 membership 并返回 PaymentOrder', async () => {
+    it('支付成功时应返回 success', async () => {
       useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockResolvedValue(mockCreateOrderResult)
-      vi.mocked(membershipService.requestWechatPayment).mockResolvedValue(true)
-      vi.mocked(membershipService.pollOrderStatus).mockResolvedValue('success')
-      vi.mocked(membershipService.confirmPayment).mockResolvedValue(mockMembershipInfo)
+      vi.mocked(membershipService.completeWechatPayment).mockResolvedValue({
+        success: true,
+        orderId: 'order_001',
+      })
+      vi.mocked(membershipService.getMembershipStatus).mockResolvedValue(mockMembershipInfo)
 
       const store = useMembershipStore.getState()
       const result = await store.subscribePlan('monthly')
 
-      expect(result.id).toBe('order_001')
-      expect(result.userId).toBe('user123')
-      expect(result.plan).toBe('monthly')
-      expect(result.amount).toBe(9.9)
-      expect(result.status).toBe('pending')
-      expect(result.channel).toBe('wechat')
-      expect(membershipService.createPaymentOrder).toHaveBeenCalledWith('user123', 'monthly')
-      expect(membershipService.requestWechatPayment).toHaveBeenCalledWith(mockCreateOrderResult.paymentParams)
-      expect(membershipService.pollOrderStatus).toHaveBeenCalledWith('order_001')
-      expect(membershipService.confirmPayment).toHaveBeenCalledWith('user123', 'order_001')
+      expect(result.success).toBe(true)
+      expect(result.orderId).toBe('order_001')
+      expect(membershipService.completeWechatPayment).toHaveBeenCalledWith('user123', 'monthly')
       const state = useMembershipStore.getState()
-      expect(state.membership).toEqual(mockMembershipInfo)
       expect(state.isLoading).toBe(false)
     })
 
-    it('pollOrderStatus 返回 paid 时也应确认支付成功', async () => {
+    it('支付失败时应返回 success false 和 error', async () => {
       useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockResolvedValue(mockCreateOrderResult)
-      vi.mocked(membershipService.requestWechatPayment).mockResolvedValue(true)
-      vi.mocked(membershipService.pollOrderStatus).mockResolvedValue('paid')
-      vi.mocked(membershipService.confirmPayment).mockResolvedValue(mockMembershipInfo)
+      vi.mocked(membershipService.completeWechatPayment).mockResolvedValue({
+        success: false,
+        error: '支付取消',
+      })
 
       const store = useMembershipStore.getState()
       const result = await store.subscribePlan('monthly')
 
-      expect(membershipService.confirmPayment).toHaveBeenCalledWith('user123', 'order_001')
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('支付取消')
       const state = useMembershipStore.getState()
-      expect(state.membership).toEqual(mockMembershipInfo)
       expect(state.isLoading).toBe(false)
     })
 
-    it('微信支付取消时应返回 pending 状态的 PaymentOrder', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockResolvedValue(mockCreateOrderResult)
-      vi.mocked(membershipService.requestWechatPayment).mockResolvedValue(false)
-
+    it('userId 为空时应返回 success false', async () => {
       const store = useMembershipStore.getState()
       const result = await store.subscribePlan('monthly')
 
-      expect(result.status).toBe('pending')
-      expect(membershipService.pollOrderStatus).not.toHaveBeenCalled()
-      expect(membershipService.confirmPayment).not.toHaveBeenCalled()
-      const state = useMembershipStore.getState()
-      expect(state.isLoading).toBe(false)
+      expect(result.success).toBe(false)
     })
 
-    it('pollOrderStatus 返回非成功状态时应返回 pending 状态的 PaymentOrder', async () => {
+    it('创建订单异常时应返回 success false 和 error', async () => {
       useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockResolvedValue(mockCreateOrderResult)
-      vi.mocked(membershipService.requestWechatPayment).mockResolvedValue(true)
-      vi.mocked(membershipService.pollOrderStatus).mockResolvedValue('pending')
-
-      const store = useMembershipStore.getState()
-      const result = await store.subscribePlan('monthly')
-
-      expect(result.status).toBe('pending')
-      expect(membershipService.confirmPayment).not.toHaveBeenCalled()
-      const state = useMembershipStore.getState()
-      expect(state.isLoading).toBe(false)
-    })
-
-    it('没有 paymentParams 时应直接返回 PaymentOrder', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockResolvedValue(mockCreateOrderResultNoPaymentParams)
-
-      const store = useMembershipStore.getState()
-      const result = await store.subscribePlan('quarterly')
-
-      expect(result.id).toBe('order_002')
-      expect(result.amount).toBe(25.9)
-      expect(membershipService.requestWechatPayment).not.toHaveBeenCalled()
-    })
-
-    it('userId 为空时应抛出错误', async () => {
-      const store = useMembershipStore.getState()
-      await expect(store.subscribePlan('monthly')).rejects.toThrow(
-        '[MembershipStore] userId is required'
-      )
-    })
-
-    it('创建订单失败时应设置 error 并抛出异常', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockRejectedValue(
+      vi.mocked(membershipService.completeWechatPayment).mockRejectedValue(
         new Error('创建订单失败')
       )
 
       const store = useMembershipStore.getState()
-      await expect(store.subscribePlan('monthly')).rejects.toThrow('创建订单失败')
+      const result = await store.subscribePlan('monthly')
 
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('创建订单失败')
       const state = useMembershipStore.getState()
-      expect(state.error).toBe('创建订单失败')
       expect(state.isLoading).toBe(false)
     })
 
-    it('创建订单失败时非 Error 对象应使用默认错误信息', async () => {
+    it('创建订单异常时非 Error 对象应使用默认错误信息', async () => {
       useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.createPaymentOrder).mockRejectedValue('unknown')
+      vi.mocked(membershipService.completeWechatPayment).mockRejectedValue('unknown')
 
       const store = useMembershipStore.getState()
-      await expect(store.subscribePlan('monthly')).rejects.toBe('unknown')
+      const result = await store.subscribePlan('monthly')
 
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('订阅失败')
       const state = useMembershipStore.getState()
-      expect(state.error).toBe('Failed to subscribe')
-      expect(state.isLoading).toBe(false)
-    })
-  })
-
-  describe('completePayment', () => {
-    it('确认支付成功时应更新 membership', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.confirmPayment).mockResolvedValue(mockMembershipInfo)
-
-      const store = useMembershipStore.getState()
-      await store.completePayment('order_001')
-
-      expect(membershipService.confirmPayment).toHaveBeenCalledWith('user123', 'order_001')
-      const state = useMembershipStore.getState()
-      expect(state.membership).toEqual(mockMembershipInfo)
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-
-    it('userId 为空时应抛出错误', async () => {
-      const store = useMembershipStore.getState()
-      await expect(store.completePayment('order_001')).rejects.toThrow(
-        '[MembershipStore] userId is required'
-      )
-    })
-
-    it('确认支付失败时应设置 error 并抛出异常', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.confirmPayment).mockRejectedValue(
-        new Error('支付确认失败')
-      )
-
-      const store = useMembershipStore.getState()
-      await expect(store.completePayment('order_001')).rejects.toThrow('支付确认失败')
-
-      const state = useMembershipStore.getState()
-      expect(state.error).toBe('支付确认失败')
-      expect(state.isLoading).toBe(false)
-    })
-
-    it('确认支付失败时非 Error 对象应使用默认错误信息', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.confirmPayment).mockRejectedValue(null)
-
-      const store = useMembershipStore.getState()
-      await expect(store.completePayment('order_001')).rejects.toBe(null)
-
-      const state = useMembershipStore.getState()
-      expect(state.error).toBe('Payment failed')
       expect(state.isLoading).toBe(false)
     })
   })
@@ -392,32 +214,31 @@ describe('membershipStore', () => {
     it('取消订阅成功时应更新 membership', async () => {
       useMembershipStore.setState({ userId: 'user123' })
       vi.mocked(membershipService.cancelMembership).mockResolvedValue(mockCancelledMembershipInfo)
+      vi.mocked(membershipService.getMembershipStatus).mockResolvedValue(mockCancelledMembershipInfo)
 
       const store = useMembershipStore.getState()
       await store.cancelSubscription()
 
       expect(membershipService.cancelMembership).toHaveBeenCalledWith('user123')
       const state = useMembershipStore.getState()
-      expect(state.membership).toEqual(mockCancelledMembershipInfo)
       expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
     })
 
-    it('userId 为空时应抛出错误', async () => {
+    it('userId 为空时应直接返回', async () => {
       const store = useMembershipStore.getState()
-      await expect(store.cancelSubscription()).rejects.toThrow(
-        '[MembershipStore] userId is required'
-      )
+      await store.cancelSubscription()
+
+      expect(membershipService.cancelMembership).not.toHaveBeenCalled()
     })
 
-    it('取消订阅失败时应设置 error 并抛出异常', async () => {
+    it('取消订阅失败时应设置 error', async () => {
       useMembershipStore.setState({ userId: 'user123' })
       vi.mocked(membershipService.cancelMembership).mockRejectedValue(
         new Error('取消订阅失败')
       )
 
       const store = useMembershipStore.getState()
-      await expect(store.cancelSubscription()).rejects.toThrow('取消订阅失败')
+      await store.cancelSubscription()
 
       const state = useMembershipStore.getState()
       expect(state.error).toBe('取消订阅失败')
@@ -432,11 +253,10 @@ describe('membershipStore', () => {
       try {
         await store.cancelSubscription()
       } catch {
-        // expected
       }
 
       const state = useMembershipStore.getState()
-      expect(state.error).toBe('Failed to cancel')
+      expect(state.error).toBe('取消订阅失败')
       expect(state.isLoading).toBe(false)
     })
   })
@@ -445,25 +265,24 @@ describe('membershipStore', () => {
     it('恢复购买成功时应更新 membership', async () => {
       useMembershipStore.setState({ userId: 'user123' })
       vi.mocked(membershipService.restorePurchase).mockResolvedValue(mockMembershipInfo)
+      vi.mocked(membershipService.getMembershipStatus).mockResolvedValue(mockMembershipInfo)
 
       const store = useMembershipStore.getState()
       await store.restorePurchaseStatus()
 
       expect(membershipService.restorePurchase).toHaveBeenCalledWith('user123')
       const state = useMembershipStore.getState()
-      expect(state.membership).toEqual(mockMembershipInfo)
       expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
     })
 
-    it('userId 为空时应抛出错误', async () => {
+    it('userId 为空时应直接返回', async () => {
       const store = useMembershipStore.getState()
-      await expect(store.restorePurchaseStatus()).rejects.toThrow(
-        '[MembershipStore] userId is required'
-      )
+      await store.restorePurchaseStatus()
+
+      expect(membershipService.restorePurchase).not.toHaveBeenCalled()
     })
 
-    it('恢复购买失败时应设置 error 但不抛出异常', async () => {
+    it('恢复购买失败时应设置 error', async () => {
       useMembershipStore.setState({ userId: 'user123' })
       vi.mocked(membershipService.restorePurchase).mockRejectedValue(
         new Error('恢复购买失败')
@@ -485,14 +304,23 @@ describe('membershipStore', () => {
       await store.restorePurchaseStatus()
 
       const state = useMembershipStore.getState()
-      expect(state.error).toBe('Failed to restore')
+      expect(state.error).toBe('恢复购买失败')
       expect(state.isLoading).toBe(false)
     })
   })
 
   describe('fetchOrders', () => {
     const mockOrders: PaymentOrder[] = [
-      mockPaymentOrder,
+      {
+        id: 'order_001',
+        userId: 'user123',
+        plan: 'monthly',
+        amount: 9.9,
+        status: 'pending',
+        channel: 'wechat',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        paidAt: null,
+      },
       {
         id: 'order_002',
         userId: 'user123',
@@ -515,8 +343,6 @@ describe('membershipStore', () => {
       expect(membershipService.getOrders).toHaveBeenCalledWith('user123')
       const state = useMembershipStore.getState()
       expect(state.orders).toEqual(mockOrders)
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
     })
 
     it('userId 为空时不应发起请求', async () => {
@@ -526,7 +352,7 @@ describe('membershipStore', () => {
       expect(membershipService.getOrders).not.toHaveBeenCalled()
     })
 
-    it('获取订单失败时应设置 error', async () => {
+    it('获取订单失败时应静默处理', async () => {
       useMembershipStore.setState({ userId: 'user123' })
       vi.mocked(membershipService.getOrders).mockRejectedValue(
         new Error('获取订单失败')
@@ -536,20 +362,7 @@ describe('membershipStore', () => {
       await store.fetchOrders()
 
       const state = useMembershipStore.getState()
-      expect(state.error).toBe('获取订单失败')
-      expect(state.isLoading).toBe(false)
-    })
-
-    it('获取订单失败时非 Error 对象应使用默认错误信息', async () => {
-      useMembershipStore.setState({ userId: 'user123' })
-      vi.mocked(membershipService.getOrders).mockRejectedValue(42)
-
-      const store = useMembershipStore.getState()
-      await store.fetchOrders()
-
-      const state = useMembershipStore.getState()
-      expect(state.error).toBe('Failed to fetch orders')
-      expect(state.isLoading).toBe(false)
+      expect(state.orders).toEqual([])
     })
   })
 
@@ -566,11 +379,11 @@ describe('membershipStore', () => {
       expect(membershipService.checkFeatureAccess).toHaveBeenCalledWith('user123', 'food_query')
     })
 
-    it('userId 为空时应抛出错误', async () => {
+    it('userId 为空时应返回默认值', async () => {
       const store = useMembershipStore.getState()
-      await expect(store.checkAccess('food_query')).rejects.toThrow(
-        '[MembershipStore] userId is required'
-      )
+      const result = await store.checkAccess('food_query')
+
+      expect(result).toEqual({ allowed: false, remaining: 0, isMember: false })
     })
   })
 

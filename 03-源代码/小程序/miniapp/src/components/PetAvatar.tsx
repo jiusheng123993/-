@@ -61,6 +61,7 @@ export default function PetAvatar({
           src={faceUri}
           mode='aspectFit'
           style={{ width: `${size}px`, height: `${size}px` }}
+          lazyLoad
         />
       </View>
 

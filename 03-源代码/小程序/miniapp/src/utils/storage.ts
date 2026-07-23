@@ -1,89 +1,96 @@
-import Taro from '@tarojs/taro';
-import { encrypt, decrypt } from './crypto';
+import Taro from '@tarojs/taro'
+import { CONFIG } from '../config'
 
-const STORAGE_PREFIX = 'xhh_';
-const ENCRYPTED_MARKER = 'enc:';
-
-const SENSITIVE_KEY_PATTERNS: string[] = [
-  'health_entries',
-  'health_index',
-  'health_profile',
-  'vaccinations',
-  'vaccine_reminders',
-  'membership',
-  'membership_orders',
-  'memory_index',
-  'food_queries',
-  'checkin_stats',
-  'token',
-  'refresh_token',
-  'user',
-];
-
-let encryptionEnabled = true;
-let currentUserId = '';
-
-export function setEncryptionEnabled(enabled: boolean): void {
-  encryptionEnabled = enabled;
-}
-
-export function setStorageUserId(userId: string): void {
-  currentUserId = userId;
-}
-
-function isSensitiveKey(key: string): boolean {
-  return SENSITIVE_KEY_PATTERNS.some(pattern => key.includes(pattern));
-}
-
-export function getStorage<T>(key: string): T | null {
-  try {
-    const raw = Taro.getStorageSync(STORAGE_PREFIX + key);
-    if (!raw) return null;
-    if (typeof raw === 'string' && raw.startsWith(ENCRYPTED_MARKER)) {
-      if (!currentUserId) return null;
-      const decrypted = decrypt(raw.slice(ENCRYPTED_MARKER.length), currentUserId);
-      if (!decrypted) return null;
-      return JSON.parse(decrypted) as T;
+export const storage = {
+  getToken: (): string | null => {
+    try {
+      return Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN) || null
+    } catch {
+      return null
     }
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-export function getStorageArray<T>(key: string): T[] {
-  const result = getStorage<T[]>(key);
-  return result || [];
-}
-
-export function setStorage<T>(key: string, value: T): void {
-  try {
-    const jsonStr = JSON.stringify(value);
-    if (encryptionEnabled && currentUserId && isSensitiveKey(key)) {
-      const encrypted = encrypt(jsonStr, currentUserId);
-      Taro.setStorageSync(STORAGE_PREFIX + key, ENCRYPTED_MARKER + encrypted);
-    } else {
-      Taro.setStorageSync(STORAGE_PREFIX + key, jsonStr);
+  },
+  setToken: (token: string) => {
+    Taro.setStorageSync(CONFIG.STORAGE_KEYS.TOKEN, token)
+  },
+  removeToken: () => {
+    Taro.removeStorageSync(CONFIG.STORAGE_KEYS.TOKEN)
+  },
+  getUser: () => {
+    try {
+      const raw = Taro.getStorageSync(CONFIG.STORAGE_KEYS.USER)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
     }
+  },
+  setUser: (user: any) => {
+    Taro.setStorageSync(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user))
+  },
+  removeUser: () => {
+    Taro.removeStorageSync(CONFIG.STORAGE_KEYS.USER)
+  },
+  getRefreshToken: (): string | null => {
+    try {
+      return Taro.getStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN) || null
+    } catch {
+      return null
+    }
+  },
+  setRefreshToken: (token: string) => {
+    Taro.setStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, token)
+  },
+  removeRefreshToken: () => {
+    Taro.removeStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN)
+  },
+  clear: () => {
+    storage.removeToken()
+    storage.removeUser()
+    storage.removeRefreshToken()
+  },
+}
+
+let _currentUserId = ''
+
+export function setStorageUserId(userId: string) {
+  _currentUserId = userId
+}
+
+function _getKey(key: string): string {
+  return _currentUserId ? `${_currentUserId}_${key}` : key
+}
+
+export function getStorage<T = any>(key: string): T | null {
+  try {
+    const raw = Taro.getStorageSync(_getKey(key))
+    if (!raw) return null
+    return JSON.parse(raw) as T
   } catch {
+    return null
   }
 }
 
-export function removeStorage(key: string): void {
-  try {
-    Taro.removeStorageSync(STORAGE_PREFIX + key);
-  } catch {
-  }
+export function getStorageArray<T = any>(key: string): T[] {
+  const data = getStorage<T[]>(key)
+  return Array.isArray(data) ? data : []
 }
 
-export function clearAllStorage(): void {
-  try {
-    const keys = Taro.getStorageInfoSync().keys;
-    keys.forEach(k => {
-      if (k.startsWith(STORAGE_PREFIX)) {
-        Taro.removeStorageSync(k);
-      }
-    });
-  } catch {
-  }
+export function setStorage(key: string, value: any) {
+  Taro.setStorageSync(_getKey(key), JSON.stringify(value))
+}
+
+export function removeStorage(key: string) {
+  Taro.removeStorageSync(_getKey(key))
+}
+
+export function clearAllStorage() {
+  storage.clear()
+  const info = Taro.getStorageInfoSync()
+  info.keys.forEach((key: string) => {
+    if (key.startsWith(_currentUserId + '_')) {
+      Taro.removeStorageSync(key)
+    }
+  })
+}
+
+export function setEncryptionEnabled(_enabled: boolean) {
 }

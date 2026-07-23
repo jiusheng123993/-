@@ -23,7 +23,7 @@ export interface HistoricalMemoryInsight {
 }
 
 export interface PersonalizedInsight {
-  type: 'consecutive_anomaly' | 'food_query_warning' | 'breed_disease_risk' | 'similar_past_event' | 'seasonal_pattern' | 'recovery_reference' | 'allergy_warning' | 'medication_side_effect' | 'chronic_condition_alert'
+  type: 'consecutive_anomaly' | 'food_query_warning' | 'breed_disease_risk' | 'similar_past_event' | 'seasonal_pattern' | 'recovery_reference' | 'allergy_warning' | 'medication_side_effect' | 'chronic_condition_alert' | 'breed_age_risk' | 'weight_trend' | 'vaccine_status' | 'medication_history'
   icon: string
   message: string
   title?: string
@@ -1113,7 +1113,7 @@ function generatePersonalizedInsights(
       const foodNames = [...new Set(cautionFoods.map((q) => q.foodName))].slice(0, 3)
       insights.push({
         type: 'food_query_warning',
-        icon: '📋',
+        icon: '',
         message: `根据近期食物查询记录，请注意${foodNames.join('、')}的摄入`,
       })
     }
@@ -1124,10 +1124,18 @@ function generatePersonalizedInsights(
     if (diseases.length > 0) {
       insights.push({
         type: 'breed_disease_risk',
-        icon: '🏥',
+        icon: '',
         message: `${petProfile.breed}易患${diseases.slice(0, 2).join('、')}，请关注相关症状`,
       })
     }
+  }
+
+  // 增强：品种年龄风险分析
+  if (petProfile) {
+    insights.push(...findBreedAgeRiskInsights(petProfile, symptomIds))
+    insights.push(...findWeightTrendInsights(petProfile, recentCheckins))
+    insights.push(...findVaccineStatusInsights(petProfile))
+    insights.push(...findMedicationHistoryInsights(petProfile, symptomIds))
   }
 
   if (petProfile && symptomIds && symptomIds.length > 0) {
@@ -1135,6 +1143,176 @@ function generatePersonalizedInsights(
     insights.push(...findAllergyInsights(petProfile, symptomIds))
     insights.push(...findMedicationInsights(petProfile, symptomIds))
     insights.push(...findChronicConditionInsights(petProfile, symptomIds))
+  }
+
+  return insights
+}
+
+/**
+ * 品种年龄风险分析
+ * 基于品种平均寿命和当前年龄计算风险
+ */
+function findBreedAgeRiskInsights(
+  petProfile: PetProfile,
+  symptomIds?: string[]
+): PersonalizedInsight[] {
+  const insights: PersonalizedInsight[] = []
+  if (!petProfile.breed || !petProfile.birthDate) return insights
+
+  const breed = BREED_DATA.find(
+    (b) => b.species === petProfile.species && (b.name === petProfile.breed || b.aliases.includes(petProfile.breed) || b.id === petProfile.breed)
+  )
+  if (!breed) return insights
+
+  const birth = new Date(petProfile.birthDate + 'T00:00:00.000Z')
+  const now = new Date()
+  const ageInMonths =
+    (now.getUTCFullYear() - birth.getUTCFullYear()) * 12 +
+    (now.getUTCMonth() - birth.getUTCMonth())
+  const ageInYears = ageInMonths / 12
+
+  // 品种平均寿命
+  const avgLifespan = Number(breed.avgLifespan) || (petProfile.species === 'dog' ? 12 : 14)
+  const lifespanPercent = (ageInYears / avgLifespan) * 100
+
+  // 老年风险
+  if (lifespanPercent >= 75) {
+    insights.push({
+      type: 'breed_age_risk',
+      icon: '👴',
+      title: '老年宠物注意',
+      message: `${petProfile.name}已相当于${petProfile.breed}的老年阶段（平均寿命${avgLifespan}岁），老年宠物症状可能不典型，建议更积极的检查`,
+    })
+  }
+
+  // 幼犬/幼猫风险
+  if (ageInMonths < 6) {
+    insights.push({
+      type: 'breed_age_risk',
+      icon: '👶',
+      title: '幼年宠物注意',
+      message: `${petProfile.name}还是幼${petProfile.species === 'dog' ? '犬' : '猫'}（约${ageInMonths}个月），免疫系统尚未发育完全，症状可能进展迅速`,
+    })
+  }
+
+  return insights
+}
+
+/**
+ * 体重趋势分析
+ * 基于打卡记录分析体重变化趋势
+ */
+function findWeightTrendInsights(
+  petProfile: PetProfile,
+  recentCheckins?: PetHealthEntry[]
+): PersonalizedInsight[] {
+  const insights: PersonalizedInsight[] = []
+  if (!recentCheckins || recentCheckins.length < 3) return insights
+
+  // 提取有体重记录的打卡
+  const weightEntries = recentCheckins
+    .filter((e) => e.weight && e.weight > 0)
+    .sort((a, b) => entryDateStr(a).localeCompare(entryDateStr(b)))
+
+  if (weightEntries.length < 3) return insights
+
+  // 计算体重变化趋势
+  const firstWeight = weightEntries[0].weight!
+  const lastWeight = weightEntries[weightEntries.length - 1].weight!
+  const weightChange = lastWeight - firstWeight
+  const weightChangePercent = (weightChange / firstWeight) * 100
+
+  // 体重显著下降（>5%）
+  if (weightChangePercent < -5) {
+    insights.push({
+      type: 'weight_trend',
+      icon: '⚖️',
+      title: '体重下降趋势',
+      message: `${petProfile.name}近期体重下降了${Math.abs(weightChangePercent).toFixed(1)}%，从${firstWeight}kg降至${lastWeight}kg，需关注是否存在潜在健康问题`,
+    })
+  }
+
+  // 体重显著上升（>10%）
+  if (weightChangePercent > 10) {
+    insights.push({
+      type: 'weight_trend',
+      icon: '️',
+      title: '体重上升趋势',
+      message: `${petProfile.name}近期体重上升了${weightChangePercent.toFixed(1)}%，从${firstWeight}kg升至${lastWeight}kg，需注意肥胖相关风险`,
+    })
+  }
+
+  return insights
+}
+
+/**
+ * 疫苗状态分析
+ * 检查疫苗是否到期
+ */
+function findVaccineStatusInsights(petProfile: PetProfile): PersonalizedInsight[] {
+  const insights: PersonalizedInsight[] = []
+  
+  // 从本地存储获取疫苗记录
+  const vaccineRecords = getStorage<{ category: string; nextDate: string; status: string }[]>(`vaccines_${petProfile.id}`) || []
+  
+  if (vaccineRecords.length === 0) return insights
+
+  const now = new Date()
+  const overdueVaccines = vaccineRecords.filter((r) => {
+    if (r.status === 'completed') return false
+    const nextDate = new Date(r.nextDate + 'T00:00:00.000Z')
+    return nextDate < now
+  })
+
+  if (overdueVaccines.length > 0) {
+    const vaccineNames = overdueVaccines.map((v) => v.category).join('、')
+    insights.push({
+      type: 'vaccine_status',
+      icon: '💉',
+      title: '疫苗到期提醒',
+      message: `${petProfile.name}的${vaccineNames}疫苗已逾期，免疫力可能下降，建议尽快补种`,
+    })
+  }
+
+  return insights
+}
+
+/**
+ * 用药历史分析
+ * 分析近期用药与当前症状的关联
+ */
+function findMedicationHistoryInsights(
+  petProfile: PetProfile,
+  symptomIds?: string[]
+): PersonalizedInsight[] {
+  const insights: PersonalizedInsight[] = []
+  if (!petProfile.medications || petProfile.medications.length === 0) return insights
+  if (!symptomIds || symptomIds.length === 0) return insights
+
+  // 检查是否有长期用药
+  const longTermMeds = petProfile.medications.filter((med) =>
+    ['胰岛素', '甲状腺', '心脏', '类固醇'].some((keyword) => med.includes(keyword))
+  )
+
+  if (longTermMeds.length > 0) {
+    // 检查症状是否与长期用药相关
+    const relatedSymptoms = symptomIds.filter((s) => {
+      if (s === 'lethargy' || s === 'appetite_loss') {
+        return longTermMeds.some((med) =>
+          ['胰岛素', '甲状腺', '心脏'].some((keyword) => med.includes(keyword))
+        )
+      }
+      return false
+    })
+
+    if (relatedSymptoms.length > 0) {
+      insights.push({
+        type: 'medication_history',
+        icon: '💊',
+        title: '长期用药关联',
+        message: `${petProfile.name}正在使用${longTermMeds.join('、')}等长期药物，当前症状可能与药物剂量或病情变化有关，建议复查`,
+      })
+    }
   }
 
   return insights

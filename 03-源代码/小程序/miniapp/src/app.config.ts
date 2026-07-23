@@ -15,27 +15,21 @@ export default defineAppConfig({
   },
   tabBar: {
     color: '#999',
-    selectedColor: '#4A90D9',
+    selectedColor: '#C88520',
     backgroundColor: '#FFF',
     borderStyle: 'white',
     list: [
       {
-        pagePath: 'pages/index/index',
-        text: '首页',
+        pagePath: 'pagesPet/chat/index',
+        text: '聊天',
         iconPath: 'assets/icons/home.png',
         selectedIconPath: 'assets/icons/home-active.png',
       },
       {
-        pagePath: 'pages/pet-profile/index',
-        text: '我的宠物',
+        pagePath: 'pagesPet/family/dashboard/index',
+        text: '家庭',
         iconPath: 'assets/icons/pet.png',
         selectedIconPath: 'assets/icons/pet-active.png',
-      },
-      {
-        pagePath: 'pages/member/index',
-        text: '会员',
-        iconPath: 'assets/icons/member.png',
-        selectedIconPath: 'assets/icons/member-active.png',
       },
       {
         pagePath: 'pages/mine/index',
@@ -49,6 +43,7 @@ export default defineAppConfig({
     {
       root: 'pagesPet',
       pages: [
+        'chat/index',
         'add/index',
         'edit/index',
         'breed/index',
@@ -60,6 +55,12 @@ export default defineAppConfig({
         'trends/index',
         'vaccine/index',
         'avatar-customize/index',
+        'hospital/index',
+        'chronic-tracking/index',
+        'feeding-advice/index',
+        'naming/index',
+        'family/dashboard/index',
+        'timeline/index',
       ],
     },
     {

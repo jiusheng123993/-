@@ -1,93 +1,42 @@
-// 星寰海 v2.0 - 认证状态Hook
 import { useEffect } from 'react';
 import Taro from '@tarojs/taro';
-import { useAuthStore, type UserProfile } from '../stores/authStore';
-import { isTokenExpiringSoon } from '../utils/jwt';
+import { useAuthStore } from '../stores/authStore';
+import type { User } from '../types';
 
-/** 认证Hook返回值 */
 interface UseAuthReturn {
-  user: UserProfile | null;
+  user: User | null;
   isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
+  isLoading: boolean;
+  isInitialized: boolean;
   login: () => Promise<boolean>;
   logout: () => Promise<void>;
-  clearError: () => void;
 }
 
-/**
- * 认证状态管理Hook
- * @returns 认证状态和方法
- */
 export function useAuth(): UseAuthReturn {
   const {
     user,
     isAuthenticated,
-    loading,
-    error,
-    token,
+    isLoading,
+    isInitialized,
     initialize,
     login,
     logout,
-    refreshAuthToken,
-    clearError,
   } = useAuthStore();
 
-  // 初始化：从本地存储加载认证状态
   useEffect(() => {
     initialize();
   }, [initialize]);
 
-  // 自动刷新即将过期的 Token
-  useEffect(() => {
-    if (!token) return;
-
-    const checkAndRefresh = async () => {
-      if (isTokenExpiringSoon(token)) {
-        await refreshAuthToken();
-      }
-    };
-
-    // 每分钟检查一次
-    const intervalId = setInterval(checkAndRefresh, 60 * 1000);
-
-    return () => clearInterval(intervalId);
-  }, [token, refreshAuthToken]);
-
-  /** 登录 */
   const handleLogin = async (): Promise<boolean> => {
     try {
-      // 调用 Taro.login() 获取微信 code
-      const loginRes = await Taro.login();
-
-      if (!loginRes.code) {
-        Taro.showToast({
-          title: '获取微信登录凭证失败',
-          icon: 'none',
-        });
-        return false;
-      }
-
-      // 使用 store 中的 login 方法处理登录
-      const result = await login(loginRes.code);
-
-      if (result.success) {
-        Taro.showToast({
-          title: '登录成功',
-          icon: 'success',
-        });
-
-        // 跳转到首页
-        Taro.reLaunch({ url: '/pages/index/index' });
-        return true;
-      } else {
-        Taro.showToast({
-          title: result.error || '登录失败',
-          icon: 'none',
-        });
-        return false;
-      }
-    } catch (err) {
+      await login();
+      Taro.showToast({
+        title: '登录成功',
+        icon: 'success',
+      });
+      Taro.reLaunch({ url: '/pages/index/index' });
+      return true;
+    } catch {
       Taro.showToast({
         title: '登录失败，请重试',
         icon: 'none',
@@ -96,7 +45,6 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  /** 登出 */
   const handleLogout = async (): Promise<void> => {
     try {
       await logout();
@@ -104,17 +52,16 @@ export function useAuth(): UseAuthReturn {
         title: '已退出登录',
         icon: 'success',
       });
-    } catch (err) {
+    } catch {
     }
   };
 
   return {
     user,
     isAuthenticated,
-    loading,
-    error,
+    isLoading,
+    isInitialized,
     login: handleLogin,
     logout: handleLogout,
-    clearError,
   };
 }

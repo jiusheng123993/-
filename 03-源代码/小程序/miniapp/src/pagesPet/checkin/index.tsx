@@ -23,6 +23,7 @@ import { updateLastCheckinDate } from '../../services/churnDetectionService'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { EVENT } from '../../constants/analyticsEvents'
+import type { Checkin } from '../../types'
 import './index.scss'
 
 const APPETITE_OPTIONS = [
@@ -78,9 +79,64 @@ const RESULT_ICONS: Record<string, string> = {
   emergency: '⚠️',
 }
 
+const MOOD_DISPLAY: Record<string, { emoji: string; label: string }> = {
+  happy: { emoji: '😊', label: '开心' },
+  normal: { emoji: '⚡', label: '正常' },
+  sad: { emoji: '😞', label: '萎靡' },
+}
+
+const APPETITE_DISPLAY: Record<string, { emoji: string; label: string }> = {
+  good: { emoji: '🍽️', label: '好' },
+  normal: { emoji: '😋', label: '正常' },
+  poor: { emoji: '😷', label: '差' },
+}
+
+const STOOL_DISPLAY: Record<string, { emoji: string; label: string }> = {
+  normal: { emoji: '💩', label: '正常' },
+  loose: { emoji: '💧', label: '腹泻' },
+  hard: { emoji: '🪨', label: '便秘' },
+}
+
+function mapAppetiteLevel(level: number): Checkin['appetite'] {
+  if (level <= 2) return 'poor'
+  if (level === 3) return 'normal'
+  return 'good'
+}
+
+function mapSpiritLevel(level: number): Checkin['mood'] {
+  if (level <= 2) return 'sad'
+  if (level === 3) return 'normal'
+  return 'happy'
+}
+
+function mapPoopLevel(level: number): Checkin['stool'] {
+  if (level <= 2) return 'loose'
+  if (level === 3) return 'normal'
+  return 'hard'
+}
+
+function computeRiskLevel(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): string {
+  if (stool === 'loose' && appetite === 'poor' && mood === 'sad') return 'emergency'
+  if (appetite === 'poor' && mood === 'sad') return 'high'
+  if (stool === 'loose' || appetite === 'poor' || mood === 'sad') return 'medium'
+  return 'low'
+}
+
+function computeAnomalyItems(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): string[] {
+  const items: string[] = []
+  if (mood === 'sad') items.push('spirit')
+  if (appetite === 'poor') items.push('appetite')
+  if (stool !== 'normal') items.push('poop')
+  return items
+}
+
+function computeHasAnomaly(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): boolean {
+  return mood === 'sad' || appetite === 'poor' || stool !== 'normal'
+}
+
 export default function PetCheckin() {
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
-  const { todayEntry, addCheckin, fetchTodayCheckin, stats, fetchStats, isLoading: checkinLoading, initUser, entries } = useCheckin()
+  const { checkins, todayCheckin, streakDays, isLoading: checkinLoading, initUser, doCheckin, fetchCheckins } = useCheckin()
   const userId = useAuthStore(s => s.user?.id) || ''
   const inviteCode = useShareStore(s => s.inviteCode)
 
@@ -124,15 +180,12 @@ export default function PetCheckin() {
         await initUser(userId)
       }
       if (currentPet) {
-        await Promise.all([
-          fetchTodayCheckin(currentPet.id),
-          fetchStats(currentPet.id),
-        ])
+        await fetchCheckins(currentPet.id)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载失败，请重试')
     }
-  }, [userId, currentPet, initUser, fetchTodayCheckin, fetchStats])
+  }, [userId, currentPet, initUser, fetchCheckins])
 
   useEffect(() => {
     trackPageView('checkin')
@@ -142,33 +195,35 @@ export default function PetCheckin() {
     loadCheckinData()
   }, [loadCheckinData])
 
-  const calculateConsecutiveAnomalyDays = (): number => {
-    if (!entries || entries.length === 0) return 0
-    const sorted = [...entries].sort((a, b) => {
-      const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime()
-      const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime()
-      return dateB - dateA
-    })
+  const calculateConsecutiveAnomalyDays = useCallback((): number => {
+    if (!checkins || checkins.length === 0) return 0
+    const sorted = [...checkins].sort((a, b) => b.date.localeCompare(a.date))
     let count = 0
     for (const entry of sorted) {
-      if (entry.hasAnomaly || entry.riskLevel === 'high' || entry.riskLevel === 'emergency') {
+      const isAnomaly = entry.mood === 'sad' || entry.appetite === 'poor' || entry.stool !== 'normal'
+      const risk = computeRiskLevel(entry.mood, entry.appetite, entry.stool)
+      if (isAnomaly || risk === 'high' || risk === 'emergency') {
         count++
       } else {
         break
       }
     }
     return count
-  }
+  }, [checkins])
 
   const handleSubmit = async () => {
     if (!currentPet) return
-    const hasAnomaly = formData.appetiteLevel === 5 || formData.appetiteLevel <= 2 || formData.poopLevel <= 2 || formData.spiritLevel <= 2
-    const anomalyItems = [
-      ...(formData.appetiteLevel === 5 || formData.appetiteLevel <= 2 ? ['appetite'] : []),
-      ...(formData.poopLevel <= 2 ? ['poop'] : []),
-      ...(formData.spiritLevel <= 2 ? ['spirit'] : []),
-      ...(formData.exerciseLevel === 1 ? ['exercise'] : []),
-    ]
+    const mood = mapSpiritLevel(formData.spiritLevel)
+    const appetite = mapAppetiteLevel(formData.appetiteLevel)
+    const stool = mapPoopLevel(formData.poopLevel)
+    const hasAnomaly = computeHasAnomaly(mood, appetite, stool)
+    const anomalyItems = computeAnomalyItems(mood, appetite, stool)
+    const riskLevel = computeRiskLevel(mood, appetite, stool)
+    const noteParts: string[] = []
+    if (formData.notes) noteParts.push(formData.notes)
+    if (formData.exerciseLevel !== 2) noteParts.push(`运动: ${EXERCISE_LABELS[formData.exerciseLevel]}`)
+    if (anomalyItems.length > 0) noteParts.push(`异常项: ${anomalyItems.join(', ')}`)
+
     trackEvent(AnalyticsEventName.CheckinSubmit, {
       petId: currentPet.id,
       items: JSON.stringify({ appetite: formData.appetiteLevel, spirit: formData.spiritLevel, poop: formData.poopLevel, exercise: formData.exerciseLevel }),
@@ -176,29 +231,22 @@ export default function PetCheckin() {
     })
     setSubmitting(true)
     try {
-      const result = await addCheckin({
+      const result = await doCheckin({
         petId: currentPet.id,
         userId,
-        appetiteLevel: formData.appetiteLevel,
-        spiritLevel: formData.spiritLevel,
-        poopLevel: formData.poopLevel,
-        exerciseLevel: formData.exerciseLevel,
+        date: new Date().toISOString().split('T')[0],
+        mood,
+        appetite,
+        stool,
         weight: formData.weight,
-        hasAnomaly: formData.appetiteLevel === 5 || formData.appetiteLevel <= 2 || formData.poopLevel <= 2 || formData.spiritLevel <= 2,
-        anomalyItems: [
-          ...(formData.appetiteLevel === 5 || formData.appetiteLevel <= 2 ? ['appetite' as const] : []),
-          ...(formData.poopLevel <= 2 ? ['poop' as const] : []),
-          ...(formData.spiritLevel <= 2 ? ['spirit' as const] : []),
-          ...(formData.exerciseLevel === 1 ? ['exercise' as const] : []),
-        ],
-        note: formData.notes || undefined,
+        note: noteParts.length > 0 ? noteParts.join('; ') : undefined,
       })
 
       if (hasAnomaly) {
         trackEvent(AnalyticsEventName.CheckinAnomaly, {
           petId: currentPet.id,
           anomalyItems: JSON.stringify(anomalyItems),
-          urgency: result.riskLevel,
+          urgency: riskLevel,
         })
       }
       if (hasAnomaly) {
@@ -208,12 +256,12 @@ export default function PetCheckin() {
           high: 'severe',
           emergency: 'severe',
         }
-        trackEmotion('anomaly_detected', riskToSeverity[result.riskLevel] || 'moderate')
+        trackEmotion('anomaly_detected', riskToSeverity[riskLevel] || 'moderate')
       }
-      if (result.riskLevel === 'emergency') {
-        setFeedbackResult({ riskLevel: result.riskLevel, feedback: result.aiFeedback || '检测到紧急健康信号，建议立即联系宠物医院', anomalyItems })
-      } else if (result.riskLevel === 'high' || result.riskLevel === 'medium') {
-        setFeedbackResult({ riskLevel: result.riskLevel, feedback: result.aiFeedback || '检测到异常指标，建议持续观察', anomalyItems })
+      if (riskLevel === 'emergency') {
+        setFeedbackResult({ riskLevel, feedback: '检测到紧急健康信号，建议立即联系宠物医院', anomalyItems })
+      } else if (riskLevel === 'high' || riskLevel === 'medium') {
+        setFeedbackResult({ riskLevel, feedback: '检测到异常指标，建议持续观察', anomalyItems })
       } else {
         Taro.showToast({ title: '打卡成功', icon: 'success' })
       }
@@ -226,27 +274,26 @@ export default function PetCheckin() {
       }
 
       if (currentPet) {
+        const currentStreakDays = useCheckinStore.getState().streakDays
         const birth = currentPet.birthDate ? new Date(currentPet.birthDate) : null
         const now = new Date()
         const isBirthday = birth
           ? now.getMonth() === birth.getMonth() && now.getDate() === birth.getDate()
           : false
-        const streakDays = useCheckinStore.getState().stats?.streak ?? 0
-        const diary = generateDiaryForToday(result, streakDays, isBirthday, false)
+        const diary = generateDiaryForToday(null, currentStreakDays, isBirthday, false)
         setDiaryEntry(diary)
       }
 
       if (currentPet) {
-        fetchStats(currentPet.id)
+        fetchCheckins(currentPet.id)
       }
 
       if (currentPet) {
-        const newStats = useCheckinStore.getState().stats
-        const streakDays = newStats?.streak ?? 0
+        const newStreakDays = useCheckinStore.getState().streakDays
         const detected = checkAllAchievements({
           petId: currentPet.id,
           birthDate: currentPet.birthDate,
-          streakDays,
+          streakDays: newStreakDays,
           isDeceased: currentPet.isDeceased || false,
         })
         if (detected) {
@@ -255,7 +302,6 @@ export default function PetCheckin() {
         }
       }
 
-      // 提示开启每日打卡提醒
       if (!isAccepted('HEALTH_CHECKIN_TEMPLATE_ID_PLACEHOLDER')) {
         setTimeout(() => {
           Taro.showModal({
@@ -299,32 +345,43 @@ export default function PetCheckin() {
 
   const isLoading = petLoading || checkinLoading
 
+  const todayHasAnomaly = todayCheckin ? computeHasAnomaly(todayCheckin.mood, todayCheckin.appetite, todayCheckin.stool) : false
+
   const disclaimerText = useMemo(() => {
     const disclaimer = new MedicalDisclaimer()
-    return disclaimer.getCheckinDisclaimer(todayEntry?.hasAnomaly || false)
-  }, [todayEntry?.hasAnomaly])
+    return disclaimer.getCheckinDisclaimer(todayHasAnomaly)
+  }, [todayHasAnomaly])
+
+  const todayAnomalyItems = todayCheckin ? computeAnomalyItems(todayCheckin.mood, todayCheckin.appetite, todayCheckin.stool) : []
+  const todayRiskLevel = todayCheckin ? computeRiskLevel(todayCheckin.mood, todayCheckin.appetite, todayCheckin.stool) : 'low'
 
   const expressionContext = useMemo((): ExpressionContext | null => {
     if (!currentPet) return null
-    const entry = todayEntry
-    const anomalyItems = entry?.anomalyItems || []
     const now = new Date()
     const birth = currentPet.birthDate ? new Date(currentPet.birthDate) : null
     const isBirthday = birth
       ? now.getMonth() === birth.getMonth() && now.getDate() === birth.getDate()
       : false
     return {
-      todayEntry: entry || null,
-      hasAnomaly: entry?.hasAnomaly || false,
-      anomalyCount: anomalyItems.length,
-      riskLevel: entry?.riskLevel || null,
-      streakDays: stats?.streak || 0,
+      todayEntry: null,
+      hasAnomaly: todayHasAnomaly,
+      anomalyCount: todayAnomalyItems.length,
+      riskLevel: todayRiskLevel as ExpressionContext['riskLevel'],
+      streakDays,
       isBirthday,
       isVaccineComplete: false,
       isRecovery: false,
       isDeceased: currentPet.isDeceased || false,
     }
-  }, [currentPet, todayEntry, stats])
+  }, [currentPet, todayHasAnomaly, todayAnomalyItems, todayRiskLevel, streakDays])
+
+  const monthlyCount = useMemo(() => {
+    const now = new Date()
+    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    return checkins.filter(c => c.date.startsWith(yearMonth)).length
+  }, [checkins])
+
+  const totalCheckins = checkins.length
 
   if (isLoading && pets.length === 0) {
     return (
@@ -369,28 +426,30 @@ export default function PetCheckin() {
           <Text className='pet-checkin__empty-icon'>🐾</Text>
           <Text className='pet-checkin__empty-text'>请先添加宠物</Text>
         </View>
-      ) : todayEntry ? (
+      ) : todayCheckin ? (
         <View className='pet-checkin__result-wrapper'>
-          <View className={`pet-checkin__result pet-checkin__result--${todayEntry.riskLevel}`}>
+          <View className={`pet-checkin__result pet-checkin__result--${todayRiskLevel}`}>
             <Text className='pet-checkin__result-title'>
-              {RESULT_ICONS[todayEntry.riskLevel] || '✅'} 今日已打卡
+              {RESULT_ICONS[todayRiskLevel] || '✅'} 今日已打卡
             </Text>
-            <Text className='pet-checkin__result-feedback'>{todayEntry.aiFeedback}</Text>
+            <Text className='pet-checkin__result-feedback'>
+              {todayRiskLevel === 'emergency' ? '检测到紧急健康信号，建议立即联系宠物医院' :
+               todayRiskLevel === 'high' ? '检测到异常指标，建议持续观察' :
+               todayRiskLevel === 'medium' ? '部分指标需要关注，请继续观察' :
+               '今日状态良好'}
+            </Text>
             <View className='pet-checkin__result-detail'>
               <Text className='pet-checkin__result-tag'>
-                食欲：{APPETITE_EMOJIS[todayEntry.appetiteLevel]} {APPETITE_LABELS[todayEntry.appetiteLevel]}
+                食欲：{APPETITE_DISPLAY[todayCheckin.appetite].emoji} {APPETITE_DISPLAY[todayCheckin.appetite].label}
               </Text>
               <Text className='pet-checkin__result-tag'>
-                精力：{SPIRIT_EMOJIS[todayEntry.spiritLevel]} {SPIRIT_LABELS[todayEntry.spiritLevel]}
+                精力：{MOOD_DISPLAY[todayCheckin.mood].emoji} {MOOD_DISPLAY[todayCheckin.mood].label}
               </Text>
               <Text className='pet-checkin__result-tag'>
-                便便：{POOP_EMOJIS[todayEntry.poopLevel]} {POOP_LABELS[todayEntry.poopLevel]}
+                便便：{STOOL_DISPLAY[todayCheckin.stool].emoji} {STOOL_DISPLAY[todayCheckin.stool].label}
               </Text>
-              <Text className='pet-checkin__result-tag'>
-                运动：{EXERCISE_EMOJIS[todayEntry.exerciseLevel]} {EXERCISE_LABELS[todayEntry.exerciseLevel]}
-              </Text>
-              {todayEntry.weight && (
-                <Text className='pet-checkin__result-tag'>体重：{todayEntry.weight}kg</Text>
+              {todayCheckin.weight && (
+                <Text className='pet-checkin__result-tag'>体重：{todayCheckin.weight}kg</Text>
               )}
             </View>
           </View>
@@ -424,7 +483,7 @@ export default function PetCheckin() {
             </View>
           )}
 
-          {todayEntry.riskLevel !== 'low' && calculateConsecutiveAnomalyDays() >= 3 && (
+          {todayRiskLevel !== 'low' && calculateConsecutiveAnomalyDays() >= 3 && (
             <View
               className='pet-checkin__care-plan-btn'
               onClick={() => setShowCarePlan(true)}
@@ -533,24 +592,22 @@ export default function PetCheckin() {
         </View>
       )}
 
-      {stats && (
-        <View className='pet-checkin__stats'>
-          <View className='pet-checkin__stats-item'>
-            <Text className='pet-checkin__stats-value'>{stats.streak}</Text>
-            <Text className='pet-checkin__stats-label'>连续打卡（天）</Text>
-          </View>
-          <View className='pet-checkin__stats-divider' />
-          <View className='pet-checkin__stats-item'>
-            <Text className='pet-checkin__stats-value'>{stats.monthlyCount}</Text>
-            <Text className='pet-checkin__stats-label'>本月打卡（次）</Text>
-          </View>
-          <View className='pet-checkin__stats-divider' />
-          <View className='pet-checkin__stats-item'>
-            <Text className='pet-checkin__stats-value'>{stats.totalCheckins}</Text>
-            <Text className='pet-checkin__stats-label'>累计打卡</Text>
-          </View>
+      <View className='pet-checkin__stats'>
+        <View className='pet-checkin__stats-item'>
+          <Text className='pet-checkin__stats-value'>{streakDays}</Text>
+          <Text className='pet-checkin__stats-label'>连续打卡（天）</Text>
         </View>
-      )}
+        <View className='pet-checkin__stats-divider' />
+        <View className='pet-checkin__stats-item'>
+          <Text className='pet-checkin__stats-value'>{monthlyCount}</Text>
+          <Text className='pet-checkin__stats-label'>本月打卡（次）</Text>
+        </View>
+        <View className='pet-checkin__stats-divider' />
+        <View className='pet-checkin__stats-item'>
+          <Text className='pet-checkin__stats-value'>{totalCheckins}</Text>
+          <Text className='pet-checkin__stats-label'>累计打卡</Text>
+        </View>
+      </View>
 
       {feedbackResult && feedbackResult.riskLevel !== 'emergency' && (
         <View className='pet-checkin__feedback-overlay' onClick={(e) => { e.stopPropagation() }}>
@@ -632,7 +689,7 @@ export default function PetCheckin() {
         <CarePlanCard
           visible={showCarePlan}
           petName={currentPet.name}
-          anomalyItems={todayEntry?.anomalyItems}
+          anomalyItems={todayAnomalyItems}
           onClose={() => setShowCarePlan(false)}
         />
       )}

@@ -184,7 +184,8 @@ export default function AnxietyIntervention({
         Taro.navigateTo({ url: '/pagesPet/vaccine/index' })
         break
       case 'hospital':
-        Taro.showToast({ title: '附近医院功能开发中', icon: 'none' })
+        onDismiss()
+        Taro.navigateTo({ url: '/pagesPet/hospital/index' })
         break
       case 'care_plan':
         setShowCarePlan(true)

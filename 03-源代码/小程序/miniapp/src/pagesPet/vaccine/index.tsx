@@ -28,6 +28,7 @@ import { checkVaccineCompleteAchievement } from '../../services/achievementServi
 import type { AchievementConfig } from '../../components/AchievementCard'
 import { generateAutoVaccineSchedule, generateDewormingSchedule, getVaccineReminders, getDewormingReminders, getReminderMessage } from '../../engines/vaccineScheduler'
 import type { AutoScheduleItem, DewormingScheduleItem } from '../../engines/vaccineScheduler'
+import { checkAndSendVaccineReminders } from '../../services/reminderService'
 import './index.scss'
 
 export default function PetVaccine() {
@@ -92,6 +93,9 @@ export default function PetVaccine() {
         await fetchRecords(currentPet.id)
         fetchUpcomingReminders(currentPet.id, 7)
         fetchOverdueReminders(currentPet.id)
+        
+        // 检查并发送疫苗提醒订阅消息
+        await checkAndSendVaccineReminders(currentPet.id, currentPet.name)
       }
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : '加载失败，请重试')
@@ -244,7 +248,24 @@ export default function PetVaccine() {
       trackEvent(AnalyticsEventName.VaccineReminderClick, { petId: currentPet.id, vaccineType: 'subscription', action: subscriptionStatus ? 'disable' : 'enable' })
     }
     try {
-      await requestSubscription()
+      const accepted = await requestSubscription()
+      if (accepted) {
+        Taro.showToast({ title: '已开启疫苗提醒', icon: 'success' })
+        // 立即检查并发送提醒
+        if (currentPet) {
+          await checkAndSendVaccineReminders(currentPet.id, currentPet.name)
+        }
+      } else {
+        Taro.showModal({
+          title: '开启提醒',
+          content: '订阅消息需要您授权才能接收疫苗到期提醒。是否前往设置开启？',
+          success: (res) => {
+            if (res.confirm) {
+              Taro.openSetting()
+            }
+          }
+        })
+      }
     } catch {
       Taro.showToast({ title: '授权失败', icon: 'none' })
     }

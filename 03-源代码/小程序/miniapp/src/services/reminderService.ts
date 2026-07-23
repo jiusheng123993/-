@@ -2,6 +2,8 @@ import Taro from '@tarojs/taro';
 import type { VaccineRecord } from './vaccineService';
 import { getStorage, setStorage } from '../utils/storage';
 import { VACCINE_REMINDER_TEMPLATE_ID } from '../constants/templateIds';
+import { sendSubscribeMessage, hasAcceptedSubscribe } from './subscribeService';
+import { logger } from '../logger';
 
 export interface ReminderItem {
   record: VaccineRecord;
@@ -19,8 +21,17 @@ export interface LocalReminder {
   triggered: boolean;
 }
 
+export interface VaccineReminderConfig {
+  petId: string;
+  petName: string;
+  vaccineName: string;
+  nextDate: string;
+  daysUntilDue: number;
+}
+
 const SUBSCRIPTION_STATUS_KEY = 'vaccine_reminder_subscribed';
 const LOCAL_REMINDERS_KEY = 'vaccine_local_reminders';
+const VACCINE_REMINDER_SENT_KEY = 'vaccine_reminder_sent';
 
 function getTodayStr(): string {
   const now = new Date();
@@ -161,3 +172,89 @@ export function clearLocalReminders(petId: string): void {
 }
 
 export { VACCINE_REMINDER_TEMPLATE_ID } from '../constants/templateIds'
+
+/**
+ * 发送疫苗提醒订阅消息
+ * 在疫苗到期前触发，通过微信订阅消息推送
+ */
+export async function sendVaccineReminder(config: VaccineReminderConfig): Promise<boolean> {
+  try {
+    // 检查用户是否已接受订阅
+    const hasAccepted = await hasAcceptedSubscribe(VACCINE_REMINDER_TEMPLATE_ID)
+    if (!hasAccepted) {
+      logger.info('vaccineReminder', '用户未接受订阅，跳过疫苗提醒推送')
+      return false
+    }
+
+    // 检查今日是否已发送过该疫苗的提醒
+    const sentKey = `${VACCINE_REMINDER_SENT_KEY}_${config.petId}_${config.vaccineName}`
+    const lastSent = getStorage<string>(sentKey)
+    const today = getTodayStr()
+    if (lastSent === today) {
+      logger.info('vaccineReminder', '今日已发送过该疫苗提醒，跳过')
+      return false
+    }
+
+    // 构建订阅消息数据
+    const messageData = {
+      thing1: { value: config.petName },
+      thing2: { value: config.vaccineName },
+      time3: { value: config.nextDate },
+      thing4: { value: config.daysUntilDue <= 0 ? '已逾期，请尽快安排' : `还有${config.daysUntilDue}天到期` },
+    }
+
+    // 发送订阅消息
+    const success = await sendSubscribeMessage( VACCINE_REMINDER_TEMPLATE_ID, messageData)
+
+    if (success) {
+      // 记录发送时间
+      setStorage(sentKey, today)
+      logger.info('vaccineReminder', `疫苗提醒订阅消息发送成功, petId=${config.petId}, vaccineName=${config.vaccineName}`)
+    }
+
+    return success
+  } catch (error) {
+    logger.error('vaccineReminder', `发送疫苗提醒订阅消息失败, config=${JSON.stringify(config)}`, error)
+    return false
+  }
+}
+
+/**
+ * 检查并发送即将到期的疫苗提醒
+ * 应在小程序启动或页面显示时调用
+ */
+export async function checkAndSendVaccineReminders(petId: string, petName: string): Promise<void> {
+  try {
+    const upcoming = getUpcomingReminders(petId, 7)
+    const overdue = getOverdueReminders(petId)
+    const allReminders = [...upcoming, ...overdue]
+
+    for (const item of allReminders) {
+      const config: VaccineReminderConfig = {
+        petId,
+        petName,
+        vaccineName: item.record.category,
+        nextDate: item.record.nextDate,
+        daysUntilDue: item.daysUntilDue,
+      }
+
+      await sendVaccineReminder(config)
+    }
+  } catch (error) {
+    logger.error('vaccineReminder', `检查并发送疫苗提醒失败, petId=${petId}`, error)
+  }
+}
+
+/**
+ * 获取疫苗提醒订阅状态
+ */
+export function getVaccineReminderStatus(): boolean {
+  return getStorage<boolean>(SUBSCRIPTION_STATUS_KEY) || false
+}
+
+/**
+ * 设置疫苗提醒订阅状态
+ */
+export function setVaccineReminderStatus(subscribed: boolean): void {
+  setStorage(SUBSCRIPTION_STATUS_KEY, subscribed)
+}

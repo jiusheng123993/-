@@ -208,7 +208,7 @@ export default function PetSymptomCheck() {
           trackEvent('show_paywall', { feature: 'symptom_check' })
           setPaywallVisible(true)
         } else {
-          Taro.navigateTo({ url: '/pages/member/index' })
+          Taro.switchTab({ url: '/pages/member/index' })
         }
         return
       }
@@ -652,7 +652,7 @@ export default function PetSymptomCheck() {
                     className='pet-symptom-check__btn pet-symptom-check__btn--hospital'
                     onClick={() => {
                       trackEvent(AnalyticsEventName.FindHospital, { petId: currentPet?.id || '', urgencyLevel: RISK_TO_URGENCY[currentResult?.riskLevel || ''] || 'green', source: 'symptom_check' })
-                      Taro.navigateTo({ url: '/pagesPet/food-query/index' })
+                      Taro.navigateTo({ url: '/pagesPet/hospital/index' })
                     }}
                   >
                     <Text className='pet-symptom-check__btn-text pet-symptom-check__btn-text--white'>🏥 找医院</Text>
@@ -697,7 +697,7 @@ export default function PetSymptomCheck() {
         visible={paywallVisible}
         featureName="AI症状初筛"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.switchTab({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 

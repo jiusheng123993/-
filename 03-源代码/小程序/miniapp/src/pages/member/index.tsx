@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useMembershipStore } from '../../stores/membershipStore'
+import PageLoading from '../../components/PageLoading'
 import './index.scss'
 
 const PLANS = [
@@ -52,9 +53,28 @@ export default function Member() {
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isInitialized = useAuthStore(state => state.isInitialized)
-  const { membership, fetchMembership } = useMembershipStore()
+  const { membership, fetchMembership, subscribePlan } = useMembershipStore()
   const [pageReady, setPageReady] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('yearly')
+  const [subscribing, setSubscribing] = useState(false)
+
+  const handleSubscribe = async () => {
+    if (subscribing || !user) return
+    setSubscribing(true)
+    try {
+      const result = await subscribePlan(selectedPlan as 'monthly' | 'yearly')
+      if (result.success) {
+        Taro.showToast({ title: '开通成功', icon: 'success' })
+        await fetchMembership(user.id)
+      } else {
+        Taro.showToast({ title: result.error || '开通失败', icon: 'none' })
+      }
+    } catch (err) {
+      Taro.showToast({ title: '开通失败，请重试', icon: 'none' })
+    } finally {
+      setSubscribing(false)
+    }
+  }
 
   useEffect(() => {
     if (!isInitialized) return
@@ -66,7 +86,7 @@ export default function Member() {
       try {
         await fetchMembership(user.id)
       } catch (err) {
-        console.error('Failed to load membership:', err)
+        // 静默处理错误，页面有错误状态展示
       }
       setPageReady(true)
     }
@@ -74,7 +94,7 @@ export default function Member() {
   }, [isInitialized, isAuthenticated, user])
 
   if (!pageReady) {
-    return <View className='member-loading'>加载中...</View>
+    return <PageLoading />
   }
 
   const isVip = membership?.level !== 'free'
@@ -99,7 +119,7 @@ export default function Member() {
           </Text>
           <Text className='member-hero-desc'>
             {isVip
-              ? `您的${membership?.level}会员有效期至 ${membership?.expireDate || '--'}`
+              ? `您的${membership?.level}会员有效期至 ${membership?.endDate || '--'}`
               : '享受无限次查询、AI分析、健康报告等专属权益'}
           </Text>
         </View>
@@ -151,8 +171,8 @@ export default function Member() {
 
       {!isVip && (
         <View className='member-section'>
-          <View className='member-subscribe-btn'>
-            <Text>立即开通</Text>
+          <View className='member-subscribe-btn' onClick={handleSubscribe}>
+            <Text>{subscribing ? '开通中...' : '立即开通'}</Text>
           </View>
           <Text className='member-subscribe-hint'>
             开通即表示同意《会员服务协议》和《自动续费协议》
@@ -169,11 +189,11 @@ export default function Member() {
             </View>
             <View className='member-manage-item'>
               <Text className='member-manage-label'>到期时间</Text>
-              <Text className='member-manage-value'>{membership?.expireDate || '--'}</Text>
+              <Text className='member-manage-value'>{membership?.endDate || '--'}</Text>
             </View>
             <View className='member-manage-item'>
               <Text className='member-manage-label'>自动续费</Text>
-              <Text className='member-manage-value'>{membership?.autoRenew ? '已开启' : '未开启'}</Text>
+              <Text className='member-manage-value'>未开启</Text>
             </View>
           </View>
         </View>

@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { usePetStore, type PetProfile } from '../stores/petStore';
+import { useAuthStore } from '../stores/authStore';
 
 interface UsePetReturn {
   pets: PetProfile[];
@@ -33,11 +34,19 @@ export function usePet(): UsePetReturn {
     clearError,
   } = usePetStore();
 
+  const authUserId = useAuthStore(s => s.user?.id || '');
+
   useEffect(() => {
-    if (userId && pets.length === 0) {
-      fetchPets();
+    if (authUserId && !userId) {
+      initUser(authUserId);
     }
-  }, [userId, pets.length, fetchPets]);
+  }, [authUserId, userId, initUser]);
+
+  useEffect(() => {
+    if (userId && pets.length === 0 && !isLoading) {
+      fetchPets(userId)
+    }
+  }, [userId, pets.length, isLoading, fetchPets]);
 
   const handleInitUser = useCallback(
     async (uid: string): Promise<void> => {
@@ -82,8 +91,10 @@ export function usePet(): UsePetReturn {
   );
 
   const handleRefreshPets = useCallback(async (): Promise<void> => {
-    await fetchPets();
-  }, [fetchPets]);
+    if (userId) {
+      await fetchPets(userId);
+    }
+  }, [fetchPets, userId]);
 
   const handleClearError = useCallback((): void => {
     clearError();

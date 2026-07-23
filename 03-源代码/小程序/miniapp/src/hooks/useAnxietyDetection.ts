@@ -73,14 +73,17 @@ export function useAnxietyDetection(): UseAnxietyDetectionReturn {
       const dismissed = Taro.getStorageSync(SICK_ANXIETY_KEY)
       if (dismissed) return
 
-      await checkinStore.fetchStats(petId)
-      const stats = checkinStore.stats
-
-      if (!stats) return
-
-      const consecutiveAnomalyDays = stats.consecutiveAnomalyDays || 0
-      const totalAnomalyDays = stats.totalAnomalyDays || 0
-      const lastAnomalyDate = stats.lastAnomalyDate || null
+      await checkinStore.fetchCheckins(petId)
+      const checkins = checkinStore.checkins
+      const today = new Date().toISOString().split('T')[0]
+      const recentAnomalies = checkins.filter(c => {
+        const d = new Date(c.date)
+        const diffDays = Math.floor((new Date(today).getTime() - d.getTime()) / (24 * 60 * 60 * 1000))
+        return diffDays < 7 && (c.mood === 'sad' || c.appetite === 'poor' || c.stool !== 'normal')
+      })
+      const consecutiveAnomalyDays = recentAnomalies.length
+      const totalAnomalyDays = recentAnomalies.length
+      const lastAnomalyDate = recentAnomalies.length > 0 ? recentAnomalies[0].date : null
 
       if (consecutiveAnomalyDays >= 3) {
         const context: SickAnxietyContext = {

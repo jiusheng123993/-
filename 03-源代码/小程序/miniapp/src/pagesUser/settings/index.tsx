@@ -11,16 +11,16 @@ import {
   deleteUserData,
   generateDeletionConfirmCode,
   getDataPrivacyStatus,
+  requestAccountDeletion,
+  cancelAccountDeletion,
 } from '../../services/dataPrivacyService'
-import type { AccountDeletionReason, DataPrivacyStatus } from '../../types/dataPrivacyTypes'
+import type { AccountDeletionReason, DataPrivacyStatus, AccountDeletionResult } from '../../types/dataPrivacyTypes'
 import { AccountDeletionConfirm } from '../../components/AccountDeletionConfirm'
 import './index.scss'
 
 export default function SettingsPage() {
   const user = useAuthStore(s => s.user)
   const logout = useAuthStore(s => s.logout)
-  const deleteAccount = useAuthStore(s => s.deleteAccount)
-  const cancelAccountDeletion = useAuthStore(s => s.cancelAccountDeletion)
   const isMember = useMembership().isMember
   const notification = useSettingsStore(s => s.notification)
   const loadSettings = useSettingsStore(s => s.loadSettings)
@@ -152,9 +152,10 @@ export default function SettingsPage() {
   }, [trackEvent])
 
   const handleDeletionConfirm = useCallback(async (reason: AccountDeletionReason, customReason: string, code: string) => {
+    if (!user?.id) return
     setDeletionLoading(true)
     try {
-      const result = await deleteAccount(reason, customReason, code)
+      const result: AccountDeletionResult = await requestAccountDeletion(user.id, { reason, customReason, confirmCode: code })
       if (result.success) {
         trackEvent('confirm_account_deletion', { reason })
         setShowDeletionModal(false)
@@ -172,19 +173,20 @@ export default function SettingsPage() {
     } finally {
       setDeletionLoading(false)
     }
-  }, [deleteAccount, trackEvent])
+  }, [user?.id, trackEvent])
 
   const handleDeletionCancel = useCallback(() => {
     setShowDeletionModal(false)
   }, [])
 
   const handleCancelDeletion = useCallback(async () => {
+    if (!user?.id) return
     Taro.showModal({
       title: '取消注销',
       content: '确认取消账号注销申请？取消后您的账号将恢复正常使用。',
       success: async (res) => {
         if (!res.confirm) return
-        const success = await cancelAccountDeletion()
+        const success = await cancelAccountDeletion(user.id)
         if (success) {
           Taro.showToast({ title: '已取消注销', icon: 'success' })
           setPrivacyStatus(getDataPrivacyStatus())
@@ -193,7 +195,7 @@ export default function SettingsPage() {
         }
       },
     })
-  }, [cancelAccountDeletion])
+  }, [user?.id])
 
   const handleAgreement = useCallback((type: 'user' | 'privacy') => {
     Taro.navigateTo({ url: `/pagesUser/agreement/index?type=${type}` })

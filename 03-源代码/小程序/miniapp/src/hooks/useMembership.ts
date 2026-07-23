@@ -1,5 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { useMembershipStore } from '../stores/membershipStore'
+import { useAuthStore } from '../stores/authStore'
+import type { Membership } from '../types'
 import type { MembershipInfo, MembershipPlan, PaymentOrder } from '../services/membershipService'
 
 interface UseMembershipReturn {
@@ -9,7 +11,7 @@ interface UseMembershipReturn {
   error: string | null
   isMember: boolean
   initUser: (userId: string) => Promise<void>
-  subscribePlan: (plan: MembershipPlan) => Promise<PaymentOrder>
+  subscribePlan: (plan: MembershipPlan) => Promise<{ success: boolean; orderId?: string; error?: string }>
   cancelSubscription: () => Promise<void>
   restorePurchaseStatus: () => Promise<void>
   refreshMembership: () => Promise<void>
@@ -20,11 +22,28 @@ interface UseMembershipReturn {
   clearError: () => void
 }
 
+function toMembershipInfo(membership: Membership | null): MembershipInfo | null {
+  if (!membership) return null
+  const tier: MembershipInfo['tier'] = membership.level === 'free' ? 'free' : 'member'
+  const plan: MembershipInfo['plan'] = membership.level === 'free' ? null : membership.level
+  return {
+    userId: membership.userId,
+    tier,
+    plan,
+    status: membership.status as MembershipInfo['status'],
+    expiresAt: membership.endDate,
+    startedAt: membership.startDate,
+    cancelledAt: null,
+    paymentOrderId: null,
+    price: null,
+  }
+}
+
 export function useMembership(): UseMembershipReturn {
   const {
     userId,
     membership,
-    orders,
+    orders = [],
     isLoading,
     error,
     initUser,
@@ -40,23 +59,33 @@ export function useMembership(): UseMembershipReturn {
     clearError,
   } = useMembershipStore()
 
+  const authUserId = useAuthStore(s => s.user?.id || '')
+
+  const membershipInfo = toMembershipInfo(membership)
+
+  useEffect(() => {
+    if (authUserId && !userId) {
+      initUser(authUserId)
+    }
+  }, [authUserId, userId, initUser])
+
   useEffect(() => {
     if (userId && !membership) {
-      fetchMembership()
+      fetchMembership(userId)
     }
   }, [userId, membership, fetchMembership])
 
   useEffect(() => {
-    if (userId && orders.length === 0) {
+    if (userId && orders && orders.length === 0 && fetchOrders) {
       fetchOrders()
     }
-  }, [userId, orders.length, fetchOrders])
+  }, [userId, orders, fetchOrders])
 
   const handleInitUser = useCallback(async (uid: string) => {
     await initUser(uid)
   }, [initUser])
 
-  const handleSubscribePlan = useCallback(async (plan: MembershipPlan): Promise<PaymentOrder> => {
+  const handleSubscribePlan = useCallback(async (plan: MembershipPlan): Promise<{ success: boolean; orderId?: string; error?: string }> => {
     return subscribePlan(plan)
   }, [subscribePlan])
 
@@ -69,8 +98,10 @@ export function useMembership(): UseMembershipReturn {
   }, [restorePurchaseStatus])
 
   const handleRefresh = useCallback(async () => {
-    await fetchMembership()
-  }, [fetchMembership])
+    if (userId) {
+      await fetchMembership(userId)
+    }
+  }, [userId, fetchMembership])
 
   const handleCheckAccess = useCallback(async (featureKey: string) => {
     return checkAccess(featureKey)
@@ -93,11 +124,11 @@ export function useMembership(): UseMembershipReturn {
   }, [clearError])
 
   return {
-    membership,
+    membership: membershipInfo,
     orders,
     isLoading,
     error,
-    isMember: membership?.tier === 'member' && membership?.status === 'active',
+    isMember: membership?.level !== 'free' && membership?.status === 'active',
     initUser: handleInitUser,
     subscribePlan: handleSubscribePlan,
     cancelSubscription: handleCancelSubscription,

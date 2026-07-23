@@ -1,4 +1,9 @@
 import { FOOD_SAFETY_DATA, type FoodSafetyItem as DataSourceFoodSafetyItem } from '../../data/petKnowledge/foodSafety';
+import {
+  getBreedFoodWarning,
+  getSizeBasedWarnings,
+  type BreedFoodWarning,
+} from '../../data/petKnowledge/breedFoodWarnings';
 
 export type FoodSafetyLevel = 'safe' | 'caution' | 'dangerous' | 'toxic';
 
@@ -21,6 +26,7 @@ export interface ToxicFoodFilterResult {
   safetyLevel: FoodSafetyLevel;
   matchedItem?: EngineFoodSafetyItem;
   breedWarnings: string[];
+  breedWarningDetails: BreedFoodWarning[];
   speciesWarning?: string;
 }
 
@@ -96,6 +102,7 @@ export class ToxicFoodFilter {
         found: false,
         safetyLevel: 'caution',
         breedWarnings: [],
+        breedWarningDetails: [],
         speciesWarning: '未在食物安全库中找到该食物，建议谨慎对待，首次喂食请少量尝试',
       };
     }
@@ -104,12 +111,18 @@ export class ToxicFoodFilter {
     const breedWarnings = breed ? this.checkBreedWarning(matchedItem, breed) : [];
     const speciesWarning = this.checkSpeciesWarning(matchedItem, species);
     const additionalBreedWarnings = this.checkSmallBreedRisk(foodName, breed);
+    
+    // 品种特殊禁忌（增强版）
+    const breedWarningDetails = breed
+      ? this.checkBreedSpecificWarnings(matchedItem, breed, foodName)
+      : [];
 
     return {
       found: true,
       safetyLevel: effectiveSafetyLevel,
       matchedItem,
       breedWarnings: [...breedWarnings, ...additionalBreedWarnings],
+      breedWarningDetails,
       speciesWarning,
     };
   }
@@ -229,6 +242,32 @@ export class ToxicFoodFilter {
         warnings.push('小型犬对该类食物更敏感，即使少量也可能造成严重中毒，请格外注意');
         break;
       }
+    }
+
+    return warnings;
+  }
+
+  /**
+   * 检查品种特殊禁忌（增强版）
+   * 基于品种遗传特征、体型、常见健康问题
+   */
+  private checkBreedSpecificWarnings(
+    item: EngineFoodSafetyItem,
+    breedId: string,
+    foodName: string
+  ): BreedFoodWarning[] {
+    const warnings: BreedFoodWarning[] = [];
+
+    // 1. 精确匹配品种-食物禁忌
+    const specificWarning = getBreedFoodWarning(breedId, item.id);
+    if (specificWarning) {
+      warnings.push(specificWarning);
+    }
+
+    // 2. 基于体型的通用警告
+    const sizeWarning = getSizeBasedWarnings(breedId, item.id, foodName);
+    if (sizeWarning) {
+      warnings.push(sizeWarning);
     }
 
     return warnings;

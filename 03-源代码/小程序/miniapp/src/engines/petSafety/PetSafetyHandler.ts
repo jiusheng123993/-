@@ -97,6 +97,14 @@ export class PetSafetyHandler {
     if (filterResult.breedWarnings.length > 0) {
       warnings.push(...filterResult.breedWarnings);
     }
+    
+    // 品种特殊禁忌详细警告
+    if (filterResult.breedWarningDetails.length > 0) {
+      for (const bw of filterResult.breedWarningDetails) {
+        warnings.push(`【${bw.breedName}特殊注意】${bw.reason}`);
+      }
+    }
+    
     if (filterResult.matchedItem && filterResult.matchedItem.symptoms.length > 0) {
       warnings.push(`可能症状：${filterResult.matchedItem.symptoms.join('、')}`);
     }
@@ -122,6 +130,7 @@ export class PetSafetyHandler {
         matchedItem: filterResult.matchedItem?.id,
         species,
         breed,
+        breedWarningDetails: filterResult.breedWarningDetails,
       },
     };
   }

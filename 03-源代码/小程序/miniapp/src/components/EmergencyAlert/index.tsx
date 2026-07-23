@@ -109,7 +109,7 @@ export default function EmergencyAlert({
               className='emergency-alert__btn emergency-alert__btn--hospital'
               onClick={() => {
                 onClose()
-                Taro.navigateTo({ url: '/pagesPet/symptom-check/index?tab=hospital' })
+                Taro.navigateTo({ url: '/pagesPet/hospital/index' })
               }}
             >
               <Text className='emergency-alert__btn-text'>找医院</Text>

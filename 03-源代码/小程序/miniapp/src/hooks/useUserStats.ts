@@ -16,23 +16,23 @@ interface UserStats {
 
 export function useUserStats(): UserStats {
   const pets = usePetStore((state) => state.pets);
-  const checkinEntries = useCheckinStore((state) => state.entries);
+  const checkins = useCheckinStore((state) => state.checkins);
 
   return useMemo(() => {
     const vaccineData = getStorageArray(VACCINE_DATA_KEY);
     const symptomData = getStorageArray(SYMPTOM_DATA_KEY);
 
     const petCount = pets.length;
-    const checkinCount = checkinEntries.length;
+    const checkinCount = checkins.length;
     const vaccineCount = vaccineData.length;
     const symptomCheckCount = symptomData.length;
 
     let usageDays = 0;
-    if (checkinEntries.length > 0) {
-      const sortedEntries = [...checkinEntries].sort(
+    if (checkins.length > 0) {
+      const sortedCheckins = [...checkins].sort(
         (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
-      const firstEntryDate = new Date(sortedEntries[0].createdAt);
+      const firstEntryDate = new Date(sortedCheckins[0].createdAt);
       const now = new Date();
       const diffMs = now.getTime() - firstEntryDate.getTime();
       usageDays = Math.max(1, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
@@ -45,17 +45,17 @@ export function useUserStats(): UserStats {
       vaccineCount,
       symptomCheckCount,
     };
-  }, [pets, checkinEntries]);
+  }, [pets, checkins]);
 }
 
 export function getUsageDays(): number {
-  const entries = useCheckinStore.getState().entries;
-  if (entries.length === 0) return 0;
+  const checkins = useCheckinStore.getState().checkins;
+  if (checkins.length === 0) return 0;
 
-  const sortedEntries = [...entries].sort(
+  const sortedCheckins = [...checkins].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
-  const firstEntryDate = new Date(sortedEntries[0].createdAt);
+  const firstEntryDate = new Date(sortedCheckins[0].createdAt);
   const now = new Date();
   const diffMs = now.getTime() - firstEntryDate.getTime();
   return Math.max(1, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
@@ -66,7 +66,7 @@ export function getPetCount(): number {
 }
 
 export function getCheckinCount(): number {
-  return useCheckinStore.getState().entries.length;
+  return useCheckinStore.getState().checkins.length;
 }
 
 export function getVaccineCount(): number {

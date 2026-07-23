@@ -11,4 +11,6 @@ export { scheduleFollowup, cancelFollowup, getPendingFollowups, getFollowupBySes
 export { MEMBERSHIP_PLANS, MEMBERSHIP_BENEFITS, type MembershipPlanConfig, type MembershipBenefit } from './membershipService'
 export { supabaseClient, SupabaseClient, type SupabaseResponse } from './supabaseClient'
 export { SyncService, getSyncService, type SyncRecord, type SyncStatus, type SyncResult, type SyncTable } from './syncService'
+export { familyService } from './familyService'
+export { timelineService } from './timelineService'
 export { generateHealthReport, formatReportAsText, type HealthReport } from './reportService'

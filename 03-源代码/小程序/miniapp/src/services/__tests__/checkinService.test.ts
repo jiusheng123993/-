@@ -35,7 +35,8 @@ vi.mock('../../utils/petOwnership', () => ({
   isPetOwnerLocal: vi.fn(() => true),
 }))
 
-import { api } from '../api'
+import { api as _api } from '../api'
+const api = _api as any
 import {
   createCheckin,
   getTodayCheckin,

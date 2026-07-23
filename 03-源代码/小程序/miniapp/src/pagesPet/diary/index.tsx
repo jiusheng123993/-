@@ -53,7 +53,7 @@ function formatFullDate(dateStr: string): string {
 export default function PetDiaryPage() {
   const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const user = useAuthStore(s => s.user)
-  const { entries, fetchCheckins, isLoading: checkinLoading, initUser } = useCheckinStore()
+  const { checkins, fetchCheckins, isLoading: checkinLoading, initUser } = useCheckinStore()
 
   const [diaryRecords, setDiaryRecords] = useState<DiaryRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -71,7 +71,9 @@ export default function PetDiaryPage() {
   usePageView('diary')
 
   useDidShow(() => {
-    fetchPets()
+    if (user?.id) {
+      fetchPets(user.id)
+    }
   })
 
   const loadDiaryData = useCallback(async () => {
@@ -84,14 +86,14 @@ export default function PetDiaryPage() {
       }
       await initUser(user.id)
       await fetchCheckins(currentPet.id)
-      const records = generateDiaryFromEntries(entries, currentPet.birthDate || null)
+      const records = generateDiaryFromEntries(checkins as any, currentPet.birthDate || null)
       setDiaryRecords(records)
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载失败，请重试')
     } finally {
       setIsLoading(false)
     }
-  }, [currentPet?.id, user?.id, entries, initUser, fetchCheckins])
+  }, [currentPet?.id, user?.id, checkins, initUser, fetchCheckins])
 
   useEffect(() => {
     if (currentPet?.id && user?.id) {

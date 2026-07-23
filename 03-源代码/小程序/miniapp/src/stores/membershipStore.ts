@@ -1,40 +1,33 @@
 import { create } from 'zustand'
+import { api } from '../services/api'
+import type { Membership } from '../types'
 import {
   getMembershipStatus,
-  createPaymentOrder,
-  requestWechatPayment,
-  pollOrderStatus,
-  confirmPayment,
   cancelMembership,
   restorePurchase,
   getOrders,
-  checkFeatureAccess,
   shouldShowPaywall,
   markPaywallShown,
+  checkFeatureAccess,
   getPetCountLimit,
+  completeWechatPayment,
+  type MembershipInfo,
+  type MembershipPlan,
+  type PaymentOrder,
 } from '../services/membershipService'
-import type {
-  MembershipInfo,
-  MembershipPlan,
-  PaymentOrder,
-  PaymentStatus,
-} from '../services/membershipService'
-import { setStorageUserId } from '../utils/storage'
 
-interface MembershipStoreState {
-  userId: string
-  membership: MembershipInfo | null
+interface MembershipState {
+  userId: string | null
+  membership: Membership | null
   orders: PaymentOrder[]
   isLoading: boolean
   error: string | null
-
   initUser: (userId: string) => Promise<void>
-  fetchMembership: () => Promise<void>
-  subscribePlan: (plan: MembershipPlan) => Promise<PaymentOrder>
-  completePayment: (orderId: string) => Promise<void>
+  fetchMembership: (userId: string) => Promise<void>
+  fetchOrders: () => Promise<void>
+  subscribePlan: (plan: MembershipPlan) => Promise<{ success: boolean; orderId?: string; error?: string }>
   cancelSubscription: () => Promise<void>
   restorePurchaseStatus: () => Promise<void>
-  fetchOrders: () => Promise<void>
   checkAccess: (featureKey: string) => Promise<{ allowed: boolean; remaining: number; isMember: boolean }>
   shouldShowPaywallForFeature: (featureKey: string) => Promise<boolean>
   markPaywallShownForFeature: (featureKey: string) => Promise<void>
@@ -42,142 +35,97 @@ interface MembershipStoreState {
   clearError: () => void
 }
 
-export const useMembershipStore = create<MembershipStoreState>((set, get) => ({
-  userId: '',
+export const useMembershipStore = create<MembershipState>((set, get) => ({
+  userId: null,
   membership: null,
   orders: [],
   isLoading: false,
   error: null,
 
   initUser: async (userId: string) => {
-    if (!userId) throw new Error('[MembershipStore] userId is required')
-    setStorageUserId(userId)
     set({ userId })
-    await get().fetchMembership()
+    await get().fetchMembership(userId)
   },
 
-  fetchMembership: async () => {
-    const { userId } = get()
-    if (!userId) return
-    set({ isLoading: true, error: null })
+  fetchMembership: async (userId: string) => {
+    set({ isLoading: true })
     try {
-      const membership = await getMembershipStatus(userId)
-      set({ membership, isLoading: false })
-    } catch (err) {
-      set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch membership',
-      })
-    }
-  },
-
-  subscribePlan: async (plan: MembershipPlan) => {
-    const { userId } = get()
-    if (!userId) throw new Error('[MembershipStore] userId is required')
-    set({ isLoading: true, error: null })
-    try {
-      const orderResult = await createPaymentOrder(userId, plan)
-
-      const paymentOrder: PaymentOrder = {
-        id: orderResult.orderId,
+      const info = await getMembershipStatus(userId)
+      const membership: Membership = {
+        id: '',
         userId,
-        plan,
-        amount: orderResult.amount,
-        status: 'pending' as PaymentStatus,
-        channel: 'wechat',
-        createdAt: orderResult.createdAt,
-        paidAt: null,
+        level: info.tier === 'member' ? (info.plan ?? 'monthly') : 'free',
+        status: info.status === 'none' ? 'expired' : info.status,
+        startDate: info.startedAt ?? '',
+        endDate: info.expiresAt ?? '',
+        createdAt: '',
       }
-
-      if (orderResult.paymentParams) {
-        const paid = await requestWechatPayment(orderResult.paymentParams)
-        if (paid) {
-          const finalStatus = await pollOrderStatus(orderResult.orderId)
-          if (finalStatus === 'success' || finalStatus === 'paid') {
-            const membership = await confirmPayment(userId, orderResult.orderId)
-            set({ membership, isLoading: false })
-            return paymentOrder
-          }
-        }
-        set({ isLoading: false })
-        return { ...paymentOrder, status: 'pending' as PaymentStatus }
-      }
-
-      return paymentOrder
-    } catch (err) {
-      set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to subscribe',
-      })
-      throw err
-    }
-  },
-
-  completePayment: async (orderId: string) => {
-    const { userId } = get()
-    if (!userId) throw new Error('[MembershipStore] userId is required')
-    set({ isLoading: true, error: null })
-    try {
-      const membership = await confirmPayment(userId, orderId)
       set({ membership, isLoading: false })
-    } catch (err) {
-      set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Payment failed',
-      })
-      throw err
-    }
-  },
-
-  cancelSubscription: async () => {
-    const { userId } = get()
-    if (!userId) throw new Error('[MembershipStore] userId is required')
-    set({ isLoading: true, error: null })
-    try {
-      const membership = await cancelMembership(userId)
-      set({ membership, isLoading: false })
-    } catch (err) {
-      set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to cancel',
-      })
-      throw err
-    }
-  },
-
-  restorePurchaseStatus: async () => {
-    const { userId } = get()
-    if (!userId) throw new Error('[MembershipStore] userId is required')
-    set({ isLoading: true, error: null })
-    try {
-      const membership = await restorePurchase(userId)
-      set({ membership, isLoading: false })
-    } catch (err) {
-      set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to restore',
-      })
+    } catch {
+      set({ isLoading: false })
     }
   },
 
   fetchOrders: async () => {
     const { userId } = get()
     if (!userId) return
-    set({ isLoading: true, error: null })
     try {
       const orders = await getOrders(userId)
-      set({ orders, isLoading: false })
+      set({ orders })
+    } catch {
+      // silent fail
+    }
+  },
+
+  subscribePlan: async (plan: MembershipPlan) => {
+    const { userId } = get()
+    if (!userId) return { success: false, error: '用户未登录' }
+    set({ isLoading: true, error: null })
+    try {
+      const result = await completeWechatPayment(userId, plan)
+      if (result.success) {
+        await get().fetchMembership(userId)
+      }
+      set({ isLoading: false })
+      return result
     } catch (err) {
-      set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch orders',
-      })
+      const error = err instanceof Error ? err.message : '订阅失败'
+      set({ isLoading: false, error })
+      return { success: false, error }
+    }
+  },
+
+  cancelSubscription: async () => {
+    const { userId } = get()
+    if (!userId) return
+    set({ isLoading: true, error: null })
+    try {
+      await cancelMembership(userId)
+      await get().fetchMembership(userId)
+      set({ isLoading: false })
+    } catch (err) {
+      const error = err instanceof Error ? err.message : '取消订阅失败'
+      set({ isLoading: false, error })
+    }
+  },
+
+  restorePurchaseStatus: async () => {
+    const { userId } = get()
+    if (!userId) return
+    set({ isLoading: true, error: null })
+    try {
+      await restorePurchase(userId)
+      await get().fetchMembership(userId)
+      set({ isLoading: false })
+    } catch (err) {
+      const error = err instanceof Error ? err.message : '恢复购买失败'
+      set({ isLoading: false, error })
     }
   },
 
   checkAccess: async (featureKey: string) => {
     const { userId } = get()
-    if (!userId) throw new Error('[MembershipStore] userId is required')
+    if (!userId) return { allowed: false, remaining: 0, isMember: false }
     return checkFeatureAccess(userId, featureKey)
   },
 
@@ -199,7 +147,5 @@ export const useMembershipStore = create<MembershipStoreState>((set, get) => ({
     return getPetCountLimit(userId)
   },
 
-  clearError: () => {
-    set({ error: null })
-  },
+  clearError: () => set({ error: null }),
 }))

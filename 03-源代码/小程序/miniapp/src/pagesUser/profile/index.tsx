@@ -174,8 +174,8 @@ export default function Profile() {
 
       <View className='profile-header ink-item' style={{ animationDelay: '0.1s' }}>
         <View className='avatar-section' onClick={handleAvatarClick}>
-          {user?.avatarUrl ? (
-            <Image className='avatar' src={user.avatarUrl} mode='aspectFill' lazyLoad />
+          {user?.avatar ? (
+            <Image className='avatar' src={user.avatar} mode='aspectFill' lazyLoad />
           ) : (
             <View className='avatar-placeholder'>
               <Text className='avatar-icon'>👤</Text>

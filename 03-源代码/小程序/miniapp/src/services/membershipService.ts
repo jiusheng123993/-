@@ -182,11 +182,52 @@ export async function getPetCountLimit(userId: string): Promise<number> {
 export async function createPaymentOrder(userId: string, plan: MembershipPlan): Promise<CreateOrderResult> {
   if (!userId) throw new Error('[MembershipService] userId is required')
   const productId = `membership_${plan}`
-  const result = await api.post<CreateOrderResult>('/orders', {
-    productId,
-    channel: 'wechat',
-  })
-  return result
+  try {
+    const result = await api.post<CreateOrderResult>('/orders', {
+      productId,
+      channel: 'wechat',
+    })
+    // 保存订单到本地
+    const orders = getLocalOrders(userId)
+    const order: PaymentOrder = {
+      id: result.orderId,
+      userId,
+      plan,
+      amount: result.amount,
+      status: 'pending',
+      channel: 'wechat',
+      createdAt: result.createdAt,
+      paidAt: null,
+    }
+    orders.unshift(order)
+    saveLocalOrders(userId, orders)
+    return result
+  } catch {
+    // 离线模式：生成本地订单
+    const planConfig = MEMBERSHIP_PLANS.find(p => p.plan === plan)
+    const orderId = generateId()
+    const result: CreateOrderResult = {
+      orderId,
+      amount: planConfig?.price || 0,
+      channel: 'wechat',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    }
+    const orders = getLocalOrders(userId)
+    const order: PaymentOrder = {
+      id: orderId,
+      userId,
+      plan,
+      amount: result.amount,
+      status: 'pending',
+      channel: 'wechat',
+      createdAt: result.createdAt,
+      paidAt: null,
+    }
+    orders.unshift(order)
+    saveLocalOrders(userId, orders)
+    return result
+  }
 }
 
 export async function requestWechatPayment(params: WechatPaymentParams): Promise<boolean> {
@@ -205,8 +246,49 @@ export async function requestWechatPayment(params: WechatPaymentParams): Promise
           resolve(false)
         }
       },
+      complete: () => {
+        // 支付完成后的清理工作
+      },
     })
   })
+}
+
+/**
+ * 完整的微信支付流程
+ * 1. 创建订单 → 2. 发起支付 → 3. 轮询结果 → 4. 确认支付
+ */
+export async function completeWechatPayment(
+  userId: string,
+  plan: MembershipPlan
+): Promise<{ success: boolean; orderId?: string; error?: string }> {
+  try {
+    // 1. 创建订单
+    const order = await createPaymentOrder(userId, plan)
+
+    if (!order.paymentParams) {
+      return { success: false, error: '获取支付参数失败' }
+    }
+
+    // 2. 发起微信支付
+    const paid = await requestWechatPayment(order.paymentParams)
+
+    if (!paid) {
+      return { success: false, error: '用户取消支付' }
+    }
+
+    // 3. 轮询订单状态
+    const paymentStatus = await pollOrderStatus(order.orderId)
+
+    if (paymentStatus === 'success' || paymentStatus === 'paid') {
+      // 4. 确认支付
+      await confirmPayment(userId, order.orderId)
+      return { success: true, orderId: order.orderId }
+    }
+
+    return { success: false, error: `支付状态异常: ${paymentStatus}` }
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : '支付流程异常' }
+  }
 }
 
 export async function pollOrderStatus(orderId: string, maxAttempts: number = 10, interval: number = 2000): Promise<PaymentStatus> {

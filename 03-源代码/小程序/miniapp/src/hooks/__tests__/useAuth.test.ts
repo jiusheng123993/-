@@ -5,13 +5,11 @@ const {
   mockLogin,
   mockLogout,
   mockRefreshAuthToken,
-  mockClearError,
 } = vi.hoisted(() => ({
   mockInitialize: vi.fn(),
   mockLogin: vi.fn(),
   mockLogout: vi.fn(),
   mockRefreshAuthToken: vi.fn(),
-  mockClearError: vi.fn(),
 }))
 
 const {
@@ -31,14 +29,13 @@ vi.mock('react', () => {
 const defaultMockStore = {
   user: null,
   isAuthenticated: false,
-  loading: false,
-  error: null,
+  isLoading: false,
+  isInitialized: false,
   token: null,
   initialize: mockInitialize,
   login: mockLogin,
   logout: mockLogout,
   refreshAuthToken: mockRefreshAuthToken,
-  clearError: mockClearError,
 }
 
 vi.mock('../../stores/authStore', () => ({
@@ -62,7 +59,6 @@ describe('useAuth', () => {
     mockLogin.mockResolvedValue({ success: false })
     mockLogout.mockResolvedValue(undefined)
     mockRefreshAuthToken.mockResolvedValue({ success: false })
-    mockClearError.mockReturnValue(undefined)
     mockIsTokenExpiringSoon.mockReturnValue(false)
   })
 
@@ -74,11 +70,11 @@ describe('useAuth', () => {
     const result = useAuth()
     expect(result).toHaveProperty('user')
     expect(result).toHaveProperty('isAuthenticated')
-    expect(result).toHaveProperty('loading')
-    expect(result).toHaveProperty('error')
-    expect(result).toHaveProperty('login')
-    expect(result).toHaveProperty('logout')
-    expect(result).toHaveProperty('clearError')
+    expect(result).toHaveProperty('isLoading')
+    expect(result).toHaveProperty('isInitialized')
+    expect(result).toHaveProperty('handleLogin')
+    expect(result).toHaveProperty('handleLogout')
+    expect(result).toHaveProperty('initialize')
   })
 
   it('初始化时调用 store 的 initialize', () => {
@@ -193,10 +189,9 @@ describe('useAuth', () => {
     expect(Taro.showToast).not.toHaveBeenCalled()
   })
 
-  it('clearError 调用 store 的 clearError', () => {
+  it('clearError 已从接口中移除', () => {
     const result = useAuth()
-    result.clearError()
-    expect(mockClearError).toHaveBeenCalledTimes(1)
+    expect((result as any).clearError).toBeUndefined()
   })
 
   it('返回 store 中的 user 状态', () => {
@@ -218,21 +213,21 @@ describe('useAuth', () => {
     expect(result.isAuthenticated).toBe(true)
   })
 
-  it('返回 store 中的 loading 状态', () => {
+  it('返回 store 中的 isLoading 状态', () => {
     vi.mocked(useAuthStore).mockReturnValue({
       ...defaultMockStore,
-      loading: true,
+      isLoading: true,
     } as any)
     const result = useAuth()
-    expect(result.loading).toBe(true)
+    expect(result.isLoading).toBe(true)
   })
 
-  it('返回 store 中的 error 状态', () => {
+  it('返回 store 中的 isInitialized 状态', () => {
     vi.mocked(useAuthStore).mockReturnValue({
       ...defaultMockStore,
-      error: 'some error',
+      isInitialized: true,
     } as any)
     const result = useAuth()
-    expect(result.error).toBe('some error')
+    expect(result.isInitialized).toBe(true)
   })
 })

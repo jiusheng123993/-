@@ -117,7 +117,8 @@ vi.mock('../api', () => {
   }
 })
 
-import { api } from '../api'
+import { api as _api } from '../api'
+const api = _api as any
 
 function makeResponse(statusCode: number, data: unknown = {}) {
   return Promise.resolve({ statusCode, data })
@@ -171,13 +172,13 @@ describe('api', () => {
 
     it('returns data on 200 status', async () => {
       mockRequest.mockReturnValue(makeResponse(200, { name: 'test' }))
-      const result = await api.get<{ name: string }>('/data')
+      const result = await api.get('/data')
       expect(result).toEqual({ name: 'test' })
     })
 
     it('returns data on 201 status', async () => {
       mockRequest.mockReturnValue(makeResponse(201, { created: true }))
-      const result = await api.get<{ created: boolean }>('/resource')
+      const result = await api.get('/resource')
       expect(result).toEqual({ created: true })
     })
 

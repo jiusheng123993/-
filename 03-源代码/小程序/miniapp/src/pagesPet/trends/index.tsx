@@ -7,6 +7,8 @@ import PetSwitcher from '../../components/PetSwitcher'
 import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
 import AnomalyMarker from '../../components/AnomalyMarker'
+import PageLoading from '../../components/PageLoading'
+import PageError from '../../components/PageError'
 import { PetAvatar } from '../../components'
 import HealthReportPreview from '../../components/HealthReportPreview'
 import HealthTrendShareCard from '../../components/HealthTrendShareCard'
@@ -159,7 +161,7 @@ export default function PetTrendsPage() {
   usePageView('trends')
 
   useDidShow(() => {
-    fetchPets()
+    if (user) fetchPets(user.id)
   })
 
   useEffect(() => {
@@ -353,6 +355,60 @@ export default function PetTrendsPage() {
     }
   }, [trendData, activeTab])
 
+  const breedWeightAnalysis = useMemo(() => {
+    if (!breedWeightRange || !weightChartData || weightChartData.points.length === 0) return null
+    const latestWeight = weightChartData.points[weightChartData.points.length - 1]?.weight
+    if (latestWeight === undefined) return null
+
+    const { min, max, name } = breedWeightRange
+    const mid = (min + max) / 2
+    const deviation = latestWeight - mid
+    const deviationPercent = (deviation / mid) * 100
+
+    let status: 'underweight' | 'normal' | 'overweight' | 'obese'
+    let suggestion: string
+
+    if (latestWeight < min) {
+      status = 'underweight'
+      suggestion = `低于${name}标准体重下限${min}kg，建议增加营养摄入并排查潜在健康问题`
+    } else if (latestWeight > max) {
+      const overPercent = ((latestWeight - max) / max) * 100
+      if (overPercent > 20) {
+        status = 'obese'
+        suggestion = `严重超重，超出${name}标准上限${max}kg的${overPercent.toFixed(0)}%，建议立即制定减重计划`
+      } else {
+        status = 'overweight'
+        suggestion = `超出${name}标准体重上限${max}kg，建议控制饮食增加运动`
+      }
+    } else {
+      status = 'normal'
+      suggestion = `在${name}标准体重范围${min}-${max}kg内，继续保持`
+    }
+
+    return { status, suggestion, deviation, deviationPercent, latestWeight, min, max, mid }
+  }, [breedWeightRange, weightChartData])
+
+  const breedWeightTrend = useMemo(() => {
+    if (!breedWeightRange || !weightChartData || weightChartData.points.length < 3) return null
+    const points = weightChartData.points
+    const recent = points.slice(-3)
+    const first = recent[0].weight!
+    const last = recent[recent.length - 1].weight!
+    const change = last - first
+    const changePercent = (change / first) * 100
+
+    let direction: 'stable' | 'increasing' | 'decreasing'
+    if (Math.abs(changePercent) < 2) {
+      direction = 'stable'
+    } else if (changePercent > 0) {
+      direction = 'increasing'
+    } else {
+      direction = 'decreasing'
+    }
+
+    return { direction, change, changePercent, first, last }
+  }, [breedWeightRange, weightChartData])
+
   const appetiteChartData = useMemo(() => {
     if (activeTab !== 'appetite') return null
     if (trendData.length === 0) return null
@@ -435,6 +491,38 @@ export default function PetTrendsPage() {
               <Text className='trend-chart__breed-range-warning'>
                 {isOverWeight ? '当前超重' : '当前偏轻'}
               </Text>
+            )}
+          </View>
+        )}
+
+        {/* 品种体重分析卡片 */}
+        {breedWeightAnalysis && (
+          <View className={`trend-chart__breed-analysis trend-chart__breed-analysis--${breedWeightAnalysis.status}`}>
+            <View className='trend-chart__breed-analysis-header'>
+              <Text className='trend-chart__breed-analysis-title'>
+                {breedWeightAnalysis.status === 'normal' ? '✅ 体重正常' :
+                 breedWeightAnalysis.status === 'underweight' ? '⚠️ 体重偏轻' :
+                 breedWeightAnalysis.status === 'overweight' ? '⚠️ 体重偏重' :
+                 '🔴 严重超重'}
+              </Text>
+              <Text className='trend-chart__breed-analysis-value'>
+                {breedWeightAnalysis.latestWeight}kg / {breedWeightAnalysis.min}-{breedWeightAnalysis.max}kg
+              </Text>
+            </View>
+            <Text className='trend-chart__breed-analysis-suggestion'>
+              {breedWeightAnalysis.suggestion}
+            </Text>
+            {breedWeightTrend && (
+              <View className='trend-chart__breed-trend'>
+                <Text className='trend-chart__breed-trend-label'>
+                  近期趋势（近3次）：
+                </Text>
+                <Text className={`trend-chart__breed-trend-value trend-chart__breed-trend-value--${breedWeightTrend.direction}`}>
+                  {breedWeightTrend.direction === 'stable' ? '稳定' :
+                   breedWeightTrend.direction === 'increasing' ? `上升 ${breedWeightTrend.changePercent.toFixed(1)}%` :
+                   `下降 ${Math.abs(breedWeightTrend.changePercent).toFixed(1)}%`}
+                </Text>
+              </View>
             )}
           </View>
         )}
@@ -794,16 +882,9 @@ export default function PetTrendsPage() {
 
       <ScrollView scrollY className='pet-trends__content' enhanced showScrollbar={false}>
         {isLoading ? (
-          <View className='pet-trends__loading'>
-            <Text className='pet-trends__loading-text'>加载中...</Text>
-          </View>
+          <PageLoading text='加载健康数据中...' />
         ) : error ? (
-          <View className='pet-trends__error'>
-            <Text className='pet-trends__error-text'>{error}</Text>
-            <View className='pet-trends__retry-btn' onClick={loadTrendData}>
-              <Text className='pet-trends__retry-text'>重试</Text>
-            </View>
-          </View>
+          <PageError message={error} onRetry={loadTrendData} />
         ) : (
           <View className='pet-trends__chart-area'>
             {renderChart()}
@@ -815,7 +896,7 @@ export default function PetTrendsPage() {
         visible={paywallVisible}
         featureName="健康趋势"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.switchTab({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 

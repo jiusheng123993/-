@@ -1,146 +1,137 @@
+@import '../../styles/_theme';
+
 .profile-page {
   min-height: 100vh;
-  background: #F5F7FA;
-}
-
-.profile-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  color: #999;
-  font-size: 28px;
+  background: $color-bg-page;
 }
 
 .profile-header {
-  display: flex;
+  @include flex-center;
   flex-direction: column;
-  align-items: center;
-  padding: 48px 32px 32px;
-  background: linear-gradient(180deg, #E8F0FE 0%, #F5F7FA 100%);
+  padding: 48rpx $spacing-xl 32rpx;
+  background: linear-gradient(180deg, $color-primary-bg 0%, $color-bg-page 100%);
 }
 
 .profile-avatar {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: #FFF;
-  box-shadow: 0 8px 24px rgba(74, 144, 217, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
+  @include flex-center;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $radius-full;
+  background: $color-bg-card;
+  box-shadow: $shadow-md;
+  margin-bottom: 20rpx;
 }
 
 .profile-avatar-emoji {
-  font-size: 80px;
+  font-size: 80rpx;
 }
 
 .profile-name {
-  font-size: 40px;
-  font-weight: 600;
-  color: #1A1A1A;
-  margin-bottom: 8px;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
 }
 
 .profile-breed {
-  font-size: 28px;
-  color: #666;
-  margin-bottom: 16px;
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
 }
 
 .profile-tags {
   display: flex;
-  gap: 12px;
+  gap: $spacing-sm;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .profile-tag {
-  padding: 6px 20px;
-  background: #FFF;
-  border-radius: 20px;
-  font-size: 24px;
-  color: #4A90D9;
-  border: 1px solid #E8F0FE;
+  padding: 6rpx 20rpx;
+  background: $color-bg-card;
+  border-radius: 20rpx;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  border: 1px solid $color-primary-bg;
 }
 
 .profile-pet-switcher {
   display: flex;
-  gap: 12px;
-  padding: 16px 32px;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-xl;
   overflow-x: auto;
 }
 
 .profile-pet-tab {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: #FFF;
-  border-radius: 24px;
-  font-size: 26px;
-  color: #666;
+  gap: $spacing-xs;
+  padding: $spacing-sm 24rpx;
+  background: $color-bg-card;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  color: $color-text-secondary;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: $shadow-xs;
+  @include press-feedback;
 }
 
 .profile-pet-tab-active {
-  background: #4A90D9;
-  color: #FFF;
+  background: $color-primary;
+  color: $color-text-inverse;
 }
 
 .profile-section {
-  margin: 16px 32px;
+  margin: $spacing-md $spacing-xl;
 }
 
 .profile-section-title {
-  font-size: 30px;
-  font-weight: 600;
-  color: #1A1A1A;
-  margin-bottom: 16px;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
   display: block;
 }
 
 .profile-info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: $spacing-sm;
 }
 
 .profile-info-item {
-  padding: 20px;
-  background: #FFF;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 20rpx;
+  background: $color-bg-card;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-xs;
 }
 
 .profile-info-label {
-  font-size: 24px;
-  color: #999;
+  font-size: $font-size-sm;
+  color: $color-text-hint;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: $spacing-xs;
 }
 
 .profile-info-value {
-  font-size: 28px;
-  color: #1A1A1A;
-  font-weight: 500;
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .profile-feature-card {
-  padding: 20px;
-  background: #FFF;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 20rpx;
+  background: $color-bg-card;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-xs;
 }
 
 .profile-feature-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #F0F0F0;
+  padding: $spacing-md 0;
+  border-bottom: 1px solid $color-border-light;
 }
 
 .profile-feature-item:last-child {
@@ -148,29 +139,29 @@
 }
 
 .profile-feature-label {
-  font-size: 26px;
-  color: #666;
+  font-size: 26rpx;
+  color: $color-text-secondary;
 }
 
 .profile-feature-value {
-  font-size: 26px;
-  color: #1A1A1A;
-  font-weight: 500;
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .profile-health-card {
-  padding: 20px;
-  background: #FFF;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 20rpx;
+  background: $color-bg-card;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-xs;
 }
 
 .profile-health-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #F0F0F0;
+  padding: $spacing-md 0;
+  border-bottom: 1px solid $color-border-light;
 }
 
 .profile-health-item:last-child {
@@ -178,19 +169,19 @@
 }
 
 .profile-health-label {
-  font-size: 26px;
-  color: #666;
+  font-size: 26rpx;
+  color: $color-text-secondary;
 }
 
 .profile-health-value {
-  font-size: 26px;
-  color: #1A1A1A;
-  font-weight: 500;
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .profile-actions {
   display: flex;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .profile-action-btn {
@@ -198,82 +189,84 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 12px;
-  background: #FFF;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  gap: $spacing-xs;
+  padding: 24rpx $spacing-sm;
+  background: $color-bg-card;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-xs;
+  @include press-feedback;
 }
 
 .profile-action-icon {
-  font-size: 36px;
+  font-size: 36rpx;
 }
 
 .profile-action-label {
-  font-size: 24px;
-  color: #333;
-  font-weight: 500;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .profile-danger-zone {
-  padding: 24px;
-  background: #FFF;
-  border-radius: 12px;
-  border: 1px solid #FFE8E8;
+  padding: 24rpx;
+  background: $color-bg-card;
+  border-radius: $radius-sm;
+  border: 1px solid $color-danger-bg;
 }
 
 .profile-danger-title {
-  font-size: 26px;
-  color: #F5222D;
-  font-weight: 500;
-  margin-bottom: 16px;
+  font-size: 26rpx;
+  color: $color-danger;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-md;
   display: block;
 }
 
 .profile-danger-btn {
-  padding: 16px;
+  padding: $spacing-md;
   text-align: center;
-  background: #FFF5F5;
-  border: 1px solid #FFE8E8;
-  border-radius: 8px;
-  font-size: 26px;
-  color: #F5222D;
+  background: $color-danger-light;
+  border: 1px solid $color-danger-bg;
+  border-radius: $radius-xs;
+  font-size: 26rpx;
+  color: $color-danger;
+  @include press-feedback;
 }
 
 .profile-empty {
-  display: flex;
+  @include flex-center;
   flex-direction: column;
-  align-items: center;
-  padding: 120px 32px;
+  padding: 120rpx $spacing-xl;
 }
 
 .profile-empty-icon {
-  font-size: 80px;
-  margin-bottom: 16px;
+  font-size: 80rpx;
+  margin-bottom: $spacing-md;
 }
 
 .profile-empty-text {
-  font-size: 30px;
-  color: #333;
-  font-weight: 500;
-  margin-bottom: 8px;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
 }
 
 .profile-empty-hint {
-  font-size: 24px;
-  color: #999;
-  margin-bottom: 32px;
+  font-size: $font-size-sm;
+  color: $color-text-hint;
+  margin-bottom: $spacing-xl;
 }
 
 .profile-empty-btn {
-  padding: 16px 48px;
-  background: #4A90D9;
-  color: #FFF;
-  font-size: 28px;
-  font-weight: 500;
-  border-radius: 40px;
+  padding: $spacing-md 48rpx;
+  background: $color-primary;
+  color: $color-text-inverse;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  border-radius: 40rpx;
+  @include press-feedback;
 }
 
 .profile-bottom-safe {
-  height: 40px;
+  height: 40rpx;
 }

@@ -1,15 +1,14 @@
-import type { UserConfigExport } from '@tarojs/cli'
-import path from 'path'
+import { defineConfig } from '@tarojs/cli'
 
-const config: UserConfigExport = {
+const config = {
   projectName: 'xinghuanhai-miniapp',
-  date: '2026-7-12',
+  date: '2024-07-22',
   designWidth: 750,
   deviceRatio: {
     640: 2.34 / 2,
     750: 1,
+    828: 1.81 / 2,
     375: 2,
-    828: 1.81 / 2
   },
   sourceRoot: 'src',
   outputRoot: 'dist',
@@ -17,96 +16,85 @@ const config: UserConfigExport = {
   defineConstants: {},
   copy: {
     patterns: [],
-    options: {}
+    options: {},
   },
   framework: 'react',
-  compiler: {
-    type: 'webpack5',
-    prebundle: { enable: false }
-  },
+  compiler: 'webpack5',
   cache: {
-    enable: false
+    enable: false,
   },
   mini: {
-    webpackChain(chain) {
-      chain.resolve.alias.set('@', path.resolve(__dirname, '..', 'src'))
-      chain.resolve.alias.set('react', path.resolve(__dirname, '..', 'node_modules', 'react'))
-      chain.resolve.alias.set('react-dom', path.resolve(__dirname, '..', 'node_modules', 'react-dom'))
-      chain.resolve.set('fallback', {
-        crypto: false,
-        stream: false,
-        buffer: false
-      })
-      chain.optimization.splitChunks({
-        chunks: 'all',
-        maxInitialRequests: Infinity,
-        minSize: 0,
-        cacheGroups: {
-          pdfLibs: {
-            name: 'pagesPet/pdf-libs',
-            test: /[\\/]node_modules[\\/](jspdf|html2canvas|pako|canvg|dompurify|css-line-break|html-entities)[\\/]/,
-            priority: 200,
-            reuseExistingChunk: true,
-          },
-          cryptoCore: {
-            name: 'crypto-core',
-            test: /[\\/]node_modules[\\/]crypto-js[\\/]/,
-            priority: 100,
-            reuseExistingChunk: true,
-          },
-        },
-      })
-      chain.performance.hints(false)
-    },
-    sass: {
-      data: `@import "@/styles/global.scss";`
-    },
     postcss: {
       pxtransform: {
         enable: true,
-        config: {}
+        config: {},
+      },
+      url: {
+        enable: true,
+        config: {
+          limit: 1024,
+        },
       },
       cssModules: {
-        enable: false
-      }
+        enable: false,
+        config: {
+          namingPattern: 'module',
+          generateScopedName: '[name]__[local]___[hash:base64:5]',
+        },
+      },
     },
-    miniCssExtractPluginOption: {
-      ignoreOrder: true
+    webpackChain(chain) {
+      chain.merge({
+        ignoreWarnings: [/Conflicting order/],
+      })
     },
-    commonChunks: ['runtime', 'vendors', 'taro', 'common'],
-    minifyWXML: true,
-    minifyWXSS: true
   },
   h5: {
     publicPath: '/',
     staticDirectory: 'static',
-    output: {
-      filename: 'js/[name].[hash:8].js',
-      chunkFilename: 'js/[name].[chunkhash:8].js'
-    },
-    miniCssExtractPluginOption: {
-      ignoreOrder: true,
-      filename: 'css/[name].[hash].css',
-      chunkFilename: 'css/[name].[chunkhash].css'
-    },
     postcss: {
       autoprefixer: {
         enable: true,
-        config: {}
+        config: {},
       },
       cssModules: {
-        enable: false
-      }
-    }
-  }
+        enable: false,
+        config: {
+          namingPattern: 'module',
+          generateScopedName: '[name]__[local]___[hash:base64:5]',
+        },
+      },
+    },
+  },
+  alias: {
+    '@': 'src',
+  },
+  env: {
+    TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000/api'),
+    TARO_APP_USE_MOCK: JSON.stringify(process.env.TARO_APP_USE_MOCK || 'true'),
+    TARO_APP_SUPABASE_URL: JSON.stringify(process.env.TARO_APP_SUPABASE_URL || ''),
+    TARO_APP_SUPABASE_KEY: JSON.stringify(process.env.TARO_APP_SUPABASE_KEY || ''),
+    TARO_APP_CRYPTO_SALT: JSON.stringify(process.env.TARO_APP_CRYPTO_SALT || ''),
+    TARO_APP_FOLLOWUP_TEMPLATE_ID: JSON.stringify(process.env.TARO_APP_FOLLOWUP_TEMPLATE_ID || ''),
+    TARO_APP_CARE_PLAN_TEMPLATE_ID: JSON.stringify(process.env.TARO_APP_CARE_PLAN_TEMPLATE_ID || ''),
+    TARO_APP_HEALTH_CHECKIN_TEMPLATE_ID: JSON.stringify(process.env.TARO_APP_HEALTH_CHECKIN_TEMPLATE_ID || ''),
+    TARO_APP_VACCINE_REMINDER_TEMPLATE_ID: JSON.stringify(process.env.TARO_APP_VACCINE_REMINDER_TEMPLATE_ID || ''),
+  },
 }
 
-export default function merge(env: any, argv: any) {
-  if (argv && argv.mode === 'development') {
-    return {
-      ...config,
-      devtool: 'cheap-module-source-map'
-    }
+module.exports = function (merge) {
+  if (process.env.NODE_ENV === 'development') {
+    return merge({}, config, {
+      mini: {
+        sourceMapType: 'cheap-module-source-map',
+      },
+    })
   }
-  return config
+  return merge({}, config, {
+    mini: {
+      optimizeMainPackage: {
+        enable: false,
+      },
+    },
+  })
 }

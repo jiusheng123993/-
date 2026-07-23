@@ -25,6 +25,10 @@
     "react": "^17.0.2",
     "zustand": "^4.5.0"
   },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
+  },
   "devDependencies": {
     "@babel/preset-react": "^7.29.7",
     "@tarojs/cli": "^3.6.40",

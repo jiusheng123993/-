@@ -59,7 +59,7 @@ export default function HealthTrendShareCard({
 
         <View className='health-trend-share__pet-info'>
           {petAvatar && (
-            <Image className='health-trend-share__pet-avatar' src={petAvatar} mode='aspectFill' />
+            <Image className='health-trend-share__pet-avatar' src={petAvatar} mode='aspectFill' lazyLoad />
           )}
           <Text className='health-trend-share__pet-name'>{petName}的健康趋势</Text>
         </View>

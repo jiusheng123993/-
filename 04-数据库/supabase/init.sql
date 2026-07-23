@@ -666,3 +666,95 @@ INSERT INTO pet_knowledge_base (type, version, source) VALUES
   ('vaccine_schedule', '1.0.0', 'init'),
   ('urgency_rules', '1.0.0', 'init')
 ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- v4.0 新增：宠物家庭系统 + 时光引擎 + 取名引擎
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS pet_families (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       TEXT NOT NULL,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE pet_families ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "用户只能访问自己的家庭" ON pet_families
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE TABLE IF NOT EXISTS pet_family_members (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id  UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  pet_id     UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  role       TEXT,
+  joined_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(family_id, pet_id)
+);
+ALTER TABLE pet_family_members ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "用户只能看到自己家庭的成员" ON pet_family_members
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM pet_families
+      WHERE pet_families.id = family_id
+      AND pet_families.user_id = auth.uid()
+    )
+  );
+
+CREATE TABLE IF NOT EXISTS pet_lineage (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  child_id     UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  litter_date  DATE,
+  UNIQUE(parent_id, child_id)
+);
+ALTER TABLE pet_lineage ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS pet_moments (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  family_id   UUID REFERENCES pet_families(id),
+  pet_id      UUID REFERENCES pet_profiles(id),
+  type        TEXT NOT NULL,
+  content     JSONB NOT NULL,
+  photos      TEXT[],
+  ai_summary  TEXT,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_moments_family ON pet_moments(family_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_moments_pet ON pet_moments(pet_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_moments_user ON pet_moments(user_id, created_at DESC);
+ALTER TABLE pet_moments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "用户只能访问自己的时刻" ON pet_moments
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE TABLE IF NOT EXISTS pet_milestones (
+  id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pet_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  title     TEXT NOT NULL,
+  date      DATE NOT NULL,
+  type      TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_milestones_pet ON pet_milestones(pet_id, date DESC);
+ALTER TABLE pet_milestones ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "用户只能访问自己的里程碑" ON pet_milestones
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE TABLE IF NOT EXISTS pet_names (
+  id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pet_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  name      TEXT NOT NULL,
+  chosen    BOOLEAN DEFAULT FALSE,
+  analysis  JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(pet_id, name)
+);
+ALTER TABLE pet_names ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "用户只能访问自己的取名记录" ON pet_names
+  FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE pet_profiles ADD COLUMN IF NOT EXISTS litter_date DATE;
+ALTER TABLE pet_profiles ADD COLUMN IF NOT EXISTS birth_season TEXT;

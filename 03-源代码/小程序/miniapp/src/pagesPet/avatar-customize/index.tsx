@@ -86,7 +86,7 @@ export default function AvatarCustomizePage() {
           confirmText: '开通会员',
           success: (res) => {
             if (res.confirm) {
-              Taro.navigateTo({ url: '/pages/member/index' })
+              Taro.switchTab({ url: '/pages/member/index' })
             }
           },
         })
@@ -122,7 +122,12 @@ export default function AvatarCustomizePage() {
   return (
     <View className='avatar-customize'>
       <View className='avatar-customize__preview'>
-        {generatedUrl ? (
+        {isGenerating ? (
+          <View className='avatar-customize__generating'>
+            <View className='avatar-customize__generating-spinner' />
+            <Text className='avatar-customize__generating-text'>AI 正在为你生成专属形象...</Text>
+          </View>
+        ) : generatedUrl ? (
           <Image
             className='avatar-customize__generated-img'
             src={generatedUrl}
@@ -185,9 +190,7 @@ export default function AvatarCustomizePage() {
             className={`avatar-customize__btn ${!canGenerate ? 'avatar-customize__btn--disabled' : ''}`}
             onClick={handleGenerate}
           >
-            <Text className='avatar-customize__btn-text'>
-              {isGenerating ? '生成中...' : '生成头像'}
-            </Text>
+            <Text className='avatar-customize__btn-text'>生成头像</Text>
           </View>
         ) : (
           <View className='avatar-customize__btn-group'>
@@ -208,6 +211,7 @@ export default function AvatarCustomizePage() {
             className='avatar-customize__existing-img'
             src={existingCustom.cartoonUrl || ''}
             mode='aspectFit'
+            lazyLoad
           />
         </View>
       )}

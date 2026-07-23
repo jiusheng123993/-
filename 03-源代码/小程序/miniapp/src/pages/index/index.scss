@@ -1,111 +1,101 @@
+@import '../../styles/_theme';
+
 .home-page {
   min-height: 100vh;
-  background: #F5F7FA;
-}
-
-.home-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  color: #999;
-  font-size: 28px;
+  background: $color-bg-page;
 }
 
 .home-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 32px;
-  background: #FFF;
+  padding: $spacing-lg $spacing-xl;
+  background: $color-bg-card;
 }
 
 .home-header-title {
-  font-size: 36px;
-  font-weight: 600;
-  color: #1A1A1A;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
 }
 
 .home-header-right {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #F5F7FA;
+  width: 64rpx;
+  height: 64rpx;
+  @include flex-center;
+  border-radius: $radius-full;
+  background: $color-bg-page;
+  @include press-feedback;
 }
 
 .home-settings-icon {
-  font-size: 32px;
+  font-size: $font-size-lg;
 }
 
 .home-pet-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 16px 32px;
-  padding: 24px;
-  background: #FFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin: $spacing-md $spacing-xl;
+  padding: $spacing-lg;
+  @include card-base;
+  @include press-feedback;
 }
 
 .home-pet-card-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .home-pet-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #E8F0FE;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  font-size: 40rpx;
 }
 
 .home-pet-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 4rpx;
 }
 
 .home-pet-name {
-  font-size: 32px;
-  font-weight: 600;
-  color: #1A1A1A;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
 }
 
 .home-pet-detail {
-  font-size: 24px;
-  color: #999;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
 }
 
 .home-pet-switch {
-  font-size: 24px;
-  color: #4A90D9;
+  font-size: $font-size-sm;
+  color: $color-primary;
 }
 
 .home-pet-dropdown {
-  margin: -8px 32px 0;
-  background: #FFF;
-  border-radius: 0 0 16px 16px;
+  margin: -8rpx $spacing-xl 0;
+  background: $color-bg-card;
+  border-radius: 0 0 $radius-md $radius-md;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: $shadow-md;
 }
 
 .home-pet-dropdown-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
-  font-size: 28px;
-  color: #333;
-  border-bottom: 1px solid #F0F0F0;
+  padding: 20rpx $spacing-lg;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  border-bottom: 1rpx solid $color-border-light;
+  @include press-feedback;
 }
 
 .home-pet-dropdown-item:last-child {
@@ -113,26 +103,24 @@
 }
 
 .home-pet-dropdown-item-active {
-  background: #E8F0FE;
-  color: #4A90D9;
+  background: $color-primary-bg;
+  color: $color-primary;
 }
 
 .home-pet-check {
-  color: #4A90D9;
-  font-weight: 600;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
 }
 
 .home-avatar-section {
-  margin: 16px 32px;
+  margin: $spacing-md $spacing-xl;
 }
 
 .home-avatar-card {
-  height: 320px;
-  background: linear-gradient(135deg, #E8F0FE 0%, #D4E4FC 100%);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 320rpx;
+  background: linear-gradient(135deg, $color-primary-bg 0%, #D4E4FC 100%);
+  border-radius: $radius-lg;
+  @include flex-center;
   overflow: hidden;
 }
 
@@ -140,174 +128,169 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: $spacing-sm;
 }
 
 .home-avatar-emoji {
-  font-size: 80px;
+  font-size: 80rpx;
 }
 
 .home-avatar-mood {
-  font-size: 28px;
-  color: #4A90D9;
-  font-weight: 500;
+  font-size: $font-size-md;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
 }
 
 .home-checkin-section {
-  margin: 16px 32px;
+  margin: $spacing-md $spacing-xl;
 }
 
 .home-checkin-card {
-  padding: 32px;
-  background: linear-gradient(135deg, #4A90D9 0%, #7BB3E8 100%);
-  border-radius: 20px;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-lg;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 20rpx;
 }
 
 .home-checkin-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #FFF;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-inverse;
 }
 
 .home-checkin-btn {
-  width: 320px;
-  height: 80px;
-  line-height: 80px;
+  width: 320rpx;
+  height: 80rpx;
+  line-height: 80rpx;
   text-align: center;
-  background: #FFF;
-  border-radius: 40px;
+  background: $color-bg-card;
+  border-radius: $radius-round;
+  @include press-feedback;
 }
 
 .home-checkin-btn-text {
-  font-size: 30px;
-  font-weight: 600;
-  color: #4A90D9;
+  font-size: 30rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
 }
 
 .home-checkin-streak {
-  padding: 8px 24px;
+  padding: $spacing-xs $spacing-lg;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  border-radius: 20rpx;
 }
 
 .home-checkin-streak-text {
-  font-size: 24px;
-  color: #FFF;
+  font-size: $font-size-sm;
+  color: $color-text-inverse;
 }
 
 .home-section {
-  margin: 0 32px 16px;
+  margin: 0 $spacing-xl $spacing-md;
 }
 
 .home-section-title {
-  font-size: 30px;
-  font-weight: 600;
-  color: #1A1A1A;
-  margin-bottom: 16px;
+  font-size: 30rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
   display: block;
 }
 
 .home-quick-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-sm;
 }
 
 .home-quick-action {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 12px;
-  background: #FFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  gap: $spacing-xs;
+  padding: 20rpx $spacing-xs;
+  @include card-base;
+  @include press-feedback;
 }
 
 .home-quick-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 18rpx;
+  @include flex-center;
+  font-size: $font-size-lg;
 }
 
 .home-quick-label {
-  font-size: 24px;
-  color: #333;
-  font-weight: 500;
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .home-vaccine-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px;
-  background: #FFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: $spacing-lg;
+  @include card-base;
+  @include press-feedback;
 }
 
 .home-vaccine-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .home-vaccine-icon {
-  font-size: 40px;
+  font-size: 40rpx;
 }
 
 .home-vaccine-label {
-  font-size: 22px;
-  color: #999;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
   display: block;
 }
 
 .home-vaccine-text {
-  font-size: 28px;
-  color: #1A1A1A;
-  font-weight: 500;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
 }
 
 .home-vaccine-arrow {
-  font-size: 36px;
-  color: #CCC;
+  font-size: $font-size-xl;
+  color: $color-text-placeholder;
 }
 
 .home-tip-card {
-  padding: 24px;
-  background: #FFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: $spacing-lg;
+  @include card-base;
 }
 
 .home-tip-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
 }
 
 .home-tip-icon {
-  font-size: 28px;
+  font-size: $font-size-md;
 }
 
 .home-tip-label {
-  font-size: 26px;
-  font-weight: 600;
-  color: #1A1A1A;
+  font-size: 26rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
 }
 
 .home-tip-text {
-  font-size: 26px;
-  color: #666;
+  font-size: 26rpx;
+  color: $color-text-secondary;
   line-height: 1.6;
 }
 
@@ -315,75 +298,76 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 32px;
-  background: #FFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 60rpx $spacing-xl;
+  @include card-base;
 }
 
 .home-empty-icon {
-  font-size: 80px;
-  margin-bottom: 16px;
+  font-size: 80rpx;
+  margin-bottom: $spacing-md;
 }
 
 .home-empty-text {
-  font-size: 30px;
-  color: #333;
-  font-weight: 500;
-  margin-bottom: 8px;
+  font-size: 30rpx;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-xs;
 }
 
 .home-empty-hint {
-  font-size: 24px;
-  color: #999;
-  margin-bottom: 32px;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xl;
 }
 
 .home-empty-btn {
-  padding: 16px 48px;
-  background: #4A90D9;
-  color: #FFF;
-  font-size: 28px;
-  font-weight: 500;
-  border-radius: 40px;
+  padding: $spacing-md 48rpx;
+  background: $color-primary;
+  color: $color-text-inverse;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-round;
+  @include press-feedback;
 }
 
 .home-member-section {
-  margin: 16px 32px;
+  margin: $spacing-md $spacing-xl;
 }
 
 .home-member-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px;
+  padding: $spacing-lg;
   background: linear-gradient(135deg, #FFF8E8 0%, #FFF0D0 100%);
-  border-radius: 16px;
+  border-radius: $radius-md;
+  @include press-feedback;
 }
 
 .home-member-level {
-  font-size: 28px;
-  font-weight: 600;
-  color: #333;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
   display: block;
 }
 
 .home-member-hint {
-  font-size: 24px;
-  color: #999;
-  margin-top: 4px;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
   display: block;
 }
 
 .home-member-btn {
-  padding: 12px 28px;
+  padding: $spacing-sm 28rpx;
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #FFF;
-  font-size: 26px;
-  font-weight: 600;
-  border-radius: 24px;
+  color: $color-text-inverse;
+  font-size: 26rpx;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-xl;
+  @include press-feedback;
 }
 
 .home-bottom-safe {
-  height: 40px;
+  height: 40rpx;
 }

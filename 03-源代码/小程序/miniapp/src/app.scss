@@ -1,8 +1,10 @@
+@import './styles/_theme';
+
 page {
-  background: #F5F7FA;
+  background: $color-bg-page;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
-  color: #1A1A1A;
-  font-size: 28px;
+  color: $color-text-primary;
+  font-size: $font-size-md;
   line-height: 1.6;
   box-sizing: border-box;
 }
@@ -16,12 +18,10 @@ cover-view {
 }
 
 .app-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   min-height: 100vh;
-  background: #F5F7FA;
-  color: #4A90D9;
-  font-size: 36px;
-  font-weight: 600;
+  background: $color-bg-page;
+  color: $color-primary;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
 }

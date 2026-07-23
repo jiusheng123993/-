@@ -3,14 +3,17 @@ import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
+import PageLoading from '../../components/PageLoading'
 import './index.scss'
 
 export default function PetProfile() {
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isInitialized = useAuthStore(state => state.isInitialized)
-  const { pets, currentPet, fetchPets, setCurrentPet } = usePetStore()
+  const { pets, currentPet, fetchPets, switchPet, removePet } = usePetStore()
   const [pageReady, setPageReady] = useState(false)
+
+  const pet = currentPet || (pets.length > 0 ? pets[0] : undefined)
 
   useEffect(() => {
     if (!isInitialized) return
@@ -22,7 +25,7 @@ export default function PetProfile() {
       try {
         await fetchPets(user.id)
       } catch (err) {
-        console.error('Failed to load pets:', err)
+        // 静默处理错误，页面有错误状态展示
       }
       setPageReady(true)
     }
@@ -33,8 +36,49 @@ export default function PetProfile() {
     Taro.navigateTo({ url })
   }
 
+  const handleMarkDeceased = () => {
+    if (!pet) return
+    Taro.showModal({
+      title: '⚠️ 危险操作',
+      content: `你正在将「${pet.name}」标记为离世。\n\n此操作将永久删除该宠物的所有健康记录、日记、疫苗记录等数据，且不可恢复。\n\n请再次确认。`,
+      confirmText: '我了解风险',
+      confirmColor: '#e74c3c',
+      cancelText: '取消',
+      success: (firstRes) => {
+        if (firstRes.confirm) {
+          Taro.showModal({
+            title: '最终确认',
+            content: `请输入「${pet.name}」以确认删除：`,
+            editable: true as boolean,
+            placeholderText: `输入「${pet.name}」确认`,
+            confirmText: '确认删除',
+            confirmColor: '#e74c3c',
+            cancelText: '取消',
+            success: async (secondRes) => {
+              if (secondRes.confirm && (secondRes as unknown as Record<string, unknown>).content === pet.name) {
+                try {
+                  await removePet(pet.id)
+                  Taro.showToast({ title: '已标记离世', icon: 'success' })
+                  if (pets.length <= 1) {
+                    setPageReady(false)
+                    if (user) await fetchPets(user.id)
+                    setPageReady(true)
+                  }
+                } catch {
+                  Taro.showToast({ title: '操作失败，请重试', icon: 'none' })
+                }
+              } else if (secondRes.confirm) {
+                Taro.showToast({ title: '输入不正确，操作已取消', icon: 'none' })
+              }
+            },
+          } as Parameters<typeof Taro.showModal>[0])
+        }
+      },
+    })
+  }
+
   if (!pageReady) {
-    return <View className='profile-loading'>加载中...</View>
+    return <PageLoading />
   }
 
   if (pets.length === 0) {
@@ -52,20 +96,20 @@ export default function PetProfile() {
     )
   }
 
-  const pet = currentPet || pets[0]
+  const activePet = pet!
 
   return (
     <ScrollView className='profile-page' scrollY>
       <View className='profile-header'>
         <View className='profile-avatar'>
-          <Text className='profile-avatar-emoji'>{pet.species === 'cat' ? '🐱' : '🐶'}</Text>
+          <Text className='profile-avatar-emoji'>{activePet.species === 'cat' ? '🐱' : '🐶'}</Text>
         </View>
-        <Text className='profile-name'>{pet.name}</Text>
-        <Text className='profile-breed'>{pet.breed || '未知品种'}</Text>
+        <Text className='profile-name'>{activePet.name}</Text>
+        <Text className='profile-breed'>{activePet.breed || '未知品种'}</Text>
         <View className='profile-tags'>
-          {pet.gender && <Text className='profile-tag'>{pet.gender === 'male' ? '♂ 公' : '♀ 母'}</Text>}
-          {pet.birthday && <Text className='profile-tag'>{calcAge(pet.birthday)}</Text>}
-          {pet.weight && <Text className='profile-tag'>{pet.weight}kg</Text>}
+          {activePet.gender && <Text className='profile-tag'>{activePet.gender === 'male' ? '♂ 公' : '♀ 母'}</Text>}
+          {activePet.birthDate && <Text className='profile-tag'>{calcAge(activePet.birthDate)}</Text>}
+          {activePet.weight && <Text className='profile-tag'>{activePet.weight}kg</Text>}
         </View>
       </View>
 
@@ -75,7 +119,7 @@ export default function PetProfile() {
             <View
               key={p.id}
               className={`profile-pet-tab ${currentPet?.id === p.id ? 'profile-pet-tab-active' : ''}`}
-              onClick={() => setCurrentPet(p)}
+              onClick={() => switchPet(p.id)}
             >
               <Text>{p.species === 'cat' ? '🐱' : '🐶'}</Text>
               <Text>{p.name}</Text>
@@ -89,19 +133,19 @@ export default function PetProfile() {
         <View className='profile-info-grid'>
           <View className='profile-info-item'>
             <Text className='profile-info-label'>品种</Text>
-            <Text className='profile-info-value'>{pet.breed || '未设置'}</Text>
+            <Text className='profile-info-value'>{activePet.breed || '未设置'}</Text>
           </View>
           <View className='profile-info-item'>
             <Text className='profile-info-label'>性别</Text>
-            <Text className='profile-info-value'>{pet.gender === 'male' ? '公' : pet.gender === 'female' ? '母' : '未设置'}</Text>
+            <Text className='profile-info-value'>{activePet.gender === 'male' ? '公' : activePet.gender === 'female' ? '母' : '未设置'}</Text>
           </View>
           <View className='profile-info-item'>
             <Text className='profile-info-label'>生日</Text>
-            <Text className='profile-info-value'>{pet.birthday || '未设置'}</Text>
+            <Text className='profile-info-value'>{activePet.birthDate || '未设置'}</Text>
           </View>
           <View className='profile-info-item'>
             <Text className='profile-info-label'>体重</Text>
-            <Text className='profile-info-value'>{pet.weight ? `${pet.weight}kg` : '未设置'}</Text>
+            <Text className='profile-info-value'>{activePet.weight ? `${activePet.weight}kg` : '未设置'}</Text>
           </View>
         </View>
       </View>
@@ -110,16 +154,8 @@ export default function PetProfile() {
         <Text className='profile-section-title'>品种特征</Text>
         <View className='profile-feature-card'>
           <View className='profile-feature-item'>
-            <Text className='profile-feature-label'>体型</Text>
-            <Text className='profile-feature-value'>{pet.size || '未设置'}</Text>
-          </View>
-          <View className='profile-feature-item'>
-            <Text className='profile-feature-label'>毛发</Text>
-            <Text className='profile-feature-value'>{pet.coatType || '未设置'}</Text>
-          </View>
-          <View className='profile-feature-item'>
-            <Text className='profile-feature-label'>性格</Text>
-            <Text className='profile-feature-value'>{pet.personality || '未设置'}</Text>
+            <Text className='profile-feature-label'>毛色</Text>
+            <Text className='profile-feature-value'>{activePet.coatColor || '未设置'}</Text>
           </View>
         </View>
       </View>
@@ -129,29 +165,43 @@ export default function PetProfile() {
         <View className='profile-health-card'>
           <View className='profile-health-item'>
             <Text className='profile-health-label'>过敏史</Text>
-            <Text className='profile-health-value'>{pet.allergies || '无'}</Text>
+            <Text className='profile-health-value'>{activePet.allergies || '无'}</Text>
           </View>
           <View className='profile-health-item'>
             <Text className='profile-health-label'>用药史</Text>
-            <Text className='profile-health-value'>{pet.medications || '无'}</Text>
+            <Text className='profile-health-value'>{activePet.medications || '无'}</Text>
           </View>
           <View className='profile-health-item'>
             <Text className='profile-health-label'>绝育状态</Text>
-            <Text className='profile-health-value'>{pet.neutered ? '已绝育' : '未绝育'}</Text>
+            <Text className='profile-health-value'>{activePet.isNeutered ? '已绝育' : '未绝育'}</Text>
           </View>
           <View className='profile-health-item'>
             <Text className='profile-health-label'>芯片编号</Text>
-            <Text className='profile-health-value'>{pet.chipId || '无'}</Text>
+            <Text className='profile-health-value'>{activePet.microchipId || '无'}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View className='profile-section'>
+        <Text className='profile-section-title'>健康管理</Text>
+        <View className='profile-actions'>
+          <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/chronic-tracking/index')}>
+            <Text className='profile-action-icon'>🩺</Text>
+            <Text className='profile-action-label'>慢性病追踪</Text>
+          </View>
+          <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/feeding-advice/index')}>
+            <Text className='profile-action-icon'>🍽️</Text>
+            <Text className='profile-action-label'>喂养建议</Text>
+          </View>
+          <View className='profile-action-btn' onClick={() => navigateTo(`/pagesPet/edit/index?id=${activePet.id}`)}>
+            <Text className='profile-action-icon'>✏️</Text>
+            <Text className='profile-action-label'>编辑档案</Text>
           </View>
         </View>
       </View>
 
       <View className='profile-section'>
         <View className='profile-actions'>
-          <View className='profile-action-btn' onClick={() => navigateTo(`/pagesPet/edit/index?id=${pet.id}`)}>
-            <Text className='profile-action-icon'>✏️</Text>
-            <Text className='profile-action-label'>编辑档案</Text>
-          </View>
           <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/diary/index')}>
             <Text className='profile-action-icon'>📔</Text>
             <Text className='profile-action-label'>成长日记</Text>
@@ -166,7 +216,7 @@ export default function PetProfile() {
       <View className='profile-section'>
         <View className='profile-danger-zone'>
           <Text className='profile-danger-title'>危险操作</Text>
-          <View className='profile-danger-btn'>
+          <View className='profile-danger-btn' onClick={handleMarkDeceased}>
             <Text>标记宠物离世</Text>
           </View>
         </View>
@@ -177,8 +227,8 @@ export default function PetProfile() {
   )
 }
 
-function calcAge(birthday: string): string {
-  const birth = new Date(birthday)
+function calcAge(birthDate: string): string {
+  const birth = new Date(birthDate)
   const now = new Date()
   const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
   if (months < 12) return `${months}个月`

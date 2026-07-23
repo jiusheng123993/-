@@ -64,7 +64,7 @@ export default function VaccineShareCard({
 
         <View className='vaccine-share__pet-info'>
           {petAvatar && (
-            <Image className='vaccine-share__pet-avatar' src={petAvatar} mode='aspectFill' />
+            <Image className='vaccine-share__pet-avatar' src={petAvatar} mode='aspectFill' lazyLoad />
           )}
           <View className='vaccine-share__pet-detail'>
             <Text className='vaccine-share__pet-name'>{petName}</Text>

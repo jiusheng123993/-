@@ -1,0 +1,174 @@
+@import '../../styles/theme';
+
+@keyframes home-skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@mixin skeleton-base {
+  background: linear-gradient(
+    90deg,
+    $color-border-light 25%,
+    $color-border 50%,
+    $color-border-light 75%
+  );
+  background-size: 200% 100%;
+  animation: home-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.home-skeleton {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-lg $spacing-xl;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__title {
+    width: 160rpx;
+    height: 40rpx;
+    border-radius: $radius-xs;
+    @include skeleton-base;
+  }
+
+  &__icon {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: $radius-full;
+    @include skeleton-base;
+  }
+
+  &__pet-card {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-lg;
+    background: $color-bg-card;
+    border-radius: $radius-md;
+    margin-bottom: $spacing-lg;
+    box-shadow: $shadow-xs;
+  }
+
+  &__avatar {
+    width: 96rpx;
+    height: 96rpx;
+    border-radius: $radius-full;
+    @include skeleton-base;
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__name {
+    width: 60%;
+    height: 36rpx;
+    border-radius: $radius-xs;
+    @include skeleton-base;
+  }
+
+  &__detail {
+    width: 80%;
+    height: 28rpx;
+    border-radius: $radius-xs;
+    @include skeleton-base;
+  }
+
+  &__section {
+    margin-bottom: $spacing-lg;
+  }
+
+  &__section-title {
+    width: 40%;
+    height: 32rpx;
+    border-radius: $radius-xs;
+    margin-bottom: $spacing-md;
+    @include skeleton-base;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $spacing-sm;
+  }
+
+  &__action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-md $spacing-sm;
+    background: $color-bg-card;
+    border-radius: $radius-sm;
+    box-shadow: $shadow-xs;
+  }
+
+  &__action-icon {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: $radius-full;
+    @include skeleton-base;
+  }
+
+  &__action-label {
+    width: 80%;
+    height: 24rpx;
+    border-radius: $radius-xs;
+    @include skeleton-base;
+  }
+
+  &__card {
+    padding: $spacing-lg;
+    background: $color-bg-card;
+    border-radius: $radius-md;
+    box-shadow: $shadow-xs;
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+  }
+
+  &__card-icon {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: $radius-full;
+    @include skeleton-base;
+  }
+
+  &__card-title {
+    width: 50%;
+    height: 32rpx;
+    border-radius: $radius-xs;
+    @include skeleton-base;
+  }
+
+  &__card-body {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__card-line {
+    height: 24rpx;
+    border-radius: $radius-xs;
+    @include skeleton-base;
+
+    &:nth-child(2) {
+      width: 80%;
+    }
+  }
+}

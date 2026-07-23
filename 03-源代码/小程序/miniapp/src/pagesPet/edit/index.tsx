@@ -429,7 +429,7 @@ export default function EditPet() {
           <Text className='add-pet__label'>头像</Text>
           <View className='add-pet__photo-area' onClick={handleChooseAvatar}>
             {formData.avatarUrl ? (
-              <Image className='add-pet__photo-preview' src={formData.avatarUrl} mode='aspectFill' />
+              <Image className='add-pet__photo-preview' src={formData.avatarUrl} mode='aspectFill' lazyLoad />
             ) : (
               <View className='add-pet__photo-placeholder'>
                 <Text className='add-pet__photo-icon'>📷</Text>

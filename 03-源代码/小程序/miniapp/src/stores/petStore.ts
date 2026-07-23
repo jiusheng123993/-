@@ -1,6 +1,4 @@
 import { create } from 'zustand'
-import type { PetProfile } from '../memory-body/types/memoryBodyTypes'
-export type { PetProfile }
 import {
   getPets,
   createPet,
@@ -8,19 +6,17 @@ import {
   deletePet,
   markDeceased,
   setCurrentPet,
-  getCurrentPet
+  type PetProfile,
 } from '../services/petService'
-import { setStorageUserId } from '../utils/storage'
 
-interface PetStoreState {
-  userId: string
+interface PetState {
+  userId: string | null
   pets: PetProfile[]
   currentPet: PetProfile | null
   isLoading: boolean
   error: string | null
-
   initUser: (userId: string) => Promise<void>
-  fetchPets: () => Promise<void>
+  fetchPets: (userId: string) => Promise<void>
   addPet: (data: Omit<PetProfile, 'id' | 'createdAt' | 'updatedAt'>) => Promise<PetProfile>
   updatePet: (id: string, data: Partial<PetProfile>) => Promise<void>
   removePet: (id: string) => Promise<void>
@@ -29,51 +25,54 @@ interface PetStoreState {
   clearError: () => void
 }
 
-export const usePetStore = create<PetStoreState>((set, get) => ({
-  userId: '',
+export const usePetStore = create<PetState>((set, get) => ({
+  userId: null,
   pets: [],
   currentPet: null,
   isLoading: false,
   error: null,
 
   initUser: async (userId: string) => {
-    if (!userId) throw new Error('[PetStore] userId is required')
-    setStorageUserId(userId)
     set({ userId })
-    await get().fetchPets()
+    await get().fetchPets(userId)
   },
 
-  fetchPets: async () => {
-    const { userId } = get()
-    if (!userId) return
+  fetchPets: async (userId: string) => {
     set({ isLoading: true, error: null })
     try {
       const pets = await getPets(userId)
-      const currentPet = await getCurrentPet(userId)
-      set({ pets, currentPet, isLoading: false })
+      const { currentPet } = get()
+      set({
+        pets,
+        isLoading: false,
+        currentPet: currentPet
+          ? pets.find(p => p.id === currentPet.id) || pets[0] || null
+          : pets[0] || null,
+      })
     } catch (err) {
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch pets'
+        error: err instanceof Error ? err.message : '获取宠物列表失败',
       })
     }
   },
 
   addPet: async (data) => {
     const { userId } = get()
-    if (!userId) throw new Error('[PetStore] userId is required')
+    if (!userId) throw new Error('用户未登录')
     set({ isLoading: true, error: null })
     try {
-      const newPet = await createPet(userId, data)
-      set((state) => ({
-        pets: [...state.pets, newPet],
-        isLoading: false
+      const pet = await createPet(userId, data)
+      set(state => ({
+        pets: [...state.pets, pet],
+        currentPet: state.currentPet || pet,
+        isLoading: false,
       }))
-      return newPet
+      return pet
     } catch (err) {
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to add pet'
+        error: err instanceof Error ? err.message : '添加宠物失败',
       })
       throw err
     }
@@ -81,19 +80,19 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
   updatePet: async (id, data) => {
     const { userId } = get()
-    if (!userId) throw new Error('[PetStore] userId is required')
+    if (!userId) throw new Error('用户未登录')
     set({ isLoading: true, error: null })
     try {
       const updated = await updatePet(userId, id, data)
-      set((state) => ({
-        pets: state.pets.map((p) => (p.id === id ? updated : p)),
+      set(state => ({
+        pets: state.pets.map(p => p.id === id ? updated : p),
         currentPet: state.currentPet?.id === id ? updated : state.currentPet,
-        isLoading: false
+        isLoading: false,
       }))
     } catch (err) {
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to update pet'
+        error: err instanceof Error ? err.message : '更新宠物失败',
       })
       throw err
     }
@@ -101,19 +100,24 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
   removePet: async (id) => {
     const { userId } = get()
-    if (!userId) throw new Error('[PetStore] userId is required')
+    if (!userId) throw new Error('用户未登录')
     set({ isLoading: true, error: null })
     try {
       await deletePet(userId, id)
-      set((state) => ({
-        pets: state.pets.filter((p) => p.id !== id),
-        currentPet: state.currentPet?.id === id ? null : state.currentPet,
-        isLoading: false
-      }))
+      set(state => {
+        const remainingPets = state.pets.filter(p => p.id !== id)
+        return {
+          pets: remainingPets,
+          currentPet: state.currentPet?.id === id
+            ? (remainingPets[0] || null)
+            : state.currentPet,
+          isLoading: false,
+        }
+      })
     } catch (err) {
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to remove pet'
+        error: err instanceof Error ? err.message : '删除宠物失败',
       })
       throw err
     }
@@ -121,19 +125,19 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
   markPetDeceased: async (id, date) => {
     const { userId } = get()
-    if (!userId) throw new Error('[PetStore] userId is required')
+    if (!userId) throw new Error('用户未登录')
     set({ isLoading: true, error: null })
     try {
       const updated = await markDeceased(userId, id, date)
-      set((state) => ({
-        pets: state.pets.map((p) => (p.id === id ? updated : p)),
+      set(state => ({
+        pets: state.pets.map(p => p.id === id ? updated : p),
         currentPet: state.currentPet?.id === id ? updated : state.currentPet,
-        isLoading: false
+        isLoading: false,
       }))
     } catch (err) {
       set({
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to mark deceased'
+        error: err instanceof Error ? err.message : '标记离世失败',
       })
       throw err
     }
@@ -141,16 +145,16 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
   switchPet: async (id) => {
     const { userId } = get()
-    if (!userId) throw new Error('[PetStore] userId is required')
-    set({ isLoading: true, error: null })
+    if (!userId) throw new Error('用户未登录')
     try {
-      await setCurrentPet(userId, id)
-      const pet = get().pets.find((p) => p.id === id) || null
-      set({ currentPet: pet, isLoading: false })
+      const pet = get().pets.find(p => p.id === id)
+      if (pet) {
+        set({ currentPet: pet })
+        await setCurrentPet(userId, id)
+      }
     } catch (err) {
       set({
-        isLoading: false,
-        error: err instanceof Error ? err.message : 'Failed to switch pet'
+        error: err instanceof Error ? err.message : '切换宠物失败',
       })
       throw err
     }
@@ -158,5 +162,7 @@ export const usePetStore = create<PetStoreState>((set, get) => ({
 
   clearError: () => {
     set({ error: null })
-  }
+  },
 }))
+
+export type { PetProfile }

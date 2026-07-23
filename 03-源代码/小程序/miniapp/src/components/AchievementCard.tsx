@@ -103,6 +103,7 @@ export default function AchievementCard({
             src={faceUri}
             mode='aspectFit'
             style={{ width: '80px', height: '80px' }}
+            lazyLoad
           />
         </View>
 

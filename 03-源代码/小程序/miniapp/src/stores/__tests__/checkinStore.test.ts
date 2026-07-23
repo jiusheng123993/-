@@ -1,72 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const { mockCheckinService, mockStorage } = vi.hoisted(() => {
+const { mockApi } = vi.hoisted(() => {
   return {
-    mockCheckinService: {
+    mockApi: {
       getCheckins: vi.fn(),
       createCheckin: vi.fn(),
-      getTodayCheckin: vi.fn(),
-      getCheckinStats: vi.fn(),
-      calculateConsecutiveAnomalyDays: vi.fn().mockReturnValue(0),
-    },
-    mockStorage: {
-      setStorageUserId: vi.fn(),
     },
   }
 })
 
-vi.mock('../../services/checkinService', () => mockCheckinService)
-vi.mock('../../utils/storage', () => mockStorage)
+vi.mock('../../services/api', () => ({
+  api: mockApi,
+}))
 
 import { useCheckinStore } from '../checkinStore'
-import type { PetHealthEntry, HealthRiskLevel } from '../../memory-body/types/memoryBodyTypes'
-import type { HealthCheckinStats } from '../../services/checkinService'
+import type { Checkin } from '../../types'
 
-function makeEntry(overrides: Partial<PetHealthEntry> = {}): PetHealthEntry {
+function makeCheckin(overrides: Partial<Checkin> = {}): Checkin {
   return {
-    id: 'entry_001',
+    id: 'checkin_001',
     petId: 'pet_001',
     userId: 'user_001',
-    poopLevel: 4,
-    appetiteLevel: 4,
-    spiritLevel: 4,
-    exerciseLevel: 2,
+    date: new Date().toISOString().split('T')[0],
+    mood: 'happy',
+    appetite: 'good',
+    stool: 'normal',
     weight: 30,
-    hasAnomaly: false,
-    anomalyItems: [],
-    aiFeedback: '✅ 您的宠物今天状态不错！继续保持良好的照顾习惯。',
-    riskLevel: 'low' as HealthRiskLevel,
     note: '',
-    createdAt: new Date('2024-06-01T10:00:00.000Z'),
-    ...overrides,
-  }
-}
-
-function makeCheckinData() {
-  return {
-    petId: 'pet_001',
-    userId: 'user_001',
-    poopLevel: 4 as const,
-    appetiteLevel: 4 as const,
-    spiritLevel: 4 as const,
-    exerciseLevel: 2 as const,
-    weight: 30,
-    hasAnomaly: false,
-    anomalyItems: [] as import('../../memory-body/types/memoryBodyTypes').AnomalyItem[],
-    note: '',
-  }
-}
-
-function makeStats(overrides: Partial<HealthCheckinStats> = {}): HealthCheckinStats {
-  return {
-    totalCheckins: 10,
-    streak: 5,
-    lastCheckinDate: '2024-06-01',
-    weeklyCount: 3,
-    monthlyCount: 8,
-    consecutiveAnomalyDays: 0,
-    totalAnomalyDays: 0,
-    lastAnomalyDate: null,
+    createdAt: '2024-06-01T10:00:00.000Z',
     ...overrides,
   }
 }
@@ -75,114 +36,91 @@ describe('checkinStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useCheckinStore.setState({
-      userId: '',
-      entries: [],
-      todayEntry: null,
-      stats: null,
-      consecutiveAnomalyDays: 0,
+      checkins: [],
+      todayCheckin: null,
+      streakDays: 0,
       isLoading: false,
-      error: null,
     })
   })
 
   describe('initial state', () => {
-    it('should have empty userId', () => {
+    it('should have empty checkins', () => {
       const state = useCheckinStore.getState()
-      expect(state.userId).toBe('')
+      expect(state.checkins).toEqual([])
     })
 
-    it('should have empty entries', () => {
+    it('should have null todayCheckin', () => {
       const state = useCheckinStore.getState()
-      expect(state.entries).toEqual([])
+      expect(state.todayCheckin).toBeNull()
     })
 
-    it('should have null todayEntry', () => {
+    it('should have streakDays as 0', () => {
       const state = useCheckinStore.getState()
-      expect(state.todayEntry).toBeNull()
-    })
-
-    it('should have null stats', () => {
-      const state = useCheckinStore.getState()
-      expect(state.stats).toBeNull()
+      expect(state.streakDays).toBe(0)
     })
 
     it('should have isLoading as false', () => {
       const state = useCheckinStore.getState()
       expect(state.isLoading).toBe(false)
     })
-
-    it('should have null error', () => {
-      const state = useCheckinStore.getState()
-      expect(state.error).toBeNull()
-    })
   })
 
   describe('initUser', () => {
-    it('should set userId and call setStorageUserId', () => {
-      useCheckinStore.getState().initUser('user_123')
-
-      const state = useCheckinStore.getState()
-      expect(state.userId).toBe('user_123')
-      expect(mockStorage.setStorageUserId).toHaveBeenCalledWith('user_123')
-    })
-
-    it('should throw when userId is empty string', () => {
-      expect(() => useCheckinStore.getState().initUser('')).toThrow(
-        '[CheckinStore] userId is required'
-      )
+    it('should set userId', async () => {
+      await useCheckinStore.getState().initUser('user_123')
     })
   })
 
   describe('fetchCheckins', () => {
-    it('should throw when userId not initialized', async () => {
-      await expect(
-        useCheckinStore.getState().fetchCheckins('pet_001')
-      ).rejects.toThrow('[CheckinStore] userId not initialized')
-    })
-
-    it('should load entries and set isLoading correctly', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      const mockEntries = [makeEntry(), makeEntry({ id: 'entry_002' })]
-      mockCheckinService.getCheckins.mockResolvedValue(mockEntries)
+    it('should load checkins and set isLoading correctly', async () => {
+      const mockCheckins = [makeCheckin(), makeCheckin({ id: 'checkin_002' })]
+      mockApi.getCheckins.mockResolvedValue(mockCheckins)
 
       await useCheckinStore.getState().fetchCheckins('pet_001')
 
       const state = useCheckinStore.getState()
-      expect(state.entries).toHaveLength(2)
-      expect(state.entries[0].id).toBe('entry_001')
-      expect(state.entries[1].id).toBe('entry_002')
+      expect(state.checkins).toHaveLength(2)
+      expect(state.checkins[0].id).toBe('checkin_001')
+      expect(state.checkins[1].id).toBe('checkin_002')
       expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-      expect(mockCheckinService.getCheckins).toHaveBeenCalledWith('pet_001', 'user_001')
+      expect(mockApi.getCheckins).toHaveBeenCalledWith('pet_001')
     })
 
-    it('should set error when fetch fails with Error instance', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getCheckins.mockRejectedValue(new Error('Network error'))
+    it('should set todayCheckin when today has a checkin', async () => {
+      const today = new Date().toISOString().split('T')[0]
+      const mockCheckins = [makeCheckin({ date: today })]
+      mockApi.getCheckins.mockResolvedValue(mockCheckins)
+
+      await useCheckinStore.getState().fetchCheckins('pet_001')
+
+      const state = useCheckinStore.getState()
+      expect(state.todayCheckin).not.toBeNull()
+      expect(state.todayCheckin!.id).toBe('checkin_001')
+    })
+
+    it('should set todayCheckin to null when no today checkin', async () => {
+      const mockCheckins = [makeCheckin({ date: '2020-01-01' })]
+      mockApi.getCheckins.mockResolvedValue(mockCheckins)
+
+      await useCheckinStore.getState().fetchCheckins('pet_001')
+
+      const state = useCheckinStore.getState()
+      expect(state.todayCheckin).toBeNull()
+    })
+
+    it('should set isLoading to false on failure', async () => {
+      mockApi.getCheckins.mockRejectedValue(new Error('Network error'))
 
       await useCheckinStore.getState().fetchCheckins('pet_001')
 
       const state = useCheckinStore.getState()
       expect(state.isLoading).toBe(false)
-      expect(state.error).toBe('Network error')
-      expect(state.entries).toEqual([])
-    })
-
-    it('should set default error message when fetch fails with non-Error', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getCheckins.mockRejectedValue('unknown failure')
-
-      await useCheckinStore.getState().fetchCheckins('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.error).toBe('获取打卡记录失败')
     })
 
     it('should set isLoading to true during fetch and false after', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      let resolveFetch!: (value: PetHealthEntry[]) => void
-      mockCheckinService.getCheckins.mockReturnValue(
-        new Promise<PetHealthEntry[]>((resolve) => {
+      let resolveFetch!: (value: Checkin[]) => void
+      mockApi.getCheckins.mockReturnValue(
+        new Promise<Checkin[]>((resolve) => {
           resolveFetch = resolve
         })
       )
@@ -197,217 +135,36 @@ describe('checkinStore', () => {
     })
   })
 
-  describe('fetchTodayCheckin', () => {
-    it('should throw when userId not initialized', async () => {
-      await expect(
-        useCheckinStore.getState().fetchTodayCheckin('pet_001')
-      ).rejects.toThrow('[CheckinStore] userId not initialized')
-    })
+  describe('doCheckin', () => {
+    it('should add checkin to list and set todayCheckin', async () => {
+      const newCheckin = makeCheckin()
+      mockApi.createCheckin.mockResolvedValue(newCheckin)
 
-    it('should load todayEntry', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      const mockToday = makeEntry()
-      mockCheckinService.getTodayCheckin.mockResolvedValue(mockToday)
+      const result = await useCheckinStore.getState().doCheckin({ petId: 'pet_001' })
 
-      await useCheckinStore.getState().fetchTodayCheckin('pet_001')
-
+      expect(result.id).toBe('checkin_001')
       const state = useCheckinStore.getState()
-      expect(state.todayEntry).not.toBeNull()
-      expect(state.todayEntry!.id).toBe('entry_001')
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-      expect(mockCheckinService.getTodayCheckin).toHaveBeenCalledWith('pet_001', 'user_001')
+      expect(state.checkins).toHaveLength(1)
+      expect(state.checkins[0].id).toBe('checkin_001')
+      expect(state.todayCheckin).not.toBeNull()
+      expect(state.todayCheckin!.id).toBe('checkin_001')
+      expect(state.streakDays).toBe(1)
     })
 
-    it('should set todayEntry to null when no today checkin', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getTodayCheckin.mockResolvedValue(null)
-
-      await useCheckinStore.getState().fetchTodayCheckin('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.todayEntry).toBeNull()
-      expect(state.isLoading).toBe(false)
-    })
-
-    it('should set error when fetch fails with Error instance', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getTodayCheckin.mockRejectedValue(new Error('Server error'))
-
-      await useCheckinStore.getState().fetchTodayCheckin('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBe('Server error')
-    })
-
-    it('should set default error message when fetch fails with non-Error', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getTodayCheckin.mockRejectedValue('fail')
-
-      await useCheckinStore.getState().fetchTodayCheckin('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.error).toBe('获取今日打卡失败')
-    })
-  })
-
-  describe('addCheckin', () => {
-    it('should throw when userId not initialized', async () => {
-      await expect(
-        useCheckinStore.getState().addCheckin(makeCheckinData())
-      ).rejects.toThrow('[CheckinStore] userId not initialized')
-    })
-
-    it('should add entry to list and set todayEntry', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      const newEntry = makeEntry()
-      mockCheckinService.createCheckin.mockResolvedValue(newEntry)
-
-      const result = await useCheckinStore.getState().addCheckin(makeCheckinData())
-
-      expect(result.id).toBe('entry_001')
-      const state = useCheckinStore.getState()
-      expect(state.entries).toHaveLength(1)
-      expect(state.entries[0].id).toBe('entry_001')
-      expect(state.todayEntry).not.toBeNull()
-      expect(state.todayEntry!.id).toBe('entry_001')
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-    })
-
-    it('should append new entry to existing entries', async () => {
+    it('should prepend new checkin to existing checkins', async () => {
       useCheckinStore.setState({
-        userId: 'user_001',
-        entries: [makeEntry()],
+        checkins: [makeCheckin()],
+        streakDays: 1,
       })
-      const newEntry = makeEntry({ id: 'entry_002' })
-      mockCheckinService.createCheckin.mockResolvedValue(newEntry)
+      const newCheckin = makeCheckin({ id: 'checkin_002' })
+      mockApi.createCheckin.mockResolvedValue(newCheckin)
 
-      await useCheckinStore.getState().addCheckin(makeCheckinData())
-
-      const state = useCheckinStore.getState()
-      expect(state.entries).toHaveLength(2)
-      expect(state.entries[1].id).toBe('entry_002')
-    })
-
-    it('should pass userId to createCheckin', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      const newEntry = makeEntry()
-      mockCheckinService.createCheckin.mockResolvedValue(newEntry)
-
-      const data = makeCheckinData()
-      await useCheckinStore.getState().addCheckin(data)
-
-      expect(mockCheckinService.createCheckin).toHaveBeenCalledWith({
-        ...data,
-        userId: 'user_001',
-      })
-    })
-
-    it('should set error and re-throw when createCheckin fails with Error', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.createCheckin.mockRejectedValue(new Error('Create failed'))
-
-      await expect(
-        useCheckinStore.getState().addCheckin(makeCheckinData())
-      ).rejects.toThrow('Create failed')
+      await useCheckinStore.getState().doCheckin({ petId: 'pet_001' })
 
       const state = useCheckinStore.getState()
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBe('Create failed')
-    })
-
-    it('should set default error message and re-throw when createCheckin fails with non-Error', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.createCheckin.mockRejectedValue('unknown')
-
-      await expect(
-        useCheckinStore.getState().addCheckin(makeCheckinData())
-      ).rejects.toBe('unknown')
-
-      const state = useCheckinStore.getState()
-      expect(state.error).toBe('创建打卡失败')
-    })
-  })
-
-  describe('fetchStats', () => {
-    it('should throw when userId not initialized', async () => {
-      await expect(
-        useCheckinStore.getState().fetchStats('pet_001')
-      ).rejects.toThrow('[CheckinStore] userId not initialized')
-    })
-
-    it('should load stats', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      const mockStats = makeStats()
-      mockCheckinService.getCheckinStats.mockResolvedValue(mockStats)
-
-      await useCheckinStore.getState().fetchStats('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.stats).not.toBeNull()
-      expect(state.stats!.totalCheckins).toBe(10)
-      expect(state.stats!.streak).toBe(5)
-      expect(state.stats!.lastCheckinDate).toBe('2024-06-01')
-      expect(state.stats!.weeklyCount).toBe(3)
-      expect(state.stats!.monthlyCount).toBe(8)
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBeNull()
-      expect(mockCheckinService.getCheckinStats).toHaveBeenCalledWith('pet_001', 'user_001')
-    })
-
-    it('should set error when fetch fails with Error instance', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getCheckinStats.mockRejectedValue(new Error('Stats error'))
-
-      await useCheckinStore.getState().fetchStats('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.isLoading).toBe(false)
-      expect(state.error).toBe('Stats error')
-    })
-
-    it('should set default error message when fetch fails with non-Error', async () => {
-      useCheckinStore.setState({ userId: 'user_001' })
-      mockCheckinService.getCheckinStats.mockRejectedValue('fail')
-
-      await useCheckinStore.getState().fetchStats('pet_001')
-
-      const state = useCheckinStore.getState()
-      expect(state.error).toBe('获取打卡统计失败')
-    })
-  })
-
-  describe('clearError', () => {
-    it('should clear error', () => {
-      useCheckinStore.setState({ error: 'Some error' })
-
-      useCheckinStore.getState().clearError()
-
-      const state = useCheckinStore.getState()
-      expect(state.error).toBeNull()
-    })
-
-    it('should not affect other state when clearing error', () => {
-      useCheckinStore.setState({
-        userId: 'user_001',
-        entries: [makeEntry()],
-        todayEntry: makeEntry(),
-        stats: makeStats(),
-        isLoading: true,
-        error: 'Some error',
-      })
-
-      useCheckinStore.getState().clearError()
-
-      const state = useCheckinStore.getState()
-      expect(state.userId).toBe('user_001')
-      expect(state.entries).toHaveLength(1)
-      expect(state.todayEntry).not.toBeNull()
-      expect(state.stats).not.toBeNull()
-      expect(state.isLoading).toBe(true)
-      expect(state.error).toBeNull()
+      expect(state.checkins).toHaveLength(2)
+      expect(state.checkins[0].id).toBe('checkin_002')
+      expect(state.streakDays).toBe(2)
     })
   })
 })

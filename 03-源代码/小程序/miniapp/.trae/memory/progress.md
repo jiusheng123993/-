@@ -1,24 +1,24 @@
 # 星寰海小程序 - 开发进度
 
-## 当前状态: Phase 1 AI宠物管家 MVP Day 14 集成测试完成
+## 当前状态: Phase 1.5 宠物 v2.0 AI深度融合 — 核心编码完成 🎉
 
-### 最后更新: 2026-07-21
+### 最后更新: 2026-07-23
 
 ---
 
-## PRD v3.1 14天排期进度
+## PRD v4.0 14天排期（Phase 1.5 宠物 v2.0）
 
 | 天数 | 任务 | 状态 | 说明 |
 |------|------|------|------|
-| Day 1-2 | PetSafetyHandler安全拦截器 | ✅ 代码已有 | engines/petSafety/ + 测试 |
-| Day 3-4 | memory-body引擎扩展 | ✅ 代码已有 | vaccineTrackerAdapter等 |
-| Day 5-6 | 宠物档案 | ✅ 代码已有 | pages/pet-profile/ + petStore |
-| Day 7-8 | 3秒健康打卡+食物安全查询 | ✅ 代码已有 | pages/pet-checkin/ + pet-food-query/ |
-| Day 9-10 | AI症状初筛 | ✅ 代码已有 | pages/pet-symptom-check/ + symptomStore |
-| Day 11 | 疫苗驱虫日历 | ✅ 代码已有 | pages/pet-vaccine/ + VaccineCalendar组件 |
-| Day 12 | 健康趋势图+情绪底层 | ✅ 代码已有 | pages/pet-trends/ |
-| Day 13 | 会员体系+付费流程 | ✅ M7已完成 | membershipService+Store+Hook, PlanSelector, UsageCounter, member页, mine页, onboarding页, 首页重写, TabBar更新, quotaManager会员感知, PaywallPopup集成 |
-| Day 14 | 集成测试+Bug修复+提交审核 | ✅ 集成测试完成 | TS 0错误, 75文件1477测试全通过, 构建6.79s成功, console.*全部替换为logger, 死代码清理完成 |
+| Day 1 | 数据库新增6张表 + init.sql更新 | ✅ 完成 | pet_families/members/moments/milestones/lineage/names + ALTER |
+| Day 1 | 规则Guard升级 | ✅ 完成 | 8个测试全部通过，4层检测规则 |
+| Day 2-3 | AI Guard集成 | ✅ 完成 | aiProvider.ts(chat+双Guard)+chatService.ts+双守卫流程 |
+| Day 3-5 | AI对话主页 | ✅ 完成 | chat页面+TabBar重构为聊天/家庭/我的 |
+| Day 6-7 | 取名引擎 | ✅ 完成 | namingPrompts+namingService+取名页面(解读/推荐双模式) |
+| Day 8-10 | 宠物家庭 | ✅ 完成 | familyService+familyStore+家庭看板 |
+| Day 11-12 | 时光引擎 | ✅ 完成 | timelineService+时光页面 |
+| Day 13 | 家庭日历 | ⏳ 待补充 | 合并所有提醒（下一迭代） |
+| Day 14 | 集成测试+安全审查+Bug修复 | ⏳ 待执行 | TS 0错误, 测试全通过, 构建成功 |
 
 ---
 
@@ -27,9 +27,10 @@
 ### 已完成验证
 - [x] TypeScript 编译检查 (npx tsc --noEmit) — 0错误
 - [x] 单元测试运行 (npx vitest run) — 75文件1477测试全通过
-- [x] 小程序构建 (npm run build:weapp) — 6.79s成功
+- [x] 小程序构建 (npm run build:weapp) — 22.42s成功
 - [x] console.*调用清理 — 全部替换为logger
 - [x] 死代码检查 — 无debugger/@ts-ignore/空catch/TODO/FIXME
+- [x] TypeScript 全面修复（2026-07-23）— 60+错误归零
 - [ ] 真机调试测试
 - [ ] 完整用户流程走查
 

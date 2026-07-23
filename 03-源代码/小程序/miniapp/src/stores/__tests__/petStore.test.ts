@@ -110,7 +110,7 @@ describe('petStore', () => {
       mockPetService.getPets.mockResolvedValue(mockPets)
       mockPetService.getCurrentPet.mockResolvedValue(mockCurrentPet)
 
-      await usePetStore.getState().fetchPets()
+      await usePetStore.getState().fetchPets('test-user-id')
 
       const state = usePetStore.getState()
       expect(state.pets).toHaveLength(2)
@@ -125,7 +125,7 @@ describe('petStore', () => {
     it('should set error when fetch fails', async () => {
       mockPetService.getPets.mockRejectedValue(new Error('Network error'))
 
-      await usePetStore.getState().fetchPets()
+      await usePetStore.getState().fetchPets('test-user-id')
 
       const state = usePetStore.getState()
       expect(state.isLoading).toBe(false)
@@ -198,7 +198,8 @@ describe('petStore', () => {
       const state = usePetStore.getState()
       expect(state.pets).toHaveLength(1)
       expect(state.pets[0].id).toBe('pet_002')
-      expect(state.currentPet).toBeNull()
+      expect(state.currentPet).not.toBeNull()
+      expect(state.currentPet!.id).toBe('pet_002')
       expect(state.isLoading).toBe(false)
     })
 

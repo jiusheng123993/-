@@ -73,6 +73,7 @@ export async function queryFood(
     return result;
   } catch (error) {
     const filter = await getToxicFoodFilter();
+    // 传递品种信息以启用品种特殊禁忌检查
     const filterResult = filter.filter(foodName, species, breed);
 
     let result: PetFoodQuery;
@@ -87,7 +88,7 @@ export async function queryFood(
         detail: matched.description,
         dangerousCompounds: matched.dangerousCompounds,
         symptoms: matched.symptoms,
-        breedWarnings: filterResult.breedWarnings,
+        breedWarnings: [...(filterResult.breedWarnings || []), ...(filterResult.breedWarningDetails || []).map(d => d.reason)],
         firstAid: filterResult.speciesWarning,
         isMemberQuery: false,
         createdAt: new Date(),

@@ -1,9 +1,9 @@
 # 星寰海 — 技术设计文档
 
-> 版本：v3.1
-> 更新日期：2026-07-17
+> 版本：v4.0
+> 更新日期：2026-07-23
 > 状态：草案
-> 变更说明：v2.0 → v3.1 从情绪健康管理平台彻底重写为AI宠物管家架构，对齐PRD v3.1。删除急救箱/树洞/日历/情绪测试等情绪专用模块，新增宠物档案/3秒打卡/食物安全查询/AI症状初筛/疫苗驱虫日历/健康趋势图/宠物形象系统。情绪能力隐形化融入场景触发。memory-body引擎70%复用+宠物场景扩展。
+> 变更说明：v4.0 架构重构：AI对话为唯一入口层，新增Guard双守卫/取名引擎/时光引擎/家庭引擎，数据库新增6张表，职业方向推迟到Phase 3
 
 ---
 
@@ -33,19 +33,21 @@
 │                     用户端                        │
 │  ┌────────────────────────────────────────────┐  │
 │  │       微信小程序（Taro 3 + React）         │  │
-│  │  ┌──────┬──────┬──────┬──────┐             │  │
-│  │  │ 首页 │我的宠物│ 会员 │ 我的 │ Tab Bar    │  │
-│  │  └──────┴──────┴──────┴──────┘             │  │
-│  │  ┌─────────────────────────────────────┐   │  │
-│  │  │ 3秒打卡│食物查询│症状初筛│疫苗日历│  │   │  │
-│  │  │ 健康趋势│宠物档案│宠物形象│情绪底层│  │   │  │
-│  │  └─────────────────────────────────────┘   │  │
-│  └────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────┐  │
-│  │      memory-body 引擎（本地优先）          │  │
-│  │  ┌──────┬──────┬──────┬──────┬──────┐     │  │
-│  │  │存储层│生命周期│安全层│对话层│同步层│     │  │
-│  │  └──────┴──────┴──────┴──────┴──────┘     │  │
+│  │  ┌──────────────────────────────────────┐  │  │
+│  │  │  🗣️ AI对话层（唯一用户交互入口）     │  │  │
+│  │  │  ├── 意图识别 + Guard（规则+AI双守卫）│  │  │
+│  │  │  └── 分发：健康/时光/家庭/取名引擎    │  │  │
+│  │  └──────────────────────────────────────┘  │  │
+│  │  ┌──────────────────────────────────────┐  │  │
+│  │  │  引擎层                               │  │  │
+│  │  │  ├── 健康引擎（打卡/症状/疫苗/趋势）  │  │  │
+│  │  │  ├── 时光引擎（时间线/回忆/里程碑）   │  │  │
+│  │  │  ├── 家庭引擎（家庭/族谱/看板/日历）  │  │  │
+│  │  │  └── 取名引擎（解读/推荐）            │  │  │
+│  │  └──────────────────────────────────────┘  │  │
+│  │  ┌──────────────────────────────────────┐  │  │
+│  │  │  memory-body 引擎（本地优先）         │  │  │
+│  │  └──────────────────────────────────────┘  │  │
 │  └────────────────────────────────────────────┘  │
 └──────────────────────┬───────────────────────────┘
                        │ HTTPS / WebSocket
@@ -53,21 +55,15 @@
 │                     云端                          │
 │  ┌────────────────────────────────────────────┐  │
 │  │          Supabase (PostgreSQL)             │  │
-│  │  ┌──────┬──────┬──────┬──────┐             │  │
-│  │  │用户表│宠物表│打卡表│疫苗表│ ...         │  │
-│  │  └──────┴──────┴──────┴──────┘             │  │
+│  │  + new: pet_families/moments/milestones/   │  │
+│  │         lineage/names 表                   │  │
 │  └────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────┐  │
-│  │          云函数层                           │  │
-│  │  ┌──────┬──────┬──────┬──────┐             │  │
-│  │  │安全引擎│推送  │趋势  │导流  │             │  │
-│  │  └──────┴──────┴──────┴──────┘             │  │
-│  └────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────┐  │
-│  │          外部服务                           │  │
-│  │  ┌──────┬──────┬──────┐                     │  │
-│  │  │Seedream│微信API│知识库CDN│               │  │
-│  │  └──────┴──────┴──────┘                     │  │
+│  │          外部AI服务                         │  │
+│  │  ├── DeepSeek/GLM-4（宠物对话）            │  │
+│  │  ├── GLM-4v（照片描述）                    │  │
+│  │  ├── 分类模型（Guard语义检测）              │  │
+│  │  └── Seedream（宠物形象）                   │  │
 │  └────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────┘
 ```
@@ -202,6 +198,79 @@ pet_food_queries (
 )
 
 CREATE INDEX idx_food_queries_user ON pet_food_queries(user_id, created_at DESC);
+```
+
+### 3.2b 宠物家庭（新增）
+
+```sql
+pet_families (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  name       TEXT NOT NULL
+  avatar_url TEXT
+  created_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+pet_family_members (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  family_id  UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE
+  pet_id     UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE
+  role       TEXT
+  joined_at  TIMESTAMPTZ DEFAULT NOW()
+  UNIQUE(family_id, pet_id)
+);
+
+pet_lineage (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  parent_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE
+  child_id     UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE
+  litter_date  DATE
+  UNIQUE(parent_id, child_id)
+);
+
+### 3.2c 时光引擎（新增）
+
+```sql
+pet_moments (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  family_id   UUID REFERENCES pet_families(id)
+  pet_id      UUID REFERENCES pet_profiles(id)
+  type        TEXT NOT NULL
+  content     JSONB NOT NULL
+  photos      TEXT[]
+  ai_summary  TEXT
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_moments_family ON pet_moments(family_id, created_at DESC);
+CREATE INDEX idx_moments_pet ON pet_moments(pet_id, created_at DESC);
+CREATE INDEX idx_moments_user ON pet_moments(user_id, created_at DESC);
+
+pet_milestones (
+  id        UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  pet_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE
+  title     TEXT NOT NULL
+  date      DATE NOT NULL
+  type      TEXT NOT NULL
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX idx_milestones_pet ON pet_milestones(pet_id, date DESC);
+
+### 3.2d 取名引擎（新增）
+
+```sql
+pet_names (
+  id        UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  pet_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE
+  name      TEXT NOT NULL
+  chosen    BOOLEAN DEFAULT FALSE
+  analysis  JSONB
+  created_at TIMESTAMPTZ DEFAULT NOW()
+  UNIQUE(pet_id, name)
+);
 ```
 
 ### 3.3 情绪底层（隐形化）
@@ -611,6 +680,34 @@ function getStatusMapping(entry: PetHealthEntry): PetExpression {
 
 Seedream API调用：用户上传照片→生成3种风格卡通→用户选1种。SVG表情叠加层：6种基础表情（开心/关注/担心/焦急/打瞌睡/骄傲）+3种特殊表情（兴奋/悲伤/庆祝），0 AI成本纯前端。状态映射：健康打卡结果→自动切换表情。
 
+### 5.6 AI Guard（P0 - 双层守卫）
+
+**规则 Guard（0成本）**：
+- P0关键词阻断：毒品/自杀/虐待动物
+- 宠物安全规则：500+有毒物质匹配
+- 隐私泄露：手机号/身份证正则
+- 输出清洗：<100字符限制
+
+**AI Guard（~0.0005元/次）**：
+- 输入前：分类模型判断有害意图（0-10分）
+- 输出后：检查AI回答是否包含不安全医疗建议
+- 情绪检测：用户是否处于危机状态
+
+**危机响应**：极危→阻断AI+危机弹窗+热线；中等→不阻断+温暖验证
+
+### 5.7 取名引擎
+
+**方式A（用户有想法）**：输入名字→调用AI模型→从五行/星象/诗词/典故分析
+**方式B（用户没想法）**：提供品种+出生日期+季节→调用AI模型→推荐3-5个名字
+
+**数据源**：五行八卦、二十八星宿、古诗词/楚辞/诗经、山川地名、文化典故
+
+### 5.8 时光引擎
+
+**时间线统一存储**：所有回忆事件存入 pet_moments 表
+**与健康数据隔离**：时间线只包含用户主动发布的内容，不混入打卡数据
+**AI辅助**：照片上传→AI自动生成描述文案；旧时光→AI智能选择+避免伤心回忆
+
 ---
 
 ## 六、接口设计
@@ -863,6 +960,12 @@ export default {
     'pages/mine/index',
     'pages/login/index',
     'pages/onboarding/index',
+    'pagesPet/chat/index',
+    'pagesPet/timeline/index',
+    'pagesPet/family/index',
+    'pagesPet/family/tree',
+    'pagesPet/family/calendar',
+    'pagesPet/naming/index',
   ],
   tabBar: {
     list: [
@@ -998,6 +1101,20 @@ interface BreedEntry {
 
 保守策略：宁可误报不可漏报。红色预警弹窗展示≥3秒后按钮才可点击，防止误触快速关闭。
 
+### 9.1b AI Guard 双守卫（P0新增）
+
+| 守卫层 | 检测范围 | 动作 | 成本 |
+|--------|---------|------|------|
+| 规则Guard | P0关键词、有毒食物500+、隐私正则 | 阻断+弹窗 | 0元 |
+| AI Guard | 有害意图、不安全医疗建议、情绪危机 | 阻断/重新生成/安全干预 | ~0.0005元/次 |
+
+**AI对话全流程安全**：
+1. 用户输入 → 规则Guard快速筛查 → 通过
+2. → AI Guard语义检测 → 通过
+3. → AI宠物对话生成回答
+4. → AI Guard输出安全过滤 → 安全
+5. → 返回用户
+
 ### 9.2 数据隐私
 
 | 数据类型 | 隐私级别 | 存储方式 |
@@ -1032,26 +1149,22 @@ interface BreedEntry {
 ### 10.2 分包策略
 
 ```
-主包（<2MB）
-├── 首页
-├── 3秒打卡
-├── 核心组件
+主包（<700KB）：
+├── 入口页（宠物/职业双入口）
+├── 登录/Auth
+├── 公共组件+工具+Store
 └── memory-body核心
 
-分包pet（<2MB）
-├── 宠物档案
-├── 添加宠物
-├── AI症状初筛
-└── 食物安全查询
+分包pagesPet（<2MB）：
+├── AI对话主页（NEW）
+├── 时间线视图（NEW）
+├── 家族图谱（NEW）
+├── 家庭看板/日历（NEW）
+├── 取名页面（NEW）
+├── 宠物档案/打卡/症状/食物/疫苗/趋势
+└── 宠物形象引擎
 
-分包data（<2MB）
-├── 疫苗驱虫日历
-├── 健康趋势图
-└── 会员页
-
-分包emotion（<1MB）
-├── 情绪底层
-└── 悲伤陪伴
+分包pagesCareer（Phase 3，暂不开发）
 ```
 
 知识图谱CDN化：symptoms.json、foodSafety.json、breeds.json等大文件放CDN，按需加载，不占包体积。

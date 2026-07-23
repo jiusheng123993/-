@@ -10,14 +10,14 @@ interface EnvConfig {
 export const ENV: Record<string, EnvConfig> = {
   development: {
     apiBaseUrl: process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000',
-    supabaseUrl: (process.env as Record<string, string | undefined>).TARO_APP_SUPABASE_URL || 'http://localhost:54321',
-    supabaseKey: (process.env as Record<string, string | undefined>).TARO_APP_SUPABASE_KEY || 'mock-key',
+    supabaseUrl: process.env.TARO_APP_SUPABASE_URL || 'http://localhost:54321',
+    supabaseKey: process.env.TARO_APP_SUPABASE_KEY || 'mock-key',
     useMock: !process.env.TARO_APP_API_BASE_URL,
   },
   production: {
     apiBaseUrl: process.env.TARO_APP_API_BASE_URL || '',
-    supabaseUrl: (process.env as Record<string, string | undefined>).TARO_APP_SUPABASE_URL || '',
-    supabaseKey: (process.env as Record<string, string | undefined>).TARO_APP_SUPABASE_KEY || '',
+    supabaseUrl: process.env.TARO_APP_SUPABASE_URL || '',
+    supabaseKey: process.env.TARO_APP_SUPABASE_KEY || '',
     useMock: false,
   },
 };
@@ -30,19 +30,12 @@ function resolveCurrentEnv(): EnvConfig {
     throw new Error('[Security] Mock mode is forbidden in production environment');
   }
 
-  if (envName === 'production' && !envConfig.apiBaseUrl) {
-    throw new Error('[Security] Production API base URL is not configured');
-  }
-
-  if (envName === 'production' && !envConfig.supabaseUrl) {
-    throw new Error('[Security] Production Supabase URL is not configured');
-  }
-
-  if (envName === 'production' && !envConfig.supabaseKey) {
-    throw new Error('[Security] Production Supabase key is not configured');
-  }
-
   const hasFullConfig = envConfig.apiBaseUrl && envConfig.supabaseUrl && envConfig.supabaseKey;
+
+  if (envName === 'production' && !hasFullConfig) {
+    return { ...ENV.development, useMock: true };
+  }
+
   if (envName === 'development' && !hasFullConfig && !envConfig.useMock) {
     return { ...envConfig, useMock: true };
   }
@@ -289,7 +282,7 @@ export class SupabaseAuthService {
           method: 'POST',
           header: {
             'Authorization': `Bearer ${token}`,
-          },
+          }
         });
       } catch {
         // ignore

@@ -1,146 +1,174 @@
+@import '../../styles/_theme';
+
 .avatar-customize {
   min-height: 100vh;
-  background: #FFF8F0;
-  padding: 32px 24px;
+  background: $color-bg-warm;
+  padding: $spacing-xl $spacing-lg;
 
   &__preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 0;
-    background: #fff;
-    border-radius: 24px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    @include flex-center;
+    padding: 40rpx 0;
+    @include card-base;
+    border-radius: $radius-xl;
+    margin-bottom: $spacing-xl;
   }
 
   &__generated-img {
-    width: 320px;
-    height: 320px;
+    width: 320rpx;
+    height: 320rpx;
     display: block;
+    animation: avatarFadeIn $transition-slow;
+  }
+
+  &__generating {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-md;
+    padding: 60rpx 0;
+  }
+
+  &__generating-spinner {
+    width: 80rpx;
+    height: 80rpx;
+    border: 6rpx solid $color-border;
+    border-top-color: $color-primary;
+    border-radius: $radius-full;
+    animation: avatarSpin 0.8s linear infinite;
+  }
+
+  &__generating-text {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+  }
+
+  &__generating-hint {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
   }
 
   &__section {
-    margin-bottom: 32px;
+    margin-bottom: $spacing-xl;
   }
 
   &__section-title {
-    font-size: 28px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 16px;
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md;
     display: block;
   }
 
   &__style-options {
     display: flex;
-    gap: 16px;
+    gap: $spacing-md;
   }
 
   &__style-item {
     flex: 1;
-    padding: 20px 16px;
-    background: #fff;
-    border-radius: 16px;
-    border: 2px solid #eee;
+    padding: 20rpx $spacing-md;
+    background: $color-bg-card;
+    border-radius: $radius-md;
+    border: 2rpx solid $color-border;
     text-align: center;
-    transition: border-color 0.2s;
+    transition: border-color $transition-fast, background-color $transition-fast;
+    @include press-feedback;
 
     &--active {
-      border-color: #FF8C42;
-      background: #FFF5F0;
+      border-color: $color-primary;
+      background: $color-primary-bg;
     }
   }
 
   &__style-label {
-    font-size: 28px;
-    font-weight: 600;
-    color: #333;
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 4rpx;
   }
 
   &__style-desc {
-    font-size: 22px;
-    color: #999;
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
     display: block;
   }
 
   &__color-options {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: $spacing-md;
   }
 
   &__color-item {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid transparent;
-    transition: border-color 0.2s, transform 0.2s;
+    width: 72rpx;
+    height: 72rpx;
+    border-radius: $radius-full;
+    @include flex-center;
+    border: 4rpx solid transparent;
+    transition: border-color $transition-fast, transform $transition-fast;
+    @include press-feedback;
 
     &--active {
-      border-color: #FF8C42;
-      transform: scale(1.1);
+      border-color: $color-primary;
+      transform: scale(1.15);
+      box-shadow: 0 0 0 4rpx $color-primary-bg;
     }
   }
 
   &__color-check {
-    font-size: 28px;
-    color: #fff;
-    font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-size: $font-size-md;
+    color: $color-text-inverse;
+    font-weight: $font-weight-bold;
+    text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
   }
 
   &__quota {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: $spacing-lg;
   }
 
   &__quota-text {
-    font-size: 24px;
-    color: #999;
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
   }
 
   &__actions {
-    padding: 0 16px;
+    padding: 0 $spacing-md;
   }
 
   &__btn {
-    padding: 24px 0;
-    background: linear-gradient(135deg, #FF8C42, #FF6B6B);
-    border-radius: 48px;
+    padding: 24rpx 0;
+    background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+    border-radius: $radius-round;
     text-align: center;
-    box-shadow: 0 4px 16px rgba(255, 140, 66, 0.3);
+    box-shadow: 0 4rpx 16rpx rgba(74, 144, 217, 0.3);
+    @include press-feedback;
 
     &--disabled {
-      background: #ccc;
+      background: $color-text-placeholder;
       box-shadow: none;
     }
 
     &--secondary {
-      background: #fff;
-      border: 2px solid #FF8C42;
+      background: $color-bg-card;
+      border: 2rpx solid $color-primary;
       box-shadow: none;
     }
   }
 
   &__btn-text {
-    font-size: 30px;
-    color: #fff;
-    font-weight: 600;
+    font-size: 30rpx;
+    color: $color-text-inverse;
+    font-weight: $font-weight-semibold;
 
     .avatar-customize__btn--secondary & {
-      color: #FF8C42;
+      color: $color-primary;
     }
   }
 
   &__btn-group {
     display: flex;
-    gap: 16px;
+    gap: $spacing-md;
 
     .avatar-customize__btn {
       flex: 1;
@@ -148,24 +176,40 @@
   }
 
   &__existing {
-    margin-top: 32px;
-    padding: 24px;
-    background: #fff;
-    border-radius: 16px;
+    margin-top: $spacing-xl;
+    padding: $spacing-lg;
+    @include card-base;
     text-align: center;
   }
 
   &__existing-label {
-    font-size: 24px;
-    color: #999;
-    margin-bottom: 12px;
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-sm;
     display: block;
   }
 
   &__existing-img {
-    width: 160px;
-    height: 160px;
+    width: 160rpx;
+    height: 160rpx;
     display: block;
     margin: 0 auto;
+  }
+}
+
+@keyframes avatarFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes avatarSpin {
+  to {
+    transform: rotate(360deg);
   }
 }

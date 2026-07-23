@@ -1,7 +1,7 @@
 // 星寰海 v2.0 - 认证服务
 import Taro from '@tarojs/taro';
 import { supabaseAuth } from '../config/supabase';
-import type { UserProfile } from '../stores/authStore';
+import type { User as UserProfile } from '../types';
 
 /** 登录结果 */
 export interface LoginResult {
@@ -27,10 +27,17 @@ export async function loginWithCode(): Promise<LoginResult> {
     const result = await supabaseAuth.loginWithCode(code);
 
     if (result.success && result.token && result.user) {
+      const raw = result.user;
+      const user: UserProfile = {
+        id: raw.id,
+        nickname: raw.nickname ?? '',
+        avatar: raw.avatarUrl ?? '',
+        createdAt: new Date().toISOString(),
+      };
       return {
         success: true,
         token: result.token,
-        user: result.user,
+        user,
       };
     }
 
@@ -51,7 +58,14 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     const result = await supabaseAuth.getUserProfile(userId);
 
     if (result.success && result.user) {
-      return result.user;
+      const raw = result.user;
+      const user: UserProfile = {
+        id: raw.id,
+        nickname: raw.nickname ?? '',
+        avatar: raw.avatarUrl ?? '',
+        createdAt: new Date().toISOString(),
+      };
+      return user;
     }
 
     return null;

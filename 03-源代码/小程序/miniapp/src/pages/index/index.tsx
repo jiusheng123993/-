@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import { useCheckinStore } from '../../stores/checkinStore'
 import { useMembershipStore } from '../../stores/membershipStore'
+import PageLoading from '../../components/PageLoading'
 import './index.scss'
 
 const QUICK_ACTIONS = [
@@ -12,8 +13,10 @@ const QUICK_ACTIONS = [
   { icon: '🤒', label: '症状初筛', url: '/pagesPet/symptom-check/index', bg: '#FFE8E8' },
   { icon: '💉', label: '疫苗日历', url: '/pagesPet/vaccine/index', bg: '#E8F0FE' },
   { icon: '📊', label: '健康趋势', url: '/pagesPet/trends/index', bg: '#E8F8E8' },
-  { icon: '🏥', label: '找医院', url: '/pagesPet/checkin/index', bg: '#F0E8F8' },
+  { icon: '🎨', label: '形象定制', url: '/pagesPet/avatar-customize/index', bg: '#FDE8F0' },
+  { icon: '🏥', label: '找医院', url: '/pagesPet/hospital/index', bg: '#F0E8F8' },
   { icon: '📋', label: '健康报告', url: '/pagesPet/trends/index', bg: '#FFF8E8' },
+  { icon: '💼', label: '职业顾问', url: '/pagesCareer/profile/index', bg: '#E8EEFF' },
 ]
 
 const TIPS = [
@@ -29,7 +32,7 @@ export default function Index() {
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isInitialized = useAuthStore(state => state.isInitialized)
-  const { pets, currentPet, fetchPets, setCurrentPet } = usePetStore()
+  const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const { todayCheckin, streakDays, fetchCheckins } = useCheckinStore()
   const membership = useMembershipStore(state => state.membership)
   const [pageReady, setPageReady] = useState(false)
@@ -46,7 +49,7 @@ export default function Index() {
       try {
         await fetchPets(user.id)
       } catch (err) {
-        console.error('Failed to load pets:', err)
+        // 静默处理错误，页面有错误状态展示
       }
       setPageReady(true)
     }
@@ -70,7 +73,7 @@ export default function Index() {
   }
 
   if (!pageReady) {
-    return <View className='home-loading'>加载中...</View>
+    return <PageLoading />
   }
 
   return (
@@ -89,8 +92,8 @@ export default function Index() {
             <View className='home-pet-info'>
               <Text className='home-pet-name'>{currentPet?.name || '未选择'}</Text>
               <Text className='home-pet-detail'>
-                {currentPet?.breed || ''}{currentPet?.breed && currentPet?.birthday ? ' · ' : ''}
-                {currentPet?.birthday ? calcAge(currentPet.birthday) : ''}
+                {currentPet?.breed || ''}{currentPet?.breed && currentPet?.birthDate ? ' · ' : ''}
+                {currentPet?.birthDate ? calcAge(currentPet.birthDate) : ''}
                 {currentPet?.weight ? ` · ${currentPet.weight}kg` : ''}
               </Text>
             </View>
@@ -105,7 +108,7 @@ export default function Index() {
             <View
               key={pet.id}
               className={`home-pet-dropdown-item ${currentPet?.id === pet.id ? 'home-pet-dropdown-item-active' : ''}`}
-              onClick={() => { setCurrentPet(pet); setShowPetList(false) }}
+              onClick={() => { switchPet(pet.id); setShowPetList(false) }}
             >
               <Text>{pet.species === 'cat' ? '🐱' : '🐶'} {pet.name}</Text>
               {currentPet?.id === pet.id && <Text className='home-pet-check'>✓</Text>}
@@ -196,7 +199,7 @@ export default function Index() {
       )}
 
       <View className='home-member-section'>
-        <View className='home-member-banner' onClick={() => navigateTo('/pages/member/index')}>
+        <View className='home-member-banner' onClick={() => Taro.switchTab({ url: '/pages/member/index' })}>
           <View>
             <Text className='home-member-level'>
               {membership?.level === 'free' ? '免费用户' : `${membership?.level}会员`}
@@ -216,8 +219,8 @@ export default function Index() {
   )
 }
 
-function calcAge(birthday: string): string {
-  const birth = new Date(birthday)
+function calcAge(birthDate: string): string {
+  const birth = new Date(birthDate)
   const now = new Date()
   const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
   if (months < 12) return `${months}个月`

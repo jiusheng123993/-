@@ -1,43 +1,34 @@
+@import '../../styles/_theme';
+
 .mine-page {
   min-height: 100vh;
-  background: #F5F7FA;
-}
-
-.mine-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  color: #999;
-  font-size: 28px;
+  background: $color-bg-page;
 }
 
 .mine-header {
-  padding: 32px;
-  background: linear-gradient(180deg, #E8F0FE 0%, #F5F7FA 100%);
+  padding: $spacing-xl;
+  background: linear-gradient(180deg, $color-primary-bg 0%, $color-bg-page 100%);
 }
 
 .mine-user-card {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 20rpx;
 }
 
 .mine-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: #4A90D9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+  @include flex-center;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-full;
+  background: $color-primary;
+  box-shadow: 0 4rpx 12rpx rgba($color-primary, 0.3);
 }
 
 .mine-avatar-text {
-  font-size: 48px;
-  color: #FFF;
-  font-weight: 600;
+  font-size: 48rpx;
+  color: $color-text-inverse;
+  font-weight: $font-weight-bold;
 }
 
 .mine-user-info {
@@ -47,46 +38,47 @@
 .mine-user-name-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
 }
 
 .mine-user-name {
-  font-size: 36px;
-  font-weight: 600;
-  color: #1A1A1A;
+  font-size: 36rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
 }
 
 .mine-vip-badge {
-  padding: 4px 12px;
+  padding: 4rpx 12rpx;
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  border-radius: 8px;
-  font-size: 20px;
-  color: #FFF;
-  font-weight: 600;
+  border-radius: $radius-xs;
+  font-size: 20rpx;
+  color: $color-text-inverse;
+  font-weight: $font-weight-bold;
 }
 
 .mine-user-desc {
-  font-size: 26px;
-  color: #999;
+  font-size: 26rpx;
+  color: $color-text-hint;
 }
 
 .mine-edit-btn {
-  padding: 10px 24px;
-  background: #FFF;
-  border-radius: 20px;
-  font-size: 26px;
-  color: #4A90D9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 10rpx 24rpx;
+  background: $color-bg-card;
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  color: $color-primary;
+  box-shadow: $shadow-xs;
+  @include press-feedback;
 }
 
 .mine-stats {
   display: flex;
-  margin: 16px 32px;
-  padding: 24px;
-  background: #FFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin: $spacing-md $spacing-xl;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-xs;
 }
 
 .mine-stat-item {
@@ -94,72 +86,74 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: $spacing-xs;
 }
 
 .mine-stat-num {
-  font-size: 36px;
-  font-weight: 700;
-  color: #1A1A1A;
+  font-size: 36rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
 }
 
 .mine-stat-label {
-  font-size: 24px;
-  color: #999;
+  font-size: $font-size-sm;
+  color: $color-text-hint;
 }
 
 .mine-vip-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 32px 16px;
-  padding: 24px;
+  margin: 0 $spacing-xl $spacing-md;
+  padding: $spacing-lg;
   background: linear-gradient(135deg, #FFF8E8 0%, #FFF0D0 100%);
-  border-radius: 16px;
+  border-radius: $radius-md;
+  @include press-feedback;
 }
 
 .mine-vip-banner-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: $spacing-md;
 }
 
 .mine-vip-banner-icon {
-  font-size: 40px;
+  font-size: 40rpx;
 }
 
 .mine-vip-banner-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #333;
+  font-size: 28rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
   display: block;
 }
 
 .mine-vip-banner-desc {
-  font-size: 24px;
-  color: #999;
-  margin-top: 4px;
+  font-size: $font-size-sm;
+  color: $color-text-hint;
+  margin-top: 4rpx;
   display: block;
 }
 
 .mine-vip-banner-arrow {
-  font-size: 36px;
-  color: #CCC;
+  font-size: 36rpx;
+  color: $color-text-tertiary;
 }
 
 .mine-menu-group {
-  margin: 0 32px 16px;
-  background: #FFF;
-  border-radius: 16px;
+  margin: 0 $spacing-xl $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-md;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: $shadow-xs;
 }
 
 .mine-menu-item {
   display: flex;
   align-items: center;
-  padding: 28px 24px;
-  border-bottom: 1px solid #F5F5F5;
+  padding: 28rpx $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+  @include press-feedback;
 }
 
 .mine-menu-item:last-child {
@@ -167,36 +161,37 @@
 }
 
 .mine-menu-icon {
-  font-size: 32px;
-  margin-right: 16px;
+  font-size: 32rpx;
+  margin-right: $spacing-md;
 }
 
 .mine-menu-label {
   flex: 1;
-  font-size: 28px;
-  color: #333;
+  font-size: 28rpx;
+  color: $color-text-primary;
 }
 
 .mine-menu-arrow {
-  font-size: 32px;
-  color: #CCC;
+  font-size: 32rpx;
+  color: $color-text-tertiary;
 }
 
 .mine-section {
-  margin: 16px 32px;
+  margin: $spacing-md $spacing-xl;
 }
 
 .mine-logout-btn {
-  height: 88px;
-  line-height: 88px;
+  height: 88rpx;
+  line-height: 88rpx;
   text-align: center;
-  background: #FFF;
-  border-radius: 16px;
-  font-size: 28px;
-  color: #F5222D;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  font-size: 28rpx;
+  color: $color-danger;
+  box-shadow: $shadow-xs;
+  @include press-feedback;
 }
 
 .mine-bottom-safe {
-  height: 40px;
+  height: 40rpx;
 }

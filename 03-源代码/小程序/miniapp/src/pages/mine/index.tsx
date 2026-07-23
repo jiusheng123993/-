@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import { useMembershipStore } from '../../stores/membershipStore'
+import PageLoading from '../../components/PageLoading'
 import './index.scss'
 
 const MENU_ITEMS = [
@@ -13,6 +14,7 @@ const MENU_ITEMS = [
     { icon: '⭐', label: '我的收藏', url: '' },
   ],
   [
+    { icon: '💼', label: '职业顾问', url: '/pagesCareer/profile/index' },
     { icon: '📔', label: '成长日记', url: '/pagesPet/diary/index' },
     { icon: '📊', label: '健康报告', url: '/pagesPet/trends/index' },
     { icon: '🔔', label: '提醒设置', url: '/pagesUser/settings/index' },
@@ -43,7 +45,7 @@ export default function Mine() {
       try {
         await fetchPets(user.id)
       } catch (err) {
-        console.error('Failed to load pets:', err)
+        // 静默处理错误，页面有错误状态展示
       }
       setPageReady(true)
     }
@@ -72,7 +74,7 @@ export default function Mine() {
   }
 
   if (!pageReady) {
-    return <View className='mine-loading'>加载中...</View>
+    return <PageLoading />
   }
 
   const isVip = membership?.level !== 'free'
@@ -123,7 +125,7 @@ export default function Mine() {
       </View>
 
       {!isVip && (
-        <View className='mine-vip-banner' onClick={() => navigateTo('/pages/member/index')}>
+        <View className='mine-vip-banner' onClick={() => Taro.switchTab({ url: '/pages/member/index' })}>
           <View className='mine-vip-banner-left'>
             <Text className='mine-vip-banner-icon'>👑</Text>
             <View>

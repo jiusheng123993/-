@@ -1,5 +1,5 @@
 export default definePageConfig({
-  navigationBarTitleText: '会员',
-  navigationBarBackgroundColor: '#FF8C42',
-  navigationBarTextStyle: 'white',
+  navigationBarTitleText: '会员中心',
+  navigationBarBackgroundColor: '#F8F4E9',
+  navigationBarTextStyle: 'black',
 })

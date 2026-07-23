@@ -304,3 +304,92 @@
   color: #D48806;
   line-height: 1.5;
 }
+
+/* 品种特殊禁忌样式 */
+.pet-food-query__result-section--breed {
+  background: #FFF5F0;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-top: 20rpx;
+}
+
+.pet-food-query__breed-warning {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+  border-left: 6rpx solid #FF8C42;
+}
+
+.pet-food-query__breed-warning:last-child {
+  margin-bottom: 0;
+}
+
+.pet-food-query__breed-warning-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.pet-food-query__breed-warning-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2C2C2C;
+}
+
+.pet-food-query__breed-warning-level {
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  color: #FFFFFF;
+}
+
+.pet-food-query__breed-warning-level--toxic {
+  background: #F44336;
+}
+
+.pet-food-query__breed-warning-level--dangerous {
+  background: #FF9800;
+}
+
+.pet-food-query__breed-warning-level--caution {
+  background: #FFC107;
+  color: #5D4037;
+}
+
+.pet-food-query__breed-warning-level--info {
+  background: #2196F3;
+}
+
+.pet-food-query__breed-warning-reason {
+  display: block;
+  font-size: 26rpx;
+  color: #4A4A4A;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+
+.pet-food-query__breed-warning-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  background: #F6FFED;
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
+
+.pet-food-query__breed-warning-recommendation-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #389E0D;
+  flex-shrink: 0;
+}
+
+.pet-food-query__breed-warning-recommendation-text {
+  font-size: 24rpx;
+  color: #389E0D;
+  line-height: 1.5;
+  flex: 1;
+}

@@ -113,8 +113,7 @@ export class SeedreamAdapter {
         header: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        timeout: 30000,
+        }
       })
 
       if (res.statusCode === 200) {

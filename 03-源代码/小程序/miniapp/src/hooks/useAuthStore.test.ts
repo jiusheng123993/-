@@ -58,12 +58,10 @@ describe('useAuthStore', () => {
     vi.clearAllMocks()
     useAuthStore.setState({
       token: null,
-      refreshTokenValue: null,
       user: null,
       isAuthenticated: false,
-      loading: false,
-      error: null,
-      accountDeletionStatus: null,
+      isLoading: false,
+      isInitialized: false,
     })
   })
 
@@ -72,8 +70,7 @@ describe('useAuthStore', () => {
     expect(state.token).toBeNull()
     expect(state.user).toBeNull()
     expect(state.isAuthenticated).toBe(false)
-    expect(state.loading).toBe(false)
-    expect(state.error).toBeNull()
+    expect(state.isLoading).toBe(false)
   })
 
   it('login 成功时更新用户状态', async () => {
@@ -81,7 +78,8 @@ describe('useAuthStore', () => {
       id: 'user1',
       openid: 'openid1',
       nickname: '测试用户',
-      avatarUrl: 'https://example.com/avatar.png',
+      avatar: 'https://example.com/avatar.png',
+      createdAt: '2026-07-20T00:00:00Z',
     }
     mockLoginWithCode.mockResolvedValue({
       success: true,
@@ -90,15 +88,13 @@ describe('useAuthStore', () => {
       user: mockUser,
     })
 
-    const loginResult = await useAuthStore.getState().login('code123')
+    await useAuthStore.getState().login()
 
-    expect(loginResult.success).toBe(true)
     const state = useAuthStore.getState()
     expect(state.user).toEqual(mockUser)
     expect(state.token).toBe('mock_token')
     expect(state.isAuthenticated).toBe(true)
-    expect(state.loading).toBe(false)
-    expect(state.error).toBeNull()
+    expect(state.isLoading).toBe(false)
   })
 
   it('logout 清除用户状态', async () => {
@@ -106,14 +102,14 @@ describe('useAuthStore', () => {
       id: 'user1',
       openid: 'openid1',
       nickname: '测试用户',
+      avatar: 'https://example.com/avatar.png',
+      createdAt: '2026-07-20T00:00:00Z',
     }
     useAuthStore.setState({
       token: 'mock_token',
-      refreshTokenValue: 'mock_refresh_token',
       user: mockUser,
       isAuthenticated: true,
-      loading: false,
-      error: null,
+      isLoading: false,
     })
 
     await useAuthStore.getState().logout()
@@ -122,7 +118,7 @@ describe('useAuthStore', () => {
     expect(state.token).toBeNull()
     expect(state.user).toBeNull()
     expect(state.isAuthenticated).toBe(false)
-    expect(state.loading).toBe(false)
+    expect(state.isLoading).toBe(false)
   })
 
   it('getUserInfo 返回用户信息', async () => {
@@ -130,7 +126,8 @@ describe('useAuthStore', () => {
       id: 'user1',
       openid: 'openid1',
       nickname: '测试用户',
-      avatarUrl: 'https://example.com/avatar.png',
+      avatar: 'https://example.com/avatar.png',
+      createdAt: '2026-07-20T00:00:00Z',
     }
     mockLoginWithCode.mockResolvedValue({
       success: true,
@@ -139,7 +136,7 @@ describe('useAuthStore', () => {
       user: mockUser,
     })
 
-    await useAuthStore.getState().login('code123')
+    await useAuthStore.getState().login()
 
     const userInfo = useAuthStore.getState().user
     expect(userInfo).toEqual(mockUser)
