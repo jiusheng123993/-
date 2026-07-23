@@ -1,0 +1,79 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/pet-profile/index",
+    "pages/member/index",
+    "pages/mine/index",
+    "pages/login/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#0F1724",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "星寰海",
+    "backgroundColor": "#0F1724",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8899AA",
+    "selectedColor": "#E8A838",
+    "backgroundColor": "#1A2332",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pagesPet/chat/index",
+        "text": "聊天",
+        "iconPath": "assets/icons/chat.png",
+        "selectedIconPath": "assets/icons/chat-active.png"
+      },
+      {
+        "pagePath": "pagesPet/family/dashboard/index",
+        "text": "家庭",
+        "iconPath": "assets/icons/family.png",
+        "selectedIconPath": "assets/icons/family-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "assets/icons/mine.png",
+        "selectedIconPath": "assets/icons/mine-active.png"
+      }
+    ]
+  },
+  "subPackages": [
+    {
+      "root": "pagesPet",
+      "pages": [
+        "chat/index",
+        "add/index",
+        "edit/index",
+        "breed/index",
+        "breed-detail/index",
+        "checkin/index",
+        "diary/index",
+        "food-query/index",
+        "symptom-check/index",
+        "trends/index",
+        "vaccine/index",
+        "avatar-customize/index",
+        "hospital/index",
+        "chronic-tracking/index",
+        "feeding-advice/index",
+        "naming/index",
+        "family/dashboard/index",
+        "family/calendar/index",
+        "timeline/index"
+      ]
+    },
+    {
+      "root": "pagesUser",
+      "pages": [
+        "profile/index",
+        "settings/index",
+        "onboarding/index",
+        "agreement/index",
+        "invite/index"
+      ]
+    }
+  ],
+  "__usePrivacyCheck__": true
+}
