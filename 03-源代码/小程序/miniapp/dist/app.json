@@ -1,9 +1,11 @@
 {
   "pages": [
+    "pagesPet/chat/index",
+    "pagesPet/family/dashboard/index",
+    "pages/mine/index",
     "pages/index/index",
     "pages/pet-profile/index",
     "pages/member/index",
-    "pages/mine/index",
     "pages/login/index"
   ],
   "window": {
@@ -43,7 +45,6 @@
     {
       "root": "pagesPet",
       "pages": [
-        "chat/index",
         "add/index",
         "edit/index",
         "breed/index",
@@ -59,7 +60,6 @@
         "chronic-tracking/index",
         "feeding-advice/index",
         "naming/index",
-        "family/dashboard/index",
         "family/calendar/index",
         "timeline/index"
       ]
