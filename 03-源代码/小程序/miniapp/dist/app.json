@@ -24,14 +24,14 @@
       {
         "pagePath": "pagesPet/chat/index",
         "text": "聊天",
-        "iconPath": "assets/icons/pet.png",
-        "selectedIconPath": "assets/icons/pet-active.png"
+        "iconPath": "assets/icons/chat.png",
+        "selectedIconPath": "assets/icons/chat-active.png"
       },
       {
         "pagePath": "pagesPet/family/dashboard/index",
         "text": "家庭",
-        "iconPath": "assets/icons/home.png",
-        "selectedIconPath": "assets/icons/home-active.png"
+        "iconPath": "assets/icons/family.png",
+        "selectedIconPath": "assets/icons/family-active.png"
       },
       {
         "pagePath": "pages/mine/index",
