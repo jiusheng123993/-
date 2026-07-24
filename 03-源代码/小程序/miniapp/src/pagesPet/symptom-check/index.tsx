@@ -1,13 +1,14 @@
 import { View, Text, Textarea } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useSymptom } from '../../hooks/useSymptom'
 import { useMembership } from '../../hooks/useMembership'
 import { useAuthStore } from '../../stores/authStore'
 import { useShareStore } from '../../stores/shareStore'
+import { safeNavigateBack } from '../../utils/navigation'
 import PetSwitcher from '../../components/PetSwitcher'
-import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
 import AnxietyIntervention from '../../components/AnxietyIntervention'
 import CrisisReferralCard from '../../components/CrisisReferralCard'
@@ -287,7 +288,6 @@ export default function PetSymptomCheck() {
     return (
       <View className='pet-symptom-check'>
           <PageLoading />
-        <FloatingNav />
       </View>
     )
   }
@@ -296,7 +296,6 @@ export default function PetSymptomCheck() {
     return (
       <View className='pet-symptom-check'>
         <PageError message={loadError} onRetry={loadSymptomData} />
-        <FloatingNav />
       </View>
     )
   }
@@ -663,7 +662,9 @@ export default function PetSymptomCheck() {
                 </View>
                 <View
                   className='pet-symptom-check__btn pet-symptom-check__btn--primary'
-                  onClick={() => Taro.navigateBack()}
+                  onClick={() => {
+                    safeNavigateBack()
+                  }}
                 >
                   <Text className='pet-symptom-check__btn-text pet-symptom-check__btn-text--white'>完成</Text>
                 </View>
@@ -744,7 +745,6 @@ export default function PetSymptomCheck() {
         />
       )}
 
-      <FloatingNav />
     </View>
   )
 }

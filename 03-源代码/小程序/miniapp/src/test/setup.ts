@@ -1,21 +1,55 @@
-import { vi } from 'vitest'
+/**
+ * 前端测试环境初始化
+ * 模拟 Taro 组件和 API，使组件可在 jsdom 环境渲染
+ */
+import { vi } from 'vitest';
+import React from 'react';
 
-// 全局 mock Taro API
-globalThis.Taro = {
+// 模拟 @tarojs/components 的基础组件为原生 DOM 元素
+vi.mock('@tarojs/components', () => {
+  const mapTag = (tag: string) => ({ children, className, style, onClick, src, mode, ...rest }: any) =>
+    React.createElement(tag, { className, style, onClick, src, ...rest }, children);
+
+  return {
+    View: mapTag('div'),
+    Text: mapTag('span'),
+    Image: mapTag('img'),
+    ScrollView: mapTag('div'),
+    Button: mapTag('button'),
+    Input: mapTag('input'),
+    Swiper: mapTag('div'),
+    SwiperItem: mapTag('div'),
+  };
+});
+
+// 模拟 @tarojs/taro API（含 eventCenter 用于主题切换）
+const eventCenter = {
+  on: vi.fn(),
+  off: vi.fn(),
+  trigger: vi.fn(),
+};
+
+vi.mock('@tarojs/taro', () => ({
+  default: {
+    showToast: vi.fn(),
+    showModal: vi.fn(),
+    showLoading: vi.fn(),
+    hideLoading: vi.fn(),
+    navigateTo: vi.fn(),
+    navigateBack: vi.fn(),
+    switchTab: vi.fn(),
+    getStorageSync: vi.fn(() => null),
+    setStorageSync: vi.fn(),
+    removeStorageSync: vi.fn(),
+    chooseImage: vi.fn(),
+    uploadFile: vi.fn(),
+    getSystemInfoSync: vi.fn(() => ({ windowWidth: 375, windowHeight: 667 })),
+    eventCenter,
+  },
   showToast: vi.fn(),
   showModal: vi.fn(),
-  navigateBack: vi.fn(),
   navigateTo: vi.fn(),
+  navigateBack: vi.fn(),
   switchTab: vi.fn(),
-  login: vi.fn(),
-  getCurrentInstance: vi.fn(() => ({
-    router: { params: {} }
-  })),
-  clearStorageSync: vi.fn(),
-  getStorageSync: vi.fn(),
-  setStorageSync: vi.fn()
-} as any
-
-// Polyfill for jsdom requestAnimationFrame / cancelAnimationFrame
-globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || ((cb: FrameRequestCallback) => setTimeout(cb, 16))
-globalThis.cancelAnimationFrame = globalThis.cancelAnimationFrame || ((id: number) => clearTimeout(id))
+  eventCenter,
+}));

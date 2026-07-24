@@ -1,46 +1,73 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
 .invite-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF5EB 0%, #FFFFFF 40%);
+  background: $gradient-page;
   padding: 32px;
+  animation: pageEnter 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+
+  // —— 背景装饰光晕 ——
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba($color-primary, 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: warmBreathe 5s ease-in-out infinite;
+  }
 
   &__header {
     text-align: center;
     padding: 40px 0 32px;
+    position: relative;
+    z-index: 1;
   }
 
   &__title {
     font-size: 40px;
     font-weight: bold;
-    color: #333;
+    color: $color-text-primary;
     display: block;
     margin-bottom: 12px;
+    animation: fadeInUp 0.4s ease-out both;
   }
 
   &__subtitle {
     font-size: 26px;
-    color: #666;
+    color: $color-text-secondary;
     display: block;
+    animation: fadeInUp 0.4s ease-out 0.1s both;
   }
 
   &__code-section {
-    background: #fff;
+    @include card-base;
     border-radius: 24px;
     padding: 40px 32px;
     text-align: center;
     margin-bottom: 32px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    box-shadow: $shadow-sm;
+    position: relative;
+    z-index: 1;
+    animation: cardStaggerIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s both;
   }
 
   &__code-label {
     font-size: 26px;
-    color: #999;
+    color: $color-text-tertiary;
     display: block;
     margin-bottom: 16px;
   }
 
   &__code-box {
-    background: #FFF5EB;
-    border: 2px dashed #FF8C42;
+    background: $color-primary-bg;
+    border: 2px dashed $color-primary;
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
@@ -49,27 +76,31 @@
   &__code-text {
     font-size: 48px;
     font-weight: bold;
-    color: #FF8C42;
+    color: $color-primary;
     letter-spacing: 8px;
   }
 
   &__copy-btn {
-    background: #FF8C42 !important;
-    color: #fff !important;
+    background: $color-primary !important;
+    color: $color-text-inverse !important;
     border-radius: 40px !important;
     font-size: 28px !important;
     width: 300px !important;
     height: 80px !important;
     line-height: 80px !important;
+    @include press-feedback;
   }
 
   &__stats {
     display: flex;
-    background: #fff;
+    @include card-base;
     border-radius: 24px;
     padding: 32px;
     margin-bottom: 32px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    box-shadow: $shadow-sm;
+    position: relative;
+    z-index: 1;
+    animation: cardStaggerIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.2s both;
   }
 
   &__stat-item {
@@ -80,14 +111,14 @@
   &__stat-value {
     font-size: 40px;
     font-weight: bold;
-    color: #FF8C42;
+    color: $color-primary;
     display: block;
     margin-bottom: 8px;
   }
 
   &__stat-label {
     font-size: 22px;
-    color: #999;
+    color: $color-text-tertiary;
     display: block;
   }
 
@@ -95,63 +126,72 @@
     display: flex;
     gap: 16px;
     margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.4s ease-out 0.25s both;
   }
 
   &__share-btn {
     flex: 1;
-    background: #07C160 !important;
-    color: #fff !important;
+    background: $color-success !important;
+    color: $color-text-inverse !important;
     border-radius: 40px !important;
     font-size: 28px !important;
     height: 88px !important;
     line-height: 88px !important;
+    @include press-feedback;
   }
 
   &__timeline-btn {
     flex: 1;
-    background: #FF8C42 !important;
-    color: #fff !important;
+    background: $color-primary !important;
+    color: $color-text-inverse !important;
     border-radius: 40px !important;
     font-size: 28px !important;
     height: 88px !important;
     line-height: 88px !important;
+    @include press-feedback;
   }
 
   &__reward {
-    background: #fff;
+    @include card-base;
     border-radius: 24px;
     padding: 32px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    box-shadow: $shadow-sm;
+    position: relative;
+    z-index: 1;
+    animation: cardStaggerIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s both;
   }
 
   &__reward-title {
     font-size: 30px;
     font-weight: bold;
-    color: #333;
+    color: $color-text-primary;
     display: block;
     margin-bottom: 12px;
   }
 
   &__reward-desc {
     font-size: 24px;
-    color: #666;
+    color: $color-text-secondary;
     display: block;
     margin-bottom: 20px;
   }
 
   &__reward-btn {
-    background: #FFD700 !important;
-    color: #333 !important;
+    background: $color-primary-light !important;
+    color: $color-text-inverse !important;
     border-radius: 40px !important;
     font-size: 26px !important;
     width: 240px !important;
     height: 72px !important;
     line-height: 72px !important;
+    @include press-feedback;
   }
 
   &__reward-result {
     font-size: 24px;
-    color: #FF8C42;
+    color: $color-primary;
     display: block;
     margin-top: 16px;
     text-align: center;

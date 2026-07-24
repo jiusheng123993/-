@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useMembershipStore } from '../../stores/membershipStore'
 import PageLoading from '../../components/PageLoading'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
 const PLANS = [
@@ -57,6 +58,7 @@ export default function Member() {
   const [pageReady, setPageReady] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('yearly')
   const [subscribing, setSubscribing] = useState(false)
+  const themeClass = useThemeClass()
 
   const handleSubscribe = async () => {
     if (subscribing || !user) return
@@ -100,7 +102,7 @@ export default function Member() {
   const isVip = membership?.level !== 'free'
 
   return (
-    <ScrollView className='member-page' scrollY>
+    <ScrollView className={`member-page ${themeClass}`} scrollY>
       <View className='member-header'>
         <Text className='member-header-title'>会员中心</Text>
         {isVip && (

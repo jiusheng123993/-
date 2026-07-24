@@ -744,7 +744,630 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
 <div class="card-title">📜 历史时间线</div>
 <div class="timeline">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="tl-item done" data-diff="2026-07-23T12-31-07-Supabase-自家后端迁移完成.diff">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <div class="tl-item done" data-diff="2026-07-24T23-42-33-组件拆分---family-index-tsx.diff">
+            <div class="tl-time">2026-07-25 07:42</div>
+            <div class="tl-title">组件拆分 - family/index.tsx</div>
+            <div class="tl-desc">将family/index.tsx从536行拆分为5个子组件（FamilyReport/FamilyRanking/FamilyMoments/FamilyPetList/FamilyQuickGrid）+ 工具函数utils.ts，主文件精简到171行。补全缺失的SCSS样式定义（mood状态/周报概览/报告列表等），修正overallMood类型对齐上游WeeklyReport。</div>
+            <div class="tl-file">src/pages/family/index.tsx, src/pages/family/utils.ts, src/pages/family/FamilyReport.tsx, src/pages/family/FamilyRanking.tsx, src/pages/family/FamilyMoments.tsx, src/pages/family/FamilyPetList.tsx, src/pages/family/FamilyQuickGrid.tsx, src/pages/family/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T23-42-33-组件拆分---family-index-tsx.diff', '组件拆分 - family/index.tsx')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T23-06-18-修复TypeScript编译错误.diff">
+            <div class="tl-time">2026-07-25 07:06</div>
+            <div class="tl-title">修复TypeScript编译错误</div>
+            <div class="tl-desc">修复34个TS编译错误：yearlyReviewService/timeline/index/family/dashboard/feeding-advice/effect-tracking/wardrobe/syncService/outfitRenderer/Model3DViewer/useWardrobe等文件，编译零错误通过</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/services/yearlyReviewService.ts, 03-源代码/小程序/miniapp/src/pages/timeline/index.tsx, 03-源代码/小程序/miniapp/src/pages/index/index.tsx, 03-源代码/小程序/miniapp/src/pages/family/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.tsx, 03-源代码/小程序/miniapp/src/services/feedingService.ts, 03-源代码/小程序/miniapp/src/pagesPet/feeding-advice/index.tsx, 03-源代码/小程序/miniapp/src/pagesUser/effect-tracking/index.tsx, 03-源代码/小程序/miniapp/src/services/wardrobeService.ts, 03-源代码/小程序/miniapp/src/services/syncService.ts, 03-源代码/小程序/miniapp/src/engines/petAvatar/outfitRenderer.ts, 03-源代码/小程序/miniapp/src/engines/petAvatar/outfitRenderer.test.ts, 03-源代码/小程序/miniapp/src/components/PetAvatar/Model3DViewer.tsx, 03-源代码/小程序/miniapp/src/hooks/useWardrobe.ts, 03-源代码/小程序/miniapp/src/services/__tests__/wardrobeService.test.ts, 03-源代码/小程序/miniapp/src/stores/__tests__/wardrobeStore.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T23-06-18-修复TypeScript编译错误.diff', '修复TypeScript编译错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T16-20-59-全家福合成功能.diff">
+            <div class="tl-time">2026-07-25 00:20</div>
+            <div class="tl-title">全家福合成功能</div>
+            <div class="tl-desc">在家族看板中添加全家福合成功能：Canvas渲染合成图、保存到相册、分享给家人、预览大图</div>
+            <div class="tl-file">src/pagesPet/family/dashboard/index.tsx, src/pagesPet/family/dashboard/index.scss, src/services/familyPhotoService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T16-20-59-全家福合成功能.diff', '全家福合成功能')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T16-05-27-优化21-喂养建议-个性化推荐联动.diff">
+            <div class="tl-time">2026-07-25 00:05</div>
+            <div class="tl-title">优化21：喂养建议-个性化推荐联动</div>
+            <div class="tl-desc">1. 创建feedingService服务层，基于品种/年龄/体重/慢性病/过敏史生成个性化建议；2. 重构喂养建议页面为三标签页(智能建议/喂食计划/饮食记录)；3. 新增宠物档案概览卡片(年龄/体重/慢性病/过敏)；4. 新增每日喂食计划时间线；5. 新增品种喂养指南(金毛/橘猫等10+品种)；6. 新增慢性病饮食管理建议(肾病/心脏病/糖尿病等7种)；7. 集成慢性病追踪数据联动；8. 新增删除记录功能</div>
+            <div class="tl-file">src/services/feedingService.ts, src/pagesPet/feeding-advice/index.tsx, src/pagesPet/feeding-advice/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T16-05-27-优化21-喂养建议-个性化推荐联动.diff', '优化21：喂养建议-个性化推荐联动')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T16-01-57-优化20-慢性病追踪-云端同步-提醒-趋势图.diff">
+            <div class="tl-time">2026-07-25 00:01</div>
+            <div class="tl-title">优化20：慢性病追踪-云端同步+提醒+趋势图</div>
+            <div class="tl-desc">1. 创建chronicService服务层，统一管理慢性病数据CRUD和云端同步队列；2. 创建慢性病类型定义文件慢性病类型(ChronicTypes)；3. 重构慢性病追踪页面，新增标签页切换(记录/趋势/提醒)；4. 新增30天疾病活跃趋势柱状图可视化；5. 新增复查提醒面板，区分逾期/即将到期；6. 新增云端同步按钮，与syncService集成；7. 表单新增疾病名称快捷选择器；8. 概览区域新增逾期复查统计</div>
+            <div class="tl-file">src/services/chronicService.ts, src/types/chronicTypes.ts, src/pagesPet/chronic-tracking/index.tsx, src/pagesPet/chronic-tracking/index.scss, src/types/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T16-01-57-优化20-慢性病追踪-云端同步-提醒-趋势图.diff', '优化20：慢性病追踪-云端同步+提醒+趋势图')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-24-17-阶段8-全部阶段完成.diff">
+            <div class="tl-time">2026-07-24 23:24</div>
+            <div class="tl-title">阶段8：全部阶段完成</div>
+            <div class="tl-desc">阶段7.1旧时光提醒、7.2家族图谱可视化、7.3效果追踪全部完成，最终编译验证通过。本次迭代新增3个功能页面，修改路由配置和入口页面。</div>
+            <div class="tl-file">src/pagesPet/family/lineage/index.tsx, src/pagesPet/family/lineage/index.scss, src/pagesUser/effect-tracking/index.tsx, src/pagesUser/effect-tracking/index.scss, src/app.config.ts, src/pages/family/index.tsx, src/pagesPet/family/dashboard/index.tsx, src/pages/mine/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-24-17-阶段8-全部阶段完成.diff', '阶段8：全部阶段完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-23-50-阶段7-3-效果追踪.diff">
+            <div class="tl-time">2026-07-24 23:23</div>
+            <div class="tl-title">阶段7.3：效果追踪</div>
+            <div class="tl-desc">实现AI建议采纳率和效果追踪页面，包含核心KPI指标（采纳率/响应率/情绪分/改善率）、宠物健康分趋势、近7天使用统计、AI建议记录管理（采纳/忽略）、从我的页面添加入口</div>
+            <div class="tl-file">src/pagesUser/effect-tracking/index.tsx, src/pagesUser/effect-tracking/index.scss, src/app.config.ts, src/pages/mine/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-23-50-阶段7-3-效果追踪.diff', '阶段7.3：效果追踪')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-19-04-阶段7-2-家族图谱可视化.diff">
+            <div class="tl-time">2026-07-24 23:19</div>
+            <div class="tl-title">阶段7.2：家族图谱可视化</div>
+            <div class="tl-desc">实现血缘关系树UI，支持查看父母/子女/兄弟姐妹关系，宠物切换选择器，添加/解除血缘关系，性别图标和年龄显示</div>
+            <div class="tl-file">src/pagesPet/family/lineage/index.tsx, src/pagesPet/family/lineage/index.scss, src/app.config.ts, src/pages/family/index.tsx, src/pagesPet/family/dashboard/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-19-04-阶段7-2-家族图谱可视化.diff', '阶段7.2：家族图谱可视化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-05-46-阶段5完成-补PRD缺失.diff">
+            <div class="tl-time">2026-07-24 23:05</div>
+            <div class="tl-title">阶段5完成:补PRD缺失</div>
+            <div class="tl-desc">完成家庭页面全部PRD功能补充：1.家庭动态墙(8条Mock动态，含打卡/里程碑/照片/回忆/checkin类型) 2.宠物健康排行(金/银/铜牌+Top5) 3.角色标签系统(老大/团宠/活力之星/守护者/乖宝宝自动分配) 4.今日健康看板(打卡统计/打卡率/成员打卡状态) 5.成员管理(角色选择/移出/可邀请列表)</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/family/index.tsx, 03-源代码/小程序/miniapp/src/pages/family/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.scss, 03-源代码/小程序/miniapp/src/services/mock.ts, 03-源代码/小程序/miniapp/src/services/momentService.ts, 03-源代码/小程序/miniapp/src/types/familyTypes.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-05-46-阶段5完成-补PRD缺失.diff', '阶段5完成:补PRD缺失')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-05-22-实现家庭健康看板与成员管理.diff">
+            <div class="tl-time">2026-07-24 23:05</div>
+            <div class="tl-title">实现家庭健康看板与成员管理</div>
+            <div class="tl-desc">重写dashboard页面：1.今日健康看板(打卡统计/打卡率/成员打卡状态卡片) 2.成员管理(真实数据/角色选择/移出家庭) 3.可邀请宠物列表(未加入家庭的宠物+邀请按钮) 4.数据驱动(从petStore/authStore读取真实数据，告别硬编码)</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-05-22-实现家庭健康看板与成员管理.diff', '实现家庭健康看板与成员管理')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-03-01-实现排行系统与角色标签.diff">
+            <div class="tl-time">2026-07-24 23:03</div>
+            <div class="tl-title">实现排行系统与角色标签</div>
+            <div class="tl-desc">新增三项功能：1.健康排行：基于健康分降序排列，前三名金/银/铜牌展示，最多显示5名 2.角色标签系统：依据排名+健康分+年龄自动分配角色(老大/团宠/活力之星/守护者/乖宝宝)，每角色带专属emoji图标 3.宠物卡片上显示角色标签，排行中展示角色信息</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/family/index.tsx, 03-源代码/小程序/miniapp/src/pages/family/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-03-01-实现排行系统与角色标签.diff', '实现排行系统与角色标签')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T15-00-07-实现家庭动态墙.diff">
+            <div class="tl-time">2026-07-24 23:00</div>
+            <div class="tl-title">实现家庭动态墙</div>
+            <div class="tl-desc">新增家庭动态墙功能：1.mock.ts中添加8条动态数据(打卡/里程碑/照片/回忆) 2.创建momentService.ts(获取动态/时间格式化/类型信息) 3.更新familyTypes.ts添加checkin类型 4.在family/index.tsx中集成动态墙UI(卡片式时间线) 5.添加fadeInUp入场动画样式</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/services/mock.ts, 03-源代码/小程序/miniapp/src/services/momentService.ts, 03-源代码/小程序/miniapp/src/types/familyTypes.ts, 03-源代码/小程序/miniapp/src/pages/family/index.tsx, 03-源代码/小程序/miniapp/src/pages/family/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T15-00-07-实现家庭动态墙.diff', '实现家庭动态墙')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T14-48-36-宠物离世处理改为温柔保留.diff">
+            <div class="tl-time">2026-07-24 22:48</div>
+            <div class="tl-title">宠物离世处理改为温柔保留</div>
+            <div class="tl-desc">将标记离世从硬删除改为软删除（markPetDeceased）：保留所有回忆/健康记录/日记数据在时光中，仅设置isDeceased标记。修改确认对话文本为温柔告别风格，按钮从红色警告改为柔和紫色。在宠物档案页添加离世状态展示</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/pet-profile/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T14-48-36-宠物离世处理改为温柔保留.diff', '宠物离世处理改为温柔保留')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T14-41-55-修复家庭周报硬编码健康分.diff">
+            <div class="tl-time">2026-07-24 22:41</div>
+            <div class="tl-title">修复家庭周报硬编码健康分</div>
+            <div class="tl-desc">将家庭页AI周报和宠物卡片中的硬编码85分改为动态健康分：通过getCheckinStats获取每只宠物的打卡统计（打卡次数、异常天数、连续打卡），根据异常率+打卡持续性计算0-100健康分</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/family/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T14-41-55-修复家庭周报硬编码健康分.diff', '修复家庭周报硬编码健康分')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T14-39-47-修复我的页面假数据.diff">
+            <div class="tl-time">2026-07-24 22:39</div>
+            <div class="tl-title">修复我的页面假数据</div>
+            <div class="tl-desc">将我的页面中硬编码为0的打卡数和日记数改为动态数据：通过getCheckinStats遍历所有宠物累加totalCheckins，在loadData中异步获取真实统计数据</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/mine/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T14-39-47-修复我的页面假数据.diff', '修复我的页面假数据')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T14-30-42-timeline动态数据改造.diff">
+            <div class="tl-time">2026-07-24 22:30</div>
+            <div class="tl-title">timeline动态数据改造</div>
+            <div class="tl-desc">将时光(timeline)页面的硬编码数据改为动态数据：从petStore获取当前宠物信息生成生日/到家里程碑，从checkinService获取打卡记录生成日常回忆事件，保留AI年度记忆卡作为幽灵事件。标题从硬编码'青橘'改为动态宠物名</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/timeline/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T14-30-42-timeline动态数据改造.diff', 'timeline动态数据改造')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T14-28-36-清理重复页面.diff">
+            <div class="tl-time">2026-07-24 22:28</div>
+            <div class="tl-title">清理重复页面</div>
+            <div class="tl-desc">删除pagesPet/timeline（与pages/timeline完全重复且无代码引用）和pagesPet/family/index.tsx+index.scss（未注册路由的孤立文件），减少代码冗余</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/timeline, 03-源代码/小程序/miniapp/src/pagesPet/family</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T14-28-36-清理重复页面.diff', '清理重复页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T14-25-59-健康趋势Mock数据修复.diff">
+            <div class="tl-time">2026-07-24 22:25</div>
+            <div class="tl-title">健康趋势Mock数据修复</div>
+            <div class="tl-desc">为健康趋势页面添加60天模拟健康打卡数据，修复Mock模式下趋势数据为空的问题。修改api.ts让趋势API在Mock模式下返回模拟数据，修改mock.ts添加健康打卡和趋势数据Mock接口</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/services/api.ts, 03-源代码/小程序/miniapp/src/services/mock.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T14-25-59-健康趋势Mock数据修复.diff', '健康趋势Mock数据修复')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T13-25-58-修复登录白屏问题.diff">
+            <div class="tl-time">2026-07-24 21:25</div>
+            <div class="tl-title">修复登录白屏问题</div>
+            <div class="tl-desc">简化登录跳转逻辑：登录后统一回到首页，添加宠物页草稿会自动恢复，避免 redirect URL 编码问题</div>
+            <div class="tl-file">src/pages/login/index.tsx, src/pagesPet/add/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T13-25-58-修复登录白屏问题.diff', '修复登录白屏问题')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T13-25-35-数据库和后端适配标准PostgreSQL.diff">
+            <div class="tl-time">2026-07-24 21:25</div>
+            <div class="tl-title">数据库和后端适配标准PostgreSQL</div>
+            <div class="tl-desc">适配Supabase特有语法到标准PostgreSQL：1)新建postgres/init.sql去除RLS/Storage/auth引用 2)photoUploadService改为本地文件存储 3)migrate.ts简化为直接执行SQL 4)config.ts移除supabase配置 5)index.ts添加静态文件服务</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, 03-源代码/server/src/services/photoUploadService.ts, 03-源代码/server/src/migrate.ts, 03-源代码/server/src/config.ts, 03-源代码/server/src/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T13-25-35-数据库和后端适配标准PostgreSQL.diff', '数据库和后端适配标准PostgreSQL')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T12-32-39-添加宠物页登录兜底.diff">
+            <div class="tl-time">2026-07-24 20:32</div>
+            <div class="tl-title">添加宠物页登录兜底</div>
+            <div class="tl-desc">添加宠物时未登录会保存草稿并弹窗引导登录，登录后自动恢复填写内容；登录页支持 redirect 参数跳回</div>
+            <div class="tl-file">src/pagesPet/add/index.tsx, src/pages/login/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T12-32-39-添加宠物页登录兜底.diff', '添加宠物页登录兜底')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T11-22-31-首页-青橘-硬编码改为从宠物数据动态读取.diff">
+            <div class="tl-time">2026-07-24 19:22</div>
+            <div class="tl-title">首页'青橘'硬编码改为从宠物数据动态读取</div>
+            <div class="tl-desc">PET_INFO硬编码常量改为usePetInfo() hook，从usePetStore读取currentPet的真实姓名/emoji/品种/年龄。CHECKIN_ITEMS问句中的'青橘'改为{name}占位符，渲染时替换为实际宠物名。占位符'说说青橘今天的情况...'改为动态拼接。pet-profile中wardrobe死路由改为avatar-customize。清除了app.config.ts中不存在的wardrobe路由</div>
+            <div class="tl-file">src/pages/index/index.tsx, src/app.config.ts, src/pages/pet-profile/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T11-22-31-首页-青橘-硬编码改为从宠物数据动态读取.diff', '首页'青橘'硬编码改为从宠物数据动态读取')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T08-08-02-衣橱安全审查修复完成.diff">
+            <div class="tl-time">2026-07-24 16:08</div>
+            <div class="tl-title">衣橱安全审查修复完成</div>
+            <div class="tl-desc">修复SEC-W-09/W-11/W-12/W-04/W-10五个P3安全问题及P5死代码清理：</div>
+            <div class="tl-file">详见 diff 文件</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T08-08-02-衣橱安全审查修复完成.diff', '衣橱安全审查修复完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T08-06-35-删除无效的chat分包页面.diff">
+            <div class="tl-time">2026-07-24 16:06</div>
+            <div class="tl-title">删除无效的chat分包页面</div>
+            <div class="tl-desc">删除pagesPet/chat目录（无效的AI聊天页面），清理app.config.ts中的注册</div>
+            <div class="tl-file">src/pagesPet/chat/*, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T08-06-35-删除无效的chat分包页面.diff', '删除无效的chat分包页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T07-54-01-衣橱后端安全审查-P1P2修复完成.diff">
+            <div class="tl-time">2026-07-24 15:54</div>
+            <div class="tl-title">衣橱后端安全审查+P1P2修复完成</div>
+            <div class="tl-desc">完成6维度安全审查，修复3个P1+4个P2安全问题，编写56个安全测试用例全部通过</div>
+            <div class="tl-file">server/src/routes/wardrobe.ts, server/src/services/wardrobeService.ts, server/src/services/themeSuiteService.ts, server/src/repositories/themeSuiteRepository.ts, server/src/routes/wardrobe.security.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T07-54-01-衣橱后端安全审查-P1P2修复完成.diff', '衣橱后端安全审查+P1P2修复完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T07-43-20-品种百科集成到AI页面.diff">
+            <div class="tl-time">2026-07-24 15:43</div>
+            <div class="tl-title">品种百科集成到AI页面</div>
+            <div class="tl-desc">在AI对话页面的'+'快捷菜单中添加'品种百科'入口，用户可在AI中直接查看品种信息</div>
+            <div class="tl-file">src/pagesPet/ai-chat/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T07-43-20-品种百科集成到AI页面.diff', '品种百科集成到AI页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T07-38-06-完全移除-FloatingNav-悬浮导航.diff">
+            <div class="tl-time">2026-07-24 15:38</div>
+            <div class="tl-title">完全移除 FloatingNav 悬浮导航</div>
+            <div class="tl-desc">删除 FloatingNav 组件及其在 9 个子包页面中的所有引用，包括导入和 JSX 使用</div>
+            <div class="tl-file">src/components/FloatingNav.tsx, src/components/FloatingNav.scss, src/components/index.ts, src/pagesPet/*/index.tsx, src/pagesUser/profile/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T07-38-06-完全移除-FloatingNav-悬浮导航.diff', '完全移除 FloatingNav 悬浮导航')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T07-32-47-按PRD重新设计-我的-页面菜单.diff">
+            <div class="tl-time">2026-07-24 15:32</div>
+            <div class="tl-title">按PRD重新设计「我的」页面菜单</div>
+            <div class="tl-desc">根据PRD重新设计「我的」页面功能菜单：Group1-健康报告/疫苗日历/会员中心，Group2-邀请好友/意见反馈，Group3-设置；移除未实现的订单/优惠券/收藏及冗余的成长日记</div>
+            <div class="tl-file">src/pages/mine/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T07-32-47-按PRD重新设计-我的-页面菜单.diff', '按PRD重新设计「我的」页面菜单')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T07-27-20-修复分包编译---sub-vendors-wxss-缺失.diff">
+            <div class="tl-time">2026-07-24 15:27</div>
+            <div class="tl-title">修复分包编译 - sub-vendors.wxss 缺失</div>
+            <div class="tl-desc">清理 dist 目录后重新编译，修复 sub-vendors.wxss 文件缺失导致的 navigateTo 超时问题</div>
+            <div class="tl-file">src/pages/mine/index.tsx, dist/pagesPet/sub-vendors.wxss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T07-27-20-修复分包编译---sub-vendors-wxss-缺失.diff', '修复分包编译 - sub-vendors.wxss 缺失')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T07-05-41-完成ThemeSuiteProgress组件.diff">
+            <div class="tl-time">2026-07-24 15:05</div>
+            <div class="tl-title">完成ThemeSuiteProgress组件</div>
+            <div class="tl-desc">创建AI生成进度组件ThemeSuiteProgress.tsx和.scss，包含4步骤进度条、审核状态提示、重试/查看结果操作</div>
+            <div class="tl-file">src/components/Wardrobe/ThemeSuiteProgress.tsx, src/components/Wardrobe/ThemeSuiteProgress.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T07-05-41-完成ThemeSuiteProgress组件.diff', '完成ThemeSuiteProgress组件')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T06-48-15-P5--过度防御审查和代码质量优化.diff">
+            <div class="tl-time">2026-07-24 14:48</div>
+            <div class="tl-title">P5: 过度防御审查和代码质量优化</div>
+            <div class="tl-desc">移除 generateAvatarImage 重复配额检查和死代码 checkMemberStatus；移除无用 photoColor 状态；窄化 ImageGallery selectedAngle 类型为 AvatarAngle；缓存 SUPABASE_URL_PREFIX；提取重复 delay 函数到 utils/delay.ts；补充 16 个 hooks 单元测试（useAvatar2DTask 8 个 + useAvatar3DTask 8 个）全部通过。后端 TypeScript 编译零错误，后端测试 55/55 通过。</div>
+            <div class="tl-file">src/services/avatarService.ts, src/pagesPet/avatar-customize/index.tsx, src/components/PetAvatar/ImageGallery.tsx, server/src/routes/avatar.ts, server/src/utils/delay.ts, server/src/services/image2DService.ts, server/src/services/model3DService.ts, src/hooks/__tests__/useAvatar2DTask.test.ts, src/hooks/__tests__/useAvatar3DTask.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T06-48-15-P5--过度防御审查和代码质量优化.diff', 'P5: 过度防御审查和代码质量优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T06-37-22-完成Task10-前端Store-Hook.diff">
+            <div class="tl-time">2026-07-24 14:37</div>
+            <div class="tl-title">完成Task10:前端Store+Hook</div>
+            <div class="tl-desc">创建wardrobeStore.ts(Zustand状态管理)和useWardrobe.ts(Hook封装)，含装备/卸下/切换/主题生成等完整状态管理，11个测试全部通过</div>
+            <div class="tl-file">src/stores/wardrobeStore.ts, src/hooks/useWardrobe.ts, src/stores/__tests__/wardrobeStore.test.ts, src/stores/index.ts, src/hooks/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T06-37-22-完成Task10-前端Store-Hook.diff', '完成Task10:前端Store+Hook')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T06-28-31-完成Task9-前端Service层.diff">
+            <div class="tl-time">2026-07-24 14:28</div>
+            <div class="tl-title">完成Task9:前端Service层</div>
+            <div class="tl-desc">创建wardrobeService.ts、themeSuiteService.ts、outfitComposition.ts三个服务文件，含本地缓存降级、防抖装备、轮询任务状态等功能，52个测试全部通过</div>
+            <div class="tl-file">src/services/wardrobeService.ts, src/services/themeSuiteService.ts, src/services/outfitComposition.ts, src/services/__tests__/wardrobeService.test.ts, src/services/__tests__/themeSuiteService.test.ts, src/services/__tests__/outfitComposition.test.ts, src/services/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T06-28-31-完成Task9-前端Service层.diff', '完成Task9:前端Service层')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T05-47-37-Task-5--后端数据库迁移完成.diff">
+            <div class="tl-time">2026-07-24 13:47</div>
+            <div class="tl-title">Task 5: 后端数据库迁移完成</div>
+            <div class="tl-desc">创建 004_wardrobe_tables.sql 迁移文件，包含6张新表(accessories, user_accessory_inventory, pet_outfits, theme_suites, theme_suite_tasks, try_on_history)、2个ALTER语句、RLS策略、触发器、Storage桶。同步更新init.sql追加v5.0换装系统表。</div>
+            <div class="tl-file">03-源代码/server/migrations/004_wardrobe_tables.sql, 04-数据库/supabase/init.sql</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T05-47-37-Task-5--后端数据库迁移完成.diff', 'Task 5: 后端数据库迁移完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T05-30-18-Task4-PetAvatar组件扩展-路由完成.diff">
+            <div class="tl-time">2026-07-24 13:30</div>
+            <div class="tl-title">Task4-PetAvatar组件扩展+路由完成</div>
+            <div class="tl-desc">PetAvatar新增outfitSlots prop，pet-profile替换emoji为PetAvatar+新增换装入口，app.config添加wardrobe路由，21个测试通过</div>
+            <div class="tl-file">src/components/PetAvatar.tsx, src/components/__tests__/PetAvatar.outfit.test.tsx, src/components/__tests__/PetAvatar.test.tsx, src/pages/pet-profile/index.tsx, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T05-30-18-Task4-PetAvatar组件扩展-路由完成.diff', 'Task4-PetAvatar组件扩展+路由完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T05-28-22-Task4--PetAvatar组件扩展-pet-profi.diff">
+            <div class="tl-time">2026-07-24 13:28</div>
+            <div class="tl-title">Task4: PetAvatar组件扩展+pet-profile入口+路由</div>
+            <div class="tl-desc">PetAvatar新增outfitSlots prop支持换装层渲染；pet-profile页面emoji替换为PetAvatar组件并新增换装入口；app.config添加wardrobe/index路由；新增4个测试全部通过，原有17个测试无回归</div>
+            <div class="tl-file">src/components/PetAvatar.tsx, src/components/__tests__/PetAvatar.outfit.test.tsx, src/components/__tests__/PetAvatar.test.tsx, src/pages/pet-profile/index.tsx, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T05-28-22-Task4--PetAvatar组件扩展-pet-profi.diff', 'Task4: PetAvatar组件扩展+pet-profile入口+路由')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T05-17-09-Task3-SVG渲染器扩展完成.diff">
+            <div class="tl-time">2026-07-24 13:17</div>
+            <div class="tl-title">Task3-SVG渲染器扩展完成</div>
+            <div class="tl-desc">创建outfitRenderer.ts(composeOutfitLayers+resolveOutfitLayers)，修改svgRenderer.ts增加outfitLayers参数，33个测试全部通过</div>
+            <div class="tl-file">src/engines/petAvatar/outfitRenderer.ts, src/engines/petAvatar/svgRenderer.ts, src/engines/petAvatar/outfitRenderer.test.ts, src/engines/petAvatar/__tests__/svgRenderer.outfit.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T05-17-09-Task3-SVG渲染器扩展完成.diff', 'Task3-SVG渲染器扩展完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T05-14-52-Task3--SVG渲染器扩展完成.diff">
+            <div class="tl-time">2026-07-24 13:14</div>
+            <div class="tl-title">Task3: SVG渲染器扩展完成</div>
+            <div class="tl-desc">实现outfitRenderer.ts(composeOutfitLayers+resolveOutfitLayers)，修改svgRenderer.ts增加outfitLayers参数支持，全部33个测试通过，无回归</div>
+            <div class="tl-file">src/engines/petAvatar/outfitRenderer.ts, src/engines/petAvatar/outfitRenderer.test.ts, src/engines/petAvatar/__tests__/svgRenderer.outfit.test.ts, src/engines/petAvatar/svgRenderer.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T05-14-52-Task3--SVG渲染器扩展完成.diff', 'Task3: SVG渲染器扩展完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T04-50-14-Task1-类型定义与常量完成.diff">
+            <div class="tl-time">2026-07-24 12:50</div>
+            <div class="tl-title">Task1-类型定义与常量完成</div>
+            <div class="tl-desc">创建wardrobeTypes.ts(12个类型)、wardrobe.ts(7组常量)、扩展avatarTypes.ts(outfitSlots+outfitLayers+theme_suite TaskType)，12个测试全部通过</div>
+            <div class="tl-file">miniapp/src/types/wardrobeTypes.ts, miniapp/src/constants/wardrobe.ts, miniapp/src/types/avatarTypes.ts, miniapp/src/types/wardrobeTypes.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T04-50-14-Task1-类型定义与常量完成.diff', 'Task1-类型定义与常量完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T04-40-55-全面修复主题适配-导航栏-颜色硬编码.diff">
+            <div class="tl-time">2026-07-24 12:40</div>
+            <div class="tl-title">全面修复主题适配-导航栏+颜色硬编码</div>
+            <div class="tl-desc">1. 清除14个页面的config.ts中硬编码的navigationBarBackgroundColor/navigationBarTextStyle，让动态API接管 2. 修复家庭图谱等页面中rgba(255,255,255)硬编码覆盖层(共55+处)，替换为-primary-bg或CSS变量，确保亮色/暗色主题都正常显示 3. FloatingNav浮动导航适配双模式</div>
+            <div class="tl-file">src/pages/*/index.config.ts, src/pagesPet/*/index.config.ts, src/pagesUser/*/index.config.ts, src/pagesPet/family/index.scss, src/pages/family/index.scss, src/pagesPet/*/index.scss, src/components/FloatingNav.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T04-40-55-全面修复主题适配-导航栏-颜色硬编码.diff', '全面修复主题适配-导航栏+颜色硬编码')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T04-39-44-主题适配-替换硬编码白色透明值为主题变量.diff">
+            <div class="tl-time">2026-07-24 12:39</div>
+            <div class="tl-title">主题适配：替换硬编码白色透明值为主题变量</div>
+            <div class="tl-desc">将 8 个 SCSS 文件中的 rgba(255,255,255,0.0X) 硬编码背景值替换为主题感知变量 -primary-bg 或 CSS 变量 rgba(var(--primary-light-rgb))，共替换 33 处</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\pagesPet\feeding-advice\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\vaccine\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\hospital\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\trends\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\food-query\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\symptom-check\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.scss, 03-源代码\小程序\miniapp\src\components\FloatingNav.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T04-39-44-主题适配-替换硬编码白色透明值为主题变量.diff', '主题适配：替换硬编码白色透明值为主题变量')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T04-38-15-替换硬编码rgba为-primary-bg变量.diff">
+            <div class="tl-time">2026-07-24 12:38</div>
+            <div class="tl-title">替换硬编码rgba为-primary-bg变量</div>
+            <div class="tl-desc">9个SCSS文件中22处background的rgba(255,255,255,0.0X)替换为主题变量\-primary-bg，确保浅色主题下可见</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/add/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/checkin/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/chat/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/diary/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/breed/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/timeline/index.scss, 03-源代码/小程序/miniapp/src/pages/timeline/index.scss, 03-源代码/小程序/miniapp/src/pages/mine/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/chronic-tracking/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T04-38-15-替换硬编码rgba为-primary-bg变量.diff', '替换硬编码rgba为-primary-bg变量')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T04-34-44-P4--avatar-customize-页面重构完成.diff">
+            <div class="tl-time">2026-07-24 12:34</div>
+            <div class="tl-title">P4: avatar-customize 页面重构完成</div>
+            <div class="tl-desc">用 useAvatar2DTask 和 useAvatar3DTask hooks 替换内联 2D/3D 任务状态和轮询逻辑，页面从 641 行减少到 470 行，消除 10+ 独立状态变量和 2 个轮询 ref。增加 restoreFromTask 方法支持页面加载恢复已有任务。TypeScript 编译零错误，ImageGallery 测试 14/14 通过。</div>
+            <div class="tl-file">src/pagesPet/avatar-customize/index.tsx, src/hooks/useAvatar2DTask.ts, src/hooks/useAvatar3DTask.ts, src/components/PetAvatar/ImageGallery.test.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T04-34-44-P4--avatar-customize-页面重构完成.diff', 'P4: avatar-customize 页面重构完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T03-39-02-设计文档自我审查完成.diff">
+            <div class="tl-time">2026-07-24 11:39</div>
+            <div class="tl-title">设计文档自我审查完成</div>
+            <div class="tl-desc">完成宠物换装功能设计文档自我审查，发现并修复7个P2级兼容性问题：1)保留accessory字段新增outfitSlots可选字段 2)统一outfitLayers类型为OutfitLayer[] 3)移除avatarService的outfit职责冲突 4)补充TaskType前后端同步和CHECK约束迁移 5)统一字段命名outfitSummary 6)明确pet-profile头像替换方案 7)补充完整DDL</div>
+            <div class="tl-file">docs/superpowers/specs/2026-07-24-pet-wardrobe-design.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T03-39-02-设计文档自我审查完成.diff', '设计文档自我审查完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T03-05-44-P3优化-任务清理-接口限流.diff">
+            <div class="tl-time">2026-07-24 11:05</div>
+            <div class="tl-title">P3优化：任务清理+接口限流</div>
+            <div class="tl-desc">1. 新增cleanStaleTasks函数，每24小时自动清理90天前failed任务及关联数据（事务保证原子性）2. 为photo/upload添加限流（1分钟10次）3. 为generate-2d/generate-3d添加限流（1分钟5次）4. 新增4个cleanStaleTasks单元测试，全部55个测试通过</div>
+            <div class="tl-file">server/src/services/taskQueue.ts, server/src/index.ts, server/src/routes/avatar.ts, server/src/services/taskQueue.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T03-05-44-P3优化-任务清理-接口限流.diff', 'P3优化：任务清理+接口限流')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T02-26-42-宠物形象模块测试覆盖与P2性能优化.diff">
+            <div class="tl-time">2026-07-24 10:26</div>
+            <div class="tl-title">宠物形象模块测试覆盖与P2性能优化</div>
+            <div class="tl-desc">1) P2性能修复：image2DService 从串行 96 张图改为 CONCURRENCY=5 并发批处理，预计耗时从 5-10 分钟降至 1-2 分钟。使用 Promise.allSettled 容错，单张失败不中断整体流程。2) 后端测试：新增 51 个测试用例（taskQueue 12 + avatar.security 31 + image2DService 8），覆盖横向越权、配额校验、SSRF 防护、style 白名单、进度计算等核心逻辑，全部通过。3) 前端测试：新增 41 个测试用例（avatarService 17 + GenerationProgress 10 + ImageGallery 14），覆盖配额管理、组件渲染、Tab 切换、操作按钮、失败重试等场景，全部通过。4) 配置基础设施：后端新增 vitest.config.ts，前端新增 vitest.config.ts 和 test/setup.ts（含 Taro 组件/API mock）。</div>
+            <div class="tl-file">03-源代码/server/src/services/image2DService.ts, 03-源代码/server/src/services/taskQueue.test.ts, 03-源代码/server/src/routes/avatar.security.test.ts, 03-源代码/server/src/services/image2DService.test.ts, 03-源代码/server/vitest.config.ts, 03-源代码/小程序/miniapp/src/services/avatarService.test.ts, 03-源代码/小程序/miniapp/src/components/PetAvatar/GenerationProgress.test.tsx, 03-源代码/小程序/miniapp/src/components/PetAvatar/ImageGallery.test.tsx, 03-源代码/小程序/miniapp/vitest.config.ts, 03-源代码/小程序/miniapp/src/test/setup.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T02-26-42-宠物形象模块测试覆盖与P2性能优化.diff', '宠物形象模块测试覆盖与P2性能优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T02-22-10-生成tabBar图标.diff">
+            <div class="tl-time">2026-07-24 10:22</div>
+            <div class="tl-title">生成tabBar图标</div>
+            <div class="tl-desc">用.NET绘图生成10个81x81px PNG图标：首页(房子)/宠物(爪印)/时光(时钟)/家庭(三人)/我的(头像)，普通版灰色#8A99AA+选中版金色#E8A838</div>
+            <div class="tl-file">src/assets/icons/*.png</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T02-22-10-生成tabBar图标.diff', '生成tabBar图标')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T02-12-40-修复导航栏和标签栏不跟随主题切换.diff">
+            <div class="tl-time">2026-07-24 10:12</div>
+            <div class="tl-title">修复导航栏和标签栏不跟随主题切换</div>
+            <div class="tl-desc">根因：微信小程序导航栏和标签栏是原生组件，颜色在app.config.ts中硬编码为#1A2332，CSS变量无法控制。修复：1. 每个主题添加navbarBg/navbarFrontColor/tabBarBg/tabBarColor/tabBarSelectedColor/tabBarBorderStyle配置 2. setTheme和loadTheme中调用Taro.setNavigationBarColor和Taro.setTabBarStyle动态更新原生组件颜色</div>
+            <div class="tl-file">src/stores/themeStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T02-12-40-修复导航栏和标签栏不跟随主题切换.diff', '修复导航栏和标签栏不跟随主题切换')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T02-07-09-主题系统重构-日间-夜间双模式.diff">
+            <div class="tl-time">2026-07-24 10:07</div>
+            <div class="tl-title">主题系统重构-日间+夜间双模式</div>
+            <div class="tl-desc">1. _theme.scss 新增4个亮色日间主题（粉/绿/蓝/橙），整体页面背景跟随主题色变化 2. themeStore.ts 扩展为8个主题（4亮+4暗），默认改为sakura-dream-light 3. settings页面分组显示日间/夜间模式</div>
+            <div class="tl-file">src/styles/_theme.scss, src/stores/themeStore.ts, src/pagesUser/settings/index.tsx, src/pagesUser/settings/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T02-07-09-主题系统重构-日间-夜间双模式.diff', '主题系统重构-日间+夜间双模式')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T01-53-54-修复主题背景不跟随切换.diff">
+            <div class="tl-time">2026-07-24 09:53</div>
+            <div class="tl-title">修复主题背景不跟随切换</div>
+            <div class="tl-desc">根因：page元素设置了background但page没有主题类，导致page背景永远是默认主题。修复：1) app.scss和global.scss中page背景设为transparent 2) .app-root添加全屏渐变背景background:gradient-page 3) profile/index.scss移除page选择器，改用.profile-page渐变背景 4) 确保主题类覆盖CSS变量后背景跟随变化</div>
+            <div class="tl-file">src/app.scss, src/styles/global.scss, src/pagesUser/profile/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T01-53-54-修复主题背景不跟随切换.diff', '修复主题背景不跟随切换')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T01-42-54-修复主题切换-根因Zustand-v3-selector.diff">
+            <div class="tl-time">2026-07-24 09:42</div>
+            <div class="tl-title">修复主题切换-根因Zustand v3 selector</div>
+            <div class="tl-desc">根因：Zustand v3.7.2 的 selector 订阅在 Taro 3 React 运行时中不可靠触发组件重渲染，导致 currentTheme 永远不更新。修复：1) useThemeClass.ts 新增 useThemeKey hook，完全用 local state + eventCenter，不依赖 Zustand 订阅 2) settings 页改用 useThemeKey 替代 useThemeStore selector 3) app.tsx 移除无效的 key 机制 4) 所有 useThemeStore 改为 .getState() 命令式调用</div>
+            <div class="tl-file">src/hooks/useThemeClass.ts, src/app.tsx, src/pagesUser/settings/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T01-42-54-修复主题切换-根因Zustand-v3-selector.diff', '修复主题切换-根因Zustand v3 selector')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T01-23-45-修复主题切换.diff">
+            <div class="tl-time">2026-07-24 09:23</div>
+            <div class="tl-title">修复主题切换</div>
+            <div class="tl-desc">根因：Taro App组件state变化不触发WXML重渲染。改为每个页面独立使用useThemeClass hook，通过eventCenter监听主题变更，确保CSS变量在页面组件中可靠更新。共更新31个页面+app.tsx+hooks/useThemeClass.ts</div>
+            <div class="tl-file">src/app.tsx, src/hooks/useThemeClass.ts, src/pages/*/index.tsx, src/pagesUser/*/index.tsx, src/pagesPet/*/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T01-23-45-修复主题切换.diff', '修复主题切换')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T01-22-04-宠物形象模块全面代码审查.diff">
+            <div class="tl-time">2026-07-24 09:22</div>
+            <div class="tl-title">宠物形象模块全面代码审查</div>
+            <div class="tl-desc">完成宠物形象模块全面代码审查，修复后端 P1 问题 4 项（style 白名单、2D/3D 服务端配额校验、referencePhotoUrl SSRF 防护、3D 2D 任务完成状态校验）；修复前端 P1 问题 3 项（轮询竞态+setState after unmount、配额计数时机、会员引导）；补充前端功能 2 项（页面加载自动恢复任务、失败重试按钮）。前后端编译均通过。</div>
+            <div class="tl-file">03-源代码/server/src/routes/avatar.ts, 03-源代码/小程序/miniapp/src/pagesPet/avatar-customize/index.tsx, 03-源代码/小程序/miniapp/src/components/PetAvatar/GenerationProgress.tsx, 03-源代码/小程序/miniapp/src/components/PetAvatar/ImageGallery.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T01-22-04-宠物形象模块全面代码审查.diff', '宠物形象模块全面代码审查')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T01-18-49-pagesUser主题class集成.diff">
+            <div class="tl-time">2026-07-24 09:18</div>
+            <div class="tl-title">pagesUser主题class集成</div>
+            <div class="tl-desc">为5个pagesUser页面组件添加useThemeClass hook，在根元素className中追加主题class</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\pagesUser\settings\index.tsx, 03-源代码\小程序\miniapp\src\pagesUser\profile\index.tsx, 03-源代码\小程序\miniapp\src\pagesUser\onboarding\index.tsx, 03-源代码\小程序\miniapp\src\pagesUser\invite\index.tsx, 03-源代码\小程序\miniapp\src\pagesUser\agreement\index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T01-18-49-pagesUser主题class集成.diff', 'pagesUser主题class集成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T01-05-32-修复主题切换-改用eventCenter事件机制.diff">
+            <div class="tl-time">2026-07-24 09:05</div>
+            <div class="tl-title">修复主题切换-改用eventCenter事件机制</div>
+            <div class="tl-desc">Taro小程序App组件的Zustand订阅可能不触发setData更新，改用Taro.eventCenter事件机制确保App组件收到主题变更并重渲染</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/app.tsx, 03-源代码/小程序/miniapp/src/stores/themeStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T01-05-32-修复主题切换-改用eventCenter事件机制.diff', '修复主题切换-改用eventCenter事件机制')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-54-56-集成验证完成---修复-P0-P1-关键问题.diff">
+            <div class="tl-time">2026-07-24 08:54</div>
+            <div class="tl-title">集成验证完成 - 修复 P0/P1 关键问题</div>
+            <div class="tl-desc">修复6个API端点URL不匹配(P0)和2个数据库字段命名不一致(P1)，前后端编译全部通过</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/services/avatarService.ts, 03-源代码/server/src/routes/avatar.ts, 03-源代码/小程序/miniapp/src/pagesPet/avatar-customize/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-54-56-集成验证完成---修复-P0-P1-关键问题.diff', '集成验证完成 - 修复 P0/P1 关键问题')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-45-45-宠物照片形象生成功能完成.diff">
+            <div class="tl-time">2026-07-24 08:45</div>
+            <div class="tl-title">宠物照片形象生成功能完成</div>
+            <div class="tl-desc">后端6模块+前端7模块全部完成，TypeScript编译零错误</div>
+            <div class="tl-file">server/src/config.ts, server/src/services/photoUploadService.ts, server/src/services/taskQueue.ts, server/src/services/image2DService.ts, server/src/services/model3DService.ts, server/src/routes/avatar.ts, src/types/avatarTypes.ts, src/constants/index.ts, src/components/PetAvatar/PhotoUploader.tsx, src/components/PetAvatar/GenerationProgress.tsx, src/components/PetAvatar/ImageGallery.tsx, src/components/PetAvatar/Model3DViewer.tsx, src/services/avatarService.ts, src/stores/petStore.ts, src/pagesPet/avatar-customize/index.tsx, src/pagesPet/avatar-customize/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-45-45-宠物照片形象生成功能完成.diff', '宠物照片形象生成功能完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-44-40-模块13---改造avatar-customize为双Tab.diff">
+            <div class="tl-time">2026-07-24 08:44</div>
+            <div class="tl-title">模块13 - 改造avatar-customize为双Tab结构</div>
+            <div class="tl-desc">将宠物形象定制页面改造为双Tab结构（文字描述生成 + 照片生成），新增照片上传、2D/3D生成、进度轮询、图片画廊、3D模型查看等功能。新增独立SCSS样式用于PhotoUploader/GenerationProgress/ImageGallery/Model3DViewer等组件。</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.tsx, 03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-44-40-模块13---改造avatar-customize为双Tab.diff', '模块13 - 改造avatar-customize为双Tab结构')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-39-19-模块12---更新avatarService和petStor.diff">
+            <div class="tl-time">2026-07-24 08:39</div>
+            <div class="tl-title">模块12 - 更新avatarService和petStore</div>
+            <div class="tl-desc">新增照片上传、2D/3D生成、任务查询等接口；petStore新增形象生成taskId状态</div>
+            <div class="tl-file">src/services/avatarService.ts, src/stores/petStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-39-19-模块12---更新avatarService和petStor.diff', '模块12 - 更新avatarService和petStore')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-37-08-创建Model3DViewer组件.diff">
+            <div class="tl-time">2026-07-24 08:37</div>
+            <div class="tl-title">创建Model3DViewer组件</div>
+            <div class="tl-desc">创建3D模型预览组件，支持缩略图预览、大图查看和.glb模型下载功能</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/components/PetAvatar/Model3DViewer.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-37-08-创建Model3DViewer组件.diff', '创建Model3DViewer组件')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-36-09-修复主题切换不成功.diff">
+            <div class="tl-time">2026-07-24 08:36</div>
+            <div class="tl-title">修复主题切换不成功</div>
+            <div class="tl-desc">Taro模板系统不支持渲染自定义data-*属性，改用className方式传递主题，CSS选择器从[data-theme]改为.theme-xxx</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/app.tsx, 03-源代码/小程序/miniapp/src/styles/_theme.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-36-09-修复主题切换不成功.diff', '修复主题切换不成功')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-35-37-创建-GenerationProgress-组件.diff">
+            <div class="tl-time">2026-07-24 08:35</div>
+            <div class="tl-title">创建 GenerationProgress 组件</div>
+            <div class="tl-desc">创建 2D/3D 生成进度展示组件，支持 pending/processing/completed/failed 四种状态展示</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/components/PetAvatar/GenerationProgress.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-35-37-创建-GenerationProgress-组件.diff', '创建 GenerationProgress 组件')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-34-26-新增2D-3D形象生成类型与常量.diff">
+            <div class="tl-time">2026-07-24 08:34</div>
+            <div class="tl-title">新增2D/3D形象生成类型与常量</div>
+            <div class="tl-desc">模块7完成：在avatarTypes.ts中新增AvatarAngle/AvatarExpression/AvatarAction/GenerationTask等类型定义，在constants/index.ts中新增AVATAR_EXPRESSIONS/AVATAR_ACTIONS/AVATAR_ANGLES/STORAGE_KEYS等常量</div>
+            <div class="tl-file">src/types/avatarTypes.ts, src/constants/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-34-26-新增2D-3D形象生成类型与常量.diff', '新增2D/3D形象生成类型与常量')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-34-07-创建-PhotoUploader-组件.diff">
+            <div class="tl-time">2026-07-24 08:34</div>
+            <div class="tl-title">创建 PhotoUploader 组件</div>
+            <div class="tl-desc">模块8：创建宠物照片上传组件 PhotoUploader，支持拍照或从相册选择照片，包含预览、重新选择和删除功能</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\components\PetAvatar\PhotoUploader.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-34-07-创建-PhotoUploader-组件.diff', '创建 PhotoUploader 组件')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-32-27-模块6-扩展avatar路由.diff">
+            <div class="tl-time">2026-07-24 08:32</div>
+            <div class="tl-title">模块6-扩展avatar路由</div>
+            <div class="tl-desc">新增6个API端点：照片上传、2D生成、任务查询、3D生成、2D形象列表、3D模型查询，TypeScript编译零错误</div>
+            <div class="tl-file">03-源代码/server/src/routes/avatar.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-32-27-模块6-扩展avatar路由.diff', '模块6-扩展avatar路由')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-29-02-模块5-创建3D模型生成服务.diff">
+            <div class="tl-time">2026-07-24 08:29</div>
+            <div class="tl-title">模块5-创建3D模型生成服务</div>
+            <div class="tl-desc">创建 model3DService.ts，调用 Meshy Image-to-3D API 生成 .glb 3D 宠物模型，包含轮询机制和任务状态管理</div>
+            <div class="tl-file">03-源代码/server/src/services/model3DService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-29-02-模块5-创建3D模型生成服务.diff', '模块5-创建3D模型生成服务')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-26-58-创建-2D-形象生成服务.diff">
+            <div class="tl-time">2026-07-24 08:26</div>
+            <div class="tl-title">创建 2D 形象生成服务</div>
+            <div class="tl-desc">创建 image2DService.ts，封装豆包 Seedream API 以图生图，支持 12 表情×6 角度 + 8 动作×3 角度 = 96 张 2D 宠物形象图，分 3 批异步生成</div>
+            <div class="tl-file">03-源代码/server/src/services/image2DService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-26-58-创建-2D-形象生成服务.diff', '创建 2D 形象生成服务')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-25-01-模块3-创建任务队列服务.diff">
+            <div class="tl-time">2026-07-24 08:25</div>
+            <div class="tl-title">模块3-创建任务队列服务</div>
+            <div class="tl-desc">创建 src/services/taskQueue.ts，实现 2D/3D 生成任务异步状态追踪（创建、进度更新、状态更新、结果更新、查询），TypeScript 编译零错误通过</div>
+            <div class="tl-file">03-源代码/server/src/services/taskQueue.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-25-01-模块3-创建任务队列服务.diff', '模块3-创建任务队列服务')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-24T00-22-22-模块1-后端配置新增Meshy-API-数据库迁移SQL.diff">
+            <div class="tl-time">2026-07-24 08:22</div>
+            <div class="tl-title">模块1-后端配置新增Meshy API+数据库迁移SQL</div>
+            <div class="tl-desc">新增meshy和supabase配置块到config.ts，创建avatar_generation_tables迁移SQL</div>
+            <div class="tl-file">03-源代码\server\src\config.ts, 03-源代码\server\migrations\003_avatar_generation_tables.sql</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-24T00-22-22-模块1-后端配置新增Meshy-API-数据库迁移SQL.diff', '模块1-后端配置新增Meshy API+数据库迁移SQL')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T23-52-30-重新设计唯美主题配色.diff">
+            <div class="tl-time">2026-07-24 07:52</div>
+            <div class="tl-title">重新设计唯美主题配色</div>
+            <div class="tl-desc">4套全新主题：樱语花境(柔雾玫瑰粉)/森林晨露(鼠尾草绿)/暮色海岸(雾蓝海天色)/暖阳蜜语(蜂蜜琥珀色)，全部低饱和度莫兰迪色系，背景色与文字色统一为暖色调，适配多年龄段用户审美</div>
+            <div class="tl-file">src/styles/_theme.scss, src/stores/themeStore.ts, src/styles/global.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T23-52-30-重新设计唯美主题配色.diff', '重新设计唯美主题配色')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T23-45-35-修复主题切换失效.diff">
+            <div class="tl-time">2026-07-24 07:45</div>
+            <div class="tl-title">修复主题切换失效</div>
+            <div class="tl-desc">CSS选择器方向错误导致[data-theme]选择器无法匹配DOM元素，修复为正确方向; 修复darken()与CSS变量不兼容的Sass编译错误; 添加--rgb变量支持rgba()透明度</div>
+            <div class="tl-file">src/styles/_theme.scss, src/pages/index/index.scss, src/pages/timeline/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T23-45-35-修复主题切换失效.diff', '修复主题切换失效')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T23-24-52-PagesPet子页面温主题背景统一.diff">
+            <div class="tl-time">2026-07-24 07:24</div>
+            <div class="tl-title">PagesPet子页面温主题背景统一</div>
+            <div class="tl-desc">批量更新16个pagesPet子页面的背景为温主题渐变、页面入场动画、替换硬编码暗黑金颜色为温主题变量</div>
+            <div class="tl-file">src/pagesPet/*/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T23-24-52-PagesPet子页面温主题背景统一.diff', 'PagesPet子页面温主题背景统一')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T23-17-26-全页面温馨主题与动效升级.diff">
+            <div class="tl-time">2026-07-24 07:17</div>
+            <div class="tl-title">全页面温馨主题与动效升级</div>
+            <div class="tl-desc">为login/member/pet-profile/profile/onboarding/invite/agreement共7个页面补充温馨主题背景、装饰光晕、爪印星星粒子、卡片交错入场、呼吸光晕等动效</div>
+            <div class="tl-file">src/pages/login/index.scss, src/pages/login/index.tsx, src/pages/member/index.scss, src/pages/pet-profile/index.scss, src/pagesUser/profile/index.scss, src/pagesUser/onboarding/index.scss, src/pagesUser/invite/index.scss, src/pagesUser/agreement/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T23-17-26-全页面温馨主题与动效升级.diff', '全页面温馨主题与动效升级')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T23-09-52-温馨主题系统-丰富动效.diff">
+            <div class="tl-time">2026-07-24 07:09</div>
+            <div class="tl-title">温馨主题系统+丰富动效</div>
+            <div class="tl-desc">创建4套温馨主题(暖棕奶茶/日落暖橙/柔和马卡龙/暗黑金)、主题Store持久化、全局动画系统(爪印粒子/星光/光晕/弹性入场)、改造全部主要页面样式、设置页添加主题切换器</div>
+            <div class="tl-file">src/styles/_theme.scss, src/styles/_animations.scss, src/styles/global.scss, src/stores/themeStore.ts, src/stores/index.ts, src/app.tsx, src/pages/index/index.scss, src/pages/index/index.tsx, src/pages/timeline/index.scss, src/pages/family/index.scss, src/pages/mine/index.scss, src/pagesUser/settings/index.tsx, src/pagesUser/settings/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T23-09-52-温馨主题系统-丰富动效.diff', '温馨主题系统+丰富动效')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T22-54-15-前端界面优化---对齐原型图.diff">
+            <div class="tl-time">2026-07-24 06:54</div>
+            <div class="tl-title">前端界面优化 - 对齐原型图</div>
+            <div class="tl-desc">1. 时光线页：照片占位符改为渐变背景、时间线节点颜色对齐原型（金/珊瑚/灰）、横幅使用共享breathe动画、修复Sass编译错误 2. 聊天页：个性化问候语加入宠物名 3. 家庭页：周报卡片展示每只宠物的健康分 4. 13个pagesPet子页面SCSS统一暗黑金主题：添加_theme和_animations导入、删除重复keyframes、替换硬编码浅色为暗黑金变量 5. 编译通过，无错误</div>
+            <div class="tl-file">src/pages/timeline/index.scss, src/pages/index/index.tsx, src/pages/family/index.tsx, src/pages/family/index.scss, src/pagesPet/symptom-check/index.scss, src/pagesPet/diary/index.scss, src/pagesPet/avatar-customize/index.scss, src/pagesPet/chronic-tracking/index.scss, src/pagesPet/checkin/index.scss, src/pagesPet/feeding-advice/index.scss, src/pagesPet/food-query/index.scss, src/pagesPet/hospital/index.scss, src/pagesPet/add/index.scss, src/pagesPet/family/index.scss, src/pagesPet/ai-chat/index.scss, src/pagesPet/chat/index.scss, src/pagesPet/timeline/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T22-54-15-前端界面优化---对齐原型图.diff', '前端界面优化 - 对齐原型图')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-58-13-SCSS暗黑金主题修复.diff">
+            <div class="tl-time">2026-07-24 00:58</div>
+            <div class="tl-title">SCSS暗黑金主题修复</div>
+            <div class="tl-desc">为pagesPet下13个SCSS文件添加_theme和_animations导入，替换局部变量和硬编码颜色为暗黑金主题变量，删除重复的@keyframes动画</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/symptom-check/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/diary/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/avatar-customize/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/checkin/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/food-query/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/add/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/chat/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/ai-chat/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/family/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/timeline/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-58-13-SCSS暗黑金主题修复.diff', 'SCSS暗黑金主题修复')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-44-23-前端界面优化---对齐原型图.diff">
+            <div class="tl-time">2026-07-24 00:44</div>
+            <div class="tl-title">前端界面优化 - 对齐原型图</div>
+            <div class="tl-desc">1. 聊天页增加结构化卡片展示（健康报告、食物分析、症状评估、取名推荐）2. 时光线页优化照片占位符（渐变背景替代虚线边框）3. 我的页面添加金色分割线 4. 修复8个TypeScript错误 5. 安装缺失依赖@testing-library/user-event</div>
+            <div class="tl-file">src/pages/index/index.tsx, src/pages/index/index.scss, src/pagesPet/timeline/index.scss, src/pages/mine/index.tsx, src/pages/mine/index.scss, src/services/calendarService.ts, src/services/shareService.ts, src/pagesPet/ai-chat/index.tsx, package.json</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-44-23-前端界面优化---对齐原型图.diff', '前端界面优化 - 对齐原型图')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-31-03-暗黑金主题重写4个SCSS文件.diff">
+            <div class="tl-time">2026-07-24 00:31</div>
+            <div class="tl-title">暗黑金主题重写4个SCSS文件</div>
+            <div class="tl-desc">将food-query、symptom-check、trends、vaccine四个页面SCSS从浅色主题重写为暗黑金主题，使用_theme.scss变量和mixins</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\pagesPet\food-query\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\symptom-check\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\trends\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\vaccine\index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-31-03-暗黑金主题重写4个SCSS文件.diff', '暗黑金主题重写4个SCSS文件')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-28-43-暗黑金主题SCSS重写.diff">
+            <div class="tl-time">2026-07-24 00:28</div>
+            <div class="tl-title">暗黑金主题SCSS重写</div>
+            <div class="tl-desc">将5个页面SCSS文件从浅色主题重写为暗黑金主题(hospital/feeding-advice/chronic-tracking/breed/breed-detail)，统一使用_theme变量，添加_animations动画效果</div>
+            <div class="tl-file">src/pagesPet/hospital/index.scss, src/pagesPet/feeding-advice/index.scss, src/pagesPet/chronic-tracking/index.scss, src/pagesPet/breed/index.scss, src/pagesPet/breed-detail/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-28-43-暗黑金主题SCSS重写.diff', '暗黑金主题SCSS重写')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-28-17-暗黑金主题重写---4个SCSS文件.diff">
+            <div class="tl-time">2026-07-24 00:28</div>
+            <div class="tl-title">暗黑金主题重写 - 4个SCSS文件</div>
+            <div class="tl-desc">将4个宠物模块SCSS文件从浅色主题重写为暗黑金主题：add/index.scss（表单页）、checkin/index.scss（健康打卡）、avatar-customize/index.scss（头像定制）、diary/index.scss（日记时间线）。所有颜色改为暗黑金主题变量，包括背景#0F1724、卡片#1A2332、金色主色#E8A838、输入框深色半透明背景等。</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\pagesPet\add\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\checkin\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.scss, 03-源代码\小程序\miniapp\src\pagesPet\diary\index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-28-17-暗黑金主题重写---4个SCSS文件.diff', '暗黑金主题重写 - 4个SCSS文件')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-26-52-Phase-1-5-安全审查完成.diff">
+            <div class="tl-time">2026-07-24 00:26</div>
+            <div class="tl-title">Phase 1.5 安全审查完成</div>
+            <div class="tl-desc">对16个新增核心文件完成六维度安全审查：P0=0, P1=8, P2=5, P3=8, P5=3。主要发现：取名/聊天服务缺少登录校验、AI Prompt注入防护不足、Token自动刷新缺失、3处死代码。</div>
+            <div class="tl-file">src/services/chatService.ts, src/services/aiProvider.ts, src/services/familyService.ts, src/services/namingService.ts, src/services/timelineService.ts, src/services/calendarService.ts, src/stores/chatStore.ts, src/stores/familyStore.ts, src/engines/petSafety/PetSafetyHandler.ts, src/engines/petSafety/ToxicFoodFilter.ts, src/engines/petSafety/MedicalDisclaimer.ts, src/engines/emotion.ts, src/pages/family/index.tsx, src/pagesPet/chat/index.tsx, src/pagesPet/family/calendar/index.tsx, src/pagesPet/naming/index.tsx, src/pages/timeline/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-26-52-Phase-1-5-安全审查完成.diff', 'Phase 1.5 安全审查完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-22-30-修复navigateTo-tabbar页面错误及Sass编译.diff">
+            <div class="tl-time">2026-07-24 00:22</div>
+            <div class="tl-title">修复navigateTo tabbar页面错误及Sass编译错误</div>
+            <div class="tl-desc">修复family页面navigateTo tabBar页面导致崩溃；修复5个scss文件中未定义的Sass变量(-bg-secondary,-bg-tertiary,-color)</div>
+            <div class="tl-file">src/pages/family/index.tsx, src/pagesPet/family/index.tsx, src/components/AnxietyIntervention.scss, src/components/EmptyStateGuide.scss, src/components/NewbieTaskCard.scss, src/components/RecommendContentCard.scss, src/pagesPet/breed/index.scss, src/pagesPet/breed-detail/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-22-30-修复navigateTo-tabbar页面错误及Sass编译.diff', '修复navigateTo tabbar页面错误及Sass编译错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-12-32-修复家庭图谱Network-unavailable及创建家庭.diff">
+            <div class="tl-time">2026-07-24 00:12</div>
+            <div class="tl-title">修复家庭图谱Network unavailable及创建家庭功能</div>
+            <div class="tl-desc">修复api.ts通用request方法在mock模式下抛出Network unavailable错误；为familyService添加mock数据支持；修复dashboard创建家庭按钮无响应</div>
+            <div class="tl-file">src/services/api.ts, src/services/familyService.ts, src/services/mock.ts, src/pagesPet/family/dashboard/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-12-32-修复家庭图谱Network-unavailable及创建家庭.diff', '修复家庭图谱Network unavailable及创建家庭功能')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-11-59-修复家庭页毛孩子点击跳转错误.diff">
+            <div class="tl-time">2026-07-24 00:11</div>
+            <div class="tl-title">修复家庭页毛孩子点击跳转错误</div>
+            <div class="tl-desc">修复两个问题: 1)点击毛孩子错误跳转到编辑页而非档案页 2)新增毛孩子按钮无响应。替换硬编码mock数据为真实petStore数据，点击毛孩子先switchPet再跳转档案页，末尾添加新建毛孩子卡片</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/pages/family/index.tsx, 03-源代码/小程序/miniapp/src/pages/family/index.scss, 03-源代码/小程序/miniapp/src/pagesPet/family/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/family/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-11-59-修复家庭页毛孩子点击跳转错误.diff', '修复家庭页毛孩子点击跳转错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T15-44-27-修复navigateBack异步错误捕获.diff">
+            <div class="tl-time">2026-07-23 23:44</div>
+            <div class="tl-title">修复navigateBack异步错误捕获</div>
+            <div class="tl-desc">safeNavigateBack改用Promise.catch捕获Taro异步API错误，增加switchTab兜底</div>
+            <div class="tl-file">src/utils/navigation.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T15-44-27-修复navigateBack异步错误捕获.diff', '修复navigateBack异步错误捕获')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T15-28-42-修复小程序运行时错误.diff">
+            <div class="tl-time">2026-07-23 23:28</div>
+            <div class="tl-title">修复小程序运行时错误</div>
+            <div class="tl-desc">修复navigateBack首页调用崩溃和SVG模板缺失问题</div>
+            <div class="tl-file">src/utils/navigation.ts, src/utils/index.ts, src/pagesPet/symptom-check/index.tsx, src/pagesPet/avatar-customize/index.tsx, src/pagesPet/add/index.tsx, src/pagesPet/edit/index.tsx, src/components/FloatingNav.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T15-28-42-修复小程序运行时错误.diff', '修复小程序运行时错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T15-02-40-修复Tab页面反复跳转登录.diff">
+            <div class="tl-time">2026-07-23 23:02</div>
+            <div class="tl-title">修复Tab页面反复跳转登录</div>
+            <div class="tl-desc">修复了两个问题：1) USE_MOCK从false改为true启用Mock登录API防止登录失败；2) mine和pet-profile页面添加登录循环守卫(已到登录页则不重复跳转)</div>
+            <div class="tl-file">src/config/index.ts, src/pages/mine/index.tsx, src/pages/pet-profile/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T15-02-40-修复Tab页面反复跳转登录.diff', '修复Tab页面反复跳转登录')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T14-56-10-5Tab改造-首页chat化-时光-家庭独立Tab.diff">
+            <div class="tl-time">2026-07-23 22:56</div>
+            <div class="tl-title">5Tab改造：首页chat化+时光/家庭独立Tab</div>
+            <div class="tl-desc">首页从网格仪表盘改为完整对话式AI聊天界面（含打卡/食物/症状/取名流程），时光页和家庭页从分包移至主包为独立Tab，底部导航从3Tab扩展为5Tab：首页/宠物/时光/家庭/我的</div>
+            <div class="tl-file">src/app.config.ts, src/pages/index/index.tsx, src/pages/index/index.scss, src/pages/index/index.config.ts, src/pages/timeline/index.tsx, src/pages/timeline/index.scss, src/pages/timeline/index.config.ts, src/pages/family/index.tsx, src/pages/family/index.scss, src/pages/family/index.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T14-56-10-5Tab改造-首页chat化-时光-家庭独立Tab.diff', '5Tab改造：首页chat化+时光/家庭独立Tab')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T14-18-44-创建3个页面并更新TabBar.diff">
+            <div class="tl-time">2026-07-23 22:18</div>
+            <div class="tl-title">创建3个页面并更新TabBar</div>
+            <div class="tl-desc">1. 创建时光页(timeline): 金色渐变时间线+呼吸发光Banner+里程碑标记+5个回忆事件 2. 创建家庭页(family): AI周报+宠物横滑卡片+快捷入口网格 3. 改造我的页(mine): 添加宠物Chips横滑切换 4. 更新TabBar为4Tab(聊天/时光/家庭/我的)</div>
+            <div class="tl-file">src/pages/timeline/index.tsx, src/pages/timeline/index.scss, src/pages/family/index.tsx, src/pages/family/index.scss, src/pages/mine/index.tsx, src/pages/mine/index.scss, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T14-18-44-创建3个页面并更新TabBar.diff', '创建3个页面并更新TabBar')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T12-31-07-Supabase-自家后端迁移完成.diff">
             <div class="tl-time">2026-07-23 20:31</div>
             <div class="tl-title">Supabase→自家后端迁移完成</div>
             <div class="tl-desc">数据库从Supabase迁移到自有Node.js+PostgreSQL后端。新增server目录(11个路由组+AI代理+JWT认证)，前端Service层全部迁移，删除supabaseClient/supabase配置，AI Key从前端剥离到后端</div>

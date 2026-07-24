@@ -1,1 +1,1038 @@
-"use strict";(wx["webpackJsonp"]=wx["webpackJsonp"]||[]).push([[8260],{74:function(e,a,t){var s=t(2180),i=t(9439),n=t(1515),c=t(2954),r=t.n(c),l=t(7294),o=t(8537),d=t(8143),p=t(2058),h=t(5350),g=t(3433),u=[{id:"h001",name:"\u5317\u4eac\u745e\u6d3e\u5ba0\u7269\u533b\u9662\uff08\u671d\u9633\u603b\u9662\uff09",address:"\u5317\u4eac\u5e02\u671d\u9633\u533a\u5efa\u56fd\u8def88\u53f7SOHO\u73b0\u4ee3\u57ceA\u5ea7",phone:"010-88886666",distance:1.2,rating:4.8,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u5f71\u50cf\u79d1","\u68c0\u9a8c\u79d1","\u7259\u79d1","\u76ae\u80a4\u79d1"],species:["dog","cat","bird","rabbit"],emergency:!1,latitude:39.9042,longitude:116.4074,city:"\u5317\u4eac",type:"general"},{id:"h002",name:"\u5317\u4eac\u7231\u8bfa\u52a8\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u5317\u4eac\u5e02\u6d77\u6dc0\u533a\u4e2d\u5173\u6751\u5927\u885727\u53f7\u4e2d\u5173\u6751\u5927\u53a6",phone:"010-66668888",distance:3.5,rating:4.9,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u8840\u6db2\u900f\u6790","\u5f71\u50cf\u79d1"],species:["dog","cat","bird","rabbit","reptile","small_animal"],emergency:!0,latitude:39.959,longitude:116.317,city:"\u5317\u4eac",type:"emergency"},{id:"h003",name:"\u5317\u4eac\u82ad\u6bd4\u5802\u52a8\u7269\u773c\u79d1\u4e2d\u5fc3",address:"\u5317\u4eac\u5e02\u897f\u57ce\u533a\u91d1\u878d\u8857\u75329\u53f7",phone:"010-55559999",distance:5.8,rating:4.7,openHours:"09:00-18:00",services:["\u773c\u79d1\u4e13\u79d1","\u767d\u5185\u969c\u624b\u672f","\u9752\u5149\u773c\u6cbb\u7597","\u89d2\u819c\u79fb\u690d"],species:["dog","cat"],emergency:!1,latitude:39.9139,longitude:116.3669,city:"\u5317\u4eac",type:"specialist",specialties:["\u773c\u79d1"]},{id:"h004",name:"\u4e0a\u6d77\u745e\u9e4f\u5ba0\u7269\u533b\u9662\uff08\u6d66\u4e1c\u65d7\u8230\u5e97\uff09",address:"\u4e0a\u6d77\u5e02\u6d66\u4e1c\u65b0\u533a\u9646\u5bb6\u5634\u73af\u8def1000\u53f7",phone:"021-68888888",distance:2.1,rating:4.6,openHours:"08:30-22:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u7259\u79d1"],species:["dog","cat","rabbit"],emergency:!1,latitude:31.2304,longitude:121.4737,city:"\u4e0a\u6d77",type:"general"},{id:"h005",name:"\u4e0a\u6d77\u7533\u751f\u52a8\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u4e0a\u6d77\u5e02\u5f90\u6c47\u533a\u6f15\u6eaa\u5317\u8def18\u53f7",phone:"021-55556666",distance:4.3,rating:4.9,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u4e2d\u6bd2\u6025\u6551","\u521b\u4f24\u5904\u7406"],species:["dog","cat","bird","rabbit","reptile","small_animal"],emergency:!0,latitude:31.1955,longitude:121.4377,city:"\u4e0a\u6d77",type:"emergency"},{id:"h006",name:"\u4e0a\u6d77\u987d\u76ae\u5bb6\u65cf\u5ba0\u7269\u9aa8\u79d1\u4e2d\u5fc3",address:"\u4e0a\u6d77\u5e02\u957f\u5b81\u533a\u8679\u6865\u8def1438\u53f7",phone:"021-77778888",distance:6.2,rating:4.8,openHours:"09:00-19:00",services:["\u9aa8\u79d1\u4e13\u79d1","\u5173\u8282\u7f6e\u6362","\u810a\u67f1\u624b\u672f","\u8fd0\u52a8\u5eb7\u590d","\u7269\u7406\u6cbb\u7597"],species:["dog","cat"],emergency:!1,latitude:31.198,longitude:121.4,city:"\u4e0a\u6d77",type:"specialist",specialties:["\u9aa8\u79d1"]},{id:"h007",name:"\u5e7f\u5dde\u7231\u5ba0\u52a8\u7269\u533b\u9662\uff08\u5929\u6cb3\u5206\u9662\uff09",address:"\u5e7f\u5dde\u5e02\u5929\u6cb3\u533a\u5929\u6cb3\u8def385\u53f7\u592a\u53e4\u6c47",phone:"020-88889999",distance:1.8,rating:4.5,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u5f71\u50cf\u79d1"],species:["dog","cat","bird"],emergency:!1,latitude:23.1291,longitude:113.2644,city:"\u5e7f\u5dde",type:"general"},{id:"h008",name:"\u5e7f\u5dde\u7acb\u5fb7\u52a8\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u5e7f\u5dde\u5e02\u8d8a\u79c0\u533a\u4e1c\u98ce\u4e1c\u8def753\u53f7",phone:"020-66667777",distance:3.9,rating:4.7,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u4e2d\u6bd2\u6025\u6551"],species:["dog","cat","bird","rabbit","small_animal"],emergency:!0,latitude:23.1291,longitude:113.2644,city:"\u5e7f\u5dde",type:"emergency"},{id:"h009",name:"\u5e7f\u5dde\u745e\u6d3e\u5ba0\u7269\u76ae\u80a4\u79d1\u4e2d\u5fc3",address:"\u5e7f\u5dde\u5e02\u6d77\u73e0\u533a\u65b0\u6e2f\u4e2d\u8def350\u53f7",phone:"020-55554444",distance:5.1,rating:4.6,openHours:"09:00-18:00",services:["\u76ae\u80a4\u79d1\u4e13\u79d1","\u8fc7\u654f\u68c0\u6d4b","\u771f\u83cc\u6cbb\u7597","\u5bc4\u751f\u866b\u9632\u6cbb","\u836f\u6d74"],species:["dog","cat"],emergency:!1,latitude:23.0958,longitude:113.3199,city:"\u5e7f\u5dde",type:"specialist",specialties:["\u76ae\u80a4\u79d1"]},{id:"h010",name:"\u6df1\u5733\u745e\u9e4f\u5ba0\u7269\u533b\u9662\uff08\u5357\u5c71\u603b\u9662\uff09",address:"\u6df1\u5733\u5e02\u5357\u5c71\u533a\u6df1\u5357\u5927\u90539966\u53f7",phone:"0755-88886666",distance:2.5,rating:4.7,openHours:"08:30-22:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u7259\u79d1","\u5f71\u50cf\u79d1"],species:["dog","cat","rabbit","bird"],emergency:!1,latitude:22.5431,longitude:114.0579,city:"\u6df1\u5733",type:"general"},{id:"h011",name:"\u6df1\u5733\u8054\u5408\u5ba0\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u6df1\u5733\u5e02\u798f\u7530\u533a\u798f\u534e\u4e09\u8def168\u53f7",phone:"0755-66668888",distance:4.8,rating:4.8,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u8840\u6db2\u900f\u6790","\u4e2d\u6bd2\u6025\u6551"],species:["dog","cat","bird","rabbit","reptile","small_animal"],emergency:!0,latitude:22.5431,longitude:114.0579,city:"\u6df1\u5733",type:"emergency"},{id:"h012",name:"\u6210\u90fd\u745e\u6d3e\u5ba0\u7269\u533b\u9662\uff08\u9526\u6c5f\u603b\u9662\uff09",address:"\u6210\u90fd\u5e02\u9526\u6c5f\u533a\u4eba\u6c11\u5357\u8def\u4e8c\u6bb580\u53f7",phone:"028-88889999",distance:1.5,rating:4.6,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u5f71\u50cf\u79d1"],species:["dog","cat","bird"],emergency:!1,latitude:30.5728,longitude:104.0668,city:"\u6210\u90fd",type:"general"},{id:"h013",name:"\u6210\u90fd\u534e\u897f\u52a8\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u6210\u90fd\u5e02\u6b66\u4faf\u533a\u4eba\u6c11\u5357\u8def\u4e09\u6bb517\u53f7",phone:"028-66667777",distance:3.2,rating:4.9,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u521b\u4f24\u5904\u7406","\u4e2d\u6bd2\u6025\u6551"],species:["dog","cat","bird","rabbit","small_animal"],emergency:!0,latitude:30.6359,longitude:104.0607,city:"\u6210\u90fd",type:"emergency"},{id:"h014",name:"\u676d\u5dde\u745e\u9e4f\u5ba0\u7269\u533b\u9662\uff08\u897f\u6e56\u5206\u9662\uff09",address:"\u676d\u5dde\u5e02\u897f\u6e56\u533a\u66d9\u5149\u8def120\u53f7",phone:"0571-88887777",distance:2.3,rating:4.5,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u7259\u79d1"],species:["dog","cat","rabbit"],emergency:!1,latitude:30.2741,longitude:120.1551,city:"\u676d\u5dde",type:"general"},{id:"h015",name:"\u676d\u5dde\u6d3e\u5e0c\u5fb7\u52a8\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u676d\u5dde\u5e02\u6c5f\u5e72\u533a\u94b1\u6c5f\u65b0\u57ce\u57ce\u661f\u8def89\u53f7",phone:"0571-66665555",distance:5.6,rating:4.7,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u4e2d\u6bd2\u6025\u6551"],species:["dog","cat","bird","rabbit","small_animal"],emergency:!0,latitude:30.2741,longitude:120.1551,city:"\u676d\u5dde",type:"emergency"},{id:"h016",name:"\u6b66\u6c49\u745e\u6d3e\u5ba0\u7269\u533b\u9662\uff08\u6b66\u660c\u603b\u9662\uff09",address:"\u6b66\u6c49\u5e02\u6b66\u660c\u533a\u4e2d\u5357\u8def7\u53f7",phone:"027-88886666",distance:1.9,rating:4.4,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2"],species:["dog","cat","bird"],emergency:!1,latitude:30.5928,longitude:114.3055,city:"\u6b66\u6c49",type:"general"},{id:"h017",name:"\u6b66\u6c49\u8054\u5408\u52a8\u7269\u533b\u9662\uff0824h\u6025\u8bca\uff09",address:"\u6b66\u6c49\u5e02\u6c5f\u6c49\u533a\u89e3\u653e\u5927\u9053686\u53f7",phone:"027-66669999",distance:4.1,rating:4.6,openHours:"24\u5c0f\u65f6",services:["24h\u6025\u8bca","\u5185\u79d1","\u5916\u79d1","ICU","\u521b\u4f24\u5904\u7406"],species:["dog","cat","bird","rabbit"],emergency:!0,latitude:30.5928,longitude:114.3055,city:"\u6b66\u6c49",type:"emergency"},{id:"h018",name:"\u5357\u4eac\u745e\u9e4f\u5ba0\u7269\u533b\u9662\uff08\u7384\u6b66\u5206\u9662\uff09",address:"\u5357\u4eac\u5e02\u7384\u6b66\u533a\u4e2d\u5c71\u8def81\u53f7",phone:"025-88885555",distance:2.7,rating:4.5,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u5f71\u50cf\u79d1"],species:["dog","cat","rabbit"],emergency:!1,latitude:32.0603,longitude:118.7969,city:"\u5357\u4eac",type:"general"},{id:"h019",name:"\u897f\u5b89\u745e\u6d3e\u5ba0\u7269\u533b\u9662\uff08\u96c1\u5854\u603b\u9662\uff09",address:"\u897f\u5b89\u5e02\u96c1\u5854\u533a\u957f\u5b89\u4e2d\u8def38\u53f7",phone:"029-88884444",distance:3.3,rating:4.3,openHours:"09:00-20:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2"],species:["dog","cat"],emergency:!1,latitude:34.3416,longitude:108.9398,city:"\u897f\u5b89",type:"general"},{id:"h020",name:"\u91cd\u5e86\u745e\u9e4f\u5ba0\u7269\u533b\u9662\uff08\u6e1d\u4e2d\u603b\u9662\uff09",address:"\u91cd\u5e86\u5e02\u6e1d\u4e2d\u533a\u90b9\u5bb9\u8def120\u53f7",phone:"023-88883333",distance:1.6,rating:4.4,openHours:"09:00-21:00",services:["\u5185\u79d1","\u5916\u79d1","\u75ab\u82d7\u63a5\u79cd","\u4f53\u68c0","\u7edd\u80b2","\u5f71\u50cf\u79d1"],species:["dog","cat","bird","rabbit"],emergency:!1,latitude:29.563,longitude:106.5516,city:"\u91cd\u5e86",type:"general"}];function m(e,a){var t=[].concat(u);return e&&(t=t.filter(function(a){return a.city===e})),a&&(t=t.filter(function(e){return e.species.includes(a)})),t.sort(function(e,a){return e.distance-a.distance})}function _(e){if(!e.trim())return[].concat(u).sort(function(e,a){return e.distance-a.distance});var a=e.toLowerCase().trim();return u.filter(function(e){return e.name.toLowerCase().includes(a)||e.address.toLowerCase().includes(a)||e.services.some(function(e){return e.toLowerCase().includes(a)})||e.city.toLowerCase().includes(a)||e.specialties&&e.specialties.some(function(e){return e.toLowerCase().includes(a)})}).sort(function(e,a){return e.distance-a.distance})}function y(){return u.filter(function(e){return e.emergency}).sort(function(e,a){return e.distance-a.distance})}function x(e,a,t,s){var i=6371,n=(t-e)*(Math.PI/180),c=(s-a)*(Math.PI/180),r=Math.sin(n/2)*Math.sin(n/2)+Math.cos(e*(Math.PI/180))*Math.cos(t*(Math.PI/180))*Math.sin(c/2)*Math.sin(c/2),l=2*Math.atan2(Math.sqrt(r),Math.sqrt(1-r));return i*l}function f(e,a,t){return null==a||null==t?(0,g.Z)(e).sort(function(e,a){return e.distance-a.distance}):(0,g.Z)(e).sort(function(e,s){var i=x(a,t,e.latitude,e.longitude),n=x(a,t,s.latitude,s.longitude);return i-n})}function v(e){try{var a=e||{},t=a.city,s=a.species,i=a.latitude,n=a.longitude,c=m(t,s);return f(c,i,n)}catch(e){return[]}}function b(e){try{return e&&"string"===typeof e?_(e.trim()):[]}catch(e){return[]}}function j(){try{return y()}catch(e){return[]}}function N(e){try{if(!e||"string"!==typeof e)return void r().showToast({title:"\u7535\u8bdd\u53f7\u7801\u65e0\u6548",icon:"none"});r().makePhoneCall({phoneNumber:e.replace(/[^\d-]/g,""),fail:function(){r().showToast({title:"\u62e8\u6253\u7535\u8bdd\u5931\u8d25",icon:"none"})}})}catch(e){r().showToast({title:"\u62e8\u6253\u7535\u8bdd\u5931\u8d25",icon:"none"})}}function C(e,a,t){try{if(null==e||null==a)return void r().showToast({title:"\u4f4d\u7f6e\u4fe1\u606f\u65e0\u6548",icon:"none"});r().openLocation({latitude:e,longitude:a,name:t,address:"",fail:function(){r().showToast({title:"\u6253\u5f00\u5bfc\u822a\u5931\u8d25",icon:"none"})}})}catch(e){r().showToast({title:"\u5bfc\u822a\u5931\u8d25",icon:"none"})}}var k=t(5893),G=[{key:"all",label:"\u5168\u90e8"},{key:"emergency",label:"24h\u6025\u8bca"},{key:"general",label:"\u7efc\u5408"},{key:"specialist",label:"\u4e13\u79d1"},{key:"nearest",label:"\u79bb\u6211\u6700\u8fd1"}],H={general:"\u7efc\u5408",specialist:"\u4e13\u79d1",emergency:"\u6025\u8bca"},w={general:"#4A90D9",specialist:"#FF8C42",emergency:"#FF4D4F"};function I(){var e=(0,o.z)(),a=e.trackEvent,t=(0,l.useState)(""),s=(0,i.Z)(t,2),c=s[0],g=s[1],u=(0,l.useState)("all"),m=(0,i.Z)(u,2),_=m[0],y=m[1],x=(0,l.useState)([]),f=(0,i.Z)(x,2),I=f[0],M=f[1],Z=(0,l.useState)(!1),L=(0,i.Z)(Z,2),F=L[0],P=L[1],T=(0,l.useState)(null),S=(0,i.Z)(T,2),U=S[0],O=S[1];(0,o.a)("hospital");var D=(0,l.useCallback)(function(){P(!0);try{var e=[];switch(_){case"emergency":e=j();break;case"general":e=v().filter(function(e){return"general"===e.type});break;case"specialist":e=v().filter(function(e){return"specialist"===e.type});break;case"nearest":e=v();break;default:e=v()}M(e)}catch(e){r().showToast({title:"\u52a0\u8f7d\u5931\u8d25",icon:"none"})}finally{P(!1)}},[_]);(0,l.useEffect)(function(){D()},[D]);var q=(0,l.useCallback)(function(){if(c.trim()){a(d.Z.FindHospital,{petId:"",urgencyLevel:"green",source:"search"}),P(!0);try{var e=b(c.trim());M(e)}catch(e){}finally{P(!1)}}else D()},[c,D,a]),A=(0,l.useCallback)(function(e){y(e),a(d.Z.FindHospital,{petId:"",urgencyLevel:"green",source:"filter_".concat(e)})},[a]),E=(0,l.useCallback)(function(e,t){a(d.Z.FindHospital,{petId:"",urgencyLevel:"green",source:"call_phone"}),N(e)},[a]),J=(0,l.useCallback)(function(e){a(d.Z.FindHospital,{petId:"",urgencyLevel:"green",source:"navigate"}),C(e.latitude,e.longitude,e.name)},[a]),z=(0,l.useCallback)(function(e){O(function(a){return(null===a||void 0===a?void 0:a.id)===e.id?null:e})},[]),B=(0,l.useCallback)(function(e){for(var a=Math.floor(e),t=e-a>=.5,s=[],i=0;i<a;i++)s.push("\u2605");return t&&s.push("\u2606"),s.join("")},[]),Q=(0,l.useMemo)(function(){return I},[I]);return(0,k.jsxs)(n.G7,{className:"hospital-page",children:[(0,k.jsxs)(n.G7,{className:"hospital-page__search",children:[(0,k.jsxs)(n.G7,{className:"hospital-page__search-input-wrap",children:[(0,k.jsx)(n.xv,{className:"hospital-page__search-icon"}),(0,k.jsx)(n.II,{className:"hospital-page__search-input",placeholder:"\u641c\u7d22\u533b\u9662\u540d\u79f0\u3001\u5730\u5740\u6216\u670d\u52a1",placeholderClass:"hospital-page__search-placeholder",value:c,onInput:function(e){return g(e.detail.value)},onConfirm:q})]}),(0,k.jsx)(n.G7,{className:"hospital-page__search-btn",onClick:q,children:(0,k.jsx)(n.xv,{className:"hospital-page__search-btn-text",children:"\u641c\u7d22"})})]}),(0,k.jsx)(n.G7,{className:"hospital-page__filters",children:G.map(function(e){return(0,k.jsx)(n.G7,{className:"hospital-page__filter-tag".concat(_===e.key?" hospital-page__filter-tag--active":""),onClick:function(){return A(e.key)},children:(0,k.jsx)(n.xv,{className:"hospital-page__filter-tag-text",children:e.label})},e.key)})}),(0,k.jsx)(n.G7,{className:"hospital-page__disclaimer",children:(0,k.jsx)(n.xv,{className:"hospital-page__disclaimer-text",children:(new p.Q).getSymptomDisclaimer("green")})}),F?(0,k.jsx)(h.Z,{text:"\u6b63\u5728\u52a0\u8f7d\u533b\u9662\u4fe1\u606f..."}):0===Q.length?(0,k.jsxs)(n.G7,{className:"hospital-page__empty",children:[(0,k.jsx)(n.xv,{className:"hospital-page__empty-icon",children:"\ud83c\udfe5"}),(0,k.jsx)(n.xv,{className:"hospital-page__empty-text",children:"\u6682\u65e0\u7b26\u5408\u6761\u4ef6\u7684\u533b\u9662"}),(0,k.jsx)(n.xv,{className:"hospital-page__empty-hint",children:"\u5c1d\u8bd5\u66f4\u6362\u7b5b\u9009\u6761\u4ef6\u6216\u641c\u7d22\u5173\u952e\u8bcd"})]}):(0,k.jsx)(n.G7,{className:"hospital-page__list",children:Q.map(function(e){return(0,k.jsxs)(n.G7,{className:"hospital-page__card",onClick:function(){return z(e)},children:[(0,k.jsxs)(n.G7,{className:"hospital-page__card-header",children:[(0,k.jsxs)(n.G7,{className:"hospital-page__card-title-wrap",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-name",children:e.name}),(0,k.jsx)(n.G7,{className:"hospital-page__card-type",style:{backgroundColor:"".concat(w[e.type],"18"),color:w[e.type]},children:(0,k.jsx)(n.xv,{className:"hospital-page__card-type-text",children:H[e.type]||e.type})})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-rating",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-stars",children:B(e.rating)}),(0,k.jsx)(n.xv,{className:"hospital-page__card-rating-text",children:e.rating.toFixed(1)})]})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-info",children:[(0,k.jsxs)(n.G7,{className:"hospital-page__card-info-item",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-info-icon",children:"\ud83d\udccd"}),(0,k.jsx)(n.xv,{className:"hospital-page__card-info-text",children:e.address})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-info-item",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-info-icon"}),(0,k.jsx)(n.xv,{className:"hospital-page__card-info-text",children:e.openHours})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-info-item",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-info-icon",children:"\ud83d\udccf"}),(0,k.jsxs)(n.xv,{className:"hospital-page__card-info-text",children:["\u8ddd\u60a8\u7ea6 ",e.distance,"km"]})]})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-services",children:[e.services.slice(0,4).map(function(e,a){return(0,k.jsx)(n.G7,{className:"hospital-page__card-service-tag",children:(0,k.jsx)(n.xv,{className:"hospital-page__card-service-tag-text",children:e})},a)}),e.services.length>4&&(0,k.jsx)(n.G7,{className:"hospital-page__card-service-tag hospital-page__card-service-tag--more",children:(0,k.jsxs)(n.xv,{className:"hospital-page__card-service-tag-text",children:["+",e.services.length-4]})})]}),(null===U||void 0===U?void 0:U.id)===e.id&&(0,k.jsxs)(n.G7,{className:"hospital-page__card-detail",children:[e.specialties&&e.specialties.length>0&&(0,k.jsxs)(n.G7,{className:"hospital-page__card-detail-section",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-detail-label",children:"\u4e13\u79d1\u7279\u8272"}),(0,k.jsx)(n.G7,{className:"hospital-page__card-detail-tags",children:e.specialties.map(function(e,a){return(0,k.jsx)(n.xv,{className:"hospital-page__card-detail-tag",children:e},a)})})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-detail-section",children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-detail-label",children:"\u63a5\u8bca\u7269\u79cd"}),(0,k.jsx)(n.G7,{className:"hospital-page__card-detail-tags",children:e.species.map(function(e,a){return(0,k.jsx)(n.xv,{className:"hospital-page__card-detail-tag",children:"dog"===e?"\u72ac":"cat"===e?"\u732b":"bird"===e?"\u9e1f\u7c7b":"rabbit"===e?"\u5154\u5b50":"reptile"===e?"\u722c\u884c\u7c7b":"\u5c0f\u5ba0"},a)})})]})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-actions",children:[(0,k.jsxs)(n.G7,{className:"hospital-page__card-btn hospital-page__card-btn--call",onClick:function(a){a.stopPropagation(),E(e.phone,e.name)},children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-btn-icon",children:"\ud83d\udcde"}),(0,k.jsx)(n.xv,{className:"hospital-page__card-btn-text",children:"\u7535\u8bdd"})]}),(0,k.jsxs)(n.G7,{className:"hospital-page__card-btn hospital-page__card-btn--nav",onClick:function(a){a.stopPropagation(),J(e)},children:[(0,k.jsx)(n.xv,{className:"hospital-page__card-btn-icon",children:"\ud83e\udded"}),(0,k.jsx)(n.xv,{className:"hospital-page__card-btn-text",children:"\u5bfc\u822a"})]})]})]},e.id)})})]})}var M={navigationBarTitleText:"\u9644\u8fd1\u5ba0\u7269\u533b\u9662"};Page((0,s.createPageConfig)(I,"pagesPet/hospital/index",{root:{cn:[]}},M||{}))}},function(e){var a=function(a){return e(e.s=a)};e.O(0,[2107,1216,8592],function(){return a(74)});e.O()}]);
+"use strict";require("../sub-vendors.js");require("../sub-common/6445d8bdf2172a6fd6abee9a9e2cae24.js");require("../sub-common/a80d2ee33a59c94051f538ac359a531d.js");require("../sub-common/53c676dc54a90fa031d0d212976af696.js");
+(wx["webpackJsonp"] = wx["webpackJsonp"] || []).push([["pagesPet/hospital/index"],{
+
+/***/ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/hospital/index!./src/pagesPet/hospital/index.tsx":
+/*!****************************************************************************************************************************!*\
+  !*** ./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/hospital/index!./src/pagesPet/hospital/index.tsx ***!
+  \****************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ HospitalPage; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _tarojs_components__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @tarojs/components */ "./node_modules/@tarojs/plugin-platform-weapp/dist/components-react.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../hooks/useAnalytics */ "./src/hooks/useAnalytics.ts");
+/* harmony import */ var _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../types/analyticsTypes */ "./src/types/analyticsTypes.ts");
+/* harmony import */ var _engines_petSafety_MedicalDisclaimer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../engines/petSafety/MedicalDisclaimer */ "./src/engines/petSafety/MedicalDisclaimer.ts");
+/* harmony import */ var _components_PageLoading__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/PageLoading */ "./src/components/PageLoading.tsx");
+/* harmony import */ var _services_hospitalService__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../services/hospitalService */ "./src/services/hospitalService.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/cjs/react-jsx-runtime.production.min.js");
+
+
+
+
+
+
+
+
+
+
+
+var FILTER_TABS = [{
+  key: 'all',
+  label: '全部'
+}, {
+  key: 'emergency',
+  label: '24h急诊'
+}, {
+  key: 'general',
+  label: '综合'
+}, {
+  key: 'specialist',
+  label: '专科'
+}, {
+  key: 'nearest',
+  label: '离我最近'
+}];
+var TYPE_LABELS = {
+  general: '综合',
+  specialist: '专科',
+  emergency: '急诊'
+};
+var TYPE_COLORS = {
+  general: '#4A90D9',
+  specialist: '#FF8C42',
+  emergency: '#FF4D4F'
+};
+function HospitalPage() {
+  var _useAnalytics = (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_2__.useAnalytics)(),
+    trackEvent = _useAnalytics.trackEvent;
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(''),
+    _useState2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_useState, 2),
+    searchText = _useState2[0],
+    setSearchText = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('all'),
+    _useState4 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_useState3, 2),
+    activeFilter = _useState4[0],
+    setActiveFilter = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
+    _useState6 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_useState5, 2),
+    hospitals = _useState6[0],
+    setHospitals = _useState6[1];
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState8 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_useState7, 2),
+    loading = _useState8[0],
+    setLoading = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    _useState0 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_useState9, 2),
+    selectedHospital = _useState0[0],
+    setSelectedHospital = _useState0[1];
+  (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_2__.usePageView)('hospital');
+  var loadHospitals = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function () {
+    setLoading(true);
+    try {
+      var result = [];
+      switch (activeFilter) {
+        case 'emergency':
+          result = (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.getEmergencyHospitals)();
+          break;
+        case 'general':
+          result = (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.getNearbyHospitals)().filter(function (h) {
+            return h.type === 'general';
+          });
+          break;
+        case 'specialist':
+          result = (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.getNearbyHospitals)().filter(function (h) {
+            return h.type === 'specialist';
+          });
+          break;
+        case 'nearest':
+          result = (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.getNearbyHospitals)();
+          break;
+        default:
+          result = (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.getNearbyHospitals)();
+      }
+      setHospitals(result);
+    } catch (error) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+        title: '加载失败',
+        icon: 'none'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [activeFilter]);
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    loadHospitals();
+  }, [loadHospitals]);
+  var handleSearch = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function () {
+    if (!searchText.trim()) {
+      loadHospitals();
+      return;
+    }
+    trackEvent(_types_analyticsTypes__WEBPACK_IMPORTED_MODULE_3__.AnalyticsEventName.FindHospital, {
+      petId: '',
+      urgencyLevel: 'green',
+      source: 'search'
+    });
+    setLoading(true);
+    try {
+      var result = (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.searchHospitals)(searchText.trim());
+      setHospitals(result);
+    } catch (error) {} finally {
+      setLoading(false);
+    }
+  }, [searchText, loadHospitals, trackEvent]);
+  var handleFilterChange = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function (filter) {
+    setActiveFilter(filter);
+    trackEvent(_types_analyticsTypes__WEBPACK_IMPORTED_MODULE_3__.AnalyticsEventName.FindHospital, {
+      petId: '',
+      urgencyLevel: 'green',
+      source: "filter_".concat(filter)
+    });
+  }, [trackEvent]);
+  var handleCall = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function (phone, hospitalName) {
+    trackEvent(_types_analyticsTypes__WEBPACK_IMPORTED_MODULE_3__.AnalyticsEventName.FindHospital, {
+      petId: '',
+      urgencyLevel: 'green',
+      source: 'call_phone'
+    });
+    (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.callHospital)(phone);
+  }, [trackEvent]);
+  var handleNavigate = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function (hospital) {
+    trackEvent(_types_analyticsTypes__WEBPACK_IMPORTED_MODULE_3__.AnalyticsEventName.FindHospital, {
+      petId: '',
+      urgencyLevel: 'green',
+      source: 'navigate'
+    });
+    (0,_services_hospitalService__WEBPACK_IMPORTED_MODULE_6__.navigateToHospital)(hospital.latitude, hospital.longitude, hospital.name);
+  }, [trackEvent]);
+  var handleCardClick = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function (hospital) {
+    setSelectedHospital(function (prev) {
+      return (prev === null || prev === void 0 ? void 0 : prev.id) === hospital.id ? null : hospital;
+    });
+  }, []);
+  var renderStars = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function (rating) {
+    var fullStars = Math.floor(rating);
+    var hasHalf = rating - fullStars >= 0.5;
+    var stars = [];
+    for (var i = 0; i < fullStars; i++) {
+      stars.push('★');
+    }
+    if (hasHalf) {
+      stars.push('☆');
+    }
+    return stars.join('');
+  }, []);
+  var filteredHospitals = (0,react__WEBPACK_IMPORTED_MODULE_1__.useMemo)(function () {
+    return hospitals;
+  }, [hospitals]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+    className: "hospital-page",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "hospital-page__search",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "hospital-page__search-input-wrap",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "hospital-page__search-icon"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Input, {
+          className: "hospital-page__search-input",
+          placeholder: "\u641C\u7D22\u533B\u9662\u540D\u79F0\u3001\u5730\u5740\u6216\u670D\u52A1",
+          placeholderClass: "hospital-page__search-placeholder",
+          value: searchText,
+          onInput: function onInput(e) {
+            return setSearchText(e.detail.value);
+          },
+          onConfirm: handleSearch
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "hospital-page__search-btn",
+        onClick: handleSearch,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "hospital-page__search-btn-text",
+          children: "\u641C\u7D22"
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "hospital-page__filters",
+      children: FILTER_TABS.map(function (tab) {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+          className: "hospital-page__filter-tag".concat(activeFilter === tab.key ? ' hospital-page__filter-tag--active' : ''),
+          onClick: function onClick() {
+            return handleFilterChange(tab.key);
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+            className: "hospital-page__filter-tag-text",
+            children: tab.label
+          })
+        }, tab.key);
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "hospital-page__disclaimer",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "hospital-page__disclaimer-text",
+        children: new _engines_petSafety_MedicalDisclaimer__WEBPACK_IMPORTED_MODULE_4__.MedicalDisclaimer().getSymptomDisclaimer('green')
+      })
+    }), loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_components_PageLoading__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      text: "\u6B63\u5728\u52A0\u8F7D\u533B\u9662\u4FE1\u606F..."
+    }) : filteredHospitals.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "hospital-page__empty",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "hospital-page__empty-icon",
+        children: "\uD83C\uDFE5"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "hospital-page__empty-text",
+        children: "\u6682\u65E0\u7B26\u5408\u6761\u4EF6\u7684\u533B\u9662"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "hospital-page__empty-hint",
+        children: "\u5C1D\u8BD5\u66F4\u6362\u7B5B\u9009\u6761\u4EF6\u6216\u641C\u7D22\u5173\u952E\u8BCD"
+      })]
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "hospital-page__list",
+      children: filteredHospitals.map(function (hospital) {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+          className: "hospital-page__card",
+          onClick: function onClick() {
+            return handleCardClick(hospital);
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "hospital-page__card-header",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-title-wrap",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-name",
+                children: hospital.name
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+                className: "hospital-page__card-type",
+                style: {
+                  backgroundColor: "".concat(TYPE_COLORS[hospital.type], "18"),
+                  color: TYPE_COLORS[hospital.type]
+                },
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                  className: "hospital-page__card-type-text",
+                  children: TYPE_LABELS[hospital.type] || hospital.type
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-rating",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-stars",
+                children: renderStars(hospital.rating)
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-rating-text",
+                children: hospital.rating.toFixed(1)
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "hospital-page__card-info",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-info-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-info-icon",
+                children: "\uD83D\uDCCD"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-info-text",
+                children: hospital.address
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-info-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-info-icon"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-info-text",
+                children: hospital.openHours
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-info-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-info-icon",
+                children: "\uD83D\uDCCF"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-info-text",
+                children: ["\u8DDD\u60A8\u7EA6 ", hospital.distance, "km"]
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "hospital-page__card-services",
+            children: [hospital.services.slice(0, 4).map(function (service, index) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+                className: "hospital-page__card-service-tag",
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                  className: "hospital-page__card-service-tag-text",
+                  children: service
+                })
+              }, index);
+            }), hospital.services.length > 4 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-service-tag hospital-page__card-service-tag--more",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-service-tag-text",
+                children: ["+", hospital.services.length - 4]
+              })
+            })]
+          }), (selectedHospital === null || selectedHospital === void 0 ? void 0 : selectedHospital.id) === hospital.id && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "hospital-page__card-detail",
+            children: [hospital.specialties && hospital.specialties.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-detail-section",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-detail-label",
+                children: "\u4E13\u79D1\u7279\u8272"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+                className: "hospital-page__card-detail-tags",
+                children: hospital.specialties.map(function (specialty, index) {
+                  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                    className: "hospital-page__card-detail-tag",
+                    children: specialty
+                  }, index);
+                })
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-detail-section",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-detail-label",
+                children: "\u63A5\u8BCA\u7269\u79CD"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+                className: "hospital-page__card-detail-tags",
+                children: hospital.species.map(function (s, index) {
+                  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                    className: "hospital-page__card-detail-tag",
+                    children: s === 'dog' ? '犬' : s === 'cat' ? '猫' : s === 'bird' ? '鸟类' : s === 'rabbit' ? '兔子' : s === 'reptile' ? '爬行类' : '小宠'
+                  }, index);
+                })
+              })]
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "hospital-page__card-actions",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-btn hospital-page__card-btn--call",
+              onClick: function onClick(e) {
+                e.stopPropagation();
+                handleCall(hospital.phone, hospital.name);
+              },
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-btn-icon",
+                children: "\uD83D\uDCDE"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-btn-text",
+                children: "\u7535\u8BDD"
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "hospital-page__card-btn hospital-page__card-btn--nav",
+              onClick: function onClick(e) {
+                e.stopPropagation();
+                handleNavigate(hospital);
+              },
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-btn-icon",
+                children: "\uD83E\uDDED"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "hospital-page__card-btn-text",
+                children: "\u5BFC\u822A"
+              })]
+            })]
+          })]
+        }, hospital.id);
+      })
+    })]
+  });
+}
+
+/***/ }),
+
+/***/ "./src/data/hospitals.ts":
+/*!*******************************!*\
+  !*** ./src/data/hospitals.ts ***!
+  \*******************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getEmergencyHospitals": function() { return /* binding */ getEmergencyHospitals; },
+/* harmony export */   "getHospitalById": function() { return /* binding */ getHospitalById; },
+/* harmony export */   "getNearbyHospitals": function() { return /* binding */ getNearbyHospitals; },
+/* harmony export */   "searchHospitals": function() { return /* binding */ searchHospitals; }
+/* harmony export */ });
+/* unused harmony exports getAllCities, getHospitalsByType */
+var HOSPITALS = [{
+  id: 'h001',
+  name: '北京瑞派宠物医院（朝阳总院）',
+  address: '北京市朝阳区建国路88号SOHO现代城A座',
+  phone: '010-88886666',
+  distance: 1.2,
+  rating: 4.8,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '影像科', '检验科', '牙科', '皮肤科'],
+  species: ['dog', 'cat', 'bird', 'rabbit'],
+  emergency: false,
+  latitude: 39.9042,
+  longitude: 116.4074,
+  city: '北京',
+  type: 'general'
+}, {
+  id: 'h002',
+  name: '北京爱诺动物医院（24h急诊）',
+  address: '北京市海淀区中关村大街27号中关村大厦',
+  phone: '010-66668888',
+  distance: 3.5,
+  rating: 4.9,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '血液透析', '影像科'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'reptile', 'small_animal'],
+  emergency: true,
+  latitude: 39.959,
+  longitude: 116.317,
+  city: '北京',
+  type: 'emergency'
+}, {
+  id: 'h003',
+  name: '北京芭比堂动物眼科中心',
+  address: '北京市西城区金融街甲9号',
+  phone: '010-55559999',
+  distance: 5.8,
+  rating: 4.7,
+  openHours: '09:00-18:00',
+  services: ['眼科专科', '白内障手术', '青光眼治疗', '角膜移植'],
+  species: ['dog', 'cat'],
+  emergency: false,
+  latitude: 39.9139,
+  longitude: 116.3669,
+  city: '北京',
+  type: 'specialist',
+  specialties: ['眼科']
+}, {
+  id: 'h004',
+  name: '上海瑞鹏宠物医院（浦东旗舰店）',
+  address: '上海市浦东新区陆家嘴环路1000号',
+  phone: '021-68888888',
+  distance: 2.1,
+  rating: 4.6,
+  openHours: '08:30-22:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '牙科'],
+  species: ['dog', 'cat', 'rabbit'],
+  emergency: false,
+  latitude: 31.2304,
+  longitude: 121.4737,
+  city: '上海',
+  type: 'general'
+}, {
+  id: 'h005',
+  name: '上海申生动物医院（24h急诊）',
+  address: '上海市徐汇区漕溪北路18号',
+  phone: '021-55556666',
+  distance: 4.3,
+  rating: 4.9,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '中毒急救', '创伤处理'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'reptile', 'small_animal'],
+  emergency: true,
+  latitude: 31.1955,
+  longitude: 121.4377,
+  city: '上海',
+  type: 'emergency'
+}, {
+  id: 'h006',
+  name: '上海顽皮家族宠物骨科中心',
+  address: '上海市长宁区虹桥路1438号',
+  phone: '021-77778888',
+  distance: 6.2,
+  rating: 4.8,
+  openHours: '09:00-19:00',
+  services: ['骨科专科', '关节置换', '脊柱手术', '运动康复', '物理治疗'],
+  species: ['dog', 'cat'],
+  emergency: false,
+  latitude: 31.198,
+  longitude: 121.4,
+  city: '上海',
+  type: 'specialist',
+  specialties: ['骨科']
+}, {
+  id: 'h007',
+  name: '广州爱宠动物医院（天河分院）',
+  address: '广州市天河区天河路385号太古汇',
+  phone: '020-88889999',
+  distance: 1.8,
+  rating: 4.5,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '影像科'],
+  species: ['dog', 'cat', 'bird'],
+  emergency: false,
+  latitude: 23.1291,
+  longitude: 113.2644,
+  city: '广州',
+  type: 'general'
+}, {
+  id: 'h008',
+  name: '广州立德动物医院（24h急诊）',
+  address: '广州市越秀区东风东路753号',
+  phone: '020-66667777',
+  distance: 3.9,
+  rating: 4.7,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '中毒急救'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'small_animal'],
+  emergency: true,
+  latitude: 23.1291,
+  longitude: 113.2644,
+  city: '广州',
+  type: 'emergency'
+}, {
+  id: 'h009',
+  name: '广州瑞派宠物皮肤科中心',
+  address: '广州市海珠区新港中路350号',
+  phone: '020-55554444',
+  distance: 5.1,
+  rating: 4.6,
+  openHours: '09:00-18:00',
+  services: ['皮肤科专科', '过敏检测', '真菌治疗', '寄生虫防治', '药浴'],
+  species: ['dog', 'cat'],
+  emergency: false,
+  latitude: 23.0958,
+  longitude: 113.3199,
+  city: '广州',
+  type: 'specialist',
+  specialties: ['皮肤科']
+}, {
+  id: 'h010',
+  name: '深圳瑞鹏宠物医院（南山总院）',
+  address: '深圳市南山区深南大道9966号',
+  phone: '0755-88886666',
+  distance: 2.5,
+  rating: 4.7,
+  openHours: '08:30-22:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '牙科', '影像科'],
+  species: ['dog', 'cat', 'rabbit', 'bird'],
+  emergency: false,
+  latitude: 22.5431,
+  longitude: 114.0579,
+  city: '深圳',
+  type: 'general'
+}, {
+  id: 'h011',
+  name: '深圳联合宠物医院（24h急诊）',
+  address: '深圳市福田区福华三路168号',
+  phone: '0755-66668888',
+  distance: 4.8,
+  rating: 4.8,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '血液透析', '中毒急救'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'reptile', 'small_animal'],
+  emergency: true,
+  latitude: 22.5431,
+  longitude: 114.0579,
+  city: '深圳',
+  type: 'emergency'
+}, {
+  id: 'h012',
+  name: '成都瑞派宠物医院（锦江总院）',
+  address: '成都市锦江区人民南路二段80号',
+  phone: '028-88889999',
+  distance: 1.5,
+  rating: 4.6,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '影像科'],
+  species: ['dog', 'cat', 'bird'],
+  emergency: false,
+  latitude: 30.5728,
+  longitude: 104.0668,
+  city: '成都',
+  type: 'general'
+}, {
+  id: 'h013',
+  name: '成都华西动物医院（24h急诊）',
+  address: '成都市武侯区人民南路三段17号',
+  phone: '028-66667777',
+  distance: 3.2,
+  rating: 4.9,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '创伤处理', '中毒急救'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'small_animal'],
+  emergency: true,
+  latitude: 30.6359,
+  longitude: 104.0607,
+  city: '成都',
+  type: 'emergency'
+}, {
+  id: 'h014',
+  name: '杭州瑞鹏宠物医院（西湖分院）',
+  address: '杭州市西湖区曙光路120号',
+  phone: '0571-88887777',
+  distance: 2.3,
+  rating: 4.5,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '牙科'],
+  species: ['dog', 'cat', 'rabbit'],
+  emergency: false,
+  latitude: 30.2741,
+  longitude: 120.1551,
+  city: '杭州',
+  type: 'general'
+}, {
+  id: 'h015',
+  name: '杭州派希德动物医院（24h急诊）',
+  address: '杭州市江干区钱江新城城星路89号',
+  phone: '0571-66665555',
+  distance: 5.6,
+  rating: 4.7,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '中毒急救'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'small_animal'],
+  emergency: true,
+  latitude: 30.2741,
+  longitude: 120.1551,
+  city: '杭州',
+  type: 'emergency'
+}, {
+  id: 'h016',
+  name: '武汉瑞派宠物医院（武昌总院）',
+  address: '武汉市武昌区中南路7号',
+  phone: '027-88886666',
+  distance: 1.9,
+  rating: 4.4,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育'],
+  species: ['dog', 'cat', 'bird'],
+  emergency: false,
+  latitude: 30.5928,
+  longitude: 114.3055,
+  city: '武汉',
+  type: 'general'
+}, {
+  id: 'h017',
+  name: '武汉联合动物医院（24h急诊）',
+  address: '武汉市江汉区解放大道686号',
+  phone: '027-66669999',
+  distance: 4.1,
+  rating: 4.6,
+  openHours: '24小时',
+  services: ['24h急诊', '内科', '外科', 'ICU', '创伤处理'],
+  species: ['dog', 'cat', 'bird', 'rabbit'],
+  emergency: true,
+  latitude: 30.5928,
+  longitude: 114.3055,
+  city: '武汉',
+  type: 'emergency'
+}, {
+  id: 'h018',
+  name: '南京瑞鹏宠物医院（玄武分院）',
+  address: '南京市玄武区中山路81号',
+  phone: '025-88885555',
+  distance: 2.7,
+  rating: 4.5,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '影像科'],
+  species: ['dog', 'cat', 'rabbit'],
+  emergency: false,
+  latitude: 32.0603,
+  longitude: 118.7969,
+  city: '南京',
+  type: 'general'
+}, {
+  id: 'h019',
+  name: '西安瑞派宠物医院（雁塔总院）',
+  address: '西安市雁塔区长安中路38号',
+  phone: '029-88884444',
+  distance: 3.3,
+  rating: 4.3,
+  openHours: '09:00-20:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育'],
+  species: ['dog', 'cat'],
+  emergency: false,
+  latitude: 34.3416,
+  longitude: 108.9398,
+  city: '西安',
+  type: 'general'
+}, {
+  id: 'h020',
+  name: '重庆瑞鹏宠物医院（渝中总院）',
+  address: '重庆市渝中区邹容路120号',
+  phone: '023-88883333',
+  distance: 1.6,
+  rating: 4.4,
+  openHours: '09:00-21:00',
+  services: ['内科', '外科', '疫苗接种', '体检', '绝育', '影像科'],
+  species: ['dog', 'cat', 'bird', 'rabbit'],
+  emergency: false,
+  latitude: 29.563,
+  longitude: 106.5516,
+  city: '重庆',
+  type: 'general'
+}];
+function getNearbyHospitals(city, species) {
+  var result = [].concat(HOSPITALS);
+  if (city) {
+    result = result.filter(function (h) {
+      return h.city === city;
+    });
+  }
+  if (species) {
+    result = result.filter(function (h) {
+      return h.species.includes(species);
+    });
+  }
+  return result.sort(function (a, b) {
+    return a.distance - b.distance;
+  });
+}
+function searchHospitals(keyword) {
+  if (!keyword.trim()) {
+    return [].concat(HOSPITALS).sort(function (a, b) {
+      return a.distance - b.distance;
+    });
+  }
+  var lowerKeyword = keyword.toLowerCase().trim();
+  return HOSPITALS.filter(function (h) {
+    return h.name.toLowerCase().includes(lowerKeyword) || h.address.toLowerCase().includes(lowerKeyword) || h.services.some(function (s) {
+      return s.toLowerCase().includes(lowerKeyword);
+    }) || h.city.toLowerCase().includes(lowerKeyword) || h.specialties && h.specialties.some(function (s) {
+      return s.toLowerCase().includes(lowerKeyword);
+    });
+  }).sort(function (a, b) {
+    return a.distance - b.distance;
+  });
+}
+function getHospitalById(id) {
+  return HOSPITALS.find(function (h) {
+    return h.id === id;
+  });
+}
+function getEmergencyHospitals() {
+  return HOSPITALS.filter(function (h) {
+    return h.emergency;
+  }).sort(function (a, b) {
+    return a.distance - b.distance;
+  });
+}
+function getAllCities() {
+  return Array.from(new Set(HOSPITALS.map(function (h) {
+    return h.city;
+  })));
+}
+function getHospitalsByType(type) {
+  return HOSPITALS.filter(function (h) {
+    return h.type === type;
+  }).sort(function (a, b) {
+    return a.distance - b.distance;
+  });
+}
+
+/***/ }),
+
+/***/ "./src/pagesPet/hospital/index.tsx":
+/*!*****************************************!*\
+  !*** ./src/pagesPet/hospital/index.tsx ***!
+  \*****************************************/
+/***/ (function(__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) {
+
+/* harmony import */ var _tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/runtime */ "./node_modules/@tarojs/runtime/dist/runtime.esm.js");
+/* harmony import */ var _node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_hospital_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !!../../../node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/hospital/index!./index.tsx */ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/hospital/index!./src/pagesPet/hospital/index.tsx");
+
+
+var config = {"navigationBarTitleText":"附近宠物医院"};
+
+
+var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig)(_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_hospital_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"], 'pagesPet/hospital/index', {root:{cn:[]}}, config || {}))
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_hospital_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ }),
+
+/***/ "./src/services/hospitalService.ts":
+/*!*****************************************!*\
+  !*** ./src/services/hospitalService.ts ***!
+  \*****************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "callHospital": function() { return /* binding */ callHospital; },
+/* harmony export */   "getEmergencyHospitals": function() { return /* binding */ getEmergencyHospitals; },
+/* harmony export */   "getNearbyHospitals": function() { return /* binding */ getNearbyHospitals; },
+/* harmony export */   "navigateToHospital": function() { return /* binding */ navigateToHospital; },
+/* harmony export */   "searchHospitals": function() { return /* binding */ searchHospitals; }
+/* harmony export */ });
+/* unused harmony exports getHospitalDetail, getRecommendedHospitals */
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _data_hospitals__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../data/hospitals */ "./src/data/hospitals.ts");
+
+
+
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  var R = 6371;
+  var dLat = (lat2 - lat1) * (Math.PI / 180);
+  var dLon = (lon2 - lon1) * (Math.PI / 180);
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+function sortByDistance(hospitals, latitude, longitude) {
+  if (latitude == null || longitude == null) {
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(hospitals).sort(function (a, b) {
+      return a.distance - b.distance;
+    });
+  }
+  return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_2__["default"])(hospitals).sort(function (a, b) {
+    var distA = calculateDistance(latitude, longitude, a.latitude, a.longitude);
+    var distB = calculateDistance(latitude, longitude, b.latitude, b.longitude);
+    return distA - distB;
+  });
+}
+function getNearbyHospitals(options) {
+  try {
+    var _ref = options || {},
+      city = _ref.city,
+      species = _ref.species,
+      latitude = _ref.latitude,
+      longitude = _ref.longitude;
+    var hospitals = (0,_data_hospitals__WEBPACK_IMPORTED_MODULE_1__.getNearbyHospitals)(city, species);
+    return sortByDistance(hospitals, latitude, longitude);
+  } catch (error) {
+    return [];
+  }
+}
+function searchHospitals(keyword) {
+  try {
+    if (!keyword || typeof keyword !== 'string') {
+      return [];
+    }
+    return (0,_data_hospitals__WEBPACK_IMPORTED_MODULE_1__.searchHospitals)(keyword.trim());
+  } catch (error) {
+    return [];
+  }
+}
+function getHospitalDetail(id) {
+  try {
+    if (!id || typeof id !== 'string') {
+      return null;
+    }
+    var hospital = (0,_data_hospitals__WEBPACK_IMPORTED_MODULE_1__.getHospitalById)(id);
+    return hospital || null;
+  } catch (error) {
+    return null;
+  }
+}
+function getEmergencyHospitals() {
+  try {
+    return (0,_data_hospitals__WEBPACK_IMPORTED_MODULE_1__.getEmergencyHospitals)();
+  } catch (error) {
+    return [];
+  }
+}
+function callHospital(phone) {
+  try {
+    if (!phone || typeof phone !== 'string') {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+        title: '电话号码无效',
+        icon: 'none'
+      });
+      return;
+    }
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().makePhoneCall({
+      phoneNumber: phone.replace(/[^\d-]/g, ''),
+      fail: function fail() {
+        _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+          title: '拨打电话失败',
+          icon: 'none'
+        });
+      }
+    });
+  } catch (error) {
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+      title: '拨打电话失败',
+      icon: 'none'
+    });
+  }
+}
+function navigateToHospital(latitude, longitude, name) {
+  try {
+    if (latitude == null || longitude == null) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+        title: '位置信息无效',
+        icon: 'none'
+      });
+      return;
+    }
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().openLocation({
+      latitude: latitude,
+      longitude: longitude,
+      name: name,
+      address: '',
+      fail: function fail() {
+        _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+          title: '打开导航失败',
+          icon: 'none'
+        });
+      }
+    });
+  } catch (error) {
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+      title: '导航失败',
+      icon: 'none'
+    });
+  }
+}
+var SYMPTOM_TO_SPECIALTY = {
+  eye: ['眼科', '眼科专科', '白内障手术', '青光眼治疗'],
+  vision: ['眼科', '眼科专科'],
+  bone: ['骨科', '骨科专科', '关节置换', '脊柱手术'],
+  joint: ['骨科', '骨科专科', '关节置换'],
+  fracture: ['骨科', '骨科专科', '创伤处理'],
+  skin: ['皮肤科', '皮肤科专科', '过敏检测', '真菌治疗'],
+  allergy: ['皮肤科', '皮肤科专科', '过敏检测'],
+  rash: ['皮肤科', '皮肤科专科'],
+  emergency: ['24h急诊', '急诊', 'ICU', '中毒急救', '创伤处理'],
+  poisoning: ['24h急诊', '中毒急救'],
+  trauma: ['24h急诊', '创伤处理', '外科'],
+  surgery: ['外科', '手术'],
+  dental: ['牙科', '口腔'],
+  internal: ['内科'],
+  vaccine: ['疫苗接种'],
+  checkup: ['体检']
+};
+function getRecommendedHospitals(petId, symptoms) {
+  try {
+    var allHospitals = (0,_data_hospitals__WEBPACK_IMPORTED_MODULE_1__.getNearbyHospitals)();
+    var recommendations = [];
+    if (!symptoms || symptoms.length === 0) {
+      return allHospitals.slice(0, 5).map(function (hospital) {
+        return {
+          hospital: hospital,
+          reason: '综合推荐',
+          relevanceScore: 0.5
+        };
+      });
+    }
+    var matchedSpecialties = new Set();
+    symptoms.forEach(function (symptom) {
+      var lowerSymptom = symptom.toLowerCase();
+      Object.entries(SYMPTOM_TO_SPECIALTY).forEach(function (_ref2) {
+        var _ref3 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_3__["default"])(_ref2, 2),
+          key = _ref3[0],
+          specialties = _ref3[1];
+        if (lowerSymptom.includes(key)) {
+          specialties.forEach(function (s) {
+            return matchedSpecialties.add(s);
+          });
+        }
+      });
+    });
+    if (matchedSpecialties.size === 0) {
+      return allHospitals.slice(0, 5).map(function (hospital) {
+        return {
+          hospital: hospital,
+          reason: '综合推荐',
+          relevanceScore: 0.5
+        };
+      });
+    }
+    allHospitals.forEach(function (hospital) {
+      var score = 0;
+      var matchedServices = [];
+      hospital.services.forEach(function (service) {
+        matchedSpecialties.forEach(function (specialty) {
+          if (service.includes(specialty)) {
+            score += 1;
+            if (!matchedServices.includes(specialty)) {
+              matchedServices.push(specialty);
+            }
+          }
+        });
+      });
+      if (hospital.specialties) {
+        hospital.specialties.forEach(function (specialty) {
+          matchedSpecialties.forEach(function (matched) {
+            if (specialty.includes(matched) || matched.includes(specialty)) {
+              score += 2;
+            }
+          });
+        });
+      }
+      if (hospital.emergency && symptoms.some(function (s) {
+        var lower = s.toLowerCase();
+        return lower.includes('emergency') || lower.includes('urgent') || lower.includes('中毒') || lower.includes('创伤');
+      })) {
+        score += 3;
+      }
+      if (score > 0) {
+        var reason = matchedServices.length > 0 ? "\u64C5\u957F\uFF1A".concat(matchedServices.slice(0, 3).join('、')) : '专科匹配';
+        recommendations.push({
+          hospital: hospital,
+          reason: reason,
+          relevanceScore: score
+        });
+      }
+    });
+    return recommendations.sort(function (a, b) {
+      return b.relevanceScore - a.relevanceScore;
+    }).slice(0, 10);
+  } catch (error) {
+    return [];
+  }
+}
+
+/***/ })
+
+},
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
+/******/ __webpack_require__.O(0, ["pagesPet/sub-vendors","sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/53c676dc54a90fa031d0d212976af696","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/hospital/index.tsx"); });
+/******/ var __webpack_exports__ = __webpack_require__.O();
+/******/ }
+]);
+//# sourceMappingURL=index.js.map

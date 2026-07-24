@@ -1,1 +1,393 @@
-"use strict";(wx["webpackJsonp"]=wx["webpackJsonp"]||[]).push([[1560],{399:function(e,s,a){var i=a(2180),l=a(9439),d=a(1515),r=a(2954),t=a.n(r),c=a(7294),n=a(6572),_=a(2058),m=a(8537),x=a(8143),o={USER_REGISTER:x.Z.UserRegister,PET_CREATE:x.Z.PetCreate,CHECKIN_SUBMIT:x.Z.CheckinSubmit,CHECKIN_ANOMALY:x.Z.CheckinAnomaly,FOOD_QUERY:x.Z.FoodQuery,SYMPTOM_CHECK:x.Z.SymptomCheck,EMERGENCY_ALERT:x.Z.EmergencyAlert,VACCINE_REMINDER_CLICK:x.Z.VaccineReminderClick,VACCINE_DONE:x.Z.VaccineDone,MEMBER_PAGE_VIEW:x.Z.MemberPageView,MEMBER_SUBSCRIBE:x.Z.MemberSubscribe,SHARE_ACTION:x.Z.ShareAction,EMOTION_TRIGGER:x.Z.EmotionTrigger,FIND_HOSPITAL:x.Z.FindHospital,PAGE_VIEW:x.Z.PageView,FUNNEL_STEP:x.Z.FunnelStep,BREED_VIEW:x.Z.BreedView},b=a(5893),h=(new _.Q).getDisclaimer("green","breed"),N={dog:"\u72ac\u7c7b",cat:"\u732b\u7c7b"},j={dog:"\ud83d\udc36",cat:"\ud83d\udc31"},g={toy:"\u8d85\u5c0f\u578b",small:"\u5c0f\u578b",medium:"\u4e2d\u578b",large:"\u5927\u578b",giant:"\u5de8\u578b"},u={low:"\u4f4e",medium:"\u4e2d",high:"\u9ad8"},v={low:"\u4f4e",medium:"\u4e2d",high:"\u9ad8"};function G(){var e=(0,c.useState)(null),s=(0,l.Z)(e,2),a=s[0],i=s[1],_=(0,r.useRouter)(),x=(0,m.z)(),G=x.trackEvent;(0,m.a)("breed_detail"),(0,c.useEffect)(function(){var e=_.params.id;if(e){var s=n.p.find(function(s){return s.id===e});s&&(i(s),G(o.BREED_VIEW,{breedId:s.id,breedName:s.name}))}},[_.params.id]);var E=(0,c.useCallback)(function(){a&&(G("set_my_pet_breed",{breedId:a.id,breedName:a.name}),t().navigateTo({url:"/pagesPet/edit/index?breedId=".concat(a.id,"&breedName=").concat(encodeURIComponent(a.name),"&species=").concat(a.species)}))},[a,G]);return a?(0,b.jsxs)(d.G7,{className:"breed-detail",children:[(0,b.jsxs)(d.pf,{className:"breed-detail__scroll",scrollY:!0,children:[(0,b.jsxs)(d.G7,{className:"breed-detail__hero",children:[(0,b.jsx)(d.G7,{className:"breed-detail__hero-emoji",children:(0,b.jsx)(d.xv,{className:"breed-detail__hero-emoji-text",children:j[a.species]})}),(0,b.jsx)(d.xv,{className:"breed-detail__hero-name",children:a.name}),(0,b.jsxs)(d.G7,{className:"breed-detail__hero-badges",children:[(0,b.jsx)(d.G7,{className:"breed-detail__hero-badge",children:(0,b.jsx)(d.xv,{children:N[a.species]})}),(0,b.jsx)(d.G7,{className:"breed-detail__hero-badge",children:(0,b.jsx)(d.xv,{children:g[a.size]})}),(0,b.jsx)(d.G7,{className:"breed-detail__hero-badge",children:(0,b.jsx)(d.xv,{children:a.origin})})]})]}),(0,b.jsxs)(d.G7,{className:"breed-detail__info-grid",children:[(0,b.jsxs)(d.G7,{className:"breed-detail__info-item",children:[(0,b.jsx)(d.xv,{className:"breed-detail__info-label",children:"\u5bff\u547d"}),(0,b.jsx)(d.xv,{className:"breed-detail__info-value",children:a.lifespan})]}),(0,b.jsxs)(d.G7,{className:"breed-detail__info-item",children:[(0,b.jsx)(d.xv,{className:"breed-detail__info-label",children:"\u4f53\u91cd"}),(0,b.jsx)(d.xv,{className:"breed-detail__info-value",children:a.weightRangeStr})]}),(0,b.jsxs)(d.G7,{className:"breed-detail__info-item",children:[(0,b.jsx)(d.xv,{className:"breed-detail__info-label",children:"\u8fd0\u52a8\u9700\u6c42"}),(0,b.jsx)(d.xv,{className:"breed-detail__info-value",children:u[a.exerciseNeeds]})]}),(0,b.jsxs)(d.G7,{className:"breed-detail__info-item",children:[(0,b.jsx)(d.xv,{className:"breed-detail__info-label",children:"\u7f8e\u5bb9\u9700\u6c42"}),(0,b.jsx)(d.xv,{className:"breed-detail__info-value",children:v[a.groomingNeeds]})]})]}),a.aliases.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title",children:"\u522b\u540d"}),(0,b.jsx)(d.G7,{className:"breed-detail__tags",children:a.aliases.map(function(e){return(0,b.jsx)(d.G7,{className:"breed-detail__tag",children:(0,b.jsx)(d.xv,{children:e})},e)})})]}),a.temperament.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title",children:"\u6027\u683c\u7279\u5f81"}),(0,b.jsx)(d.G7,{className:"breed-detail__tags",children:a.temperament.map(function(e){return(0,b.jsx)(d.G7,{className:"breed-detail__tag breed-detail__tag--primary",children:(0,b.jsx)(d.xv,{children:e})},e)})})]}),a.suitableFor.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title",children:"\u9002\u5408\u4eba\u7fa4"}),(0,b.jsx)(d.G7,{className:"breed-detail__tags",children:a.suitableFor.map(function(e){return(0,b.jsx)(d.G7,{className:"breed-detail__tag breed-detail__tag--green",children:(0,b.jsx)(d.xv,{children:e})},e)})})]}),a.toxicFoods.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title breed-detail__section-title--danger",children:"\u26a0\ufe0f \u996e\u98df\u7981\u5fcc"}),(0,b.jsx)(d.G7,{className:"breed-detail__danger-list",children:a.toxicFoods.map(function(e){return(0,b.jsxs)(d.G7,{className:"breed-detail__danger-card",children:[(0,b.jsx)(d.xv,{className:"breed-detail__danger-icon",children:"\ud83d\udeab"}),(0,b.jsx)(d.xv,{className:"breed-detail__danger-text",children:e})]},e)})})]}),a.commonDiseases.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title breed-detail__section-title--warning",children:"\u26a1 \u5e38\u89c1\u75be\u75c5"}),(0,b.jsx)(d.G7,{className:"breed-detail__warning-list",children:a.commonDiseases.map(function(e){return(0,b.jsxs)(d.G7,{className:"breed-detail__warning-card",children:[(0,b.jsx)(d.xv,{className:"breed-detail__warning-icon",children:"\ud83d\udca1"}),(0,b.jsx)(d.xv,{className:"breed-detail__warning-text",children:e})]},e)})})]}),a.careTips.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title breed-detail__section-title--success",children:"\ud83d\udc9a \u517b\u62a4\u5efa\u8bae"}),(0,b.jsx)(d.G7,{className:"breed-detail__success-list",children:a.careTips.map(function(e,s){return(0,b.jsxs)(d.G7,{className:"breed-detail__success-card",children:[(0,b.jsx)(d.xv,{className:"breed-detail__success-index",children:s+1}),(0,b.jsx)(d.xv,{className:"breed-detail__success-text",children:e})]},s)})})]}),a.dietRestrictions.length>0&&(0,b.jsxs)(d.G7,{className:"breed-detail__section",children:[(0,b.jsx)(d.xv,{className:"breed-detail__section-title",children:"\u996e\u98df\u5efa\u8bae"}),(0,b.jsx)(d.G7,{className:"breed-detail__list",children:a.dietRestrictions.map(function(e){return(0,b.jsxs)(d.G7,{className:"breed-detail__list-item",children:[(0,b.jsx)(d.xv,{className:"breed-detail__list-dot",children:"\u2022"}),(0,b.jsx)(d.xv,{className:"breed-detail__list-text",children:e})]},e)})})]}),(0,b.jsx)(d.G7,{className:"breed-detail__disclaimer",children:(0,b.jsx)(d.xv,{className:"breed-detail__disclaimer-text",children:h})}),(0,b.jsx)(d.G7,{className:"breed-detail__bottom-spacer"})]}),(0,b.jsx)(d.G7,{className:"breed-detail__footer",children:(0,b.jsx)(d.G7,{className:"breed-detail__footer-btn",onClick:E,children:(0,b.jsx)(d.xv,{className:"breed-detail__footer-btn-text",children:"\u6211\u7684\u5ba0\u7269\u662f\u8fd9\u4e2a\u54c1\u79cd"})})})]}):(0,b.jsx)(d.G7,{className:"breed-detail",children:(0,b.jsx)(d.G7,{className:"breed-detail__loading",children:(0,b.jsx)(d.xv,{className:"breed-detail__loading-text",children:"\u52a0\u8f7d\u4e2d..."})})})}var E={};Page((0,i.createPageConfig)(G,"pagesPet/breed-detail/index",{root:{cn:[]}},E||{}))}},function(e){var s=function(s){return e(e.s=s)};e.O(0,[2107,1216,8592],function(){return s(399)});e.O()}]);
+"use strict";require("../sub-vendors.js");require("../sub-common/6445d8bdf2172a6fd6abee9a9e2cae24.js");require("../sub-common/a80d2ee33a59c94051f538ac359a531d.js");require("../sub-common/ad46eb011750498141202c06d6a54fd7.js");require("../sub-common/53c676dc54a90fa031d0d212976af696.js");
+(wx["webpackJsonp"] = wx["webpackJsonp"] || []).push([["pagesPet/breed-detail/index"],{
+
+/***/ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/breed-detail/index!./src/pagesPet/breed-detail/index.tsx":
+/*!************************************************************************************************************************************!*\
+  !*** ./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/breed-detail/index!./src/pagesPet/breed-detail/index.tsx ***!
+  \************************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ BreedDetail; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _tarojs_components__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @tarojs/components */ "./node_modules/@tarojs/plugin-platform-weapp/dist/components-react.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _data_petKnowledge_breeds__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../data/petKnowledge/breeds */ "./src/data/petKnowledge/breeds.ts");
+/* harmony import */ var _engines_petSafety_MedicalDisclaimer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../engines/petSafety/MedicalDisclaimer */ "./src/engines/petSafety/MedicalDisclaimer.ts");
+/* harmony import */ var _hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../hooks/useAnalytics */ "./src/hooks/useAnalytics.ts");
+/* harmony import */ var _constants_analyticsEvents__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../constants/analyticsEvents */ "./src/constants/analyticsEvents.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/cjs/react-jsx-runtime.production.min.js");
+
+
+
+
+
+
+
+
+
+
+var disclaimerText = new _engines_petSafety_MedicalDisclaimer__WEBPACK_IMPORTED_MODULE_3__.MedicalDisclaimer().getDisclaimer('green', 'breed');
+var SPECIES_LABEL = {
+  dog: '犬类',
+  cat: '猫类'
+};
+var SPECIES_EMOJI = {
+  dog: '🐶',
+  cat: '🐱'
+};
+var SIZE_LABEL = {
+  toy: '超小型',
+  small: '小型',
+  medium: '中型',
+  large: '大型',
+  giant: '巨型'
+};
+var EXERCISE_LABEL = {
+  low: '低',
+  medium: '中',
+  high: '高'
+};
+var GROOMING_LABEL = {
+  low: '低',
+  medium: '中',
+  high: '高'
+};
+function BreedDetail() {
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(null),
+    _useState2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_7__["default"])(_useState, 2),
+    breed = _useState2[0],
+    setBreed = _useState2[1];
+  var router = (0,_tarojs_taro__WEBPACK_IMPORTED_MODULE_0__.useRouter)();
+  var _useAnalytics = (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_4__.useAnalytics)(),
+    trackEvent = _useAnalytics.trackEvent;
+  (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_4__.usePageView)('breed_detail');
+  (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    var id = router.params.id;
+    if (id) {
+      var found = _data_petKnowledge_breeds__WEBPACK_IMPORTED_MODULE_2__.BREED_DATA.find(function (b) {
+        return b.id === id;
+      });
+      if (found) {
+        setBreed(found);
+        trackEvent(_constants_analyticsEvents__WEBPACK_IMPORTED_MODULE_5__.EVENT.BREED_VIEW, {
+          breedId: found.id,
+          breedName: found.name
+        });
+      }
+    }
+  }, [router.params.id]);
+  var handleSetMyPet = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(function () {
+    if (!breed) return;
+    trackEvent('set_my_pet_breed', {
+      breedId: breed.id,
+      breedName: breed.name
+    });
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().navigateTo({
+      url: "/pagesPet/edit/index?breedId=".concat(breed.id, "&breedName=").concat(encodeURIComponent(breed.name), "&species=").concat(breed.species)
+    });
+  }, [breed, trackEvent]);
+  if (!breed) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+      className: "breed-detail",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__loading",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__loading-text",
+          children: "\u52A0\u8F7D\u4E2D..."
+        })
+      })
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+    className: "breed-detail",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.ScrollView, {
+      className: "breed-detail__scroll",
+      scrollY: true,
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__hero",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__hero-emoji",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__hero-emoji-text",
+            children: SPECIES_EMOJI[breed.species]
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__hero-name",
+          children: breed.name
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__hero-badges",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+            className: "breed-detail__hero-badge",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+              children: SPECIES_LABEL[breed.species]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+            className: "breed-detail__hero-badge",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+              children: SIZE_LABEL[breed.size]
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+            className: "breed-detail__hero-badge",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+              children: breed.origin
+            })
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__info-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__info-item",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-label",
+            children: "\u5BFF\u547D"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-value",
+            children: breed.lifespan
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__info-item",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-label",
+            children: "\u4F53\u91CD"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-value",
+            children: breed.weightRangeStr
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__info-item",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-label",
+            children: "\u8FD0\u52A8\u9700\u6C42"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-value",
+            children: EXERCISE_LABEL[breed.exerciseNeeds]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__info-item",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-label",
+            children: "\u7F8E\u5BB9\u9700\u6C42"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+            className: "breed-detail__info-value",
+            children: GROOMING_LABEL[breed.groomingNeeds]
+          })]
+        })]
+      }), breed.aliases.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title",
+          children: "\u522B\u540D"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__tags",
+          children: breed.aliases.map(function (alias) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__tag",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                children: alias
+              })
+            }, alias);
+          })
+        })]
+      }), breed.temperament.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title",
+          children: "\u6027\u683C\u7279\u5F81"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__tags",
+          children: breed.temperament.map(function (t) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__tag breed-detail__tag--primary",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                children: t
+              })
+            }, t);
+          })
+        })]
+      }), breed.suitableFor.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title",
+          children: "\u9002\u5408\u4EBA\u7FA4"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__tags",
+          children: breed.suitableFor.map(function (s) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__tag breed-detail__tag--green",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                children: s
+              })
+            }, s);
+          })
+        })]
+      }), breed.toxicFoods.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title breed-detail__section-title--danger",
+          children: "\u26A0\uFE0F \u996E\u98DF\u7981\u5FCC"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__danger-list",
+          children: breed.toxicFoods.map(function (food) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__danger-card",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__danger-icon",
+                children: "\uD83D\uDEAB"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__danger-text",
+                children: food
+              })]
+            }, food);
+          })
+        })]
+      }), breed.commonDiseases.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title breed-detail__section-title--warning",
+          children: "\u26A1 \u5E38\u89C1\u75BE\u75C5"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__warning-list",
+          children: breed.commonDiseases.map(function (disease) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__warning-card",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__warning-icon",
+                children: "\uD83D\uDCA1"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__warning-text",
+                children: disease
+              })]
+            }, disease);
+          })
+        })]
+      }), breed.careTips.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title breed-detail__section-title--success",
+          children: "\uD83D\uDC9A \u517B\u62A4\u5EFA\u8BAE"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__success-list",
+          children: breed.careTips.map(function (tip, index) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__success-card",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__success-index",
+                children: index + 1
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__success-text",
+                children: tip
+              })]
+            }, index);
+          })
+        })]
+      }), breed.dietRestrictions.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__section",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__section-title",
+          children: "\u996E\u98DF\u5EFA\u8BAE"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+          className: "breed-detail__list",
+          children: breed.dietRestrictions.map(function (item) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+              className: "breed-detail__list-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__list-dot",
+                children: "\u2022"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+                className: "breed-detail__list-text",
+                children: item
+              })]
+            }, item);
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__disclaimer",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__disclaimer-text",
+          children: disclaimerText
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__bottom-spacer"
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+      className: "breed-detail__footer",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.View, {
+        className: "breed-detail__footer-btn",
+        onClick: handleSetMyPet,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_8__.Text, {
+          className: "breed-detail__footer-btn-text",
+          children: "\u6211\u7684\u5BA0\u7269\u662F\u8FD9\u4E2A\u54C1\u79CD"
+        })
+      })
+    })]
+  });
+}
+
+/***/ }),
+
+/***/ "./src/constants/analyticsEvents.ts":
+/*!******************************************!*\
+  !*** ./src/constants/analyticsEvents.ts ***!
+  \******************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "EVENT": function() { return /* binding */ EVENT; }
+/* harmony export */ });
+/* harmony import */ var _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../types/analyticsTypes */ "./src/types/analyticsTypes.ts");
+
+var EVENT = {
+  USER_REGISTER: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.UserRegister,
+  PET_CREATE: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.PetCreate,
+  CHECKIN_SUBMIT: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.CheckinSubmit,
+  CHECKIN_ANOMALY: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.CheckinAnomaly,
+  FOOD_QUERY: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.FoodQuery,
+  SYMPTOM_CHECK: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.SymptomCheck,
+  EMERGENCY_ALERT: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.EmergencyAlert,
+  VACCINE_REMINDER_CLICK: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.VaccineReminderClick,
+  VACCINE_DONE: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.VaccineDone,
+  MEMBER_PAGE_VIEW: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.MemberPageView,
+  MEMBER_SUBSCRIBE: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.MemberSubscribe,
+  SHARE_ACTION: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.ShareAction,
+  EMOTION_TRIGGER: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.EmotionTrigger,
+  FIND_HOSPITAL: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.FindHospital,
+  PAGE_VIEW: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.PageView,
+  FUNNEL_STEP: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.FunnelStep,
+  BREED_VIEW: _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_0__.AnalyticsEventName.BreedView
+};
+
+/***/ }),
+
+/***/ "./src/pagesPet/breed-detail/index.tsx":
+/*!*********************************************!*\
+  !*** ./src/pagesPet/breed-detail/index.tsx ***!
+  \*********************************************/
+/***/ (function(__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) {
+
+/* harmony import */ var _tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/runtime */ "./node_modules/@tarojs/runtime/dist/runtime.esm.js");
+/* harmony import */ var _node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_breed_detail_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !!../../../node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/breed-detail/index!./index.tsx */ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/breed-detail/index!./src/pagesPet/breed-detail/index.tsx");
+
+
+var config = {};
+
+
+var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig)(_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_breed_detail_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"], 'pagesPet/breed-detail/index', {root:{cn:[]}}, config || {}))
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_breed_detail_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ })
+
+},
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
+/******/ __webpack_require__.O(0, ["pagesPet/sub-vendors","sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/ad46eb011750498141202c06d6a54fd7","sub-common/53c676dc54a90fa031d0d212976af696","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/breed-detail/index.tsx"); });
+/******/ var __webpack_exports__ = __webpack_require__.O();
+/******/ }
+]);
+//# sourceMappingURL=index.js.map

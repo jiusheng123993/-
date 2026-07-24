@@ -10,6 +10,7 @@ export type SyncTable =
   | 'pet_food_queries'
   | 'emotion_triggers'
   | 'pet_grief_sessions'
+  | 'pet_outfits'
 
 export interface SyncRecord {
   id: string
@@ -53,6 +54,7 @@ const TABLE_ENDPOINTS: Record<SyncTable, { list: string; item: (id: string) => s
   pet_food_queries: { list: '/api/food-queries', item: (id: string) => `/api/food-queries/${id}` },
   emotion_triggers: null,
   pet_grief_sessions: null,
+  pet_outfits: null,
 }
 
 function getSyncTimestamps(): Record<string, string> {

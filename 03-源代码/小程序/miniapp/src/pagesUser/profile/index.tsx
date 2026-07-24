@@ -8,8 +8,8 @@ import { usePetStore } from '../../stores/petStore';
 import { generateHealthReport, formatReportAsText } from '../../services/reportService';
 import { APP_VERSION, HOTLINE_NUMBER } from '../../constants';
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics';
-import FloatingNav from '../../components/FloatingNav';
 import { PageLoading, PageError } from '../../components';
+import { useThemeClass } from '../../hooks/useThemeClass';
 import './index.scss';
 
 export default function Profile() {
@@ -23,6 +23,7 @@ export default function Profile() {
   const currentPet = usePetStore((s) => s.currentPet)
   const { trackEvent } = useAnalytics()
   usePageView('profile')
+  const themeClass = useThemeClass()
 
   const loadProfileData = useCallback(async () => {
     setError('')
@@ -153,7 +154,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <View className='profile-page'>
+      <View className={'profile-page ' + themeClass}>
         <PageLoading />
       </View>
     )
@@ -161,14 +162,14 @@ export default function Profile() {
 
   if (error) {
     return (
-      <View className='profile-page'>
+      <View className={'profile-page ' + themeClass}>
         <PageError message={error} onRetry={loadProfileData} />
       </View>
     )
   }
 
   return (
-    <View className='profile-page'>
+    <View className={'profile-page ' + themeClass}>
       <View className='ink-bg-decoration ink-bg-1' />
       <View className='ink-bg-decoration ink-bg-2' />
 
@@ -250,7 +251,6 @@ export default function Profile() {
         <Text className='footer-text'>星寰海 v{APP_VERSION}</Text>
       </View>
 
-      <FloatingNav />
     </View>
   );
 }

@@ -43,7 +43,7 @@
     transition: background $transition-fast;
 
     &:active {
-      background: $color-bg-tertiary;
+      background: $color-bg-card;
     }
   }
 
@@ -74,7 +74,7 @@
     }
 
     &:active {
-      background: $color-bg-secondary;
+      background: $color-bg-card;
       margin: 0 -16px;
       padding-left: 16px;
       padding-right: 16px;
@@ -85,7 +85,7 @@
     width: 40px;
     height: 40px;
     border-radius: $radius-sm;
-    background: $color-bg-secondary;
+    background: $color-bg-card;
     display: flex;
     align-items: center;
     justify-content: center;

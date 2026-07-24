@@ -2,6 +2,7 @@ import { View, Text, RichText } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect } from 'react'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
 const AGREEMENT_CONTENT: Record<string, { title: string; content: string }> = {
@@ -19,6 +20,7 @@ export default function AgreementPage() {
   const [agreementType, setAgreementType] = useState<'user' | 'privacy'>('user')
   const { trackEvent } = useAnalytics()
   usePageView('agreement')
+  const themeClass = useThemeClass()
 
   useEffect(() => {
     const instance = Taro.getCurrentInstance()
@@ -32,7 +34,7 @@ export default function AgreementPage() {
   const agreement = AGREEMENT_CONTENT[agreementType]
 
   return (
-    <View className='agreement-page'>
+    <View className={'agreement-page ' + themeClass}>
       <View className='agreement-page__header'>
         <Text className='agreement-page__title'>{agreement.title}</Text>
       </View>

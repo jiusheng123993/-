@@ -60,3 +60,4 @@ export interface LoginResponse {
 
 export * from './familyTypes'
 export * from './chatTypes'
+export * from './chronicTypes'

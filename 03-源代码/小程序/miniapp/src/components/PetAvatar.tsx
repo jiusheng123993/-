@@ -8,6 +8,8 @@ import {
   type ExpressionContext,
   type DiaryEntry
 } from '../engines/petAvatar'
+import type { OutfitSlotMap } from '../types/wardrobeTypes'
+import { resolveOutfitLayers } from '../engines/petAvatar/outfitRenderer'
 import './PetAvatar.scss'
 
 interface PetAvatarProps {
@@ -19,6 +21,7 @@ interface PetAvatarProps {
   showLabel?: boolean
   className?: string
   customExpression?: ExpressionConfig
+  outfitSlots?: OutfitSlotMap
 }
 
 export default function PetAvatar({
@@ -29,16 +32,22 @@ export default function PetAvatar({
   showDiary = false,
   showLabel = false,
   className = '',
-  customExpression
+  customExpression,
+  outfitSlots
 }: PetAvatarProps) {
   const expression = useMemo(
     () => customExpression || calculateExpression(expressionContext),
     [customExpression, expressionContext]
   )
 
+  const outfitLayers = useMemo(
+    () => outfitSlots ? resolveOutfitLayers(outfitSlots, species) : [],
+    [outfitSlots, species]
+  )
+
   const faceUri = useMemo(
-    () => getPetFaceDataUri(expression, species, size),
-    [expression, species, size]
+    () => getPetFaceDataUri(expression, species, size, outfitLayers),
+    [expression, species, size, outfitLayers]
   )
 
   const diary = useMemo(() => {

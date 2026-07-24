@@ -2,6 +2,7 @@ import type { ChatMessage } from '../types/chatTypes'
 import { chat, guardCheck, guardCheckOutput } from './aiProvider'
 import { checkInput as ruleCheck, sanitizeOutput } from '../utils/ruleGuard'
 import { SYSTEM_PROMPT_BASE } from '../types/chatTypes'
+import { requireAuth } from '../utils/authGuard'
 import { logger } from '../logger'
 
 export interface ChatContext {
@@ -13,16 +14,31 @@ export interface ChatContext {
   familyMembers?: string
 }
 
+/** 清洗 context 字段，防止 Prompt Injection */
+function sanitizeContextField(value: string | undefined): string {
+  if (!value) return ''
+  return value
+    .replace(/[<>]/g, '')
+    .replace(/\[SYSTEM\]|\[USER\]|\[ASSISTANT\]|\[INST\]|\[\/INST\]/gi, '')
+    .replace(/ignore|bypass|override|system prompt|you are now/gi, '')
+    .substring(0, 200)
+}
+
 function buildSystemPrompt(context: ChatContext): string {
   let prompt = SYSTEM_PROMPT_BASE
   if (context.petName) {
-    prompt += `\n当前活跃宠物：${context.petName}（${context.petBreed || '未知品种'}，${context.petAge || '未知年龄'}）`
+    const safeName = sanitizeContextField(context.petName)
+    const safeBreed = sanitizeContextField(context.petBreed)
+    const safeAge = sanitizeContextField(context.petAge)
+    prompt += `\n当前活跃宠物：${safeName}（${safeBreed || '未知品种'}，${safeAge || '未知年龄'}）`
     if (context.recentCheckins) {
-      prompt += `\n近14天打卡摘要：${context.recentCheckins}`
+      const safeCheckins = sanitizeContextField(context.recentCheckins)
+      prompt += `\n近14天打卡摘要：${safeCheckins}`
     }
   }
   if (context.familyMembers) {
-    prompt += `\n家庭成员：${context.familyMembers}`
+    const safeMembers = sanitizeContextField(context.familyMembers)
+    prompt += `\n家庭成员：${safeMembers}`
   }
   return prompt
 }
@@ -37,6 +53,8 @@ export async function sendChatMessage(
   context: ChatContext,
   history: ChatMessage[] = []
 ): Promise<ChatResult> {
+  requireAuth()
+
   const ruleResult = ruleCheck(userMessage)
   if (ruleResult.blocked) {
     if (ruleResult.action === 'crisis_intervention') {
@@ -66,7 +84,11 @@ export async function sendChatMessage(
       }
     }
   } catch (err) {
-    logger.warn('chatService', 'Guard check failed, allowing message through', err)
+    logger.error('chatService', 'Guard check failed, blocking message', err)
+    return {
+      reply: 'AI安全检查服务暂不可用，请稍后再试。',
+      blocked: true
+    }
   }
 
   const systemPrompt = buildSystemPrompt(context)

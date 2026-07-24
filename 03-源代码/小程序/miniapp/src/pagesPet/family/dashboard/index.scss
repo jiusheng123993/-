@@ -1,0 +1,736 @@
+@import '../../../styles/_theme';
+
+.family-dashboard {
+  min-height: 100vh;
+  padding: 40rpx 32rpx 32rpx;
+  background: $gradient-page;
+  animation: pageEnter 0.4s ease-out;
+}
+
+.fd-section {
+  margin-bottom: 28rpx;
+}
+
+.fd-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.fd-section-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.fd-section-count {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+// ===== 标题 =====
+.fd-title {
+  display: block;
+  text-align: center;
+  font-size: 44rpx;
+  font-weight: 700;
+  background: $gradient-gold;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8rpx;
+}
+
+.fd-subtitle {
+  display: block;
+  text-align: center;
+  font-size: 26rpx;
+  color: $color-text-secondary;
+  margin-bottom: 8rpx;
+}
+
+// ===== 健康看板 =====
+.fd-health-board {
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  overflow: hidden;
+}
+
+.fd-health-board-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 24rpx;
+  background: linear-gradient(135deg, rgba($color-sage, 0.08), rgba($color-primary, 0.06));
+  border-bottom: 1px solid $color-border;
+}
+
+.fd-health-board-icon {
+  font-size: 32rpx;
+}
+
+.fd-health-board-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.fd-health-board-date {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-left: auto;
+}
+
+.fd-health-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 24rpx 16rpx;
+}
+
+.fd-health-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.fd-health-stat-num {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $color-primary;
+}
+
+.fd-health-stat-label {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.fd-health-divider {
+  width: 2rpx;
+  height: 48rpx;
+  background: $color-border;
+}
+
+.fd-health-members {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 24rpx 24rpx;
+  overflow-x: auto;
+}
+
+.fd-health-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 14rpx;
+  border-radius: $radius-md;
+  background: $color-primary-bg;
+  min-width: 120rpx;
+  border: 1px solid $color-border;
+
+  &--checked {
+    background: rgba($color-sage, 0.08);
+    border-color: rgba($color-sage, 0.2);
+  }
+}
+
+.fd-health-member-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  font-size: 32rpx;
+  border: 2rpx solid $color-border;
+
+  &--checked {
+    border-color: rgba($color-sage, 0.4);
+    background: rgba($color-sage, 0.1);
+  }
+}
+
+.fd-health-member-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.fd-health-checked-badge {
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+  background: rgba($color-sage, 0.12);
+}
+
+.fd-health-checked-text {
+  font-size: 18rpx;
+  color: $color-sage;
+  font-weight: 500;
+}
+
+.fd-health-pending-badge {
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+  background: $color-danger-light;
+}
+
+.fd-health-pending-text {
+  font-size: 18rpx;
+  color: $color-danger;
+  font-weight: 500;
+}
+
+.fd-health-member-role {
+  font-size: 18rpx;
+  color: $color-text-tertiary;
+}
+
+// ===== 成员列表 =====
+.fd-members-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.fd-member-card {
+  flex: 1 1 calc(50% - 8rpx);
+  padding: 22rpx 18rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.fd-member-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.fd-member-avatar-wrap {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  font-size: 36rpx;
+  border: 2rpx solid $color-border;
+}
+
+.fd-member-role-btn {
+  padding: 6rpx 14rpx;
+  border-radius: 12rpx;
+  background: $color-primary-bg;
+  border: 1px solid rgba($color-primary, 0.2);
+
+  &:active {
+    background: rgba($color-primary, 0.15);
+  }
+}
+
+.fd-member-role-btn-text {
+  font-size: 20rpx;
+  color: $color-primary;
+  font-weight: 500;
+}
+
+.fd-member-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.fd-member-role {
+  display: block;
+  font-size: 22rpx;
+  color: $color-primary;
+  margin-bottom: 4rpx;
+}
+
+.fd-member-breed {
+  display: block;
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 12rpx;
+}
+
+.fd-member-remove {
+  padding: 8rpx 0;
+  border-top: 1px solid $color-border;
+  text-align: center;
+
+  &:active {
+    background: rgba($color-danger, 0.05);
+  }
+}
+
+.fd-member-remove-text {
+  font-size: 22rpx;
+  color: $color-danger;
+}
+
+// ===== 可邀请列表 =====
+.fd-invite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.fd-invite-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 20rpx;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1px dashed $color-border;
+}
+
+.fd-invite-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  font-size: 28rpx;
+  flex-shrink: 0;
+  border: 2rpx solid $color-border;
+}
+
+.fd-invite-info {
+  flex: 1;
+}
+
+.fd-invite-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  display: block;
+}
+
+.fd-invite-breed {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.fd-invite-btn {
+  padding: 10rpx 22rpx;
+  border-radius: 20rpx;
+  background: $gradient-gold;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.fd-invite-btn-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $color-text-inverse;
+}
+
+// ===== 全家福 =====
+.fd-photo-section {
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  overflow: hidden;
+  position: relative;
+}
+
+.fd-photo-canvas {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.fd-photo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: linear-gradient(135deg, rgba(#FF8C42, 0.06), rgba(#D4A574, 0.04));
+  border-bottom: 1px solid $color-border;
+}
+
+.fd-photo-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.fd-photo-header-icon {
+  font-size: 32rpx;
+}
+
+.fd-photo-header-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.fd-photo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 32rpx;
+}
+
+.fd-photo-empty-icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+  opacity: 0.6;
+}
+
+.fd-photo-empty-text {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.fd-photo-generate {
+  padding: 32rpx 24rpx 28rpx;
+}
+
+.fd-photo-generate-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24rpx;
+}
+
+.fd-photo-generate-frame {
+  position: relative;
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, #FFF5EC, #FFF8F0);
+  border: 3rpx dashed rgba(#D4A574, 0.3);
+}
+
+.fd-photo-generate-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-full;
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  @include flex-center;
+  font-size: 36rpx;
+  z-index: 2;
+}
+
+.fd-photo-generate-avatar {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-full;
+  background: #FFF5EC;
+  border: 2rpx solid rgba(#D4A574, 0.3);
+  @include flex-center;
+  font-size: 28rpx;
+  z-index: 1;
+}
+
+.fd-photo-generate-info {
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.fd-photo-generate-label {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 8rpx;
+}
+
+.fd-photo-generate-desc {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.fd-photo-generate-btn {
+  padding: 22rpx 0;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, #FF8C42, #D4A574);
+  text-align: center;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &--loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+}
+
+.fd-photo-generate-btn-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fd-photo-preview {
+  padding: 24rpx;
+}
+
+.fd-photo-preview-img-wrap {
+  position: relative;
+  border-radius: $radius-md;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+}
+
+.fd-photo-preview-img {
+  width: 100%;
+  padding-top: 133.3%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: $radius-md;
+}
+
+.fd-photo-preview-tap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16rpx;
+  background: linear-gradient(transparent, rgba(0,0,0,0.4));
+  text-align: center;
+
+  Text {
+    font-size: 22rpx;
+    color: #fff;
+  }
+}
+
+.fd-photo-preview-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.fd-photo-btn {
+  flex: 1;
+  padding: 18rpx 0;
+  border-radius: $radius-full;
+  text-align: center;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &--outline {
+    border: 2rpx solid rgba(#FF8C42, 0.4);
+  }
+
+  &--primary {
+    background: linear-gradient(135deg, #FF8C42, #D4A574);
+  }
+}
+
+.fd-photo-btn-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  
+  .fd-photo-btn--outline & {
+    color: #FF8C42;
+  }
+  .fd-photo-btn--primary & {
+    color: #fff;
+  }
+}
+
+.fd-photo-regenerate {
+  text-align: center;
+  padding: 8rpx 0;
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.fd-photo-regenerate-text {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+}
+
+// ===== 快捷操作 =====
+.fd-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.fd-action-card {
+  flex: 1;
+  padding: 32rpx 20rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  text-align: center;
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.fd-action-icon {
+  display: block;
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.fd-action-label {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+// ===== 空状态 =====
+.fd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.fd-empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 24rpx;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.fd-empty-text {
+  font-size: 30rpx;
+  color: $color-text-secondary;
+  margin-bottom: 32rpx;
+}
+
+.fd-empty-btn {
+  padding: 20rpx 64rpx;
+  border-radius: $radius-full;
+  background: $gradient-gold;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  Text {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: $color-text-inverse;
+  }
+}
+
+.fd-bottom-safe {
+  height: 60rpx;
+}
+
+.fd-album-loading {
+  padding: 40rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+}
+
+.fd-album-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 32rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px dashed $color-border;
+}
+
+.fd-album-empty-icon {
+  font-size: 56rpx;
+  margin-bottom: 12rpx;
+  opacity: 0.5;
+}
+
+.fd-album-empty-text {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.fd-album-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.fd-album-item {
+  flex: 1 1 calc(50% - 8rpx);
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.fd-album-item-img {
+  width: 100%;
+  padding-top: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.fd-album-item-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FFF8F0, #FFF5EC);
+}
+
+.fd-album-item-emoji {
+  font-size: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.fd-album-item-count {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.fd-album-item-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 16rpx;
+}
+
+.fd-album-item-date {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.fd-album-item-del {
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  background: $color-danger-light;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.fd-album-item-del-text {
+  font-size: 20rpx;
+  color: $color-danger;
+}

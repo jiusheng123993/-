@@ -1,11 +1,12 @@
 import { View, Text, Input, Picker, Switch, Textarea, Image } from '@tarojs/components'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useAuthStore } from '../../stores/authStore'
-import FloatingNav from '../../components/FloatingNav'
 import { BREED_DATA } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
+import { safeNavigateBack } from '../../utils/navigation'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import '../add/index.scss'
 
@@ -46,6 +47,7 @@ const INITIAL_FORM: FormData = {
 }
 
 export default function EditPet() {
+  const themeClass = useThemeClass()
   const { pets, updatePet } = usePet()
   const { trackPageView, trackEvent } = useAnalytics()
   const userId = useAuthStore(s => s.user?.id) || ''
@@ -63,7 +65,9 @@ export default function EditPet() {
     const id = instance.router?.params?.id
     if (!id) {
       Taro.showToast({ title: '参数错误', icon: 'none' })
-      setTimeout(() => Taro.navigateBack(), 1500)
+      setTimeout(() => {
+        safeNavigateBack()
+      }, 1500)
       return
     }
     setPetId(id)
@@ -200,7 +204,7 @@ export default function EditPet() {
       trackEvent('edit_pet_success', { petId })
       Taro.showToast({ title: '保存成功', icon: 'success' })
       setTimeout(() => {
-        Taro.navigateBack()
+        safeNavigateBack()
       }, 1500)
     } catch (err) {
       trackEvent('edit_pet_failure')
@@ -212,7 +216,7 @@ export default function EditPet() {
   }
 
   return (
-    <View className='add-pet'>
+    <View className={`add-pet ${themeClass}`}>
       <View className='add-pet__form'>
         <View className='add-pet__form-item'>
           <Text className='add-pet__label add-pet__label--required'>名字</Text>
@@ -449,7 +453,6 @@ export default function EditPet() {
         </View>
       </View>
 
-      <FloatingNav />
     </View>
   )
 }

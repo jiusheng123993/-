@@ -1,0 +1,524 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 时光线页 — 温馨暖色时间线 + 丰富动效
+// ============================================
+
+.timeline-page {
+  min-height: 100vh;
+  background: $gradient-page;
+  animation: pageEnter 0.4s ease-out;
+}
+
+// ===== 头部 =====
+.timeline-header {
+  display: flex;
+  align-items: center;
+  padding: 32rpx 32rpx 24rpx;
+}
+
+.timeline-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  background: $gradient-gold;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.timeline-title-star {
+  font-size: 28rpx;
+  color: $color-primary;
+  margin-left: 8rpx;
+  margin-right: auto;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.timeline-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 40rpx;
+  border: 1px solid $color-primary;
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.timeline-add-icon {
+  font-size: 28rpx;
+  color: $color-primary;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.timeline-add-text {
+  font-size: 26rpx;
+  color: $color-primary;
+}
+
+// ===== 横幅 =====
+.timeline-banner {
+  margin: 0 32rpx 32rpx;
+}
+
+.timeline-banner-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 28rpx;
+  border-radius: $radius-lg;
+  background: $gradient-card;
+  border: 1rpx solid $color-border;
+  overflow: hidden;
+  @include breathe-glow;
+}
+
+.timeline-banner-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba($color-primary, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.timeline-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-banner-icon {
+  font-size: 44rpx;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+.timeline-banner-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.timeline-banner-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.timeline-banner-desc {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+.timeline-banner-close {
+  position: relative;
+  z-index: 1;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:active {
+    background: $color-primary-bg;
+  }
+}
+
+// ===== 时间线列表 =====
+.timeline-list {
+  padding: 0 32rpx;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 20rpx;
+}
+
+// ===== 时间线左边 =====
+.timeline-line-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 52rpx;
+  flex-shrink: 0;
+}
+
+.timeline-dot {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  border: 2rpx solid $color-bg-page;
+
+  &--milestone {
+    background: $gradient-gold;
+    box-shadow: 0 0 20rpx rgba($color-primary, 0.5);
+    animation: rootGlow 2.5s ease-in-out infinite;
+  }
+
+  &--memory {
+    background: linear-gradient(135deg, $color-coral, #C06050);
+    box-shadow: 0 0 14rpx rgba($color-coral, 0.4);
+  }
+
+  &--ghost {
+    background: rgba($color-text-hint, 0.4);
+    box-shadow: none;
+  }
+}
+
+.timeline-dot-emoji {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.timeline-line {
+  width: 3rpx;
+  flex: 1;
+  min-height: 40rpx;
+  background: linear-gradient(180deg, $color-primary 0%, rgba($color-primary, 0.1) 100%);
+  opacity: 0.5;
+}
+
+// ===== 时间线卡片 =====
+.timeline-card {
+  flex: 1;
+  margin-bottom: 32rpx;
+  padding: 24rpx;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &--ghost {
+    opacity: 0.55;
+    border-style: dashed;
+    border-color: rgba($color-text-hint, 0.3);
+  }
+}
+
+// ===== 卡片动画 =====
+.timeline-item:nth-child(1) .timeline-card { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0s; }
+.timeline-item:nth-child(2) .timeline-card { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.06s; }
+.timeline-item:nth-child(3) .timeline-card { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.12s; }
+.timeline-item:nth-child(4) .timeline-card { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.18s; }
+.timeline-item:nth-child(5) .timeline-card { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.24s; }
+.timeline-item:nth-child(6) .timeline-card { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.3s; }
+
+.timeline-card-date {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.timeline-date-text {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+.timeline-milestone-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  background: $color-primary-bg;
+  border: 1px solid $color-border;
+}
+
+.timeline-milestone-badge-text {
+  font-size: 20rpx;
+  color: $color-primary;
+  font-weight: 600;
+}
+
+.timeline-ghost-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  background: rgba($color-text-hint, 0.15);
+  border: 1px solid rgba($color-text-hint, 0.3);
+}
+
+.timeline-ghost-badge-text {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.timeline-card-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.timeline-card-desc {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.timeline-photo-grid {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.timeline-photo-placeholder {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 12rpx;
+  background: $color-primary-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid $color-border-light;
+}
+
+.timeline-photo-icon {
+  font-size: 36rpx;
+  opacity: 0.4;
+}
+
+.timeline-photo-empty {
+  margin-top: 4rpx;
+}
+
+.timeline-photo-dashed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  background: $color-bg-secondary;
+  border: 1rpx solid $color-border-light;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &:active {
+    border-color: $color-primary;
+    background: $color-primary-bg;
+  }
+}
+
+.timeline-photo-add-icon {
+  font-size: 32rpx;
+  color: $color-text-tertiary;
+}
+
+.timeline-photo-add-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.timeline-bottom-safe {
+  height: 60rpx;
+}
+
+// ===== 年度回忆入口卡片 =====
+.timeline-yearly-card {
+  margin: 0 32rpx 28rpx;
+  border-radius: $radius-lg;
+  background: linear-gradient(135deg, #FFF8F0, #FFFDF8);
+  border: 1px solid $color-border;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.timeline-yearly-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx;
+}
+
+.timeline-yearly-card-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, #FFE8D6, #FFF0E5);
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.timeline-yearly-card-icon {
+  font-size: 40rpx;
+}
+
+.timeline-yearly-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.timeline-yearly-card-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.timeline-yearly-card-desc {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+.timeline-yearly-card-arrow {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  flex-shrink: 0;
+  font-size: 28rpx;
+  color: $color-primary;
+  font-weight: 700;
+
+  &--loading {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// ===== 年度回忆模态 =====
+.timeline-review-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.timeline-review-modal {
+  width: 92%;
+  max-width: 680rpx;
+  max-height: 90vh;
+  border-radius: $radius-xl;
+  background: $color-bg-card;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideUp 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.timeline-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  border-bottom: 1px solid $color-border;
+}
+
+.timeline-review-header-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.timeline-review-header-close {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-full;
+  background: $color-bg-secondary;
+  @include flex-center;
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+
+  &:active {
+    background: $color-primary-bg;
+  }
+}
+
+.timeline-review-image-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16rpx;
+}
+
+.timeline-review-image {
+  width: 100%;
+  padding-top: 177.8%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: $radius-md;
+}
+
+.timeline-review-actions {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 28rpx 28rpx;
+  border-top: 1px solid $color-border;
+}
+
+.timeline-review-btn {
+  flex: 1;
+  padding: 20rpx 0;
+  border-radius: $radius-full;
+  text-align: center;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &--primary {
+    background: $gradient-gold;
+  }
+
+  &--outline {
+    border: 2rpx solid $color-border;
+  }
+}
+
+.timeline-review-btn-text {
+  font-size: 26rpx;
+  font-weight: 600;
+
+  .timeline-review-btn--primary & {
+    color: $color-text-inverse;
+  }
+  .timeline-review-btn--outline & {
+    color: $color-text-secondary;
+  }
+}
+
+.timeline-review-canvas {
+  pointer-events: none;
+  opacity: 0;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

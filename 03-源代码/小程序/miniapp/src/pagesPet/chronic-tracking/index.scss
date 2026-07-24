@@ -1,34 +1,61 @@
+﻿@import '../../styles/_theme';
+@import '../../styles/_animations';
+
 .chronic-page {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: $color-bg-page;
   padding-bottom: 40px;
+  animation: pageEnter 0.4s ease-out;
 }
 
 .chronic-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
   padding: 40px 24px 60px;
-  color: #fff;
+  color: $color-text-inverse;
+}
+
+.chronic-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.chronic-sync-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @include press-feedback;
+}
+
+.chronic-sync-icon {
+  font-size: 18px;
 }
 
 .chronic-title {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: $font-weight-bold;
   margin-bottom: 8px;
+  color: $color-text-inverse;
 }
 
 .chronic-subtitle {
   font-size: 14px;
   opacity: 0.9;
+  color: $color-text-inverse;
 }
 
 .chronic-summary {
   display: flex;
   justify-content: space-around;
   margin: -30px 16px 16px;
-  background: #fff;
-  border-radius: 16px;
+  @include card-base;
   padding: 20px 0;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
 }
 
 .chronic-summary-item {
@@ -38,15 +65,66 @@
 
 .chronic-summary-number {
   font-size: 28px;
-  font-weight: 700;
-  color: #667eea;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
   display: block;
+}
+
+.chronic-summary-number--warn {
+  color: $color-danger;
 }
 
 .chronic-summary-label {
   font-size: 12px;
-  color: #999;
+  color: $color-text-tertiary;
   margin-top: 4px;
+}
+
+.chronic-alert {
+  margin: 0 16px 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba($color-danger, 0.1), rgba($color-danger, 0.05));
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba($color-danger, 0.2);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.chronic-alert-icon {
+  font-size: 18px;
+}
+
+.chronic-alert-text {
+  font-size: 14px;
+  color: $color-danger;
+  flex: 1;
+}
+
+.chronic-tabs {
+  display: flex;
+  margin: 0 16px 12px;
+  background: $color-primary-bg;
+  border-radius: $radius-md;
+  padding: 4px;
+}
+
+.chronic-tab {
+  flex: 1;
+  text-align: center;
+  padding: 8px 0;
+  border-radius: $radius-sm;
+  font-size: 14px;
+  color: $color-text-secondary;
+  transition: all $transition-fast;
+}
+
+.chronic-tab--active {
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-text-inverse;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 2px 8px rgba($color-primary, 0.3);
 }
 
 .chronic-actions {
@@ -57,12 +135,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #667eea;
-  color: #fff;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-text-inverse;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: $radius-md;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: $font-weight-medium;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.25);
+  @include press-feedback;
 }
 
 .chronic-add-icon {
@@ -70,9 +150,14 @@
   margin-right: 8px;
 }
 
+.chronic-content {
+  min-height: 200px;
+}
+
 .chronic-empty-state {
   text-align: center;
   padding: 60px 24px;
+  animation: fadeInScale 0.4s ease-out;
 }
 
 .chronic-empty-icon {
@@ -82,21 +167,21 @@
 
 .chronic-empty-title {
   font-size: 16px;
-  color: #333;
+  color: $color-text-primary;
   margin-bottom: 8px;
 }
 
 .chronic-empty-hint {
   font-size: 14px;
-  color: #999;
+  color: $color-text-tertiary;
 }
 
 .chronic-card {
-  background: #fff;
+  @include card-base;
   margin: 0 16px 12px;
-  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all $transition-normal;
+  animation: cardStaggerIn 0.4s ease-out both;
 }
 
 .chronic-card-header {
@@ -105,17 +190,36 @@
   justify-content: space-between;
   padding: 16px;
   cursor: pointer;
+  transition: all $transition-fast;
+}
+
+.chronic-card-header:active {
+  background: rgba($color-primary, 0.05);
 }
 
 .chronic-card-main {
   flex: 1;
 }
 
+.chronic-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .chronic-card-title {
   font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.chronic-card-overdue-badge {
+  font-size: 10px;
+  color: $color-text-inverse;
+  background: $color-danger;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .chronic-card-tags {
@@ -131,20 +235,20 @@
 
 .chronic-card-arrow {
   font-size: 14px;
-  color: #999;
+  color: $color-text-tertiary;
   margin-left: 8px;
 }
 
 .chronic-card-body {
   padding: 0 16px 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid $color-divider;
 }
 
 .chronic-card-row {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid $color-divider;
 }
 
 .chronic-card-row:last-child {
@@ -153,46 +257,287 @@
 
 .chronic-card-label {
   font-size: 14px;
-  color: #666;
+  color: $color-text-secondary;
+  flex-shrink: 0;
 }
 
 .chronic-card-value {
   font-size: 14px;
-  color: #333;
+  color: $color-text-primary;
   text-align: right;
   flex: 1;
   margin-left: 16px;
 }
 
 .chronic-card-overdue {
-  color: #f5222d;
+  color: $color-danger;
+  font-weight: $font-weight-medium;
 }
 
 .chronic-card-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid $color-divider;
 }
 
 .chronic-card-btn {
   flex: 1;
   text-align: center;
-  padding: 10px;
+  padding: 10px 4px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
+  @include press-feedback;
 }
 
 .chronic-card-btn-primary {
-  background: #667eea;
-  color: #fff;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-text-inverse;
+}
+
+.chronic-card-btn-edit {
+  background: rgba($color-primary, 0.1);
+  color: $color-primary;
+  border: 1px solid rgba($color-primary, 0.3);
 }
 
 .chronic-card-btn-danger {
-  background: #fff0f0;
-  color: #f5222d;
-  border: 1px solid #ffccc7;
+  background: rgba($color-danger, 0.1);
+  color: $color-danger;
+  border: 1px solid rgba($color-danger, 0.3);
+}
+
+.chronic-trend {
+  padding: 0 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.chronic-trend-header {
+  margin-bottom: 16px;
+}
+
+.chronic-trend-title {
+  font-size: 16px;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.chronic-trend-subtitle {
+  font-size: 13px;
+  color: $color-text-tertiary;
+  margin-top: 4px;
+}
+
+.chronic-trend-chart {
+  @include card-base;
+  padding: 16px 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.chronic-trend-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 150px;
+  padding-bottom: 20px;
+}
+
+.chronic-trend-y-label {
+  font-size: 10px;
+  color: $color-text-tertiary;
+  text-align: right;
+  width: 16px;
+}
+
+.chronic-trend-canvas {
+  flex: 1;
+  overflow-x: auto;
+}
+
+.chronic-trend-bars {
+  display: flex;
+  align-items: flex-end;
+  height: 170px;
+  gap: 2px;
+}
+
+.chronic-trend-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 8px;
+}
+
+.chronic-trend-bar-bg {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.chronic-trend-bar {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+.chronic-trend-bar-label {
+  font-size: 9px;
+  color: $color-text-tertiary;
+  margin-top: 4px;
+  transform: rotate(-45deg);
+  transform-origin: center top;
+  white-space: nowrap;
+}
+
+.chronic-trend-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.chronic-trend-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chronic-trend-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.chronic-trend-legend-text {
+  font-size: 12px;
+  color: $color-text-secondary;
+}
+
+.chronic-trend-conditions {
+  margin-top: 16px;
+  @include card-base;
+  padding: 12px 16px;
+}
+
+.chronic-trend-conditions-title {
+  font-size: 14px;
+  color: $color-text-primary;
+  margin-bottom: 8px;
+}
+
+.chronic-trend-conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chronic-trend-condition-tag {
+  padding: 4px 12px;
+  background: rgba($color-primary, 0.1);
+  border-radius: 16px;
+  border: 1px solid rgba($color-primary, 0.2);
+}
+
+.chronic-trend-condition-text {
+  font-size: 13px;
+  color: $color-primary;
+}
+
+.chronic-reminders {
+  padding: 0 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.chronic-reminders-section {
+  margin-bottom: 16px;
+}
+
+.chronic-reminders-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chronic-reminders-section-icon {
+  font-size: 16px;
+}
+
+.chronic-reminders-section-title {
+  font-size: 15px;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.chronic-reminder-card {
+  @include card-base;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-left: 4px solid $color-primary;
+}
+
+.chronic-reminder-card--urgent {
+  border-left-color: $color-danger;
+  background: linear-gradient(135deg, rgba($color-danger, 0.03), $color-bg-card);
+}
+
+.chronic-reminder-card--soon {
+  border-left-color: $color-warning;
+}
+
+.chronic-reminder-badge {
+  padding: 8px 12px;
+  background: rgba($color-primary, 0.08);
+  border-bottom: 1px solid $color-divider;
+}
+
+.chronic-reminder-badge--soon {
+  background: rgba($color-warning, 0.1);
+}
+
+.chronic-reminder-card--urgent .chronic-reminder-badge {
+  background: rgba($color-danger, 0.08);
+}
+
+.chronic-reminder-badge-text {
+  font-size: 13px;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+}
+
+.chronic-reminder-card--urgent .chronic-reminder-badge-text {
+  color: $color-danger;
+}
+
+.chronic-reminder-badge--soon .chronic-reminder-badge-text {
+  color: $color-warning;
+}
+
+.chronic-reminder-body {
+  padding: 12px;
+}
+
+.chronic-reminder-condition {
+  font-size: 16px;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4px;
+}
+
+.chronic-reminder-date {
+  font-size: 14px;
+  color: $color-text-secondary;
+  margin-bottom: 4px;
+}
+
+.chronic-reminder-vet {
+  font-size: 13px;
+  color: $color-text-tertiary;
 }
 
 .chronic-modal-overlay {
@@ -201,20 +546,22 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: $color-bg-overlay;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .chronic-modal {
-  background: #fff;
+  background: linear-gradient(180deg, $color-bg-card 0%, $color-bg-page 100%);
   width: 100%;
   max-height: 80vh;
   border-radius: 20px 20px 0 0;
   display: flex;
   flex-direction: column;
+  animation: sheetUp 0.3s ease-out;
 }
 
 .chronic-modal-header {
@@ -222,19 +569,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid $color-divider;
 }
 
 .chronic-modal-title {
   font-size: 18px;
-  font-weight: 600;
-  color: #333;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
 }
 
 .chronic-modal-close {
   font-size: 24px;
-  color: #999;
+  color: $color-text-tertiary;
   padding: 4px 8px;
+  @include press-feedback;
 }
 
 .chronic-modal-body {
@@ -249,19 +597,45 @@
 
 .chronic-form-label {
   font-size: 14px;
-  color: #333;
+  color: $color-text-primary;
   margin-bottom: 8px;
   display: block;
+}
+
+.chronic-form-condition-input {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.chronic-form-input--condition {
+  border-radius: 8px 0 0 8px !important;
+  border-right: none !important;
+}
+
+.chronic-form-condition-toggle {
+  width: 36px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-primary-bg;
+  border: 1px solid $color-border;
+  border-radius: 0 8px 8px 0;
+  font-size: 12px;
+  color: $color-text-tertiary;
+  @include press-feedback;
 }
 
 .chronic-form-input {
   width: 100%;
   height: 44px;
   padding: 0 12px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid $color-border;
   border-radius: 8px;
   font-size: 14px;
-  background: #fafafa;
+  background: $color-primary-bg;
+  color: $color-text-primary;
   box-sizing: border-box;
 }
 
@@ -269,10 +643,11 @@
   width: 100%;
   height: 44px;
   padding: 0 12px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid $color-border;
   border-radius: 8px;
   font-size: 14px;
-  background: #fafafa;
+  background: $color-primary-bg;
+  color: $color-text-primary;
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -282,10 +657,11 @@
   width: 100%;
   height: 80px;
   padding: 8px 12px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid $color-border;
   border-radius: 8px;
   font-size: 14px;
-  background: #fafafa;
+  background: $color-primary-bg;
+  color: $color-text-primary;
   box-sizing: border-box;
 }
 
@@ -298,23 +674,55 @@
   flex: 1;
   text-align: center;
   padding: 10px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid $color-border;
   border-radius: 8px;
   font-size: 14px;
-  color: #666;
+  color: $color-text-secondary;
+  background: $color-primary-bg;
+  transition: all $transition-fast;
+  @include press-feedback;
 }
 
 .chronic-severity-active {
-  background: #667eea;
-  color: #fff;
-  border-color: #667eea;
+  color: $color-text-inverse !important;
+}
+
+.chronic-condition-picker {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: $color-primary-bg;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  animation: fadeIn 0.2s ease-out;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.chronic-condition-option {
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  color: $color-text-secondary;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  @include press-feedback;
+  transition: all $transition-fast;
+}
+
+.chronic-condition-option--active {
+  background: $color-primary;
+  color: $color-text-inverse;
+  border-color: $color-primary;
 }
 
 .chronic-modal-footer {
   display: flex;
   gap: 12px;
   padding: 16px 20px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid $color-divider;
 }
 
 .chronic-modal-btn {
@@ -323,16 +731,18 @@
   padding: 12px;
   border-radius: 8px;
   font-size: 16px;
+  @include press-feedback;
 }
 
 .chronic-modal-btn-cancel {
-  background: #f5f5f5;
-  color: #666;
+  background: $color-primary-bg;
+  color: $color-text-secondary;
+  border: 1px solid $color-border;
 }
 
 .chronic-modal-btn-confirm {
-  background: #667eea;
-  color: #fff;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-text-inverse;
 }
 
 .chronic-empty {
@@ -344,7 +754,7 @@
 
 .chronic-empty-text {
   font-size: 16px;
-  color: #999;
+  color: $color-text-tertiary;
 }
 
 .chronic-bottom-safe {

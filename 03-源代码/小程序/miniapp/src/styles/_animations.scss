@@ -1,0 +1,269 @@
+// ============================================
+// 星寰海 · 温馨家庭动效系统
+// 爪印、星光、光晕、气泡弹性入场等丰富动效
+// ============================================
+
+// —— 消息弹性入场 ——
+@keyframes msgBounceIn {
+  0% { opacity: 0; transform: translateY(24rpx) scale(0.92); }
+  60% { opacity: 1; transform: translateY(-4rpx) scale(1.02); }
+  80% { transform: translateY(2rpx) scale(0.99); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// —— 消息从右侧滑入 ——
+@keyframes msgSlideInRight {
+  from { opacity: 0; transform: translateX(32rpx); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// —— 消息从左侧滑入 ——
+@keyframes msgSlideInLeft {
+  from { opacity: 0; transform: translateX(-32rpx); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// —— 弹窗弹性进入 ——
+@keyframes popupBounceIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  60% { opacity: 1; transform: scale(1.04); }
+  80% { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+// —— 底部面板弹性进入 ——
+@keyframes sheetBounceUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+// —— 呼吸光晕（温馨版） ——
+@keyframes warmBreathe {
+  0%, 100% { box-shadow: 0 0 12rpx rgba(var(--primary-rgb), 0.12), 0 0 24rpx rgba(var(--primary-rgb), 0.06); }
+  50%      { box-shadow: 0 0 24rpx rgba(var(--primary-rgb), 0.28), 0 0 48rpx rgba(var(--primary-rgb), 0.14); }
+}
+
+// —— 卡片微光流转 ——
+@keyframes cardShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+// —— 爪印浮动粒子 ——
+@keyframes pawFloat1 {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(0.6); opacity: 0; }
+  10%  { opacity: 0.5; }
+  50%  { transform: translate(30rpx, -60rpx) rotate(15deg) scale(0.9); opacity: 0.7; }
+  90%  { opacity: 0.3; }
+  100% { transform: translate(-10rpx, -120rpx) rotate(-10deg) scale(0.4); opacity: 0; }
+}
+
+@keyframes pawFloat2 {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(0.5); opacity: 0; }
+  15%  { opacity: 0.4; }
+  50%  { transform: translate(-40rpx, -80rpx) rotate(-20deg) scale(0.85); opacity: 0.6; }
+  85%  { opacity: 0.3; }
+  100% { transform: translate(15rpx, -140rpx) rotate(5deg) scale(0.35); opacity: 0; }
+}
+
+@keyframes pawFloat3 {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(0.7); opacity: 0; }
+  20%  { opacity: 0.5; }
+  50%  { transform: translate(20rpx, -50rpx) rotate(10deg) scale(0.95); opacity: 0.65; }
+  80%  { opacity: 0.25; }
+  100% { transform: translate(-20rpx, -100rpx) rotate(-8deg) scale(0.45); opacity: 0; }
+}
+
+// —— 星星闪烁 ——
+@keyframes starTwinkle1 {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50%      { opacity: 0.9; transform: scale(1.1); }
+}
+
+@keyframes starTwinkle2 {
+  0%, 100% { opacity: 0.5; transform: scale(0.8); }
+  30%      { opacity: 0.1; transform: scale(0.5); }
+  70%      { opacity: 0.8; transform: scale(1.0); }
+}
+
+@keyframes starTwinkle3 {
+  0%, 100% { opacity: 0.3; transform: scale(0.6); }
+  40%      { opacity: 0.9; transform: scale(1.15); }
+  80%      { opacity: 0.2; transform: scale(0.7); }
+}
+
+// —— 星光旋转 ——
+@keyframes starSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+// —— 光粒子上升 ——
+@keyframes particleRise {
+  0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+  20%  { opacity: 0.8; }
+  80%  { opacity: 0.3; }
+  100% { transform: translateY(-200rpx) scale(1.2); opacity: 0; }
+}
+
+// —— 卡片交错入场 ——
+@keyframes cardStaggerIn {
+  from { opacity: 0; transform: translateY(32rpx) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// —— 淡入上移 ——
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24rpx); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// —— 淡入缩放 ——
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+// —— 淡入 ——
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// —— 打字指示器弹性跳动 ——
+@keyframes dotBounce {
+  0%, 80%, 100% { transform: scale(0.5); }
+  40%           { transform: scale(1); }
+}
+
+// —— 脉搏跳动 ——
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+// —— 心形跳动 ——
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15%      { transform: scale(1.15); }
+  30%      { transform: scale(1); }
+  45%      { transform: scale(1.1); }
+  60%      { transform: scale(1); }
+}
+
+// —— 旋转 ——
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+// —— 骨架屏加载 ——
+@keyframes skeletonLoading {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+// —— 金色光条流动 ——
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+
+// —— 光条平移 ——
+@keyframes shimmerLine {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+
+// —— 节点光晕 ——
+@keyframes rootGlow {
+  0%, 100% { box-shadow: 0 0 12rpx rgba(var(--primary-rgb), 0.08); }
+  50%      { box-shadow: 0 0 28rpx rgba(var(--primary-rgb), 0.22); }
+}
+
+// —— Toast 通知进入 ——
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12rpx); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+// —— 分数呼吸 ——
+@keyframes breathingScore {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+// —— 页面入场 ——
+@keyframes pageEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// —— 按钮波纹扩散 ——
+@keyframes btnRipple {
+  0%   { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+// ============================================
+// 混入（Mixin）
+// ============================================
+
+// 页面入场动画
+@mixin page-enter {
+  animation: pageEnter 0.35s ease-out;
+}
+
+// 卡片入场序列（用于列表）
+@mixin stagger-enter($index, $base-delay: 0.06s) {
+  animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: $index * $base-delay;
+}
+
+// 弹性入场
+@mixin bounce-enter {
+  animation: popupBounceIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+// 按下反馈
+@mixin press-feedback {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  &:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+}
+
+// 呼吸光晕
+@mixin breathe-glow {
+  animation: warmBreathe 3s ease-in-out infinite;
+}
+
+// 卡片微光
+@mixin card-shimmer {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(var(--primary-rgb), 0.06) 45%,
+    rgba(var(--primary-rgb), 0.12) 50%,
+    rgba(var(--primary-rgb), 0.06) 55%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: cardShimmer 3s ease-in-out infinite;
+}
+
+// 弹性中心
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 文字省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

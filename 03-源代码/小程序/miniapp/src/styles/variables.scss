@@ -1,11 +1,3 @@
-$primary-color: #4A90D9;
-$primary-light: #7BB3E8;
-$primary-dark: #3A7BC8;
-$text-color: #1A1A1A;
-$text-secondary: #666666;
-$bg-page: #F5F7FA;
-$bg-white: #FFFFFF;
-$border-color: #E8E8E8;
-$success-color: #52C41A;
-$warning-color: #FAAD14;
-$error-color: #F5222D;
+// 已废弃：请使用 _theme.scss 代替
+// 此文件保留仅为向后兼容，所有变量已迁移至 _theme.scss
+@import './_theme';

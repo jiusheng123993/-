@@ -3,6 +3,7 @@ import { View, Text, Switch } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useAuthStore } from '../../stores/authStore'
 import { useSettingsStore, type NotificationSettings } from '../../stores/settingsStore'
+import { useThemeStore, THEME_LIST, type ThemeKey } from '../../stores/themeStore'
 import { useMembership } from '../../hooks/useMembership'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { APP_VERSION } from '../../constants'
@@ -16,6 +17,7 @@ import {
 } from '../../services/dataPrivacyService'
 import type { AccountDeletionReason, DataPrivacyStatus, AccountDeletionResult } from '../../types/dataPrivacyTypes'
 import { AccountDeletionConfirm } from '../../components/AccountDeletionConfirm'
+import { useThemeClass, useThemeKey } from '../../hooks/useThemeClass'
 import './index.scss'
 
 export default function SettingsPage() {
@@ -27,7 +29,10 @@ export default function SettingsPage() {
   const updateNotification = useSettingsStore(s => s.updateNotification)
   const clearCache = useSettingsStore(s => s.clearCache)
   const exportData = useSettingsStore(s => s.exportData)
+  const currentTheme = useThemeKey()
+  const setTheme = useThemeStore.getState().setTheme
   const { trackPageView, trackEvent } = useAnalytics()
+  const themeClass = useThemeClass()
 
   const [privacyStatus, setPrivacyStatus] = useState<DataPrivacyStatus | null>(null)
   const [showDeletionModal, setShowDeletionModal] = useState(false)
@@ -201,6 +206,12 @@ export default function SettingsPage() {
     Taro.navigateTo({ url: `/pagesUser/agreement/index?type=${type}` })
   }, [])
 
+  const handleThemeChange = useCallback((theme: ThemeKey) => {
+    trackEvent('change_theme', { theme })
+    setTheme(theme)
+    Taro.showToast({ title: '主题已切换', icon: 'success', duration: 1000 })
+  }, [setTheme, trackEvent])
+
   const handleLogout = useCallback(() => {
     Taro.showModal({
       title: '退出登录',
@@ -217,7 +228,7 @@ export default function SettingsPage() {
   }, [logout, trackEvent])
 
   return (
-    <View className='settings-page'>
+    <View className={'settings-page ' + themeClass}>
       <View className='settings-page__section'>
         <Text className='settings-page__section-title'>账号管理</Text>
         <View className='settings-page__item'>
@@ -243,6 +254,64 @@ export default function SettingsPage() {
         <View className='settings-page__item'>
           <Text className='settings-page__item-label'>健康异常提醒</Text>
           <Switch checked={notification.healthAlert} onChange={(e) => handleToggleNotification('healthAlert', e.detail.value)} color='#4A90D9' />
+        </View>
+      </View>
+
+      <View className='settings-page__section'>
+        <Text className='settings-page__section-title'>主题切换</Text>
+        {/* 日间模式 */}
+        <Text className='settings-page__theme-group-title'>☀️ 日间模式</Text>
+        <View className='settings-page__theme-grid'>
+          {THEME_LIST.filter(t => t.mode === 'light').map((theme) => (
+            <View
+              key={theme.key}
+              className={`settings-page__theme-card ${currentTheme === theme.key ? 'settings-page__theme-card--active' : ''}`}
+              onClick={() => handleThemeChange(theme.key)}
+            >
+              <View
+                className='settings-page__theme-preview'
+                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}88)` }}
+              >
+                <Text className='settings-page__theme-preview-emoji'>{theme.emoji}</Text>
+              </View>
+              <View className='settings-page__theme-info'>
+                <Text className='settings-page__theme-name'>{theme.name}</Text>
+                <Text className='settings-page__theme-desc'>{theme.desc}</Text>
+              </View>
+              {currentTheme === theme.key && (
+                <View className='settings-page__theme-check'>
+                  <Text>✓</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+        {/* 夜间模式 */}
+        <Text className='settings-page__theme-group-title'>🌙 夜间模式</Text>
+        <View className='settings-page__theme-grid'>
+          {THEME_LIST.filter(t => t.mode === 'dark').map((theme) => (
+            <View
+              key={theme.key}
+              className={`settings-page__theme-card ${currentTheme === theme.key ? 'settings-page__theme-card--active' : ''}`}
+              onClick={() => handleThemeChange(theme.key)}
+            >
+              <View
+                className='settings-page__theme-preview'
+                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}88)` }}
+              >
+                <Text className='settings-page__theme-preview-emoji'>{theme.emoji}</Text>
+              </View>
+              <View className='settings-page__theme-info'>
+                <Text className='settings-page__theme-name'>{theme.name}</Text>
+                <Text className='settings-page__theme-desc'>{theme.desc}</Text>
+              </View>
+              {currentTheme === theme.key && (
+                <View className='settings-page__theme-check'>
+                  <Text>✓</Text>
+                </View>
+              )}
+            </View>
+          ))}
         </View>
       </View>
 

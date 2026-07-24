@@ -1,7 +1,7 @@
 @import './styles/_theme';
 
 page {
-  background: $color-bg-page;
+  background: transparent;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
   color: $color-text-primary;
   font-size: $font-size-md;
@@ -17,10 +17,16 @@ cover-view {
   box-sizing: border-box;
 }
 
+// app-root 占满全屏，背景跟随主题（主题类在此元素上覆盖 CSS 变量）
+.app-root {
+  min-height: 100vh;
+  background: $gradient-page;
+}
+
 .app-loading {
   @include flex-center;
   min-height: 100vh;
-  background: $color-bg-page;
+  background: $gradient-page;
   color: $color-primary;
   font-size: $font-size-xl;
   font-weight: $font-weight-semibold;

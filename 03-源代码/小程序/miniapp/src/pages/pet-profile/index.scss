@@ -1,15 +1,38 @@
 @import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 宠物档案 — 温馨家庭主题
+// ============================================
 
 .profile-page {
   min-height: 100vh;
-  background: $color-bg-page;
+  background: $gradient-page;
+  animation: pageEnter 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
 }
 
+// —— 背景装饰光晕 ——
+.profile-page::before {
+  content: '';
+  position: absolute;
+  bottom: 100px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba($color-primary, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: warmBreathe 5s ease-in-out 1s infinite;
+}
+
+// ===== 头部 =====
 .profile-header {
   @include flex-center;
   flex-direction: column;
   padding: 48rpx $spacing-xl 32rpx;
-  background: linear-gradient(180deg, $color-primary-bg 0%, $color-bg-page 100%);
+  background: linear-gradient(180deg, rgba($color-primary, 0.06), $color-bg-page 100%);
 }
 
 .profile-avatar {
@@ -17,9 +40,11 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: $radius-full;
-  background: $color-bg-card;
-  box-shadow: $shadow-md;
-  margin-bottom: 20rpx;
+  background: linear-gradient(135deg, $color-bg-card, rgba($color-primary, 0.1));
+  border: 2rpx solid rgba($color-primary, 0.2);
+  box-shadow: 0 0 32rpx rgba($color-primary, 0.15);
+  margin-bottom: 24rpx;
+  animation: rootGlow 4s ease-in-out infinite;
 }
 
 .profile-avatar-emoji {
@@ -27,15 +52,15 @@
 }
 
 .profile-name {
-  font-size: $font-size-xxl;
+  font-size: 40rpx;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
   margin-bottom: $spacing-xs;
 }
 
 .profile-breed {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  color: $color-text-hint;
   margin-bottom: $spacing-md;
 }
 
@@ -47,14 +72,21 @@
 }
 
 .profile-tag {
-  padding: 6rpx 20rpx;
+  padding: 8rpx 22rpx;
   background: $color-bg-card;
   border-radius: 20rpx;
-  font-size: $font-size-sm;
-  color: $color-primary;
-  border: 1px solid $color-primary-bg;
+  font-size: $font-size-xs;
+  color: $color-primary-light;
+  border: 1px solid rgba($color-primary, 0.2);
+  transition: all 0.2s ease;
+
+  &:active {
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.1);
+  }
 }
 
+// ===== 宠物切换 =====
 .profile-pet-switcher {
   display: flex;
   gap: $spacing-sm;
@@ -66,33 +98,42 @@
   display: flex;
   align-items: center;
   gap: $spacing-xs;
-  padding: $spacing-sm 24rpx;
+  padding: $spacing-sm 28rpx;
   background: $color-bg-card;
+  border: 1px solid $color-border;
   border-radius: 24rpx;
-  font-size: 26rpx;
+  font-size: $font-size-sm;
   color: $color-text-secondary;
   white-space: nowrap;
-  box-shadow: $shadow-xs;
-  @include press-feedback;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
 }
 
 .profile-pet-tab-active {
-  background: $color-primary;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
   color: $color-text-inverse;
+  border-color: transparent;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
 }
 
+// ===== Section =====
 .profile-section {
-  margin: $spacing-md $spacing-xl;
+  margin: 0 $spacing-xl $spacing-md;
 }
 
 .profile-section-title {
-  font-size: $font-size-lg;
+  font-size: 30rpx;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
   margin-bottom: $spacing-md;
   display: block;
 }
 
+// ===== 信息网格 =====
 .profile-info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -100,85 +141,112 @@
 }
 
 .profile-info-item {
-  padding: 20rpx;
+  padding: 22rpx;
   background: $color-bg-card;
-  border-radius: $radius-sm;
-  box-shadow: $shadow-xs;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  transition: all 0.2s ease;
+  animation: cardStaggerIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  @include press-feedback;
+
+  &:active {
+    border-color: rgba($color-primary, 0.3);
+  }
 }
 
+.profile-info-item:nth-child(1) { animation-delay: 0s; }
+.profile-info-item:nth-child(2) { animation-delay: 0.06s; }
+.profile-info-item:nth-child(3) { animation-delay: 0.12s; }
+.profile-info-item:nth-child(4) { animation-delay: 0.18s; }
+
 .profile-info-label {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $color-text-hint;
   display: block;
-  margin-bottom: $spacing-xs;
+  margin-bottom: 6rpx;
 }
 
 .profile-info-value {
-  font-size: $font-size-base;
+  font-size: $font-size-md;
   color: $color-text-primary;
   font-weight: $font-weight-medium;
 }
 
+// ===== 功能卡片 =====
 .profile-feature-card {
-  padding: 20rpx;
+  padding: 0;
   background: $color-bg-card;
-  border-radius: $radius-sm;
-  box-shadow: $shadow-xs;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  overflow: hidden;
 }
 
 .profile-feature-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $spacing-md 0;
-  border-bottom: 1px solid $color-border-light;
-}
+  padding: 26rpx $spacing-lg;
+  border-bottom: 1px solid $color-divider;
+  transition: background 0.15s ease;
 
-.profile-feature-item:last-child {
-  border-bottom: none;
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background: rgba($color-primary, 0.05);
+  }
 }
 
 .profile-feature-label {
-  font-size: 26rpx;
+  font-size: $font-size-sm;
   color: $color-text-secondary;
 }
 
 .profile-feature-value {
-  font-size: 26rpx;
-  color: $color-text-primary;
+  font-size: $font-size-sm;
+  color: $color-primary-light;
   font-weight: $font-weight-medium;
 }
 
+// ===== 健康卡片 =====
 .profile-health-card {
-  padding: 20rpx;
+  padding: 0;
   background: $color-bg-card;
-  border-radius: $radius-sm;
-  box-shadow: $shadow-xs;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  overflow: hidden;
 }
 
 .profile-health-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $spacing-md 0;
-  border-bottom: 1px solid $color-border-light;
-}
+  padding: 26rpx $spacing-lg;
+  border-bottom: 1px solid $color-divider;
+  transition: background 0.15s ease;
 
-.profile-health-item:last-child {
-  border-bottom: none;
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background: rgba($color-primary, 0.05);
+  }
 }
 
 .profile-health-label {
-  font-size: 26rpx;
+  font-size: $font-size-sm;
   color: $color-text-secondary;
 }
 
 .profile-health-value {
-  font-size: 26rpx;
+  font-size: $font-size-sm;
   color: $color-text-primary;
   font-weight: $font-weight-medium;
 }
 
+// ===== 操作按钮 =====
 .profile-actions {
   display: flex;
   gap: $spacing-md;
@@ -190,15 +258,26 @@
   flex-direction: column;
   align-items: center;
   gap: $spacing-xs;
-  padding: 24rpx $spacing-sm;
+  padding: 28rpx $spacing-sm;
   background: $color-bg-card;
-  border-radius: $radius-sm;
-  box-shadow: $shadow-xs;
-  @include press-feedback;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.96);
+    border-color: rgba($color-primary, 0.3);
+    background: rgba($color-primary, 0.05);
+  }
 }
 
 .profile-action-icon {
-  font-size: 36rpx;
+  font-size: 40rpx;
+  transition: transform 0.2s ease;
+}
+
+.profile-action-btn:active .profile-action-icon {
+  transform: scale(0.9);
 }
 
 .profile-action-label {
@@ -207,16 +286,17 @@
   font-weight: $font-weight-medium;
 }
 
+// ===== 危险区域 =====
 .profile-danger-zone {
   padding: 24rpx;
   background: $color-bg-card;
-  border-radius: $radius-sm;
-  border: 1px solid $color-danger-bg;
+  border-radius: $radius-lg;
+  border: 1px solid rgba($color-coral, 0.3);
 }
 
 .profile-danger-title {
-  font-size: 26rpx;
-  color: $color-danger;
+  font-size: $font-size-sm;
+  color: $color-coral;
   font-weight: $font-weight-medium;
   margin-bottom: $spacing-md;
   display: block;
@@ -225,14 +305,21 @@
 .profile-danger-btn {
   padding: $spacing-md;
   text-align: center;
-  background: $color-danger-light;
-  border: 1px solid $color-danger-bg;
-  border-radius: $radius-xs;
-  font-size: 26rpx;
-  color: $color-danger;
-  @include press-feedback;
+  background: rgba($color-coral, 0.08);
+  border: 1px solid rgba($color-coral, 0.25);
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  color: $color-coral;
+  border-radius: $radius-md;
+  transition: all 0.15s ease;
+
+  &:active {
+    background: rgba($color-coral, 0.15);
+    transform: scale(0.98);
+  }
 }
 
+// ===== 空状态 =====
 .profile-empty {
   @include flex-center;
   flex-direction: column;
@@ -242,31 +329,33 @@
 .profile-empty-icon {
   font-size: 80rpx;
   margin-bottom: $spacing-md;
+  opacity: 0.6;
 }
 
 .profile-empty-text {
-  font-size: $font-size-lg;
-  color: $color-text-primary;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
   font-weight: $font-weight-medium;
   margin-bottom: $spacing-xs;
 }
 
 .profile-empty-hint {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $color-text-hint;
   margin-bottom: $spacing-xl;
 }
 
 .profile-empty-btn {
-  padding: $spacing-md 48rpx;
-  background: $color-primary;
+  padding: $spacing-md 56rpx;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
   color: $color-text-inverse;
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
-  border-radius: 40rpx;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-round;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
   @include press-feedback;
 }
 
 .profile-bottom-safe {
-  height: 40rpx;
+  height: 60rpx;
 }

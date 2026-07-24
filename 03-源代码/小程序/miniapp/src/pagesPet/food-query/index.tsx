@@ -1,13 +1,13 @@
 import { View, Text, Input } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useFoodQuery } from '../../hooks/useFoodQuery'
 import { useMembership } from '../../hooks/useMembership'
 import { useAuthStore } from '../../stores/authStore'
 import { useShareStore } from '../../stores/shareStore'
 import PetSwitcher from '../../components/PetSwitcher'
-import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
 import FoodShareCard from '../../components/FoodShareCard'
 import AnxietyIntervention from '../../components/AnxietyIntervention'
@@ -192,7 +192,6 @@ export default function PetFoodQuery() {
     return (
       <View className='pet-food-query'>
         <PageLoading />
-        <FloatingNav />
       </View>
     )
   }
@@ -201,7 +200,6 @@ export default function PetFoodQuery() {
     return (
       <View className='pet-food-query'>
         <PageError message={error} onRetry={loadInitialData} />
-        <FloatingNav />
       </View>
     )
   }
@@ -470,7 +468,6 @@ export default function PetFoodQuery() {
         />
       )}
 
-      <FloatingNav />
     </View>
   )
 }

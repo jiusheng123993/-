@@ -4,25 +4,26 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import { useMembershipStore } from '../../stores/membershipStore'
+import { getCheckinStats } from '../../services/checkinService'
 import PageLoading from '../../components/PageLoading'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
 const MENU_ITEMS = [
   [
-    { icon: '📋', label: '我的订单', url: '' },
-    { icon: '🎫', label: '优惠券', url: '' },
-    { icon: '⭐', label: '我的收藏', url: '' },
+    { icon: '📊', label: '健康报告', url: '/pagesPet/trends/index' },
+    { icon: '💉', label: '疫苗日历', url: '/pagesPet/vaccine/index' },
+    { icon: '👑', label: '会员中心', url: '/pages/member/index' },
   ],
   [
-    { icon: '💼', label: '职业顾问', url: '/pagesCareer/profile/index' },
-    { icon: '📔', label: '成长日记', url: '/pagesPet/diary/index' },
-    { icon: '📊', label: '健康报告', url: '/pagesPet/trends/index' },
-    { icon: '🔔', label: '提醒设置', url: '/pagesUser/settings/index' },
+    { icon: '📈', label: '效果追踪', url: '/pagesUser/effect-tracking/index' },
   ],
   [
     { icon: '👥', label: '邀请好友', url: '/pagesUser/invite/index' },
     { icon: '💬', label: '意见反馈', url: '' },
-    { icon: 'ℹ️', label: '关于我们', url: '' },
+  ],
+  [
+    { icon: '⚙️', label: '设置', url: '/pagesUser/settings/index' },
   ],
 ]
 
@@ -31,21 +32,44 @@ export default function Mine() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isInitialized = useAuthStore(state => state.isInitialized)
   const logout = useAuthStore(state => state.logout)
-  const { pets, fetchPets } = usePetStore()
+  const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const membership = useMembershipStore(state => state.membership)
   const [pageReady, setPageReady] = useState(false)
+  const [totalCheckins, setTotalCheckins] = useState(0)
+  const [totalDiaries, setTotalDiaries] = useState(0)
+  const themeClass = useThemeClass()
 
   useEffect(() => {
     if (!isInitialized) return
     if (!isAuthenticated || !user) {
-      Taro.reLaunch({ url: '/pages/login/index' })
+      const pages = Taro.getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      if (currentPage && currentPage.route !== 'pages/login/index') {
+        Taro.reLaunch({ url: '/pages/login/index' })
+      }
       return
     }
     const loadData = async () => {
       try {
         await fetchPets(user.id)
+        const fetchedPets = usePetStore.getState().pets
+        if (fetchedPets.length > 0 && user?.id) {
+          let totalC = 0
+          let totalD = 0
+          for (const pet of fetchedPets) {
+            try {
+              const stats = await getCheckinStats(pet.id, user.id)
+              totalC += stats.totalCheckins
+              totalD += stats.totalCheckins
+            } catch {
+              // 单个宠物统计失败不影响整体
+            }
+          }
+          setTotalCheckins(totalC)
+          setTotalDiaries(totalD)
+        }
       } catch (err) {
-        // 静默处理错误，页面有错误状态展示
+        // 静默处理错误
       }
       setPageReady(true)
     }
@@ -80,7 +104,7 @@ export default function Mine() {
   const isVip = membership?.level !== 'free'
 
   return (
-    <ScrollView className='mine-page' scrollY>
+    <ScrollView className={`mine-page ${themeClass}`} scrollY>
       <View className='mine-header'>
         <View className='mine-user-card'>
           <View className='mine-avatar'>
@@ -105,17 +129,54 @@ export default function Mine() {
         </View>
       </View>
 
+      {pets.length > 0 && (
+        <View className='mine-pet-chips'>
+          <ScrollView className='mine-pet-chips-scroll' scrollX showScrollbar={false}>
+            {pets.map(pet => {
+              const isActive = currentPet?.id === pet.id
+              const emoji = pet.species === 'cat' ? '🐱' : '🐶'
+              return (
+                <View
+                  key={pet.id}
+                  className={`mine-pet-chip ${isActive ? 'mine-pet-chip--active' : ''}`}
+                  onClick={() => switchPet(pet.id)}
+                >
+                  <View className='mine-pet-chip-avatar'>
+                    <Text>{emoji}</Text>
+                  </View>
+                  <Text className='mine-pet-chip-name'>{pet.name}</Text>
+                  {isActive && (
+                    <View className='mine-pet-chip-check'>
+                      <Text>✓</Text>
+                    </View>
+                  )}
+                </View>
+              )
+            })}
+            <View
+              className='mine-pet-chip mine-pet-chip--add'
+              onClick={() => navigateTo('/pagesPet/add/index')}
+            >
+              <View className='mine-pet-chip-add-icon'>
+                <Text>+</Text>
+              </View>
+              <Text className='mine-pet-chip-name'>添加</Text>
+            </View>
+          </ScrollView>
+        </View>
+      )}
+
       <View className='mine-stats'>
         <View className='mine-stat-item'>
           <Text className='mine-stat-num'>{pets.length}</Text>
           <Text className='mine-stat-label'>宠物</Text>
         </View>
         <View className='mine-stat-item'>
-          <Text className='mine-stat-num'>0</Text>
+          <Text className='mine-stat-num'>{totalCheckins}</Text>
           <Text className='mine-stat-label'>打卡</Text>
         </View>
         <View className='mine-stat-item'>
-          <Text className='mine-stat-num'>0</Text>
+          <Text className='mine-stat-num'>{totalDiaries}</Text>
           <Text className='mine-stat-label'>日记</Text>
         </View>
         <View className='mine-stat-item'>
@@ -136,6 +197,8 @@ export default function Mine() {
           <Text className='mine-vip-banner-arrow'>›</Text>
         </View>
       )}
+
+      <View className='section-divider' />
 
       {MENU_ITEMS.map((group, groupIndex) => (
         <View key={groupIndex} className='mine-menu-group'>

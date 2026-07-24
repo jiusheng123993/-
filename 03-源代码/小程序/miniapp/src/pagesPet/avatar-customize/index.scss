@@ -1,9 +1,11 @@
-@import '../../styles/_theme';
+﻿@import '../../styles/_theme';
+@import '../../styles/_animations';
 
 .avatar-customize {
   min-height: 100vh;
-  background: $color-bg-warm;
+  background: $gradient-page;
   padding: $spacing-xl $spacing-lg;
+  animation: pageEnter 0.4s ease-out;
 
   &__preview {
     @include flex-center;
@@ -17,7 +19,7 @@
     width: 320rpx;
     height: 320rpx;
     display: block;
-    animation: avatarFadeIn $transition-slow;
+    animation: fadeInScale $transition-slow;
   }
 
   &__generating {
@@ -33,7 +35,7 @@
     border: 6rpx solid $color-border;
     border-top-color: $color-primary;
     border-radius: $radius-full;
-    animation: avatarSpin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite;
   }
 
   &__generating-text {
@@ -138,10 +140,10 @@
 
   &__btn {
     padding: 24rpx 0;
-    background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+    background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
     border-radius: $radius-round;
     text-align: center;
-    box-shadow: 0 4rpx 16rpx rgba(74, 144, 217, 0.3);
+    box-shadow: 0 4rpx 16rpx rgba(var(--primary-rgb), 0.3);
     @include press-feedback;
 
     &--disabled {
@@ -197,19 +199,373 @@
   }
 }
 
-@keyframes avatarFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
+// Tab 切换
+.avatar-customize__tabs {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: 6rpx;
+  margin-bottom: $spacing-xl;
+}
+
+.avatar-customize__tab {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+
+  &--active {
+    background: $color-bg-page;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   }
 }
 
-@keyframes avatarSpin {
-  to {
-    transform: rotate(360deg);
+.avatar-customize__tab-text {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-tertiary;
+
+  .avatar-customize__tab--active & {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// PhotoUploader
+.photo-uploader {
+  margin: $spacing-sm 0;
+
+  &--empty {
+    border: 2rpx dashed $color-border;
+    border-radius: $radius-xl;
+    padding: 60rpx 20rpx;
+    text-align: center;
+    background: $color-bg-card;
+    transition: border-color $transition-fast;
+
+    &:active {
+      border-color: $color-primary;
+    }
+  }
+
+  &--has-image {
+    position: relative;
+  }
+
+  &__preview {
+    width: 100%;
+    height: 400rpx;
+    border-radius: $radius-xl;
+    object-fit: cover;
+  }
+
+  &__placeholder {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__icon {
+    font-size: 72rpx;
+  }
+
+  &__label {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+
+  &__hint {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-md;
+    margin-top: $spacing-md;
+  }
+
+  &__btn {
+    flex: 1;
+    text-align: center;
+    padding: 16rpx;
+    background: $color-bg-card;
+    border-radius: $radius-md;
+
+    &--remove {
+      background: $color-danger-bg;
+    }
+
+    &-text {
+      font-size: $font-size-md;
+      color: $color-text-primary;
+    }
+  }
+}
+
+// GenerationProgress
+.generation-progress {
+  padding: $spacing-lg;
+  background: $color-primary-bg;
+  border-radius: $radius-lg;
+  margin: $spacing-lg 0;
+
+  &--completed {
+    background: $color-primary-bg;
+  }
+
+  &--failed {
+    background: $color-danger-bg;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__label {
+    font-size: $font-size-md;
+    color: $color-text-primary;
+  }
+
+  &__percent {
+    font-size: $font-size-md;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+  }
+
+  &__bar {
+    height: 10rpx;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: $radius-full;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, $color-primary, $color-success);
+    border-radius: $radius-full;
+    transition: width 0.5s ease;
+  }
+
+  &__hint {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+    margin-top: $spacing-sm;
+  }
+
+  &__icon {
+    font-size: 40rpx;
+    text-align: center;
+    display: block;
+    margin-bottom: $spacing-xs;
+  }
+
+  &__text {
+    font-size: $font-size-md;
+    color: $color-text-primary;
+    text-align: center;
+    display: block;
+  }
+}
+
+// ImageGallery
+.image-gallery {
+  margin-top: $spacing-lg;
+
+  &__angles {
+    margin-bottom: $spacing-md;
+  }
+
+  &__angles-scroll {
+    white-space: nowrap;
+  }
+
+  &__angle-item {
+    display: inline-block;
+    padding: 10rpx 24rpx;
+    margin-right: $spacing-sm;
+    background: $color-bg-card;
+    border-radius: $radius-round;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    transition: all $transition-fast;
+
+    &--active {
+      background: $color-primary;
+      color: $color-text-inverse;
+    }
+  }
+
+  &__preview {
+    width: 100%;
+    height: 400rpx;
+    background: $color-bg-card;
+    border-radius: $radius-xl;
+    overflow: hidden;
+    @include flex-center;
+  }
+
+  &__preview-img {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__preview-empty {
+    text-align: center;
+  }
+
+  &__preview-empty-text {
+    font-size: $font-size-md;
+    color: $color-text-placeholder;
+  }
+
+  &__tabs {
+    display: flex;
+    margin: $spacing-md 0;
+    border-bottom: 1rpx solid $color-border;
+  }
+
+  &__tab {
+    flex: 1;
+    text-align: center;
+    padding: $spacing-sm;
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+    border-bottom: 3rpx solid transparent;
+
+    &--active {
+      color: $color-primary;
+      border-bottom-color: $color-primary;
+    }
+  }
+
+  &__selector-scroll {
+    white-space: nowrap;
+    padding: $spacing-sm 0;
+  }
+
+  &__selector-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12rpx 16rpx;
+    margin-right: $spacing-sm;
+    background: $color-bg-card;
+    border-radius: $radius-md;
+    min-width: 80rpx;
+    transition: all $transition-fast;
+
+    &--active {
+      background: $color-primary-bg;
+      border: 2rpx solid $color-primary;
+    }
+  }
+
+  &__selector-emoji {
+    font-size: 36rpx;
+  }
+
+  &__selector-label {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    margin-top: 4rpx;
+
+    .image-gallery__selector-item--active & {
+      color: $color-primary;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-md;
+    margin-top: $spacing-lg;
+  }
+
+  &__btn {
+    flex: 1;
+    text-align: center;
+    padding: 22rpx;
+    background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+    border-radius: $radius-round;
+    box-shadow: 0 4rpx 16rpx rgba(var(--primary-rgb), 0.3);
+    @include press-feedback;
+
+    &--3d {
+      background: linear-gradient(135deg, #8EA898 0%, #6E8A78 100%);
+      box-shadow: 0 4rpx 16rpx rgba(var(--success-rgb), 0.3);
+    }
+
+    &--disabled {
+      opacity: 0.5;
+      box-shadow: none;
+    }
+  }
+
+  &__btn-text {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-text-inverse;
+  }
+}
+
+// Model3DViewer
+.model-3d-viewer {
+  margin-top: $spacing-lg;
+
+  &__preview {
+    width: 100%;
+    height: 400rpx;
+    background: $color-bg-card;
+    border-radius: $radius-xl;
+    overflow: hidden;
+    @include flex-center;
+  }
+
+  &__thumbnail {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__placeholder {
+    text-align: center;
+  }
+
+  &__placeholder-icon {
+    font-size: 72rpx;
+    display: block;
+  }
+
+  &__placeholder-text {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-top: $spacing-sm;
+  }
+
+  &__placeholder-hint {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    margin-top: $spacing-xs;
+  }
+
+  &__actions {
+    margin-top: $spacing-md;
+  }
+
+  &__btn {
+    width: 100%;
+    padding: 22rpx;
+    background: linear-gradient(135deg, #8EA898 0%, #6E8A78 100%);
+    color: $color-text-inverse;
+    border: none;
+    border-radius: $radius-round;
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    box-shadow: 0 4rpx 16rpx rgba(var(--success-rgb), 0.3);
+    @include press-feedback;
   }
 }

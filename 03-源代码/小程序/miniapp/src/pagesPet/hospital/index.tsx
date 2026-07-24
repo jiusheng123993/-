@@ -1,6 +1,7 @@
 import { View, Text, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'

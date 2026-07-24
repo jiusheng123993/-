@@ -1,28 +1,34 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
 .agreement-page {
   min-height: 100vh;
-  background-color: #FFFFFF;
+  background: $gradient-page;
+  animation: pageEnter 0.4s ease-out;
 
   &__header {
     padding: 32px;
-    border-bottom: 1px solid #F0F0F0;
+    border-bottom: 1px solid $color-divider;
+    animation: fadeInUp 0.4s ease-out both;
   }
 
   &__title {
     font-size: 36px;
     font-weight: bold;
-    color: #333333;
+    color: $color-text-primary;
   }
 
   &__content {
     padding: 32px;
     font-size: 28px;
     line-height: 1.8;
-    color: #666666;
+    color: $color-text-secondary;
+    animation: fadeInUp 0.4s ease-out 0.1s both;
 
     h3 {
       font-size: 30px;
       font-weight: bold;
-      color: #333333;
+      color: $color-text-primary;
       margin: 32px 0 16px;
     }
 

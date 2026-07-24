@@ -70,7 +70,7 @@ const config = {
     '@': 'src',
   },
   env: {
-    TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000/api'),
+    TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000'),
     TARO_APP_USE_MOCK: JSON.stringify(process.env.TARO_APP_USE_MOCK || 'true'),
     TARO_APP_SUPABASE_URL: JSON.stringify(process.env.TARO_APP_SUPABASE_URL || ''),
     TARO_APP_SUPABASE_KEY: JSON.stringify(process.env.TARO_APP_SUPABASE_KEY || ''),

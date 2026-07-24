@@ -1,13 +1,13 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useVaccine } from '../../hooks/useVaccine'
 import { useReminder } from '../../hooks/useReminder'
 import { useAuthStore } from '../../stores/authStore'
 import { useShareStore } from '../../stores/shareStore'
 import PetSwitcher from '../../components/PetSwitcher'
-import FloatingNav from '../../components/FloatingNav'
 import VaccineCalendar from '../../components/VaccineCalendar'
 import VaccineRecordCard from '../../components/VaccineRecordCard'
 import VaccineAddModal from '../../components/VaccineAddModal'
@@ -297,7 +297,6 @@ export default function PetVaccine() {
     return (
       <View className='pet-vaccine'>
           <PageLoading />
-          <FloatingNav />
         </View>
     )
   }
@@ -306,7 +305,6 @@ export default function PetVaccine() {
     return (
       <View className='pet-vaccine'>
         <PageError message={loadError} onRetry={loadVaccineData} />
-        <FloatingNav />
       </View>
     )
   }
@@ -586,7 +584,6 @@ export default function PetVaccine() {
         />
       )}
 
-      <FloatingNav />
     </View>
   )
 }

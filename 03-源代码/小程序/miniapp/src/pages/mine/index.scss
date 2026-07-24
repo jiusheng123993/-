@@ -1,19 +1,31 @@
 @import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 我的页面 — 温馨暖色风格 + 丰富动效
+// ============================================
 
 .mine-page {
   min-height: 100vh;
-  background: $color-bg-page;
+  background: $gradient-page;
+  animation: pageEnter 0.4s ease-out;
 }
 
+// ===== 头部用户卡片 =====
 .mine-header {
-  padding: $spacing-xl;
-  background: linear-gradient(180deg, $color-primary-bg 0%, $color-bg-page 100%);
+  padding: 40rpx $spacing-xl 24rpx;
 }
 
 .mine-user-card {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 24rpx;
+  padding: 28rpx;
+  background: $gradient-card;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  animation: fadeInUp 0.45s ease-out;
+  @include breathe-glow;
 }
 
 .mine-avatar {
@@ -21,8 +33,9 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: $radius-full;
-  background: $color-primary;
-  box-shadow: 0 4rpx 12rpx rgba($color-primary, 0.3);
+  background: $gradient-warm;
+  box-shadow: 0 0 24rpx rgba($color-primary, 0.3);
+  flex-shrink: 0;
 }
 
 .mine-avatar-text {
@@ -33,52 +46,147 @@
 
 .mine-user-info {
   flex: 1;
+  min-width: 0;
 }
 
 .mine-user-name-row {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  margin-bottom: $spacing-xs;
+  margin-bottom: 8rpx;
 }
 
 .mine-user-name {
-  font-size: 36rpx;
+  font-size: 34rpx;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
 }
 
 .mine-vip-badge {
-  padding: 4rpx 12rpx;
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  border-radius: $radius-xs;
+  padding: 4rpx 14rpx;
+  background: $gradient-gold;
+  border-radius: 16rpx;
   font-size: 20rpx;
   color: $color-text-inverse;
   font-weight: $font-weight-bold;
+  box-shadow: 0 2rpx 8rpx rgba($color-primary, 0.3);
 }
 
 .mine-user-desc {
-  font-size: 26rpx;
+  font-size: $font-size-sm;
   color: $color-text-hint;
 }
 
 .mine-edit-btn {
-  padding: 10rpx 24rpx;
-  background: $color-bg-card;
-  border-radius: 20rpx;
-  font-size: 26rpx;
-  color: $color-primary;
-  box-shadow: $shadow-xs;
+  padding: 12rpx 28rpx;
+  background: $color-primary-bg;
+  border: 1px solid $color-border;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  color: $color-primary-light;
+  align-self: flex-start;
   @include press-feedback;
 }
 
+// ===== 宠物切换条 =====
+.mine-pet-chips {
+  padding: 0 $spacing-xl $spacing-md;
+}
+
+.mine-pet-chips-scroll {
+  white-space: nowrap;
+}
+
+.mine-pet-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 24rpx;
+  border-radius: $radius-round;
+  background: $color-bg-card;
+  border: 1px solid $color-border-light;
+  margin-right: 16rpx;
+  white-space: normal;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  &--active {
+    background: $color-primary-bg;
+    border-color: $color-primary;
+    box-shadow: 0 0 20rpx rgba($color-primary, 0.15);
+    @include breathe-glow;
+  }
+
+  &--add {
+    border-style: dashed;
+    border-color: $color-text-tertiary;
+    opacity: 0.6;
+  }
+
+  &:active {
+    transform: scale(0.94);
+    opacity: 0.8;
+  }
+}
+
+.mine-pet-chip-avatar {
+  @include flex-center;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: $radius-full;
+  background: $gradient-card;
+  font-size: 30rpx;
+}
+
+.mine-pet-chip-name {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.mine-pet-chip-check {
+  position: absolute;
+  top: -4rpx;
+  right: -4rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: $radius-full;
+  background: $gradient-gold;
+  @include flex-center;
+  font-size: 18rpx;
+  color: $color-text-inverse;
+  font-weight: $font-weight-bold;
+  box-shadow: 0 2rpx 8rpx rgba($color-primary, 0.4);
+}
+
+.mine-pet-chip-add-icon {
+  @include flex-center;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  border: 2rpx dashed $color-text-tertiary;
+  font-size: 32rpx;
+  color: $color-text-tertiary;
+}
+
+// ===== 数据统计 =====
 .mine-stats {
   display: flex;
-  margin: $spacing-md $spacing-xl;
-  padding: $spacing-lg;
+  margin: 0 $spacing-xl $spacing-md;
+  padding: 28rpx;
   background: $color-bg-card;
-  border-radius: $radius-md;
-  box-shadow: $shadow-xs;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+  animation: fadeInUp 0.45s ease-out 0.05s both;
+}
+
+// ===== 金色分割线 =====
+.section-divider {
+  height: 1px;
+  margin: 8rpx $spacing-xl 16rpx;
+  background: linear-gradient(90deg, transparent, rgba($color-primary, 0.15), transparent);
 }
 
 .mine-stat-item {
@@ -86,28 +194,42 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-xs;
+  gap: 6rpx;
+  position: relative;
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba($color-primary, 0.15), transparent);
+  }
 }
 
 .mine-stat-num {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: $font-weight-bold;
-  color: $color-text-primary;
+  @include gold-gradient-text;
 }
 
 .mine-stat-label {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $color-text-hint;
 }
 
+// ===== VIP 开通横幅 =====
 .mine-vip-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 0 $spacing-xl $spacing-md;
-  padding: $spacing-lg;
-  background: linear-gradient(135deg, #FFF8E8 0%, #FFF0D0 100%);
-  border-radius: $radius-md;
+  padding: 24rpx 28rpx;
+  background: $gradient-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  @include breathe-glow;
   @include press-feedback;
 }
 
@@ -118,18 +240,19 @@
 }
 
 .mine-vip-banner-icon {
-  font-size: 40rpx;
+  font-size: 44rpx;
+  animation: pulse 2.5s ease-in-out infinite;
 }
 
 .mine-vip-banner-title {
   font-size: 28rpx;
   font-weight: $font-weight-bold;
-  color: $color-text-primary;
+  color: $color-primary-light;
   display: block;
 }
 
 .mine-vip-banner-desc {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $color-text-hint;
   margin-top: 4rpx;
   display: block;
@@ -137,47 +260,62 @@
 
 .mine-vip-banner-arrow {
   font-size: 36rpx;
-  color: $color-text-tertiary;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
 }
 
+// ===== 菜单组 =====
 .mine-menu-group {
   margin: 0 $spacing-xl $spacing-md;
   background: $color-bg-card;
-  border-radius: $radius-md;
+  border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: $shadow-xs;
+  border: 1px solid $color-border;
+  animation: fadeInUp 0.45s ease-out 0.1s both;
 }
 
 .mine-menu-item {
   display: flex;
   align-items: center;
   padding: 28rpx $spacing-lg;
-  border-bottom: 1px solid $color-border-light;
-  @include press-feedback;
-}
+  border-bottom: 1px solid $color-divider;
+  transition: all 0.15s ease;
 
-.mine-menu-item:last-child {
-  border-bottom: none;
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background: $color-primary-bg;
+  }
 }
 
 .mine-menu-icon {
-  font-size: 32rpx;
+  font-size: 36rpx;
   margin-right: $spacing-md;
+  width: 40rpx;
+  text-align: center;
 }
 
 .mine-menu-label {
   flex: 1;
-  font-size: 28rpx;
+  font-size: $font-size-md;
   color: $color-text-primary;
 }
 
 .mine-menu-arrow {
   font-size: 32rpx;
   color: $color-text-tertiary;
+  transition: transform 0.2s ease;
 }
 
+.mine-menu-item:active .mine-menu-arrow {
+  transform: translateX(4rpx);
+}
+
+// ===== 退出登录 =====
 .mine-section {
-  margin: $spacing-md $spacing-xl;
+  margin: $spacing-lg $spacing-xl;
 }
 
 .mine-logout-btn {
@@ -185,13 +323,14 @@
   line-height: 88rpx;
   text-align: center;
   background: $color-bg-card;
-  border-radius: $radius-md;
-  font-size: 28rpx;
-  color: $color-danger;
-  box-shadow: $shadow-xs;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  font-size: $font-size-md;
+  color: $color-coral;
+  opacity: 0.7;
   @include press-feedback;
 }
 
 .mine-bottom-safe {
-  height: 40rpx;
+  height: 60rpx;
 }

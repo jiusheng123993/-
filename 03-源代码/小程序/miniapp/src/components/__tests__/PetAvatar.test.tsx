@@ -142,7 +142,8 @@ describe('PetAvatar', () => {
     expect(getPetFaceDataUri).toHaveBeenCalledWith(
       expect.objectContaining({ expression: 'happy' }),
       'cat',
-      150
+      150,
+      []
     )
   })
 
@@ -161,7 +162,8 @@ describe('PetAvatar', () => {
     expect(getPetFaceDataUri).toHaveBeenCalledWith(
       expect.anything(),
       'dog',
-      100
+      100,
+      []
     )
   })
 

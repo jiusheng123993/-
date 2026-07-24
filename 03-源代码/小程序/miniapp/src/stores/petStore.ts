@@ -1,4 +1,5 @@
-﻿import create from 'zustand'
+import Taro from '@tarojs/taro'
+import create from 'zustand'
 import {
   getPets,
   createPet,
@@ -23,6 +24,10 @@ interface PetState {
   markPetDeceased: (id: string, date: string) => Promise<void>
   switchPet: (id: string) => Promise<void>
   clearError: () => void
+  avatar2DTaskId: string | null
+  avatar3DTaskId: string | null
+  setAvatar2DTaskId: (taskId: string | null) => void
+  setAvatar3DTaskId: (taskId: string | null) => void
 }
 
 export const usePetStore = create<PetState>((set, get) => ({
@@ -31,6 +36,8 @@ export const usePetStore = create<PetState>((set, get) => ({
   currentPet: null,
   isLoading: false,
   error: null,
+  avatar2DTaskId: null,
+  avatar3DTaskId: null,
 
   initUser: async (userId: string) => {
     set({ userId })
@@ -162,6 +169,24 @@ export const usePetStore = create<PetState>((set, get) => ({
 
   clearError: () => {
     set({ error: null })
+  },
+
+  setAvatar2DTaskId: (taskId) => {
+    set({ avatar2DTaskId: taskId })
+    if (taskId) {
+      Taro.setStorageSync('xhh_avatar_2d_task_id', taskId)
+    } else {
+      Taro.removeStorageSync('xhh_avatar_2d_task_id')
+    }
+  },
+
+  setAvatar3DTaskId: (taskId) => {
+    set({ avatar3DTaskId: taskId })
+    if (taskId) {
+      Taro.setStorageSync('xhh_avatar_3d_task_id', taskId)
+    } else {
+      Taro.removeStorageSync('xhh_avatar_3d_task_id')
+    }
   },
 }))
 

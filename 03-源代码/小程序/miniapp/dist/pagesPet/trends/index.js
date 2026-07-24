@@ -1,1 +1,2934 @@
-"use strict";(wx["webpackJsonp"]=wx["webpackJsonp"]||[]).push([[4125],{8446:function(e,t,n){var r=n(2180),a=n(1413),s=n(3433),c=n(2688),i=n(5861),l=n(9439),o=n(7294),u=n(1515),h=n(2954),d=n.n(h),m=n(8327),p=n(7260),f=n(3479),g=n(6614),v=n(4701),_=n(5350),x=n(7584),y=n(621),w=n(8359),b=n(8236),j=n(6363),N=n(5999),k=n(8573),Z=n(4671),S=n(7762),C=n(6090),G=n(8982),D=n(4635);function A(e){return e.createdAt instanceof Date?e.createdAt.toISOString().slice(0,10):String(e.createdAt).slice(0,10)}function F(e){switch(e){case 1:return"none";case 2:return"decreased";case 3:return"normal";case 4:return"increased";case 5:return"increased";case 6:return"vomiting"}}function L(e){switch(e){case 1:return"lethargic";case 2:return"low";case 3:return"normal";case 4:return"normal";case 5:return"high"}}function P(e){switch(e){case 1:return"bloody";case 2:return"diarrhea";case 3:return"normal";case 4:return"soft";case 5:return"constipation"}}function M(e){return"trend_".concat(e)}function T(e){return(0,G.cF)(M(e))||[]}function I(e,t){(0,G.po)(M(e),t)}function O(e){return{date:A(e),weight:e.weight,appetite:F(e.appetiteLevel),energy:L(e.spiritLevel),stool:P(e.poopLevel),vomiting:e.anomalyItems.includes("other"),riskLevel:e.riskLevel,hasAbnormal:"low"!==e.riskLevel}}function E(e){var t=e.filter(function(e){return void 0!==e.weight&&null!==e.weight});if(t.length<2)return{trend:"stable",change:0,changePercent:0};var n=(0,s.Z)(t).sort(function(e,t){return e.date.localeCompare(t.date)}),r=n[0].weight,a=n[n.length-1].weight,c=a-r,i=0!==r?c/r*100:0,l="stable";return i>5?l="increasing":i<-5&&(l="decreasing"),{trend:l,change:c,changePercent:i}}function R(e){var t,n={normal:0,decreased:0,increased:0,none:0},r=(0,S.Z)(e);try{for(r.s();!(t=r.n()).done;){var a=t.value;a.appetite&&(n[a.appetite]=(n[a.appetite]||0)+1)}}catch(e){r.e(e)}finally{r.f()}return n}function z(e){var t,n={normal:0,soft:0,diarrhea:0,constipation:0,bloody:0},r=(0,S.Z)(e);try{for(r.s();!(t=r.n()).done;){var a=t.value;a.stool&&(n[a.stool]=(n[a.stool]||0)+1)}}catch(e){r.e(e)}finally{r.f()}return n}function V(e,t,n,r,a,s){var c=[];if(0===s)return"\u6682\u65e0\u8db3\u591f\u6570\u636e\u751f\u6210\u5065\u5eb7\u5206\u6790\u62a5\u544a\uff0c\u8bf7\u575a\u6301\u6bcf\u65e5\u6253\u5361\u8bb0\u5f55\u5ba0\u7269\u5065\u5eb7\u72b6\u51b5\u3002";"stable"===t.trend?c.push("\u4f53\u91cd\u4fdd\u6301\u7a33\u5b9a\uff0c\u8fd9\u662f\u5065\u5eb7\u7684\u597d\u8ff9\u8c61\u3002"):"increasing"===t.trend?t.changePercent>20?c.push("\u26a0\ufe0f \u4f53\u91cd\u589e\u957f".concat(t.changePercent.toFixed(1),"%\uff0c\u589e\u5e45\u8f83\u5927\uff0c\u5efa\u8bae\u5173\u6ce8\u996e\u98df\u548c\u8fd0\u52a8\u91cf\u3002")):t.changePercent>10?c.push("\u4f53\u91cd\u589e\u957f".concat(t.changePercent.toFixed(1),"%\uff0c\u5904\u4e8e\u5173\u6ce8\u8303\u56f4\uff0c\u5efa\u8bae\u9002\u5f53\u63a7\u5236\u996e\u98df\u3002")):c.push("\u4f53\u91cd\u7565\u6709\u589e\u957f\uff08".concat(t.changePercent.toFixed(1),"%\uff09\uff0c\u5c5e\u4e8e\u6b63\u5e38\u6ce2\u52a8\u8303\u56f4\u3002")):t.changePercent<-20?c.push("\u26a0\ufe0f \u4f53\u91cd\u4e0b\u964d".concat(Math.abs(t.changePercent).toFixed(1),"%\uff0c\u964d\u5e45\u8f83\u5927\uff0c\u5efa\u8bae\u5c3d\u5feb\u5c31\u533b\u68c0\u67e5\u3002")):t.changePercent<-10?c.push("\u4f53\u91cd\u4e0b\u964d".concat(Math.abs(t.changePercent).toFixed(1),"%\uff0c\u5904\u4e8e\u5173\u6ce8\u8303\u56f4\uff0c\u5efa\u8bae\u5bc6\u5207\u89c2\u5bdf\u3002")):c.push("\u4f53\u91cd\u7565\u6709\u4e0b\u964d\uff08".concat(Math.abs(t.changePercent).toFixed(1),"%\uff09\uff0c\u5c5e\u4e8e\u6b63\u5e38\u6ce2\u52a8\u8303\u56f4\u3002"));var i=Object.values(n).reduce(function(e,t){return e+t},0);if(i>0){var l=(n["none"]||0)/i,o=(n["decreased"]||0)/i,u=(n["normal"]||0)/i;l>.3?c.push("\u98df\u6b32\u4e0d\u632f\u5929\u6570\u5360\u6bd4\u8f83\u9ad8\uff0c\u9700\u8981\u91cd\u70b9\u5173\u6ce8\u3002"):o>.3?c.push("\u98df\u6b32\u4e0b\u964d\u5929\u6570\u8f83\u591a\uff0c\u5efa\u8bae\u89c2\u5bdf\u662f\u5426\u6709\u5176\u4ed6\u4f34\u968f\u75c7\u72b6\u3002"):u>.7?c.push("\u98df\u6b32\u6574\u4f53\u6b63\u5e38\uff0c\u996e\u98df\u72b6\u51b5\u826f\u597d\u3002"):c.push("\u98df\u6b32\u5076\u6709\u6ce2\u52a8\uff0c\u6574\u4f53\u5c1a\u53ef\u3002")}var h=Object.values(r).reduce(function(e,t){return e+t},0);if(h>0){var d=r["bloody"]||0,m=r["diarrhea"]||0,p=r["normal"]||0,f=p/h;d>0?c.push("\ud83d\udea8 \u51fa\u73b0".concat(d,"\u5929\u4fbf\u8840\u60c5\u51b5\uff0c\u8fd9\u662f\u7d27\u6025\u4fe1\u53f7\uff0c\u8bf7\u7acb\u5373\u5c31\u533b\uff01")):m>.3*h?c.push("\u8179\u6cfb\u5929\u6570\u8f83\u591a\uff0c\u5efa\u8bae\u5c31\u533b\u68c0\u67e5\u6d88\u5316\u7cfb\u7edf\u3002"):f>.7?c.push("\u6392\u4fbf\u60c5\u51b5\u6574\u4f53\u6b63\u5e38\u3002"):c.push("\u6392\u4fbf\u5076\u6709\u5f02\u5e38\uff0c\u5efa\u8bae\u6301\u7eed\u89c2\u5bdf\u3002")}if(s>0){var g=a/s;g>.5?c.push("\u5f02\u5e38\u5929\u6570\u5360\u6bd4\u8d85\u8fc750%\uff0c\u6574\u4f53\u5065\u5eb7\u72b6\u51b5\u9700\u8981\u9ad8\u5ea6\u91cd\u89c6\u3002"):g>.3?c.push("\u5f02\u5e38\u5929\u6570\u5360\u6bd4\u8f83\u9ad8\uff0c\u5efa\u8bae\u8fdb\u884c\u5168\u9762\u5065\u5eb7\u68c0\u67e5\u3002"):g<.1&&c.push("\u6574\u4f53\u5065\u5eb7\u72b6\u51b5\u826f\u597d\uff0c\u7ee7\u7eed\u4fdd\u6301\uff01")}var v=W(e,"appetite","none",3);v&&c.push("\ud83d\udea8 \u68c0\u6d4b\u5230\u8fde\u7eed3\u5929\u4ee5\u4e0a\u5b8c\u5168\u4e0d\u5403\u4e1c\u897f\uff0c\u8fd9\u662f\u7d27\u6025\u60c5\u51b5\uff0c\u8bf7\u7acb\u5373\u5c31\u533b\uff01");var _=e.some(function(e){return"bloody"===e.stool});return _&&c.push("\ud83d\udea8 \u68c0\u6d4b\u5230\u4fbf\u8840\u8bb0\u5f55\uff0c\u8fd9\u662f\u7d27\u6025\u4fe1\u53f7\uff0c\u8bf7\u7acb\u5373\u5c31\u533b\uff01"),c.join("")}function W(e,t,n,r){var a,c=(0,s.Z)(e).sort(function(e,t){return e.date.localeCompare(t.date)}),i=0,l=(0,S.Z)(c);try{for(l.s();!(a=l.n()).done;){var o=a.value;if(o[t]===n){if(i++,i>=r)return!0}else i=0}}catch(e){l.e(e)}finally{l.f()}return!1}function q(e,t,n,r){var a=[];if(0===e.length)return a;"stable"===t.trend&&a.push("\u4f53\u91cd\u4fdd\u6301\u7a33\u5b9a");var s=Object.values(n).reduce(function(e,t){return e+t},0);s>0&&(n["normal"]||0)/s>.7&&a.push("\u98df\u6b32\u6574\u4f53\u826f\u597d");var c=Object.values(r).reduce(function(e,t){return e+t},0);c>0&&(r["normal"]||0)/c>.7&&a.push("\u6392\u4fbf\u60c5\u51b5\u6b63\u5e38");var i=e.filter(function(e){return e.hasAbnormal}).length/e.length;return i<.1&&e.length>=7&&a.push("\u6574\u4f53\u5065\u5eb7\u72b6\u51b5\u4f18\u79c0"),a}function B(e,t,n,r){var a=[];t.changePercent>20?a.push("\u4f53\u91cd\u589e\u957f".concat(t.changePercent.toFixed(1),"%\uff0c\u9700\u5173\u6ce8")):t.changePercent<-20&&a.push("\u4f53\u91cd\u4e0b\u964d".concat(Math.abs(t.changePercent).toFixed(1),"%\uff0c\u9700\u5173\u6ce8"));var s=Object.values(n).reduce(function(e,t){return e+t},0);s>0&&(n["none"]||0)>0&&a.push("\u6709".concat(n["none"],"\u5929\u5b8c\u5168\u4e0d\u5403\u4e1c\u897f"));Object.values(r).reduce(function(e,t){return e+t},0);(r["bloody"]||0)>0&&a.push("\u51fa\u73b0".concat(r["bloody"],"\u5929\u4fbf\u8840")),(r["diarrhea"]||0)>0&&a.push("\u51fa\u73b0".concat(r["diarrhea"],"\u5929\u8179\u6cfb"));var c=e.filter(function(e){return e.hasAbnormal}).length;return e.length>0&&c/e.length>.3&&a.push("\u5f02\u5e38\u5929\u6570\u5360\u6bd4".concat((c/e.length*100).toFixed(0),"%")),a}function U(e,t,n,r){var a=[];e.length<7&&a.push("\u6570\u636e\u91cf\u8f83\u5c11\uff0c\u5efa\u8bae\u575a\u6301\u6bcf\u65e5\u6253\u5361\u4ee5\u83b7\u5f97\u66f4\u51c6\u786e\u7684\u5206\u6790"),t.changePercent>10?a.push("\u5efa\u8bae\u63a7\u5236\u996e\u98df\u5e76\u589e\u52a0\u8fd0\u52a8\u91cf"):t.changePercent<-10&&a.push("\u5efa\u8bae\u589e\u52a0\u8425\u517b\u6444\u5165\uff0c\u5fc5\u8981\u65f6\u5c31\u533b\u68c0\u67e5");var s=Object.values(n).reduce(function(e,t){return e+t},0);s>0&&(n["none"]||0)/s>.2&&a.push("\u98df\u6b32\u95ee\u9898\u6301\u7eed\u5b58\u5728\uff0c\u5efa\u8bae\u5c31\u533b\u68c0\u67e5");var c=Object.values(r).reduce(function(e,t){return e+t},0);return(r["bloody"]||0)>0&&a.push("\u4fbf\u8840\u662f\u7d27\u6025\u4fe1\u53f7\uff0c\u8bf7\u7acb\u5373\u5c31\u533b"),(r["diarrhea"]||0)>.3*c&&a.push("\u8179\u6cfb\u9891\u7e41\uff0c\u5efa\u8bae\u5c31\u533b\u68c0\u67e5\u6d88\u5316\u7cfb\u7edf"),e.length>=30&&a.push("\u5efa\u8bae\u5b9a\u671f\u8fdb\u884c\u5e74\u5ea6\u4f53\u68c0"),a}function Y(e,t,n,r){return H.apply(this,arguments)}function H(){return H=(0,i.Z)((0,c.Z)().m(function e(t,n,r,a){var s,i,l,o;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:return e.p=0,e.n=1,C.h.get("/api/pets/".concat(t,"/trends?startDate=").concat(n,"&endDate=").concat(r));case 1:return s=e.v,I(t,s),e.a(2,s);case 2:return e.p=2,e.v,e.p=3,e.n=4,(0,D.yd)(t,a||"",n,r);case 4:return i=e.v,l=i.map(O),I(t,l),e.a(2,l);case 5:return e.p=5,e.v,o=T(t),e.a(2,o.filter(function(e){return e.date>=n&&e.date<=r}))}},e,null,[[3,5],[0,2]])})),H.apply(this,arguments)}function J(e,t){return K.apply(this,arguments)}function K(){return K=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a,s,i,l,o,u;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:r=new Date,u=n,e.n="week"===u?1:"month"===u?2:"quarter"===u?3:4;break;case 1:return a=new Date(r),a.setDate(r.getDate()-7),e.a(3,4);case 2:return a=new Date(r),a.setMonth(r.getMonth()-1),e.a(3,4);case 3:return a=new Date(r),a.setMonth(r.getMonth()-3),e.a(3,4);case 4:return s=a.toISOString().slice(0,10),i=r.toISOString().slice(0,10),e.p=5,e.n=6,C.h.get("/api/pets/".concat(t,"/trends/summary?period=").concat(n));case 6:return l=e.v,e.a(2,l);case 7:return e.p=7,e.v,e.n=8,Y(t,s,i);case 8:return o=e.v,e.a(2,Q(t,n,o))}},e,null,[[5,7]])})),K.apply(this,arguments)}function Q(e,t,n){var r=E(n),a=R(n),s=z(n),c=n.filter(function(e){return e.hasAbnormal}).length,i=n.length,l=V(n,r,a,s,c,i);return{petId:e,period:t,weightTrend:r.trend,weightChange:r.change,weightChangePercent:r.changePercent,appetiteStats:a,stoolStats:s,abnormalDays:c,totalDays:i,aiAnalysis:l}}function $(e,t){return X.apply(this,arguments)}function X(){return X=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a,s,i,o,u,h,d,m,p,f,g,v;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:return e.p=0,e.n=1,C.h.get("/api/pets/".concat(t,"/trends/report?month=").concat(n));case 1:return r=e.v,e.a(2,r);case 2:return e.p=2,e.v,a=n.split("-").map(Number),s=(0,l.Z)(a,2),i=s[0],o=s[1],u="".concat(i,"-").concat(String(o).padStart(2,"0"),"-01"),h=new Date(i,o,0).getDate(),d="".concat(i,"-").concat(String(o).padStart(2,"0"),"-").concat(String(h).padStart(2,"0")),e.n=3,Y(t,u,d);case 3:return m=e.v,p=Q(t,"month",m),f=E(m),g=R(m),v=z(m),e.a(2,{petId:t,month:n,summary:p,highlights:q(m,f,g,v),concerns:B(m,f,g,v),recommendations:U(m,f,g,v)})}},e,null,[[0,2]])})),X.apply(this,arguments)}function ee(e){return te.apply(this,arguments)}function te(){return te=(0,i.Z)((0,c.Z)().m(function e(t){var n,r,a,s,i,l,o=arguments;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:return n=o.length>1&&void 0!==o[1]?o[1]:3,r=new Date,a=new Date,a.setMonth(a.getMonth()-n),s=a.toISOString().slice(0,10),i=r.toISOString().slice(0,10),e.n=1,Y(t,s,i);case 1:return l=e.v,e.a(2,l.filter(function(e){return void 0!==e.weight&&null!==e.weight}))}},e)})),te.apply(this,arguments)}function ne(e){return re.apply(this,arguments)}function re(){return re=(0,i.Z)((0,c.Z)().m(function e(t){var n,r,a,s,i,l,o=arguments;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:return n=o.length>1&&void 0!==o[1]?o[1]:3,r=new Date,a=new Date,a.setMonth(a.getMonth()-n),s=a.toISOString().slice(0,10),i=r.toISOString().slice(0,10),e.n=1,Y(t,s,i);case 1:return l=e.v,e.a(2,l.filter(function(e){return void 0!==e.appetite}))}},e)})),re.apply(this,arguments)}function ae(e){return se.apply(this,arguments)}function se(){return se=(0,i.Z)((0,c.Z)().m(function e(t){var n,r,a,s,i,l,o=arguments;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:return n=o.length>1&&void 0!==o[1]?o[1]:3,r=new Date,a=new Date,a.setMonth(a.getMonth()-n),s=a.toISOString().slice(0,10),i=r.toISOString().slice(0,10),e.n=1,Y(t,s,i);case 1:return l=e.v,e.a(2,l.filter(function(e){return void 0!==e.stool}))}},e)})),se.apply(this,arguments)}function ce(e,t,n){return ie.apply(this,arguments)}function ie(){return ie=(0,i.Z)((0,c.Z)().m(function e(t,n,r){var a;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:return e.n=1,Y(t,n,r);case 1:return a=e.v,e.a(2,a.filter(function(e){return e.hasAbnormal}))}},e)})),ie.apply(this,arguments)}var le=(0,Z.Z)(function(e,t){return{userId:"",trendData:[],summary:null,monthlyReport:null,isLoading:!1,error:null,initUser:function(t){if(!t)throw new Error("[TrendStore] userId is required");(0,G.Aq)(t),e({userId:t})},fetchTrendData:function(){var n=(0,i.Z)((0,c.Z)().m(function n(r,a,s){var i,l;return(0,c.Z)().w(function(n){while(1)switch(n.p=n.n){case 0:return e({isLoading:!0,error:null}),n.p=1,n.n=2,Y(r,a,s,t().userId);case 2:i=n.v,e({trendData:i,isLoading:!1}),n.n=4;break;case 3:n.p=3,l=n.v,e({isLoading:!1,error:l instanceof Error?l.message:"\u83b7\u53d6\u8d8b\u52bf\u6570\u636e\u5931\u8d25"});case 4:return n.a(2)}},n,null,[[1,3]])}));function r(e,t,r){return n.apply(this,arguments)}return r}(),fetchSummary:function(){var t=(0,i.Z)((0,c.Z)().m(function t(n,r){var a,s;return(0,c.Z)().w(function(t){while(1)switch(t.p=t.n){case 0:return e({isLoading:!0,error:null}),t.p=1,t.n=2,J(n,r);case 2:a=t.v,e({summary:a,isLoading:!1}),t.n=4;break;case 3:t.p=3,s=t.v,e({isLoading:!1,error:s instanceof Error?s.message:"\u83b7\u53d6\u8d8b\u52bf\u6458\u8981\u5931\u8d25"});case 4:return t.a(2)}},t,null,[[1,3]])}));function n(e,n){return t.apply(this,arguments)}return n}(),fetchMonthlyReport:function(){var t=(0,i.Z)((0,c.Z)().m(function t(n,r){var a,s;return(0,c.Z)().w(function(t){while(1)switch(t.p=t.n){case 0:return e({isLoading:!0,error:null}),t.p=1,t.n=2,$(n,r);case 2:a=t.v,e({monthlyReport:a,isLoading:!1}),t.n=4;break;case 3:t.p=3,s=t.v,e({isLoading:!1,error:s instanceof Error?s.message:"\u83b7\u53d6\u6708\u5ea6\u62a5\u544a\u5931\u8d25"});case 4:return t.a(2)}},t,null,[[1,3]])}));function n(e,n){return t.apply(this,arguments)}return n}(),fetchWeightTrend:function(){var t=(0,i.Z)((0,c.Z)().m(function t(n){var r,a,s,i=arguments;return(0,c.Z)().w(function(t){while(1)switch(t.p=t.n){case 0:return r=i.length>1&&void 0!==i[1]?i[1]:3,e({isLoading:!0,error:null}),t.p=1,t.n=2,ee(n,r);case 2:a=t.v,e({trendData:a,isLoading:!1}),t.n=4;break;case 3:t.p=3,s=t.v,e({isLoading:!1,error:s instanceof Error?s.message:"\u83b7\u53d6\u4f53\u91cd\u8d8b\u52bf\u5931\u8d25"});case 4:return t.a(2)}},t,null,[[1,3]])}));function n(e){return t.apply(this,arguments)}return n}(),fetchAppetiteTrend:function(){var t=(0,i.Z)((0,c.Z)().m(function t(n){var r,a,s,i=arguments;return(0,c.Z)().w(function(t){while(1)switch(t.p=t.n){case 0:return r=i.length>1&&void 0!==i[1]?i[1]:3,e({isLoading:!0,error:null}),t.p=1,t.n=2,ne(n,r);case 2:a=t.v,e({trendData:a,isLoading:!1}),t.n=4;break;case 3:t.p=3,s=t.v,e({isLoading:!1,error:s instanceof Error?s.message:"\u83b7\u53d6\u98df\u6b32\u8d8b\u52bf\u5931\u8d25"});case 4:return t.a(2)}},t,null,[[1,3]])}));function n(e){return t.apply(this,arguments)}return n}(),fetchStoolTrend:function(){var t=(0,i.Z)((0,c.Z)().m(function t(n){var r,a,s,i=arguments;return(0,c.Z)().w(function(t){while(1)switch(t.p=t.n){case 0:return r=i.length>1&&void 0!==i[1]?i[1]:3,e({isLoading:!0,error:null}),t.p=1,t.n=2,ae(n,r);case 2:a=t.v,e({trendData:a,isLoading:!1}),t.n=4;break;case 3:t.p=3,s=t.v,e({isLoading:!1,error:s instanceof Error?s.message:"\u83b7\u53d6\u4fbf\u4fbf\u8d8b\u52bf\u5931\u8d25"});case 4:return t.a(2)}},t,null,[[1,3]])}));function n(e){return t.apply(this,arguments)}return n}(),fetchAbnormalDays:function(){var t=(0,i.Z)((0,c.Z)().m(function t(n,r,a){var s,i;return(0,c.Z)().w(function(t){while(1)switch(t.p=t.n){case 0:return e({isLoading:!0,error:null}),t.p=1,t.n=2,ce(n,r,a);case 2:s=t.v,e({trendData:s,isLoading:!1}),t.n=4;break;case 3:t.p=3,i=t.v,e({isLoading:!1,error:i instanceof Error?i.message:"\u83b7\u53d6\u5f02\u5e38\u5929\u6570\u5931\u8d25"});case 4:return t.a(2)}},t,null,[[1,3]])}));function n(e,n,r){return t.apply(this,arguments)}return n}(),clearError:function(){e({error:null})},reset:function(){e({trendData:[],summary:null,monthlyReport:null,isLoading:!1,error:null})}}});function oe(){var e=le(function(e){return e.trendData}),t=le(function(e){return e.summary}),n=le(function(e){return e.monthlyReport}),r=le(function(e){return e.isLoading}),a=le(function(e){return e.error}),s=(0,o.useCallback)(function(e,t,n){return le.getState().fetchTrendData(e,t,n)},[]),c=(0,o.useCallback)(function(e,t){return le.getState().fetchSummary(e,t)},[]),i=(0,o.useCallback)(function(e,t){return le.getState().fetchMonthlyReport(e,t)},[]),l=(0,o.useCallback)(function(e,t){return le.getState().fetchWeightTrend(e,t)},[]),u=(0,o.useCallback)(function(e,t){return le.getState().fetchAppetiteTrend(e,t)},[]),h=(0,o.useCallback)(function(e,t){return le.getState().fetchStoolTrend(e,t)},[]),d=(0,o.useCallback)(function(){le.getState().clearError()},[]);return{trendData:e,summary:t,monthlyReport:n,isLoading:r,error:a,fetchTrendData:s,fetchSummary:c,fetchMonthlyReport:i,fetchWeightTrend:l,fetchAppetiteTrend:u,fetchStoolTrend:h,clearError:d}}var ue=n(4103),he=n(2228),de=n(897),me=n(9355),pe=n(8907),fe="\ufeff",ge=",",ve="\r\n";function _e(e){return e.includes(ge)||e.includes('"')||e.includes("\n")?'"'.concat(e.replace(/"/g,'""'),'"'):e}function xe(e){var t=[];t.push(_e("\u5ba0\u7269\u5065\u5eb7\u62a5\u544a")),t.push(ve),t.push(ve),t.push(_e("\u5ba0\u7269\u6863\u6848")),t.push(ve);var n=["\u540d\u79f0","\u54c1\u79cd","\u7269\u79cd","\u6027\u522b","\u51fa\u751f\u65e5\u671f","\u4f53\u91cd(kg)","\u662f\u5426\u7edd\u80b2","\u8fc7\u654f\u53f2","\u7528\u836f\u53f2","\u6162\u6027\u75c5"];t.push(n.map(_e).join(ge)),t.push(ve);var r="female"===e.pet.gender?"\u6bcd":"male"===e.pet.gender?"\u516c":"\u672a\u77e5",a=e.pet.neutered?"\u662f":"\u5426",s=[e.pet.name,e.pet.breed,e.pet.species,r,e.pet.birthDate,String(e.pet.weight),a,e.pet.allergies.join(";"),e.pet.medications.join(";"),e.pet.chronicConditions.join(";")];t.push(s.map(_e).join(ge)),t.push(ve),t.push(ve),t.push(_e("\u5065\u5eb7\u6253\u5361\u8bb0\u5f55")),t.push(ve);var c=["\u65e5\u671f","\u4fbf\u4fbf\u72b6\u6001","\u98df\u6b32","\u7cbe\u795e","\u8fd0\u52a8","\u4f53\u91cd(kg)"];t.push(c.map(_e).join(ge)),t.push(ve);var i,l=(0,S.Z)(e.entries);try{for(l.s();!(i=l.n()).done;){var o=i.value,u=[o.date,o.bowel,o.appetite,o.energy,o.exercise,null!=o.weight?String(o.weight):""];t.push(u.map(_e).join(ge)),t.push(ve)}}catch(e){l.e(e)}finally{l.f()}if(t.push(ve),e.symptoms.length>0){t.push(_e("\u5f02\u5e38/\u75c7\u72b6\u8bb0\u5f55")),t.push(ve);var h=["\u65e5\u671f","\u75c7\u72b6","\u7d27\u6025\u7a0b\u5ea6","AI\u8bc4\u4f30"];t.push(h.map(_e).join(ge)),t.push(ve);var d,m=(0,S.Z)(e.symptoms);try{for(m.s();!(d=m.n()).done;){var p=d.value,f=[p.date,p.symptoms.join(";"),p.urgencyLevel,p.aiAssessment];t.push(f.map(_e).join(ge)),t.push(ve)}}catch(e){m.e(e)}finally{m.f()}t.push(ve)}if(e.vaccines.length>0){t.push(_e("\u75ab\u82d7/\u7528\u836f\u8bb0\u5f55")),t.push(ve);var g=["\u540d\u79f0","\u63a5\u79cd/\u7528\u836f\u65e5\u671f","\u5230\u671f\u65e5\u671f","\u72b6\u6001"];t.push(g.map(_e).join(ge)),t.push(ve);var v,_=(0,S.Z)(e.vaccines);try{for(_.s();!(v=_.n()).done;){var x=v.value,y="done"===x.status?"\u5df2\u5b8c\u6210":"pending"===x.status?"\u5f85\u5904\u7406":"\u5df2\u903e\u671f",w=[x.name,x.dateGiven||"",x.dateDue,y];t.push(w.map(_e).join(ge)),t.push(ve)}}catch(e){_.e(e)}finally{_.f()}t.push(ve)}return e.aiAnalysis&&(t.push(_e("AI\u8d8b\u52bf\u5206\u6790")),t.push(ve),t.push(_e(e.aiAnalysis)),t.push(ve),t.push(ve)),t.push(_e("\u62a5\u544a\u751f\u6210\u65f6\u95f4")),t.push(ge),t.push(_e(e.generatedAt)),t.push(ve),t.push(_e("\u62a5\u544a\u5468\u671f")),t.push(ge),t.push(_e(e.period)),t.push(ve),t.push(_e("\u514d\u8d23\u58f0\u660e\uff1a\u672c\u62a5\u544a\u4ec5\u4f9b\u53c2\u8003\uff0c\u4e0d\u66ff\u4ee3\u517d\u533b\u8bca\u65ad\u3002\u5982\u53d1\u73b0\u5f02\u5e38\u8bf7\u53ca\u65f6\u5c31\u533b\u3002")),t.push(ve),fe+t.join("")}function ye(e,t){return we.apply(this,arguments)}function we(){return we=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a,s,i;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:return r=xe(t),a="".concat(n,"\u5065\u5eb7\u62a5\u544a.csv"),s=d().getFileSystemManager(),i="".concat(d().env.USER_DATA_PATH,"/").concat(a),s.writeFileSync(i,r,"utf8"),e.a(2,i)}},e)})),we.apply(this,arguments)}var be="health-report-canvas";function je(e){var t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),r=String(e.getDate()).padStart(2,"0");return"".concat(t,"-").concat(n,"-").concat(r)}function Ne(e,t){return ke.apply(this,arguments)}function ke(){return ke=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a,s,i,l,o,u,h,d,m=arguments;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:return r=m.length>2&&void 0!==m[2]?m[2]:30,e.n=1,(0,de.c3)(t,n);case 1:if(a=e.v,a){e.n=2;break}throw new Error("Pet not found");case 2:return s=new Date,i=new Date,i.setDate(i.getDate()-r),e.n=3,(0,D.yd)(n,t,je(i),je(s));case 3:return l=e.v,e.n=4,(0,he.Am)(n);case 4:return o=e.v,e.n=5,(0,me.ON)(n);case 5:return u=e.v,h=u.filter(function(e){var t=e.createdAt.slice(0,10);return t>=je(i)&&t<=je(s)}).slice(0,5).map(function(e){return{date:e.createdAt.slice(0,10),symptoms:e.symptoms,urgencyLevel:e.riskLevel,aiAssessment:e.aiAdvice}}),d=h.length>0?"\u62a5\u544a\u671f\u5185\u5171\u8fdb\u884c".concat(h.length,"\u6b21\u75c7\u72b6\u68c0\u67e5\u3002").concat(h.some(function(e){return"emergency"===e.urgencyLevel||"warning"===e.urgencyLevel})?"\u5b58\u5728\u9ad8\u98ce\u9669\u8bb0\u5f55\uff0c\u5efa\u8bae\u5c3d\u5feb\u5c31\u533b\u590d\u67e5\u3002":"\u672a\u53d1\u73b0\u9ad8\u98ce\u9669\u5f02\u5e38\uff0c\u8bf7\u7ee7\u7eed\u4fdd\u6301\u89c2\u5bdf\u3002"):void 0,e.a(2,{pet:{id:a.id,name:a.name,species:a.species,breed:a.breed||"\u672a\u77e5",birthDate:a.birthDate||"\u672a\u77e5",gender:a.gender||"unknown",neutered:a.isNeutered||!1,weight:a.weight||0,photoUrl:a.avatarPhotoUrl,allergies:[],medications:[],chronicConditions:[]},entries:l.map(function(e){return{date:e.createdAt instanceof Date?je(e.createdAt):je(new Date(e.createdAt)),bowel:3===e.poopLevel?"\u6b63\u5e38":5===e.poopLevel?"\u4fbf\u79d8":4===e.poopLevel?"\u8f6f\u4fbf":2===e.poopLevel?"\u8179\u6cfb":"\u8840\u4fbf",appetite:3===e.appetiteLevel?"\u6b63\u5e38":e.appetiteLevel>=4?"\u4ea2\u8fdb":2===e.appetiteLevel?"\u51cf\u9000":"\u62d2\u98df",energy:3===e.spiritLevel?"\u6b63\u5e38":e.spiritLevel>=4?"\u5174\u594b":2===e.spiritLevel?"\u4f4e\u843d":"\u840e\u9761",exercise:3===e.exerciseLevel?"\u6b63\u5e38":e.exerciseLevel>=4?"\u6d3b\u8dc3":2===e.exerciseLevel?"\u51cf\u5c11":"\u65e0",weight:e.weight}}),symptoms:h,vaccines:o.map(function(e){return{name:e.category,dateGiven:e.date,dateDue:e.nextDate||e.date,status:"completed"===e.status?"done":"pending"===e.status?"pending":"overdue"}}),generatedAt:(new Date).toLocaleDateString("zh-CN"),period:"".concat(je(i)," \u81f3 ").concat(je(s)),aiAnalysis:d})}},e)})),ke.apply(this,arguments)}function Ze(e,t){return Se.apply(this,arguments)}function Se(){return Se=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:return e.p=0,e.n=1,(0,pe.z0)(t,{canvasId:be});case 1:return r=e.v,e.n=2,(0,pe.$K)(r.tempFilePath);case 2:e.n=4;break;case 3:throw e.p=3,a=e.v,d().showToast({title:"\u5bfc\u51fa\u5931\u8d25",icon:"none"}),a;case 4:return e.a(2)}},e,null,[[0,3]])})),Se.apply(this,arguments)}function Ce(e,t){return Ge.apply(this,arguments)}function Ge(){return Ge=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:return e.p=0,e.n=1,ye(t,n);case 1:r=e.v,d().showToast({title:"CSV\u5df2\u751f\u6210",icon:"success"}),d().shareFileMessage({filePath:r,fileName:"".concat(n,"\u5065\u5eb7\u62a5\u544a.csv"),fail:function(){d().showToast({title:"\u5206\u4eabCSV\u5931\u8d25",icon:"none"})}}),e.n=3;break;case 2:throw e.p=2,a=e.v,d().showToast({title:"\u5bfc\u51faCSV\u5931\u8d25",icon:"none"}),a;case 3:return e.a(2)}},e,null,[[0,2]])})),Ge.apply(this,arguments)}function De(e,t){return Ae.apply(this,arguments)}function Ae(){return Ae=(0,i.Z)((0,c.Z)().m(function e(t,n){var r,a,s,i;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:return e.p=0,e.n=1,Promise.all([(0,pe.z0)(t,{canvasId:be}),ye(t,n)]);case 1:r=e.v,a=(0,l.Z)(r,2),s=a[0],i=a[1],d().showActionSheet({itemList:["\u53d1\u9001\u56fe\u7247\u62a5\u544a","\u53d1\u9001CSV\u6570\u636e","\u540c\u65f6\u53d1\u9001\u4e24\u79cd\u683c\u5f0f"],success:function(e){switch(e.tapIndex){case 0:d().shareFileMessage({filePath:s.tempFilePath,fileName:"".concat(n,"\u5065\u5eb7\u62a5\u544a.png"),fail:function(){return d().showToast({title:"\u5206\u4eab\u5931\u8d25",icon:"none"})}});break;case 1:d().shareFileMessage({filePath:i,fileName:"".concat(n,"\u5065\u5eb7\u62a5\u544a.csv"),fail:function(){return d().showToast({title:"\u5206\u4eab\u5931\u8d25",icon:"none"})}});break;case 2:d().shareFileMessage({filePath:s.tempFilePath,fileName:"".concat(n,"\u5065\u5eb7\u62a5\u544a.png"),success:function(){setTimeout(function(){d().shareFileMessage({filePath:i,fileName:"".concat(n,"\u5065\u5eb7\u62a5\u544a.csv"),fail:function(){return d().showToast({title:"CSV\u5206\u4eab\u5931\u8d25",icon:"none"})}})},500)},fail:function(){return d().showToast({title:"\u56fe\u7247\u5206\u4eab\u5931\u8d25",icon:"none"})}});break}}}),e.n=3;break;case 2:e.p=2,e.v,d().showToast({title:"\u5206\u4eab\u7ed9\u517d\u533b\u5931\u8d25",icon:"none"});case 3:return e.a(2)}},e,null,[[0,2]])})),Ae.apply(this,arguments)}var Fe=n(767),Le=n(9721),Pe=n(1070),Me=n(2058),Te=n(6572),Ie=n(8537),Oe=n(8143),Ee=n(5893),Re=[{key:"week",label:"\u8fd11\u5468"},{key:"month",label:"\u8fd11\u6708"},{key:"quarter",label:"\u8fd13\u6708"}],ze=[{key:"weight",label:"\u4f53\u91cd"},{key:"appetite",label:"\u98df\u6b32"},{key:"stool",label:"\u4fbf\u4fbf"},{key:"summary",label:"\u7efc\u5408"}],Ve={normal:"\u6b63\u5e38",decreased:"\u51cf\u5c11",increased:"\u589e\u52a0",none:"\u4e0d\u5403"},We={normal:"\u6b63\u5e38",soft:"\u504f\u8f6f",diarrhea:"\u8179\u6cfb",constipation:"\u4fbf\u79d8",bloody:"\u4fbf\u8840"},qe={normal:"#52C41A",decreased:"#FAAD14",increased:"#FF8C42",none:"#FF4D4F"},Be={normal:"#52C41A",soft:"#FAAD14",diarrhea:"#FF8C42",constipation:"#FAAD14",bloody:"#FF4D4F"},Ue={normal:"#52C41A",caution:"#FAAD14",warning:"#FF8C42",emergency:"#FF4D4F"};function Ye(e){var t=[];return e.appetite&&"normal"!==e.appetite&&t.push("\u98df\u6b32".concat(Ve[e.appetite])),e.stool&&"normal"!==e.stool&&t.push("\u4fbf\u4fbf".concat(We[e.stool])),e.vomiting&&t.push("\u5455\u5410"),e.hasAbnormal&&0===t.length&&t.push("\u6570\u636e\u5f02\u5e38"),t}function He(e){var t=e.split("-");return t.length>=3?"".concat(t[1],"/").concat(t[2]):e}function Je(e){var t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0");return"".concat(t,"-").concat(n)}function Ke(){(0,h.useShareAppMessage)(function(){return{title:"\u661f\u5bf0\u6d77 - \u5ba0\u7269\u5065\u5eb7\u8d8b\u52bf",path:"/pagesPet/trends/index".concat(A?"?inviteCode=".concat(A):"")}}),(0,h.useShareTimeline)(function(){return{title:"\u661f\u5bf0\u6d77 - \u5ba0\u7269\u5065\u5eb7\u8d8b\u52bf",query:A?"inviteCode=".concat(A):""}});var e=(0,j.I)(),t=e.pets,n=e.currentPet,r=e.fetchPets,Z=e.switchPet,S=(0,ue.e)(),C=S.isMember,G=S.checkAccess,D=(S.shouldShowPaywall,S.markPaywallShown,(0,N.t)(function(e){return e.user})),A=(0,k.t)(function(e){return e.inviteCode}),F=oe(),L=F.trendData,P=F.summary,M=F.monthlyReport,T=F.isLoading,I=F.error,O=F.fetchWeightTrend,E=F.fetchAppetiteTrend,R=F.fetchStoolTrend,z=F.fetchSummary,V=F.fetchMonthlyReport,W=F.clearError,q=(0,o.useState)("week"),B=(0,l.Z)(q,2),U=B[0],Y=B[1],H=(0,o.useState)("weight"),J=(0,l.Z)(H,2),K=J[0],Q=J[1],$=(0,o.useState)(!1),X=(0,l.Z)($,2),ee=X[0],te=X[1],ne=(0,o.useState)(!1),re=(0,l.Z)(ne,2),ae=re[0],se=re[1],ce=(0,o.useState)(!1),ie=(0,l.Z)(ce,2),le=ie[0],he=ie[1],de=(0,o.useState)(null),me=(0,l.Z)(de,2),pe=me[0],fe=me[1],ge=(0,o.useState)(!1),ve=(0,l.Z)(ge,2),_e=ve[0],xe=ve[1],ye=(0,o.useState)(null),we=(0,l.Z)(ye,2),be=we[0],je=we[1],ke=(0,o.useState)(!1),Se=(0,l.Z)(ke,2),Ge=Se[0],Ae=Se[1],Ke=(0,o.useState)("manual"),Qe=(0,l.Z)(Ke,2),$e=Qe[0],Xe=Qe[1],et=(0,Ie.z)(),tt=(et.trackPageView,et.trackEvent),nt=(new Me.Q).getTrendDisclaimer();(0,Ie.a)("trends"),(0,h.useDidShow)(function(){D&&r(D.id)}),(0,o.useEffect)(function(){null!==n&&void 0!==n&&n.id&&rt()},[null===n||void 0===n?void 0:n.id,U,K]);var rt=(0,o.useCallback)((0,i.Z)((0,c.Z)().m(function e(){var t,r;return(0,c.Z)().w(function(e){while(1)switch(e.n){case 0:if(null!==n&&void 0!==n&&n.id){e.n=1;break}return e.a(2);case 1:W(),t={week:1,month:1,quarter:3},r=K,e.n="weight"===r?2:"appetite"===r?4:"stool"===r?6:"summary"===r?8:11;break;case 2:return e.n=3,O(n.id,t[U]);case 3:return e.a(3,11);case 4:return e.n=5,E(n.id,t[U]);case 5:return e.a(3,11);case 6:return e.n=7,R(n.id,t[U]);case 7:return e.a(3,11);case 8:return e.n=9,z(n.id,U);case 9:return e.n=10,V(n.id,Je(new Date));case 10:return e.a(3,11);case 11:return e.a(2)}},e)})),[null===n||void 0===n?void 0:n.id,U,K,W,O,E,R,z,V]),at=(0,o.useCallback)(function(e){Z(e)},[Z]),st=(0,o.useCallback)(function(e){if(!C&&("month"===e||"quarter"===e))return tt("show_paywall",{feature:"trends_time_range"}),void te(!0);tt("change_time_range",{range:e}),Y(e)},[C]),ct=(0,o.useCallback)(function(e){Q(e)},[]),it=(0,o.useCallback)((0,i.Z)((0,c.Z)().m(function e(){var t,r,a,s;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:if(null!==n&&void 0!==n&&n.id&&null!==D&&void 0!==D&&D.id){e.n=1;break}return e.a(2);case 1:if(t=G("health_report_export"),t){e.n=2;break}return tt("show_paywall",{feature:"health_report_export"}),te(!0),e.a(2);case 2:return tt("click_export_report"),he(!0),e.p=3,e.n=4,Ne(D.id,n.id);case 4:return r=e.v,e.n=5,Ze(r,n.name);case 5:a=(0,Le.ES)(D.id,D.createdAt||(new Date).toISOString()),a.isEligible&&(Ae(!0),Xe("after_export")),e.n=7;break;case 6:e.p=6,s=e.v,m.k.error("Trends","Failed to generate report",s),d().showToast({title:"\u5bfc\u51fa\u62a5\u544a\u5931\u8d25",icon:"none"});case 7:return e.p=7,he(!1),e.f(7);case 8:return e.a(2)}},e,null,[[3,6,7,8]])})),[n,D,G]),lt=(0,o.useCallback)((0,i.Z)((0,c.Z)().m(function e(){var t,r,a;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:if(null!==n&&void 0!==n&&n.id&&null!==D&&void 0!==D&&D.id){e.n=1;break}return e.a(2);case 1:if(t=G("health_report_export"),t){e.n=2;break}return tt("show_paywall",{feature:"health_report_preview"}),te(!0),e.a(2);case 2:return he(!0),e.p=3,e.n=4,Ne(D.id,n.id);case 4:r=e.v,fe(r),se(!0),e.n=6;break;case 5:e.p=5,a=e.v,m.k.error("Trends","Failed to preview report",a),d().showToast({title:"\u9884\u89c8\u62a5\u544a\u5931\u8d25",icon:"none"});case 6:return e.p=6,he(!1),e.f(6);case 7:return e.a(2)}},e,null,[[3,5,6,7]])})),[n,D,G]),ot=(0,o.useCallback)(function(){n&&P&&(je({petName:n.name,petAvatar:n.avatarPhotoUrl||"",dateRange:"".concat(new Date(Date.now()-2592e6).toLocaleDateString("zh-CN")," - ").concat((new Date).toLocaleDateString("zh-CN")),trendSummary:P.aiAnalysis||"\u6682\u65e0\u8d8b\u52bf\u6570\u636e",aiInsight:P.weightChangePercent>0?"\u4f53\u91cd\u4e0a\u5347\u8d8b\u52bf":P.weightChangePercent<0?"\u4f53\u91cd\u4e0b\u964d\u8d8b\u52bf":"\u4f53\u91cd\u7a33\u5b9a"}),xe(!0))},[n,P]),ut=(0,o.useCallback)((0,i.Z)((0,c.Z)().m(function e(){var t,r,a;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:if(null!==n&&void 0!==n&&n.id&&null!==D&&void 0!==D&&D.id){e.n=1;break}return e.a(2);case 1:if(t=G("health_report_export"),t){e.n=2;break}return tt("show_paywall",{feature:"health_report_export"}),te(!0),e.a(2);case 2:return tt("click_export_csv"),he(!0),e.p=3,e.n=4,Ne(D.id,n.id);case 4:return r=e.v,e.n=5,Ce(r,n.name);case 5:e.n=7;break;case 6:e.p=6,a=e.v,m.k.error("Trends","Failed to export CSV",a),d().showToast({title:"\u5bfc\u51faCSV\u5931\u8d25",icon:"none"});case 7:return e.p=7,he(!1),e.f(7);case 8:return e.a(2)}},e,null,[[3,6,7,8]])})),[n,D,G]),ht=(0,o.useCallback)((0,i.Z)((0,c.Z)().m(function e(){var t,r,a;return(0,c.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:if(null!==n&&void 0!==n&&n.id&&null!==D&&void 0!==D&&D.id){e.n=1;break}return e.a(2);case 1:if(t=G("health_report_export"),t){e.n=2;break}return tt("show_paywall",{feature:"health_report_export"}),te(!0),e.a(2);case 2:return tt("click_share_to_vet"),he(!0),e.p=3,e.n=4,Ne(D.id,n.id);case 4:return r=e.v,e.n=5,De(r,n.name);case 5:e.n=7;break;case 6:e.p=6,a=e.v,m.k.error("Trends","Failed to share to vet",a),d().showToast({title:"\u5206\u4eab\u7ed9\u517d\u533b\u5931\u8d25",icon:"none"});case 7:return e.p=7,he(!1),e.f(7);case 8:return e.a(2)}},e,null,[[3,6,7,8]])})),[n,D,G]),dt=(0,o.useCallback)(function(){null!==D&&void 0!==D&&D.id&&null!==n&&void 0!==n&&n.id&&(tt(Oe.Z.ShareAction,{type:"trend",platform:"wechat"}),d().showShareMenu({withShareTicket:!0}),(0,Fe.H7)(D.id,"health_trend",n.id,"wechat"),xe(!1))},[null===D||void 0===D?void 0:D.id,null===n||void 0===n?void 0:n.id,tt]),mt=(0,o.useCallback)(function(){xe(!1)},[]),pt=(0,o.useMemo)(function(){if(null===n||void 0===n||!n.breedId)return null;var e=Te.p.find(function(e){return e.id===n.breedId});return e?{min:e.weightRange.min,max:e.weightRange.max,name:e.name}:null},[null===n||void 0===n?void 0:n.breedId]),ft=(0,o.useMemo)(function(){if("weight"!==K)return null;var e=L.filter(function(e){return void 0!==e.weight&&null!==e.weight});if(0===e.length)return null;var t=e.map(function(e){return e.weight}),n=Math.min.apply(Math,(0,s.Z)(t)),r=Math.max.apply(Math,(0,s.Z)(t)),a=r-n||1;return{points:e,minWeight:n,maxWeight:r,range:a}},[L,K]),gt=(0,o.useMemo)(function(){var e;if(!pt||!ft||0===ft.points.length)return null;var t=null===(e=ft.points[ft.points.length-1])||void 0===e?void 0:e.weight;if(void 0===t)return null;var n,r,a=pt.min,s=pt.max,c=pt.name,i=(a+s)/2,l=t-i,o=l/i*100;if(t<a)n="underweight",r="\u4f4e\u4e8e".concat(c,"\u6807\u51c6\u4f53\u91cd\u4e0b\u9650").concat(a,"kg\uff0c\u5efa\u8bae\u589e\u52a0\u8425\u517b\u6444\u5165\u5e76\u6392\u67e5\u6f5c\u5728\u5065\u5eb7\u95ee\u9898");else if(t>s){var u=(t-s)/s*100;u>20?(n="obese",r="\u4e25\u91cd\u8d85\u91cd\uff0c\u8d85\u51fa".concat(c,"\u6807\u51c6\u4e0a\u9650").concat(s,"kg\u7684").concat(u.toFixed(0),"%\uff0c\u5efa\u8bae\u7acb\u5373\u5236\u5b9a\u51cf\u91cd\u8ba1\u5212")):(n="overweight",r="\u8d85\u51fa".concat(c,"\u6807\u51c6\u4f53\u91cd\u4e0a\u9650").concat(s,"kg\uff0c\u5efa\u8bae\u63a7\u5236\u996e\u98df\u589e\u52a0\u8fd0\u52a8"))}else n="normal",r="\u5728".concat(c,"\u6807\u51c6\u4f53\u91cd\u8303\u56f4").concat(a,"-").concat(s,"kg\u5185\uff0c\u7ee7\u7eed\u4fdd\u6301");return{status:n,suggestion:r,deviation:l,deviationPercent:o,latestWeight:t,min:a,max:s,mid:i}},[pt,ft]),vt=(0,o.useMemo)(function(){if(!pt||!ft||ft.points.length<3)return null;var e,t=ft.points,n=t.slice(-3),r=n[0].weight,a=n[n.length-1].weight,s=a-r,c=s/r*100;return e=Math.abs(c)<2?"stable":c>0?"increasing":"decreasing",{direction:e,change:s,changePercent:c,first:r,last:a}},[pt,ft]),_t=(0,o.useMemo)(function(){return"appetite"!==K||0===L.length?null:L},[L,K]),xt=(0,o.useMemo)(function(){return"stool"!==K||0===L.length?null:L},[L,K]),yt=(0,o.useMemo)(function(){return L.filter(function(e){return e.hasAbnormal})},[L]),wt=(0,o.useMemo)(function(){return new Set(yt.map(function(e){return e.date}))},[yt]),bt=(0,o.useMemo)(function(){return n?{todayEntry:null,hasAnomaly:yt.length>0,anomalyCount:yt.length,riskLevel:yt.length>=3?"high":yt.length>0?"medium":null,streakDays:(null===P||void 0===P?void 0:P.totalDays)||0,isBirthday:!1,isVaccineComplete:!1,isRecovery:!1,isDeceased:n.isDeceased||!1}:null},[n,yt,P]),jt=function(){var e;if(!ft||0===ft.points.length)return(0,Ee.jsxs)(u.G7,{className:"trend-chart__empty",children:[(0,Ee.jsx)(u.xv,{className:"trend-chart__empty-text",children:"\u6682\u65e0\u4f53\u91cd\u6570\u636e"}),(0,Ee.jsx)(u.xv,{className:"trend-chart__empty-hint",children:"\u6253\u5361\u65f6\u8bb0\u5f55\u4f53\u91cd\u5373\u53ef\u751f\u6210\u8d8b\u52bf\u56fe"})]});var t=ft.points,n=ft.minWeight,r=ft.maxWeight,a=(ft.range,320),s=100,c=20,i=40,l=a-c-i,o=pt?Math.min(n,pt.min):n,h=pt?Math.max(r,pt.max):r,d=h-o||1,m=null===(e=t[t.length-1])||void 0===e?void 0:e.weight,p=!(!pt||void 0===m)&&m>pt.max,f=!(!pt||void 0===m)&&m<pt.min,g=p||f,_=c+(h-pt.max)/d*l,x=c+(h-pt.min)/d*l;return(0,Ee.jsxs)(u.G7,{className:"trend-chart__container",children:[pt&&(0,Ee.jsxs)(u.G7,{className:"trend-chart__breed-range-header",children:[(0,Ee.jsxs)(u.xv,{className:"trend-chart__breed-range-label",children:[pt.name,"\u6807\u51c6\u4f53\u91cd\u8303\u56f4"]}),(0,Ee.jsxs)(u.xv,{className:"trend-chart__breed-range-value".concat(g?" trend-chart__breed-range-value--warning":""),children:[pt.min," ~ ",pt.max," kg"]}),g&&(0,Ee.jsx)(u.xv,{className:"trend-chart__breed-range-warning",children:p?"\u5f53\u524d\u8d85\u91cd":"\u5f53\u524d\u504f\u8f7b"})]}),gt&&(0,Ee.jsxs)(u.G7,{className:"trend-chart__breed-analysis trend-chart__breed-analysis--".concat(gt.status),children:[(0,Ee.jsxs)(u.G7,{className:"trend-chart__breed-analysis-header",children:[(0,Ee.jsx)(u.xv,{className:"trend-chart__breed-analysis-title",children:"normal"===gt.status?"\u2705 \u4f53\u91cd\u6b63\u5e38":"underweight"===gt.status?"\u26a0\ufe0f \u4f53\u91cd\u504f\u8f7b":"overweight"===gt.status?"\u26a0\ufe0f \u4f53\u91cd\u504f\u91cd":"\ud83d\udd34 \u4e25\u91cd\u8d85\u91cd"}),(0,Ee.jsxs)(u.xv,{className:"trend-chart__breed-analysis-value",children:[gt.latestWeight,"kg / ",gt.min,"-",gt.max,"kg"]})]}),(0,Ee.jsx)(u.xv,{className:"trend-chart__breed-analysis-suggestion",children:gt.suggestion}),vt&&(0,Ee.jsxs)(u.G7,{className:"trend-chart__breed-trend",children:[(0,Ee.jsx)(u.xv,{className:"trend-chart__breed-trend-label",children:"\u8fd1\u671f\u8d8b\u52bf\uff08\u8fd13\u6b21\uff09\uff1a"}),(0,Ee.jsx)(u.xv,{className:"trend-chart__breed-trend-value trend-chart__breed-trend-value--".concat(vt.direction),children:"stable"===vt.direction?"\u7a33\u5b9a":"increasing"===vt.direction?"\u4e0a\u5347 ".concat(vt.changePercent.toFixed(1),"%"):"\u4e0b\u964d ".concat(Math.abs(vt.changePercent).toFixed(1),"%")})]})]}),(0,Ee.jsxs)(u.G7,{className:"trend-chart__y-axis",children:[(0,Ee.jsxs)(u.xv,{className:"trend-chart__y-label",children:[h.toFixed(1),"kg"]}),(0,Ee.jsxs)(u.xv,{className:"trend-chart__y-label",children:[((h+o)/2).toFixed(1),"kg"]}),(0,Ee.jsxs)(u.xv,{className:"trend-chart__y-label",children:[o.toFixed(1),"kg"]})]}),(0,Ee.jsxs)(u.G7,{className:"trend-chart__plot-area",children:[(0,Ee.jsxs)(u.G7,{className:"trend-chart__grid",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__grid-line"}),(0,Ee.jsx)(u.G7,{className:"trend-chart__grid-line"}),(0,Ee.jsx)(u.G7,{className:"trend-chart__grid-line"})]}),(0,Ee.jsxs)(u.G7,{className:"trend-chart__line-chart",style:{height:"".concat(a,"rpx")},children:[pt&&(0,Ee.jsxs)(u.G7,{className:"trend-chart__breed-range-zone",style:{top:"".concat(_,"rpx"),height:"".concat(x-_,"rpx")},children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__breed-range-line trend-chart__breed-range-line--top"}),(0,Ee.jsx)(u.G7,{className:"trend-chart__breed-range-line trend-chart__breed-range-line--bottom"})]}),t.map(function(e,n){var r=n/(t.length-1||1)*s,i=c+(h-e.weight)/d*l,o=wt.has(e.date),m=pt&&(e.weight>pt.max||e.weight<pt.min);return(0,Ee.jsxs)(u.G7,{className:"trend-chart__data-point".concat(m?" trend-chart__data-point--out-of-range":""),style:{left:"".concat(r,"%"),bottom:"".concat(a-i,"rpx")},children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__dot".concat(m?" trend-chart__dot--out-of-range":"")}),(0,Ee.jsxs)(u.xv,{className:"trend-chart__point-value".concat(m?" trend-chart__point-value--out-of-range":""),children:[e.weight,"kg"]}),o&&(0,Ee.jsx)(v.Z,{date:e.date,riskLevel:e.riskLevel||"caution",items:Ye(e),position:{x:0,y:0}})]},e.date)}),t.length>1&&(0,Ee.jsx)("svg",{className:"trend-chart__svg-line",viewBox:"0 0 ".concat(s," ").concat(a),preserveAspectRatio:"none",children:(0,Ee.jsx)("polyline",{points:t.map(function(e,n){var r=n/(t.length-1||1)*s,a=c+(h-e.weight)/d*l;return"".concat(r,",").concat(a)}).join(" "),fill:"none",stroke:"#FF8C42",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round"})})]}),(0,Ee.jsx)(u.G7,{className:"trend-chart__x-axis",children:t.map(function(e){return(0,Ee.jsx)(u.xv,{className:"trend-chart__x-label",children:He(e.date)},e.date)})})]})]})},Nt=function(){return _t&&0!==_t.length?(0,Ee.jsxs)(u.G7,{className:"trend-chart__container",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__bar-chart",children:_t.map(function(e){return(0,Ee.jsxs)(u.G7,{className:"trend-chart__bar-item".concat(wt.has(e.date)?" trend-chart__bar-item--abnormal":""),children:[(0,Ee.jsxs)(u.G7,{className:"trend-chart__bar-wrap",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__bar",style:{height:"100%",backgroundColor:qe[e.appetite||"normal"]||"#52C41A"}}),wt.has(e.date)&&(0,Ee.jsx)(u.G7,{className:"trend-chart__bar-mark"})]}),(0,Ee.jsx)(u.xv,{className:"trend-chart__bar-label",children:Ve[e.appetite||"normal"]||"\u672a\u77e5"}),(0,Ee.jsx)(u.xv,{className:"trend-chart__x-label",children:He(e.date)})]},e.date)})}),(0,Ee.jsx)(u.G7,{className:"trend-chart__legend",children:Object.entries(Ve).map(function(e){var t=(0,l.Z)(e,2),n=t[0],r=t[1];return(0,Ee.jsxs)(u.G7,{className:"trend-chart__legend-item",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__legend-dot",style:{backgroundColor:qe[n]}}),(0,Ee.jsx)(u.xv,{className:"trend-chart__legend-text",children:r})]},n)})})]}):(0,Ee.jsxs)(u.G7,{className:"trend-chart__empty",children:[(0,Ee.jsx)(u.xv,{className:"trend-chart__empty-text",children:"\u6682\u65e0\u98df\u6b32\u6570\u636e"}),(0,Ee.jsx)(u.xv,{className:"trend-chart__empty-hint",children:"\u6253\u5361\u65f6\u8bb0\u5f55\u98df\u6b32\u5373\u53ef\u751f\u6210\u8d8b\u52bf\u56fe"})]})},kt=function(){return xt&&0!==xt.length?(0,Ee.jsxs)(u.G7,{className:"trend-chart__container",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__bar-chart",children:xt.map(function(e){return(0,Ee.jsxs)(u.G7,{className:"trend-chart__bar-item".concat(wt.has(e.date)?" trend-chart__bar-item--abnormal":""),children:[(0,Ee.jsxs)(u.G7,{className:"trend-chart__bar-wrap",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__bar",style:{height:"100%",backgroundColor:Be[e.stool||"normal"]||"#52C41A"}}),wt.has(e.date)&&(0,Ee.jsx)(u.G7,{className:"trend-chart__bar-mark"})]}),(0,Ee.jsx)(u.xv,{className:"trend-chart__bar-label",children:We[e.stool||"normal"]||"\u672a\u77e5"}),(0,Ee.jsx)(u.xv,{className:"trend-chart__x-label",children:He(e.date)})]},e.date)})}),(0,Ee.jsx)(u.G7,{className:"trend-chart__legend",children:Object.entries(We).map(function(e){var t=(0,l.Z)(e,2),n=t[0],r=t[1];return(0,Ee.jsxs)(u.G7,{className:"trend-chart__legend-item",children:[(0,Ee.jsx)(u.G7,{className:"trend-chart__legend-dot",style:{backgroundColor:Be[n]}}),(0,Ee.jsx)(u.xv,{className:"trend-chart__legend-text",children:r})]},n)})})]}):(0,Ee.jsxs)(u.G7,{className:"trend-chart__empty",children:[(0,Ee.jsx)(u.xv,{className:"trend-chart__empty-text",children:"\u6682\u65e0\u4fbf\u4fbf\u6570\u636e"}),(0,Ee.jsx)(u.xv,{className:"trend-chart__empty-hint",children:"\u6253\u5361\u65f6\u8bb0\u5f55\u4fbf\u4fbf\u72b6\u6001\u5373\u53ef\u751f\u6210\u8d8b\u52bf\u56fe"})]})},Zt=function(){return(0,Ee.jsxs)(u.G7,{className:"trend-summary",children:[P&&(0,Ee.jsxs)(u.G7,{className:"trend-card trend-summary__ai-card",children:[(0,Ee.jsxs)(u.G7,{className:"trend-card__header",children:[(0,Ee.jsx)(u.xv,{className:"trend-card__title",children:"AI \u8d8b\u52bf\u5206\u6790"}),(0,Ee.jsx)(u.xv,{className:"trend-card__period",children:"week"===U?"\u8fd17\u5929":"month"===U?"\u8fd130\u5929":"\u8fd190\u5929"})]}),(0,Ee.jsxs)(u.G7,{className:"trend-summary__stats",children:[(0,Ee.jsxs)(u.G7,{className:"trend-summary__stat-item",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__stat-value",children:P.totalDays}),(0,Ee.jsx)(u.xv,{className:"trend-summary__stat-label",children:"\u6253\u5361\u5929\u6570"})]}),(0,Ee.jsxs)(u.G7,{className:"trend-summary__stat-item",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__stat-value",style:{color:P.abnormalDays>0?"#FF4D4F":"#52C41A"},children:P.abnormalDays}),(0,Ee.jsx)(u.xv,{className:"trend-summary__stat-label",children:"\u5f02\u5e38\u5929\u6570"})]}),(0,Ee.jsxs)(u.G7,{className:"trend-summary__stat-item",children:[(0,Ee.jsxs)(u.xv,{className:"trend-summary__stat-value",children:[P.weightChangePercent>0?"+":"",P.weightChangePercent.toFixed(1),"%"]}),(0,Ee.jsx)(u.xv,{className:"trend-summary__stat-label",children:"\u4f53\u91cd\u53d8\u5316"})]})]}),(0,Ee.jsxs)(u.G7,{className:"trend-summary__ai-text",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__ai-label",children:"AI \u5206\u6790"}),(0,Ee.jsx)(u.xv,{className:"trend-summary__ai-content",children:P.aiAnalysis||"\u6682\u65e0\u5206\u6790\u6570\u636e"})]})]}),yt.length>0&&(0,Ee.jsxs)(u.G7,{className:"trend-card trend-summary__abnormal-card",children:[(0,Ee.jsxs)(u.G7,{className:"trend-card__header",children:[(0,Ee.jsx)(u.xv,{className:"trend-card__title",children:"\u5f02\u5e38\u6807\u8bb0"}),(0,Ee.jsxs)(u.xv,{className:"trend-card__badge",children:[yt.length,"\u5929"]})]}),(0,Ee.jsx)(u.G7,{className:"trend-summary__abnormal-list",children:yt.map(function(e){return(0,Ee.jsxs)(u.G7,{className:"trend-summary__abnormal-item",children:[(0,Ee.jsx)(u.G7,{className:"trend-summary__abnormal-dot",style:{backgroundColor:Ue[e.riskLevel||"caution"]}}),(0,Ee.jsx)(u.xv,{className:"trend-summary__abnormal-date",children:e.date}),(0,Ee.jsx)(u.xv,{className:"trend-summary__abnormal-desc",children:[e.appetite&&"normal"!==e.appetite?"\u98df\u6b32".concat(Ve[e.appetite]):"",e.stool&&"normal"!==e.stool?"\u4fbf\u4fbf".concat(We[e.stool]):"",e.vomiting?"\u5455\u5410":""].filter(Boolean).join("\u3001")||"\u5f02\u5e38"})]},e.date)})})]}),M&&(0,Ee.jsxs)(u.G7,{className:"trend-card trend-summary__report-card",children:[(0,Ee.jsxs)(u.G7,{className:"trend-card__header",children:[(0,Ee.jsx)(u.xv,{className:"trend-card__title",children:"\u6708\u5ea6\u5065\u5eb7\u62a5\u544a"}),(0,Ee.jsx)(u.xv,{className:"trend-card__period",children:M.month})]}),M.highlights.length>0&&(0,Ee.jsxs)(u.G7,{className:"trend-summary__section",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__section-title",children:"\u2728 \u4eae\u70b9"}),M.highlights.map(function(e,t){return(0,Ee.jsxs)(u.G7,{className:"trend-summary__list-item",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__list-dot",style:{color:"#52C41A"},children:"\u25cf"}),(0,Ee.jsx)(u.xv,{className:"trend-summary__list-text",children:e})]},t)})]}),M.concerns.length>0&&(0,Ee.jsxs)(u.G7,{className:"trend-summary__section",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__section-title",children:"\u26a0\ufe0f \u5173\u6ce8"}),M.concerns.map(function(e,t){return(0,Ee.jsxs)(u.G7,{className:"trend-summary__list-item",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__list-dot",style:{color:"#FAAD14"},children:"\u25cf"}),(0,Ee.jsx)(u.xv,{className:"trend-summary__list-text",children:e})]},t)})]}),M.recommendations.length>0&&(0,Ee.jsxs)(u.G7,{className:"trend-summary__section",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__section-title",children:"\ud83d\udca1 \u5efa\u8bae"}),M.recommendations.map(function(e,t){return(0,Ee.jsxs)(u.G7,{className:"trend-summary__list-item",children:[(0,Ee.jsx)(u.xv,{className:"trend-summary__list-dot",style:{color:"#FF8C42"},children:"\u25cf"}),(0,Ee.jsx)(u.xv,{className:"trend-summary__list-text",children:e})]},t)})]})]})]})},St=function(){switch(K){case"weight":return jt();case"appetite":return Nt();case"stool":return kt();case"summary":return Zt();default:return null}};return(0,Ee.jsxs)(u.G7,{className:"pet-trends-page",children:[(0,Ee.jsx)(p.Z,{pets:t,currentPetId:(null===n||void 0===n?void 0:n.id)||null,onSwitch:at}),n&&bt&&(0,Ee.jsx)(u.G7,{className:"pet-trends__avatar",children:(0,Ee.jsx)(y.tV,{species:n.species,petName:n.name,expressionContext:bt,size:80,showLabel:!0})}),(0,Ee.jsx)(u.G7,{className:"pet-trends__time-range",children:Re.map(function(e){var t=!C&&("month"===e.key||"quarter"===e.key);return(0,Ee.jsxs)(u.G7,{className:"pet-trends__time-btn ".concat(U===e.key?"pet-trends__time-btn--active":"").concat(t?" pet-trends__time-btn--locked":""),onClick:function(){return st(e.key)},children:[(0,Ee.jsx)(u.xv,{className:"pet-trends__time-btn-text",children:e.label}),t&&(0,Ee.jsx)(u.xv,{className:"pet-trends__time-btn-lock",children:"\ud83d\udd12"})]},e.key)})}),(0,Ee.jsx)(u.G7,{className:"pet-trends__tabs",children:ze.map(function(e){return(0,Ee.jsx)(u.G7,{className:"pet-trends__tab ".concat(K===e.key?"pet-trends__tab--active":""),onClick:function(){return ct(e.key)},children:(0,Ee.jsx)(u.xv,{className:"pet-trends__tab-text",children:e.label})},e.key)})}),(0,Ee.jsx)(u.pf,{scrollY:!0,className:"pet-trends__content",enhanced:!0,showScrollbar:!1,children:T?(0,Ee.jsx)(_.Z,{text:"\u52a0\u8f7d\u5065\u5eb7\u6570\u636e\u4e2d..."}):I?(0,Ee.jsx)(x.Z,{message:I,onRetry:rt}):(0,Ee.jsx)(u.G7,{className:"pet-trends__chart-area",children:St()})}),(0,Ee.jsx)(g.Z,{visible:ee,featureName:"\u5065\u5eb7\u8d8b\u52bf",remainingFree:0,onUpgrade:function(){te(!1),d().switchTab({url:"/pages/member/index"})},onClose:function(){return te(!1)}}),(0,Ee.jsxs)(u.G7,{className:"export-section",children:[(0,Ee.jsx)(u.zx,{className:"preview-btn",onClick:lt,disabled:le||!n,children:le?"\u751f\u6210\u4e2d...":"\u9884\u89c8\u62a5\u544a"}),(0,Ee.jsx)(u.zx,{className:"export-btn",onClick:it,disabled:le||!n,children:le?"\u751f\u6210\u4e2d...":"\u4fdd\u5b58\u56fe\u7247"}),(0,Ee.jsx)(u.zx,{className:"csv-btn",onClick:ut,disabled:le||!n,children:le?"\u751f\u6210\u4e2d...":"\u5bfc\u51faCSV"}),(0,Ee.jsx)(u.zx,{className:"vet-btn",onClick:ht,disabled:le||!n,children:"\u5206\u4eab\u7ed9\u517d\u533b"}),(0,Ee.jsx)(u.zx,{className:"share-btn",onClick:ot,disabled:!n||!P,children:"\u5206\u4eab\u8d8b\u52bf"})]}),ae&&pe&&(0,Ee.jsxs)(u.G7,{className:"report-modal",children:[(0,Ee.jsx)(u.G7,{className:"modal-overlay",onClick:function(){return se(!1)}}),(0,Ee.jsxs)(u.G7,{className:"modal-content",children:[(0,Ee.jsxs)(u.G7,{className:"modal-header",children:[(0,Ee.jsx)(u.xv,{className:"modal-title",children:"\u5065\u5eb7\u62a5\u544a\u9884\u89c8"}),(0,Ee.jsx)(u.xv,{className:"modal-close",onClick:function(){return se(!1)},children:"\u2715"})]}),(0,Ee.jsx)(u.G7,{className:"modal-body",children:(0,Ee.jsx)(w.Z,{data:pe})}),(0,Ee.jsx)(u.G7,{className:"modal-footer",children:(0,Ee.jsx)(u.zx,{className:"download-btn",onClick:it,children:"\u4fdd\u5b58\u5230\u76f8\u518c"})})]})]}),_e&&be&&(0,Ee.jsx)(b.Z,(0,a.Z)((0,a.Z)({},be),{},{inviteCode:A,onShare:dt,onClose:mt})),Ge&&D&&(0,Ee.jsx)(Pe.Z,{triggerEvent:$e,onSubmit:function(e,t){(0,Le.K3)(D.id,e,$e,t),Ae(!1)},onDismiss:function(){(0,Le.kh)(),Ae(!1)}}),(0,Ee.jsx)(u.G7,{className:"pet-trends__disclaimer",children:(0,Ee.jsx)(u.xv,{className:"pet-trends__disclaimer-text",children:nt})}),(0,Ee.jsx)(f.Z,{})]})}var Qe={navigationBarTitleText:"\u5065\u5eb7\u8d8b\u52bf",navigationBarBackgroundColor:"#FFF5F0",navigationBarTextStyle:"black"};Ke.enableShareTimeline=!0,Ke.enableShareAppMessage=!0;Page((0,r.createPageConfig)(Ke,"pagesPet/trends/index",{root:{cn:[]}},Qe||{}))}},function(e){var t=function(t){return e(e.s=t)};e.O(0,[2107,1216,8592],function(){return t(8446)});e.O()}]);
+"use strict";require("../sub-vendors.js");require("../sub-common/6445d8bdf2172a6fd6abee9a9e2cae24.js");require("../sub-common/a80d2ee33a59c94051f538ac359a531d.js");require("../sub-common/ad46eb011750498141202c06d6a54fd7.js");require("../sub-common/53c676dc54a90fa031d0d212976af696.js");require("../sub-common/768a8bdc99340ebc9871b27d737f9bf1.js");require("../sub-common/084a7625e5a94df19215dd3f71376275.js");require("../sub-common/362017fe540ca8d425bcc5fff5d81d56.js");require("../sub-common/bdd8c1063b7c478b3c5853b4e19995be.js");require("../sub-common/1da61588ccaed5095fd84b784215335a.js");require("../sub-common/bf906669438a96f38844c3c6f39d29bc.js");require("../sub-common/78e9a69780f50dc8eb415f90e4b0d1aa.js");require("../sub-common/279a1bdd2c9ebe3d0d313e7747fad397.js");require("../sub-common/45e56c8104d647f68948a147e442abb2.js");require("../sub-common/bc25f333f02ba8949d7db976155bfa6c.js");require("../sub-common/64d5377f280d43652f807f9764e6a048.js");require("../sub-common/4a0fb236aec95d03c6cb34b8d767b071.js");require("../sub-common/2fe9cda489814e13d999f65f4d58d377.js");require("../sub-common/4cb0167d5bf595dc3142958e17c39595.js");require("../sub-common/80674d8b64db1a1b538dfc57835b8217.js");require("../sub-common/42b17aff974a80b56214363e606bec25.js");require("../sub-common/aef81bd8d1559364bab920eb83d1742f.js");require("../sub-common/c63586835e3128dc3b689ef08f52b55e.js");require("../sub-common/256cb1bae39d15a7a40be3f8bde632a0.js");require("../sub-common/9cc4022de774e2f25907d46ebfa12c51.js");require("../sub-common/4b205c701c0d48481f802d217e8afa2e.js");require("../sub-common/e4e942ddc5c4dcce577167a76482cfa9.js");require("../sub-common/b00a3814ea8cbaeefb7563be69846338.js");require("../sub-common/3b5ebbc81c104203dd0f5dc7633051c8.js");require("../sub-common/98b4553375a10962cb604457c57bccce.js");require("../sub-common/13a958176945920d55994cca5c26bf4a.js");require("../sub-common/0e65fc53ef4c577a6e69d70c0d745e82.js");require("../sub-common/aa214bc7fb0682c95501a7cd626652b2.js");require("../sub-common/a042cc083218774b9f99b3d73ca7d8b4.js");require("../sub-common/0c7fbab6d76d62b695e8f5b2f603b921.js");require("../sub-common/96df096222dcab34e85ae95de2e6e225.js");require("../sub-common/2efb7245bee0172d30c17c5db16eea33.js");require("../sub-common/60e2e2b495e215df6e4ec63764e84b05.js");require("../sub-common/06f24cd9387af06f06fe308b91b87256.js");require("../sub-common/a9a68db88e68e31a6990d19803c6390e.js");require("../sub-common/9302aa559d8bccacecb4235b175dd58f.js");require("../sub-common/31d15ff8387305b0342a2e3754028a15.js");require("../sub-common/8e9e3160e7a3b06d42389337fa063587.js");
+(wx["webpackJsonp"] = wx["webpackJsonp"] || []).push([["pagesPet/trends/index"],{
+
+/***/ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/trends/index!./src/pagesPet/trends/index.tsx":
+/*!************************************************************************************************************************!*\
+  !*** ./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/trends/index!./src/pagesPet/trends/index.tsx ***!
+  \************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ PetTrendsPage; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/objectSpread2.js */ "./node_modules/@babel/runtime/helpers/esm/objectSpread2.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _tarojs_components__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! @tarojs/components */ "./node_modules/@tarojs/plugin-platform-weapp/dist/components-react.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../logger */ "./src/logger/index.ts");
+/* harmony import */ var _components_PetSwitcher__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../components/PetSwitcher */ "./src/components/PetSwitcher.tsx");
+/* harmony import */ var _components_PaywallPopup__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../components/PaywallPopup */ "./src/components/PaywallPopup.tsx");
+/* harmony import */ var _components_AnomalyMarker__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../components/AnomalyMarker */ "./src/components/AnomalyMarker.tsx");
+/* harmony import */ var _components_PageLoading__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../components/PageLoading */ "./src/components/PageLoading.tsx");
+/* harmony import */ var _components_PageError__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../components/PageError */ "./src/components/PageError.tsx");
+/* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../components */ "./src/components/index.ts");
+/* harmony import */ var _components_HealthReportPreview__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../components/HealthReportPreview */ "./src/components/HealthReportPreview.tsx");
+/* harmony import */ var _components_HealthTrendShareCard__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../components/HealthTrendShareCard */ "./src/components/HealthTrendShareCard.tsx");
+/* harmony import */ var _stores_petStore__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../stores/petStore */ "./src/stores/petStore.ts");
+/* harmony import */ var _stores_authStore__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../stores/authStore */ "./src/stores/authStore.ts");
+/* harmony import */ var _stores_shareStore__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../stores/shareStore */ "./src/stores/shareStore.ts");
+/* harmony import */ var _hooks_useTrend__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../hooks/useTrend */ "./src/hooks/useTrend.ts");
+/* harmony import */ var _hooks_useMembership__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../../hooks/useMembership */ "./src/hooks/useMembership.ts");
+/* harmony import */ var _services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../services/healthReportPdfService */ "./src/pagesPet/services/healthReportPdfService.ts");
+/* harmony import */ var _services_shareService__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../../services/shareService */ "./src/services/shareService.ts");
+/* harmony import */ var _services_npsService__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../../services/npsService */ "./src/services/npsService.ts");
+/* harmony import */ var _components_NpsSurvey__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../../components/NpsSurvey */ "./src/components/NpsSurvey.tsx");
+/* harmony import */ var _engines_petSafety_MedicalDisclaimer__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../../engines/petSafety/MedicalDisclaimer */ "./src/engines/petSafety/MedicalDisclaimer.ts");
+/* harmony import */ var _data_petKnowledge_breeds__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../../data/petKnowledge/breeds */ "./src/data/petKnowledge/breeds.ts");
+/* harmony import */ var _hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../hooks/useAnalytics */ "./src/hooks/useAnalytics.ts");
+/* harmony import */ var _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../../types/analyticsTypes */ "./src/types/analyticsTypes.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/cjs/react-jsx-runtime.production.min.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var TIME_RANGE_OPTIONS = [{
+  key: 'week',
+  label: '近1周'
+}, {
+  key: 'month',
+  label: '近1月'
+}, {
+  key: 'quarter',
+  label: '近3月'
+}];
+var TREND_TABS = [{
+  key: 'weight',
+  label: '体重'
+}, {
+  key: 'appetite',
+  label: '食欲'
+}, {
+  key: 'stool',
+  label: '便便'
+}, {
+  key: 'summary',
+  label: '综合'
+}];
+var APPETITE_LABELS = {
+  normal: '正常',
+  decreased: '减少',
+  increased: '增加',
+  none: '不吃'
+};
+var STOOL_LABELS = {
+  normal: '正常',
+  soft: '偏软',
+  diarrhea: '腹泻',
+  constipation: '便秘',
+  bloody: '便血'
+};
+var APPETITE_COLORS = {
+  normal: '#52C41A',
+  decreased: '#FAAD14',
+  increased: '#FF8C42',
+  none: '#FF4D4F'
+};
+var STOOL_COLORS = {
+  normal: '#52C41A',
+  soft: '#FAAD14',
+  diarrhea: '#FF8C42',
+  constipation: '#FAAD14',
+  bloody: '#FF4D4F'
+};
+var RISK_COLORS = {
+  normal: '#52C41A',
+  caution: '#FAAD14',
+  warning: '#FF8C42',
+  emergency: '#FF4D4F'
+};
+function getAbnormalItems(point) {
+  var items = [];
+  if (point.appetite && point.appetite !== 'normal') {
+    items.push("\u98DF\u6B32".concat(APPETITE_LABELS[point.appetite]));
+  }
+  if (point.stool && point.stool !== 'normal') {
+    items.push("\u4FBF\u4FBF".concat(STOOL_LABELS[point.stool]));
+  }
+  if (point.vomiting) {
+    items.push('呕吐');
+  }
+  if (point.hasAbnormal && items.length === 0) {
+    items.push('数据异常');
+  }
+  return items;
+}
+function formatDateLabel(dateStr) {
+  var parts = dateStr.split('-');
+  if (parts.length >= 3) {
+    return "".concat(parts[1], "/").concat(parts[2]);
+  }
+  return dateStr;
+}
+function getMonthStr(date) {
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  return "".concat(y, "-").concat(m);
+}
+function PetTrendsPage() {
+  (0,_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__.useShareAppMessage)(function () {
+    return {
+      title: '星寰海 - 宠物健康趋势',
+      path: "/pagesPet/trends/index".concat(inviteCode ? "?inviteCode=".concat(inviteCode) : '')
+    };
+  });
+  (0,_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__.useShareTimeline)(function () {
+    return {
+      title: '星寰海 - 宠物健康趋势',
+      query: inviteCode ? "inviteCode=".concat(inviteCode) : ''
+    };
+  });
+  var _usePetStore = (0,_stores_petStore__WEBPACK_IMPORTED_MODULE_11__.usePetStore)(),
+    pets = _usePetStore.pets,
+    currentPet = _usePetStore.currentPet,
+    fetchPets = _usePetStore.fetchPets,
+    switchPet = _usePetStore.switchPet;
+  var _useMembership = (0,_hooks_useMembership__WEBPACK_IMPORTED_MODULE_15__.useMembership)(),
+    isMember = _useMembership.isMember,
+    checkAccess = _useMembership.checkAccess,
+    shouldShowPaywall = _useMembership.shouldShowPaywall,
+    markPaywallShown = _useMembership.markPaywallShown;
+  var user = (0,_stores_authStore__WEBPACK_IMPORTED_MODULE_12__.useAuthStore)(function (s) {
+    return s.user;
+  });
+  var inviteCode = (0,_stores_shareStore__WEBPACK_IMPORTED_MODULE_13__.useShareStore)(function (s) {
+    return s.inviteCode;
+  });
+  var _useTrend = (0,_hooks_useTrend__WEBPACK_IMPORTED_MODULE_14__.useTrend)(),
+    trendData = _useTrend.trendData,
+    summary = _useTrend.summary,
+    monthlyReport = _useTrend.monthlyReport,
+    isLoading = _useTrend.isLoading,
+    error = _useTrend.error,
+    fetchWeightTrend = _useTrend.fetchWeightTrend,
+    fetchAppetiteTrend = _useTrend.fetchAppetiteTrend,
+    fetchStoolTrend = _useTrend.fetchStoolTrend,
+    fetchSummary = _useTrend.fetchSummary,
+    fetchMonthlyReport = _useTrend.fetchMonthlyReport,
+    clearError = _useTrend.clearError;
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('week'),
+    _useState2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState, 2),
+    timeRange = _useState2[0],
+    setTimeRange = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('weight'),
+    _useState4 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState3, 2),
+    activeTab = _useState4[0],
+    setActiveTab = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState6 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState5, 2),
+    paywallVisible = _useState6[0],
+    setPaywallVisible = _useState6[1];
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState8 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState7, 2),
+    showReport = _useState8[0],
+    setShowReport = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState0 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState9, 2),
+    generating = _useState0[0],
+    setGenerating = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState10 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState1, 2),
+    reportData = _useState10[0],
+    setReportData = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState12 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState11, 2),
+    showTrendShare = _useState12[0],
+    setShowTrendShare = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState14 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState13, 2),
+    trendShareData = _useState14[0],
+    setTrendShareData = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState16 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState15, 2),
+    showNpsSurvey = _useState16[0],
+    setShowNpsSurvey = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('manual'),
+    _useState18 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_useState17, 2),
+    npsTriggerEvent = _useState18[0],
+    setNpsTriggerEvent = _useState18[1];
+  var _useAnalytics = (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_22__.useAnalytics)(),
+    trackPageView = _useAnalytics.trackPageView,
+    trackEvent = _useAnalytics.trackEvent;
+  var disclaimerText = new _engines_petSafety_MedicalDisclaimer__WEBPACK_IMPORTED_MODULE_20__.MedicalDisclaimer().getTrendDisclaimer();
+  (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_22__.usePageView)('trends');
+  (0,_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__.useDidShow)(function () {
+    if (user) fetchPets(user.id);
+  });
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    if (currentPet !== null && currentPet !== void 0 && currentPet.id) {
+      loadTrendData();
+    }
+  }, [currentPet === null || currentPet === void 0 ? void 0 : currentPet.id, timeRange, activeTab]);
+  var loadTrendData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_26__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().m(function _callee() {
+    var monthsMap, _t;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().w(function (_context) {
+      while (1) switch (_context.n) {
+        case 0:
+          if (currentPet !== null && currentPet !== void 0 && currentPet.id) {
+            _context.n = 1;
+            break;
+          }
+          return _context.a(2);
+        case 1:
+          clearError();
+          monthsMap = {
+            week: 1,
+            month: 1,
+            quarter: 3
+          };
+          _t = activeTab;
+          _context.n = _t === 'weight' ? 2 : _t === 'appetite' ? 4 : _t === 'stool' ? 6 : _t === 'summary' ? 8 : 11;
+          break;
+        case 2:
+          _context.n = 3;
+          return fetchWeightTrend(currentPet.id, monthsMap[timeRange]);
+        case 3:
+          return _context.a(3, 11);
+        case 4:
+          _context.n = 5;
+          return fetchAppetiteTrend(currentPet.id, monthsMap[timeRange]);
+        case 5:
+          return _context.a(3, 11);
+        case 6:
+          _context.n = 7;
+          return fetchStoolTrend(currentPet.id, monthsMap[timeRange]);
+        case 7:
+          return _context.a(3, 11);
+        case 8:
+          _context.n = 9;
+          return fetchSummary(currentPet.id, timeRange);
+        case 9:
+          _context.n = 10;
+          return fetchMonthlyReport(currentPet.id, getMonthStr(new Date()));
+        case 10:
+          return _context.a(3, 11);
+        case 11:
+          return _context.a(2);
+      }
+    }, _callee);
+  })), [currentPet === null || currentPet === void 0 ? void 0 : currentPet.id, timeRange, activeTab, clearError, fetchWeightTrend, fetchAppetiteTrend, fetchStoolTrend, fetchSummary, fetchMonthlyReport]);
+  var handlePetSwitch = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId) {
+    switchPet(petId);
+  }, [switchPet]);
+  var handleTimeRangeChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (range) {
+    if (!isMember && (range === 'month' || range === 'quarter')) {
+      trackEvent('show_paywall', {
+        feature: 'trends_time_range'
+      });
+      setPaywallVisible(true);
+      return;
+    }
+    trackEvent('change_time_range', {
+      range: range
+    });
+    setTimeRange(range);
+  }, [isMember]);
+  var handleTabChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (tab) {
+    setActiveTab(tab);
+  }, []);
+  var handleExportReport = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_26__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().m(function _callee2() {
+    var hasAccess, _reportData, npsStatus, _t2;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          if (!(!(currentPet !== null && currentPet !== void 0 && currentPet.id) || !(user !== null && user !== void 0 && user.id))) {
+            _context2.n = 1;
+            break;
+          }
+          return _context2.a(2);
+        case 1:
+          hasAccess = checkAccess('health_report_export');
+          if (hasAccess) {
+            _context2.n = 2;
+            break;
+          }
+          trackEvent('show_paywall', {
+            feature: 'health_report_export'
+          });
+          setPaywallVisible(true);
+          return _context2.a(2);
+        case 2:
+          trackEvent('click_export_report');
+          setGenerating(true);
+          _context2.p = 3;
+          _context2.n = 4;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.generateHealthReportData)(user.id, currentPet.id);
+        case 4:
+          _reportData = _context2.v;
+          _context2.n = 5;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.downloadHealthReport)(_reportData, currentPet.name);
+        case 5:
+          npsStatus = (0,_services_npsService__WEBPACK_IMPORTED_MODULE_18__.checkNpsEligibility)(user.id, user.createdAt || new Date().toISOString());
+          if (npsStatus.isEligible) {
+            setShowNpsSurvey(true);
+            setNpsTriggerEvent('after_export');
+          }
+          _context2.n = 7;
+          break;
+        case 6:
+          _context2.p = 6;
+          _t2 = _context2.v;
+          _logger__WEBPACK_IMPORTED_MODULE_2__.logger.error('Trends', 'Failed to generate report', _t2);
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().showToast({
+            title: '导出报告失败',
+            icon: 'none'
+          });
+        case 7:
+          _context2.p = 7;
+          setGenerating(false);
+          return _context2.f(7);
+        case 8:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[3, 6, 7, 8]]);
+  })), [currentPet, user, checkAccess]);
+  var handlePreviewReport = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_26__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().m(function _callee3() {
+    var hasAccess, _reportData2, _t3;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          if (!(!(currentPet !== null && currentPet !== void 0 && currentPet.id) || !(user !== null && user !== void 0 && user.id))) {
+            _context3.n = 1;
+            break;
+          }
+          return _context3.a(2);
+        case 1:
+          hasAccess = checkAccess('health_report_export');
+          if (hasAccess) {
+            _context3.n = 2;
+            break;
+          }
+          trackEvent('show_paywall', {
+            feature: 'health_report_preview'
+          });
+          setPaywallVisible(true);
+          return _context3.a(2);
+        case 2:
+          setGenerating(true);
+          _context3.p = 3;
+          _context3.n = 4;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.generateHealthReportData)(user.id, currentPet.id);
+        case 4:
+          _reportData2 = _context3.v;
+          setReportData(_reportData2);
+          setShowReport(true);
+          _context3.n = 6;
+          break;
+        case 5:
+          _context3.p = 5;
+          _t3 = _context3.v;
+          _logger__WEBPACK_IMPORTED_MODULE_2__.logger.error('Trends', 'Failed to preview report', _t3);
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().showToast({
+            title: '预览报告失败',
+            icon: 'none'
+          });
+        case 6:
+          _context3.p = 6;
+          setGenerating(false);
+          return _context3.f(6);
+        case 7:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[3, 5, 6, 7]]);
+  })), [currentPet, user, checkAccess]);
+  var handleShareTrend = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function () {
+    if (!currentPet || !summary) return;
+    setTrendShareData({
+      petName: currentPet.name,
+      petAvatar: currentPet.avatarPhotoUrl || '',
+      dateRange: "".concat(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN'), " - ").concat(new Date().toLocaleDateString('zh-CN')),
+      trendSummary: summary.aiAnalysis || '暂无趋势数据',
+      aiInsight: summary.weightChangePercent > 0 ? '体重上升趋势' : summary.weightChangePercent < 0 ? '体重下降趋势' : '体重稳定'
+    });
+    setShowTrendShare(true);
+  }, [currentPet, summary]);
+  var handleExportCsv = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_26__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().m(function _callee4() {
+    var hasAccess, _reportData3, _t4;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().w(function (_context4) {
+      while (1) switch (_context4.p = _context4.n) {
+        case 0:
+          if (!(!(currentPet !== null && currentPet !== void 0 && currentPet.id) || !(user !== null && user !== void 0 && user.id))) {
+            _context4.n = 1;
+            break;
+          }
+          return _context4.a(2);
+        case 1:
+          hasAccess = checkAccess('health_report_export');
+          if (hasAccess) {
+            _context4.n = 2;
+            break;
+          }
+          trackEvent('show_paywall', {
+            feature: 'health_report_export'
+          });
+          setPaywallVisible(true);
+          return _context4.a(2);
+        case 2:
+          trackEvent('click_export_csv');
+          setGenerating(true);
+          _context4.p = 3;
+          _context4.n = 4;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.generateHealthReportData)(user.id, currentPet.id);
+        case 4:
+          _reportData3 = _context4.v;
+          _context4.n = 5;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.downloadHealthReportCsv)(_reportData3, currentPet.name);
+        case 5:
+          _context4.n = 7;
+          break;
+        case 6:
+          _context4.p = 6;
+          _t4 = _context4.v;
+          _logger__WEBPACK_IMPORTED_MODULE_2__.logger.error('Trends', 'Failed to export CSV', _t4);
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().showToast({
+            title: '导出CSV失败',
+            icon: 'none'
+          });
+        case 7:
+          _context4.p = 7;
+          setGenerating(false);
+          return _context4.f(7);
+        case 8:
+          return _context4.a(2);
+      }
+    }, _callee4, null, [[3, 6, 7, 8]]);
+  })), [currentPet, user, checkAccess]);
+  var handleShareToVet = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_26__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().m(function _callee5() {
+    var hasAccess, _reportData4, _t5;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_27__["default"])().w(function (_context5) {
+      while (1) switch (_context5.p = _context5.n) {
+        case 0:
+          if (!(!(currentPet !== null && currentPet !== void 0 && currentPet.id) || !(user !== null && user !== void 0 && user.id))) {
+            _context5.n = 1;
+            break;
+          }
+          return _context5.a(2);
+        case 1:
+          hasAccess = checkAccess('health_report_export');
+          if (hasAccess) {
+            _context5.n = 2;
+            break;
+          }
+          trackEvent('show_paywall', {
+            feature: 'health_report_export'
+          });
+          setPaywallVisible(true);
+          return _context5.a(2);
+        case 2:
+          trackEvent('click_share_to_vet');
+          setGenerating(true);
+          _context5.p = 3;
+          _context5.n = 4;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.generateHealthReportData)(user.id, currentPet.id);
+        case 4:
+          _reportData4 = _context5.v;
+          _context5.n = 5;
+          return (0,_services_healthReportPdfService__WEBPACK_IMPORTED_MODULE_16__.shareReportToVet)(_reportData4, currentPet.name);
+        case 5:
+          _context5.n = 7;
+          break;
+        case 6:
+          _context5.p = 6;
+          _t5 = _context5.v;
+          _logger__WEBPACK_IMPORTED_MODULE_2__.logger.error('Trends', 'Failed to share to vet', _t5);
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().showToast({
+            title: '分享给兽医失败',
+            icon: 'none'
+          });
+        case 7:
+          _context5.p = 7;
+          setGenerating(false);
+          return _context5.f(7);
+        case 8:
+          return _context5.a(2);
+      }
+    }, _callee5, null, [[3, 6, 7, 8]]);
+  })), [currentPet, user, checkAccess]);
+  var handleTrendShareConfirm = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function () {
+    if (!(user !== null && user !== void 0 && user.id) || !(currentPet !== null && currentPet !== void 0 && currentPet.id)) return;
+    trackEvent(_types_analyticsTypes__WEBPACK_IMPORTED_MODULE_23__.AnalyticsEventName.ShareAction, {
+      type: 'trend',
+      platform: 'wechat'
+    });
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().showShareMenu({
+      withShareTicket: true
+    });
+    (0,_services_shareService__WEBPACK_IMPORTED_MODULE_17__.recordShare)(user.id, 'health_trend', currentPet.id, 'wechat');
+    setShowTrendShare(false);
+  }, [user === null || user === void 0 ? void 0 : user.id, currentPet === null || currentPet === void 0 ? void 0 : currentPet.id, trackEvent]);
+  var handleTrendShareClose = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function () {
+    setShowTrendShare(false);
+  }, []);
+  var breedWeightRange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    if (!(currentPet !== null && currentPet !== void 0 && currentPet.breedId)) return null;
+    var breed = _data_petKnowledge_breeds__WEBPACK_IMPORTED_MODULE_21__.BREED_DATA.find(function (b) {
+      return b.id === currentPet.breedId;
+    });
+    if (!breed) return null;
+    return {
+      min: breed.weightRange.min,
+      max: breed.weightRange.max,
+      name: breed.name
+    };
+  }, [currentPet === null || currentPet === void 0 ? void 0 : currentPet.breedId]);
+  var weightChartData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    if (activeTab !== 'weight') return null;
+    var withWeight = trendData.filter(function (d) {
+      return d.weight !== undefined && d.weight !== null;
+    });
+    if (withWeight.length === 0) return null;
+    var weights = withWeight.map(function (d) {
+      return d.weight;
+    });
+    var minWeight = Math.min.apply(Math, (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_28__["default"])(weights));
+    var maxWeight = Math.max.apply(Math, (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_28__["default"])(weights));
+    var range = maxWeight - minWeight || 1;
+    return {
+      points: withWeight,
+      minWeight: minWeight,
+      maxWeight: maxWeight,
+      range: range
+    };
+  }, [trendData, activeTab]);
+  var breedWeightAnalysis = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    var _weightChartData$poin;
+    if (!breedWeightRange || !weightChartData || weightChartData.points.length === 0) return null;
+    var latestWeight = (_weightChartData$poin = weightChartData.points[weightChartData.points.length - 1]) === null || _weightChartData$poin === void 0 ? void 0 : _weightChartData$poin.weight;
+    if (latestWeight === undefined) return null;
+    var min = breedWeightRange.min,
+      max = breedWeightRange.max,
+      name = breedWeightRange.name;
+    var mid = (min + max) / 2;
+    var deviation = latestWeight - mid;
+    var deviationPercent = deviation / mid * 100;
+    var status;
+    var suggestion;
+    if (latestWeight < min) {
+      status = 'underweight';
+      suggestion = "\u4F4E\u4E8E".concat(name, "\u6807\u51C6\u4F53\u91CD\u4E0B\u9650").concat(min, "kg\uFF0C\u5EFA\u8BAE\u589E\u52A0\u8425\u517B\u6444\u5165\u5E76\u6392\u67E5\u6F5C\u5728\u5065\u5EB7\u95EE\u9898");
+    } else if (latestWeight > max) {
+      var overPercent = (latestWeight - max) / max * 100;
+      if (overPercent > 20) {
+        status = 'obese';
+        suggestion = "\u4E25\u91CD\u8D85\u91CD\uFF0C\u8D85\u51FA".concat(name, "\u6807\u51C6\u4E0A\u9650").concat(max, "kg\u7684").concat(overPercent.toFixed(0), "%\uFF0C\u5EFA\u8BAE\u7ACB\u5373\u5236\u5B9A\u51CF\u91CD\u8BA1\u5212");
+      } else {
+        status = 'overweight';
+        suggestion = "\u8D85\u51FA".concat(name, "\u6807\u51C6\u4F53\u91CD\u4E0A\u9650").concat(max, "kg\uFF0C\u5EFA\u8BAE\u63A7\u5236\u996E\u98DF\u589E\u52A0\u8FD0\u52A8");
+      }
+    } else {
+      status = 'normal';
+      suggestion = "\u5728".concat(name, "\u6807\u51C6\u4F53\u91CD\u8303\u56F4").concat(min, "-").concat(max, "kg\u5185\uFF0C\u7EE7\u7EED\u4FDD\u6301");
+    }
+    return {
+      status: status,
+      suggestion: suggestion,
+      deviation: deviation,
+      deviationPercent: deviationPercent,
+      latestWeight: latestWeight,
+      min: min,
+      max: max,
+      mid: mid
+    };
+  }, [breedWeightRange, weightChartData]);
+  var breedWeightTrend = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    if (!breedWeightRange || !weightChartData || weightChartData.points.length < 3) return null;
+    var points = weightChartData.points;
+    var recent = points.slice(-3);
+    var first = recent[0].weight;
+    var last = recent[recent.length - 1].weight;
+    var change = last - first;
+    var changePercent = change / first * 100;
+    var direction;
+    if (Math.abs(changePercent) < 2) {
+      direction = 'stable';
+    } else if (changePercent > 0) {
+      direction = 'increasing';
+    } else {
+      direction = 'decreasing';
+    }
+    return {
+      direction: direction,
+      change: change,
+      changePercent: changePercent,
+      first: first,
+      last: last
+    };
+  }, [breedWeightRange, weightChartData]);
+  var appetiteChartData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    if (activeTab !== 'appetite') return null;
+    if (trendData.length === 0) return null;
+    return trendData;
+  }, [trendData, activeTab]);
+  var stoolChartData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    if (activeTab !== 'stool') return null;
+    if (trendData.length === 0) return null;
+    return trendData;
+  }, [trendData, activeTab]);
+  var abnormalDays = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return trendData.filter(function (d) {
+      return d.hasAbnormal;
+    });
+  }, [trendData]);
+  var abnormalDateSet = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return new Set(abnormalDays.map(function (d) {
+      return d.date;
+    }));
+  }, [abnormalDays]);
+  var expressionContext = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    if (!currentPet) return null;
+    return {
+      todayEntry: null,
+      hasAnomaly: abnormalDays.length > 0,
+      anomalyCount: abnormalDays.length,
+      riskLevel: abnormalDays.length >= 3 ? 'high' : abnormalDays.length > 0 ? 'medium' : null,
+      streakDays: (summary === null || summary === void 0 ? void 0 : summary.totalDays) || 0,
+      isBirthday: false,
+      isVaccineComplete: false,
+      isRecovery: false,
+      isDeceased: currentPet.isDeceased || false
+    };
+  }, [currentPet, abnormalDays, summary]);
+  var renderWeightChart = function renderWeightChart() {
+    var _points;
+    if (!weightChartData || weightChartData.points.length === 0) {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__empty",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__empty-text",
+          children: "\u6682\u65E0\u4F53\u91CD\u6570\u636E"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__empty-hint",
+          children: "\u6253\u5361\u65F6\u8BB0\u5F55\u4F53\u91CD\u5373\u53EF\u751F\u6210\u8D8B\u52BF\u56FE"
+        })]
+      });
+    }
+    var points = weightChartData.points,
+      minWeight = weightChartData.minWeight,
+      maxWeight = weightChartData.maxWeight,
+      range = weightChartData.range;
+    var chartHeight = 320;
+    var chartWidth = 100;
+    var paddingTop = 20;
+    var paddingBottom = 40;
+    var drawHeight = chartHeight - paddingTop - paddingBottom;
+    var displayMin = breedWeightRange ? Math.min(minWeight, breedWeightRange.min) : minWeight;
+    var displayMax = breedWeightRange ? Math.max(maxWeight, breedWeightRange.max) : maxWeight;
+    var displayRange = displayMax - displayMin || 1;
+    var latestWeight = (_points = points[points.length - 1]) === null || _points === void 0 ? void 0 : _points.weight;
+    var isOverWeight = breedWeightRange && latestWeight !== undefined ? latestWeight > breedWeightRange.max : false;
+    var isUnderWeight = breedWeightRange && latestWeight !== undefined ? latestWeight < breedWeightRange.min : false;
+    var isOutOfRange = isOverWeight || isUnderWeight;
+    var breedRangeTopY = paddingTop + (displayMax - breedWeightRange.max) / displayRange * drawHeight;
+    var breedRangeBottomY = paddingTop + (displayMax - breedWeightRange.min) / displayRange * drawHeight;
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "trend-chart__container",
+      children: [breedWeightRange && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__breed-range-header",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__breed-range-label",
+          children: [breedWeightRange.name, "\u6807\u51C6\u4F53\u91CD\u8303\u56F4"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__breed-range-value".concat(isOutOfRange ? ' trend-chart__breed-range-value--warning' : ''),
+          children: [breedWeightRange.min, " ~ ", breedWeightRange.max, " kg"]
+        }), isOutOfRange && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__breed-range-warning",
+          children: isOverWeight ? '当前超重' : '当前偏轻'
+        })]
+      }), breedWeightAnalysis && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__breed-analysis trend-chart__breed-analysis--".concat(breedWeightAnalysis.status),
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-chart__breed-analysis-header",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-chart__breed-analysis-title",
+            children: breedWeightAnalysis.status === 'normal' ? '✅ 体重正常' : breedWeightAnalysis.status === 'underweight' ? '⚠️ 体重偏轻' : breedWeightAnalysis.status === 'overweight' ? '⚠️ 体重偏重' : '🔴 严重超重'
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-chart__breed-analysis-value",
+            children: [breedWeightAnalysis.latestWeight, "kg / ", breedWeightAnalysis.min, "-", breedWeightAnalysis.max, "kg"]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__breed-analysis-suggestion",
+          children: breedWeightAnalysis.suggestion
+        }), breedWeightTrend && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-chart__breed-trend",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-chart__breed-trend-label",
+            children: "\u8FD1\u671F\u8D8B\u52BF\uFF08\u8FD13\u6B21\uFF09\uFF1A"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-chart__breed-trend-value trend-chart__breed-trend-value--".concat(breedWeightTrend.direction),
+            children: breedWeightTrend.direction === 'stable' ? '稳定' : breedWeightTrend.direction === 'increasing' ? "\u4E0A\u5347 ".concat(breedWeightTrend.changePercent.toFixed(1), "%") : "\u4E0B\u964D ".concat(Math.abs(breedWeightTrend.changePercent).toFixed(1), "%")
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__y-axis",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__y-label",
+          children: [displayMax.toFixed(1), "kg"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__y-label",
+          children: [((displayMax + displayMin) / 2).toFixed(1), "kg"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__y-label",
+          children: [displayMin.toFixed(1), "kg"]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__plot-area",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-chart__grid",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__grid-line"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__grid-line"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__grid-line"
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-chart__line-chart",
+          style: {
+            height: "".concat(chartHeight, "rpx")
+          },
+          children: [breedWeightRange && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__breed-range-zone",
+            style: {
+              top: "".concat(breedRangeTopY, "rpx"),
+              height: "".concat(breedRangeBottomY - breedRangeTopY, "rpx")
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__breed-range-line trend-chart__breed-range-line--top"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__breed-range-line trend-chart__breed-range-line--bottom"
+            })]
+          }), points.map(function (point, index) {
+            var x = index / (points.length - 1 || 1) * chartWidth;
+            var y = paddingTop + (displayMax - point.weight) / displayRange * drawHeight;
+            var isAbnormal = abnormalDateSet.has(point.date);
+            var pointOutOfRange = breedWeightRange && (point.weight > breedWeightRange.max || point.weight < breedWeightRange.min);
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__data-point".concat(pointOutOfRange ? ' trend-chart__data-point--out-of-range' : ''),
+              style: {
+                left: "".concat(x, "%"),
+                bottom: "".concat(chartHeight - y, "rpx")
+              },
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+                className: "trend-chart__dot".concat(pointOutOfRange ? ' trend-chart__dot--out-of-range' : '')
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-chart__point-value".concat(pointOutOfRange ? ' trend-chart__point-value--out-of-range' : ''),
+                children: [point.weight, "kg"]
+              }), isAbnormal && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_AnomalyMarker__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                date: point.date,
+                riskLevel: point.riskLevel || 'caution',
+                items: getAbnormalItems(point),
+                position: {
+                  x: 0,
+                  y: 0
+                }
+              })]
+            }, point.date);
+          }), points.length > 1 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("svg", {
+            className: "trend-chart__svg-line",
+            viewBox: "0 0 ".concat(chartWidth, " ").concat(chartHeight),
+            preserveAspectRatio: "none",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)("polyline", {
+              points: points.map(function (point, index) {
+                var x = index / (points.length - 1 || 1) * chartWidth;
+                var y = paddingTop + (displayMax - point.weight) / displayRange * drawHeight;
+                return "".concat(x, ",").concat(y);
+              }).join(' '),
+              fill: "none",
+              stroke: "#FF8C42",
+              strokeWidth: "2",
+              strokeLinecap: "round",
+              strokeLinejoin: "round"
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-chart__x-axis",
+          children: points.map(function (point) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__x-label",
+              children: formatDateLabel(point.date)
+            }, point.date);
+          })
+        })]
+      })]
+    });
+  };
+  var renderAppetiteChart = function renderAppetiteChart() {
+    if (!appetiteChartData || appetiteChartData.length === 0) {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__empty",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__empty-text",
+          children: "\u6682\u65E0\u98DF\u6B32\u6570\u636E"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__empty-hint",
+          children: "\u6253\u5361\u65F6\u8BB0\u5F55\u98DF\u6B32\u5373\u53EF\u751F\u6210\u8D8B\u52BF\u56FE"
+        })]
+      });
+    }
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "trend-chart__container",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__bar-chart",
+        children: appetiteChartData.map(function (point) {
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__bar-item".concat(abnormalDateSet.has(point.date) ? ' trend-chart__bar-item--abnormal' : ''),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__bar-wrap",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+                className: "trend-chart__bar",
+                style: {
+                  height: '100%',
+                  backgroundColor: APPETITE_COLORS[point.appetite || 'normal'] || '#52C41A'
+                }
+              }), abnormalDateSet.has(point.date) && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+                className: "trend-chart__bar-mark"
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__bar-label",
+              children: APPETITE_LABELS[point.appetite || 'normal'] || '未知'
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__x-label",
+              children: formatDateLabel(point.date)
+            })]
+          }, point.date);
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__legend",
+        children: Object.entries(APPETITE_LABELS).map(function (_ref6) {
+          var _ref7 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_ref6, 2),
+            key = _ref7[0],
+            label = _ref7[1];
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__legend-item",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__legend-dot",
+              style: {
+                backgroundColor: APPETITE_COLORS[key]
+              }
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__legend-text",
+              children: label
+            })]
+          }, key);
+        })
+      })]
+    });
+  };
+  var renderStoolChart = function renderStoolChart() {
+    if (!stoolChartData || stoolChartData.length === 0) {
+      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__empty",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__empty-text",
+          children: "\u6682\u65E0\u4FBF\u4FBF\u6570\u636E"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+          className: "trend-chart__empty-hint",
+          children: "\u6253\u5361\u65F6\u8BB0\u5F55\u4FBF\u4FBF\u72B6\u6001\u5373\u53EF\u751F\u6210\u8D8B\u52BF\u56FE"
+        })]
+      });
+    }
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "trend-chart__container",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__bar-chart",
+        children: stoolChartData.map(function (point) {
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__bar-item".concat(abnormalDateSet.has(point.date) ? ' trend-chart__bar-item--abnormal' : ''),
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__bar-wrap",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+                className: "trend-chart__bar",
+                style: {
+                  height: '100%',
+                  backgroundColor: STOOL_COLORS[point.stool || 'normal'] || '#52C41A'
+                }
+              }), abnormalDateSet.has(point.date) && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+                className: "trend-chart__bar-mark"
+              })]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__bar-label",
+              children: STOOL_LABELS[point.stool || 'normal'] || '未知'
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__x-label",
+              children: formatDateLabel(point.date)
+            })]
+          }, point.date);
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-chart__legend",
+        children: Object.entries(STOOL_LABELS).map(function (_ref8) {
+          var _ref9 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_25__["default"])(_ref8, 2),
+            key = _ref9[0],
+            label = _ref9[1];
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-chart__legend-item",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-chart__legend-dot",
+              style: {
+                backgroundColor: STOOL_COLORS[key]
+              }
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-chart__legend-text",
+              children: label
+            })]
+          }, key);
+        })
+      })]
+    });
+  };
+  var renderSummaryView = function renderSummaryView() {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "trend-summary",
+      children: [summary && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-card trend-summary__ai-card",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-card__header",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-card__title",
+            children: "AI \u8D8B\u52BF\u5206\u6790"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-card__period",
+            children: timeRange === 'week' ? '近7天' : timeRange === 'month' ? '近30天' : '近90天'
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-summary__stats",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-summary__stat-item",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-summary__stat-value",
+              children: summary.totalDays
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-summary__stat-label",
+              children: "\u6253\u5361\u5929\u6570"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-summary__stat-item",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-summary__stat-value",
+              style: {
+                color: summary.abnormalDays > 0 ? '#FF4D4F' : '#52C41A'
+              },
+              children: summary.abnormalDays
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-summary__stat-label",
+              children: "\u5F02\u5E38\u5929\u6570"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+            className: "trend-summary__stat-item",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-summary__stat-value",
+              children: [summary.weightChangePercent > 0 ? '+' : '', summary.weightChangePercent.toFixed(1), "%"]
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+              className: "trend-summary__stat-label",
+              children: "\u4F53\u91CD\u53D8\u5316"
+            })]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-summary__ai-text",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-summary__ai-label",
+            children: "AI \u5206\u6790"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-summary__ai-content",
+            children: summary.aiAnalysis || '暂无分析数据'
+          })]
+        })]
+      }), abnormalDays.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-card trend-summary__abnormal-card",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-card__header",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-card__title",
+            children: "\u5F02\u5E38\u6807\u8BB0"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-card__badge",
+            children: [abnormalDays.length, "\u5929"]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-summary__abnormal-list",
+          children: abnormalDays.map(function (day) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-summary__abnormal-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+                className: "trend-summary__abnormal-dot",
+                style: {
+                  backgroundColor: RISK_COLORS[day.riskLevel || 'caution']
+                }
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__abnormal-date",
+                children: day.date
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__abnormal-desc",
+                children: [day.appetite && day.appetite !== 'normal' ? "\u98DF\u6B32".concat(APPETITE_LABELS[day.appetite]) : '', day.stool && day.stool !== 'normal' ? "\u4FBF\u4FBF".concat(STOOL_LABELS[day.stool]) : '', day.vomiting ? '呕吐' : ''].filter(Boolean).join('、') || '异常'
+              })]
+            }, day.date);
+          })
+        })]
+      }), monthlyReport && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "trend-card trend-summary__report-card",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-card__header",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-card__title",
+            children: "\u6708\u5EA6\u5065\u5EB7\u62A5\u544A"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-card__period",
+            children: monthlyReport.month
+          })]
+        }), monthlyReport.highlights.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-summary__section",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-summary__section-title",
+            children: "\u2728 \u4EAE\u70B9"
+          }), monthlyReport.highlights.map(function (item, index) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-summary__list-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__list-dot",
+                style: {
+                  color: '#52C41A'
+                },
+                children: "\u25CF"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__list-text",
+                children: item
+              })]
+            }, index);
+          })]
+        }), monthlyReport.concerns.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-summary__section",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-summary__section-title",
+            children: "\u26A0\uFE0F \u5173\u6CE8"
+          }), monthlyReport.concerns.map(function (item, index) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-summary__list-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__list-dot",
+                style: {
+                  color: '#FAAD14'
+                },
+                children: "\u25CF"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__list-text",
+                children: item
+              })]
+            }, index);
+          })]
+        }), monthlyReport.recommendations.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "trend-summary__section",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "trend-summary__section-title",
+            children: "\uD83D\uDCA1 \u5EFA\u8BAE"
+          }), monthlyReport.recommendations.map(function (item, index) {
+            return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+              className: "trend-summary__list-item",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__list-dot",
+                style: {
+                  color: '#FF8C42'
+                },
+                children: "\u25CF"
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+                className: "trend-summary__list-text",
+                children: item
+              })]
+            }, index);
+          })]
+        })]
+      })]
+    });
+  };
+  var renderChart = function renderChart() {
+    switch (activeTab) {
+      case 'weight':
+        return renderWeightChart();
+      case 'appetite':
+        return renderAppetiteChart();
+      case 'stool':
+        return renderStoolChart();
+      case 'summary':
+        return renderSummaryView();
+      default:
+        return null;
+    }
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+    className: "pet-trends-page",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_PetSwitcher__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      pets: pets,
+      currentPetId: (currentPet === null || currentPet === void 0 ? void 0 : currentPet.id) || null,
+      onSwitch: handlePetSwitch
+    }), currentPet && expressionContext && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "pet-trends__avatar",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components__WEBPACK_IMPORTED_MODULE_8__.PetAvatar, {
+        species: currentPet.species,
+        petName: currentPet.name,
+        expressionContext: expressionContext,
+        size: 80,
+        showLabel: true
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "pet-trends__time-range",
+      children: TIME_RANGE_OPTIONS.map(function (option) {
+        var locked = !isMember && (option.key === 'month' || option.key === 'quarter');
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "pet-trends__time-btn ".concat(timeRange === option.key ? 'pet-trends__time-btn--active' : '').concat(locked ? ' pet-trends__time-btn--locked' : ''),
+          onClick: function onClick() {
+            return handleTimeRangeChange(option.key);
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "pet-trends__time-btn-text",
+            children: option.label
+          }), locked && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "pet-trends__time-btn-lock",
+            children: "\uD83D\uDD12"
+          })]
+        }, option.key);
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "pet-trends__tabs",
+      children: TREND_TABS.map(function (tab) {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "pet-trends__tab ".concat(activeTab === tab.key ? 'pet-trends__tab--active' : ''),
+          onClick: function onClick() {
+            return handleTabChange(tab.key);
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "pet-trends__tab-text",
+            children: tab.label
+          })
+        }, tab.key);
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.ScrollView, {
+      scrollY: true,
+      className: "pet-trends__content",
+      enhanced: true,
+      showScrollbar: false,
+      children: isLoading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_PageLoading__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        text: "\u52A0\u8F7D\u5065\u5EB7\u6570\u636E\u4E2D..."
+      }) : error ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_PageError__WEBPACK_IMPORTED_MODULE_7__["default"], {
+        message: error,
+        onRetry: loadTrendData
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "pet-trends__chart-area",
+        children: renderChart()
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_PaywallPopup__WEBPACK_IMPORTED_MODULE_4__["default"], {
+      visible: paywallVisible,
+      featureName: "\u5065\u5EB7\u8D8B\u52BF",
+      remainingFree: 0,
+      onUpgrade: function onUpgrade() {
+        setPaywallVisible(false);
+        _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().switchTab({
+          url: '/pages/member/index'
+        });
+      },
+      onClose: function onClose() {
+        return setPaywallVisible(false);
+      }
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "export-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Button, {
+        className: "preview-btn",
+        onClick: handlePreviewReport,
+        disabled: generating || !currentPet,
+        children: generating ? '生成中...' : '预览报告'
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Button, {
+        className: "export-btn",
+        onClick: handleExportReport,
+        disabled: generating || !currentPet,
+        children: generating ? '生成中...' : '保存图片'
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Button, {
+        className: "csv-btn",
+        onClick: handleExportCsv,
+        disabled: generating || !currentPet,
+        children: generating ? '生成中...' : '导出CSV'
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Button, {
+        className: "vet-btn",
+        onClick: handleShareToVet,
+        disabled: generating || !currentPet,
+        children: "\u5206\u4EAB\u7ED9\u517D\u533B"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Button, {
+        className: "share-btn",
+        onClick: handleShareTrend,
+        disabled: !currentPet || !summary,
+        children: "\u5206\u4EAB\u8D8B\u52BF"
+      })]
+    }), showReport && reportData && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "report-modal",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "modal-overlay",
+        onClick: function onClick() {
+          return setShowReport(false);
+        }
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+        className: "modal-content",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "modal-header",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "modal-title",
+            children: "\u5065\u5EB7\u62A5\u544A\u9884\u89C8"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+            className: "modal-close",
+            onClick: function onClick() {
+              return setShowReport(false);
+            },
+            children: "\u2715"
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "modal-body",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_HealthReportPreview__WEBPACK_IMPORTED_MODULE_9__["default"], {
+            data: reportData
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+          className: "modal-footer",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Button, {
+            className: "download-btn",
+            onClick: handleExportReport,
+            children: "\u4FDD\u5B58\u5230\u76F8\u518C"
+          })
+        })]
+      })]
+    }), showTrendShare && trendShareData && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_HealthTrendShareCard__WEBPACK_IMPORTED_MODULE_10__["default"], (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_30__["default"])((0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_30__["default"])({}, trendShareData), {}, {
+      inviteCode: inviteCode,
+      onShare: handleTrendShareConfirm,
+      onClose: handleTrendShareClose
+    })), showNpsSurvey && user && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_components_NpsSurvey__WEBPACK_IMPORTED_MODULE_19__["default"], {
+      triggerEvent: npsTriggerEvent,
+      onSubmit: function onSubmit(score, feedback) {
+        (0,_services_npsService__WEBPACK_IMPORTED_MODULE_18__.submitNpsResponse)(user.id, score, npsTriggerEvent, feedback);
+        setShowNpsSurvey(false);
+      },
+      onDismiss: function onDismiss() {
+        (0,_services_npsService__WEBPACK_IMPORTED_MODULE_18__.dismissNpsSurvey)();
+        setShowNpsSurvey(false);
+      }
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.View, {
+      className: "pet-trends__disclaimer",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_24__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_29__.Text, {
+        className: "pet-trends__disclaimer-text",
+        children: disclaimerText
+      })
+    })]
+  });
+}
+
+/***/ }),
+
+/***/ "./src/hooks/useTrend.ts":
+/*!*******************************!*\
+  !*** ./src/hooks/useTrend.ts ***!
+  \*******************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "useTrend": function() { return /* binding */ useTrend; }
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../stores/trendStore */ "./src/stores/trendStore.ts");
+
+
+function useTrend() {
+  var trendData = (0,_stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore)(function (s) {
+    return s.trendData;
+  });
+  var summary = (0,_stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore)(function (s) {
+    return s.summary;
+  });
+  var monthlyReport = (0,_stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore)(function (s) {
+    return s.monthlyReport;
+  });
+  var isLoading = (0,_stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore)(function (s) {
+    return s.isLoading;
+  });
+  var error = (0,_stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore)(function (s) {
+    return s.error;
+  });
+  var fetchTrendData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId, startDate, endDate) {
+    return _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().fetchTrendData(petId, startDate, endDate);
+  }, []);
+  var fetchSummary = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId, period) {
+    return _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().fetchSummary(petId, period);
+  }, []);
+  var fetchMonthlyReport = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId, month) {
+    return _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().fetchMonthlyReport(petId, month);
+  }, []);
+  var fetchWeightTrend = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId, months) {
+    return _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().fetchWeightTrend(petId, months);
+  }, []);
+  var fetchAppetiteTrend = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId, months) {
+    return _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().fetchAppetiteTrend(petId, months);
+  }, []);
+  var fetchStoolTrend = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function (petId, months) {
+    return _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().fetchStoolTrend(petId, months);
+  }, []);
+  var clearError = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function () {
+    _stores_trendStore__WEBPACK_IMPORTED_MODULE_1__.useTrendStore.getState().clearError();
+  }, []);
+  return {
+    trendData: trendData,
+    summary: summary,
+    monthlyReport: monthlyReport,
+    isLoading: isLoading,
+    error: error,
+    fetchTrendData: fetchTrendData,
+    fetchSummary: fetchSummary,
+    fetchMonthlyReport: fetchMonthlyReport,
+    fetchWeightTrend: fetchWeightTrend,
+    fetchAppetiteTrend: fetchAppetiteTrend,
+    fetchStoolTrend: fetchStoolTrend,
+    clearError: clearError
+  };
+}
+
+/***/ }),
+
+/***/ "./src/pagesPet/services/healthReportPdfService.ts":
+/*!*********************************************************!*\
+  !*** ./src/pagesPet/services/healthReportPdfService.ts ***!
+  \*********************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "downloadHealthReport": function() { return /* binding */ downloadHealthReport; },
+/* harmony export */   "downloadHealthReportCsv": function() { return /* binding */ downloadHealthReportCsv; },
+/* harmony export */   "generateHealthReportData": function() { return /* binding */ generateHealthReportData; },
+/* harmony export */   "shareReportToVet": function() { return /* binding */ shareReportToVet; }
+/* harmony export */ });
+/* unused harmony export shareHealthReport */
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _services_checkinService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../services/checkinService */ "./src/services/checkinService.ts");
+/* harmony import */ var _services_vaccineService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/vaccineService */ "./src/services/vaccineService.ts");
+/* harmony import */ var _services_petService__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../services/petService */ "./src/services/petService.ts");
+/* harmony import */ var _services_symptomService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../services/symptomService */ "./src/services/symptomService.ts");
+/* harmony import */ var _utils_reportCanvasRenderer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../utils/reportCanvasRenderer */ "./src/utils/reportCanvasRenderer.ts");
+/* harmony import */ var _utils_reportExporter__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../utils/reportExporter */ "./src/utils/reportExporter.ts");
+
+
+
+
+
+
+
+
+
+
+var CANVAS_ID = 'health-report-canvas';
+function formatDate(date) {
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return "".concat(y, "-").concat(m, "-").concat(d);
+}
+function generateHealthReportData(_x, _x2) {
+  return _generateHealthReportData.apply(this, arguments);
+}
+function _generateHealthReportData() {
+  _generateHealthReportData = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().m(function _callee(userId, petId) {
+    var days,
+      pet,
+      endDate,
+      startDate,
+      entries,
+      vaccines,
+      symptomHistory,
+      filteredSymptoms,
+      aiAnalysis,
+      _args = arguments;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().w(function (_context) {
+      while (1) switch (_context.n) {
+        case 0:
+          days = _args.length > 2 && _args[2] !== undefined ? _args[2] : 30;
+          _context.n = 1;
+          return (0,_services_petService__WEBPACK_IMPORTED_MODULE_3__.getPetById)(userId, petId);
+        case 1:
+          pet = _context.v;
+          if (pet) {
+            _context.n = 2;
+            break;
+          }
+          throw new Error('Pet not found');
+        case 2:
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - days);
+          _context.n = 3;
+          return (0,_services_checkinService__WEBPACK_IMPORTED_MODULE_1__.getCheckinsByDateRange)(petId, userId, formatDate(startDate), formatDate(endDate));
+        case 3:
+          entries = _context.v;
+          _context.n = 4;
+          return (0,_services_vaccineService__WEBPACK_IMPORTED_MODULE_2__.getVaccineRecords)(petId);
+        case 4:
+          vaccines = _context.v;
+          _context.n = 5;
+          return (0,_services_symptomService__WEBPACK_IMPORTED_MODULE_4__.getCheckHistory)(petId);
+        case 5:
+          symptomHistory = _context.v;
+          filteredSymptoms = symptomHistory.filter(function (record) {
+            var recordDate = record.createdAt.slice(0, 10);
+            return recordDate >= formatDate(startDate) && recordDate <= formatDate(endDate);
+          }).slice(0, 5).map(function (record) {
+            return {
+              date: record.createdAt.slice(0, 10),
+              symptoms: record.symptoms,
+              urgencyLevel: record.riskLevel,
+              aiAssessment: record.aiAdvice
+            };
+          });
+          aiAnalysis = filteredSymptoms.length > 0 ? "\u62A5\u544A\u671F\u5185\u5171\u8FDB\u884C".concat(filteredSymptoms.length, "\u6B21\u75C7\u72B6\u68C0\u67E5\u3002").concat(filteredSymptoms.some(function (s) {
+            return s.urgencyLevel === 'emergency' || s.urgencyLevel === 'warning';
+          }) ? '存在高风险记录，建议尽快就医复查。' : '未发现高风险异常，请继续保持观察。') : undefined;
+          return _context.a(2, {
+            pet: {
+              id: pet.id,
+              name: pet.name,
+              species: pet.species,
+              breed: pet.breed || '未知',
+              birthDate: pet.birthDate || '未知',
+              gender: pet.gender || 'unknown',
+              neutered: pet.isNeutered || false,
+              weight: pet.weight || 0,
+              photoUrl: pet.avatarPhotoUrl,
+              allergies: [],
+              medications: [],
+              chronicConditions: []
+            },
+            entries: entries.map(function (entry) {
+              return {
+                date: entry.createdAt instanceof Date ? formatDate(entry.createdAt) : formatDate(new Date(entry.createdAt)),
+                bowel: entry.poopLevel === 3 ? '正常' : entry.poopLevel === 5 ? '便秘' : entry.poopLevel === 4 ? '软便' : entry.poopLevel === 2 ? '腹泻' : '血便',
+                appetite: entry.appetiteLevel === 3 ? '正常' : entry.appetiteLevel >= 4 ? '亢进' : entry.appetiteLevel === 2 ? '减退' : '拒食',
+                energy: entry.spiritLevel === 3 ? '正常' : entry.spiritLevel >= 4 ? '兴奋' : entry.spiritLevel === 2 ? '低落' : '萎靡',
+                exercise: entry.exerciseLevel === 3 ? '正常' : entry.exerciseLevel >= 4 ? '活跃' : entry.exerciseLevel === 2 ? '减少' : '无',
+                weight: entry.weight
+              };
+            }),
+            symptoms: filteredSymptoms,
+            vaccines: vaccines.map(function (v) {
+              return {
+                name: v.category,
+                dateGiven: v.date,
+                dateDue: v.nextDate || v.date,
+                status: v.status === 'completed' ? 'done' : v.status === 'pending' ? 'pending' : 'overdue'
+              };
+            }),
+            generatedAt: new Date().toLocaleDateString('zh-CN'),
+            period: "".concat(formatDate(startDate), " \u81F3 ").concat(formatDate(endDate)),
+            aiAnalysis: aiAnalysis
+          });
+      }
+    }, _callee);
+  }));
+  return _generateHealthReportData.apply(this, arguments);
+}
+function downloadHealthReport(_x3, _x4) {
+  return _downloadHealthReport.apply(this, arguments);
+}
+function _downloadHealthReport() {
+  _downloadHealthReport = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().m(function _callee2(data, _petName) {
+    var result, _t;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          _context2.p = 0;
+          _context2.n = 1;
+          return (0,_utils_reportCanvasRenderer__WEBPACK_IMPORTED_MODULE_5__.renderReportToCanvas)(data, {
+            canvasId: CANVAS_ID
+          });
+        case 1:
+          result = _context2.v;
+          _context2.n = 2;
+          return (0,_utils_reportCanvasRenderer__WEBPACK_IMPORTED_MODULE_5__.saveReportImage)(result.tempFilePath);
+        case 2:
+          _context2.n = 4;
+          break;
+        case 3:
+          _context2.p = 3;
+          _t = _context2.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+            title: '导出失败',
+            icon: 'none'
+          });
+          throw _t;
+        case 4:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[0, 3]]);
+  }));
+  return _downloadHealthReport.apply(this, arguments);
+}
+function shareHealthReport(_x5, _x6) {
+  return _shareHealthReport.apply(this, arguments);
+}
+function _shareHealthReport() {
+  _shareHealthReport = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().m(function _callee3(data, petName) {
+    var result, _t2;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          _context3.p = 0;
+          _context3.n = 1;
+          return (0,_utils_reportCanvasRenderer__WEBPACK_IMPORTED_MODULE_5__.renderReportToCanvas)(data, {
+            canvasId: CANVAS_ID
+          });
+        case 1:
+          result = _context3.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+            filePath: result.tempFilePath,
+            fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.png"),
+            fail: function fail() {
+              _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                title: '分享失败',
+                icon: 'none'
+              });
+            }
+          });
+          _context3.n = 3;
+          break;
+        case 2:
+          _context3.p = 2;
+          _t2 = _context3.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+            title: '分享失败',
+            icon: 'none'
+          });
+        case 3:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[0, 2]]);
+  }));
+  return _shareHealthReport.apply(this, arguments);
+}
+function downloadHealthReportCsv(_x7, _x8) {
+  return _downloadHealthReportCsv.apply(this, arguments);
+}
+function _downloadHealthReportCsv() {
+  _downloadHealthReportCsv = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().m(function _callee4(data, petName) {
+    var filePath, _t3;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().w(function (_context4) {
+      while (1) switch (_context4.p = _context4.n) {
+        case 0:
+          _context4.p = 0;
+          _context4.n = 1;
+          return (0,_utils_reportExporter__WEBPACK_IMPORTED_MODULE_6__.exportHealthReportCsv)(data, petName);
+        case 1:
+          filePath = _context4.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+            title: 'CSV已生成',
+            icon: 'success'
+          });
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+            filePath: filePath,
+            fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.csv"),
+            fail: function fail() {
+              _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                title: '分享CSV失败',
+                icon: 'none'
+              });
+            }
+          });
+          _context4.n = 3;
+          break;
+        case 2:
+          _context4.p = 2;
+          _t3 = _context4.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+            title: '导出CSV失败',
+            icon: 'none'
+          });
+          throw _t3;
+        case 3:
+          return _context4.a(2);
+      }
+    }, _callee4, null, [[0, 2]]);
+  }));
+  return _downloadHealthReportCsv.apply(this, arguments);
+}
+function shareReportToVet(_x9, _x0) {
+  return _shareReportToVet.apply(this, arguments);
+}
+function _shareReportToVet() {
+  _shareReportToVet = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().m(function _callee5(data, petName) {
+    var _yield$Promise$all, _yield$Promise$all2, imageResult, csvPath, _t4;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().w(function (_context5) {
+      while (1) switch (_context5.p = _context5.n) {
+        case 0:
+          _context5.p = 0;
+          _context5.n = 1;
+          return Promise.all([(0,_utils_reportCanvasRenderer__WEBPACK_IMPORTED_MODULE_5__.renderReportToCanvas)(data, {
+            canvasId: CANVAS_ID
+          }), (0,_utils_reportExporter__WEBPACK_IMPORTED_MODULE_6__.exportHealthReportCsv)(data, petName)]);
+        case 1:
+          _yield$Promise$all = _context5.v;
+          _yield$Promise$all2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_9__["default"])(_yield$Promise$all, 2);
+          imageResult = _yield$Promise$all2[0];
+          csvPath = _yield$Promise$all2[1];
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showActionSheet({
+            itemList: ['发送图片报告', '发送CSV数据', '同时发送两种格式'],
+            success: function success(res) {
+              switch (res.tapIndex) {
+                case 0:
+                  _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+                    filePath: imageResult.tempFilePath,
+                    fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.png"),
+                    fail: function fail() {
+                      return _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                        title: '分享失败',
+                        icon: 'none'
+                      });
+                    }
+                  });
+                  break;
+                case 1:
+                  _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+                    filePath: csvPath,
+                    fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.csv"),
+                    fail: function fail() {
+                      return _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                        title: '分享失败',
+                        icon: 'none'
+                      });
+                    }
+                  });
+                  break;
+                case 2:
+                  _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+                    filePath: imageResult.tempFilePath,
+                    fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.png"),
+                    success: function success() {
+                      setTimeout(function () {
+                        _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+                          filePath: csvPath,
+                          fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.csv"),
+                          fail: function fail() {
+                            return _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                              title: 'CSV分享失败',
+                              icon: 'none'
+                            });
+                          }
+                        });
+                      }, 500);
+                    },
+                    fail: function fail() {
+                      return _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                        title: '图片分享失败',
+                        icon: 'none'
+                      });
+                    }
+                  });
+                  break;
+              }
+            }
+          });
+          _context5.n = 3;
+          break;
+        case 2:
+          _context5.p = 2;
+          _t4 = _context5.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+            title: '分享给兽医失败',
+            icon: 'none'
+          });
+        case 3:
+          return _context5.a(2);
+      }
+    }, _callee5, null, [[0, 2]]);
+  }));
+  return _shareReportToVet.apply(this, arguments);
+}
+
+/***/ }),
+
+/***/ "./src/pagesPet/trends/index.tsx":
+/*!***************************************!*\
+  !*** ./src/pagesPet/trends/index.tsx ***!
+  \***************************************/
+/***/ (function(__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) {
+
+/* harmony import */ var _tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/runtime */ "./node_modules/@tarojs/runtime/dist/runtime.esm.js");
+/* harmony import */ var _node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_trends_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !!../../../node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/trends/index!./index.tsx */ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/trends/index!./src/pagesPet/trends/index.tsx");
+
+
+var config = {"navigationBarTitleText":"健康趋势"};
+_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_trends_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"].enableShareTimeline = true
+_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_trends_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"].enableShareAppMessage = true
+var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig)(_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_trends_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"], 'pagesPet/trends/index', {root:{cn:[]}}, config || {}))
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_trends_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ }),
+
+/***/ "./src/services/trendService.ts":
+/*!**************************************!*\
+  !*** ./src/services/trendService.ts ***!
+  \**************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getAbnormalDays": function() { return /* binding */ getAbnormalDays; },
+/* harmony export */   "getAppetiteTrend": function() { return /* binding */ getAppetiteTrend; },
+/* harmony export */   "getMonthlyReport": function() { return /* binding */ getMonthlyReport; },
+/* harmony export */   "getStoolTrend": function() { return /* binding */ getStoolTrend; },
+/* harmony export */   "getTrendData": function() { return /* binding */ getTrendData; },
+/* harmony export */   "getTrendSummary": function() { return /* binding */ getTrendSummary; },
+/* harmony export */   "getWeightTrend": function() { return /* binding */ getWeightTrend; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js */ "./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js */ "./node_modules/@babel/runtime/helpers/esm/toConsumableArray.js");
+/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./api */ "./src/services/api.ts");
+/* harmony import */ var _utils_storage__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/storage */ "./src/utils/storage.ts");
+/* harmony import */ var _checkinService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./checkinService */ "./src/services/checkinService.ts");
+
+
+
+
+
+
+
+
+function entryDateStr(entry) {
+  if (entry.createdAt instanceof Date) {
+    return entry.createdAt.toISOString().slice(0, 10);
+  }
+  return String(entry.createdAt).slice(0, 10);
+}
+function mapAppetiteLevel(level) {
+  switch (level) {
+    case 1:
+      return 'none';
+    case 2:
+      return 'decreased';
+    case 3:
+      return 'normal';
+    case 4:
+      return 'increased';
+    case 5:
+      return 'increased';
+    case 6:
+      return 'vomiting';
+  }
+}
+function mapSpiritLevel(level) {
+  switch (level) {
+    case 1:
+      return 'lethargic';
+    case 2:
+      return 'low';
+    case 3:
+      return 'normal';
+    case 4:
+      return 'normal';
+    case 5:
+      return 'high';
+  }
+}
+function mapPoopLevel(level) {
+  switch (level) {
+    case 1:
+      return 'bloody';
+    case 2:
+      return 'diarrhea';
+    case 3:
+      return 'normal';
+    case 4:
+      return 'soft';
+    case 5:
+      return 'constipation';
+  }
+}
+function getTrendStorageKey(petId) {
+  return "trend_".concat(petId);
+}
+function getLocalTrendData(petId) {
+  return (0,_utils_storage__WEBPACK_IMPORTED_MODULE_1__.getStorage)(getTrendStorageKey(petId)) || [];
+}
+function saveLocalTrendData(petId, data) {
+  (0,_utils_storage__WEBPACK_IMPORTED_MODULE_1__.setStorage)(getTrendStorageKey(petId), data);
+}
+function checkinToTrendDataPoint(entry) {
+  return {
+    date: entryDateStr(entry),
+    weight: entry.weight,
+    appetite: mapAppetiteLevel(entry.appetiteLevel),
+    energy: mapSpiritLevel(entry.spiritLevel),
+    stool: mapPoopLevel(entry.poopLevel),
+    vomiting: entry.anomalyItems.includes('other'),
+    riskLevel: entry.riskLevel,
+    hasAbnormal: entry.riskLevel !== 'low'
+  };
+}
+function calculateWeightTrend(dataPoints) {
+  var withWeight = dataPoints.filter(function (d) {
+    return d.weight !== undefined && d.weight !== null;
+  });
+  if (withWeight.length < 2) {
+    return {
+      trend: 'stable',
+      change: 0,
+      changePercent: 0
+    };
+  }
+  var sorted = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_3__["default"])(withWeight).sort(function (a, b) {
+    return a.date.localeCompare(b.date);
+  });
+  var first = sorted[0].weight;
+  var last = sorted[sorted.length - 1].weight;
+  var change = last - first;
+  var changePercent = first !== 0 ? change / first * 100 : 0;
+  var trend = 'stable';
+  if (changePercent > 5) {
+    trend = 'increasing';
+  } else if (changePercent < -5) {
+    trend = 'decreasing';
+  }
+  return {
+    trend: trend,
+    change: change,
+    changePercent: changePercent
+  };
+}
+function calculateAppetiteStats(dataPoints) {
+  var stats = {
+    normal: 0,
+    decreased: 0,
+    increased: 0,
+    none: 0
+  };
+  var _iterator = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_4__["default"])(dataPoints),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var dp = _step.value;
+      if (dp.appetite) {
+        stats[dp.appetite] = (stats[dp.appetite] || 0) + 1;
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return stats;
+}
+function calculateStoolStats(dataPoints) {
+  var stats = {
+    normal: 0,
+    soft: 0,
+    diarrhea: 0,
+    constipation: 0,
+    bloody: 0
+  };
+  var _iterator2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_4__["default"])(dataPoints),
+    _step2;
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var dp = _step2.value;
+      if (dp.stool) {
+        stats[dp.stool] = (stats[dp.stool] || 0) + 1;
+      }
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+  return stats;
+}
+function generateAiAnalysis(dataPoints, weightTrend, appetiteStats, stoolStats, abnormalDays, totalDays) {
+  var parts = [];
+  if (totalDays === 0) {
+    return '暂无足够数据生成健康分析报告，请坚持每日打卡记录宠物健康状况。';
+  }
+  if (weightTrend.trend === 'stable') {
+    parts.push('体重保持稳定，这是健康的好迹象。');
+  } else if (weightTrend.trend === 'increasing') {
+    if (weightTrend.changePercent > 20) {
+      parts.push("\u26A0\uFE0F \u4F53\u91CD\u589E\u957F".concat(weightTrend.changePercent.toFixed(1), "%\uFF0C\u589E\u5E45\u8F83\u5927\uFF0C\u5EFA\u8BAE\u5173\u6CE8\u996E\u98DF\u548C\u8FD0\u52A8\u91CF\u3002"));
+    } else if (weightTrend.changePercent > 10) {
+      parts.push("\u4F53\u91CD\u589E\u957F".concat(weightTrend.changePercent.toFixed(1), "%\uFF0C\u5904\u4E8E\u5173\u6CE8\u8303\u56F4\uFF0C\u5EFA\u8BAE\u9002\u5F53\u63A7\u5236\u996E\u98DF\u3002"));
+    } else {
+      parts.push("\u4F53\u91CD\u7565\u6709\u589E\u957F\uFF08".concat(weightTrend.changePercent.toFixed(1), "%\uFF09\uFF0C\u5C5E\u4E8E\u6B63\u5E38\u6CE2\u52A8\u8303\u56F4\u3002"));
+    }
+  } else {
+    if (weightTrend.changePercent < -20) {
+      parts.push("\u26A0\uFE0F \u4F53\u91CD\u4E0B\u964D".concat(Math.abs(weightTrend.changePercent).toFixed(1), "%\uFF0C\u964D\u5E45\u8F83\u5927\uFF0C\u5EFA\u8BAE\u5C3D\u5FEB\u5C31\u533B\u68C0\u67E5\u3002"));
+    } else if (weightTrend.changePercent < -10) {
+      parts.push("\u4F53\u91CD\u4E0B\u964D".concat(Math.abs(weightTrend.changePercent).toFixed(1), "%\uFF0C\u5904\u4E8E\u5173\u6CE8\u8303\u56F4\uFF0C\u5EFA\u8BAE\u5BC6\u5207\u89C2\u5BDF\u3002"));
+    } else {
+      parts.push("\u4F53\u91CD\u7565\u6709\u4E0B\u964D\uFF08".concat(Math.abs(weightTrend.changePercent).toFixed(1), "%\uFF09\uFF0C\u5C5E\u4E8E\u6B63\u5E38\u6CE2\u52A8\u8303\u56F4\u3002"));
+    }
+  }
+  var appetiteTotal = Object.values(appetiteStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if (appetiteTotal > 0) {
+    var noneRatio = (appetiteStats['none'] || 0) / appetiteTotal;
+    var decreasedRatio = (appetiteStats['decreased'] || 0) / appetiteTotal;
+    var normalRatio = (appetiteStats['normal'] || 0) / appetiteTotal;
+    if (noneRatio > 0.3) {
+      parts.push('食欲不振天数占比较高，需要重点关注。');
+    } else if (decreasedRatio > 0.3) {
+      parts.push('食欲下降天数较多，建议观察是否有其他伴随症状。');
+    } else if (normalRatio > 0.7) {
+      parts.push('食欲整体正常，饮食状况良好。');
+    } else {
+      parts.push('食欲偶有波动，整体尚可。');
+    }
+  }
+  var stoolTotal = Object.values(stoolStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if (stoolTotal > 0) {
+    var bloodyCount = stoolStats['bloody'] || 0;
+    var diarrheaCount = stoolStats['diarrhea'] || 0;
+    var normalCount = stoolStats['normal'] || 0;
+    var _normalRatio = normalCount / stoolTotal;
+    if (bloodyCount > 0) {
+      parts.push("\uD83D\uDEA8 \u51FA\u73B0".concat(bloodyCount, "\u5929\u4FBF\u8840\u60C5\u51B5\uFF0C\u8FD9\u662F\u7D27\u6025\u4FE1\u53F7\uFF0C\u8BF7\u7ACB\u5373\u5C31\u533B\uFF01"));
+    } else if (diarrheaCount > stoolTotal * 0.3) {
+      parts.push('腹泻天数较多，建议就医检查消化系统。');
+    } else if (_normalRatio > 0.7) {
+      parts.push('排便情况整体正常。');
+    } else {
+      parts.push('排便偶有异常，建议持续观察。');
+    }
+  }
+  if (totalDays > 0) {
+    var abnormalRatio = abnormalDays / totalDays;
+    if (abnormalRatio > 0.5) {
+      parts.push('异常天数占比超过50%，整体健康状况需要高度重视。');
+    } else if (abnormalRatio > 0.3) {
+      parts.push('异常天数占比较高，建议进行全面健康检查。');
+    } else if (abnormalRatio < 0.1) {
+      parts.push('整体健康状况良好，继续保持！');
+    }
+  }
+  var consecutiveNone = findConsecutiveAbnormal(dataPoints, 'appetite', 'none', 3);
+  if (consecutiveNone) {
+    parts.push('🚨 检测到连续3天以上完全不吃东西，这是紧急情况，请立即就医！');
+  }
+  var hasBloody = dataPoints.some(function (d) {
+    return d.stool === 'bloody';
+  });
+  if (hasBloody) {
+    parts.push('🚨 检测到便血记录，这是紧急信号，请立即就医！');
+  }
+  return parts.join('');
+}
+function findConsecutiveAbnormal(dataPoints, field, value, minDays) {
+  var sorted = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_toConsumableArray_js__WEBPACK_IMPORTED_MODULE_3__["default"])(dataPoints).sort(function (a, b) {
+    return a.date.localeCompare(b.date);
+  });
+  var consecutive = 0;
+  var _iterator3 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_4__["default"])(sorted),
+    _step3;
+  try {
+    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+      var dp = _step3.value;
+      if (dp[field] === value) {
+        consecutive++;
+        if (consecutive >= minDays) return true;
+      } else {
+        consecutive = 0;
+      }
+    }
+  } catch (err) {
+    _iterator3.e(err);
+  } finally {
+    _iterator3.f();
+  }
+  return false;
+}
+function generateHighlights(dataPoints, weightTrend, appetiteStats, stoolStats) {
+  var highlights = [];
+  if (dataPoints.length === 0) return highlights;
+  if (weightTrend.trend === 'stable') {
+    highlights.push('体重保持稳定');
+  }
+  var appetiteTotal = Object.values(appetiteStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if (appetiteTotal > 0 && (appetiteStats['normal'] || 0) / appetiteTotal > 0.7) {
+    highlights.push('食欲整体良好');
+  }
+  var stoolTotal = Object.values(stoolStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if (stoolTotal > 0 && (stoolStats['normal'] || 0) / stoolTotal > 0.7) {
+    highlights.push('排便情况正常');
+  }
+  var abnormalRatio = dataPoints.filter(function (d) {
+    return d.hasAbnormal;
+  }).length / dataPoints.length;
+  if (abnormalRatio < 0.1 && dataPoints.length >= 7) {
+    highlights.push('整体健康状况优秀');
+  }
+  return highlights;
+}
+function generateConcerns(dataPoints, weightTrend, appetiteStats, stoolStats) {
+  var concerns = [];
+  if (weightTrend.changePercent > 20) {
+    concerns.push("\u4F53\u91CD\u589E\u957F".concat(weightTrend.changePercent.toFixed(1), "%\uFF0C\u9700\u5173\u6CE8"));
+  } else if (weightTrend.changePercent < -20) {
+    concerns.push("\u4F53\u91CD\u4E0B\u964D".concat(Math.abs(weightTrend.changePercent).toFixed(1), "%\uFF0C\u9700\u5173\u6CE8"));
+  }
+  var appetiteTotal = Object.values(appetiteStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if (appetiteTotal > 0 && (appetiteStats['none'] || 0) > 0) {
+    concerns.push("\u6709".concat(appetiteStats['none'], "\u5929\u5B8C\u5168\u4E0D\u5403\u4E1C\u897F"));
+  }
+  var stoolTotal = Object.values(stoolStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if ((stoolStats['bloody'] || 0) > 0) {
+    concerns.push("\u51FA\u73B0".concat(stoolStats['bloody'], "\u5929\u4FBF\u8840"));
+  }
+  if ((stoolStats['diarrhea'] || 0) > 0) {
+    concerns.push("\u51FA\u73B0".concat(stoolStats['diarrhea'], "\u5929\u8179\u6CFB"));
+  }
+  var abnormalDays = dataPoints.filter(function (d) {
+    return d.hasAbnormal;
+  }).length;
+  if (dataPoints.length > 0 && abnormalDays / dataPoints.length > 0.3) {
+    concerns.push("\u5F02\u5E38\u5929\u6570\u5360\u6BD4".concat((abnormalDays / dataPoints.length * 100).toFixed(0), "%"));
+  }
+  return concerns;
+}
+function generateRecommendations(dataPoints, weightTrend, appetiteStats, stoolStats) {
+  var recommendations = [];
+  if (dataPoints.length < 7) {
+    recommendations.push('数据量较少，建议坚持每日打卡以获得更准确的分析');
+  }
+  if (weightTrend.changePercent > 10) {
+    recommendations.push('建议控制饮食并增加运动量');
+  } else if (weightTrend.changePercent < -10) {
+    recommendations.push('建议增加营养摄入，必要时就医检查');
+  }
+  var appetiteTotal = Object.values(appetiteStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if (appetiteTotal > 0 && (appetiteStats['none'] || 0) / appetiteTotal > 0.2) {
+    recommendations.push('食欲问题持续存在，建议就医检查');
+  }
+  var stoolTotal = Object.values(stoolStats).reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  if ((stoolStats['bloody'] || 0) > 0) {
+    recommendations.push('便血是紧急信号，请立即就医');
+  }
+  if ((stoolStats['diarrhea'] || 0) > stoolTotal * 0.3) {
+    recommendations.push('腹泻频繁，建议就医检查消化系统');
+  }
+  if (dataPoints.length >= 30) {
+    recommendations.push('建议定期进行年度体检');
+  }
+  return recommendations;
+}
+function getTrendData(_x, _x2, _x3, _x4) {
+  return _getTrendData.apply(this, arguments);
+}
+function _getTrendData() {
+  _getTrendData = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee(petId, startDate, endDate, userId) {
+    var result, checkins, trendData, local, _t, _t2;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          _context.p = 0;
+          _context.n = 1;
+          return _api__WEBPACK_IMPORTED_MODULE_0__.api.get("/api/pets/".concat(petId, "/trends?startDate=").concat(startDate, "&endDate=").concat(endDate));
+        case 1:
+          result = _context.v;
+          saveLocalTrendData(petId, result);
+          return _context.a(2, result);
+        case 2:
+          _context.p = 2;
+          _t = _context.v;
+          _context.p = 3;
+          _context.n = 4;
+          return (0,_checkinService__WEBPACK_IMPORTED_MODULE_2__.getCheckinsByDateRange)(petId, userId || '', startDate, endDate);
+        case 4:
+          checkins = _context.v;
+          trendData = checkins.map(checkinToTrendDataPoint);
+          saveLocalTrendData(petId, trendData);
+          return _context.a(2, trendData);
+        case 5:
+          _context.p = 5;
+          _t2 = _context.v;
+          local = getLocalTrendData(petId);
+          return _context.a(2, local.filter(function (d) {
+            return d.date >= startDate && d.date <= endDate;
+          }));
+      }
+    }, _callee, null, [[3, 5], [0, 2]]);
+  }));
+  return _getTrendData.apply(this, arguments);
+}
+function getTrendSummary(_x5, _x6) {
+  return _getTrendSummary.apply(this, arguments);
+}
+function _getTrendSummary() {
+  _getTrendSummary = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee2(petId, period) {
+    var now, startDate, startStr, endStr, result, dataPoints, _t3, _t4;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          now = new Date();
+          _t3 = period;
+          _context2.n = _t3 === 'week' ? 1 : _t3 === 'month' ? 2 : _t3 === 'quarter' ? 3 : 4;
+          break;
+        case 1:
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - 7);
+          return _context2.a(3, 4);
+        case 2:
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 1);
+          return _context2.a(3, 4);
+        case 3:
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 3);
+          return _context2.a(3, 4);
+        case 4:
+          startStr = startDate.toISOString().slice(0, 10);
+          endStr = now.toISOString().slice(0, 10);
+          _context2.p = 5;
+          _context2.n = 6;
+          return _api__WEBPACK_IMPORTED_MODULE_0__.api.get("/api/pets/".concat(petId, "/trends/summary?period=").concat(period));
+        case 6:
+          result = _context2.v;
+          return _context2.a(2, result);
+        case 7:
+          _context2.p = 7;
+          _t4 = _context2.v;
+          _context2.n = 8;
+          return getTrendData(petId, startStr, endStr);
+        case 8:
+          dataPoints = _context2.v;
+          return _context2.a(2, buildLocalTrendSummary(petId, period, dataPoints));
+      }
+    }, _callee2, null, [[5, 7]]);
+  }));
+  return _getTrendSummary.apply(this, arguments);
+}
+function buildLocalTrendSummary(petId, period, dataPoints) {
+  var weightResult = calculateWeightTrend(dataPoints);
+  var appetiteStats = calculateAppetiteStats(dataPoints);
+  var stoolStats = calculateStoolStats(dataPoints);
+  var abnormalDays = dataPoints.filter(function (d) {
+    return d.hasAbnormal;
+  }).length;
+  var totalDays = dataPoints.length;
+  var aiAnalysis = generateAiAnalysis(dataPoints, weightResult, appetiteStats, stoolStats, abnormalDays, totalDays);
+  return {
+    petId: petId,
+    period: period,
+    weightTrend: weightResult.trend,
+    weightChange: weightResult.change,
+    weightChangePercent: weightResult.changePercent,
+    appetiteStats: appetiteStats,
+    stoolStats: stoolStats,
+    abnormalDays: abnormalDays,
+    totalDays: totalDays,
+    aiAnalysis: aiAnalysis
+  };
+}
+function getMonthlyReport(_x7, _x8) {
+  return _getMonthlyReport.apply(this, arguments);
+}
+function _getMonthlyReport() {
+  _getMonthlyReport = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee3(petId, month) {
+    var result, _month$split$map, _month$split$map2, year, monthNum, startDate, lastDay, endDate, dataPoints, summary, weightResult, appetiteStats, stoolStats, _t5;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          _context3.p = 0;
+          _context3.n = 1;
+          return _api__WEBPACK_IMPORTED_MODULE_0__.api.get("/api/pets/".concat(petId, "/trends/report?month=").concat(month));
+        case 1:
+          result = _context3.v;
+          return _context3.a(2, result);
+        case 2:
+          _context3.p = 2;
+          _t5 = _context3.v;
+          _month$split$map = month.split('-').map(Number), _month$split$map2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_7__["default"])(_month$split$map, 2), year = _month$split$map2[0], monthNum = _month$split$map2[1];
+          startDate = "".concat(year, "-").concat(String(monthNum).padStart(2, '0'), "-01");
+          lastDay = new Date(year, monthNum, 0).getDate();
+          endDate = "".concat(year, "-").concat(String(monthNum).padStart(2, '0'), "-").concat(String(lastDay).padStart(2, '0'));
+          _context3.n = 3;
+          return getTrendData(petId, startDate, endDate);
+        case 3:
+          dataPoints = _context3.v;
+          summary = buildLocalTrendSummary(petId, 'month', dataPoints);
+          weightResult = calculateWeightTrend(dataPoints);
+          appetiteStats = calculateAppetiteStats(dataPoints);
+          stoolStats = calculateStoolStats(dataPoints);
+          return _context3.a(2, {
+            petId: petId,
+            month: month,
+            summary: summary,
+            highlights: generateHighlights(dataPoints, weightResult, appetiteStats, stoolStats),
+            concerns: generateConcerns(dataPoints, weightResult, appetiteStats, stoolStats),
+            recommendations: generateRecommendations(dataPoints, weightResult, appetiteStats, stoolStats)
+          });
+      }
+    }, _callee3, null, [[0, 2]]);
+  }));
+  return _getMonthlyReport.apply(this, arguments);
+}
+function getWeightTrend(_x9) {
+  return _getWeightTrend.apply(this, arguments);
+}
+function _getWeightTrend() {
+  _getWeightTrend = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee4(petId) {
+    var months,
+      endDate,
+      startDate,
+      startStr,
+      endStr,
+      allData,
+      _args4 = arguments;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context4) {
+      while (1) switch (_context4.n) {
+        case 0:
+          months = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : 3;
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - months);
+          startStr = startDate.toISOString().slice(0, 10);
+          endStr = endDate.toISOString().slice(0, 10);
+          _context4.n = 1;
+          return getTrendData(petId, startStr, endStr);
+        case 1:
+          allData = _context4.v;
+          return _context4.a(2, allData.filter(function (d) {
+            return d.weight !== undefined && d.weight !== null;
+          }));
+      }
+    }, _callee4);
+  }));
+  return _getWeightTrend.apply(this, arguments);
+}
+function getAppetiteTrend(_x0) {
+  return _getAppetiteTrend.apply(this, arguments);
+}
+function _getAppetiteTrend() {
+  _getAppetiteTrend = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee5(petId) {
+    var months,
+      endDate,
+      startDate,
+      startStr,
+      endStr,
+      allData,
+      _args5 = arguments;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context5) {
+      while (1) switch (_context5.n) {
+        case 0:
+          months = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : 3;
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - months);
+          startStr = startDate.toISOString().slice(0, 10);
+          endStr = endDate.toISOString().slice(0, 10);
+          _context5.n = 1;
+          return getTrendData(petId, startStr, endStr);
+        case 1:
+          allData = _context5.v;
+          return _context5.a(2, allData.filter(function (d) {
+            return d.appetite !== undefined;
+          }));
+      }
+    }, _callee5);
+  }));
+  return _getAppetiteTrend.apply(this, arguments);
+}
+function getStoolTrend(_x1) {
+  return _getStoolTrend.apply(this, arguments);
+}
+function _getStoolTrend() {
+  _getStoolTrend = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee6(petId) {
+    var months,
+      endDate,
+      startDate,
+      startStr,
+      endStr,
+      allData,
+      _args6 = arguments;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context6) {
+      while (1) switch (_context6.n) {
+        case 0:
+          months = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : 3;
+          endDate = new Date();
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - months);
+          startStr = startDate.toISOString().slice(0, 10);
+          endStr = endDate.toISOString().slice(0, 10);
+          _context6.n = 1;
+          return getTrendData(petId, startStr, endStr);
+        case 1:
+          allData = _context6.v;
+          return _context6.a(2, allData.filter(function (d) {
+            return d.stool !== undefined;
+          }));
+      }
+    }, _callee6);
+  }));
+  return _getStoolTrend.apply(this, arguments);
+}
+function getAbnormalDays(_x10, _x11, _x12) {
+  return _getAbnormalDays.apply(this, arguments);
+}
+function _getAbnormalDays() {
+  _getAbnormalDays = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_5__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().m(function _callee7(petId, startDate, endDate) {
+    var allData;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_6__["default"])().w(function (_context7) {
+      while (1) switch (_context7.n) {
+        case 0:
+          _context7.n = 1;
+          return getTrendData(petId, startDate, endDate);
+        case 1:
+          allData = _context7.v;
+          return _context7.a(2, allData.filter(function (d) {
+            return d.hasAbnormal;
+          }));
+      }
+    }, _callee7);
+  }));
+  return _getAbnormalDays.apply(this, arguments);
+}
+
+/***/ }),
+
+/***/ "./src/stores/trendStore.ts":
+/*!**********************************!*\
+  !*** ./src/stores/trendStore.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "useTrendStore": function() { return /* binding */ useTrendStore; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var zustand__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! zustand */ "./node_modules/zustand/esm/index.js");
+/* harmony import */ var _services_trendService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/trendService */ "./src/services/trendService.ts");
+/* harmony import */ var _utils_storage__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/storage */ "./src/utils/storage.ts");
+
+
+
+
+
+var useTrendStore = (0,zustand__WEBPACK_IMPORTED_MODULE_2__["default"])(function (set, get) {
+  return {
+    userId: '',
+    trendData: [],
+    summary: null,
+    monthlyReport: null,
+    isLoading: false,
+    error: null,
+    initUser: function initUser(userId) {
+      if (!userId) throw new Error('[TrendStore] userId is required');
+      (0,_utils_storage__WEBPACK_IMPORTED_MODULE_1__.setStorageUserId)(userId);
+      set({
+        userId: userId
+      });
+    },
+    fetchTrendData: function () {
+      var _fetchTrendData = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee(petId, startDate, endDate) {
+        var trendData, _t;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context.p = 1;
+              _context.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getTrendData)(petId, startDate, endDate, get().userId);
+            case 2:
+              trendData = _context.v;
+              set({
+                trendData: trendData,
+                isLoading: false
+              });
+              _context.n = 4;
+              break;
+            case 3:
+              _context.p = 3;
+              _t = _context.v;
+              set({
+                isLoading: false,
+                error: _t instanceof Error ? _t.message : '获取趋势数据失败'
+              });
+            case 4:
+              return _context.a(2);
+          }
+        }, _callee, null, [[1, 3]]);
+      }));
+      function fetchTrendData(_x, _x2, _x3) {
+        return _fetchTrendData.apply(this, arguments);
+      }
+      return fetchTrendData;
+    }(),
+    fetchSummary: function () {
+      var _fetchSummary = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee2(petId, period) {
+        var summary, _t2;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context2) {
+          while (1) switch (_context2.p = _context2.n) {
+            case 0:
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context2.p = 1;
+              _context2.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getTrendSummary)(petId, period);
+            case 2:
+              summary = _context2.v;
+              set({
+                summary: summary,
+                isLoading: false
+              });
+              _context2.n = 4;
+              break;
+            case 3:
+              _context2.p = 3;
+              _t2 = _context2.v;
+              set({
+                isLoading: false,
+                error: _t2 instanceof Error ? _t2.message : '获取趋势摘要失败'
+              });
+            case 4:
+              return _context2.a(2);
+          }
+        }, _callee2, null, [[1, 3]]);
+      }));
+      function fetchSummary(_x4, _x5) {
+        return _fetchSummary.apply(this, arguments);
+      }
+      return fetchSummary;
+    }(),
+    fetchMonthlyReport: function () {
+      var _fetchMonthlyReport = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee3(petId, month) {
+        var monthlyReport, _t3;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context3) {
+          while (1) switch (_context3.p = _context3.n) {
+            case 0:
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context3.p = 1;
+              _context3.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getMonthlyReport)(petId, month);
+            case 2:
+              monthlyReport = _context3.v;
+              set({
+                monthlyReport: monthlyReport,
+                isLoading: false
+              });
+              _context3.n = 4;
+              break;
+            case 3:
+              _context3.p = 3;
+              _t3 = _context3.v;
+              set({
+                isLoading: false,
+                error: _t3 instanceof Error ? _t3.message : '获取月度报告失败'
+              });
+            case 4:
+              return _context3.a(2);
+          }
+        }, _callee3, null, [[1, 3]]);
+      }));
+      function fetchMonthlyReport(_x6, _x7) {
+        return _fetchMonthlyReport.apply(this, arguments);
+      }
+      return fetchMonthlyReport;
+    }(),
+    fetchWeightTrend: function () {
+      var _fetchWeightTrend = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee4(petId) {
+        var months,
+          trendData,
+          _args4 = arguments,
+          _t4;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context4) {
+          while (1) switch (_context4.p = _context4.n) {
+            case 0:
+              months = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : 3;
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context4.p = 1;
+              _context4.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getWeightTrend)(petId, months);
+            case 2:
+              trendData = _context4.v;
+              set({
+                trendData: trendData,
+                isLoading: false
+              });
+              _context4.n = 4;
+              break;
+            case 3:
+              _context4.p = 3;
+              _t4 = _context4.v;
+              set({
+                isLoading: false,
+                error: _t4 instanceof Error ? _t4.message : '获取体重趋势失败'
+              });
+            case 4:
+              return _context4.a(2);
+          }
+        }, _callee4, null, [[1, 3]]);
+      }));
+      function fetchWeightTrend(_x8) {
+        return _fetchWeightTrend.apply(this, arguments);
+      }
+      return fetchWeightTrend;
+    }(),
+    fetchAppetiteTrend: function () {
+      var _fetchAppetiteTrend = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee5(petId) {
+        var months,
+          trendData,
+          _args5 = arguments,
+          _t5;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context5) {
+          while (1) switch (_context5.p = _context5.n) {
+            case 0:
+              months = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : 3;
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context5.p = 1;
+              _context5.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getAppetiteTrend)(petId, months);
+            case 2:
+              trendData = _context5.v;
+              set({
+                trendData: trendData,
+                isLoading: false
+              });
+              _context5.n = 4;
+              break;
+            case 3:
+              _context5.p = 3;
+              _t5 = _context5.v;
+              set({
+                isLoading: false,
+                error: _t5 instanceof Error ? _t5.message : '获取食欲趋势失败'
+              });
+            case 4:
+              return _context5.a(2);
+          }
+        }, _callee5, null, [[1, 3]]);
+      }));
+      function fetchAppetiteTrend(_x9) {
+        return _fetchAppetiteTrend.apply(this, arguments);
+      }
+      return fetchAppetiteTrend;
+    }(),
+    fetchStoolTrend: function () {
+      var _fetchStoolTrend = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee6(petId) {
+        var months,
+          trendData,
+          _args6 = arguments,
+          _t6;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context6) {
+          while (1) switch (_context6.p = _context6.n) {
+            case 0:
+              months = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : 3;
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context6.p = 1;
+              _context6.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getStoolTrend)(petId, months);
+            case 2:
+              trendData = _context6.v;
+              set({
+                trendData: trendData,
+                isLoading: false
+              });
+              _context6.n = 4;
+              break;
+            case 3:
+              _context6.p = 3;
+              _t6 = _context6.v;
+              set({
+                isLoading: false,
+                error: _t6 instanceof Error ? _t6.message : '获取便便趋势失败'
+              });
+            case 4:
+              return _context6.a(2);
+          }
+        }, _callee6, null, [[1, 3]]);
+      }));
+      function fetchStoolTrend(_x0) {
+        return _fetchStoolTrend.apply(this, arguments);
+      }
+      return fetchStoolTrend;
+    }(),
+    fetchAbnormalDays: function () {
+      var _fetchAbnormalDays = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee7(petId, startDate, endDate) {
+        var trendData, _t7;
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context7) {
+          while (1) switch (_context7.p = _context7.n) {
+            case 0:
+              set({
+                isLoading: true,
+                error: null
+              });
+              _context7.p = 1;
+              _context7.n = 2;
+              return (0,_services_trendService__WEBPACK_IMPORTED_MODULE_0__.getAbnormalDays)(petId, startDate, endDate);
+            case 2:
+              trendData = _context7.v;
+              set({
+                trendData: trendData,
+                isLoading: false
+              });
+              _context7.n = 4;
+              break;
+            case 3:
+              _context7.p = 3;
+              _t7 = _context7.v;
+              set({
+                isLoading: false,
+                error: _t7 instanceof Error ? _t7.message : '获取异常天数失败'
+              });
+            case 4:
+              return _context7.a(2);
+          }
+        }, _callee7, null, [[1, 3]]);
+      }));
+      function fetchAbnormalDays(_x1, _x10, _x11) {
+        return _fetchAbnormalDays.apply(this, arguments);
+      }
+      return fetchAbnormalDays;
+    }(),
+    clearError: function clearError() {
+      set({
+        error: null
+      });
+    },
+    reset: function reset() {
+      set({
+        trendData: [],
+        summary: null,
+        monthlyReport: null,
+        isLoading: false,
+        error: null
+      });
+    }
+  };
+});
+
+/***/ }),
+
+/***/ "./src/utils/reportExporter.ts":
+/*!*************************************!*\
+  !*** ./src/utils/reportExporter.ts ***!
+  \*************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "exportHealthReportCsv": function() { return /* binding */ exportHealthReportCsv; }
+/* harmony export */ });
+/* unused harmony exports generateCsvContent, shareHealthReportCsv */
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js */ "./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_0__);
+
+
+
+
+var CSV_BOM = "\uFEFF";
+var CSV_DELIMITER = ',';
+var CSV_LINE_BREAK = '\r\n';
+function escapeCsvField(value) {
+  if (value.includes(CSV_DELIMITER) || value.includes('"') || value.includes('\n')) {
+    return "\"".concat(value.replace(/"/g, '""'), "\"");
+  }
+  return value;
+}
+function generateCsvContent(data) {
+  var lines = [];
+  lines.push(escapeCsvField('宠物健康报告'));
+  lines.push(CSV_LINE_BREAK);
+  lines.push(CSV_LINE_BREAK);
+  lines.push(escapeCsvField('宠物档案'));
+  lines.push(CSV_LINE_BREAK);
+  var profileHeaders = ['名称', '品种', '物种', '性别', '出生日期', '体重(kg)', '是否绝育', '过敏史', '用药史', '慢性病'];
+  lines.push(profileHeaders.map(escapeCsvField).join(CSV_DELIMITER));
+  lines.push(CSV_LINE_BREAK);
+  var genderLabel = data.pet.gender === 'female' ? '母' : data.pet.gender === 'male' ? '公' : '未知';
+  var neuteredLabel = data.pet.neutered ? '是' : '否';
+  var profileRow = [data.pet.name, data.pet.breed, data.pet.species, genderLabel, data.pet.birthDate, String(data.pet.weight), neuteredLabel, data.pet.allergies.join(';'), data.pet.medications.join(';'), data.pet.chronicConditions.join(';')];
+  lines.push(profileRow.map(escapeCsvField).join(CSV_DELIMITER));
+  lines.push(CSV_LINE_BREAK);
+  lines.push(CSV_LINE_BREAK);
+  lines.push(escapeCsvField('健康打卡记录'));
+  lines.push(CSV_LINE_BREAK);
+  var entryHeaders = ['日期', '便便状态', '食欲', '精神', '运动', '体重(kg)'];
+  lines.push(entryHeaders.map(escapeCsvField).join(CSV_DELIMITER));
+  lines.push(CSV_LINE_BREAK);
+  var _iterator = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_1__["default"])(data.entries),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var entry = _step.value;
+      var _row2 = [entry.date, entry.bowel, entry.appetite, entry.energy, entry.exercise, entry.weight != null ? String(entry.weight) : ''];
+      lines.push(_row2.map(escapeCsvField).join(CSV_DELIMITER));
+      lines.push(CSV_LINE_BREAK);
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  lines.push(CSV_LINE_BREAK);
+  if (data.symptoms.length > 0) {
+    lines.push(escapeCsvField('异常/症状记录'));
+    lines.push(CSV_LINE_BREAK);
+    var symptomHeaders = ['日期', '症状', '紧急程度', 'AI评估'];
+    lines.push(symptomHeaders.map(escapeCsvField).join(CSV_DELIMITER));
+    lines.push(CSV_LINE_BREAK);
+    var _iterator2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_1__["default"])(data.symptoms),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var symptom = _step2.value;
+        var row = [symptom.date, symptom.symptoms.join(';'), symptom.urgencyLevel, symptom.aiAssessment];
+        lines.push(row.map(escapeCsvField).join(CSV_DELIMITER));
+        lines.push(CSV_LINE_BREAK);
+      }
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
+    }
+    lines.push(CSV_LINE_BREAK);
+  }
+  if (data.vaccines.length > 0) {
+    lines.push(escapeCsvField('疫苗/用药记录'));
+    lines.push(CSV_LINE_BREAK);
+    var vaccineHeaders = ['名称', '接种/用药日期', '到期日期', '状态'];
+    lines.push(vaccineHeaders.map(escapeCsvField).join(CSV_DELIMITER));
+    lines.push(CSV_LINE_BREAK);
+    var _iterator3 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_1__["default"])(data.vaccines),
+      _step3;
+    try {
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        var vaccine = _step3.value;
+        var statusLabel = vaccine.status === 'done' ? '已完成' : vaccine.status === 'pending' ? '待处理' : '已逾期';
+        var _row = [vaccine.name, vaccine.dateGiven || '', vaccine.dateDue, statusLabel];
+        lines.push(_row.map(escapeCsvField).join(CSV_DELIMITER));
+        lines.push(CSV_LINE_BREAK);
+      }
+    } catch (err) {
+      _iterator3.e(err);
+    } finally {
+      _iterator3.f();
+    }
+    lines.push(CSV_LINE_BREAK);
+  }
+  if (data.aiAnalysis) {
+    lines.push(escapeCsvField('AI趋势分析'));
+    lines.push(CSV_LINE_BREAK);
+    lines.push(escapeCsvField(data.aiAnalysis));
+    lines.push(CSV_LINE_BREAK);
+    lines.push(CSV_LINE_BREAK);
+  }
+  lines.push(escapeCsvField('报告生成时间'));
+  lines.push(CSV_DELIMITER);
+  lines.push(escapeCsvField(data.generatedAt));
+  lines.push(CSV_LINE_BREAK);
+  lines.push(escapeCsvField('报告周期'));
+  lines.push(CSV_DELIMITER);
+  lines.push(escapeCsvField(data.period));
+  lines.push(CSV_LINE_BREAK);
+  lines.push(escapeCsvField('免责声明：本报告仅供参考，不替代兽医诊断。如发现异常请及时就医。'));
+  lines.push(CSV_LINE_BREAK);
+  return CSV_BOM + lines.join('');
+}
+function exportHealthReportCsv(_x, _x2) {
+  return _exportHealthReportCsv.apply(this, arguments);
+}
+function _exportHealthReportCsv() {
+  _exportHealthReportCsv = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])().m(function _callee(data, petName) {
+    var csvContent, fileName, fs, tempPath;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])().w(function (_context) {
+      while (1) switch (_context.n) {
+        case 0:
+          csvContent = generateCsvContent(data);
+          fileName = "".concat(petName, "\u5065\u5EB7\u62A5\u544A.csv");
+          fs = _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().getFileSystemManager();
+          tempPath = "".concat((_tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().env.USER_DATA_PATH), "/").concat(fileName);
+          fs.writeFileSync(tempPath, csvContent, 'utf8');
+          return _context.a(2, tempPath);
+      }
+    }, _callee);
+  }));
+  return _exportHealthReportCsv.apply(this, arguments);
+}
+function shareHealthReportCsv(_x3, _x4) {
+  return _shareHealthReportCsv.apply(this, arguments);
+}
+function _shareHealthReportCsv() {
+  _shareHealthReportCsv = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])().m(function _callee2(data, petName) {
+    var filePath, _t;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          _context2.p = 0;
+          _context2.n = 1;
+          return exportHealthReportCsv(data, petName);
+        case 1:
+          filePath = _context2.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().shareFileMessage({
+            filePath: filePath,
+            fileName: "".concat(petName, "\u5065\u5EB7\u62A5\u544A.csv"),
+            fail: function fail() {
+              _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+                title: '分享失败',
+                icon: 'none'
+              });
+            }
+          });
+          _context2.n = 3;
+          break;
+        case 2:
+          _context2.p = 2;
+          _t = _context2.v;
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_0___default().showToast({
+            title: '导出CSV失败',
+            icon: 'none'
+          });
+        case 3:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[0, 2]]);
+  }));
+  return _shareHealthReportCsv.apply(this, arguments);
+}
+
+/***/ })
+
+},
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
+/******/ __webpack_require__.O(0, ["pagesPet/sub-vendors","sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/ad46eb011750498141202c06d6a54fd7","sub-common/53c676dc54a90fa031d0d212976af696","sub-common/768a8bdc99340ebc9871b27d737f9bf1","sub-common/084a7625e5a94df19215dd3f71376275","sub-common/362017fe540ca8d425bcc5fff5d81d56","sub-common/bdd8c1063b7c478b3c5853b4e19995be","sub-common/1da61588ccaed5095fd84b784215335a","sub-common/0904437f0939f2a23241ccd89a80af6d","sub-common/b1e7b2b66e55366c340f4a448106b498","sub-common/199e252700f972072afe3fa171a0b540","sub-common/2e53ada7e38073b7659abf8bad0e0af7","sub-common/921ca0dd3d58895503b2311b2d7a8cf2","sub-common/bf906669438a96f38844c3c6f39d29bc","sub-common/78e9a69780f50dc8eb415f90e4b0d1aa","sub-common/279a1bdd2c9ebe3d0d313e7747fad397","sub-common/45e56c8104d647f68948a147e442abb2","sub-common/bc25f333f02ba8949d7db976155bfa6c","sub-common/64d5377f280d43652f807f9764e6a048","sub-common/4a0fb236aec95d03c6cb34b8d767b071","sub-common/2fe9cda489814e13d999f65f4d58d377","sub-common/4cb0167d5bf595dc3142958e17c39595","sub-common/80674d8b64db1a1b538dfc57835b8217","sub-common/42b17aff974a80b56214363e606bec25","sub-common/aef81bd8d1559364bab920eb83d1742f","sub-common/a59b40dd1739c7c7f9cbc15e8bac2ab6","sub-common/c63586835e3128dc3b689ef08f52b55e","sub-common/256cb1bae39d15a7a40be3f8bde632a0","sub-common/9cc4022de774e2f25907d46ebfa12c51","sub-common/4b205c701c0d48481f802d217e8afa2e","sub-common/e4e942ddc5c4dcce577167a76482cfa9","sub-common/b00a3814ea8cbaeefb7563be69846338","sub-common/3b5ebbc81c104203dd0f5dc7633051c8","sub-common/89dea285aabaa71ad3d3deff3fff950f","sub-common/98b4553375a10962cb604457c57bccce","sub-common/c75ae219edac2f8d1c7f3f654ca16ab4","sub-common/13a958176945920d55994cca5c26bf4a","sub-common/aa66f76f4d2ba58b7fbc6e142e9f2478","sub-common/dee4e49341537ac47cb8b4a447b9b09b","sub-common/0e65fc53ef4c577a6e69d70c0d745e82","sub-common/3c48f53d767a3eb27fcad73f8c71e1a5","sub-common/aa214bc7fb0682c95501a7cd626652b2","sub-common/b3c9b278d06e1853214d284a082aa1f0","sub-common/3da8a110c99c542a4a4d4fa252635d50","sub-common/a042cc083218774b9f99b3d73ca7d8b4","sub-common/0c7fbab6d76d62b695e8f5b2f603b921","sub-common/d4a8f4b0c5be10f952fbb86d8c302cca","sub-common/b862022fa82f41ebb5e40efb0cccd5c6","sub-common/d3cd10732f86fe1419d072a75fbffd86","sub-common/cb549f44e5e3825b036bddda696727ff","sub-common/442d5987633ae6ba86abf302616028d3","sub-common/96df096222dcab34e85ae95de2e6e225","sub-common/2efb7245bee0172d30c17c5db16eea33","sub-common/4092b25868fc9facbc7e8fb28aa20dc1","sub-common/60e2e2b495e215df6e4ec63764e84b05","sub-common/321f05981306faf245fc648345b52a06","sub-common/b09e30daaf73fdf94c651896cc11de11","sub-common/4d10824e8cf6dd14fef4075724149556","sub-common/06f24cd9387af06f06fe308b91b87256","sub-common/b4cda49b9fde5065b8b67cb988098dd4","sub-common/a9a68db88e68e31a6990d19803c6390e","sub-common/9302aa559d8bccacecb4235b175dd58f","sub-common/31d15ff8387305b0342a2e3754028a15","sub-common/8e9e3160e7a3b06d42389337fa063587","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/trends/index.tsx"); });
+/******/ var __webpack_exports__ = __webpack_require__.O();
+/******/ }
+]);
+//# sourceMappingURL=index.js.map

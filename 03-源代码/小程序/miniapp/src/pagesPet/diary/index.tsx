@@ -1,8 +1,8 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import PetSwitcher from '../../components/PetSwitcher'
-import FloatingNav from '../../components/FloatingNav'
 import { PageLoading, PageError, PetAvatar } from '../../components'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -51,6 +51,7 @@ function formatFullDate(dateStr: string): string {
 }
 
 export default function PetDiaryPage() {
+  const themeClass = useThemeClass()
   const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const user = useAuthStore(s => s.user)
   const { checkins, fetchCheckins, isLoading: checkinLoading, initUser } = useCheckinStore()
@@ -134,7 +135,6 @@ export default function PetDiaryPage() {
     return (
       <View className='pet-diary'>
         <PageLoading />
-        <FloatingNav />
       </View>
     )
   }
@@ -143,13 +143,12 @@ export default function PetDiaryPage() {
     return (
       <View className='pet-diary'>
         <PageError message={error} onRetry={loadDiaryData} />
-        <FloatingNav />
       </View>
     )
   }
 
   return (
-    <View className='pet-diary'>
+    <View className={`pet-diary ${themeClass}`}>
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
@@ -247,7 +246,6 @@ export default function PetDiaryPage() {
         <Text className='pet-diary__disclaimer-text'>{disclaimerText}</Text>
       </View>
 
-      <FloatingNav />
     </View>
   )
 }

@@ -58,5 +58,22 @@ export async function guardCheck(text: string): Promise<GuardResult> {
 }
 
 export async function guardCheckOutput(text: string): Promise<{ isUnsafeMedicalAdvice: boolean }> {
-  return { isUnsafeMedicalAdvice: false }
+  const token = Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN)
+  try {
+    const res = await Taro.request({
+      url: `${CONFIG.API_BASE_URL}/api/ai/guard/output`,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      data: { text },
+    })
+    if (res.statusCode === 200) {
+      return res.data as { isUnsafeMedicalAdvice: boolean }
+    }
+    return { isUnsafeMedicalAdvice: false }
+  } catch {
+    return { isUnsafeMedicalAdvice: false }
+  }
 }

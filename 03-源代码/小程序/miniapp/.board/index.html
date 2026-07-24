@@ -236,7 +236,74 @@
         <div class="section">
           <h3>&#128220; 历史时间线</h3>
           <div class="timeline">
-              <div class="tl-item done" data-diff="2026-07-23T10-23-00-TypeScript全面修复完成.diff">
+                                  <div class="tl-item done" data-diff="2026-07-23T16-30-44-Day-13-14-完成.diff">
+            <div class="tl-time">2026-07-24 00:30</div>
+            <div class="tl-title">Day 13-14 完成</div>
+            <div class="tl-desc">家庭日历开发+安全审查修复，Phase 1.5全部完成</div>
+            <div class="tl-file">src/services/calendarService.ts, src/pagesPet/family/calendar/index.tsx, src/services/chatService.ts, src/services/namingService.ts, src/services/aiProvider.ts, src/styles/_theme.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-30-44-Day-13-14-完成.diff', 'Day 13-14 完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-12-45-旧代码清理确认完成.diff">
+            <div class="tl-time">2026-07-24 00:12</div>
+            <div class="tl-title">旧代码清理确认完成</div>
+            <div class="tl-desc">全量勘探确认旧方向代码已在2026-07-21会话中清理完毕（engines/emergency/outreach/analysis/ritual/test、pages/mood/calendar/ritual/test/treehole/emergency、旧emotionStore/EmotionEngine/emotionScenes/moodHelper、旧memory-body adapters 5个+core 11个等均已删除）。当前emotion相关文件均为宠物v2.0新代码。构建验证通过（25.15s，0错误）。更新progress.md和state.md。</div>
+            <div class="tl-file">.trae/memory/progress.md, .trae/memory/state.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-12-45-旧代码清理确认完成.diff', '旧代码清理确认完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T16-12-24-旧代码清理确认完成.diff">
+            <div class="tl-time">2026-07-24 00:12</div>
+            <div class="tl-title">旧代码清理确认完成</div>
+            <div class="tl-desc">全量勘探确认旧方向代码已在2026-07-21会话中清理完毕（engines/emergency/outreach/analysis/ritual/test、pages/mood/calendar/ritual/test/treehole/emergency、旧emotionStore/EmotionEngine/emotionScenes/moodHelper、旧memory-body adapters 5个+core 11个等均已删除）。当前emotion相关文件均为宠物v2.0新代码。构建验证通过（25.15s，0错误）。更新progress.md和state.md。</div>
+            <div class="tl-file">.trae/memory/progress.md, .trae/memory/state.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T16-12-24-旧代码清理确认完成.diff', '旧代码清理确认完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item" data-diff="2026-07-23-16-04-27-state-sync.diff">
+      <div class="tl-dot blue"></div>
+      <div class="tl-content">
+        <div class="tl-title">📊 状态同步: 2026/07/24 00:04</div>
+        <div class="tl-desc"># 星寰海小程序 - 项目状态  ## 当前阶段: Phase 1.5 — 宠物 v2.0 AI深度融合（设计完成，待编码）  ### 最后更新: 2026-07-23...</div>
+        <div class="tl-files">来源: .trae/memory/state.md</div>
+        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23-16-04-27-state-sync.diff', '状态同步')">🔍 查看改动</span></div>
+      </div>
+    </div>
+    <div class="tl-item" data-diff="2026-07-23-16-04-27-progress-sync.diff">
+      <div class="tl-dot green"></div>
+      <div class="tl-content">
+        <div class="tl-title">📈 进度更新: 2026/07/24 00:04</div>
+        <div class="tl-desc">3. **情绪底层隐形化**: PRD要求情绪能力隐形化融入场景，但当前EmergencyEngine仍为独立入口</div>
+        <div class="tl-files">来源: .trae/memory/progress.md</div>
+        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23-16-04-27-progress-sync.diff', '进度更新')">🔍 查看改动</span></div>
+      </div>
+    </div>
+                                                      <div class="tl-item done" data-diff="2026-07-23T14-28-23-修正PRD对齐---恢复3Tab结构.diff">
+            <div class="tl-time">2026-07-23 22:28</div>
+            <div class="tl-title">修正PRD对齐 - 恢复3Tab结构</div>
+            <div class="tl-desc">回退错误的4Tab布局，恢复PRD定义的3Tab(首页/宠物/我的)。根因：原型图(index.html)是互动演示原型，PRD才是功能架构依据。PRD 18.2节定义首页为Dashboard(打卡入口+快捷功能网格)，AI对话是嵌入在功能交互中的" 层\而非独立Tab。将新创建的chat/timeline/family页面从主包移到pagesPet分包，作为功能子页面使用。 src/app.config.ts</div>
+            <div class="tl-file">详见 diff 文件</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T14-28-23-修正PRD对齐---恢复3Tab结构.diff', '修正PRD对齐 - 恢复3Tab结构')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T14-19-57-按原型图重构前端---4Tab改版.diff">
+            <div class="tl-time">2026-07-23 22:19</div>
+            <div class="tl-title">按原型图重构前端 - 4Tab改版</div>
+            <div class="tl-desc">按原型图(index.html)全面重构前端：1) TabBar从3Tab(首页/宠物/我的)改为4Tab(聊天/时光/家庭/我的)；2) 新建pages/chat聊天页(深色主题+5步打卡/食物查询/症状初筛/AI取名交互)；3) 新建pages/timeline时光页(宠物回忆时间线+里程碑标记)；4) 新建pages/family家庭页(AI周报+宠物横滑卡片+快捷入口)；5) 改造pages/mine新增宠物Chips横滑区；6) 更新app.config.ts TabBar配置及pages列表。</div>
+            <div class="tl-file">src/pages/chat/index.tsx, src/pages/chat/index.scss, src/pages/timeline/index.tsx, src/pages/timeline/index.scss, src/pages/family/index.tsx, src/pages/family/index.scss, src/pages/mine/index.tsx, src/pages/mine/index.scss, src/app.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T14-19-57-按原型图重构前端---4Tab改版.diff', '按原型图重构前端 - 4Tab改版')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T13-52-18-修复-React-error--321.diff">
+            <div class="tl-time">2026-07-23 21:52</div>
+            <div class="tl-title">修复 React error #321</div>
+            <div class="tl-desc">React error #321 根因：React 17.0.2 与 @tarojs/react 依赖的 react-reconciler 0.27.0(React 18) 版本不匹配，导致 useContext 等 hooks 在函数组件中无法正常调用。修复：升级 react 17→18、react-dom 17→18、@types/react 17→18、@testing-library/react 12→14，确保与 Taro reconciler 版本一致。构建验证通过，app.tsx 输出为纯函数组件。</div>
+            <div class="tl-file">src/app.tsx, package.json</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T13-52-18-修复-React-error--321.diff', '修复 React error #321')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T13-44-07-修复-Super-expression-错误.diff">
+            <div class="tl-time">2026-07-23 21:44</div>
+            <div class="tl-title">修复 Super expression 错误</div>
+            <div class="tl-desc">修复微信小程序报错 Super expression must either be null or a function。根因：app.tsx 缺少 import React from 'react'，导致 Taro webpack 构建时错误地将 React.Component 引用解析为 @tarojs/taro（模块2954），而非真正的 React 模块（模块7294）。修复：在 app.tsx 中添加 import React from 'react'，确保 webpack 正确解析 React 依赖链，构建后 app 组件不再以 class extends 模式输出，转为函数式组件。</div>
+            <div class="tl-file">src/app.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-23T13-44-07-修复-Super-expression-错误.diff', '修复 Super expression 错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-23T10-23-00-TypeScript全面修复完成.diff">
             <div class="tl-time">2026-07-23 18:23</div>
             <div class="tl-title">TypeScript全面修复完成</div>
             <div class="tl-desc">修复60+个TS错误，覆盖hooks层/store层/service层/页面层/测试文件，tsc零错误+构建成功</div>

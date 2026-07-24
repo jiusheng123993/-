@@ -1,1 +1,167 @@
-"use strict";(wx["webpackJsonp"]=wx["webpackJsonp"]||[]).push([[8342],{9646:function(n,e,a){var o=a(2180),i=a(9439),t=a(7294),c=a(1515),s=a(2954),r=a.n(s),g=a(8537),d=a(5893),l=[{key:"checkin",icon:"\ud83d\udccb",title:"3\u79d2\u5065\u5eb7\u6253\u5361",description:"\u6bcf\u59293\u79d2\u8bb0\u5f55\u4fbf\u4fbf\u3001\u98df\u6b32\u3001\u7cbe\u795e\u3001\u8fd0\u52a8\u3001\u4f53\u91cd\uff0cAI\u5373\u65f6\u53cd\u9988\u5065\u5eb7\u72b6\u6001"},{key:"food",icon:"\ud83c\udf56",title:"\u98df\u7269\u5b89\u5168\u67e5\u8be2",description:"\u8f93\u5165\u98df\u7269\u540d\u79f0\uff0c\u79d2\u67e5\u80fd\u4e0d\u80fd\u5403\u3002\u652f\u6301\u54c1\u79cd\u7981\u5fcc\u8bc6\u522b\uff0c\u4fdd\u62a4\u6bdb\u5b69\u5b50\u8fdc\u79bb\u5371\u9669"},{key:"symptom",icon:"\ud83e\ude7a",title:"AI\u75c7\u72b6\u521d\u7b5b",description:"4\u6b65\u63cf\u8ff0\u75c7\u72b6\uff0cAI\u8bc4\u4f30\u7d27\u6025\u7a0b\u5ea6\u3002\u7ea2\u8272\u9884\u8b66\u7acb\u5373\u5c31\u533b\uff0c\u5b88\u62a4\u6bcf\u4e00\u523b"}];function p(){var n=(0,t.useState)(0),e=(0,i.Z)(n,2),a=e[0],o=e[1],s=(0,g.z)(),p=s.trackPageView,_=s.trackEvent;(0,t.useEffect)(function(){p("onboarding")},[p]);var b=l[a];(0,t.useEffect)(function(){_("onboarding_step_view",{step:a+1,stepKey:b.key})},[a,b.key,_]);var x=function(){a<l.length-1&&o(a+1)},u=function(){_("onboarding_complete"),r().setStorageSync("onboarding_completed","true"),r().redirectTo({url:"/pagesPet/add/index"})},m=function(){_("onboarding_skip",{step:a+1}),r().setStorageSync("onboarding_completed","true"),r().switchTab({url:"/pages/index/index"})};return(0,d.jsxs)(c.G7,{className:"onboarding-page",children:[(0,d.jsx)(c.G7,{className:"onboarding-page__skip",onClick:m,children:(0,d.jsx)(c.xv,{className:"onboarding-page__skip-text",children:"\u8df3\u8fc7"})}),(0,d.jsxs)(c.G7,{className:"onboarding-page__content",children:[(0,d.jsx)(c.G7,{className:"onboarding-page__icon",children:(0,d.jsx)(c.xv,{className:"onboarding-page__icon-emoji",children:b.icon})}),(0,d.jsx)(c.xv,{className:"onboarding-page__title",children:b.title}),(0,d.jsx)(c.xv,{className:"onboarding-page__description",children:b.description})]}),(0,d.jsx)(c.G7,{className:"onboarding-page__dots",children:l.map(function(n,e){return(0,d.jsx)(c.G7,{className:"onboarding-page__dot ".concat(e===a?"onboarding-page__dot--active":"")},n.key)})}),(0,d.jsx)(c.G7,{className:"onboarding-page__actions",children:a<l.length-1?(0,d.jsx)(c.G7,{className:"onboarding-page__btn onboarding-page__btn--next",onClick:x,children:(0,d.jsx)(c.xv,{className:"onboarding-page__btn-text",children:"\u4e0b\u4e00\u6b65"})}):(0,d.jsx)(c.G7,{className:"onboarding-page__btn onboarding-page__btn--start",onClick:u,children:(0,d.jsx)(c.xv,{className:"onboarding-page__btn-text",children:"\u6dfb\u52a0\u6211\u7684\u5ba0\u7269"})})})]})}var _={navigationBarTitleText:"\u6b22\u8fce\u4f7f\u7528\u661f\u5bf0\u6d77",navigationBarBackgroundColor:"#FFF8F0",navigationBarTextStyle:"black",navigationStyle:"custom"};Page((0,o.createPageConfig)(p,"pagesUser/onboarding/index",{root:{cn:[]}},_||{}))}},function(n){var e=function(e){return n(n.s=e)};n.O(0,[2107,1216,8592],function(){return e(9646)});n.O()}]);
+"use strict";require("../sub-common/6445d8bdf2172a6fd6abee9a9e2cae24.js");require("../sub-common/a80d2ee33a59c94051f538ac359a531d.js");
+(wx["webpackJsonp"] = wx["webpackJsonp"] || []).push([["pagesUser/onboarding/index"],{
+
+/***/ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesUser/onboarding/index!./src/pagesUser/onboarding/index.tsx":
+/*!**********************************************************************************************************************************!*\
+  !*** ./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesUser/onboarding/index!./src/pagesUser/onboarding/index.tsx ***!
+  \**********************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ OnboardingPage; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _tarojs_components__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @tarojs/components */ "./node_modules/@tarojs/plugin-platform-weapp/dist/components-react.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../hooks/useAnalytics */ "./src/hooks/useAnalytics.ts");
+/* harmony import */ var _hooks_useThemeClass__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../hooks/useThemeClass */ "./src/hooks/useThemeClass.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/cjs/react-jsx-runtime.production.min.js");
+
+
+
+
+
+
+
+
+var SLIDES = [{
+  key: 'checkin',
+  icon: '📋',
+  title: '3秒健康打卡',
+  description: '每天3秒记录便便、食欲、精神、运动、体重，AI即时反馈健康状态'
+}, {
+  key: 'food',
+  icon: '🍖',
+  title: '食物安全查询',
+  description: '输入食物名称，秒查能不能吃。支持品种禁忌识别，保护毛孩子远离危险'
+}, {
+  key: 'symptom',
+  icon: '🩺',
+  title: 'AI症状初筛',
+  description: '4步描述症状，AI评估紧急程度。红色预警立即就医，守护每一刻'
+}];
+function OnboardingPage() {
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0),
+    _useState2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_5__["default"])(_useState, 2),
+    currentSlide = _useState2[0],
+    setCurrentSlide = _useState2[1];
+  var _useAnalytics = (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_2__.useAnalytics)(),
+    trackPageView = _useAnalytics.trackPageView,
+    trackEvent = _useAnalytics.trackEvent;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    trackPageView('onboarding');
+  }, [trackPageView]);
+  var themeClass = (0,_hooks_useThemeClass__WEBPACK_IMPORTED_MODULE_3__.useThemeClass)();
+  var slide = SLIDES[currentSlide];
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    trackEvent('onboarding_step_view', {
+      step: currentSlide + 1,
+      stepKey: slide.key
+    });
+  }, [currentSlide, slide.key, trackEvent]);
+  var handleNext = function handleNext() {
+    if (currentSlide < SLIDES.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    }
+  };
+  var handleStart = function handleStart() {
+    trackEvent('onboarding_complete');
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().setStorageSync('onboarding_completed', 'true');
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().redirectTo({
+      url: '/pagesPet/add/index'
+    });
+  };
+  var handleSkip = function handleSkip() {
+    trackEvent('onboarding_skip', {
+      step: currentSlide + 1
+    });
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().setStorageSync('onboarding_completed', 'true');
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().switchTab({
+      url: '/pages/index/index'
+    });
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+    className: 'onboarding-page ' + themeClass,
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+      className: "onboarding-page__skip",
+      onClick: handleSkip,
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.Text, {
+        className: "onboarding-page__skip-text",
+        children: "\u8DF3\u8FC7"
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+      className: "onboarding-page__content",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+        className: "onboarding-page__icon",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.Text, {
+          className: "onboarding-page__icon-emoji",
+          children: slide.icon
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.Text, {
+        className: "onboarding-page__title",
+        children: slide.title
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.Text, {
+        className: "onboarding-page__description",
+        children: slide.description
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+      className: "onboarding-page__dots",
+      children: SLIDES.map(function (s, i) {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+          className: "onboarding-page__dot ".concat(i === currentSlide ? 'onboarding-page__dot--active' : '')
+        }, s.key);
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+      className: "onboarding-page__actions",
+      children: currentSlide < SLIDES.length - 1 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+        className: "onboarding-page__btn onboarding-page__btn--next",
+        onClick: handleNext,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.Text, {
+          className: "onboarding-page__btn-text",
+          children: "\u4E0B\u4E00\u6B65"
+        })
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.View, {
+        className: "onboarding-page__btn onboarding-page__btn--start",
+        onClick: handleStart,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_6__.Text, {
+          className: "onboarding-page__btn-text",
+          children: "\u6DFB\u52A0\u6211\u7684\u5BA0\u7269"
+        })
+      })
+    })]
+  });
+}
+
+/***/ }),
+
+/***/ "./src/pagesUser/onboarding/index.tsx":
+/*!********************************************!*\
+  !*** ./src/pagesUser/onboarding/index.tsx ***!
+  \********************************************/
+/***/ (function(__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) {
+
+/* harmony import */ var _tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/runtime */ "./node_modules/@tarojs/runtime/dist/runtime.esm.js");
+/* harmony import */ var _node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesUser_onboarding_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !!../../../node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesUser/onboarding/index!./index.tsx */ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesUser/onboarding/index!./src/pagesUser/onboarding/index.tsx");
+
+
+var config = {"navigationBarTitleText":"欢迎使用星寰海","navigationStyle":"custom"};
+
+
+var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig)(_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesUser_onboarding_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"], 'pagesUser/onboarding/index', {root:{cn:[]}}, config || {}))
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesUser_onboarding_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ })
+
+},
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
+/******/ __webpack_require__.O(0, ["sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesUser/onboarding/index.tsx"); });
+/******/ var __webpack_exports__ = __webpack_require__.O();
+/******/ }
+]);
+//# sourceMappingURL=index.js.map

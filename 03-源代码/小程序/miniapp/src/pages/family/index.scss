@@ -1,0 +1,884 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 家庭页 — 温馨宠物卡片 + 暖色周报 + 丰富动效
+// ============================================
+
+.family-page {
+  min-height: 100vh;
+  background: $gradient-page;
+  animation: pageEnter 0.4s ease-out;
+}
+
+// ===== 头部 =====
+.family-header {
+  padding: 32rpx 32rpx 16rpx;
+}
+
+.family-header-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  background: $gradient-gold;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+
+.family-header-sub {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+  margin-top: 8rpx;
+  display: block;
+}
+
+.family-header-count {
+  color: $color-primary;
+  font-weight: 600;
+}
+
+// ===== 周报卡片 =====
+.family-report {
+  margin: 0 32rpx 28rpx;
+}
+
+.family-report-card {
+  position: relative;
+  border-radius: $radius-lg;
+  background: $gradient-card;
+  overflow: hidden;
+  border: 1rpx solid $color-border;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3rpx;
+    background: linear-gradient(90deg, transparent, $color-primary, $color-primary-light, $color-primary, transparent);
+  }
+}
+
+.family-report-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  height: 3rpx;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba($color-primary-light, 0.8),
+    transparent
+  );
+  animation: shimmerLine 2.5s ease-in-out infinite;
+  z-index: 1;
+}
+
+.family-report-inner {
+  padding: 28rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.family-report-header {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-bottom: 20rpx;
+}
+
+.family-report-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  background: $color-primary-bg;
+  border: 1px solid $color-border;
+}
+
+.family-report-badge-text {
+  font-size: 22rpx;
+  color: $color-primary;
+  font-weight: 600;
+}
+
+.family-report-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.family-report-subtitle {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-left: auto;
+}
+
+.family-report-mood {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 16rpx;
+
+  &--excellent {
+    background: rgba($color-sage, 0.12);
+  }
+
+  &--good {
+    background: $color-primary-bg;
+  }
+
+  &--fair {
+    background: rgba(#f59e0b, 0.1);
+  }
+
+  &--concerning {
+    background: $color-danger-light;
+  }
+}
+
+.family-report-mood-emoji {
+  font-size: 24rpx;
+}
+
+.family-report-mood-text {
+  font-size: 22rpx;
+  font-weight: 600;
+
+  .family-report-mood--excellent & { color: $color-sage; }
+  .family-report-mood--good & { color: $color-primary; }
+  .family-report-mood--fair & { color: #92400e; }
+  .family-report-mood--concerning & { color: $color-danger; }
+}
+
+.family-report-summary {
+  margin-bottom: 20rpx;
+  padding: 18rpx;
+  border-radius: $radius-sm;
+  background: rgba(#f0f7ff, 0.5);
+}
+
+.family-report-summary-text {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  line-height: 1.7;
+  display: block;
+}
+
+.family-report-block {
+  margin-bottom: 16rpx;
+}
+
+.family-report-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+}
+
+.family-report-block-icon {
+  font-size: 24rpx;
+}
+
+.family-report-block-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.family-report-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  padding: 4rpx 0;
+}
+
+.family-report-bullet-dot {
+  font-size: 20rpx;
+  color: $color-sage;
+  flex-shrink: 0;
+
+  &--warn {
+    color: $color-danger;
+  }
+}
+
+.family-report-bullet-text {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.family-report-divider {
+  height: 1rpx;
+  background: $color-border;
+  margin: 18rpx 0;
+}
+
+.family-report-items {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.family-report-item {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 16rpx 20rpx;
+  border-radius: $radius-sm;
+  background: $color-primary-bg;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &:active {
+    background: $color-primary-bg;
+  }
+}
+
+.family-report-icon {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: $radius-full;
+  @include flex-center;
+  font-size: 28rpx;
+  flex-shrink: 0;
+
+  &--excellent {
+    background: rgba($color-sage, 0.15);
+    box-shadow: 0 0 12rpx rgba($color-sage, 0.2);
+  }
+
+  &--good {
+    background: $color-primary-bg;
+    box-shadow: 0 0 12rpx rgba($color-primary, 0.2);
+  }
+
+  &--fair {
+    background: rgba($color-primary, 0.06);
+    box-shadow: 0 0 12rpx rgba(#f59e0b, 0.15);
+  }
+
+  &--concerning {
+    background: $color-danger-light;
+    box-shadow: 0 0 12rpx rgba($color-danger, 0.2);
+  }
+}
+
+.family-report-text {
+  flex: 1;
+}
+
+.family-report-item-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  display: block;
+}
+
+.family-report-item-desc {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.family-report-warn {
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
+  background: $color-danger-light;
+}
+
+.family-report-warn-text {
+  font-size: 20rpx;
+  color: $color-danger;
+  font-weight: 600;
+}
+
+.family-report-badge-sm {
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  &--excellent {
+    background: rgba($color-sage, 0.12);
+    color: $color-sage;
+  }
+
+  &--good {
+    background: $color-primary-bg;
+    color: $color-primary;
+  }
+
+  &--fair {
+    background: rgba($color-primary, 0.08);
+    color: #92400e;
+  }
+
+  &--concerning {
+    background: $color-danger-light;
+    color: $color-danger;
+    animation: breathingScore 2s ease-in-out infinite;
+  }
+}
+
+// ===== 宠物区域 =====
+.family-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx 16rpx;
+}
+
+.family-section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.family-section-edit {
+  font-size: 24rpx;
+  color: $color-primary;
+  @include press-feedback;
+}
+
+.family-pets-scroll {
+  padding-left: 32rpx;
+  white-space: nowrap;
+}
+
+.family-pets-list {
+  display: inline-flex;
+  gap: 20rpx;
+  padding-right: 32rpx;
+}
+
+// ===== 宠物卡片 =====
+.family-pet-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 220rpx;
+  padding: 28rpx 20rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  white-space: normal;
+  scroll-snap-align: start;
+  transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+}
+
+// 宠物卡片交错入场
+.family-pet-card:nth-child(1) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0s; }
+.family-pet-card:nth-child(2) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.08s; }
+.family-pet-card:nth-child(3) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.16s; }
+.family-pet-card:nth-child(4) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.24s; }
+
+.family-pet-emoji-wrap {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-full;
+  @include flex-center;
+  margin-bottom: 14rpx;
+
+  &--dog {
+    background: linear-gradient(135deg, rgba($color-primary, 0.2), rgba($color-primary, 0.1));
+    border: 2rpx solid $color-border;
+    box-shadow: 0 0 16rpx rgba($color-primary, 0.2);
+  }
+
+  &--cat {
+    background: linear-gradient(135deg, rgba($color-teal, 0.2), rgba($color-teal, 0.1));
+    border: 2rpx solid rgba($color-teal, 0.3);
+    box-shadow: 0 0 16rpx rgba($color-teal, 0.2);
+  }
+}
+
+.family-pet-emoji {
+  font-size: 48rpx;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.family-pet-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.family-pet-breed {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+}
+
+.family-pet-age {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+}
+
+.family-pet-score {
+  margin-top: 14rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  background: rgba($color-sage, 0.1);
+
+  &--high {
+    background: rgba($color-sage, 0.12);
+  }
+
+  &--mid {
+    background: $color-primary-bg;
+  }
+
+  &--low {
+    background: $color-danger-light;
+    animation: breathingScore 2s ease-in-out infinite;
+  }
+}
+
+.family-pet-score-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: $color-sage;
+
+  &--high {
+    color: $color-sage;
+  }
+
+  &--mid {
+    color: $color-primary;
+  }
+
+  &--low {
+    color: $color-danger;
+  }
+}
+
+// ===== 快捷入口 =====
+.family-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  padding: 0 32rpx 32rpx;
+}
+
+.family-quick-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 28rpx 16rpx;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
+  @include press-feedback;
+}
+
+.family-quick-icon {
+  font-size: 44rpx;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.family-quick-label {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+// ===== 加载状态 =====
+.family-loading {
+  @include flex-center;
+  min-height: 100vh;
+  font-size: 28rpx;
+  color: $color-text-secondary;
+}
+
+// ===== 空状态 =====
+.family-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 32rpx;
+  margin: 0 32rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  animation: fadeInScale 0.4s ease-out;
+}
+
+.family-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+.family-empty-text {
+  font-size: 28rpx;
+  color: $color-text-secondary;
+  margin-bottom: 28rpx;
+}
+
+.family-empty-btn {
+  padding: 16rpx 48rpx;
+  border-radius: $radius-full;
+  background: $gradient-gold;
+  @include press-feedback;
+
+  Text {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: $color-text-inverse;
+  }
+}
+
+.family-pet-card--add {
+  border-style: dashed;
+  border-color: $color-text-tertiary;
+  opacity: 0.7;
+
+  &:active {
+    opacity: 0.5;
+  }
+}
+
+.family-pet-emoji-wrap--add {
+  background: rgba(var(--primary-light-rgb, 232, 200, 216), 0.12);
+  border: 2rpx dashed $color-text-tertiary;
+}
+
+.family-bottom-safe {
+  height: 60rpx;
+}
+
+// ===== 健康排行 =====
+.family-ranking-section {
+  margin: 0 0 28rpx;
+}
+
+.family-ranking-list {
+  padding: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.family-ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 18rpx 20rpx;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  animation: fadeInUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &:nth-child(1) { animation-delay: 0s; }
+  &:nth-child(2) { animation-delay: 0.06s; }
+  &:nth-child(3) { animation-delay: 0.12s; }
+  &:nth-child(4) { animation-delay: 0.18s; }
+  &:nth-child(5) { animation-delay: 0.24s; }
+
+  &:first-child {
+    border-color: rgba($color-primary, 0.3);
+    background: linear-gradient(135deg, rgba($color-primary, 0.06), $color-bg-card);
+  }
+}
+
+.family-ranking-medal {
+  width: 48rpx;
+  height: 48rpx;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.family-ranking-medal-text {
+  font-size: 32rpx;
+}
+
+.family-ranking-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+  border: 2rpx solid $color-border;
+}
+
+.family-ranking-info {
+  flex: 1;
+}
+
+.family-ranking-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.family-ranking-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.family-ranking-role-tag {
+  padding: 3rpx 10rpx;
+  border-radius: 10rpx;
+  background: linear-gradient(135deg, rgba($color-primary, 0.15), rgba($color-primary-light, 0.1));
+  border: 1px solid rgba($color-primary, 0.2);
+}
+
+.family-ranking-role-text {
+  font-size: 20rpx;
+  color: $color-primary;
+  font-weight: 500;
+}
+
+.family-ranking-breed {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.family-ranking-score {
+  padding: 6rpx 18rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+
+  &--high {
+    background: rgba($color-sage, 0.12);
+  }
+
+  &--mid {
+    background: $color-primary-bg;
+  }
+
+  &--low {
+    background: $color-danger-light;
+  }
+}
+
+.family-ranking-score-text {
+  font-size: 24rpx;
+  font-weight: 700;
+
+  .family-ranking-score--high & {
+    color: $color-sage;
+  }
+
+  .family-ranking-score--mid & {
+    color: $color-primary;
+  }
+
+  .family-ranking-score--low & {
+    color: $color-danger;
+  }
+}
+
+// ===== 宠物卡片角色标签 =====
+.family-pet-role-tag {
+  padding: 3rpx 12rpx;
+  border-radius: 10rpx;
+  background: linear-gradient(135deg, rgba($color-primary, 0.12), rgba($color-primary-light, 0.08));
+  border: 1px solid rgba($color-primary, 0.18);
+  margin-top: 6rpx;
+}
+
+.family-pet-role-text {
+  font-size: 20rpx;
+  color: $color-primary;
+  font-weight: 500;
+}
+
+// ===== 家庭动态墙 =====
+.family-moments-section {
+  margin: 0 0 28rpx;
+}
+
+.family-moments-list {
+  padding: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.family-moment-card {
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  padding: 22rpx 24rpx;
+  animation: fadeInUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.family-moment-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.family-moment-emoji {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: $radius-full;
+  background: $color-primary-bg;
+  @include flex-center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+  border: 2rpx solid $color-border;
+}
+
+.family-moment-meta {
+  flex: 1;
+}
+
+.family-moment-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.family-moment-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.family-moment-type-badge {
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  background: $color-primary-bg;
+  border: 1px solid rgba($color-primary, 0.2);
+}
+
+.family-moment-type-text {
+  font-size: 20rpx;
+  color: $color-primary;
+  font-weight: 500;
+}
+
+.family-moment-time {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.family-moment-body {
+  margin-left: 76rpx;
+}
+
+.family-moment-text {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  line-height: 1.6;
+  display: block;
+}
+
+.family-moment-pet-name {
+  font-weight: 700;
+  color: $color-primary;
+}
+
+.family-moment-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.family-moment-checkin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+
+.family-moment-tag {
+  padding: 6rpx 14rpx;
+  border-radius: 14rpx;
+  background: $color-primary-bg;
+  border: 1px solid rgba($color-primary, 0.15);
+
+  &--good {
+    background: rgba($color-sage, 0.12);
+    border-color: rgba($color-sage, 0.2);
+    .family-moment-tag-text {
+      color: $color-sage;
+    }
+  }
+
+  &--mid {
+    background: $color-primary-bg;
+    border-color: rgba($color-primary, 0.2);
+    .family-moment-tag-text {
+      color: $color-primary;
+    }
+  }
+
+  &--low {
+    background: $color-danger-light;
+    border-color: rgba($color-danger, 0.2);
+    .family-moment-tag-text {
+      color: $color-danger;
+    }
+  }
+}
+
+.family-moment-tag-text {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
+.family-moment-photos {
+  display: flex;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+
+.family-moment-photo {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: $radius-sm;
+  background: $color-primary-bg;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,59 +1,160 @@
-$color-primary: #B03A2E;
-$color-primary-light: rgba(176, 58, 46, 0.1);
-$color-primary-dark: #8C2E22;
+// ============================================
+// 星寰海 · 全局样式
+// 唯美主题系统，支持4套主题切换
+// ============================================
+@import './_theme';
+@import './_animations';
 
-$color-success: #66bb6a;
-$color-warning: #ffa726;
-$color-danger: #ef5350;
+// 应用根节点（占满全屏，背景跟随主题）
+.app-root {
+  min-height: 100vh;
+  background: $gradient-page;
+}
 
-$color-text-primary: #2C2C2C;
-$color-text-secondary: #4A4A4A;
-$color-text-tertiary: #8C8C8C;
-$color-text-inverse: #F8F4E9;
+// 页面基础样式（page 背景透明，由 .app-root 接管背景，确保主题切换时背景跟随变化）
+page {
+  background: transparent;
+  color: $color-text-primary;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: $font-size-md;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-$color-bg-page: #F8F4E9;
-$color-bg-card: rgba(255, 255, 255, 0.6);
-$color-bg-overlay: rgba(0, 0, 0, 0.5);
-$color-bg-secondary: #F5F0E3;
-$color-bg-tertiary: #EDE7D9;
-$color-bg-primary: #F8F4E9;
+// 通用按钮样式
+.btn-primary {
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  color: $color-text-inverse;
+  border: none;
+  padding: 16rpx 36rpx;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.25);
+  @include press-feedback;
+}
 
-$color-border: rgba(140, 107, 79, 0.12);
-$color-divider: rgba(140, 107, 79, 0.08);
+.btn-outline {
+  background: transparent;
+  border: 1px solid $color-primary;
+  color: $color-primary;
+  padding: 16rpx 36rpx;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  @include press-feedback;
+}
 
-$spacing-xs: 8px;
-$spacing-sm: 12px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
-$spacing-xxl: 48px;
+// 通用卡片
+.card {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
 
-$font-size-xs: 22px;
-$font-size-sm: 26px;
-$font-size-md: 28px;
-$font-size-lg: 32px;
-$font-size-xl: 36px;
-$font-size-xxl: 48px;
+// 温馨卡片（带呼吸光晕）
+.card-warm {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  @include breathe-glow;
+}
 
-$font-weight-normal: 400;
-$font-weight-medium: 500;
-$font-weight-bold: 700;
+// 滚动条
+::-webkit-scrollbar {
+  width: 3px;
+}
 
-$radius-sm: 8px;
-$radius-md: 16px;
-$radius-lg: 24px;
-$radius-full: 999px;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-$border-radius-sm: 8px;
-$border-radius-md: 16px;
-$border-radius-lg: 24px;
-$border-radius-full: 999px;
+::-webkit-scrollbar-thumb {
+  background: rgba($color-primary, 0.3);
+  border-radius: 3px;
+}
 
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+// 安全区
+.safe-bottom {
+  height: constant(safe-area-inset-bottom);
+  height: env(safe-area-inset-bottom);
+  min-height: 24rpx;
+}
 
-$transition-fast: 0.2s ease;
-$transition-normal: 0.3s ease;
-$transition-slow: 0.5s ease;
-$transition-base: 0.3s ease;
+// ============================================
+// 温馨装饰元素
+// ============================================
+
+// 爪印浮动粒子容器
+.paw-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+// 单个爪印粒子
+.paw-particle {
+  position: absolute;
+  font-size: 28rpx;
+  opacity: 0;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+
+  &--1 { animation: pawFloat1 4s ease-out infinite; animation-delay: 0s; }
+  &--2 { animation: pawFloat2 5s ease-out infinite; animation-delay: 1.5s; }
+  &--3 { animation: pawFloat3 4.5s ease-out infinite; animation-delay: 3s; }
+  &--4 { animation: pawFloat1 5.5s ease-out infinite; animation-delay: 0.5s; }
+  &--5 { animation: pawFloat2 4.2s ease-out infinite; animation-delay: 2.5s; }
+  &--6 { animation: pawFloat3 5.8s ease-out infinite; animation-delay: 4s; }
+}
+
+// 星星闪烁容器
+.star-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+// 单个星星
+.star-particle {
+  position: absolute;
+  font-size: 20rpx;
+  opacity: 0.3;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+
+  &--1 { animation: starTwinkle1 2.5s ease-in-out infinite; animation-delay: 0s; }
+  &--2 { animation: starTwinkle2 3s ease-in-out infinite; animation-delay: 0.8s; }
+  &--3 { animation: starTwinkle3 2.8s ease-in-out infinite; animation-delay: 1.6s; }
+  &--4 { animation: starTwinkle1 3.2s ease-in-out infinite; animation-delay: 0.4s; }
+  &--5 { animation: starTwinkle2 2.4s ease-in-out infinite; animation-delay: 1.2s; }
+  &--6 { animation: starTwinkle3 3.5s ease-in-out infinite; animation-delay: 2s; }
+  &--7 { animation: starTwinkle1 2.7s ease-in-out infinite; animation-delay: 0.2s; }
+  &--8 { animation: starTwinkle2 2.9s ease-in-out infinite; animation-delay: 1.5s; }
+}
+
+// 光粒子上升
+.light-particle {
+  position: absolute;
+  width: 4rpx;
+  height: 4rpx;
+  border-radius: 50%;
+  background: $color-primary-light;
+  animation: particleRise 3s ease-out infinite;
+
+  &--1 { animation-delay: 0s; left: 10%; }
+  &--2 { animation-delay: 1s; left: 25%; }
+  &--3 { animation-delay: 2s; left: 40%; }
+  &--4 { animation-delay: 0.5s; left: 55%; }
+  &--5 { animation-delay: 1.5s; left: 70%; }
+  &--6 { animation-delay: 2.5s; left: 85%; }
+}

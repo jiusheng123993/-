@@ -1,1 +1,561 @@
-"use strict";(wx["webpackJsonp"]=wx["webpackJsonp"]||[]).push([[9828],{5282:function(e,t,n){var r=n(2180),i=n(4930),a=n(2688),l=n(1413),o=n(7762),c=n(5861),s=n(9439),p=n(7294),x=n(1515),d=n(2954),u=n.n(d),f=n(2228),g=n(982),y=n(5893),m=[{date:20,petName:"\u9752\u6a58",title:"\u732b\u4e09\u8054\u7b2c2\u9488",type:"vaccine"},{date:25,petName:"\u5168\u5458",title:"\u4f53\u5916\u9a71\u866b\u65e5",type:"deworm"},{date:3,petName:"\u82b1\u82b1",title:"\u4ea7\u540e\u590d\u67e5",type:"checkup"}],h=["\u65e5","\u4e00","\u4e8c","\u4e09","\u56db","\u4e94","\u516d"];function v(){var e=new Date,t=(0,p.useState)(e.getFullYear()),n=(0,s.Z)(t,2),r=n[0],d=n[1],v=(0,p.useState)(e.getMonth()+1),b=(0,s.Z)(v,2),j=b[0],k=b[1],A=(0,p.useState)(null),w=(0,s.Z)(A,2),D=w[0],S=w[1],C=(0,p.useState)(m),Z=(0,s.Z)(C,2),z=Z[0],E=Z[1],G=(0,g.I)(),F=G.members;(0,p.useEffect)(function(){B()},[r,j]);for(var B=function(){var e=(0,c.Z)((0,a.Z)().m(function e(){var t,n,c,s,p,x;return(0,a.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:if(e.p=0,F&&0!==F.length){e.n=1;break}return E(m),e.a(2);case 1:t=[],n=(0,o.Z)(F),e.p=2,s=(0,a.Z)().m(function e(){var n,i;return(0,a.Z)().w(function(e){while(1)switch(e.n){case 0:if(n=c.value,!n.petId){e.n=2;break}return e.n=1,(0,f.eU)(n.petId,r,j);case 1:i=e.v,i&&i.length>0&&i.forEach(function(e){t.push((0,l.Z)((0,l.Z)({},e),{},{petName:n.petName||n.name||"\u5ba0\u7269"}))});case 2:return e.a(2)}},e)}),n.s();case 3:if((c=n.n()).done){e.n=5;break}return e.d((0,i.Z)(s()),4);case 4:e.n=3;break;case 5:e.n=7;break;case 6:e.p=6,x=e.v,n.e(x);case 7:return e.p=7,n.f(),e.f(7);case 8:t.length>0?(p=t.map(function(e){return{date:new Date(e.date||e.nextDate).getDate(),petName:e.petName||"\u5ba0\u7269",title:e.category||e.type,type:e.type||"vaccine"}}),E(p)):E(m),e.n=10;break;case 9:e.p=9,e.v,E(m);case 10:return e.a(2)}},e,null,[[2,6,7,8],[0,9]])}));return function(){return e.apply(this,arguments)}}(),T=new Date(r,j,0).getDate(),N=new Date(r,j-1,1).getDay(),I=e.getDate(),R=r===e.getFullYear()&&j===e.getMonth()+1,P=[],J=0;J<N;J++)P.push(null);for(var M=1;M<=T;M++)P.push(M);var O=D?z.filter(function(e){return e.date===D}):[],Y=function(){1===j?(k(12),d(r-1)):k(j-1),S(null)},H=function(){12===j?(k(1),d(r+1)):k(j+1),S(null)};return(0,y.jsxs)(x.G7,{style:{minHeight:"100vh",background:"#0F1724",padding:"20px",paddingTop:"60px"},children:[(0,y.jsx)(x.xv,{style:{color:"#F5D78C",fontSize:"22px",fontFamily:"serif",display:"block",textAlign:"center",marginBottom:"20px"},children:"\u5bb6\u5ead\u65e5\u5386"}),(0,y.jsxs)(x.G7,{style:{display:"flex",alignItems:"center",justifyContent:"center",marginBottom:"20px",gap:"20px"},children:[(0,y.jsx)(x.G7,{onClick:Y,style:{color:"#E8A838",fontSize:"20px",padding:"8px"},children:(0,y.jsx)(x.xv,{children:"\u25c0"})}),(0,y.jsxs)(x.xv,{style:{color:"#E8DFD5",fontSize:"18px",fontFamily:"serif"},children:[r,"\u5e74",j,"\u6708"]}),(0,y.jsx)(x.G7,{onClick:H,style:{color:"#E8A838",fontSize:"20px",padding:"8px"},children:(0,y.jsx)(x.xv,{children:"\u25b6"})})]}),(0,y.jsx)(x.G7,{style:{display:"grid",gridTemplateColumns:"repeat(7, 1fr)",marginBottom:"8px"},children:h.map(function(e){return(0,y.jsx)(x.xv,{style:{color:"#8899AA",fontSize:"12px",textAlign:"center",padding:"4px"},children:e},e)})}),(0,y.jsx)(x.G7,{style:{display:"grid",gridTemplateColumns:"repeat(7, 1fr)",gap:"4px",marginBottom:"20px"},children:P.map(function(e,t){var n=R&&e===I,r=null!==e&&z.some(function(t){return t.date===e}),i=e===D;return(0,y.jsxs)(x.G7,{onClick:function(){return e&&S(e)},style:{aspectRatio:"1",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",borderRadius:"10px",background:i?"rgba(232,168,56,0.2)":"transparent",border:n?"2px solid #E8A838":"1px solid transparent",color:e?"#E8DFD5":"transparent",fontSize:"14px",position:"relative"},children:[e&&(0,y.jsx)(x.xv,{children:e}),r&&(0,y.jsx)(x.G7,{style:{width:"5px",height:"5px",borderRadius:"50%",background:"#E8A838",marginTop:"2px"}})]},t)})}),(0,y.jsxs)(x.G7,{style:{marginTop:"8px"},children:[(0,y.jsx)(x.xv,{style:{color:"#8899AA",fontSize:"13px",marginBottom:"12px",display:"block"},children:D?"".concat(j,"\u6708").concat(D,"\u65e5 \xb7 \u4e8b\u4ef6"):"\u70b9\u51fb\u65e5\u671f\u67e5\u770b\u4e8b\u4ef6"}),O.map(function(e,t){return(0,y.jsxs)(x.G7,{style:{padding:"14px 16px",borderRadius:"12px",marginBottom:"8px",background:"#1A2332",border:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",gap:"12px",borderLeft:"vaccine"===e.type?"3px solid #E8A838":"deworm"===e.type?"3px solid #8CAD7E":"3px solid #5B9A9B"},children:[(0,y.jsx)(x.xv,{style:{fontSize:"20px"},children:"vaccine"===e.type?"\ud83d\udc89":"deworm"===e.type?"\ud83e\udeb1":"\ud83e\ude7a"}),(0,y.jsxs)(x.G7,{style:{flex:1},children:[(0,y.jsx)(x.xv,{style:{color:"#E8DFD5",fontSize:"14px",display:"block"},children:e.title}),(0,y.jsx)(x.xv,{style:{color:"#8899AA",fontSize:"11px",display:"block"},children:e.petName})]})]},t)}),D&&0===O.length&&(0,y.jsx)(x.xv,{style:{color:"#8899AA",fontSize:"13px",display:"block",textAlign:"center",padding:"20px"},children:"\u6682\u65e0\u4e8b\u4ef6"})]}),(0,y.jsx)(x.G7,{onClick:function(){return u().navigateTo({url:"/pagesPet/vaccine/index"})},style:{marginTop:"24px",padding:"14px 32px",borderRadius:"20px",background:"linear-gradient(135deg, #E8A838, #C88520)",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center"},children:(0,y.jsx)(x.xv,{style:{color:"#0F1724",fontSize:"15px",fontWeight:600},children:"\u67e5\u770b\u5168\u90e8\u63d0\u9192"})})]})}var b={navigationBarTitleText:"\u5bb6\u5ead\u65e5\u5386"};Page((0,r.createPageConfig)(v,"pagesPet/family/calendar/index",{root:{cn:[]}},b||{}))}},function(e){var t=function(t){return e(e.s=t)};e.O(0,[2107,1216,8592],function(){return t(5282)});e.O()}]);
+"use strict";require("../../sub-vendors.js");require("../../sub-common/ad46eb011750498141202c06d6a54fd7.js");require("../../sub-common/768a8bdc99340ebc9871b27d737f9bf1.js");require("../../sub-common/084a7625e5a94df19215dd3f71376275.js");require("../../sub-common/362017fe540ca8d425bcc5fff5d81d56.js");require("../../sub-common/a9a68db88e68e31a6990d19803c6390e.js");
+(wx["webpackJsonp"] = wx["webpackJsonp"] || []).push([["pagesPet/family/calendar/index"],{
+
+/***/ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/family/calendar/index!./src/pagesPet/family/calendar/index.tsx":
+/*!******************************************************************************************************************************************!*\
+  !*** ./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/family/calendar/index!./src/pagesPet/family/calendar/index.tsx ***!
+  \******************************************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ FamilyCalendar; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _tarojs_components__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @tarojs/components */ "./node_modules/@tarojs/plugin-platform-weapp/dist/components-react.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _services_calendarService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../services/calendarService */ "./src/services/calendarService.ts");
+/* harmony import */ var _stores_familyStore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../stores/familyStore */ "./src/stores/familyStore.ts");
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../logger */ "./src/logger/index.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/cjs/react-jsx-runtime.production.min.js");
+
+
+
+
+
+
+
+
+
+
+
+var WEEK_DAYS = ['日', '一', '二', '三', '四', '五', '六'];
+var EVENT_TYPE_CONFIG = {
+  vaccine: {
+    emoji: '💉',
+    color: '#E8A838',
+    label: '疫苗'
+  },
+  deworm: {
+    emoji: '🪱',
+    color: '#8CAD7E',
+    label: '驱虫'
+  },
+  checkin: {
+    emoji: '✅',
+    color: '#5B9A9B',
+    label: '打卡'
+  }
+};
+function FamilyCalendar() {
+  var today = new Date();
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(today.getFullYear()),
+    _useState2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_useState, 2),
+    year = _useState2[0],
+    setYear = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(today.getMonth() + 1),
+    _useState4 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_useState3, 2),
+    month = _useState4[0],
+    setMonth = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState6 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_useState5, 2),
+    selectedDay = _useState6[0],
+    setSelectedDay = _useState6[1];
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
+    _useState8 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_useState7, 2),
+    events = _useState8[0],
+    setEvents = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState0 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_useState9, 2),
+    loading = _useState0[0],
+    setLoading = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState10 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_useState1, 2),
+    error = _useState10[0],
+    setError = _useState10[1];
+  var _useFamilyStore = (0,_stores_familyStore__WEBPACK_IMPORTED_MODULE_3__.useFamilyStore)(),
+    members = _useFamilyStore.members,
+    fetchFamilies = _useFamilyStore.fetchFamilies;
+  var loadEvents = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_7__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().m(function _callee() {
+    var result, _t;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_8__["default"])().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          setLoading(true);
+          setError(null);
+          _context.p = 1;
+          _context.n = 2;
+          return (0,_services_calendarService__WEBPACK_IMPORTED_MODULE_2__.getFamilyCalendarEvents)(members, year, month);
+        case 2:
+          result = _context.v;
+          setEvents(result);
+          _context.n = 4;
+          break;
+        case 3:
+          _context.p = 3;
+          _t = _context.v;
+          _logger__WEBPACK_IMPORTED_MODULE_4__.logger.error('familyCalendar', '加载日历事件失败', _t);
+          setError('加载失败，请重试');
+        case 4:
+          _context.p = 4;
+          setLoading(false);
+          return _context.f(4);
+        case 5:
+          return _context.a(2);
+      }
+    }, _callee, null, [[1, 3, 4, 5]]);
+  })), [members, year, month]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    fetchFamilies();
+  }, []);
+  (0,_tarojs_taro__WEBPACK_IMPORTED_MODULE_1__.useDidShow)(function () {
+    loadEvents();
+  });
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    if (members.length > 0) {
+      loadEvents();
+    }
+  }, [year, month]);
+  var daysInMonth = new Date(year, month, 0).getDate();
+  var firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+  var todayDate = today.getDate();
+  var isCurrentMonth = year === today.getFullYear() && month === today.getMonth() + 1;
+  var days = [];
+  for (var i = 0; i < firstDayOfWeek; i++) days.push(null);
+  for (var d = 1; d <= daysInMonth; d++) days.push(d);
+  var selectedEvents = selectedDay ? (0,_services_calendarService__WEBPACK_IMPORTED_MODULE_2__.getEventsByDay)(events, selectedDay) : [];
+  var handlePrevMonth = function handlePrevMonth() {
+    if (month === 1) {
+      setMonth(12);
+      setYear(year - 1);
+    } else {
+      setMonth(month - 1);
+    }
+    setSelectedDay(null);
+  };
+  var handleNextMonth = function handleNextMonth() {
+    if (month === 12) {
+      setMonth(1);
+      setYear(year + 1);
+    } else {
+      setMonth(month + 1);
+    }
+    setSelectedDay(null);
+  };
+  var handleDayClick = function handleDayClick(d) {
+    if (d !== null) {
+      setSelectedDay(d === selectedDay ? null : d);
+    }
+  };
+  var handleRetry = function handleRetry() {
+    loadEvents();
+  };
+  if (error) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "calendar-page",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "calendar-error",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-error__text",
+          children: error
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+          className: "calendar-error__btn",
+          onClick: handleRetry,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+            children: "\u91CD\u8BD5"
+          })
+        })]
+      })
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+    className: "calendar-page",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "calendar-header",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "calendar-header__nav",
+        onClick: handlePrevMonth,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          children: "\u25C0"
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "calendar-header__title",
+        children: [year, "\u5E74", month, "\u6708"]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "calendar-header__nav",
+        onClick: handleNextMonth,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          children: "\u25B6"
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "calendar-weekdays",
+      children: WEEK_DAYS.map(function (w) {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-weekdays__item",
+          children: w
+        }, w);
+      })
+    }), loading && events.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "calendar-loading",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "calendar-loading__text",
+        children: "\u52A0\u8F7D\u4E2D..."
+      })
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "calendar-grid",
+      children: days.map(function (d, idx) {
+        var isToday = isCurrentMonth && d === todayDate;
+        var hasEvent = d !== null && (0,_services_calendarService__WEBPACK_IMPORTED_MODULE_2__.hasEventsOnDay)(events, d);
+        var isSelected = d === selectedDay;
+        if (d === null) {
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "calendar-grid__cell calendar-grid__cell--empty"
+          }, idx);
+        }
+        var dayEvents = (0,_services_calendarService__WEBPACK_IMPORTED_MODULE_2__.getEventsByDay)(events, d);
+        var hasEmergency = dayEvents.some(function (e) {
+          return e.riskLevel === 'emergency' || e.riskLevel === 'high';
+        });
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+          className: "calendar-grid__cell ".concat(isToday ? 'calendar-grid__cell--today' : '', " ").concat(isSelected ? 'calendar-grid__cell--selected' : ''),
+          onClick: function onClick() {
+            return handleDayClick(d);
+          },
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+            className: "calendar-grid__day",
+            children: d
+          }), hasEvent && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "calendar-grid__dot ".concat(hasEmergency ? 'calendar-grid__dot--danger' : '')
+          })]
+        }, idx);
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.ScrollView, {
+      className: "calendar-events",
+      scrollY: true,
+      children: selectedDay ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-events__date",
+          children: [month, "\u6708", selectedDay, "\u65E5 \xB7 \u4E8B\u4EF6"]
+        }), loading ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-events__loading",
+          children: "\u52A0\u8F7D\u4E2D..."
+        }) : selectedEvents.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-events__empty",
+          children: "\u6682\u65E0\u4E8B\u4EF6"
+        }) : selectedEvents.map(function (ev, idx) {
+          var config = EVENT_TYPE_CONFIG[ev.type];
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+            className: "calendar-events__item",
+            style: {
+              borderLeftColor: config.color
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+              className: "calendar-events__item-emoji",
+              children: config.emoji
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+              className: "calendar-events__item-body",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                className: "calendar-events__item-title",
+                children: ev.title
+              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+                className: "calendar-events__item-meta",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                  className: "calendar-events__item-pet",
+                  children: ev.petName
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+                  className: "calendar-events__item-type",
+                  style: {
+                    color: config.color
+                  },
+                  children: config.label
+                })]
+              })]
+            })]
+          }, idx);
+        })]
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+        className: "calendar-events__placeholder",
+        children: members.length === 0 ? '暂无家庭成员，请先添加宠物' : '点击日期查看事件'
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+      className: "calendar-footer",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "calendar-footer__btn",
+        onClick: function onClick() {
+          return _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().navigateTo({
+            url: '/pagesPet/vaccine/index'
+          });
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-footer__btn-text",
+          children: "\u75AB\u82D7\u7BA1\u7406"
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.View, {
+        className: "calendar-footer__btn",
+        onClick: function onClick() {
+          return _tarojs_taro__WEBPACK_IMPORTED_MODULE_1___default().navigateTo({
+            url: '/pagesPet/checkin/index'
+          });
+        },
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_9__.Text, {
+          className: "calendar-footer__btn-text",
+          children: "\u5065\u5EB7\u6253\u5361"
+        })
+      })]
+    })]
+  });
+}
+
+/***/ }),
+
+/***/ "./src/pagesPet/family/calendar/index.tsx":
+/*!************************************************!*\
+  !*** ./src/pagesPet/family/calendar/index.tsx ***!
+  \************************************************/
+/***/ (function(__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) {
+
+/* harmony import */ var _tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/runtime */ "./node_modules/@tarojs/runtime/dist/runtime.esm.js");
+/* harmony import */ var _node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_family_calendar_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !!../../../../node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/family/calendar/index!./index.tsx */ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/family/calendar/index!./src/pagesPet/family/calendar/index.tsx");
+
+
+var config = {"navigationBarTitleText":"家庭日历"};
+
+
+var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig)(_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_family_calendar_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"], 'pagesPet/family/calendar/index', {root:{cn:[]}}, config || {}))
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_family_calendar_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ }),
+
+/***/ "./src/services/calendarService.ts":
+/*!*****************************************!*\
+  !*** ./src/services/calendarService.ts ***!
+  \*****************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getEventsByDay": function() { return /* binding */ getEventsByDay; },
+/* harmony export */   "getFamilyCalendarEvents": function() { return /* binding */ getFamilyCalendarEvents; },
+/* harmony export */   "hasEventsOnDay": function() { return /* binding */ hasEventsOnDay; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js */ "./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var _vaccineService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vaccineService */ "./src/services/vaccineService.ts");
+/* harmony import */ var _checkinService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./checkinService */ "./src/services/checkinService.ts");
+/* harmony import */ var _utils_authGuard__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/authGuard */ "./src/utils/authGuard.ts");
+
+
+
+
+
+
+function getMonthDateRange(year, month) {
+  var m = String(month).padStart(2, '0');
+  var daysInMonth = new Date(year, month, 0).getDate();
+  return {
+    startDate: "".concat(year, "-").concat(m, "-01"),
+    endDate: "".concat(year, "-").concat(m, "-").concat(String(daysInMonth).padStart(2, '0'))
+  };
+}
+function getVaccineEventType(record) {
+  return record.type === 'deworm' ? 'deworm' : 'vaccine';
+}
+function getVaccineEventTitle(record) {
+  return record.category || record.type;
+}
+function getCheckinRiskEmoji(level) {
+  switch (level) {
+    case 'emergency':
+      return '⚠️ ';
+    case 'high':
+      return '🔔 ';
+    case 'medium':
+      return '💡 ';
+    default:
+      return '';
+  }
+}
+
+/**
+ * 获取指定月份所有家庭成员的日历事件
+ * 合并疫苗/驱虫记录和健康打卡记录
+ */
+function getFamilyCalendarEvents(_x, _x2, _x3) {
+  return _getFamilyCalendarEvents.apply(this, arguments);
+}
+
+/**
+ * 获取指定日期的所有事件
+ */
+function _getFamilyCalendarEvents() {
+  _getFamilyCalendarEvents = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee(members, year, month) {
+    var userId, _getMonthDateRange, startDate, endDate, allEvents, membersWithNames, _iterator, _step, member, vaccineRecords, _iterator2, _step2, record, eventDate, day, checkinEntries, _iterator3, _step3, entry, dateStr, _day, riskEmoji, _t, _t2, _t3, _t4;
+    return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          if (!(!(0,_utils_authGuard__WEBPACK_IMPORTED_MODULE_2__.isAuthenticated)() || members.length === 0)) {
+            _context.n = 1;
+            break;
+          }
+          return _context.a(2, []);
+        case 1:
+          _context.p = 1;
+          userId = (0,_utils_authGuard__WEBPACK_IMPORTED_MODULE_2__.getAuthenticatedUserId)();
+          _context.n = 3;
+          break;
+        case 2:
+          _context.p = 2;
+          _t = _context.v;
+          return _context.a(2, []);
+        case 3:
+          _getMonthDateRange = getMonthDateRange(year, month), startDate = _getMonthDateRange.startDate, endDate = _getMonthDateRange.endDate;
+          allEvents = [];
+          membersWithNames = members.map(function (m) {
+            return {
+              petId: m.petId,
+              petName: m.petName || m.name || '宠物'
+            };
+          });
+          _iterator = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_5__["default"])(membersWithNames);
+          _context.p = 4;
+          _iterator.s();
+        case 5:
+          if ((_step = _iterator.n()).done) {
+            _context.n = 19;
+            break;
+          }
+          member = _step.value;
+          _context.p = 6;
+          _context.n = 7;
+          return (0,_vaccineService__WEBPACK_IMPORTED_MODULE_0__.getRecordsByMonth)(member.petId, year, month);
+        case 7:
+          vaccineRecords = _context.v;
+          if (!(vaccineRecords.length > 0)) {
+            _context.n = 15;
+            break;
+          }
+          _iterator2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_5__["default"])(vaccineRecords);
+          _context.p = 8;
+          _iterator2.s();
+        case 9:
+          if ((_step2 = _iterator2.n()).done) {
+            _context.n = 12;
+            break;
+          }
+          record = _step2.value;
+          eventDate = record.date || record.nextDate;
+          if (eventDate) {
+            _context.n = 10;
+            break;
+          }
+          return _context.a(3, 11);
+        case 10:
+          day = new Date(eventDate).getDate();
+          allEvents.push({
+            date: day,
+            petName: member.petName,
+            petId: member.petId,
+            title: getVaccineEventTitle(record),
+            type: getVaccineEventType(record)
+          });
+        case 11:
+          _context.n = 9;
+          break;
+        case 12:
+          _context.n = 14;
+          break;
+        case 13:
+          _context.p = 13;
+          _t2 = _context.v;
+          _iterator2.e(_t2);
+        case 14:
+          _context.p = 14;
+          _iterator2.f();
+          return _context.f(14);
+        case 15:
+          _context.n = 16;
+          return (0,_checkinService__WEBPACK_IMPORTED_MODULE_1__.getCheckinsByDateRange)(member.petId, userId, startDate, endDate);
+        case 16:
+          checkinEntries = _context.v;
+          if (checkinEntries.length > 0) {
+            _iterator3 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper_js__WEBPACK_IMPORTED_MODULE_5__["default"])(checkinEntries);
+            try {
+              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                entry = _step3.value;
+                dateStr = String(entry.createdAt).slice(0, 10);
+                _day = new Date(dateStr).getDate();
+                riskEmoji = getCheckinRiskEmoji(entry.riskLevel);
+                allEvents.push({
+                  date: _day,
+                  petName: member.petName,
+                  petId: member.petId,
+                  title: "".concat(riskEmoji, "\u5065\u5EB7\u6253\u5361"),
+                  type: 'checkin',
+                  riskLevel: entry.riskLevel
+                });
+              }
+            } catch (err) {
+              _iterator3.e(err);
+            } finally {
+              _iterator3.f();
+            }
+          }
+          _context.n = 18;
+          break;
+        case 17:
+          _context.p = 17;
+          _t3 = _context.v;
+          return _context.a(3, 18);
+        case 18:
+          _context.n = 5;
+          break;
+        case 19:
+          _context.n = 21;
+          break;
+        case 20:
+          _context.p = 20;
+          _t4 = _context.v;
+          _iterator.e(_t4);
+        case 21:
+          _context.p = 21;
+          _iterator.f();
+          return _context.f(21);
+        case 22:
+          return _context.a(2, allEvents);
+      }
+    }, _callee, null, [[8, 13, 14, 15], [6, 17], [4, 20, 21, 22], [1, 2]]);
+  }));
+  return _getFamilyCalendarEvents.apply(this, arguments);
+}
+function getEventsByDay(events, day) {
+  return events.filter(function (e) {
+    return e.date === day;
+  });
+}
+
+/**
+ * 检查某天是否有事件
+ */
+function hasEventsOnDay(events, day) {
+  return events.some(function (e) {
+    return e.date === day;
+  });
+}
+
+/***/ })
+
+},
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
+/******/ __webpack_require__.O(0, ["sub-common/ad46eb011750498141202c06d6a54fd7","sub-common/768a8bdc99340ebc9871b27d737f9bf1","sub-common/084a7625e5a94df19215dd3f71376275","sub-common/362017fe540ca8d425bcc5fff5d81d56","sub-common/a9a68db88e68e31a6990d19803c6390e","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/family/calendar/index.tsx"); });
+/******/ var __webpack_exports__ = __webpack_require__.O();
+/******/ }
+]);
+//# sourceMappingURL=index.js.map

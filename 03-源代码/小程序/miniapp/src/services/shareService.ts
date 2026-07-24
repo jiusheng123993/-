@@ -139,7 +139,7 @@ export async function grantShareReward(userId: string): Promise<ShareRewardResul
     if (result.success) {
       return {
         rewardGranted: true,
-        rewardType: result.rewardType || 'membership_days',
+        rewardType: (result.rewardType as 'membership_days' | 'feature_unlock' | 'none') || 'membership_days',
         rewardValue: result.rewardValue || 7,
         message: `邀请${SHARE_REWARD_INVITES}位好友，奖励7天会员`,
       };

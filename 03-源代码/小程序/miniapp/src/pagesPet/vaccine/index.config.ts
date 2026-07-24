@@ -1,5 +1,3 @@
 export default definePageConfig({
   navigationBarTitleText: '疫苗驱虫日历',
-  navigationBarBackgroundColor: '#F0F7FF',
-  navigationBarTextStyle: 'black',
 })

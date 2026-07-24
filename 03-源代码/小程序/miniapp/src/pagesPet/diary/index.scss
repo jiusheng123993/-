@@ -1,8 +1,12 @@
+﻿@import '../../styles/_theme';
+@import '../../styles/_animations';
+
 .pet-diary {
   min-height: 100vh;
-  background: #F5F7FA;
+  background: $gradient-page;
   display: flex;
   flex-direction: column;
+  animation: pageEnter 0.4s ease-out;
 }
 
 .pet-diary__avatar {
@@ -18,14 +22,14 @@
 
 .pet-diary__title {
   font-size: 20px;
-  font-weight: 600;
-  color: #262626;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
   display: block;
 }
 
 .pet-diary__subtitle {
   font-size: 13px;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
   margin-top: 4px;
   display: block;
 }
@@ -48,24 +52,25 @@
 
 .pet-diary__loading-text {
   font-size: 14px;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
 }
 
 .pet-diary__error-text {
   font-size: 14px;
-  color: #FF4D4F;
+  color: $color-danger;
   margin-bottom: 16px;
 }
 
 .pet-diary__retry-btn {
   padding: 8px 24px;
-  background: #1890FF;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
   border-radius: 20px;
+  @include press-feedback;
 }
 
 .pet-diary__retry-text {
   font-size: 14px;
-  color: #fff;
+  color: $color-text-inverse;
 }
 
 .pet-diary__empty-icon {
@@ -75,13 +80,13 @@
 
 .pet-diary__empty-text {
   font-size: 16px;
-  color: #595959;
-  font-weight: 500;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
 }
 
 .pet-diary__empty-hint {
   font-size: 13px;
-  color: #BFBFBF;
+  color: $color-text-tertiary;
   margin-top: 8px;
 }
 
@@ -108,12 +113,14 @@
   border-radius: 50%;
   margin-top: 16px;
   flex-shrink: 0;
+  background: $color-primary;
+  box-shadow: 0 0 6px rgba($color-primary, 0.4);
 }
 
 .pet-diary__line {
   width: 2px;
   flex: 1;
-  background: #E8E8E8;
+  background: $color-border;
   margin-top: 4px;
   margin-bottom: -16px;
 }
@@ -121,10 +128,10 @@
 .pet-diary__entry-right {
   flex: 1;
   padding: 12px 16px 20px 12px;
-  background: #fff;
-  border-radius: 12px;
+  @include card-base;
+  border-radius: $radius-md;
   margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .pet-diary__entry-header {
@@ -136,18 +143,19 @@
 
 .pet-diary__entry-date {
   font-size: 13px;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
 }
 
 .pet-diary__tone-badge {
   padding: 2px 10px;
   border-radius: 10px;
+  border: 1px solid rgba($color-primary, 0.2);
 }
 
 .pet-diary__tone-text {
   font-size: 11px;
-  color: #fff;
-  font-weight: 500;
+  color: $color-primary-light;
+  font-weight: $font-weight-medium;
 }
 
 .pet-diary__entry-body {
@@ -165,7 +173,7 @@
 
 .pet-diary__entry-text {
   font-size: 15px;
-  color: #262626;
+  color: $color-text-primary;
   line-height: 1.5;
   flex: 1;
 }
@@ -175,20 +183,20 @@
   align-items: flex-start;
   gap: 4px;
   padding: 8px 10px;
-  background: #FAFAFA;
-  border-radius: 8px;
+  background: $color-primary-bg;
+  border-radius: $radius-sm;
   margin-bottom: 8px;
 }
 
 .pet-diary__note-label {
   font-size: 12px;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
   flex-shrink: 0;
 }
 
 .pet-diary__note-text {
   font-size: 12px;
-  color: #595959;
+  color: $color-text-secondary;
   flex: 1;
 }
 
@@ -201,7 +209,7 @@
 
 .pet-diary__share-text {
   font-size: 12px;
-  color: #1890FF;
+  color: $color-primary;
 }
 
 .pet-diary__disclaimer {
@@ -211,6 +219,6 @@
 
 .pet-diary__disclaimer-text {
   font-size: 11px;
-  color: #BFBFBF;
+  color: $color-text-tertiary;
   line-height: 1.5;
 }

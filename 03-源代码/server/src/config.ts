@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghuanhai',
-  jwtSecret: process.env.JWT_SECRET || 'change-me-to-a-random-string-at-least-32-chars',
+  jwtSecret: process.env.JWT_SECRET || '',
   ai: {
     apiKey: process.env.AI_API_KEY || '',
     baseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
@@ -22,5 +22,12 @@ export const config = {
   seedream: {
     apiKey: process.env.SEEDREAM_API_KEY || '',
   },
-  uploadDir: path.resolve(__dirname, '..', process.env.UPLOAD_DIR || './uploads'),
+  meshy: {
+    apiKey: process.env.MESHY_API_KEY || '',
+    baseUrl: 'https://api.meshy.ai',
+  },
+  moderate: {
+    apiKey: process.env.MODERATE_API_KEY || '',
+  },
+  uploadDir: process.env.UPLOAD_DIR || './uploads',
 };

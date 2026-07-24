@@ -1,31 +1,15 @@
-$color-primary: #E8A838;
-$color-primary-light: #F5D78C;
-$color-primary-dark: #C88520;
-$color-primary-bg: #FFF8EE;
+// ============================================
+// 星寰海 · 唯美主题系统
+// 8套主题：4套日间（亮色系）+ 4套夜间（暗色系）
+// 樱语花境 / 森林晨露 / 暮色海岸 / 暖阳蜜语
+// 通过 theme-xxx class 切换（Taro 不支持渲染自定义 data-* 属性）
+// ============================================
 
-$color-success: #52C41A;
-$color-warning: #FAAD14;
-$color-danger: #F5222D;
-$color-danger-light: #FFF1F0;
-$color-danger-bg: #FFCCC7;
+// ============================================
+// 公共变量（所有主题共享）
+// ============================================
 
-$color-text-primary: #1A1A1A;
-$color-text-secondary: #666666;
-$color-text-tertiary: #999999;
-$color-text-placeholder: #CCCCCC;
-$color-text-hint: #999999;
-$color-text-inverse: #FFFFFF;
-
-$color-bg-page: #F5F7FA;
-$color-bg-card: #FFFFFF;
-$color-bg-warm: #FFF5F0;
-$color-bg-blue: #F0F7FF;
-$color-bg-overlay: rgba(0, 0, 0, 0.5);
-
-$color-border: #E8E8E8;
-$color-border-light: #F0F0F0;
-$color-divider: #F5F5F5;
-
+// —— 间距 ——
 $spacing-xs: 8rpx;
 $spacing-sm: 12rpx;
 $spacing-md: 16rpx;
@@ -33,20 +17,22 @@ $spacing-lg: 24rpx;
 $spacing-xl: 32rpx;
 $spacing-xxl: 48rpx;
 
-$font-size-xs: 22rpx;
+// —— 字号 ——
+$font-size-xs: 20rpx;
 $font-size-sm: 24rpx;
 $font-size-md: 28rpx;
 $font-size-lg: 32rpx;
 $font-size-xl: 36rpx;
 $font-size-xxl: 48rpx;
-
 $font-size-base: $font-size-md;
 
+// —— 字重 ——
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
 
+// —— 圆角 ——
 $radius-xs: 4rpx;
 $radius-sm: 8rpx;
 $radius-md: 16rpx;
@@ -55,27 +41,465 @@ $radius-xl: 24rpx;
 $radius-round: 40rpx;
 $radius-full: 999rpx;
 
-$shadow-xs: 0 2rpx 4rpx rgba(0, 0, 0, 0.04);
-$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-$shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
-$shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+// —— 阴影 ——
+$shadow-xs: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+$shadow-sm: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
+$shadow-md: 0 8rpx 24rpx rgba(0, 0, 0, 0.4);
+$shadow-lg: 0 16rpx 48rpx rgba(0, 0, 0, 0.5);
 
+// —— 过渡 ——
 $transition-fast: 0.15s ease;
 $transition-normal: 0.25s ease;
 $transition-slow: 0.4s ease;
 
+// ============================================
+// 默认主题：樱语花境（Sakura Dream）
+// 柔雾玫瑰粉 — 温柔浪漫，如漫步樱花雨中
+// ============================================
+page {
+  --primary: #C88EA8;
+  --primary-rgb: 200, 142, 168;
+  --primary-light: #E8C8D8;
+  --primary-light-rgb: 232, 200, 216;
+  --primary-dark: #A06880;
+  --primary-dark-rgb: 160, 104, 128;
+  --primary-bg: rgba(200, 142, 168, 0.08);
+
+  --success: #8EA898;
+  --success-rgb: 142, 168, 152;
+  --warning: #C8A078;
+  --danger: #C87070;
+  --danger-rgb: 200, 112, 112;
+  --danger-light: rgba(200, 112, 112, 0.12);
+  --danger-bg: rgba(200, 112, 112, 0.2);
+  --teal: #7EA8A0;
+  --teal-rgb: 126, 168, 160;
+  --coral: #D0A098;
+  --coral-rgb: 208, 160, 152;
+  --sage: #8EA898;
+  --sage-rgb: 142, 168, 152;
+
+  --text-primary: #E8D8DE;
+  --text-secondary: #A098A0;
+  --text-tertiary: #786870;
+  --text-placeholder: #685860;
+  --text-hint: #988898;
+  --text-inverse: #1A1418;
+
+  --bg-page: #1A1418;
+  --bg-card: #2A1E24;
+  --bg-secondary: #241820;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --border: rgba(200, 142, 168, 0.15);
+  --border-light: rgba(200, 142, 168, 0.08);
+  --divider: rgba(200, 142, 168, 0.06);
+
+  --gradient-page: linear-gradient(180deg, #160E14 0%, #1A1418 30%, #241820 70%, #2A1E24 100%);
+  --gradient-card: linear-gradient(135deg, rgba(200, 142, 168, 0.12), rgba(200, 142, 168, 0.04));
+  --gradient-gold: linear-gradient(135deg, #C88EA8, #E8C8D8);
+  --gradient-warm: linear-gradient(135deg, #C88EA8, #D8A8B8, #E8C8D8);
+}
+
+// ============================================
+// 默认主题 SCSS 变量（编译时回退值）
+// 组件中使用 var(--xxx, $xxx) 模式，主题切换时 CSS 变量生效
+// ============================================
+$color-primary: var(--primary, #C88EA8);
+$color-primary-light: var(--primary-light, #E8C8D8);
+$color-primary-dark: var(--primary-dark, #A06880);
+$color-primary-bg: var(--primary-bg, rgba(200, 142, 168, 0.08));
+
+$color-success: var(--success, #8EA898);
+$color-warning: var(--warning, #C8A078);
+$color-danger: var(--danger, #C87070);
+$color-danger-light: var(--danger-light, rgba(200, 112, 112, 0.12));
+$color-danger-bg: var(--danger-bg, rgba(200, 112, 112, 0.2));
+$color-teal: var(--teal, #7EA8A0);
+$color-coral: var(--coral, #D0A098);
+$color-sage: var(--sage, #8EA898);
+
+$color-text-primary: var(--text-primary, #E8D8DE);
+$color-text-secondary: var(--text-secondary, #A098A0);
+$color-text-tertiary: var(--text-tertiary, #786870);
+$color-text-placeholder: var(--text-placeholder, #685860);
+$color-text-hint: var(--text-hint, #988898);
+$color-text-inverse: var(--text-inverse, #1A1418);
+
+$color-bg-page: var(--bg-page, #1A1418);
+$color-bg-card: var(--bg-card, #2A1E24);
+$color-bg-secondary: var(--bg-secondary, #241820);
+$color-bg-overlay: var(--bg-overlay, rgba(0, 0, 0, 0.7));
+
+$color-border: var(--border, rgba(200, 142, 168, 0.15));
+$color-border-light: var(--border-light, rgba(200, 142, 168, 0.08));
+$color-divider: var(--divider, rgba(200, 142, 168, 0.06));
+
+$gradient-page: var(--gradient-page, linear-gradient(180deg, #160E14 0%, #1A1418 30%, #241820 70%, #2A1E24 100%));
+$gradient-card: var(--gradient-card, linear-gradient(135deg, rgba(200, 142, 168, 0.12), rgba(200, 142, 168, 0.04)));
+$gradient-gold: var(--gradient-gold, linear-gradient(135deg, #C88EA8, #E8C8D8));
+$gradient-warm: var(--gradient-warm, linear-gradient(135deg, #C88EA8, #D8A8B8, #E8C8D8));
+
+// ============================================
+// 森林晨露（Forest Dew）
+// 雾霭鼠尾草绿 — 自然呼吸，如晨间森林漫步
+// ============================================
+.theme-forest-dew {
+  --primary: #8EA898;
+  --primary-rgb: 142, 168, 152;
+  --primary-light: #C0D8C8;
+  --primary-light-rgb: 192, 216, 200;
+  --primary-dark: #6A8880;
+  --primary-dark-rgb: 106, 136, 128;
+  --primary-bg: rgba(142, 168, 152, 0.08);
+
+  --success: #8EA898;
+  --warning: #C8A078;
+  --danger: #C87070;
+  --danger-light: rgba(200, 112, 112, 0.12);
+  --danger-bg: rgba(200, 112, 112, 0.2);
+  --teal: #7EA8A0;
+  --coral: #D0A098;
+  --sage: #8EA898;
+
+  --text-primary: #D8E0DA;
+  --text-secondary: #98A098;
+  --text-tertiary: #687868;
+  --text-placeholder: #586858;
+  --text-hint: #889888;
+  --text-inverse: #141A16;
+
+  --bg-page: #141A16;
+  --bg-card: #1E2A22;
+  --bg-secondary: #18201C;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --border: rgba(142, 168, 152, 0.15);
+  --border-light: rgba(142, 168, 152, 0.08);
+  --divider: rgba(142, 168, 152, 0.06);
+
+  --gradient-page: linear-gradient(180deg, #0E160E 0%, #141A16 30%, #18201C 70%, #1E2A22 100%);
+  --gradient-card: linear-gradient(135deg, rgba(142, 168, 152, 0.12), rgba(142, 168, 152, 0.04));
+  --gradient-gold: linear-gradient(135deg, #8EA898, #C0D8C8);
+  --gradient-warm: linear-gradient(135deg, #8EA898, #A8C0B0, #C0D8C8);
+}
+
+// ============================================
+// 暮色海岸（Twilight Coast）
+// 雾蓝海天色 — 静谧深邃，如暮色下的海岸线
+// ============================================
+.theme-twilight-coast {
+  --primary: #8EA8B8;
+  --primary-rgb: 142, 168, 184;
+  --primary-light: #C0D0E0;
+  --primary-light-rgb: 192, 208, 224;
+  --primary-dark: #6A8898;
+  --primary-dark-rgb: 106, 136, 152;
+  --primary-bg: rgba(142, 168, 184, 0.08);
+
+  --success: #8EA898;
+  --warning: #C8A078;
+  --danger: #C87070;
+  --danger-light: rgba(200, 112, 112, 0.12);
+  --danger-bg: rgba(200, 112, 112, 0.2);
+  --teal: #7EA8A0;
+  --coral: #D0A098;
+  --sage: #8EA898;
+
+  --text-primary: #D8DEE0;
+  --text-secondary: #98A0A8;
+  --text-tertiary: #687078;
+  --text-placeholder: #586068;
+  --text-hint: #889098;
+  --text-inverse: #14181A;
+
+  --bg-page: #14181A;
+  --bg-card: #1E2428;
+  --bg-secondary: #181E22;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --border: rgba(142, 168, 184, 0.15);
+  --border-light: rgba(142, 168, 184, 0.08);
+  --divider: rgba(142, 168, 184, 0.06);
+
+  --gradient-page: linear-gradient(180deg, #0E1418 0%, #14181A 30%, #181E22 70%, #1E2428 100%);
+  --gradient-card: linear-gradient(135deg, rgba(142, 168, 184, 0.12), rgba(142, 168, 184, 0.04));
+  --gradient-gold: linear-gradient(135deg, #8EA8B8, #C0D0E0);
+  --gradient-warm: linear-gradient(135deg, #8EA8B8, #A8C0D0, #C0D0E0);
+}
+
+// ============================================
+// 暖阳蜜语（Honey Glow）
+// 蜂蜜琥珀色 — 温暖醇厚，如午后阳光洒落
+// ============================================
+.theme-honey-glow {
+  --primary: #C8A078;
+  --primary-rgb: 200, 160, 120;
+  --primary-light: #E8D0B0;
+  --primary-light-rgb: 232, 208, 176;
+  --primary-dark: #A08060;
+  --primary-dark-rgb: 160, 128, 96;
+  --primary-bg: rgba(200, 160, 120, 0.08);
+
+  --success: #8EA898;
+  --warning: #C8A078;
+  --danger: #C87070;
+  --danger-light: rgba(200, 112, 112, 0.12);
+  --danger-bg: rgba(200, 112, 112, 0.2);
+  --teal: #7EA8A0;
+  --coral: #D0A098;
+  --sage: #8EA898;
+
+  --text-primary: #E8E0D0;
+  --text-secondary: #A09888;
+  --text-tertiary: #787060;
+  --text-placeholder: #686050;
+  --text-hint: #989080;
+  --text-inverse: #1A1610;
+
+  --bg-page: #1A1610;
+  --bg-card: #2A2218;
+  --bg-secondary: #241C14;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --border: rgba(200, 160, 120, 0.15);
+  --border-light: rgba(200, 160, 120, 0.08);
+  --divider: rgba(200, 160, 120, 0.06);
+
+  --gradient-page: linear-gradient(180deg, #16100C 0%, #1A1610 30%, #241C14 70%, #2A2218 100%);
+  --gradient-card: linear-gradient(135deg, rgba(200, 160, 120, 0.12), rgba(200, 160, 120, 0.04));
+  --gradient-gold: linear-gradient(135deg, #C8A078, #E8D0B0);
+  --gradient-warm: linear-gradient(135deg, #C8A078, #D8B898, #E8D0B0);
+}
+
+// ============================================
+// 日间模式 · 樱语花境（Sakura Dream Light）
+// 亮粉色系 — 整体粉色背景，温柔明亮
+// ============================================
+.theme-sakura-dream-light {
+  --primary: #D08AA8;
+  --primary-rgb: 208, 138, 168;
+  --primary-light: #F0C8D8;
+  --primary-light-rgb: 240, 200, 216;
+  --primary-dark: #B06888;
+  --primary-dark-rgb: 176, 104, 136;
+  --primary-bg: rgba(208, 138, 168, 0.1);
+
+  --success: #6AAA88;
+  --success-rgb: 106, 170, 136;
+  --warning: #D8A868;
+  --danger: #D06868;
+  --danger-rgb: 208, 104, 104;
+  --danger-light: rgba(208, 104, 104, 0.1);
+  --danger-bg: rgba(208, 104, 104, 0.15);
+  --teal: #6AA8A0;
+  --teal-rgb: 106, 168, 160;
+  --coral: #E0A8A0;
+  --coral-rgb: 224, 168, 160;
+  --sage: #7AAA88;
+  --sage-rgb: 122, 170, 136;
+
+  --text-primary: #4A2A38;
+  --text-secondary: #806878;
+  --text-tertiary: #A89898;
+  --text-placeholder: #C0B0B8;
+  --text-hint: #988888;
+  --text-inverse: #FFFFFF;
+
+  --bg-page: #FFF0F5;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #FFF8FA;
+  --bg-overlay: rgba(208, 138, 168, 0.3);
+
+  --border: rgba(208, 138, 168, 0.2);
+  --border-light: rgba(208, 138, 168, 0.1);
+  --divider: rgba(208, 138, 168, 0.08);
+
+  --gradient-page: linear-gradient(180deg, #FFE0EC 0%, #FFF0F5 30%, #FFF5F8 70%, #FCE8F0 100%);
+  --gradient-card: linear-gradient(135deg, rgba(208, 138, 168, 0.08), rgba(208, 138, 168, 0.02));
+  --gradient-gold: linear-gradient(135deg, #D08AA8, #F0C8D8);
+  --gradient-warm: linear-gradient(135deg, #D08AA8, #E8A8C0, #F0C8D8);
+}
+
+// ============================================
+// 日间模式 · 森林晨露（Forest Dew Light）
+// 亮绿色系 — 整体绿色背景，清新自然
+// ============================================
+.theme-forest-dew-light {
+  --primary: #6AAA88;
+  --primary-rgb: 106, 170, 136;
+  --primary-light: #B0D8C0;
+  --primary-light-rgb: 176, 216, 192;
+  --primary-dark: #4A8868;
+  --primary-dark-rgb: 74, 136, 104;
+  --primary-bg: rgba(106, 170, 136, 0.1);
+
+  --success: #6AAA88;
+  --success-rgb: 106, 170, 136;
+  --warning: #D8A868;
+  --danger: #D06868;
+  --danger-rgb: 208, 104, 104;
+  --danger-light: rgba(208, 104, 104, 0.1);
+  --danger-bg: rgba(208, 104, 104, 0.15);
+  --teal: #6AA8A0;
+  --teal-rgb: 106, 168, 160;
+  --coral: #E0A8A0;
+  --coral-rgb: 224, 168, 160;
+  --sage: #7AAA88;
+  --sage-rgb: 122, 170, 136;
+
+  --text-primary: #2A3A30;
+  --text-secondary: #607068;
+  --text-tertiary: #90A098;
+  --text-placeholder: #B0C0B8;
+  --text-hint: #889888;
+  --text-inverse: #FFFFFF;
+
+  --bg-page: #F0F8F4;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #F8FCF9;
+  --bg-overlay: rgba(106, 170, 136, 0.3);
+
+  --border: rgba(106, 170, 136, 0.2);
+  --border-light: rgba(106, 170, 136, 0.1);
+  --divider: rgba(106, 170, 136, 0.08);
+
+  --gradient-page: linear-gradient(180deg, #E0F0E8 0%, #F0F8F4 30%, #F5FBF7 70%, #E8F5EC 100%);
+  --gradient-card: linear-gradient(135deg, rgba(106, 170, 136, 0.08), rgba(106, 170, 136, 0.02));
+  --gradient-gold: linear-gradient(135deg, #6AAA88, #B0D8C0);
+  --gradient-warm: linear-gradient(135deg, #6AAA88, #8AC0A0, #B0D8C0);
+}
+
+// ============================================
+// 日间模式 · 暮色海岸（Twilight Coast Light）
+// 亮蓝色系 — 整体蓝色背景，清新通透
+// ============================================
+.theme-twilight-coast-light {
+  --primary: #6A98B8;
+  --primary-rgb: 106, 152, 184;
+  --primary-light: #B0D0E0;
+  --primary-light-rgb: 176, 208, 224;
+  --primary-dark: #4A7898;
+  --primary-dark-rgb: 74, 120, 152;
+  --primary-bg: rgba(106, 152, 184, 0.1);
+
+  --success: #6AAA88;
+  --success-rgb: 106, 170, 136;
+  --warning: #D8A868;
+  --danger: #D06868;
+  --danger-rgb: 208, 104, 104;
+  --danger-light: rgba(208, 104, 104, 0.1);
+  --danger-bg: rgba(208, 104, 104, 0.15);
+  --teal: #6AA8A0;
+  --teal-rgb: 106, 168, 160;
+  --coral: #E0A8A0;
+  --coral-rgb: 224, 168, 160;
+  --sage: #7AAA88;
+  --sage-rgb: 122, 170, 136;
+
+  --text-primary: #2A3540;
+  --text-secondary: #607080;
+  --text-tertiary: #909CA8;
+  --text-placeholder: #B0BCC8;
+  --text-hint: #8898A0;
+  --text-inverse: #FFFFFF;
+
+  --bg-page: #F0F5FA;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-overlay: rgba(106, 152, 184, 0.3);
+
+  --border: rgba(106, 152, 184, 0.2);
+  --border-light: rgba(106, 152, 184, 0.1);
+  --divider: rgba(106, 152, 184, 0.08);
+
+  --gradient-page: linear-gradient(180deg, #E0ECF5 0%, #F0F5FA 30%, #F5F8FC 70%, #E8F2FA 100%);
+  --gradient-card: linear-gradient(135deg, rgba(106, 152, 184, 0.08), rgba(106, 152, 184, 0.02));
+  --gradient-gold: linear-gradient(135deg, #6A98B8, #B0D0E0);
+  --gradient-warm: linear-gradient(135deg, #6A98B8, #8AB0C8, #B0D0E0);
+}
+
+// ============================================
+// 日间模式 · 暖阳蜜语（Honey Glow Light）
+// 亮橙色系 — 整体橙色背景，温暖明亮
+// ============================================
+.theme-honey-glow-light {
+  --primary: #C89868;
+  --primary-rgb: 200, 152, 104;
+  --primary-light: #E8D0A8;
+  --primary-light-rgb: 232, 208, 168;
+  --primary-dark: #A87848;
+  --primary-dark-rgb: 168, 120, 72;
+  --primary-bg: rgba(200, 152, 104, 0.1);
+
+  --success: #6AAA88;
+  --success-rgb: 106, 170, 136;
+  --warning: #D8A868;
+  --danger: #D06868;
+  --danger-rgb: 208, 104, 104;
+  --danger-light: rgba(208, 104, 104, 0.1);
+  --danger-bg: rgba(208, 104, 104, 0.15);
+  --teal: #6AA8A0;
+  --teal-rgb: 106, 168, 160;
+  --coral: #E0A8A0;
+  --coral-rgb: 224, 168, 160;
+  --sage: #7AAA88;
+  --sage-rgb: 122, 170, 136;
+
+  --text-primary: #3A2A18;
+  --text-secondary: #806848;
+  --text-tertiary: #A89878;
+  --text-placeholder: #C8B898;
+  --text-hint: #988868;
+  --text-inverse: #FFFFFF;
+
+  --bg-page: #FFF8F0;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #FFFCF8;
+  --bg-overlay: rgba(200, 152, 104, 0.3);
+
+  --border: rgba(200, 152, 104, 0.2);
+  --border-light: rgba(200, 152, 104, 0.1);
+  --divider: rgba(200, 152, 104, 0.08);
+
+  --gradient-page: linear-gradient(180deg, #FFEDE0 0%, #FFF8F0 30%, #FFFBF5 70%, #FCEEE0 100%);
+  --gradient-card: linear-gradient(135deg, rgba(200, 152, 104, 0.08), rgba(200, 152, 104, 0.02));
+  --gradient-gold: linear-gradient(135deg, #C89868, #E8D0A8);
+  --gradient-warm: linear-gradient(135deg, #C89868, #D8B888, #E8D0A8);
+}
+
+// ============================================
+// 混入（Mixin）
+// ============================================
+
 @mixin press-feedback {
-  transition: transform $transition-fast, opacity $transition-fast;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   &:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
     opacity: 0.85;
   }
 }
 
 @mixin card-base {
-  background: $color-bg-card;
+  background: var(--bg-card, #2A1E24);
   border-radius: $radius-md;
-  box-shadow: $shadow-sm;
+  border: 1px solid var(--border, rgba(200, 142, 168, 0.15));
+}
+
+@mixin card-glow {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2rpx;
+    background: linear-gradient(135deg, var(--primary, #C88EA8), var(--primary-light, #E8C8D8), var(--primary, #C88EA8));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
 }
 
 @mixin flex-center {
@@ -88,4 +512,11 @@ $transition-slow: 0.4s ease;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@mixin gold-gradient-text {
+  background: linear-gradient(135deg, var(--primary, #C88EA8), var(--primary-light, #E8C8D8));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

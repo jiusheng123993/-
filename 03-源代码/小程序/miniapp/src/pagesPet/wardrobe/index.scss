@@ -1,0 +1,122 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+.wardrobe-page {
+  min-height: 100vh;
+  background: $gradient-page;
+  display: flex;
+  flex-direction: column;
+  animation: pageEnter 0.4s ease-out;
+
+  &__tabs {
+    display: flex;
+    background: $color-bg-card;
+    padding: 6rpx;
+    margin: $spacing-md $spacing-md 0;
+    border-radius: $radius-lg;
+    border: 1rpx solid var(--border, rgba(200, 142, 168, 0.15));
+  }
+
+  &__tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6rpx;
+    padding: 16rpx 0;
+    border-radius: $radius-md;
+    transition: all $transition-fast;
+    @include press-feedback;
+
+    &--active {
+      background: $color-bg-page;
+      box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  &__tab-icon {
+    font-size: $font-size-md;
+  }
+
+  &__tab-label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-tertiary;
+
+    .wardrobe-page__tab--active & {
+      color: $color-primary;
+      font-weight: $font-weight-semibold;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    padding-top: $spacing-md;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 120rpx);
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: $spacing-md $spacing-md 0;
+    padding: $spacing-sm $spacing-md;
+    background: var(--danger-light, rgba(200, 112, 112, 0.12));
+    border: 1rpx solid var(--danger-bg, rgba(200, 112, 112, 0.2));
+    border-radius: $radius-sm;
+  }
+
+  &__error-text {
+    font-size: $font-size-sm;
+    color: var(--danger, #C87070);
+    flex: 1;
+  }
+
+  &__error-close {
+    width: 40rpx;
+    height: 40rpx;
+    @include flex-center;
+    @include press-feedback;
+  }
+
+  &__error-close-icon {
+    font-size: $font-size-sm;
+    color: var(--danger, #C87070);
+  }
+
+  &__loading {
+    flex: 1;
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__loading-spinner {
+    width: 64rpx;
+    height: 64rpx;
+    border: 4rpx solid $color-border;
+    border-top-color: $color-primary;
+    border-radius: $radius-full;
+    animation: spin 0.8s linear infinite;
+  }
+
+  &__loading-text {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+  }
+
+  &__outfit {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__theme {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__collection {
+    padding: 0 $spacing-md;
+  }
+}

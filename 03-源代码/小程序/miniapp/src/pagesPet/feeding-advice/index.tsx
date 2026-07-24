@@ -1,8 +1,17 @@
 import { View, Text, ScrollView, Input, Textarea, Picker } from '@tarojs/components'
-import Taro from '@tarojs/taro'
-import { useEffect, useState } from 'react'
+import Taro, { useDidShow } from '@tarojs/taro'
+import { useEffect, useState, useCallback } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
+import {
+  buildFeedingProfile,
+  generatePersonalizedAdvice,
+  getMealPlan,
+  type PersonalizedFeedingAdvice,
+  type FeedingProfile,
+} from '../../services/feedingService'
+import { getChronicRecords } from '../../services/chronicService'
 import './index.scss'
 
 interface FeedingRecord {
@@ -19,13 +28,6 @@ interface FeedingRecord {
   energy: 'high' | 'normal' | 'low'
   notes: string
   createdAt: string
-}
-
-interface FeedingAdvice {
-  type: 'daily_amount' | 'meal_frequency' | 'food_type' | 'supplement' | 'warning'
-  title: string
-  content: string
-  priority: 'high' | 'medium' | 'low'
 }
 
 const STORAGE_KEY = 'feeding_records'
@@ -51,25 +53,59 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
+const ADVICE_PRIORITY_CONFIG = {
+  high: { bg: 'rgba(245, 34, 45, 0.08)', border: 'rgba(245, 34, 45, 0.2)' },
+  medium: { bg: 'rgba(250, 173, 20, 0.08)', border: 'rgba(250, 173, 20, 0.2)' },
+  low: { bg: 'rgba(82, 196, 26, 0.06)', border: 'rgba(82, 196, 26, 0.15)' },
+}
+
 export default function FeedingAdvicePage() {
+  const themeClass = useThemeClass()
   const user = useAuthStore(state => state.user)
-  const { currentPet, pets } = usePetStore()
+  const { currentPet, pets, fetchPets } = usePetStore()
   const [records, setRecords] = useState<FeedingRecord[]>([])
+  const [advice, setAdvice] = useState<PersonalizedFeedingAdvice[]>([])
+  const [mealPlan, setMealPlan] = useState<Array<{ time: string; label: string; ratio: string }>>([])
+  const [profile, setProfile] = useState<FeedingProfile | null>(null)
   const [showAdd, setShowAdd] = useState(false)
+  const [activeTab, setActiveTab] = useState<'advice' | 'records' | 'plan'>('advice')
 
   const pet = currentPet || pets[0]
 
-  useEffect(() => {
-    if (!pet) return
+  useDidShow(() => {
+    if (user && !pets.length) {
+      fetchPets(user.id)
+    }
+  })
+
+  const loadData = useCallback(() => {
+    if (!pet || !user) return
     const all = getStorage(STORAGE_KEY) || {}
-    const petRecords = all[pet.id] || []
-    setRecords(petRecords.sort((a: FeedingRecord, b: FeedingRecord) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    ))
-  }, [pet?.id])
+    const petRecords: FeedingRecord[] = (all[pet.id] || []).sort(
+      (a: FeedingRecord, b: FeedingRecord) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+    setRecords(petRecords)
+
+    const chronicRecords = getChronicRecords(pet.id, user.id)
+    const feedingProfile = buildFeedingProfile(pet, chronicRecords)
+    setProfile(feedingProfile)
+    setMealPlan(getMealPlan(feedingProfile))
+
+    const latestRecord = petRecords[0]
+    const personalizedAdvice = generatePersonalizedAdvice(
+      feedingProfile,
+      latestRecord?.appetite,
+      latestRecord?.stool,
+    )
+    setAdvice(personalizedAdvice)
+  }, [pet, user])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const saveRecords = (newRecords: FeedingRecord[]) => {
-    if (!pet) return
+    if (!pet || !user) return
     const all = getStorage(STORAGE_KEY) || {}
     all[pet.id] = newRecords
     setStorage(STORAGE_KEY, all)
@@ -86,90 +122,21 @@ export default function FeedingAdvicePage() {
     saveRecords([newRecord, ...records])
     setShowAdd(false)
     Taro.showToast({ title: '记录成功', icon: 'success' })
+    loadData()
   }
 
-  const generateAdvice = (): FeedingAdvice[] => {
-    if (!pet) return []
-
-    const advice: FeedingAdvice[] = []
-    const recentRecords = records.slice(0, 7)
-
-    if (recentRecords.length === 0) {
-      advice.push({
-        type: 'daily_amount',
-        title: '开始记录饮食',
-        content: '建议每天记录宠物的饮食情况，包括食物类型、分量和进食状态，以便获得个性化喂养建议。',
-        priority: 'high',
-      })
-      return advice
-    }
-
-    const poorAppetite = recentRecords.filter(r => r.appetite === 'poor').length
-    if (poorAppetite >= 2) {
-      advice.push({
-        type: 'warning',
-        title: '食欲下降预警',
-        content: `最近${recentRecords.length}天内有${poorAppetite}次食欲不佳记录，建议观察宠物精神状态，必要时咨询兽医。`,
-        priority: 'high',
-      })
-    }
-
-    const looseStool = recentRecords.filter(r => r.stool === 'loose').length
-    if (looseStool >= 2) {
-      advice.push({
-        type: 'warning',
-        title: '软便预警',
-        content: `最近${recentRecords.length}天内有${looseStool}次软便记录，建议检查食物是否新鲜，或考虑更换易消化配方。`,
-        priority: 'high',
-      })
-    }
-
-    const hardStool = recentRecords.filter(r => r.stool === 'hard').length
-    if (hardStool >= 2) {
-      advice.push({
-        type: 'supplement',
-        title: '便秘风险',
-        content: '近期有便秘倾向，建议增加饮水量，可适量添加南瓜泥或益生菌。',
-        priority: 'medium',
-      })
-    }
-
-    const avgAmount = recentRecords.reduce((sum, r) => sum + r.amount, 0) / recentRecords.length
-    if (pet.weight) {
-      const recommendedDaily = pet.weight * 30
-      if (avgAmount < recommendedDaily * 0.8) {
-        advice.push({
-          type: 'daily_amount',
-          title: '进食量偏少',
-          content: `当前日均进食量约${avgAmount.toFixed(0)}g，建议根据体重调整至${recommendedDaily.toFixed(0)}g左右。`,
-          priority: 'medium',
-        })
-      }
-    }
-
-    const uniqueFoods = new Set(recentRecords.map(r => r.foodType)).size
-    if (uniqueFoods < 2) {
-      advice.push({
-        type: 'food_type',
-        title: '饮食单一',
-        content: '建议适当丰富食物种类，轮换不同蛋白质来源，提供更均衡的营养。',
-        priority: 'low',
-      })
-    }
-
-    if (advice.length === 0) {
-      advice.push({
-        type: 'daily_amount',
-        title: '饮食状况良好',
-        content: '近期饮食记录显示宠物进食正常，继续保持良好的喂养习惯！',
-        priority: 'low',
-      })
-    }
-
-    return advice
+  const handleDelete = (id: string) => {
+    Taro.showModal({
+      title: '确认删除',
+      content: '确定要删除这条饮食记录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          saveRecords(records.filter(r => r.id !== id))
+          Taro.showToast({ title: '已删除', icon: 'success' })
+        }
+      },
+    })
   }
-
-  const advice = generateAdvice()
 
   if (!pet) {
     return (
@@ -180,18 +147,41 @@ export default function FeedingAdvicePage() {
   }
 
   return (
-    <ScrollView className='feeding-page' scrollY>
+    <ScrollView className={`feeding-page ${themeClass}`} scrollY>
       <View className='feeding-header'>
         <Text className='feeding-title'>喂养建议</Text>
-        <Text className='feeding-subtitle'>{pet.name} 的饮食管理</Text>
+        <Text className='feeding-subtitle'>{pet.name} 的个性化饮食管理</Text>
       </View>
 
-      <View className='feeding-advice-section'>
-        <Text className='feeding-section-title'>💡 智能建议</Text>
-        {advice.map((item, index) => (
-          <View key={index} className={`feeding-advice-card feeding-advice-${item.priority}`}>
-            <Text className='feeding-advice-title'>{item.title}</Text>
-            <Text className='feeding-advice-content'>{item.content}</Text>
+      {profile && (
+        <View className='feeding-profile-cards'>
+          <View className='feeding-profile-card'>
+            <Text className='feeding-profile-value'>{profile.ageMonths}个月</Text>
+            <Text className='feeding-profile-label'>年龄</Text>
+          </View>
+          <View className='feeding-profile-card'>
+            <Text className='feeding-profile-value'>{profile.weight}kg</Text>
+            <Text className='feeding-profile-label'>体重</Text>
+          </View>
+          <View className='feeding-profile-card'>
+            <Text className='feeding-profile-value'>{profile.chronicConditions.length}</Text>
+            <Text className='feeding-profile-label'>慢性病</Text>
+          </View>
+          <View className='feeding-profile-card'>
+            <Text className='feeding-profile-value'>{profile.allergies.length}</Text>
+            <Text className='feeding-profile-label'>过敏项</Text>
+          </View>
+        </View>
+      )}
+
+      <View className='feeding-tabs'>
+        {(['advice', 'plan', 'records'] as const).map(tab => (
+          <View
+            key={tab}
+            className={`feeding-tab ${activeTab === tab ? 'feeding-tab--active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            <Text>{tab === 'advice' ? '智能建议' : tab === 'plan' ? '喂食计划' : '饮食记录'}</Text>
           </View>
         ))}
       </View>
@@ -203,43 +193,133 @@ export default function FeedingAdvicePage() {
         </View>
       </View>
 
-      <View className='feeding-records-section'>
-        <Text className='feeding-section-title'> 饮食记录</Text>
-        {records.length === 0 && (
-          <View className='feeding-empty-state'>
-            <Text className='feeding-empty-icon'>🍽️</Text>
-            <Text className='feeding-empty-title'>暂无饮食记录</Text>
-            <Text className='feeding-empty-hint'>点击上方按钮记录今日饮食</Text>
-          </View>
-        )}
-        {records.map(record => (
-          <View key={record.id} className='feeding-record-card'>
-            <View className='feeding-record-header'>
-              <Text className='feeding-record-date'>{record.date}</Text>
-              <Text className={`feeding-record-appetite feeding-appetite-${record.appetite}`}>
-                {record.appetite === 'good' ? '食欲好' : record.appetite === 'normal' ? '食欲一般' : '食欲差'}
-              </Text>
+      {activeTab === 'advice' && (
+        <View className='feeding-content'>
+          {advice.length === 0 && (
+            <View className='feeding-empty-state'>
+              <Text className='feeding-empty-icon'>💡</Text>
+              <Text className='feeding-empty-title'>暂无建议</Text>
+              <Text className='feeding-empty-hint'>完善宠物信息并记录饮食后将生成个性化建议</Text>
             </View>
-            <View className='feeding-record-body'>
-              <Text className='feeding-record-food'>
-                {record.foodType} {record.brand && `(${record.brand})`}
-              </Text>
-              <Text className='feeding-record-amount'>
-                {record.amount}{record.unit} · {record.mealTime}
-              </Text>
-              <View className='feeding-record-tags'>
-                <Text className={`feeding-record-tag feeding-stool-${record.stool}`}>
-                  💩 {record.stool === 'normal' ? '正常' : record.stool === 'loose' ? '软便' : '便秘'}
-                </Text>
-                <Text className={`feeding-record-tag feeding-energy-${record.energy}`}>
-                  ⚡ {record.energy === 'high' ? '精力充沛' : record.energy === 'normal' ? '精神一般' : '精神差'}
-                </Text>
+          )}
+          {advice.map((item, index) => (
+            <View
+              key={index}
+              className='feeding-advice-card'
+              style={{
+                background: ADVICE_PRIORITY_CONFIG[item.priority].bg,
+                borderLeftColor: item.priority === 'high' ? '#f5222d' : item.priority === 'medium' ? '#faad14' : '#52c41a',
+              }}
+            >
+              <View className='feeding-advice-header'>
+                <Text className='feeding-advice-icon'>{item.icon}</Text>
+                <Text className='feeding-advice-title'>{item.title}</Text>
               </View>
-              {record.notes && <Text className='feeding-record-notes'>{record.notes}</Text>}
+              <Text className='feeding-advice-content'>{item.content}</Text>
             </View>
+          ))}
+        </View>
+      )}
+
+      {activeTab === 'plan' && (
+        <View className='feeding-content'>
+          <View className='feeding-plan-header'>
+            <Text className='feeding-plan-title'>每日喂食计划</Text>
+            <Text className='feeding-plan-subtitle'>
+              基于 {pet.name} 的品种、年龄、体重和健康状况制定
+            </Text>
           </View>
-        ))}
-      </View>
+
+          <View className='feeding-plan-timeline'>
+            {mealPlan.map((meal, index) => (
+              <View key={index} className='feeding-plan-item'>
+                <View className='feeding-plan-time-line'>
+                  <View className='feeding-plan-dot' />
+                  {index < mealPlan.length - 1 && <View className='feeding-plan-line' />}
+                </View>
+                <View className='feeding-plan-card'>
+                  <View className='feeding-plan-card-header'>
+                    <Text className='feeding-plan-time'>{meal.time}</Text>
+                    <Text className='feeding-plan-ratio'>{meal.ratio}</Text>
+                  </View>
+                  <Text className='feeding-plan-label'>{meal.label}</Text>
+                  <Text className='feeding-plan-tip'>
+                    {meal.label === '早餐'
+                      ? '早晨喂食帮助开启一天的代谢'
+                      : meal.label === '午餐'
+                        ? '中午补充能量'
+                        : meal.label === '晚餐'
+                          ? '晚餐在睡前2小时完成'
+                          : '少量夜宵避免夜间饥饿'}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {profile && (
+            <View className='feeding-plan-tips'>
+              <Text className='feeding-plan-tips-title'>💡 喂养小贴士</Text>
+              <View className='feeding-plan-tip-item'>
+                <Text className='feeding-plan-tip-text'>• 固定喂食时间，帮助宠物建立规律的消化节奏</Text>
+              </View>
+              <View className='feeding-plan-tip-item'>
+                <Text className='feeding-plan-tip-text'>• 每次喂食前后检查毛发、眼睛、耳朵状态</Text>
+              </View>
+              <View className='feeding-plan-tip-item'>
+                <Text className='feeding-plan-tip-text'>• 使用慢食碗可以帮助吃饭太快的宠物</Text>
+              </View>
+              <View className='feeding-plan-tip-item'>
+                <Text className='feeding-plan-tip-text'>• 确保随时有新鲜干净的饮水</Text>
+              </View>
+            </View>
+          )}
+        </View>
+      )}
+
+      {activeTab === 'records' && (
+        <View className='feeding-content'>
+          {records.length === 0 && (
+            <View className='feeding-empty-state'>
+              <Text className='feeding-empty-icon'>🍽️</Text>
+              <Text className='feeding-empty-title'>暂无饮食记录</Text>
+              <Text className='feeding-empty-hint'>点击上方按钮记录今日饮食</Text>
+            </View>
+          )}
+          {records.map(record => (
+            <View key={record.id} className='feeding-record-card'>
+              <View className='feeding-record-header'>
+                <Text className='feeding-record-date'>{record.date}</Text>
+                <View className='feeding-record-header-right'>
+                  <Text className={`feeding-record-appetite feeding-appetite-${record.appetite}`}>
+                    {record.appetite === 'good' ? '食欲好' : record.appetite === 'normal' ? '食欲一般' : '食欲差'}
+                  </Text>
+                  <View className='feeding-record-delete' onClick={() => handleDelete(record.id)}>
+                    <Text className='feeding-record-delete-icon'>×</Text>
+                  </View>
+                </View>
+              </View>
+              <View className='feeding-record-body'>
+                <Text className='feeding-record-food'>
+                  {record.foodType} {record.brand ? `(${record.brand})` : ''}
+                </Text>
+                <Text className='feeding-record-amount'>
+                  {record.amount}{record.unit} · {record.mealTime}
+                </Text>
+                <View className='feeding-record-tags'>
+                  <Text className={`feeding-record-tag feeding-stool-${record.stool}`}>
+                    💩 {record.stool === 'normal' ? '正常' : record.stool === 'loose' ? '软便' : '便秘'}
+                  </Text>
+                  <Text className={`feeding-record-tag feeding-energy-${record.energy}`}>
+                    ⚡ {record.energy === 'high' ? '精力充沛' : record.energy === 'normal' ? '精神一般' : '精神差'}
+                  </Text>
+                </View>
+                {record.notes && <Text className='feeding-record-notes'>{record.notes}</Text>}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View className='feeding-bottom-safe' />
 
@@ -308,7 +388,7 @@ function AddFeedingModal({
     <View className='feeding-modal-overlay' onClick={onClose}>
       <View className='feeding-modal' onClick={e => e.stopPropagation()}>
         <View className='feeding-modal-header'>
-          <Text className='feeding-modal-title'>记录今日饮食</Text>
+          <Text className='feeding-modal-title'>记录饮食</Text>
           <Text className='feeding-modal-close' onClick={onClose}>×</Text>
         </View>
 
@@ -379,16 +459,15 @@ function AddFeedingModal({
             <Text className='feeding-form-label'>食欲</Text>
             <View className='feeding-form-rating'>
               {[
-                { value: 'good', label: '好', emoji: '' },
-                { value: 'normal', label: '一般', emoji: '😐' },
-                { value: 'poor', label: '差', emoji: '😕' },
+                { value: 'good', label: '好' },
+                { value: 'normal', label: '一般' },
+                { value: 'poor', label: '差' },
               ].map(item => (
                 <View
                   key={item.value}
                   className={`feeding-rating-option ${form.appetite === item.value ? 'feeding-rating-active' : ''}`}
                   onClick={() => setForm({ ...form, appetite: item.value as 'good' | 'normal' | 'poor' })}
                 >
-                  <Text className='feeding-rating-emoji'>{item.emoji}</Text>
                   <Text className='feeding-rating-label'>{item.label}</Text>
                 </View>
               ))}
@@ -399,16 +478,15 @@ function AddFeedingModal({
             <Text className='feeding-form-label'>便便</Text>
             <View className='feeding-form-rating'>
               {[
-                { value: 'normal', label: '正常', emoji: '' },
-                { value: 'loose', label: '软便', emoji: '💧' },
-                { value: 'hard', label: '便秘', emoji: '' },
+                { value: 'normal', label: '正常' },
+                { value: 'loose', label: '软便' },
+                { value: 'hard', label: '便秘' },
               ].map(item => (
                 <View
                   key={item.value}
                   className={`feeding-rating-option ${form.stool === item.value ? 'feeding-rating-active' : ''}`}
                   onClick={() => setForm({ ...form, stool: item.value as 'normal' | 'loose' | 'hard' })}
                 >
-                  <Text className='feeding-rating-emoji'>{item.emoji}</Text>
                   <Text className='feeding-rating-label'>{item.label}</Text>
                 </View>
               ))}
@@ -419,16 +497,15 @@ function AddFeedingModal({
             <Text className='feeding-form-label'>精神状态</Text>
             <View className='feeding-form-rating'>
               {[
-                { value: 'high', label: '活跃', emoji: '⚡' },
-                { value: 'normal', label: '正常', emoji: '' },
-                { value: 'low', label: '疲倦', emoji: '' },
+                { value: 'high', label: '活跃' },
+                { value: 'normal', label: '正常' },
+                { value: 'low', label: '疲倦' },
               ].map(item => (
                 <View
                   key={item.value}
                   className={`feeding-rating-option ${form.energy === item.value ? 'feeding-rating-active' : ''}`}
                   onClick={() => setForm({ ...form, energy: item.value as 'high' | 'normal' | 'low' })}
                 >
-                  <Text className='feeding-rating-emoji'>{item.emoji}</Text>
                   <Text className='feeding-rating-label'>{item.label}</Text>
                 </View>
               ))}

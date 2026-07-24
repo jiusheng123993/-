@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { useShareStore } from '../../stores/shareStore'
 import { PageLoading, PageError } from '../../components'
 import { useAnalytics } from '../../hooks/useAnalytics'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
 export default function InvitePage() {
@@ -12,6 +13,7 @@ export default function InvitePage() {
   const { inviteCode, shareStats, fetchInviteCode, fetchShareStats, checkAndGrantReward, isLoading, error } = useShareStore()
   const { trackPageView, trackEvent } = useAnalytics()
   const [rewardResult, setRewardResult] = useState<string | null>(null)
+  const themeClass = useThemeClass()
 
   const userId = user?.id || ''
 
@@ -54,15 +56,15 @@ export default function InvitePage() {
   }, [userId, checkAndGrantReward, trackEvent])
 
   if (isLoading && !inviteCode) {
-    return <View className='invite-page'><PageLoading /></View>
+    return <View className={'invite-page ' + themeClass}><PageLoading /></View>
   }
 
   if (error) {
-    return <View className='invite-page'><PageError message={error} onRetry={() => { fetchInviteCode(userId); fetchShareStats(userId) }} /></View>
+    return <View className={'invite-page ' + themeClass}><PageError message={error} onRetry={() => { fetchInviteCode(userId); fetchShareStats(userId) }} /></View>
   }
 
   return (
-    <View className='invite-page'>
+    <View className={'invite-page ' + themeClass}>
       <View className='invite-page__header'>
         <Text className='invite-page__title'>邀请好友</Text>
         <Text className='invite-page__subtitle'>分享给好友，一起守护毛孩子健康</Text>

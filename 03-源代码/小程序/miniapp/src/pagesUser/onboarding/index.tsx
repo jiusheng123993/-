@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useAnalytics } from '../../hooks/useAnalytics'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
 interface OnboardingSlide {
@@ -37,6 +38,7 @@ export default function OnboardingPage() {
   const { trackPageView, trackEvent } = useAnalytics()
 
   useEffect(() => { trackPageView('onboarding') }, [trackPageView])
+  const themeClass = useThemeClass()
 
   const slide = SLIDES[currentSlide]
 
@@ -63,7 +65,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <View className='onboarding-page'>
+    <View className={'onboarding-page ' + themeClass}>
       <View className='onboarding-page__skip' onClick={handleSkip}>
         <Text className='onboarding-page__skip-text'>跳过</Text>
       </View>

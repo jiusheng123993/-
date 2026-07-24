@@ -2,22 +2,24 @@ export default defineAppConfig({
   pages: [
     'pages/index/index',
     'pages/pet-profile/index',
+    'pages/timeline/index',
+    'pages/family/index',
     'pages/mine/index',
     'pages/member/index',
     'pages/login/index',
   ],
   window: {
-    navigationBarBackgroundColor: '#1A2332',
-    navigationBarTextStyle: 'white',
+    navigationBarBackgroundColor: '#FFF0F5',
+    navigationBarTextStyle: 'black',
     navigationBarTitleText: '星寰海',
-    backgroundColor: '#0F1724',
-    backgroundTextStyle: 'dark',
+    backgroundColor: '#FFF0F5',
+    backgroundTextStyle: 'light',
   },
   tabBar: {
-    color: '#8899AA',
-    selectedColor: '#E8A838',
-    backgroundColor: '#1A2332',
-    borderStyle: 'black',
+    color: '#A89898',
+    selectedColor: '#D08AA8',
+    backgroundColor: '#FFFFFF',
+    borderStyle: 'white',
     list: [
       {
         pagePath: 'pages/index/index',
@@ -32,6 +34,18 @@ export default defineAppConfig({
         selectedIconPath: 'assets/icons/pet-active.png',
       },
       {
+        pagePath: 'pages/timeline/index',
+        text: '时光',
+        iconPath: 'assets/icons/timeline.png',
+        selectedIconPath: 'assets/icons/timeline-active.png',
+      },
+      {
+        pagePath: 'pages/family/index',
+        text: '家庭',
+        iconPath: 'assets/icons/family.png',
+        selectedIconPath: 'assets/icons/family-active.png',
+      },
+      {
         pagePath: 'pages/mine/index',
         text: '我的',
         iconPath: 'assets/icons/mine.png',
@@ -43,7 +57,6 @@ export default defineAppConfig({
     {
       root: 'pagesPet',
       pages: [
-        'chat/index',
         'add/index',
         'edit/index',
         'breed/index',
@@ -61,7 +74,8 @@ export default defineAppConfig({
         'naming/index',
         'family/dashboard/index',
         'family/calendar/index',
-        'timeline/index',
+        'family/lineage/index',
+        'wardrobe/index',
       ],
     },
     {
@@ -72,6 +86,7 @@ export default defineAppConfig({
         'onboarding/index',
         'agreement/index',
         'invite/index',
+        'effect-tracking/index',
       ],
     },
   ],

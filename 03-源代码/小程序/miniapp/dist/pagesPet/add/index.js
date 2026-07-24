@@ -1,1 +1,689 @@
-"use strict";(wx["webpackJsonp"]=wx["webpackJsonp"]||[]).push([[6756],{6954:function(e,a,s){var t=s(2180),d=s(2688),n=s(5861),l=s(4942),i=s(1413),r=s(9439),c=s(1515),o=s(7863),p=s(4695),_=s(5999),m=s(3479),u=s(6572),h=s(2954),x=s.n(h),v=s(7294),b=s(8537),f=s(8143),N=s(5893),j={name:"",species:"",breedId:"",breedName:"",gender:"",birthDate:"",weight:"",coatColor:"",isNeutered:!1,microchipId:"",allergies:"",medications:"",chronicConditions:"",notes:"",avatarUrl:""};function g(){var e=(0,o.y)(),a=e.addPet,s=(0,p.u)(),t=s.initPlan,h=(0,b.z)(),g=h.trackPageView,I=h.trackEvent,G=(0,_.t)(function(e){var a;return null===(a=e.user)||void 0===a?void 0:a.id})||"",w=(0,v.useState)((0,i.Z)({},j)),C=(0,r.Z)(w,2),k=C[0],D=C[1],T=(0,v.useState)(!1),Z=(0,r.Z)(T,2),F=Z[0],P=Z[1],y=(0,v.useState)(null),B=(0,r.Z)(y,2),U=B[0],S=B[1];(0,v.useEffect)(function(){g("add_pet")},[g]);var q=(0,v.useMemo)(function(){return k.species?u.p.filter(function(e){return e.species===k.species}):[]},[k.species]),E=(0,v.useMemo)(function(){return q.map(function(e){return{value:e.id,label:e.aliases.length>0?"".concat(e.name,"\uff08").concat(e.aliases[0],"\uff09"):e.name}})},[q]),R=(0,v.useMemo)(function(){return E.findIndex(function(e){return e.value===k.breedId})},[E,k.breedId]),z=function(e,a){D(function(s){return(0,i.Z)((0,i.Z)({},s),{},(0,l.Z)({},e,a))})},M=function(e){I("select_species",{species:e}),z("species",e),z("breedId",""),z("breedName",""),S(null)},O=function(e){var a=e.detail.value,s=q[a];s&&(z("breedId",s.id),z("breedName",s.name),S(s))},J=function(e){z("birthDate",e.detail.value)},W=function(){I("choose_avatar"),x().chooseImage({count:1,sizeType:["compressed"],sourceType:["album","camera"],success:function(e){z("avatarUrl",e.tempFilePaths[0])}})},K=function(){return k.name.trim()?k.species?k.breedId?k.gender?!!k.birthDate||(x().showToast({title:"\u8bf7\u9009\u62e9\u51fa\u751f\u65e5\u671f",icon:"none"}),!1):(x().showToast({title:"\u8bf7\u9009\u62e9\u6027\u522b",icon:"none"}),!1):(x().showToast({title:"\u8bf7\u9009\u62e9\u54c1\u79cd",icon:"none"}),!1):(x().showToast({title:"\u8bf7\u9009\u62e9\u7269\u79cd",icon:"none"}),!1):(x().showToast({title:"\u8bf7\u8f93\u5165\u5ba0\u7269\u540d\u5b57",icon:"none"}),!1)},L=function(){var e=(0,n.Z)((0,d.Z)().m(function e(){var s,n,l;return(0,d.Z)().w(function(e){while(1)switch(e.p=e.n){case 0:if(K()){e.n=1;break}return e.a(2);case 1:return P(!0),e.p=2,e.n=3,a({name:k.name.trim(),species:k.species,breed:k.breedName,breedId:k.breedId,gender:k.gender,birthDate:k.birthDate,weight:k.weight?parseFloat(k.weight):0,coatColor:k.coatColor.trim(),avatarPhotoUrl:k.avatarUrl,photos:k.avatarUrl?[k.avatarUrl]:[],isNeutered:k.isNeutered,microchipId:k.microchipId.trim(),allergies:k.allergies?k.allergies.split(/[,\uff0c]/).map(function(e){return e.trim()}).filter(Boolean):[],medications:k.medications?k.medications.split(/[,\uff0c]/).map(function(e){return e.trim()}).filter(Boolean):[],chronicConditions:k.chronicConditions?k.chronicConditions.split(/[,\uff0c]/).map(function(e){return e.trim()}).filter(Boolean):[],notes:k.notes.trim(),isDeceased:!1,userId:G});case 3:s=e.v,null!==s&&void 0!==s&&s.id&&(I(f.Z.PetCreate,{species:k.species,breed:k.breedName,source:"add_pet"}),t(s.id,{species:k.species,breed:k.breedName,birthDate:k.birthDate}).catch(function(){})),x().showToast({title:"\u6dfb\u52a0\u6210\u529f",icon:"success"}),setTimeout(function(){x().navigateBack()},1500),e.n=5;break;case 4:e.p=4,l=e.v,I("add_pet_failure"),n=l instanceof Error?l.message:"\u6dfb\u52a0\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5",x().showToast({title:n,icon:"none"});case 5:return e.p=5,P(!1),e.f(5);case 6:return e.a(2)}},e,null,[[2,4,5,6]])}));return function(){return e.apply(this,arguments)}}();return(0,N.jsxs)(c.G7,{className:"add-pet",children:[(0,N.jsxs)(c.G7,{className:"add-pet__form",children:[(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label add-pet__label--required",children:"\u540d\u5b57"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u8bf7\u8f93\u5165\u5ba0\u7269\u540d\u5b57",placeholderClass:"add-pet__input-placeholder",value:k.name,onInput:function(e){return z("name",e.detail.value)},maxlength:20})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label add-pet__label--required",children:"\u7269\u79cd"}),(0,N.jsxs)(c.G7,{className:"add-pet__species-group",children:[(0,N.jsxs)(c.G7,{className:"add-pet__species-btn ".concat("dog"===k.species?"add-pet__species-btn--active":""),onClick:function(){return M("dog")},children:[(0,N.jsx)(c.xv,{className:"add-pet__species-icon",children:"\ud83d\udc15"}),(0,N.jsx)(c.xv,{children:"\u72d7\u72d7"})]}),(0,N.jsxs)(c.G7,{className:"add-pet__species-btn ".concat("cat"===k.species?"add-pet__species-btn--active":""),onClick:function(){return M("cat")},children:[(0,N.jsx)(c.xv,{className:"add-pet__species-icon",children:"\ud83d\udc31"}),(0,N.jsx)(c.xv,{children:"\u732b\u732b"})]})]})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label add-pet__label--required",children:"\u54c1\u79cd"}),(0,N.jsx)(c.cW,{mode:"selector",range:E,rangeKey:"label",value:R>=0?R:0,onChange:O,disabled:!k.species,children:(0,N.jsxs)(c.G7,{className:"add-pet__picker",children:[(0,N.jsx)(c.xv,{className:k.breedName?"":"add-pet__picker-placeholder",children:k.breedName||"\u8bf7\u9009\u62e9\u54c1\u79cd"}),(0,N.jsx)(c.xv,{className:"add-pet__picker-arrow",children:"\u25bc"})]})})]}),U&&(0,N.jsxs)(c.G7,{className:"add-pet__breed-info",children:[(0,N.jsx)(c.G7,{className:"add-pet__breed-info-header",children:(0,N.jsxs)(c.xv,{className:"add-pet__breed-info-title",children:["\ud83d\udccb ",U.name,"\u54c1\u79cd\u7279\u5f81"]})}),U.commonDiseases.length>0&&(0,N.jsxs)(c.G7,{className:"add-pet__breed-info-row",children:[(0,N.jsx)(c.xv,{className:"add-pet__breed-info-label",children:"\ud83c\udfe5 \u5e38\u89c1\u75be\u75c5"}),(0,N.jsx)(c.G7,{className:"add-pet__breed-info-tags",children:U.commonDiseases.map(function(e){return(0,N.jsx)(c.xv,{className:"add-pet__breed-info-tag add-pet__breed-info-tag--warn",children:e},e)})})]}),(0,N.jsxs)(c.G7,{className:"add-pet__breed-info-row",children:[(0,N.jsx)(c.xv,{className:"add-pet__breed-info-label",children:"\u2696\ufe0f \u6807\u51c6\u4f53\u91cd"}),(0,N.jsxs)(c.xv,{className:"add-pet__breed-info-value",children:[U.weightRange.min," ~ ",U.weightRange.max," kg"]})]}),U.dietRestrictions.length>0&&(0,N.jsxs)(c.G7,{className:"add-pet__breed-info-row",children:[(0,N.jsx)(c.xv,{className:"add-pet__breed-info-label",children:"\ud83d\udeab \u996e\u98df\u7981\u5fcc"}),(0,N.jsx)(c.G7,{className:"add-pet__breed-info-tags",children:U.dietRestrictions.map(function(e){return(0,N.jsx)(c.xv,{className:"add-pet__breed-info-tag add-pet__breed-info-tag--danger",children:e},e)})})]})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label add-pet__label--required",children:"\u6027\u522b"}),(0,N.jsxs)(c.G7,{className:"add-pet__gender-group",children:[(0,N.jsxs)(c.G7,{className:"add-pet__gender-btn ".concat("male"===k.gender?"add-pet__gender-btn--active":""),onClick:function(){return z("gender","male")},children:[(0,N.jsx)(c.xv,{children:"\u2642\ufe0f"}),(0,N.jsx)(c.xv,{children:"\u516c"})]}),(0,N.jsxs)(c.G7,{className:"add-pet__gender-btn ".concat("female"===k.gender?"add-pet__gender-btn--active":""),onClick:function(){return z("gender","female")},children:[(0,N.jsx)(c.xv,{children:"\u2640\ufe0f"}),(0,N.jsx)(c.xv,{children:"\u6bcd"})]})]})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label add-pet__label--required",children:"\u51fa\u751f\u65e5\u671f"}),(0,N.jsx)(c.cW,{mode:"date",value:k.birthDate,onChange:J,end:(new Date).toISOString().split("T")[0],children:(0,N.jsxs)(c.G7,{className:"add-pet__picker",children:[(0,N.jsx)(c.xv,{className:k.birthDate?"":"add-pet__picker-placeholder",children:k.birthDate||"\u8bf7\u9009\u62e9\u51fa\u751f\u65e5\u671f"}),(0,N.jsx)(c.xv,{className:"add-pet__picker-arrow",children:"\u25bc"})]})})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u4f53\u91cd\uff08kg\uff09"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u8bf7\u8f93\u5165\u4f53\u91cd",placeholderClass:"add-pet__input-placeholder",type:"digit",value:k.weight,onInput:function(e){return z("weight",e.detail.value)}})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u6bdb\u8272"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u5982\uff1a\u6a58\u8272\u3001\u9ed1\u767d\u3001\u4e09\u82b1",placeholderClass:"add-pet__input-placeholder",value:k.coatColor,onInput:function(e){return z("coatColor",e.detail.value)}})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u662f\u5426\u7edd\u80b2"}),(0,N.jsxs)(c.G7,{className:"add-pet__switch-row",children:[(0,N.jsx)(c.xv,{className:"add-pet__switch-label",children:k.isNeutered?"\u5df2\u7edd\u80b2":"\u672a\u7edd\u80b2"}),(0,N.jsx)(c.rs,{checked:k.isNeutered,onChange:function(e){return z("isNeutered",e.detail.value)},color:"#FF8C42"})]})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u82af\u7247\u53f7"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u8bf7\u8f93\u5165\u82af\u7247\u53f7",placeholderClass:"add-pet__input-placeholder",value:k.microchipId,onInput:function(e){return z("microchipId",e.detail.value)},maxlength:30})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u8fc7\u654f\u53f2"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u5982\uff1a\u9e21\u8089\u3001\u82b1\u7c89\uff08\u9017\u53f7\u5206\u9694\uff09",placeholderClass:"add-pet__input-placeholder",value:k.allergies,onInput:function(e){return z("allergies",e.detail.value)}})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u7528\u836f\u53f2"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u5982\uff1a\u5fc3\u810f\u836f\u3001\u5173\u8282\u4fdd\u5065\u54c1\uff08\u9017\u53f7\u5206\u9694\uff09",placeholderClass:"add-pet__input-placeholder",value:k.medications,onInput:function(e){return z("medications",e.detail.value)}})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u6162\u6027\u75c5"}),(0,N.jsx)(c.II,{className:"add-pet__input",placeholder:"\u5982\uff1a\u7cd6\u5c3f\u75c5\u3001\u5173\u8282\u708e\uff08\u9017\u53f7\u5206\u9694\uff09",placeholderClass:"add-pet__input-placeholder",value:k.chronicConditions,onInput:function(e){return z("chronicConditions",e.detail.value)}})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u5907\u6ce8"}),(0,N.jsx)(c.gx,{className:"add-pet__textarea",placeholder:"\u5907\u6ce8\u4fe1\u606f\uff08\u9009\u586b\uff09",placeholderClass:"add-pet__textarea-placeholder",value:k.notes,onInput:function(e){return z("notes",e.detail.value)},maxlength:200})]}),(0,N.jsxs)(c.G7,{className:"add-pet__form-item",children:[(0,N.jsx)(c.xv,{className:"add-pet__label",children:"\u5934\u50cf"}),(0,N.jsx)(c.G7,{className:"add-pet__photo-area",onClick:W,children:k.avatarUrl?(0,N.jsx)(c.Ee,{className:"add-pet__photo-preview",src:k.avatarUrl,mode:"aspectFill",lazyLoad:!0}):(0,N.jsxs)(c.G7,{className:"add-pet__photo-placeholder",children:[(0,N.jsx)(c.xv,{className:"add-pet__photo-icon",children:"\ud83d\udcf7"}),(0,N.jsx)(c.xv,{children:"\u70b9\u51fb\u9009\u62e9\u7167\u7247"})]})})]})]}),(0,N.jsx)(c.G7,{className:"add-pet__submit-wrap",children:(0,N.jsx)(c.G7,{className:"add-pet__submit-btn ".concat(F?"add-pet__submit-btn--disabled":""),onClick:F?void 0:L,children:(0,N.jsx)(c.xv,{children:F?"\u63d0\u4ea4\u4e2d...":"\u63d0\u4ea4"})})}),(0,N.jsx)(m.Z,{})]})}var I={navigationBarTitleText:"\u6dfb\u52a0\u5ba0\u7269",navigationBarBackgroundColor:"#FFF5F0",navigationBarTextStyle:"black"};Page((0,t.createPageConfig)(g,"pagesPet/add/index",{root:{cn:[]}},I||{}))}},function(e){var a=function(a){return e(e.s=a)};e.O(0,[2107,1216,8592],function(){return a(6954)});e.O()}]);
+"use strict";require("../sub-vendors.js");require("../sub-common/6445d8bdf2172a6fd6abee9a9e2cae24.js");require("../sub-common/a80d2ee33a59c94051f538ac359a531d.js");require("../sub-common/ad46eb011750498141202c06d6a54fd7.js");require("../sub-common/53c676dc54a90fa031d0d212976af696.js");require("../sub-common/768a8bdc99340ebc9871b27d737f9bf1.js");require("../sub-common/084a7625e5a94df19215dd3f71376275.js");require("../sub-common/362017fe540ca8d425bcc5fff5d81d56.js");
+(wx["webpackJsonp"] = wx["webpackJsonp"] || []).push([["pagesPet/add/index"],{
+
+/***/ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/add/index!./src/pagesPet/add/index.tsx":
+/*!******************************************************************************************************************!*\
+  !*** ./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/add/index!./src/pagesPet/add/index.tsx ***!
+  \******************************************************************************************************************/
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": function() { return /* binding */ AddPet; }
+/* harmony export */ });
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/regenerator.js */ "./node_modules/@babel/runtime/helpers/esm/regenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ "./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_defineProperty_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/defineProperty.js */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/objectSpread2.js */ "./node_modules/@babel/runtime/helpers/esm/objectSpread2.js");
+/* harmony import */ var E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/slicedToArray.js */ "./node_modules/@babel/runtime/helpers/esm/slicedToArray.js");
+/* harmony import */ var _tarojs_components__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @tarojs/components */ "./node_modules/@tarojs/plugin-platform-weapp/dist/components-react.js");
+/* harmony import */ var _hooks_useThemeClass__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../hooks/useThemeClass */ "./src/hooks/useThemeClass.ts");
+/* harmony import */ var _hooks_usePet__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../hooks/usePet */ "./src/hooks/usePet.ts");
+/* harmony import */ var _hooks_useVaccine__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../hooks/useVaccine */ "./src/hooks/useVaccine.ts");
+/* harmony import */ var _stores_authStore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../stores/authStore */ "./src/stores/authStore.ts");
+/* harmony import */ var _data_petKnowledge_breeds__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../data/petKnowledge/breeds */ "./src/data/petKnowledge/breeds.ts");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @tarojs/taro */ "./node_modules/@tarojs/taro/index.js");
+/* harmony import */ var _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_tarojs_taro__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react */ "./node_modules/react/cjs/react.production.min.js");
+/* harmony import */ var _hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../hooks/useAnalytics */ "./src/hooks/useAnalytics.ts");
+/* harmony import */ var _types_analyticsTypes__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../types/analyticsTypes */ "./src/types/analyticsTypes.ts");
+/* harmony import */ var _utils_navigation__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../utils/navigation */ "./src/utils/navigation.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/cjs/react-jsx-runtime.production.min.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** 草稿存储 key */
+
+var DRAFT_KEY = 'xhh_add_pet_draft';
+var INITIAL_FORM = {
+  name: '',
+  species: '',
+  breedId: '',
+  breedName: '',
+  gender: '',
+  birthDate: '',
+  weight: '',
+  coatColor: '',
+  isNeutered: false,
+  microchipId: '',
+  allergies: '',
+  medications: '',
+  chronicConditions: '',
+  notes: '',
+  avatarUrl: ''
+};
+
+/** 从 storage 恢复草稿 */
+function loadDraft() {
+  try {
+    var raw = _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().getStorageSync(DRAFT_KEY);
+    if (raw) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().removeStorageSync(DRAFT_KEY); // 消费后清除
+      return JSON.parse(raw);
+    }
+  } catch (_unused) {}
+  return null;
+}
+
+/** 保存草稿到 storage */
+function saveDraft(data) {
+  try {
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().setStorageSync(DRAFT_KEY, JSON.stringify(data));
+  } catch (_unused2) {}
+}
+function AddPet() {
+  var themeClass = (0,_hooks_useThemeClass__WEBPACK_IMPORTED_MODULE_0__.useThemeClass)();
+  var _usePet = (0,_hooks_usePet__WEBPACK_IMPORTED_MODULE_1__.usePet)(),
+    addPet = _usePet.addPet;
+  var _useVaccine = (0,_hooks_useVaccine__WEBPACK_IMPORTED_MODULE_2__.useVaccine)(),
+    initPlan = _useVaccine.initPlan;
+  var _useAnalytics = (0,_hooks_useAnalytics__WEBPACK_IMPORTED_MODULE_7__.useAnalytics)(),
+    trackPageView = _useAnalytics.trackPageView,
+    trackEvent = _useAnalytics.trackEvent;
+  var isAuthenticated = (0,_stores_authStore__WEBPACK_IMPORTED_MODULE_3__.useAuthStore)(function (s) {
+    return s.isAuthenticated;
+  });
+  var userId = (0,_stores_authStore__WEBPACK_IMPORTED_MODULE_3__.useAuthStore)(function (s) {
+    var _s$user;
+    return (_s$user = s.user) === null || _s$user === void 0 ? void 0 : _s$user.id;
+  }) || '';
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(function () {
+      // 尝试恢复草稿
+      var draft = loadDraft();
+      if (draft) {
+        return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_11__["default"])((0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_11__["default"])({}, INITIAL_FORM), draft);
+      }
+      return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_11__["default"])({}, INITIAL_FORM);
+    }),
+    _useState2 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_12__["default"])(_useState, 2),
+    formData = _useState2[0],
+    setFormData = _useState2[1];
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(false),
+    _useState4 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_12__["default"])(_useState3, 2),
+    submitting = _useState4[0],
+    setSubmitting = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_6__.useState)(null),
+    _useState6 = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_slicedToArray_js__WEBPACK_IMPORTED_MODULE_12__["default"])(_useState5, 2),
+    selectedBreed = _useState6[0],
+    setSelectedBreed = _useState6[1];
+  (0,react__WEBPACK_IMPORTED_MODULE_6__.useEffect)(function () {
+    trackPageView('add_pet');
+  }, [trackPageView]);
+  var filteredBreeds = (0,react__WEBPACK_IMPORTED_MODULE_6__.useMemo)(function () {
+    if (!formData.species) return [];
+    return _data_petKnowledge_breeds__WEBPACK_IMPORTED_MODULE_4__.BREED_DATA.filter(function (b) {
+      return b.species === formData.species;
+    });
+  }, [formData.species]);
+  var breedOptions = (0,react__WEBPACK_IMPORTED_MODULE_6__.useMemo)(function () {
+    return filteredBreeds.map(function (b) {
+      return {
+        value: b.id,
+        label: b.aliases.length > 0 ? "".concat(b.name, "\uFF08").concat(b.aliases[0], "\uFF09") : b.name
+      };
+    });
+  }, [filteredBreeds]);
+  var selectedBreedIndex = (0,react__WEBPACK_IMPORTED_MODULE_6__.useMemo)(function () {
+    return breedOptions.findIndex(function (b) {
+      return b.value === formData.breedId;
+    });
+  }, [breedOptions, formData.breedId]);
+  var updateField = function updateField(key, value) {
+    setFormData(function (prev) {
+      return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_11__["default"])((0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_objectSpread2_js__WEBPACK_IMPORTED_MODULE_11__["default"])({}, prev), {}, (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_defineProperty_js__WEBPACK_IMPORTED_MODULE_13__["default"])({}, key, value));
+    });
+  };
+  var handleSpeciesChange = function handleSpeciesChange(species) {
+    trackEvent('select_species', {
+      species: species
+    });
+    updateField('species', species);
+    updateField('breedId', '');
+    updateField('breedName', '');
+    setSelectedBreed(null);
+  };
+  var handleBreedChange = function handleBreedChange(e) {
+    var index = e.detail.value;
+    var breed = filteredBreeds[index];
+    if (breed) {
+      updateField('breedId', breed.id);
+      updateField('breedName', breed.name);
+      setSelectedBreed(breed);
+    }
+  };
+  var handleBirthDateChange = function handleBirthDateChange(e) {
+    updateField('birthDate', e.detail.value);
+  };
+  var handleChooseAvatar = function handleChooseAvatar() {
+    trackEvent('choose_avatar');
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: function success(res) {
+        updateField('avatarUrl', res.tempFilePaths[0]);
+      }
+    });
+  };
+  var validate = function validate() {
+    if (!formData.name.trim()) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+        title: '请输入宠物名字',
+        icon: 'none'
+      });
+      return false;
+    }
+    if (!formData.species) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+        title: '请选择物种',
+        icon: 'none'
+      });
+      return false;
+    }
+    if (!formData.breedId) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+        title: '请选择品种',
+        icon: 'none'
+      });
+      return false;
+    }
+    if (!formData.gender) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+        title: '请选择性别',
+        icon: 'none'
+      });
+      return false;
+    }
+    if (!formData.birthDate) {
+      _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+        title: '请选择出生日期',
+        icon: 'none'
+      });
+      return false;
+    }
+    return true;
+  };
+
+  /** 检查登录状态，未登录则保存草稿并引导登录 */
+  var ensureLoggedIn = function ensureLoggedIn() {
+    if (isAuthenticated) return true;
+    // 保存草稿到 storage
+    saveDraft(formData);
+    // 弹窗引导登录
+    _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showModal({
+      title: '需要登录',
+      content: '保存宠物信息需要登录账号。\n当前填写的内容不会丢失，登录后会自动恢复。',
+      confirmText: '去登录',
+      cancelText: '暂不',
+      success: function success(res) {
+        if (res.confirm) {
+          _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().navigateTo({
+            url: '/pages/login/index'
+          });
+        }
+      }
+    });
+    return false;
+  };
+  var handleSubmit = /*#__PURE__*/function () {
+    var _ref = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_14__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_15__["default"])().m(function _callee() {
+      var newPet, message, _t;
+      return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_15__["default"])().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            if (validate()) {
+              _context.n = 1;
+              break;
+            }
+            return _context.a(2);
+          case 1:
+            if (ensureLoggedIn()) {
+              _context.n = 2;
+              break;
+            }
+            return _context.a(2);
+          case 2:
+            setSubmitting(true);
+            _context.p = 3;
+            _context.n = 4;
+            return addPet({
+              name: formData.name.trim(),
+              species: formData.species,
+              breed: formData.breedName,
+              breedId: formData.breedId,
+              gender: formData.gender,
+              birthDate: formData.birthDate,
+              weight: formData.weight ? parseFloat(formData.weight) : 0,
+              coatColor: formData.coatColor.trim(),
+              avatarPhotoUrl: formData.avatarUrl,
+              photos: formData.avatarUrl ? [formData.avatarUrl] : [],
+              isNeutered: formData.isNeutered,
+              microchipId: formData.microchipId.trim(),
+              allergies: formData.allergies ? formData.allergies.split(/[,，]/).map(function (s) {
+                return s.trim();
+              }).filter(Boolean) : [],
+              medications: formData.medications ? formData.medications.split(/[,，]/).map(function (s) {
+                return s.trim();
+              }).filter(Boolean) : [],
+              chronicConditions: formData.chronicConditions ? formData.chronicConditions.split(/[,，]/).map(function (s) {
+                return s.trim();
+              }).filter(Boolean) : [],
+              notes: formData.notes.trim(),
+              isDeceased: false,
+              userId: userId
+            });
+          case 4:
+            newPet = _context.v;
+            if (newPet !== null && newPet !== void 0 && newPet.id) {
+              trackEvent(_types_analyticsTypes__WEBPACK_IMPORTED_MODULE_8__.AnalyticsEventName.PetCreate, {
+                species: formData.species,
+                breed: formData.breedName,
+                source: 'add_pet'
+              });
+              initPlan(newPet.id, {
+                species: formData.species,
+                breed: formData.breedName,
+                birthDate: formData.birthDate
+              }).catch(function () {});
+            }
+            _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+              title: '添加成功',
+              icon: 'success'
+            });
+            setTimeout(function () {
+              (0,_utils_navigation__WEBPACK_IMPORTED_MODULE_9__.safeNavigateBack)();
+            }, 1500);
+            _context.n = 6;
+            break;
+          case 5:
+            _context.p = 5;
+            _t = _context.v;
+            trackEvent('add_pet_failure');
+            message = _t instanceof Error ? _t.message : '添加失败，请重试';
+            _tarojs_taro__WEBPACK_IMPORTED_MODULE_5___default().showToast({
+              title: message,
+              icon: 'none'
+            });
+          case 6:
+            _context.p = 6;
+            setSubmitting(false);
+            return _context.f(6);
+          case 7:
+            return _context.a(2);
+        }
+      }, _callee, null, [[3, 5, 6, 7]]);
+    }));
+    return function handleSubmit() {
+      return _ref.apply(this, arguments);
+    };
+  }();
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+    className: "add-pet ".concat(themeClass),
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+      className: "add-pet__form",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label add-pet__label--required",
+          children: "\u540D\u5B57"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u8BF7\u8F93\u5165\u5BA0\u7269\u540D\u5B57",
+          placeholderClass: "add-pet__input-placeholder",
+          value: formData.name,
+          onInput: function onInput(e) {
+            return updateField('name', e.detail.value);
+          },
+          maxlength: 20
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label add-pet__label--required",
+          children: "\u7269\u79CD"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__species-group",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__species-btn ".concat(formData.species === 'dog' ? 'add-pet__species-btn--active' : ''),
+            onClick: function onClick() {
+              return handleSpeciesChange('dog');
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: "add-pet__species-icon",
+              children: "\uD83D\uDC15"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u72D7\u72D7"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__species-btn ".concat(formData.species === 'cat' ? 'add-pet__species-btn--active' : ''),
+            onClick: function onClick() {
+              return handleSpeciesChange('cat');
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: "add-pet__species-icon",
+              children: "\uD83D\uDC31"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u732B\u732B"
+            })]
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label add-pet__label--required",
+          children: "\u54C1\u79CD"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Picker, {
+          mode: "selector",
+          range: breedOptions,
+          rangeKey: "label",
+          value: selectedBreedIndex >= 0 ? selectedBreedIndex : 0,
+          onChange: handleBreedChange,
+          disabled: !formData.species,
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__picker",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: formData.breedName ? '' : 'add-pet__picker-placeholder',
+              children: formData.breedName || '请选择品种'
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: "add-pet__picker-arrow",
+              children: "\u25BC"
+            })]
+          })
+        })]
+      }), selectedBreed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__breed-info",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__breed-info-header",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+            className: "add-pet__breed-info-title",
+            children: ["\uD83D\uDCCB ", selectedBreed.name, "\u54C1\u79CD\u7279\u5F81"]
+          })
+        }), selectedBreed.commonDiseases.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__breed-info-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+            className: "add-pet__breed-info-label",
+            children: "\uD83C\uDFE5 \u5E38\u89C1\u75BE\u75C5"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__breed-info-tags",
+            children: selectedBreed.commonDiseases.map(function (d) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+                className: "add-pet__breed-info-tag add-pet__breed-info-tag--warn",
+                children: d
+              }, d);
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__breed-info-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+            className: "add-pet__breed-info-label",
+            children: "\u2696\uFE0F \u6807\u51C6\u4F53\u91CD"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+            className: "add-pet__breed-info-value",
+            children: [selectedBreed.weightRange.min, " ~ ", selectedBreed.weightRange.max, " kg"]
+          })]
+        }), selectedBreed.dietRestrictions.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__breed-info-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+            className: "add-pet__breed-info-label",
+            children: "\uD83D\uDEAB \u996E\u98DF\u7981\u5FCC"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__breed-info-tags",
+            children: selectedBreed.dietRestrictions.map(function (d) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+                className: "add-pet__breed-info-tag add-pet__breed-info-tag--danger",
+                children: d
+              }, d);
+            })
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label add-pet__label--required",
+          children: "\u6027\u522B"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__gender-group",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__gender-btn ".concat(formData.gender === 'male' ? 'add-pet__gender-btn--active' : ''),
+            onClick: function onClick() {
+              return updateField('gender', 'male');
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u2642\uFE0F"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u516C"
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__gender-btn ".concat(formData.gender === 'female' ? 'add-pet__gender-btn--active' : ''),
+            onClick: function onClick() {
+              return updateField('gender', 'female');
+            },
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u2640\uFE0F"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u6BCD"
+            })]
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label add-pet__label--required",
+          children: "\u51FA\u751F\u65E5\u671F"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Picker, {
+          mode: "date",
+          value: formData.birthDate,
+          onChange: handleBirthDateChange,
+          end: new Date().toISOString().split('T')[0],
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__picker",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: formData.birthDate ? '' : 'add-pet__picker-placeholder',
+              children: formData.birthDate || '请选择出生日期'
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: "add-pet__picker-arrow",
+              children: "\u25BC"
+            })]
+          })
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u4F53\u91CD\uFF08kg\uFF09"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u8BF7\u8F93\u5165\u4F53\u91CD",
+          placeholderClass: "add-pet__input-placeholder",
+          type: "digit",
+          value: formData.weight,
+          onInput: function onInput(e) {
+            return updateField('weight', e.detail.value);
+          }
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u6BDB\u8272"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u5982\uFF1A\u6A58\u8272\u3001\u9ED1\u767D\u3001\u4E09\u82B1",
+          placeholderClass: "add-pet__input-placeholder",
+          value: formData.coatColor,
+          onInput: function onInput(e) {
+            return updateField('coatColor', e.detail.value);
+          }
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u662F\u5426\u7EDD\u80B2"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__switch-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+            className: "add-pet__switch-label",
+            children: formData.isNeutered ? '已绝育' : '未绝育'
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Switch, {
+            checked: formData.isNeutered,
+            onChange: function onChange(e) {
+              return updateField('isNeutered', e.detail.value);
+            },
+            color: "#FF8C42"
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u82AF\u7247\u53F7"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u8BF7\u8F93\u5165\u82AF\u7247\u53F7",
+          placeholderClass: "add-pet__input-placeholder",
+          value: formData.microchipId,
+          onInput: function onInput(e) {
+            return updateField('microchipId', e.detail.value);
+          },
+          maxlength: 30
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u8FC7\u654F\u53F2"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u5982\uFF1A\u9E21\u8089\u3001\u82B1\u7C89\uFF08\u9017\u53F7\u5206\u9694\uFF09",
+          placeholderClass: "add-pet__input-placeholder",
+          value: formData.allergies,
+          onInput: function onInput(e) {
+            return updateField('allergies', e.detail.value);
+          }
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u7528\u836F\u53F2"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u5982\uFF1A\u5FC3\u810F\u836F\u3001\u5173\u8282\u4FDD\u5065\u54C1\uFF08\u9017\u53F7\u5206\u9694\uFF09",
+          placeholderClass: "add-pet__input-placeholder",
+          value: formData.medications,
+          onInput: function onInput(e) {
+            return updateField('medications', e.detail.value);
+          }
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u6162\u6027\u75C5"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Input, {
+          className: "add-pet__input",
+          placeholder: "\u5982\uFF1A\u7CD6\u5C3F\u75C5\u3001\u5173\u8282\u708E\uFF08\u9017\u53F7\u5206\u9694\uFF09",
+          placeholderClass: "add-pet__input-placeholder",
+          value: formData.chronicConditions,
+          onInput: function onInput(e) {
+            return updateField('chronicConditions', e.detail.value);
+          }
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u5907\u6CE8"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Textarea, {
+          className: "add-pet__textarea",
+          placeholder: "\u5907\u6CE8\u4FE1\u606F\uFF08\u9009\u586B\uFF09",
+          placeholderClass: "add-pet__textarea-placeholder",
+          value: formData.notes,
+          onInput: function onInput(e) {
+            return updateField('notes', e.detail.value);
+          },
+          maxlength: 200
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__form-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          className: "add-pet__label",
+          children: "\u5934\u50CF"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+          className: "add-pet__photo-area",
+          onClick: handleChooseAvatar,
+          children: formData.avatarUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Image, {
+            className: "add-pet__photo-preview",
+            src: formData.avatarUrl,
+            mode: "aspectFill",
+            lazyLoad: true
+          }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+            className: "add-pet__photo-placeholder",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              className: "add-pet__photo-icon",
+              children: "\uD83D\uDCF7"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+              children: "\u70B9\u51FB\u9009\u62E9\u7167\u7247"
+            })]
+          })
+        })]
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+      className: "add-pet__submit-wrap",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.View, {
+        className: "add-pet__submit-btn ".concat(submitting ? 'add-pet__submit-btn--disabled' : ''),
+        onClick: submitting ? undefined : handleSubmit,
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_tarojs_components__WEBPACK_IMPORTED_MODULE_16__.Text, {
+          children: submitting ? '提交中...' : '提交'
+        })
+      })
+    })]
+  });
+}
+
+/***/ }),
+
+/***/ "./src/pagesPet/add/index.tsx":
+/*!************************************!*\
+  !*** ./src/pagesPet/add/index.tsx ***!
+  \************************************/
+/***/ (function(__unused_webpack_module, __unused_webpack___webpack_exports__, __webpack_require__) {
+
+/* harmony import */ var _tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @tarojs/runtime */ "./node_modules/@tarojs/runtime/dist/runtime.esm.js");
+/* harmony import */ var _node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_add_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !!../../../node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/add/index!./index.tsx */ "./node_modules/@tarojs/taro-loader/lib/entry-cache.js?name=pagesPet/add/index!./src/pagesPet/add/index.tsx");
+
+
+var config = {"navigationBarTitleText":"添加宠物"};
+
+
+var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig)(_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_add_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"], 'pagesPet/add/index', {root:{cn:[]}}, config || {}))
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_tarojs_taro_loader_lib_entry_cache_js_name_pagesPet_add_index_index_tsx__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+
+/***/ })
+
+},
+/******/ function(__webpack_require__) { // webpackRuntimeModules
+/******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
+/******/ __webpack_require__.O(0, ["pagesPet/sub-vendors","sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/ad46eb011750498141202c06d6a54fd7","sub-common/53c676dc54a90fa031d0d212976af696","sub-common/768a8bdc99340ebc9871b27d737f9bf1","sub-common/084a7625e5a94df19215dd3f71376275","sub-common/362017fe540ca8d425bcc5fff5d81d56","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/add/index.tsx"); });
+/******/ var __webpack_exports__ = __webpack_require__.O();
+/******/ }
+]);
+//# sourceMappingURL=index.js.map

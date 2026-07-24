@@ -1,3 +1,10 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 登录页 — 温馨家庭主题
+// ============================================
+
 .login-page {
   display: flex;
   flex-direction: column;
@@ -5,74 +12,167 @@
   justify-content: center;
   min-height: 100vh;
   padding: 40px 32px;
-  background: linear-gradient(180deg, #F5F7FA 0%, #E8F0FE 100%);
+  background: $gradient-page;
+  position: relative;
+  overflow: hidden;
+  animation: pageEnter 0.5s ease-out;
 }
 
+// —— 背景装饰光晕 ——
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba($color-primary, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: warmBreathe 4s ease-in-out infinite;
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  bottom: 100px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba($color-primary-light, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: warmBreathe 4s ease-in-out 1.5s infinite;
+}
+
+// —— 爪印装饰 ——
+.login-paw-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.login-paw {
+  position: absolute;
+  font-size: 28rpx;
+  opacity: 0;
+}
+
+.login-paw--1 { top: 15%; left: 10%; animation: pawFloat1 6s ease-in-out infinite; }
+.login-paw--2 { top: 25%; right: 12%; animation: pawFloat2 7s ease-in-out 1s infinite; }
+.login-paw--3 { bottom: 30%; left: 8%; animation: pawFloat3 5.5s ease-in-out 2s infinite; }
+.login-paw--4 { top: 40%; right: 8%; animation: pawFloat1 6.5s ease-in-out 0.5s infinite; }
+.login-paw--5 { bottom: 20%; right: 15%; animation: pawFloat2 7.5s ease-in-out 1.8s infinite; }
+
+// —— 星星装饰 ——
+.login-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.login-star {
+  position: absolute;
+  font-size: 24rpx;
+  color: rgba($color-primary-light, 0.5);
+}
+
+.login-star--1 { top: 10%; right: 20%; animation: starTwinkle1 3s ease-in-out infinite; }
+.login-star--2 { top: 30%; left: 15%; animation: starTwinkle2 3.5s ease-in-out 0.5s infinite; }
+.login-star--3 { bottom: 35%; right: 25%; animation: starTwinkle3 2.8s ease-in-out 1s infinite; }
+.login-star--4 { top: 50%; left: 10%; animation: starTwinkle1 3.2s ease-in-out 1.5s infinite; }
+.login-star--5 { bottom: 15%; left: 20%; animation: starTwinkle2 2.5s ease-in-out 0.8s infinite; }
+
 .login-logo {
+  position: relative;
+  z-index: 1;
   width: 160px;
   height: 160px;
   margin-bottom: 24px;
   border-radius: 32px;
-  background: #FFF;
-  box-shadow: 0 8px 24px rgba(74, 144, 217, 0.12);
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  box-shadow: 0 0 32rpx rgba($color-primary, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 48px;
+  animation: popupBounceIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1), rootGlow 4s ease-in-out 0.6s infinite;
 }
 
 .login-title {
+  position: relative;
+  z-index: 1;
   font-size: 36px;
-  font-weight: 600;
-  color: #1A1A1A;
+  font-weight: $font-weight-bold;
+  @include gold-gradient-text;
   margin-bottom: 12px;
+  animation: fadeInUp 0.5s ease-out 0.15s both;
 }
 
 .login-subtitle {
+  position: relative;
+  z-index: 1;
   font-size: 28px;
-  color: #666;
+  color: $color-text-hint;
   margin-bottom: 80px;
   text-align: center;
   line-height: 1.6;
+  animation: fadeInUp 0.5s ease-out 0.25s both;
 }
 
 .login-btn {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 96px;
   line-height: 96px;
   text-align: center;
-  background: #4A90D9;
-  color: #FFF;
+  background: $gradient-warm;
+  color: $color-text-inverse;
   font-size: 32px;
-  font-weight: 500;
+  font-weight: $font-weight-semibold;
   border-radius: 48px;
   border: none;
   margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
-}
+  box-shadow: 0 8px 24px rgba($color-primary, 0.3);
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.5s ease-out 0.35s both;
+  @include press-feedback;
 
-.login-btn:active {
-  opacity: 0.8;
+  &:active {
+    box-shadow: 0 4px 12px rgba($color-primary, 0.2);
+  }
 }
 
 .login-btn-loading {
   opacity: 0.6;
+  pointer-events: none;
 }
 
 .login-agreement {
+  position: relative;
+  z-index: 1;
   font-size: 24px;
-  color: #999;
+  color: $color-text-hint;
   text-align: center;
   line-height: 1.6;
+  animation: fadeInUp 0.5s ease-out 0.45s both;
 }
 
 .login-agreement-link {
-  color: #4A90D9;
+  color: $color-primary-light;
 }
 
 .login-error {
-  color: #F5222D;
+  position: relative;
+  z-index: 1;
+  color: $color-coral;
   font-size: 26px;
   margin-bottom: 24px;
   text-align: center;
+  animation: fadeInUp 0.4s ease-out;
 }

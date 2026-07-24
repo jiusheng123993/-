@@ -13,3 +13,6 @@ export { SyncService, getSyncService, type SyncRecord, type SyncStatus, type Syn
 export { familyService } from './familyService'
 export { timelineService } from './timelineService'
 export { generateHealthReport, formatReportAsText, type HealthReport } from './reportService'
+export { getWardrobeOverview, getAccessoriesBySlot, equipAccessory, unequipAccessory, saveTryOnSnapshot, unlockAccessory, getLocalOutfitForPet, updateLocalOutfit, debouncedEquipAccessory, debouncedUnequipAccessory, clearOutfitSaveTimer, createWardrobeError, mapWardrobeErrorCode } from './wardrobeService'
+export { getThemeSuiteOverview, generateThemeSuite, getThemeSuiteTaskStatus, pollThemeSuiteTask, saveThemeSuiteResult, getThemeQuota, canGenerateTheme, getActiveThemeTask } from './themeSuiteService'
+export { buildOutfitPreview, toggleSlotInOutfit, clearAllSlots, getEquippedCount, getEmptySlots, getSlotLabel, isOutfitEmpty, areOutfitsEqual, mergeOutfitSlots, type OutfitPreview } from './outfitComposition'

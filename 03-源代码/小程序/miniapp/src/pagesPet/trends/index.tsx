@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { View, Text, ScrollView, Button } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useDidShow } from '@tarojs/taro'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { logger } from '../../logger'
 import PetSwitcher from '../../components/PetSwitcher'
-import FloatingNav from '../../components/FloatingNav'
 import PaywallPopup from '../../components/PaywallPopup'
 import AnomalyMarker from '../../components/AnomalyMarker'
 import PageLoading from '../../components/PageLoading'
@@ -985,7 +985,6 @@ export default function PetTrendsPage() {
         <Text className='pet-trends__disclaimer-text'>{disclaimerText}</Text>
       </View>
 
-      <FloatingNav />
     </View>
   )
 }

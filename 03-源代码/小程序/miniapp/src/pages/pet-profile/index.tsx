@@ -4,21 +4,41 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import PageLoading from '../../components/PageLoading'
+import PetAvatar from '../../components/PetAvatar'
+import { useThemeClass } from '../../hooks/useThemeClass'
+import type { ExpressionContext } from '../../types/avatarTypes'
 import './index.scss'
+
+const defaultExpressionContext: ExpressionContext = {
+  todayEntry: null,
+  hasAnomaly: false,
+  anomalyCount: 0,
+  riskLevel: null,
+  streakDays: 0,
+  isBirthday: false,
+  isVaccineComplete: false,
+  isRecovery: false,
+  isDeceased: false,
+}
 
 export default function PetProfile() {
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isInitialized = useAuthStore(state => state.isInitialized)
-  const { pets, currentPet, fetchPets, switchPet, removePet } = usePetStore()
+  const { pets, currentPet, fetchPets, switchPet, markPetDeceased } = usePetStore()
   const [pageReady, setPageReady] = useState(false)
+  const themeClass = useThemeClass()
 
   const pet = currentPet || (pets.length > 0 ? pets[0] : undefined)
 
   useEffect(() => {
     if (!isInitialized) return
     if (!isAuthenticated || !user) {
-      Taro.reLaunch({ url: '/pages/login/index' })
+      const pages = Taro.getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      if (currentPage && currentPage.route !== 'pages/login/index') {
+        Taro.reLaunch({ url: '/pages/login/index' })
+      }
       return
     }
     const loadData = async () => {
@@ -39,31 +59,29 @@ export default function PetProfile() {
   const handleMarkDeceased = () => {
     if (!pet) return
     Taro.showModal({
-      title: '⚠️ 危险操作',
-      content: `你正在将「${pet.name}」标记为离世。\n\n此操作将永久删除该宠物的所有健康记录、日记、疫苗记录等数据，且不可恢复。\n\n请再次确认。`,
-      confirmText: '我了解风险',
-      confirmColor: '#e74c3c',
+      title: '标记宠物离世',
+      content: `你正在将「${pet.name}」标记为已离世。\n\n宠物的所有回忆、健康记录、日记和照片将被永久保留在「时光」中，你可以随时回顾与它的点点滴滴。\n\n此操作不可撤销，是否继续？`,
+      confirmText: '温柔告别',
+      confirmColor: '#6B5B7B',
       cancelText: '取消',
       success: (firstRes) => {
         if (firstRes.confirm) {
           Taro.showModal({
-            title: '最终确认',
-            content: `请输入「${pet.name}」以确认删除：`,
+            title: '最后的确认',
+            content: `请输入「${pet.name}」以确认标记离世：`,
             editable: true as boolean,
             placeholderText: `输入「${pet.name}」确认`,
-            confirmText: '确认删除',
-            confirmColor: '#e74c3c',
+            confirmText: '确认标记',
+            confirmColor: '#6B5B7B',
             cancelText: '取消',
             success: async (secondRes) => {
               if (secondRes.confirm && (secondRes as unknown as Record<string, unknown>).content === pet.name) {
                 try {
-                  await removePet(pet.id)
-                  Taro.showToast({ title: '已标记离世', icon: 'success' })
-                  if (pets.length <= 1) {
-                    setPageReady(false)
-                    if (user) await fetchPets(user.id)
-                    setPageReady(true)
-                  }
+                  const today = new Date().toISOString().slice(0, 10)
+                  await markPetDeceased(pet.id, today)
+                  Taro.showToast({ title: `${pet.name}已安息`, icon: 'none' })
+                  if (user) await fetchPets(user.id)
+                  setPageReady(true)
                 } catch {
                   Taro.showToast({ title: '操作失败，请重试', icon: 'none' })
                 }
@@ -83,7 +101,7 @@ export default function PetProfile() {
 
   if (pets.length === 0) {
     return (
-      <View className='profile-page'>
+      <View className={`profile-page ${themeClass}`}>
         <View className='profile-empty'>
           <View className='profile-empty-icon'>🐾</View>
           <Text className='profile-empty-text'>还没有添加宠物</Text>
@@ -99,12 +117,23 @@ export default function PetProfile() {
   const activePet = pet!
 
   return (
-    <ScrollView className='profile-page' scrollY>
+    <ScrollView className={`profile-page ${themeClass}`} scrollY>
       <View className='profile-header'>
         <View className='profile-avatar'>
-          <Text className='profile-avatar-emoji'>{activePet.species === 'cat' ? '🐱' : '🐶'}</Text>
+          <PetAvatar
+            species={activePet.species}
+            petName={activePet.name}
+            expressionContext={defaultExpressionContext}
+            size={80}
+          />
         </View>
         <Text className='profile-name'>{activePet.name}</Text>
+        {activePet.isDeceased && (
+          <View className='profile-deceased-badge'>
+            <Text className='profile-deceased-icon'>🕊️</Text>
+            <Text className='profile-deceased-text'>已回喵星</Text>
+          </View>
+        )}
         <Text className='profile-breed'>{activePet.breed || '未知品种'}</Text>
         <View className='profile-tags'>
           {activePet.gender && <Text className='profile-tag'>{activePet.gender === 'male' ? '♂ 公' : '♀ 母'}</Text>}
@@ -209,6 +238,10 @@ export default function PetProfile() {
           <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/avatar-customize/index')}>
             <Text className='profile-action-icon'>🎨</Text>
             <Text className='profile-action-label'>形象定制</Text>
+          </View>
+          <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/wardrobe/index')}>
+            <Text className='profile-action-icon'>👗</Text>
+            <Text className='profile-action-label'>换装</Text>
           </View>
         </View>
       </View>

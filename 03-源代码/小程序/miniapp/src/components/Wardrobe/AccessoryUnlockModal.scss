@@ -1,0 +1,131 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+.unlock-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  @include flex-center;
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: $color-bg-overlay;
+  }
+
+  &__card {
+    position: relative;
+    width: 600rpx;
+    max-height: 80vh;
+    background: $color-bg-card;
+    border-radius: $radius-lg;
+    border: 1px solid $color-border;
+    padding: $spacing-xl $spacing-lg $spacing-lg;
+    @include bounce-enter;
+    overflow-y: auto;
+  }
+
+  &__bar {
+    width: 64rpx;
+    height: 8rpx;
+    border-radius: $radius-full;
+    background: $color-border;
+    margin: 0 auto $spacing-lg;
+  }
+
+  &__icon {
+    @include flex-center;
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: $radius-xl;
+    background: var(--primary-bg, rgba(200, 142, 168, 0.08));
+    border: 2rpx solid $color-border-light;
+    margin: 0 auto $spacing-md;
+  }
+
+  &__icon-text {
+    font-size: 56rpx;
+  }
+
+  &__title {
+    font-size: $font-size-xl;
+    color: $color-text-primary;
+    font-weight: $font-weight-bold;
+    text-align: center;
+    display: block;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__info {
+    background: $color-bg-secondary;
+    border-radius: $radius-sm;
+    padding: $spacing-md;
+    margin-bottom: $spacing-md;
+  }
+
+  &__info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-xs 0;
+
+    &:not(:last-child) {
+      border-bottom: 1rpx solid $color-divider;
+    }
+  }
+
+  &__info-label {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+  }
+
+  &__info-value {
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+    font-weight: $font-weight-medium;
+  }
+
+  &__description {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    display: block;
+    text-align: center;
+    margin-bottom: $spacing-lg;
+    line-height: 1.6;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__btn {
+    @include flex-center;
+    height: 88rpx;
+    border-radius: $radius-sm;
+    @include press-feedback;
+
+    &--primary {
+      background: $gradient-gold;
+    }
+
+    &--secondary {
+      background: $color-bg-secondary;
+      border: 1rpx solid $color-border;
+    }
+  }
+
+  &__btn-text {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__btn--primary &__btn-text {
+    color: $color-text-inverse;
+  }
+
+  &__btn--secondary &__btn-text {
+    color: $color-text-secondary;
+  }
+}

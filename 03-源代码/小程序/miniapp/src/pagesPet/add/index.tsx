@@ -1,15 +1,19 @@
 import { View, Text, Input, Picker, Switch, Textarea, Image } from '@tarojs/components'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useVaccine } from '../../hooks/useVaccine'
 import { useAuthStore } from '../../stores/authStore'
-import FloatingNav from '../../components/FloatingNav'
 import { BREED_DATA } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
+import { safeNavigateBack } from '../../utils/navigation'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import './index.scss'
+
+/** 草稿存储 key */
+const DRAFT_KEY = 'xhh_add_pet_draft'
 
 interface FormData {
   name: string
@@ -47,12 +51,40 @@ const INITIAL_FORM: FormData = {
   avatarUrl: '',
 }
 
+/** 从 storage 恢复草稿 */
+function loadDraft(): Partial<FormData> | null {
+  try {
+    const raw = Taro.getStorageSync(DRAFT_KEY)
+    if (raw) {
+      Taro.removeStorageSync(DRAFT_KEY) // 消费后清除
+      return JSON.parse(raw)
+    }
+  } catch {}
+  return null
+}
+
+/** 保存草稿到 storage */
+function saveDraft(data: FormData) {
+  try {
+    Taro.setStorageSync(DRAFT_KEY, JSON.stringify(data))
+  } catch {}
+}
+
 export default function AddPet() {
+  const themeClass = useThemeClass()
   const { addPet } = usePet()
   const { initPlan } = useVaccine()
   const { trackPageView, trackEvent } = useAnalytics()
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   const userId = useAuthStore(s => s.user?.id) || ''
-  const [formData, setFormData] = useState<FormData>({ ...INITIAL_FORM })
+  const [formData, setFormData] = useState<FormData>(() => {
+    // 尝试恢复草稿
+    const draft = loadDraft()
+    if (draft) {
+      return { ...INITIAL_FORM, ...draft }
+    }
+    return { ...INITIAL_FORM }
+  })
   const [submitting, setSubmitting] = useState(false)
   const [selectedBreed, setSelectedBreed] = useState<BreedItem | null>(null)
 
@@ -138,8 +170,30 @@ export default function AddPet() {
     return true
   }
 
+  /** 检查登录状态，未登录则保存草稿并引导登录 */
+  const ensureLoggedIn = (): boolean => {
+    if (isAuthenticated) return true
+    // 保存草稿到 storage
+    saveDraft(formData)
+    // 弹窗引导登录
+    Taro.showModal({
+      title: '需要登录',
+      content: '保存宠物信息需要登录账号。\n当前填写的内容不会丢失，登录后会自动恢复。',
+      confirmText: '去登录',
+      cancelText: '暂不',
+      success: (res) => {
+        if (res.confirm) {
+          Taro.navigateTo({ url: '/pages/login/index' })
+        }
+      },
+    })
+    return false
+  }
+
   const handleSubmit = async () => {
     if (!validate()) return
+    // 未登录则弹窗引导登录，不继续提交
+    if (!ensureLoggedIn()) return
 
     setSubmitting(true)
     try {
@@ -176,7 +230,7 @@ export default function AddPet() {
 
       Taro.showToast({ title: '添加成功', icon: 'success' })
       setTimeout(() => {
-        Taro.navigateBack()
+        safeNavigateBack()
       }, 1500)
     } catch (err) {
       trackEvent('add_pet_failure')
@@ -188,7 +242,7 @@ export default function AddPet() {
   }
 
   return (
-    <View className='add-pet'>
+    <View className={`add-pet ${themeClass}`}>
       <View className='add-pet__form'>
         <View className='add-pet__form-item'>
           <Text className='add-pet__label add-pet__label--required'>名字</Text>
@@ -428,7 +482,6 @@ export default function AddPet() {
         </View>
       </View>
 
-      <FloatingNav />
     </View>
   )
 }

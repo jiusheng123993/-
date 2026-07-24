@@ -1,5 +1,6 @@
 import { chat, guardCheck } from './aiProvider'
 import { checkInput } from '../utils/ruleGuard'
+import { requireAuth } from '../utils/authGuard'
 
 function sanitizeInput(text: string): string {
   return text.replace(/[<>\n\r]/g, '').substring(0, 50)
@@ -10,6 +11,8 @@ export async function interpretName(
   breed: string,
   birthDate: string
 ): Promise<string> {
+  requireAuth()
+
   const safeName = sanitizeInput(name)
   const safeBreed = sanitizeInput(breed)
   const safeBirthDate = sanitizeInput(birthDate)
@@ -40,6 +43,8 @@ export async function recommendNames(
   birthDate: string,
   gender: string
 ): Promise<string> {
+  requireAuth()
+
   const safeBreed = sanitizeInput(breed)
   const safeBirthDate = sanitizeInput(birthDate)
   const safeGender = sanitizeInput(gender)

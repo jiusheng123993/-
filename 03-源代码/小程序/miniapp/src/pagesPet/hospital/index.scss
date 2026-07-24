@@ -1,7 +1,11 @@
+﻿@import '../../styles/_theme';
+@import '../../styles/_animations';
+
 .hospital-page {
   min-height: 100vh;
-  background: #F5F7FA;
+  background: $gradient-page;
   padding-bottom: 200rpx;
+  animation: pageEnter 0.4s ease-out;
 }
 
 .hospital-page__search {
@@ -9,7 +13,8 @@
   align-items: center;
   gap: 16rpx;
   padding: 24rpx;
-  background: #FFFFFF;
+  background: $color-bg-card;
+  border-bottom: 1px solid $color-border;
 }
 
 .hospital-page__search-input-wrap {
@@ -19,55 +24,52 @@
   gap: 12rpx;
   height: 80rpx;
   padding: 0 24rpx;
-  background: #F5F7FA;
+  background: $color-primary-bg;
   border-radius: 40rpx;
+  border: 1px solid $color-border;
 }
 
 .hospital-page__search-icon {
   font-size: 28rpx;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
   flex-shrink: 0;
 }
 
 .hospital-page__search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #2C2C2C;
+  color: $color-text-primary;
   height: 100%;
 }
 
 .hospital-page__search-placeholder {
-  color: #B0B0B0;
+  color: $color-text-tertiary;
 }
 
 .hospital-page__search-btn {
   width: 120rpx;
   height: 80rpx;
-  background: #4A90D9;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
   border-radius: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-
-.hospital-page__search-btn:active {
-  transform: scale(0.96);
-  opacity: 0.9;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.25);
+  @include press-feedback;
 }
 
 .hospital-page__search-btn-text {
   font-size: 28rpx;
-  color: #FFFFFF;
-  font-weight: 600;
+  color: $color-text-inverse;
+  font-weight: $font-weight-semibold;
 }
 
 .hospital-page__filters {
   display: flex;
   gap: 16rpx;
   padding: 16rpx 24rpx;
-  background: #FFFFFF;
+  background: $color-bg-card;
   overflow-x: auto;
   white-space: nowrap;
 }
@@ -77,36 +79,38 @@
   align-items: center;
   justify-content: center;
   padding: 12rpx 28rpx;
-  background: #F5F7FA;
+  background: $color-primary-bg;
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 32rpx;
-  transition: all 0.3s ease;
+  transition: all $transition-normal;
   flex-shrink: 0;
 }
 
 .hospital-page__filter-tag--active {
-  background: #4A90D9;
+  background: $color-primary;
+  border-color: $color-primary;
 }
 
 .hospital-page__filter-tag-text {
   font-size: 26rpx;
-  color: #6B6B6B;
-  font-weight: 500;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
 }
 
 .hospital-page__filter-tag--active .hospital-page__filter-tag-text {
-  color: #FFFFFF;
-  font-weight: 600;
+  color: $color-text-inverse;
+  font-weight: $font-weight-semibold;
 }
 
 .hospital-page__disclaimer {
   padding: 16rpx 24rpx;
-  background: #FFFFFF;
+  background: $color-bg-card;
 }
 
 .hospital-page__disclaimer-text {
   display: block;
   font-size: 22rpx;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
   line-height: 1.5;
 }
 
@@ -116,6 +120,7 @@
   align-items: center;
   justify-content: center;
   padding: 160rpx 48rpx;
+  animation: fadeInScale 0.4s ease-out;
 }
 
 .hospital-page__empty-icon {
@@ -125,14 +130,14 @@
 
 .hospital-page__empty-text {
   font-size: 30rpx;
-  color: #8C8C8C;
-  font-weight: 500;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
   margin-bottom: 12rpx;
 }
 
 .hospital-page__empty-hint {
   font-size: 24rpx;
-  color: #B0B0B0;
+  color: $color-text-tertiary;
   text-align: center;
 }
 
@@ -144,16 +149,15 @@
 }
 
 .hospital-page__card {
-  background: #FFFFFF;
-  border-radius: 32rpx;
+  @include card-base;
   padding: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
+  transition: all $transition-normal;
+  animation: cardStaggerIn 0.4s ease-out both;
 }
 
 .hospital-page__card:active {
   transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.02);
+  opacity: 0.9;
 }
 
 .hospital-page__card-header {
@@ -173,8 +177,8 @@
 
 .hospital-page__card-name {
   font-size: 30rpx;
-  font-weight: 700;
-  color: #2C2C2C;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -189,7 +193,7 @@
 
 .hospital-page__card-type-text {
   font-size: 22rpx;
-  font-weight: 600;
+  font-weight: $font-weight-semibold;
 }
 
 .hospital-page__card-rating {
@@ -202,14 +206,14 @@
 
 .hospital-page__card-stars {
   font-size: 24rpx;
-  color: #FAAD14;
+  color: $color-primary;
   letter-spacing: 2rpx;
 }
 
 .hospital-page__card-rating-text {
   font-size: 26rpx;
-  color: #FAAD14;
-  font-weight: 700;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
 }
 
 .hospital-page__card-info {
@@ -227,14 +231,14 @@
 
 .hospital-page__card-info-icon {
   font-size: 24rpx;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
   flex-shrink: 0;
   margin-top: 2rpx;
 }
 
 .hospital-page__card-info-text {
   font-size: 26rpx;
-  color: #6B6B6B;
+  color: $color-text-secondary;
   line-height: 1.5;
   flex: 1;
 }
@@ -248,27 +252,28 @@
 
 .hospital-page__card-service-tag {
   padding: 8rpx 20rpx;
-  background: #F5F7FA;
+  background: $color-primary-bg;
   border-radius: 20rpx;
 }
 
 .hospital-page__card-service-tag--more {
-  background: #E6F7FF;
+  background: rgba($color-primary, 0.1);
+  border: 1px solid $color-border;
 }
 
 .hospital-page__card-service-tag-text {
   font-size: 22rpx;
-  color: #6B6B6B;
+  color: $color-text-secondary;
 }
 
 .hospital-page__card-service-tag--more .hospital-page__card-service-tag-text {
-  color: #4A90D9;
-  font-weight: 600;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
 }
 
 .hospital-page__card-detail {
   padding: 20rpx 0;
-  border-top: 2rpx solid #F0F0F0;
+  border-top: 1px solid $color-divider;
   margin-bottom: 20rpx;
 }
 
@@ -283,7 +288,7 @@
 .hospital-page__card-detail-label {
   display: block;
   font-size: 24rpx;
-  color: #8C8C8C;
+  color: $color-text-tertiary;
   margin-bottom: 12rpx;
 }
 
@@ -296,8 +301,8 @@
 .hospital-page__card-detail-tag {
   font-size: 22rpx;
   padding: 8rpx 20rpx;
-  background: #FFF2E8;
-  color: #D46B08;
+  background: rgba($color-primary, 0.1);
+  color: $color-primary-light;
   border-radius: 20rpx;
 }
 
@@ -305,7 +310,7 @@
   display: flex;
   gap: 16rpx;
   padding-top: 20rpx;
-  border-top: 2rpx solid #F0F0F0;
+  border-top: 1px solid $color-divider;
 }
 
 .hospital-page__card-btn {
@@ -316,21 +321,17 @@
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  transition: all 0.3s ease;
-}
-
-.hospital-page__card-btn:active {
-  transform: scale(0.96);
+  @include press-feedback;
 }
 
 .hospital-page__card-btn--call {
-  background: #F6FFED;
-  border: 2rpx solid #52C41A;
+  background: rgba($color-success, 0.1);
+  border: 1px solid rgba($color-success, 0.3);
 }
 
 .hospital-page__card-btn--nav {
-  background: #E6F7FF;
-  border: 2rpx solid #4A90D9;
+  background: rgba($color-primary, 0.1);
+  border: 1px solid $color-border;
 }
 
 .hospital-page__card-btn-icon {
@@ -339,13 +340,13 @@
 
 .hospital-page__card-btn-text {
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: $font-weight-semibold;
 }
 
 .hospital-page__card-btn--call .hospital-page__card-btn-text {
-  color: #52C41A;
+  color: $color-success;
 }
 
 .hospital-page__card-btn--nav .hospital-page__card-btn-text {
-  color: #4A90D9;
+  color: $color-primary;
 }

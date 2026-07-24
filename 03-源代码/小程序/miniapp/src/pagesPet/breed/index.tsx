@@ -1,8 +1,8 @@
 import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { BREED_DATA, type BreedItem } from '../../data/petKnowledge/breeds'
-import FloatingNav from '../../components/FloatingNav'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import './index.scss'
@@ -202,8 +202,6 @@ export default function PetBreed() {
           </View>
         )}
       </ScrollView>
-
-      <FloatingNav />
 
       <View className='breed-page__disclaimer'>
         <Text className='breed-page__disclaimer-text'>{disclaimerText}</Text>

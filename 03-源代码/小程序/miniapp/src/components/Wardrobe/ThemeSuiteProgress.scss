@@ -1,0 +1,223 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+.theme-progress {
+  padding: $spacing-lg $spacing-md;
+  @include card-base;
+  border-radius: $radius-md;
+  margin: 0 $spacing-md $spacing-lg;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+
+  &__status-icon {
+    font-size: $font-size-lg;
+    animation: pulse 2s ease-in-out infinite;
+
+    &--primary {
+      color: var(--primary, #C88EA8);
+    }
+
+    &--warning {
+      color: var(--warning, #C8A078);
+    }
+
+    &--success {
+      color: var(--success, #8EA898);
+      animation: none;
+    }
+
+    &--danger {
+      color: var(--danger, #C87070);
+      animation: none;
+    }
+  }
+
+  &__status-label {
+    font-size: $font-size-md;
+    color: $color-text-primary;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__close {
+    width: 48rpx;
+    height: 48rpx;
+    @include flex-center;
+    border-radius: $radius-full;
+    background: $color-bg-secondary;
+    @include press-feedback;
+  }
+
+  &__close-icon {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+  }
+
+  &__steps {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0 $spacing-sm;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+  }
+
+  &__step-dot {
+    width: 40rpx;
+    height: 40rpx;
+    border-radius: $radius-full;
+    @include flex-center;
+    background: $color-bg-secondary;
+    border: 2rpx solid var(--border, rgba(200, 142, 168, 0.15));
+    position: relative;
+    z-index: 1;
+
+    &--done {
+      background: var(--success, #8EA898);
+      border-color: var(--success, #8EA898);
+    }
+
+    &--active {
+      background: var(--primary, #C88EA8);
+      border-color: var(--primary, #C88EA8);
+    }
+
+    &--failed {
+      background: var(--danger, #C87070);
+      border-color: var(--danger, #C87070);
+    }
+
+    &--blocked {
+      background: var(--danger, #C87070);
+      border-color: var(--danger, #C87070);
+    }
+  }
+
+  &__step-check {
+    font-size: $font-size-xs;
+    color: $color-text-inverse;
+  }
+
+  &__step-x {
+    font-size: $font-size-xs;
+    color: $color-text-inverse;
+  }
+
+  &__step-pulse {
+    position: absolute;
+    inset: -8rpx;
+    border-radius: $radius-full;
+    border: 2rpx solid var(--primary, #C88EA8);
+    animation: pulse 2s ease-in-out infinite;
+    opacity: 0.4;
+  }
+
+  &__step-label {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+    margin-top: $spacing-xs;
+    text-align: center;
+
+    &--active {
+      color: $color-text-primary;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  &__step-line {
+    position: absolute;
+    top: 20rpx;
+    left: calc(50% + 24rpx);
+    right: calc(-50% + 24rpx);
+    height: 2rpx;
+    background: var(--border, rgba(200, 142, 168, 0.15));
+    z-index: 0;
+
+    &--done {
+      background: var(--success, #8EA898);
+    }
+
+    &--failed {
+      background: var(--danger, #C87070);
+    }
+  }
+
+  &__notice {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+    border-radius: $radius-sm;
+    margin-bottom: $spacing-md;
+
+    &--warning {
+      background: rgba(var(--warning-rgb, 200, 160, 120), 0.1);
+      border: 1rpx solid rgba(var(--warning-rgb, 200, 160, 120), 0.2);
+    }
+
+    &--danger {
+      background: var(--danger-light, rgba(200, 112, 112, 0.12));
+      border: 1rpx solid var(--danger-bg, rgba(200, 112, 112, 0.2));
+    }
+  }
+
+  &__notice-icon {
+    font-size: $font-size-md;
+    flex-shrink: 0;
+  }
+
+  &__notice-text {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: 1.5;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-md;
+    justify-content: center;
+  }
+
+  &__btn {
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $radius-round;
+    @include flex-center;
+    @include press-feedback;
+
+    &--primary {
+      background: var(--primary, #C88EA8);
+    }
+
+    &--secondary {
+      background: $color-bg-secondary;
+      border: 1rpx solid var(--border, rgba(200, 142, 168, 0.15));
+    }
+  }
+
+  &__btn-text {
+    font-size: $font-size-sm;
+    color: $color-text-inverse;
+    font-weight: $font-weight-medium;
+
+    .theme-progress__btn--secondary & {
+      color: $color-text-secondary;
+    }
+  }
+}

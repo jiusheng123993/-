@@ -57,7 +57,7 @@
 
   &__progress-bar {
     height: 4px;
-    background: $color-bg-tertiary;
+    background: $color-bg-card;
     border-radius: $radius-full;
     margin-bottom: 16px;
     overflow: hidden;
@@ -93,7 +93,7 @@
     width: 32px;
     height: 32px;
     border-radius: $radius-sm;
-    background: $color-bg-secondary;
+    background: $color-bg-card;
     display: flex;
     align-items: center;
     justify-content: center;

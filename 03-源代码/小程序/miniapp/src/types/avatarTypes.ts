@@ -1,4 +1,5 @@
 import type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes'
+import type { OutfitSlotMap, OutfitLayer } from './wardrobeTypes'
 
 export type { PetHealthEntry, HealthRiskLevel }
 
@@ -34,6 +35,7 @@ export interface ExpressionConfig {
   mouth: string
   accessory: string
   animation: AnimationType
+  outfitSlots?: OutfitSlotMap
 }
 
 export interface ExpressionContext {
@@ -61,6 +63,7 @@ export interface SvgPetFace {
   mouth: string
   accessory: string
   animation: string
+  outfitLayers?: OutfitLayer[]
 }
 
 export interface SeedreamGenerateParams {
@@ -99,4 +102,100 @@ export interface AvatarCustomization {
   accessory?: string
   generatedAt?: string
   cartoonUrl?: string
+}
+
+// 2D 形象生成相关类型
+export type AvatarAngle = 'front' | 'left' | 'right' | 'back' | 'left45' | 'right45'
+
+export type AvatarExpression =
+  | 'happy' | 'sad' | 'excited' | 'sleepy'
+  | 'love' | 'cool' | 'angry' | 'thinking'
+  | 'surprised' | 'crying' | 'celebrate' | 'naughty'
+
+export type AvatarAction =
+  | 'sit' | 'stand' | 'lie' | 'jump'
+  | 'wave' | 'eat' | 'play' | 'sleep'
+
+export interface ExpressionOption {
+  key: AvatarExpression
+  label: string
+  emoji: string
+}
+
+export interface AngleOption {
+  key: AvatarAngle
+  label: string
+}
+
+export interface ActionOption {
+  key: AvatarAction
+  label: string
+  emoji: string
+}
+
+export interface Avatar2DImage {
+  id: string
+  angle: AvatarAngle
+  expression: AvatarExpression | AvatarAction
+  imageUrl: string
+  isSelected: boolean
+  sortOrder: number
+}
+
+export interface Avatar2DPack {
+  task: GenerationTask | null
+  images: Avatar2DImage[]
+}
+
+export interface Avatar3DModel {
+  id: string
+  modelUrl: string
+  thumbnailUrl: string | null
+  createdAt: string
+}
+
+export interface Avatar3DResult {
+  task: GenerationTask | null
+  model: Avatar3DModel | null
+}
+
+export type TaskType = '2d' | '3d' | 'theme_suite'
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed'
+
+export interface GenerationTask {
+  id: string
+  userId: string
+  petId: string
+  taskType: TaskType
+  status: TaskStatus
+  progress: number
+  referencePhotoUrl: string | null
+  resultData: Record<string, unknown> | null
+  error: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UploadPhotoResult {
+  success: boolean
+  data?: { url: string }
+  message?: string
+}
+
+export interface Generate2DResult {
+  success: boolean
+  data?: { taskId: string; status: string }
+  message?: string
+}
+
+export interface Generate3DResult {
+  success: boolean
+  data?: { taskId: string; status: string }
+  message?: string
+}
+
+export interface AvatarQuota {
+  isMember: boolean
+  generation2D: { used: number; limit: number }
+  generation3D: { used: number; limit: number }
 }

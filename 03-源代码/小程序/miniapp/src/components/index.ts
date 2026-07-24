@@ -1,4 +1,3 @@
-export { default as FloatingNav } from './FloatingNav'
 export { default as PaywallPopup } from './PaywallPopup'
 export { default as PrivacyPopup } from './PrivacyPopup'
 export { default as PetCard } from './PetCard'

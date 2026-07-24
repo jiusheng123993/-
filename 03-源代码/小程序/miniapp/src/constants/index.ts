@@ -38,3 +38,51 @@ export const ACHIEVEMENT_TYPES = {
   rainbow_bridge: { title: '彩虹桥纪念', subtitle: '永远在心中', icon: '🌈', color: '#B37FEB' },
   holiday: { title: '节日快乐', subtitle: '和毛孩子一起过节', icon: '🎄', color: '#F5222D' },
 } as const;
+
+export const AVATAR_EXPRESSIONS = [
+  { key: 'happy', label: '开心', emoji: '😊' },
+  { key: 'sad', label: '难过', emoji: '😢' },
+  { key: 'excited', label: '兴奋', emoji: '🤩' },
+  { key: 'sleepy', label: '困倦', emoji: '😴' },
+  { key: 'love', label: '爱心', emoji: '🥰' },
+  { key: 'cool', label: '得意', emoji: '😎' },
+  { key: 'angry', label: '生气', emoji: '😤' },
+  { key: 'thinking', label: '思考', emoji: '🤔' },
+  { key: 'surprised', label: '惊讶', emoji: '😱' },
+  { key: 'crying', label: '哭泣', emoji: '😭' },
+  { key: 'celebrate', label: '庆祝', emoji: '🥳' },
+  { key: 'naughty', label: '调皮', emoji: '😜' },
+] as const;
+
+export const AVATAR_ACTIONS = [
+  { key: 'sit', label: '坐着', emoji: '🧘' },
+  { key: 'stand', label: '站着', emoji: '🧍' },
+  { key: 'lie', label: '趴着', emoji: '🛌' },
+  { key: 'jump', label: '跳跃', emoji: '🦘' },
+  { key: 'wave', label: '招手', emoji: '🐾' },
+  { key: 'eat', label: '吃东西', emoji: '🍖' },
+  { key: 'play', label: '玩球', emoji: '🎾' },
+  { key: 'sleep', label: '睡觉', emoji: '💤' },
+] as const;
+
+export const AVATAR_ANGLES = [
+  { key: 'front', label: '正面' },
+  { key: 'left', label: '左侧' },
+  { key: 'right', label: '右侧' },
+  { key: 'back', label: '背面' },
+  { key: 'left45', label: '45°左' },
+  { key: 'right45', label: '45°右' },
+] as const;
+
+export const AVATAR_ACTION_ANGLES = AVATAR_ANGLES.slice(0, 3);
+
+export const AVATAR_PHOTO_FREE_COUNT = 1;
+export const AVATAR_3D_MONTHLY_LIMIT = 3;
+
+export const STORAGE_KEYS = {
+  AVATAR_2D_TASK_ID: 'xhh_avatar_2d_task_id',
+  AVATAR_3D_TASK_ID: 'xhh_avatar_3d_task_id',
+  AVATAR_PHOTO_COUNT: 'xhh_avatar_photo_count',
+  AVATAR_3D_COUNT: 'xhh_avatar_3d_count',
+  AVATAR_3D_COUNT_DATE: 'xhh_avatar_3d_count_date',
+} as const;

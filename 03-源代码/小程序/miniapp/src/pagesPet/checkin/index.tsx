@@ -1,12 +1,12 @@
 import { View, Text, Input, Textarea } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { useAuthStore } from '../../stores/authStore'
 import { useShareStore } from '../../stores/shareStore'
 import { usePet } from '../../hooks/usePet'
 import { useCheckin } from '../../hooks/useCheckin'
 import PetSwitcher from '../../components/PetSwitcher'
-import FloatingNav from '../../components/FloatingNav'
 import { PageLoading, PageError, PetAvatar, AchievementCard, AchievementShareCard, EmergencyAlert, CarePlanCard } from '../../components'
 import CrisisReferralCard from '../../components/CrisisReferralCard'
 import { useSubscribeStore } from '../../stores/subscribeStore'
@@ -135,6 +135,7 @@ function computeHasAnomaly(mood: Checkin['mood'], appetite: Checkin['appetite'],
 }
 
 export default function PetCheckin() {
+  const themeClass = useThemeClass()
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
   const { checkins, todayCheckin, streakDays, isLoading: checkinLoading, initUser, doCheckin, fetchCheckins } = useCheckin()
   const userId = useAuthStore(s => s.user?.id) || ''
@@ -387,7 +388,6 @@ export default function PetCheckin() {
     return (
       <View className='pet-checkin'>
         <PageLoading />
-        <FloatingNav />
       </View>
     )
   }
@@ -396,13 +396,12 @@ export default function PetCheckin() {
     return (
       <View className='pet-checkin'>
         <PageError message={error} onRetry={loadCheckinData} />
-        <FloatingNav />
       </View>
     )
   }
 
   return (
-    <View className='pet-checkin'>
+    <View className={`pet-checkin ${themeClass}`}>
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
@@ -704,7 +703,6 @@ export default function PetCheckin() {
         />
       )}
 
-      <FloatingNav />
     </View>
   )
 }

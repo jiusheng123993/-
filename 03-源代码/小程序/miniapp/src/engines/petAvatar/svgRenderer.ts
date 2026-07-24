@@ -1,4 +1,6 @@
 import type { ExpressionConfig, PetSpecies, SvgPetFace } from '../../types/avatarTypes'
+import type { OutfitLayer } from '../../types/wardrobeTypes'
+import { composeOutfitLayers } from './outfitRenderer'
 
 export type { SvgPetFace }
 
@@ -47,12 +49,14 @@ const ACCESSORY_DEFS: Record<string, string> = {
 export function buildSvgFace(
   expression: ExpressionConfig,
   species: PetSpecies = 'dog',
-  size: number = 120
+  size: number = 120,
+  outfitLayers: OutfitLayer[] = []
 ): string {
   const base = species === 'cat' ? CAT_BASE : DOG_BASE
   const eyes = EYE_DEFS[expression.eyes] || EYE_DEFS.happy
   const mouth = MOUTH_DEFS[expression.mouth] || MOUTH_DEFS.smile
   const accessory = ACCESSORY_DEFS[expression.accessory] || ''
+  const outfitSvg = composeOutfitLayers(outfitLayers)
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}">
@@ -71,6 +75,7 @@ export function buildSvgFace(
         ${mouth}
         ${accessory}
       </g>
+      ${outfitSvg}
     </svg>
   `.trim()
 
@@ -87,8 +92,9 @@ export function svgToDataUri(svg: string): string {
 export function getPetFaceDataUri(
   expression: ExpressionConfig,
   species: PetSpecies = 'dog',
-  size: number = 120
+  size: number = 120,
+  outfitLayers: OutfitLayer[] = []
 ): string {
-  const svg = buildSvgFace(expression, species, size)
+  const svg = buildSvgFace(expression, species, size, outfitLayers)
   return svgToDataUri(svg)
 }
