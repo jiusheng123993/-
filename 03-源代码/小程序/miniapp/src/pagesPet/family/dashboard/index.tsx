@@ -14,6 +14,7 @@ import {
   shareFamilyPhoto,
 } from '../../../services/familyPhotoService'
 import type { PetProfile } from '../../../services/petService'
+import type { FamilyPhoto } from '../../../types/familyTypes'
 import './index.scss'
 
 const ROLE_ICONS: Record<string, string> = {
@@ -470,7 +471,7 @@ export default function FamilyDashboard() {
           </View>
         ) : (
           <View className='fd-album-grid'>
-            {photos.map(photo => (
+            {photos.map((photo: FamilyPhoto) => (
               <View key={photo.id} className='fd-album-item'>
                 <View
                   className='fd-album-item-img'
