@@ -1,16 +1,17 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useFamilyStore } from '../../stores/familyStore'
 import { getCheckinStats } from '../../services/checkinService'
-import { getFamilyMoments } from '../../services/momentService'
+import { getFamilyMoments, getNewMoments } from '../../services/momentService'
 import { generateWeeklyReport, generateFamilyWeeklySummary } from '../../services/weeklyReportService'
 import type { WeeklyReport } from '../../services/weeklyReportService'
 import type { PetMoment } from '../../types/familyTypes'
 import type { PetProfile } from '../../services/petService'
 import { useThemeClass } from '../../hooks/useThemeClass'
+import { usePolling } from '../../hooks/usePolling'
 import { calculateHealthScore, buildRankedPets, type WeeklyReportWithPet, type QuickEntry } from './utils'
 import FamilyReport from './FamilyReport'
 import FamilyRanking from './FamilyRanking'
@@ -34,6 +35,9 @@ export default function FamilyPage() {
   const [pageReady, setPageReady] = useState(false)
   const [petScores, setPetScores] = useState<Record<string, number>>({})
   const [moments, setMoments] = useState<PetMoment[]>([])
+  const [newMomentsCount, setNewMomentsCount] = useState(0)
+  const [showNewMoments, setShowNewMoments] = useState(false)
+  const lastMomentTimeRef = useRef<string>('')
   const [weeklyReport, setWeeklyReport] = useState<{
     summary: string
     overallMood: WeeklyReport['overallMood']
@@ -108,6 +112,9 @@ export default function FamilyPage() {
         const familyId = useFamilyStore.getState().currentFamily?.id || 'fam_001'
         const familyMoments = await getFamilyMoments(familyId, 5)
         setMoments(familyMoments)
+        if (familyMoments.length > 0) {
+          lastMomentTimeRef.current = familyMoments[0].createdAt
+        }
       } catch {
         setMoments([])
       }
@@ -118,6 +125,42 @@ export default function FamilyPage() {
   }, [isInitialized, isAuthenticated, user])
 
   const rankedPets = useMemo(() => buildRankedPets(pets, petScores), [pets, petScores])
+
+  const pollNewMoments = useCallback(async () => {
+    const familyId = useFamilyStore.getState().currentFamily?.id || 'fam_001'
+    const since = lastMomentTimeRef.current
+    if (!since) return
+    try {
+      const newMoments = await getNewMoments(familyId, since)
+      if (newMoments.length > 0) {
+        setNewMomentsCount(prev => prev + newMoments.length)
+        setShowNewMoments(true)
+      }
+    } catch {
+      // 静默失败，轮询不打断用户
+    }
+  }, [])
+
+  usePolling(pollNewMoments, {
+    intervalMs: 30000,
+    enabled: pageReady,
+    immediateOnResume: true,
+  })
+
+  const handleLoadNewMoments = useCallback(async () => {
+    const familyId = useFamilyStore.getState().currentFamily?.id || 'fam_001'
+    try {
+      const latestMoments = await getFamilyMoments(familyId, 5)
+      setMoments(latestMoments)
+      if (latestMoments.length > 0) {
+        lastMomentTimeRef.current = latestMoments[0].createdAt
+      }
+      setNewMomentsCount(0)
+      setShowNewMoments(false)
+    } catch {
+      // 静默处理
+    }
+  }, [])
 
   const handlePetClick = async (pet: PetProfile) => {
     await switchPet(pet.id)
@@ -152,6 +195,14 @@ export default function FamilyPage() {
       )}
 
       <FamilyRanking rankedPets={rankedPets} />
+
+      {showNewMoments && newMomentsCount > 0 && (
+        <View className='family-new-moments-bar' onClick={handleLoadNewMoments}>
+          <Text className='family-new-moments-dot' />
+          <Text className='family-new-moments-text'>{newMomentsCount}条新动态</Text>
+          <Text className='family-new-moments-arrow'>查看 ▸</Text>
+        </View>
+      )}
 
       <FamilyMoments moments={moments} />
 

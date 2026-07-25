@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+﻿import create from 'zustand'
 import type { PetFamily, PetFamilyMember, FamilyPhoto } from '../types/familyTypes'
 import { familyService } from '../services/familyService'
 
@@ -17,7 +17,7 @@ interface FamilyState {
   removeMember: (memberId: string) => Promise<void>
   updateMemberRole: (memberId: string, role: string) => Promise<void>
   fetchPhotos: () => Promise<void>
-  savePhoto: (photoUrl: string, memberCount: number, memberNames: string[]) => Promise<void>
+  savePhoto: (photoUrl: string, memberCount: number, memberNames: string[], photoType?: 'generated' | 'uploaded', description?: string) => Promise<void>
   deletePhoto: (photoId: string) => Promise<void>
 }
 
@@ -132,12 +132,12 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     }
   },
 
-  savePhoto: async (photoUrl, memberCount, memberNames) => {
+  savePhoto: async (photoUrl, memberCount, memberNames, photoType = 'generated' as 'generated' | 'uploaded', description: string | undefined) => {
     const family = get().currentFamily
     if (!family) return
     set({ error: null })
     try {
-      const photo = await familyService.saveFamilyPhoto(family.id, photoUrl, memberCount, memberNames)
+      const photo = await familyService.saveFamilyPhoto(family.id, photoUrl, memberCount, memberNames, photoType, description)
       set((state) => ({
         photos: [photo, ...state.photos],
       }))

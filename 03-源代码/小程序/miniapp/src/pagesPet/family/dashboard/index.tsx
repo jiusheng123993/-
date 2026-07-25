@@ -14,7 +14,7 @@ import {
   shareFamilyPhoto,
 } from '../../../services/familyPhotoService'
 import type { PetProfile } from '../../../services/petService'
-import type { FamilyPhoto } from '../../../types/familyTypes'
+import type { PetFamilyMember, FamilyPhoto } from '../../../types/familyTypes'
 import './index.scss'
 
 const ROLE_ICONS: Record<string, string> = {
@@ -42,6 +42,8 @@ export default function FamilyDashboard() {
   const [photoGenerating, setPhotoGenerating] = useState(false)
   const [showPhotoPreview, setShowPhotoPreview] = useState(false)
   const [canvasVisible, setCanvasVisible] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [albumHighlight, setAlbumHighlight] = useState(false)
   const themeClass = useThemeClass()
 
   useEffect(() => {
@@ -83,19 +85,35 @@ export default function FamilyDashboard() {
   }, [currentFamily, members, user])
 
   const familyPets = useMemo(() => {
-    const petMap = new Map(pets.map(p => [p.id, p]))
+    const petMap = new Map(pets.map((p: PetProfile) => [p.id, p]))
     return members
-      .map(member => ({
+      .map((member: PetFamilyMember) => ({
         member,
         pet: petMap.get(member.petId),
       }))
-      .filter(item => item.pet)
+      .filter((item: { member: PetFamilyMember; pet: PetProfile | undefined }) => item.pet)
   }, [members, pets])
 
   const unassignedPets = useMemo(() => {
-    const assignedIds = new Set(members.map(m => m.petId))
-    return pets.filter(p => !assignedIds.has(p.id))
+    const assignedIds = new Set(members.map((m: PetFamilyMember) => m.petId))
+    return pets.filter((p: PetProfile) => !assignedIds.has(p.id))
   }, [pets, members])
+
+  const photoGroups = useMemo(() => {
+    const groups: { label: string; photos: FamilyPhoto[] }[] = []
+    const sorted = [...photos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    for (const photo of sorted) {
+      const date = new Date(photo.createdAt)
+      const label = `${date.getFullYear()}年${date.getMonth() + 1}月`
+      let last = groups[groups.length - 1]
+      if (!last || last.label !== label) {
+        last = { label, photos: [] }
+        groups.push(last)
+      }
+      last.photos.push(photo)
+    }
+    return groups
+  }, [photos])
 
   const handleCreateFamily = async () => {
     if (creating) return
@@ -168,10 +186,10 @@ export default function FamilyDashboard() {
 
     try {
       const roleMap: Record<string, string> = {}
-      members.forEach(m => { roleMap[m.petId] = m.role || '' })
+      members.forEach((m: PetFamilyMember) => { roleMap[m.petId] = m.role || '' })
 
       const photoPets = familyPets
-        .map(fp => fp.pet)
+        .map((fp: { member: PetFamilyMember; pet: PetProfile | undefined }) => fp.pet)
         .filter((p): p is PetProfile => !!p)
 
       const photoData = buildFamilyPhotoData(currentFamily.name, photoPets, roleMap)
@@ -192,9 +210,11 @@ export default function FamilyDashboard() {
     try {
       await saveFamilyPhoto(photoUrl)
       const memberNames = familyPets
-        .map(fp => fp.pet?.name)
+        .map((fp: { member: PetFamilyMember; pet: PetProfile | undefined }) => fp.pet?.name)
         .filter((n): n is string => !!n)
       await savePhoto(photoUrl, familyPets.length, memberNames)
+      setAlbumHighlight(true)
+      setTimeout(() => setAlbumHighlight(false), 2000)
       Taro.showToast({ title: '已保存到相册', icon: 'success' })
     } catch (err: unknown) {
       const error = err as { message?: string }
@@ -206,6 +226,32 @@ export default function FamilyDashboard() {
     if (!photoUrl) return
     await shareFamilyPhoto(photoUrl)
   }, [photoUrl])
+
+  const handleUploadPhoto = useCallback(async () => {
+    if (!currentFamily || uploading) return
+    setUploading(true)
+    try {
+      const res = await Taro.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+        sizeType: ['compressed'],
+      })
+      const tempFilePath = res.tempFiles[0].tempFilePath
+      const memberNames = familyPets
+        .map((fp: { member: PetFamilyMember; pet: PetProfile | undefined }) => fp.pet?.name)
+        .filter((n): n is string => !!n)
+      await savePhoto(tempFilePath, memberNames.length, memberNames, 'uploaded')
+      Taro.showToast({ title: '已上传到家庭相册', icon: 'success' })
+    } catch (err: unknown) {
+      const error = err as { message?: string }
+      if (error.message && !error.message.includes('cancel')) {
+        Taro.showToast({ title: error.message || '上传失败', icon: 'none' })
+      }
+    } finally {
+      setUploading(false)
+    }
+  }, [currentFamily, uploading, familyPets, savePhoto])
 
   if (!currentFamily) {
     return (
@@ -260,7 +306,7 @@ export default function FamilyDashboard() {
           </View>
           {familyPets.length > 0 && (
             <View className='fd-health-members'>
-              {familyPets.map(({ member, pet }) => {
+              {familyPets.map(({ member, pet }: { member: PetFamilyMember; pet: PetProfile | undefined }) => {
                 if (!pet) return null
                 const status = todayStatus[member.petId]
                 const isChecked = status?.checked
@@ -329,7 +375,7 @@ export default function FamilyDashboard() {
             <View className='fd-photo-generate'>
               <View className='fd-photo-generate-preview'>
                 <View className='fd-photo-generate-frame'>
-                  {familyPets.slice(0, 6).map(({ pet }, idx) => {
+                  {familyPets.slice(0, 6).map(({ pet }: { member: PetFamilyMember; pet: PetProfile | undefined }, idx: number) => {
                     if (!pet) return null
                     const angle = (idx / Math.min(familyPets.length, 6)) * 360
                     const radius = 60
@@ -384,7 +430,7 @@ export default function FamilyDashboard() {
           <Text className='fd-section-count'>{totalMembers}位</Text>
         </View>
         <View className='fd-members-grid'>
-          {familyPets.map(({ member, pet }, idx) => {
+          {familyPets.map(({ member, pet }: { member: PetFamilyMember; pet: PetProfile | undefined }, idx: number) => {
             if (!pet) return null
             const roleIcon = member.role ? ROLE_ICONS[member.role] || '' : ''
             return (
@@ -457,43 +503,85 @@ export default function FamilyDashboard() {
 
       <View className='fd-section'>
         <View className='fd-section-header'>
-          <Text className='fd-section-title'>📸 全家福相册</Text>
-          <Text className='fd-section-count'>{photos.length}张</Text>
+          <View className='fd-section-header-left'>
+            <Text className='fd-section-title'>📸 全家福相册</Text>
+            <Text className='fd-section-count'>{photos.length}张</Text>
+            {albumHighlight && <Text className='fd-album-new-dot'>NEW</Text>}
+          </View>
+          <View className='fd-upload-btn' onClick={handleUploadPhoto}>
+            <Text className='fd-upload-btn-text'>{uploading ? '⏳' : '📤'} 上传照片</Text>
+          </View>
         </View>
         {photosLoading ? (
           <View className='fd-album-loading'>
-            <Text>加载中...</Text>
+            <View className='fd-album-loading-spinner' />
+            <Text className='fd-album-loading-text'>加载相册中...</Text>
           </View>
         ) : photos.length === 0 ? (
           <View className='fd-album-empty'>
-            <Text className='fd-album-empty-icon'>🖼️</Text>
-            <Text className='fd-album-empty-text'>还没有保存过全家福<br />生成后点击"保存到相册"即可收藏</Text>
+            <View className='fd-album-empty-illustration'>
+              <Text className='fd-album-empty-illustration-icon'>📸</Text>
+              <View className='fd-album-empty-illustration-dots'>
+                <View className='fd-album-empty-dot' />
+                <View className='fd-album-empty-dot' />
+                <View className='fd-album-empty-dot' />
+              </View>
+            </View>
+            <Text className='fd-album-empty-title'>珍藏每一刻</Text>
+            <Text className='fd-album-empty-text'>生成全家福后点击"保存到相册"<br />或点击上方"上传照片"分享精彩瞬间</Text>
           </View>
         ) : (
-          <View className='fd-album-grid'>
-            {photos.map((photo: FamilyPhoto) => (
-              <View key={photo.id} className='fd-album-item'>
-                <View
-                  className='fd-album-item-img'
-                  onClick={() => Taro.previewImage({ urls: [photo.photoUrl], current: photo.photoUrl })}
-                >
-                  <View className='fd-album-item-placeholder'>
-                    <Text className='fd-album-item-emoji'>🏡</Text>
-                    <Text className='fd-album-item-count'>{photo.memberCount}位成员</Text>
-                  </View>
+          <View className={`fd-album-list ${albumHighlight ? 'fd-album-list--highlight' : ''}`}>
+            {photoGroups.map((group) => (
+              <View key={group.label} className='fd-album-group'>
+                <View className='fd-album-group-header'>
+                  <Text className='fd-album-group-label'>{group.label}</Text>
+                  <Text className='fd-album-group-count'>{group.photos.length}张</Text>
                 </View>
-                <View className='fd-album-item-info'>
-                  <Text className='fd-album-item-date'>{photo.createdAt.slice(0, 10)}</Text>
-                  <View className='fd-album-item-del' onClick={() => {
-                    Taro.showModal({
-                      title: '删除照片',
-                      content: '确认删除这张全家福记录吗？',
-                      confirmColor: '#E0856B',
-                      success: (res) => { if (res.confirm) deletePhoto(photo.id) },
-                    })
-                  }}>
-                    <Text className='fd-album-item-del-text'>删除</Text>
-                  </View>
+                <View className='fd-album-group-grid'>
+                  {group.photos.map((photo: FamilyPhoto) => (
+                    <View key={photo.id} className={`fd-album-item ${photo.photoType === 'uploaded' ? 'fd-album-item--uploaded' : ''}`}>
+                      <View
+                        className='fd-album-item-img'
+                        onClick={() => photo.photoUrl ? Taro.previewImage({ urls: [photo.photoUrl], current: photo.photoUrl }) : undefined}
+                      >
+                        <View className='fd-album-item-placeholder'>
+                          <Text className='fd-album-item-emoji'>{photo.photoType === 'uploaded' ? '🖼️' : '🏡'}</Text>
+                          {photo.photoType === 'uploaded' && (
+                            <View className='fd-album-item-badge'>
+                              <Text className='fd-album-item-badge-text'>用户上传</Text>
+                            </View>
+                          )}
+                        </View>
+                        <View className='fd-album-item-overlay'>
+                          <Text className='fd-album-item-overlay-text'>点击查看</Text>
+                        </View>
+                      </View>
+                      <View className='fd-album-item-body'>
+                        <View className='fd-album-item-header'>
+                          <Text className='fd-album-item-date'>{photo.createdAt.slice(0, 10)}</Text>
+                          <View className='fd-album-item-meta'>
+                            <Text className='fd-album-item-count'>{photo.memberCount}位成员</Text>
+                          </View>
+                        </View>
+                        {photo.description && (
+                          <Text className='fd-album-item-desc'>{photo.description}</Text>
+                        )}
+                        <View className='fd-album-item-actions'>
+                          <View className='fd-album-item-del' onClick={() => {
+                            Taro.showModal({
+                              title: '删除照片',
+                              content: '确认删除这张全家福记录吗？',
+                              confirmColor: '#E0856B',
+                              success: (res) => { if (res.confirm) deletePhoto(photo.id) },
+                            })
+                          }}>
+                            <Text className='fd-album-item-del-text'>删除</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
                 </View>
               </View>
             ))}

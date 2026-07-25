@@ -2670,22 +2670,27 @@ var familyService = {
     }))();
   },
   saveFamilyPhoto: function saveFamilyPhoto(familyId, photoUrl, memberCount, memberNames) {
+    var _arguments = arguments;
     return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().m(function _callee1() {
-      var data;
+      var photoType, description, data;
       return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_4__["default"])().w(function (_context1) {
         while (1) switch (_context1.n) {
           case 0:
+            photoType = _arguments.length > 4 && _arguments[4] !== undefined ? _arguments[4] : 'generated';
+            description = _arguments.length > 5 ? _arguments[5] : undefined;
             if (!useMock()) {
               _context1.n = 1;
               break;
             }
-            return _context1.a(2, _mock__WEBPACK_IMPORTED_MODULE_1__.mockApi.saveFamilyPhoto(familyId, photoUrl, memberCount, memberNames));
+            return _context1.a(2, _mock__WEBPACK_IMPORTED_MODULE_1__.mockApi.saveFamilyPhoto(familyId, photoUrl, memberCount, memberNames, photoType, description));
           case 1:
             _context1.n = 2;
             return _api__WEBPACK_IMPORTED_MODULE_0__.api.post("/api/families/".concat(familyId, "/photos"), {
               photo_url: photoUrl,
               member_count: memberCount,
-              member_names: memberNames
+              member_names: memberNames,
+              photo_type: photoType,
+              description: description
             });
           case 2:
             data = _context1.v;
@@ -3634,9 +3639,20 @@ var mockFamilyPhotos = [{
   familyId: 'fam_001',
   userId: 'user_001',
   photoUrl: '',
+  photoType: 'generated',
   memberCount: 2,
   memberNames: ['小橘', '旺财'],
   createdAt: new Date(Date.now() - 7 * 86400000).toISOString()
+}, {
+  id: 'fph_002',
+  familyId: 'fam_001',
+  userId: 'user_001',
+  photoUrl: '',
+  photoType: 'uploaded',
+  description: '小橘第一次洗澡的搞笑瞬间',
+  memberCount: 1,
+  memberNames: ['小橘'],
+  createdAt: new Date(Date.now() - 3 * 86400000).toISOString()
 }];
 var mockLineages = [];
 function generateMockMoments() {
@@ -4229,10 +4245,15 @@ var mockApi = {
   }(),
   saveFamilyPhoto: function () {
     var _saveFamilyPhoto = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_1__["default"])().m(function _callee19(familyId, photoUrl, memberCount, memberNames) {
-      var photo;
+      var photoType,
+        description,
+        photo,
+        _args19 = arguments;
       return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_1__["default"])().w(function (_context19) {
         while (1) switch (_context19.n) {
           case 0:
+            photoType = _args19.length > 4 && _args19[4] !== undefined ? _args19[4] : 'generated';
+            description = _args19.length > 5 ? _args19[5] : undefined;
             _context19.n = 1;
             return wait();
           case 1:
@@ -4241,6 +4262,8 @@ var mockApi = {
               familyId: familyId,
               userId: 'user_001',
               photoUrl: photoUrl,
+              photoType: photoType,
+              description: description,
               memberCount: memberCount,
               memberNames: memberNames,
               createdAt: new Date().toISOString()
@@ -4474,6 +4497,31 @@ var mockApi = {
       return _getMoments.apply(this, arguments);
     }
     return getMoments;
+  }(),
+  getNewMoments: function () {
+    var _getNewMoments = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_1__["default"])().m(function _callee26(familyId, since) {
+      var sinceTime, result;
+      return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_1__["default"])().w(function (_context26) {
+        while (1) switch (_context26.n) {
+          case 0:
+            _context26.n = 1;
+            return wait(150);
+          case 1:
+            sinceTime = new Date(since).getTime();
+            result = mockMoments.filter(function (m) {
+              return m.familyId === familyId && new Date(m.createdAt).getTime() > sinceTime;
+            });
+            result.sort(function (a, b) {
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
+            return _context26.a(2, result);
+        }
+      }, _callee26);
+    }));
+    function getNewMoments(_x42, _x43) {
+      return _getNewMoments.apply(this, arguments);
+    }
+    return getNewMoments;
   }()
 };
 
@@ -5896,7 +5944,7 @@ var useAuthStore = (0,zustand__WEBPACK_IMPORTED_MODULE_2__["default"])(function 
 
 
 
-var useFamilyStore = (0,zustand__WEBPACK_IMPORTED_MODULE_1__.create)(function (set, get) {
+var useFamilyStore = (0,zustand__WEBPACK_IMPORTED_MODULE_1__["default"])(function (set, get) {
   return {
     families: [],
     currentFamily: null,
@@ -6239,10 +6287,17 @@ var useFamilyStore = (0,zustand__WEBPACK_IMPORTED_MODULE_1__.create)(function (s
     }(),
     savePhoto: function () {
       var _savePhoto = (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/(0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])().m(function _callee8(photoUrl, memberCount, memberNames) {
-        var family, photo, _t8;
+        var photoType,
+          description,
+          family,
+          photo,
+          _args8 = arguments,
+          _t8;
         return (0,E_03_miniapp_node_modules_babel_runtime_helpers_esm_regenerator_js__WEBPACK_IMPORTED_MODULE_3__["default"])().w(function (_context8) {
           while (1) switch (_context8.p = _context8.n) {
             case 0:
+              photoType = _args8.length > 3 && _args8[3] !== undefined ? _args8[3] : 'generated';
+              description = _args8.length > 4 ? _args8[4] : undefined;
               family = get().currentFamily;
               if (family) {
                 _context8.n = 1;
@@ -6255,7 +6310,7 @@ var useFamilyStore = (0,zustand__WEBPACK_IMPORTED_MODULE_1__.create)(function (s
               });
               _context8.p = 2;
               _context8.n = 3;
-              return _services_familyService__WEBPACK_IMPORTED_MODULE_0__.familyService.saveFamilyPhoto(family.id, photoUrl, memberCount, memberNames);
+              return _services_familyService__WEBPACK_IMPORTED_MODULE_0__.familyService.saveFamilyPhoto(family.id, photoUrl, memberCount, memberNames, photoType, description);
             case 3:
               photo = _context8.v;
               set(function (state) {

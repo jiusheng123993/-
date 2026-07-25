@@ -91,9 +91,21 @@ const mockFamilyPhotos: FamilyPhoto[] = [
     familyId: 'fam_001',
     userId: 'user_001',
     photoUrl: '',
+    photoType: 'generated',
     memberCount: 2,
     memberNames: ['小橘', '旺财'],
     createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+  },
+  {
+    id: 'fph_002',
+    familyId: 'fam_001',
+    userId: 'user_001',
+    photoUrl: '',
+    photoType: 'uploaded',
+    description: '小橘第一次洗澡的搞笑瞬间',
+    memberCount: 1,
+    memberNames: ['小橘'],
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
   },
 ]
 
@@ -306,13 +318,15 @@ export const mockApi = {
     await wait()
     return mockFamilyPhotos.filter(p => p.familyId === familyId).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   },
-  saveFamilyPhoto: async (familyId: string, photoUrl: string, memberCount: number, memberNames: string[]): Promise<FamilyPhoto> => {
+  saveFamilyPhoto: async (familyId: string, photoUrl: string, memberCount: number, memberNames: string[], photoType: 'generated' | 'uploaded' = 'generated', description?: string): Promise<FamilyPhoto> => {
     await wait()
     const photo: FamilyPhoto = {
       id: 'fph_' + Date.now(),
       familyId,
       userId: 'user_001',
       photoUrl,
+      photoType,
+      description,
       memberCount,
       memberNames,
       createdAt: new Date().toISOString(),
@@ -432,6 +446,16 @@ export const mockApi = {
     if (limit && limit > 0) {
       result = result.slice(0, limit)
     }
+    return result
+  },
+
+  getNewMoments: async (familyId: string, since: string): Promise<PetMoment[]> => {
+    await wait(150)
+    const sinceTime = new Date(since).getTime()
+    const result = mockMoments.filter(
+      m => m.familyId === familyId && new Date(m.createdAt).getTime() > sinceTime
+    )
+    result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     return result
   },
 }

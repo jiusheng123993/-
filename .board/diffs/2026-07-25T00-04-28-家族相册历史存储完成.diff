@@ -1,0 +1,142 @@
+diff --git a/.board/index.html b/.board/index.html
+index 24aea44..76e349b 100644
+--- a/.board/index.html
++++ b/.board/index.html
+@@ -744,7 +744,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ <div class="card">
+ <div class="card-title">📜 历史时间线</div>
+ <div class="timeline">
+-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <div class="tl-item done" data-diff="2026-07-24T23-42-33-组件拆分---family-index-tsx.diff">
++                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="tl-item done" data-diff="2026-07-25T00-01-58-家族相册历史存储功能.diff">
++            <div class="tl-time">2026-07-25 08:01</div>
++            <div class="tl-title">家族相册历史存储功能</div>
++            <div class="tl-desc">实现全家福历史相册存储：扩展FamilyPhoto类型定义、Mock层新增getFamilyPhotos/saveFamilyPhoto/deletePhoto API、Service层和Store层新增照片相册状态管理、Dashboard UI新增历史相册视图（相册网格、空状态、删除确认）。同时修复了familyStore.ts的zustand v3导入方式问题和lineage/index.tsx的setLineage未定义错误，TypeScript编译零错误通过。</div>
++            <div class="tl-file">src/types/familyTypes.ts, src/services/mock.ts, src/services/familyService.ts, src/stores/familyStore.ts, src/pagesPet/family/dashboard/index.tsx, src/pagesPet/family/dashboard/index.scss, src/pagesPet/family/lineage/index.tsx</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-25T00-01-58-家族相册历史存储功能.diff', '家族相册历史存储功能')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-24T23-42-33-组件拆分---family-index-tsx.diff">
+             <div class="tl-time">2026-07-25 07:42</div>
+             <div class="tl-title">组件拆分 - family/index.tsx</div>
+             <div class="tl-desc">将family/index.tsx从536行拆分为5个子组件（FamilyReport/FamilyRanking/FamilyMoments/FamilyPetList/FamilyQuickGrid）+ 工具函数utils.ts，主文件精简到171行。补全缺失的SCSS样式定义（mood状态/周报概览/报告列表等），修正overallMood类型对齐上游WeeklyReport。</div>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/dist/common.js" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/dist/common.js"
+index aa5d850..8aacf6c 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/dist/common.js"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/dist/common.js"
+@@ -5896,7 +5896,7 @@ var useAuthStore = (0,zustand__WEBPACK_IMPORTED_MODULE_2__["default"])(function
+ 
+ 
+ 
+-var useFamilyStore = (0,zustand__WEBPACK_IMPORTED_MODULE_1__.create)(function (set, get) {
++var useFamilyStore = (0,zustand__WEBPACK_IMPORTED_MODULE_1__["default"])(function (set, get) {
+   return {
+     families: [],
+     currentFamily: null,
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx"
+index 6837a7e..0ddf2c8 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx"
+@@ -14,7 +14,7 @@ import {
+   shareFamilyPhoto,
+ } from '../../../services/familyPhotoService'
+ import type { PetProfile } from '../../../services/petService'
+-import type { FamilyPhoto } from '../../../types/familyTypes'
++import type { PetFamilyMember, FamilyPhoto } from '../../../types/familyTypes'
+ import './index.scss'
+ 
+ const ROLE_ICONS: Record<string, string> = {
+@@ -83,18 +83,18 @@ export default function FamilyDashboard() {
+   }, [currentFamily, members, user])
+ 
+   const familyPets = useMemo(() => {
+-    const petMap = new Map(pets.map(p => [p.id, p]))
++    const petMap = new Map(pets.map((p: PetProfile) => [p.id, p]))
+     return members
+-      .map(member => ({
++      .map((member: PetFamilyMember) => ({
+         member,
+         pet: petMap.get(member.petId),
+       }))
+-      .filter(item => item.pet)
++      .filter((item: { member: PetFamilyMember; pet: PetProfile | undefined }) => item.pet)
+   }, [members, pets])
+ 
+   const unassignedPets = useMemo(() => {
+-    const assignedIds = new Set(members.map(m => m.petId))
+-    return pets.filter(p => !assignedIds.has(p.id))
++    const assignedIds = new Set(members.map((m: PetFamilyMember) => m.petId))
++    return pets.filter((p: PetProfile) => !assignedIds.has(p.id))
+   }, [pets, members])
+ 
+   const handleCreateFamily = async () => {
+@@ -168,10 +168,10 @@ export default function FamilyDashboard() {
+ 
+     try {
+       const roleMap: Record<string, string> = {}
+-      members.forEach(m => { roleMap[m.petId] = m.role || '' })
++      members.forEach((m: PetFamilyMember) => { roleMap[m.petId] = m.role || '' })
+ 
+       const photoPets = familyPets
+-        .map(fp => fp.pet)
++        .map((fp: { member: PetFamilyMember; pet: PetProfile | undefined }) => fp.pet)
+         .filter((p): p is PetProfile => !!p)
+ 
+       const photoData = buildFamilyPhotoData(currentFamily.name, photoPets, roleMap)
+@@ -192,7 +192,7 @@ export default function FamilyDashboard() {
+     try {
+       await saveFamilyPhoto(photoUrl)
+       const memberNames = familyPets
+-        .map(fp => fp.pet?.name)
++        .map((fp: { member: PetFamilyMember; pet: PetProfile | undefined }) => fp.pet?.name)
+         .filter((n): n is string => !!n)
+       await savePhoto(photoUrl, familyPets.length, memberNames)
+       Taro.showToast({ title: '已保存到相册', icon: 'success' })
+@@ -260,7 +260,7 @@ export default function FamilyDashboard() {
+           </View>
+           {familyPets.length > 0 && (
+             <View className='fd-health-members'>
+-              {familyPets.map(({ member, pet }) => {
++              {familyPets.map(({ member, pet }: { member: PetFamilyMember; pet: PetProfile | undefined }) => {
+                 if (!pet) return null
+                 const status = todayStatus[member.petId]
+                 const isChecked = status?.checked
+@@ -329,7 +329,7 @@ export default function FamilyDashboard() {
+             <View className='fd-photo-generate'>
+               <View className='fd-photo-generate-preview'>
+                 <View className='fd-photo-generate-frame'>
+-                  {familyPets.slice(0, 6).map(({ pet }, idx) => {
++                  {familyPets.slice(0, 6).map(({ pet }: { member: PetFamilyMember; pet: PetProfile | undefined }, idx: number) => {
+                     if (!pet) return null
+                     const angle = (idx / Math.min(familyPets.length, 6)) * 360
+                     const radius = 60
+@@ -384,7 +384,7 @@ export default function FamilyDashboard() {
+           <Text className='fd-section-count'>{totalMembers}位</Text>
+         </View>
+         <View className='fd-members-grid'>
+-          {familyPets.map(({ member, pet }, idx) => {
++          {familyPets.map(({ member, pet }: { member: PetFamilyMember; pet: PetProfile | undefined }, idx: number) => {
+             if (!pet) return null
+             const roleIcon = member.role ? ROLE_ICONS[member.role] || '' : ''
+             return (
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx"
+index 99a70b1..2df75f4 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx"
+@@ -243,7 +243,7 @@ export default function LineagePage() {
+           try {
+             await familyService.removeLineage(lineageId)
+             const data = await familyService.getLineage(selectedPetId!)
+-            setLineage(data)
++            setLineageMap(prev => ({ ...prev, [selectedPetId!]: data }))
+             Taro.showToast({ title: '关系已解除', icon: 'success' })
+           } catch (err: unknown) {
+             const error = err as { message?: string }
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts"
+index fcf8da5..16af7e7 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts"
+@@ -1,4 +1,4 @@
+-﻿import { create } from 'zustand'
++﻿import create from 'zustand'
+ import type { PetFamily, PetFamilyMember, FamilyPhoto } from '../types/familyTypes'
+ import { familyService } from '../services/familyService'
+ 

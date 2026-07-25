@@ -88,11 +88,15 @@ export interface PetMilestone {
   createdAt: string
 }
 
+export type PhotoType = 'generated' | 'uploaded'
+
 export interface FamilyPhoto {
   id: string
   familyId: string
   userId: string
   photoUrl: string
+  photoType: PhotoType
+  description?: string
   memberCount: number
   memberNames: string[]
   createdAt: string

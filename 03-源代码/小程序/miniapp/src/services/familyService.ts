@@ -73,9 +73,9 @@ export const familyService = {
     return data || []
   },
 
-  async saveFamilyPhoto(familyId: string, photoUrl: string, memberCount: number, memberNames: string[]): Promise<FamilyPhoto> {
-    if (useMock()) return mockApi.saveFamilyPhoto(familyId, photoUrl, memberCount, memberNames)
-    const data = await api.post<FamilyPhoto>(`/api/families/${familyId}/photos`, { photo_url: photoUrl, member_count: memberCount, member_names: memberNames })
+  async saveFamilyPhoto(familyId: string, photoUrl: string, memberCount: number, memberNames: string[], photoType: 'generated' | 'uploaded' = 'generated', description?: string): Promise<FamilyPhoto> {
+    if (useMock()) return mockApi.saveFamilyPhoto(familyId, photoUrl, memberCount, memberNames, photoType, description)
+    const data = await api.post<FamilyPhoto>(`/api/families/${familyId}/photos`, { photo_url: photoUrl, member_count: memberCount, member_names: memberNames, photo_type: photoType, description })
     return data
   },
 

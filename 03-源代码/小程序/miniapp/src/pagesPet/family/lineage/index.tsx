@@ -243,7 +243,7 @@ export default function LineagePage() {
           try {
             await familyService.removeLineage(lineageId)
             const data = await familyService.getLineage(selectedPetId!)
-            setLineage(data)
+            setLineageMap(prev => ({ ...prev, [selectedPetId!]: data }))
             Taro.showToast({ title: '关系已解除', icon: 'success' })
           } catch (err: unknown) {
             const error = err as { message?: string }

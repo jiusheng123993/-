@@ -13,6 +13,12 @@ export async function getFamilyMoments(familyId: string, limit?: number): Promis
   return data || []
 }
 
+export async function getNewMoments(familyId: string, since: string): Promise<PetMoment[]> {
+  if (useMock()) return mockApi.getNewMoments(familyId, since)
+  const data = await api.get<PetMoment[]>(`/api/families/${familyId}/moments/new`, { since })
+  return data || []
+}
+
 export function formatMomentTime(isoString: string): string {
   const date = new Date(isoString)
   const now = new Date()
