@@ -56,8 +56,25 @@ const DIARY_TEMPLATES: Record<string, DiaryEntry[]> = {
   ],
 }
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+function entryDateStr(entry: PetHealthEntry): string {
+  if (entry.createdAt instanceof Date) {
+    return entry.createdAt.toISOString().slice(0, 10)
+  }
+  return String(entry.createdAt).slice(0, 10)
+}
+
+function hashCode(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+function pickDeterministic<T>(arr: T[], seed: string): T {
+  return arr[hashCode(seed) % arr.length]
 }
 
 export function generateDiaryEntry(
@@ -66,39 +83,41 @@ export function generateDiaryEntry(
   isBirthday: boolean,
   isRecovery: boolean
 ): DiaryEntry {
+  const seed = `${entry.id}_${entryDateStr(entry)}`
+
   if (isBirthday) {
-    return pickRandom(DIARY_TEMPLATES.birthday)
+    return pickDeterministic(DIARY_TEMPLATES.birthday, seed)
   }
 
   if (isRecovery) {
-    return pickRandom(DIARY_TEMPLATES.recovery)
+    return pickDeterministic(DIARY_TEMPLATES.recovery, seed)
   }
 
   if (streakDays >= 30) {
-    return pickRandom(DIARY_TEMPLATES.streak_30)
+    return pickDeterministic(DIARY_TEMPLATES.streak_30, seed)
   }
 
   if (streakDays >= 7) {
-    return pickRandom(DIARY_TEMPLATES.streak_7)
+    return pickDeterministic(DIARY_TEMPLATES.streak_7, seed)
   }
 
   if (streakDays >= 3 && !entry.hasAnomaly) {
-    return pickRandom(DIARY_TEMPLATES.streak_3)
+    return pickDeterministic(DIARY_TEMPLATES.streak_3, seed)
   }
 
   if (entry.hasAnomaly && entry.anomalyItems) {
     for (const anomaly of entry.anomalyItems) {
       if (DIARY_TEMPLATES[anomaly]) {
-        return pickRandom(DIARY_TEMPLATES[anomaly])
+        return pickDeterministic(DIARY_TEMPLATES[anomaly], seed)
       }
     }
   }
 
   if (!entry.hasAnomaly) {
-    return pickRandom(DIARY_TEMPLATES.all_normal)
+    return pickDeterministic(DIARY_TEMPLATES.all_normal, seed)
   }
 
-  return pickRandom(DIARY_TEMPLATES.default)
+  return pickDeterministic(DIARY_TEMPLATES.default, seed)
 }
 
 export function generateDiaryForToday(

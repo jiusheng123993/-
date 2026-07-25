@@ -5,7 +5,12 @@ import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
 import { recommendNames } from '../../services/namingService'
+import { sendChatMessage, type ChatContext } from '../../services/chatService'
+import { queryFood } from '../../services/foodService'
+import { timelineService } from '../../services/timelineService'
+import type { ChatMessage } from '../../types/chatTypes'
 import { CONFIG } from '../../config'
+import { logger } from '../../logger'
 import './index.scss'
 
 interface Message {
@@ -34,14 +39,6 @@ interface CardData {
   riskLevel?: string
   symptomInfo?: { label: string; value: string }[]
   hospitalList?: string[]
-}
-
-interface FoodData {
-  safe: boolean
-  risk: string
-  icon: string
-  desc: string
-  advice: string
 }
 
 interface CheckinItem {
@@ -134,17 +131,6 @@ const CHECKIN_ITEMS: CheckinItem[] = [
     ],
   },
 ]
-
-const FOOD_DATA: Record<string, FoodData> = {
-  '巧克力': { safe: false, risk: 'P0', icon: '🍫', desc: '巧克力含有可可碱，对狗有剧毒。即使少量也可能导致呕吐、腹泻、心率异常，严重可致死。', advice: '绝对禁止！如果误食请立即联系兽医。' },
-  '葡萄': { safe: false, risk: 'P0', icon: '🍇', desc: '葡萄和葡萄干对犬类有肾毒性，少量即可导致急性肾衰竭。', advice: '绝对禁止！即使是1-2颗也可能造成伤害。' },
-  '苹果': { safe: true, risk: 'P4', icon: '🍎', desc: '苹果果肉富含维生素，但要去核去籽（含氰化物），切成小块每次不超过1/4个。', advice: '安全适量，去核切小块作为零食。' },
-  '鸡胸肉': { safe: true, risk: 'P4', icon: '🍗', desc: '煮熟的鸡胸肉是优质蛋白质来源，低脂肪，白水煮熟即可。', advice: '安全推荐！煮熟无调味，适量喂食。' },
-  '胡萝卜': { safe: true, risk: 'P4', icon: '🥕', desc: '低热量健康零食，富含β-胡萝卜素和纤维，可生吃磨牙或煮熟。', advice: '安全推荐！洗净切小块。' },
-  '洋葱': { safe: false, risk: 'P0', icon: '🧅', desc: '洋葱含硫代硫酸盐，破坏红细胞导致溶血性贫血，生熟都有毒。', advice: '绝对禁止！任何形式的洋葱都不能吃。' },
-  '西瓜': { safe: true, risk: 'P4', icon: '🍉', desc: '西瓜果肉是安全的水分补充零食（去籽去皮），夏天适量喂食可补水。', advice: '安全适量，去籽去皮。' },
-  '牛油果': { safe: false, risk: 'P1', icon: '🥑', desc: '含有persin对狗可能引起呕吐腹泻，果核有窒息风险。', advice: '不推荐！安全起见不要喂。' },
-}
 
 const SYMPTOM_STEPS = [
   {
@@ -254,7 +240,9 @@ export default function Index() {
   const [namingStep, setNamingStep] = useState(-1)
   const [namingData, setNamingData] = useState<Record<string, string>>({})
   const [foodActive, setFoodActive] = useState(false)
+  const [memoryActive, setMemoryActive] = useState(false)
   const [showGreetingQuickActions, setShowGreetingQuickActions] = useState(true)
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
 
   const scrollRef = useRef<any>(null)
 
@@ -283,32 +271,52 @@ export default function Index() {
     addMessage({ type: 'user', content })
   }, [addMessage])
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = inputValue.trim()
     if (!text) return
     setInputValue('')
     setPlusMenuOpen(false)
     setShowGreetingQuickActions(false)
+
+    if (foodActive) {
+      selectFood(text)
+      return
+    }
+
+    if (memoryActive) {
+      handleMemoryRecord(text)
+      return
+    }
+
     addUserMsg(text)
 
+    const context: ChatContext = {
+      petId: petInfo.activePet?.id,
+      petName: petInfo.name,
+      petBreed: petInfo.breed,
+      petAge: petInfo.age,
+    }
+
     setIsTyping(true)
-    setTimeout(() => {
+    try {
+      const result = await sendChatMessage(text, context, chatHistory)
       setIsTyping(false)
 
-      if (text.includes('打卡') || text.includes('健康')) {
-        startCheckin()
-      } else if (text.includes('食物') || text.includes('能不能吃') || text.includes('可以吃')) {
-        startFoodCheck()
-      } else if (text.includes('症状') || text.includes('不舒服') || text.includes('生病')) {
-        startSymptomCheck()
-      } else if (text.includes('取名') || text.includes('名字')) {
-        startNaming()
-      } else if (text.includes('趋势') || text.includes('报告')) {
-        addAiMsg('想要查看健康趋势吗？\n\n可以跳转到健康趋势页面查看完整的健康数据图表和历史记录～')
+      if (result.blocked) {
+        addAiMsg(result.reply)
       } else {
-        addAiMsg('收到啦！我记下了 ✦\n\n你还可以试试：\n· 💩 打卡记录今天的健康状况\n· 🔍 查询某种食物能不能吃\n· 💊 做一次症状初筛评估\n· ✨ 让我帮新宠物取个好名字')
+        addAiMsg(result.reply)
+        setChatHistory(prev => [
+          ...prev.slice(-18),
+          { role: 'user', content: text },
+          { role: 'assistant', content: result.reply },
+        ])
       }
-    }, 800)
+    } catch (err) {
+      setIsTyping(false)
+      logger.error('index', 'AI chat failed', err)
+      addAiMsg('抱歉，我现在有点走神了…请稍后再试，或者试试点击快捷按钮进行打卡/查食物。')
+    }
   }
 
   const handleQuickAction = (action: string) => {
@@ -323,7 +331,7 @@ export default function Index() {
     switch (index) {
       case 0: startCheckin(); break
       case 1: startNaming(); break
-      case 2: addAiMsg('要记录一段回忆吗？在输入框写下这个值得记住的瞬间～'); break
+      case 2: startMemoryRecord(); break
       case 3: Taro.navigateTo({ url: '/pagesPet/breed/index' }); break
       case 4: Taro.switchTab({ url: '/pages/family/index' }); break
     }
@@ -386,36 +394,82 @@ export default function Index() {
 
   const startFoodCheck = () => {
     setFoodActive(true)
-    const foodList = Object.keys(FOOD_DATA)
-    addAiMsg('请选择你想查询的食物，我来帮你分析：', foodList)
+    addAiMsg('请告诉我你想查询的食物名称，我来帮你分析它对宠物是否安全～')
   }
 
-  const selectFood = (foodName: string) => {
+  const selectFood = async (foodName: string) => {
     addUserMsg(`查一下「${foodName}」`)
     setFoodActive(false)
+    if (!petInfo.activePet?.id) {
+      addAiMsg('请先添加宠物后再查询食物安全。')
+      return
+    }
     setIsTyping(true)
-    setTimeout(() => {
+    try {
+      const userId = useAuthStore.getState().user?.id || ''
+      const result = await queryFood(userId, petInfo.activePet.id, foodName, petInfo.activePet.species as 'dog' | 'cat')
       setIsTyping(false)
-      const d = FOOD_DATA[foodName]
-      if (!d) { addAiMsg('抱歉，我暂时没有这种食物的数据。'); return }
-      const verdict = d.safe ? '✅ 可以吃（适量）' : '🚫 不能吃'
+
+      const isSafe = result.safetyLevel === 'safe'
+      const verdict = isSafe ? '✅ 可以吃（适量）' : '🚫 不能吃'
+      const safetyEmoji = result.safetyLevel === 'toxic' ? '☠️' : result.safetyLevel === 'dangerous' ? '⚠️' : result.safetyLevel === 'caution' ? '⚡' : '✅'
       const card: CardData = {
         type: 'food_result',
         data: {},
         title: '📋 分析结果',
-        safe: d.safe,
-        risk: d.risk,
-        icon: d.icon,
-        foodName,
-        desc: d.desc,
-        advice: d.advice,
+        safe: isSafe,
+        risk: result.safetyLevel === 'toxic' ? 'P0' : result.safetyLevel === 'dangerous' ? 'P1' : 'P4',
+        icon: safetyEmoji,
+        foodName: result.foodName,
+        desc: result.detail || '',
+        advice: result.firstAid || (isSafe ? '适量喂食即可。' : '请勿喂食！'),
       }
-      let summary = `${d.icon} ${foodName} ${verdict}`
-      if (d.risk === 'P0') {
+      let summary = `${safetyEmoji} ${result.foodName} ${verdict}`
+      if (!isSafe) {
         summary += '\n\n🚨 这是高风险食物，请务必远离！'
+        if (result.symptoms && result.symptoms.length > 0) {
+          summary += `\n中毒症状：${result.symptoms.join('、')}`
+        }
       }
       addMessage({ type: 'ai', content: summary, card })
-    }, 700)
+    } catch (err) {
+      setIsTyping(false)
+      logger.error('index', 'food query failed', err)
+      addAiMsg('抱歉，食物查询暂时不可用，请稍后再试。')
+    }
+  }
+
+  const startMemoryRecord = () => {
+    setMemoryActive(true)
+    addAiMsg('要记录一段回忆吗？在输入框写下这个值得记住的瞬间吧～')
+  }
+
+  const handleMemoryRecord = async (text: string) => {
+    setMemoryActive(false)
+    if (!petInfo.activePet?.id) {
+      addAiMsg('请先添加宠物后再记录回忆。')
+      return
+    }
+    setIsTyping(true)
+    try {
+      const userId = useAuthStore.getState().user?.id || ''
+      await timelineService.addMoment({
+        userId,
+        petId: petInfo.activePet.id,
+        type: 'memory',
+        content: {
+          petName: petInfo.name,
+          petEmoji: petInfo.emoji,
+          description: text,
+        },
+      })
+      setIsTyping(false)
+      addAiMsg('回忆已记录 ✦\n\n你可以在「时光」页面查看所有回忆哦～')
+    } catch (err) {
+      setIsTyping(false)
+      logger.error('index', 'memory record failed', err)
+      addAiMsg('回忆已保存到本地 ✦\n\n你可以在「时光」页面查看所有回忆～')
+    }
   }
 
   const startSymptomCheck = () => {
@@ -565,7 +619,6 @@ export default function Index() {
     if (flowType === 'checkin') selectCheckinOption(option)
     else if (flowType === 'symptom') selectSymptomOption(option)
     else if (flowType === 'naming') selectNamingOption(option)
-    else if (foodActive) selectFood(option)
   }
 
   const renderMessageContent = (msg: Message) => {
@@ -734,7 +787,7 @@ export default function Index() {
             <View className='msg-bubble'>
               <Text>早安呀！我是{petInfo.name}的AI小助手 ✦{'\n\n'}{petInfo.name}今天怎么样？来打个卡吧～ 或者告诉我你想了解什么？</Text>
             </View>
-            {showGreetingQuickActions && checkinStep < 0 && symptomStep < 0 && namingStep < 0 && (
+            {showGreetingQuickActions && checkinStep < 0 && symptomStep < 0 && namingStep < 0 && !foodActive && !memoryActive && (
               <View className='msg-quick-actions'>
                 <View className='msg-quick-btn' onClick={() => handleQuickAction('checkin')}>
                   <Text>💩 打卡</Text>

@@ -11,7 +11,7 @@ const PLANS = [
   {
     key: 'monthly',
     name: '月度会员',
-    price: '¥29.9',
+    price: '¥9.9',
     period: '/月',
     originalPrice: '¥39.9',
     tag: '热门',
