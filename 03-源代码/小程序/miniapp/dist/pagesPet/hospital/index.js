@@ -419,7 +419,10 @@ var HOSPITALS = [{
   latitude: 39.9042,
   longitude: 116.4074,
   city: '北京',
-  type: 'general'
+  type: 'general',
+  isPartner: true,
+  partnerId: 'partner_h001',
+  commissionRate: 0.08
 }, {
   id: 'h002',
   name: '北京爱诺动物医院（24h急诊）',
@@ -468,19 +471,22 @@ var HOSPITALS = [{
   type: 'general'
 }, {
   id: 'h005',
-  name: '上海申生动物医院（24h急诊）',
-  address: '上海市徐汇区漕溪北路18号',
-  phone: '021-55556666',
-  distance: 4.3,
-  rating: 4.9,
-  openHours: '24小时',
-  services: ['24h急诊', '内科', '外科', 'ICU', '中毒急救', '创伤处理'],
-  species: ['dog', 'cat', 'bird', 'rabbit', 'reptile', 'small_animal'],
-  emergency: true,
-  latitude: 31.1955,
-  longitude: 121.4377,
+  name: '上海芭比堂动物医院（浦东分院）',
+  address: '上海市浦东新区张杨路828号华都大厦',
+  phone: '021-33336666',
+  distance: 2.8,
+  rating: 4.7,
+  openHours: '08:30-22:00',
+  services: ['内科', '外科', '影像科', '牙科', '体检', '绝育', '住院'],
+  species: ['dog', 'cat', 'bird', 'rabbit', 'reptile'],
+  emergency: false,
+  latitude: 31.2304,
+  longitude: 121.4737,
   city: '上海',
-  type: 'emergency'
+  type: 'general',
+  isPartner: true,
+  partnerId: 'partner_h005',
+  commissionRate: 0.07
 }, {
   id: 'h006',
   name: '上海顽皮家族宠物骨科中心',
@@ -557,7 +563,10 @@ var HOSPITALS = [{
   latitude: 22.5431,
   longitude: 114.0579,
   city: '深圳',
-  type: 'general'
+  type: 'general',
+  isPartner: true,
+  partnerId: 'partner_h010',
+  commissionRate: 0.06
 }, {
   id: 'h011',
   name: '深圳联合宠物医院（24h急诊）',
@@ -1031,7 +1040,7 @@ function getRecommendedHospitals(petId, symptoms) {
 },
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
-/******/ __webpack_require__.O(0, ["pagesPet/sub-vendors","sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/53c676dc54a90fa031d0d212976af696","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/hospital/index.tsx"); });
+/******/ __webpack_require__.O(0, ["sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/53c676dc54a90fa031d0d212976af696","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/hospital/index.tsx"); });
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);

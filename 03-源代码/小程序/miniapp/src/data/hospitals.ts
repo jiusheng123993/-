@@ -14,6 +14,9 @@ export interface HospitalInfo {
   city: string
   type: 'general' | 'specialist' | 'emergency'
   specialties?: string[]
+  isPartner?: boolean
+  partnerId?: string
+  commissionRate?: number
 }
 
 const HOSPITALS: HospitalInfo[] = [
@@ -32,6 +35,9 @@ const HOSPITALS: HospitalInfo[] = [
     longitude: 116.4074,
     city: '北京',
     type: 'general',
+    isPartner: true,
+    partnerId: 'partner_h001',
+    commissionRate: 0.08,
   },
   {
     id: 'h002',
@@ -84,19 +90,22 @@ const HOSPITALS: HospitalInfo[] = [
   },
   {
     id: 'h005',
-    name: '上海申生动物医院（24h急诊）',
-    address: '上海市徐汇区漕溪北路18号',
-    phone: '021-55556666',
-    distance: 4.3,
-    rating: 4.9,
-    openHours: '24小时',
-    services: ['24h急诊', '内科', '外科', 'ICU', '中毒急救', '创伤处理'],
-    species: ['dog', 'cat', 'bird', 'rabbit', 'reptile', 'small_animal'],
-    emergency: true,
-    latitude: 31.1955,
-    longitude: 121.4377,
+    name: '上海芭比堂动物医院（浦东分院）',
+    address: '上海市浦东新区张杨路828号华都大厦',
+    phone: '021-33336666',
+    distance: 2.8,
+    rating: 4.7,
+    openHours: '08:30-22:00',
+    services: ['内科', '外科', '影像科', '牙科', '体检', '绝育', '住院'],
+    species: ['dog', 'cat', 'bird', 'rabbit', 'reptile'],
+    emergency: false,
+    latitude: 31.2304,
+    longitude: 121.4737,
     city: '上海',
-    type: 'emergency',
+    type: 'general',
+    isPartner: true,
+    partnerId: 'partner_h005',
+    commissionRate: 0.07,
   },
   {
     id: 'h006',
@@ -179,6 +188,9 @@ const HOSPITALS: HospitalInfo[] = [
     longitude: 114.0579,
     city: '深圳',
     type: 'general',
+    isPartner: true,
+    partnerId: 'partner_h010',
+    commissionRate: 0.06,
   },
   {
     id: 'h011',

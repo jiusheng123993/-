@@ -1,3 +1,5 @@
+import type { PetProfile } from '../services/petService'
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
@@ -9,6 +11,62 @@ export interface ChatResponse {
       content: string
     }
   }>
+}
+
+/** 聊天消息卡片数据，用于在消息流中渲染结构化卡片 */
+export interface CardData {
+  type: 'checkin_result' | 'food_result' | 'symptom_result' | 'naming_result' | 'naming_cards'
+  data: Record<string, unknown>
+  title?: string
+  score?: number
+  maxScore?: number
+  stats?: { label: string; value: string; emoji?: string }[]
+  safe?: boolean
+  risk?: string
+  icon?: string
+  foodName?: string
+  desc?: string
+  advice?: string
+  names?: NamingResult[]
+  riskLevel?: string
+  symptomInfo?: { label: string; value: string }[]
+  hospitalList?: string[]
+}
+
+/** 首页聊天消息 */
+export interface Message {
+  id: string
+  type: 'ai' | 'user'
+  content: string
+  options?: string[]
+  card?: CardData
+}
+
+/** 健康打卡单项配置 */
+export interface CheckinItem {
+  key: string
+  emoji: string
+  label: string
+  question: string
+  options: { label: string; score: number }[]
+}
+
+/** 取名推荐结果 */
+export interface NamingResult {
+  name: string
+  meaning: string
+  score: number
+}
+
+/** 首页宠物信息聚合（来自 usePetInfo） */
+export interface PetInfo {
+  name: string
+  emoji: string
+  breed: string
+  age: string
+  hasPet: boolean
+  isLoading: boolean
+  activePet: PetProfile | null
 }
 
 export interface ChatIntent {

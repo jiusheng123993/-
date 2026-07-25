@@ -386,7 +386,7 @@ var inst = Page((0,_tarojs_runtime__WEBPACK_IMPORTED_MODULE_1__.createPageConfig
 },
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ var __webpack_exec__ = function(moduleId) { return __webpack_require__(__webpack_require__.s = moduleId); }
-/******/ __webpack_require__.O(0, ["pagesPet/sub-vendors","sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/ad46eb011750498141202c06d6a54fd7","sub-common/53c676dc54a90fa031d0d212976af696","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/breed-detail/index.tsx"); });
+/******/ __webpack_require__.O(0, ["sub-common/6445d8bdf2172a6fd6abee9a9e2cae24","sub-common/a80d2ee33a59c94051f538ac359a531d","sub-common/ad46eb011750498141202c06d6a54fd7","sub-common/53c676dc54a90fa031d0d212976af696","taro","vendors","common"], function() { return __webpack_exec__("./src/pagesPet/breed-detail/index.tsx"); });
 /******/ var __webpack_exports__ = __webpack_require__.O();
 /******/ }
 ]);

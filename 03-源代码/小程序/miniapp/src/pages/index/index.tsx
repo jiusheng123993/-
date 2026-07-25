@@ -1,59 +1,18 @@
 import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useThemeClass } from '../../hooks/useThemeClass'
+import { useChatCore } from '../../hooks/useChatCore'
+import { useCheckinFlow } from '../../hooks/useCheckinFlow'
+import { useSymptomFlow } from '../../hooks/useSymptomFlow'
+import { useNamingFlow } from '../../hooks/useNamingFlow'
+import { useFoodFlow } from '../../hooks/useFoodFlow'
+import { useMemoryFlow } from '../../hooks/useMemoryFlow'
 import { usePetStore } from '../../stores/petStore'
-import { useAuthStore } from '../../stores/authStore'
-import { recommendNames } from '../../services/namingService'
-import { sendChatMessage, type ChatContext } from '../../services/chatService'
-import { queryFood } from '../../services/foodService'
-import { timelineService } from '../../services/timelineService'
-import type { ChatMessage } from '../../types/chatTypes'
-import { CONFIG } from '../../config'
-import { logger } from '../../logger'
+import type { CardData, Message, PetInfo } from '../../types/chatTypes'
+import HomeSkeleton from '../../components/HomeSkeleton'
+import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import './index.scss'
-
-interface Message {
-  id: string
-  type: 'ai' | 'user'
-  content: string
-  options?: string[]
-  card?: CardData
-}
-
-interface CardData {
-  type: 'checkin_result' | 'food_result' | 'symptom_result' | 'naming_result' | 'naming_cards'
-  data: Record<string, unknown>
-  // 结构化卡片数据
-  title?: string
-  score?: number
-  maxScore?: number
-  stats?: { label: string; value: string; emoji?: string }[]
-  safe?: boolean
-  risk?: string
-  icon?: string
-  foodName?: string
-  desc?: string
-  advice?: string
-  names?: NamingResult[]
-  riskLevel?: string
-  symptomInfo?: { label: string; value: string }[]
-  hospitalList?: string[]
-}
-
-interface CheckinItem {
-  key: string
-  emoji: string
-  label: string
-  question: string
-  options: { label: string; score: number }[]
-}
-
-interface NamingResult {
-  name: string
-  meaning: string
-  score: number
-}
 
 function calcAge(birthDate: string): string {
   if (!birthDate) return ''
@@ -70,9 +29,10 @@ function calcAge(birthDate: string): string {
 }
 
 // 从真实宠物数据获取信息，而非硬编码
-function usePetInfo() {
+function usePetInfo(): PetInfo {
   const pet = usePetStore(s => s.currentPet)
   const pets = usePetStore(s => s.pets)
+  const isLoading = usePetStore(s => s.isLoading)
   const activePet = pet ?? pets[0] ?? null
   return {
     name: activePet?.name || '',
@@ -80,87 +40,10 @@ function usePetInfo() {
     breed: activePet?.breed || '',
     age: activePet?.birthDate ? calcAge(activePet.birthDate) : '',
     hasPet: pets.length > 0,
+    isLoading,
     activePet,
   }
 }
-
-const CHECKIN_ITEMS: CheckinItem[] = [
-  {
-    key: 'stool', emoji: '💩', label: '大便情况', question: '{name}今天的大便怎么样？',
-    options: [
-      { label: '成型正常', score: 5 },
-      { label: '偏软但不稀', score: 3 },
-      { label: '拉稀/软便', score: 1 },
-      { label: '没拉 / 未观察', score: 0 },
-    ],
-  },
-  {
-    key: 'pee', emoji: '💧', label: '小便情况', question: '小便颜色和频率正常吗？',
-    options: [
-      { label: '清亮，次数正常', score: 5 },
-      { label: '颜色偏黄', score: 3 },
-      { label: '频次异常', score: 1 },
-      { label: '没注意', score: 0 },
-    ],
-  },
-  {
-    key: 'appetite', emoji: '🍖', label: '食欲状况', question: '{name}今天吃饭怎么样？',
-    options: [
-      { label: '胃口很好，光盘', score: 5 },
-      { label: '正常吃完', score: 4 },
-      { label: '吃得比较少', score: 2 },
-      { label: '完全不吃', score: 1 },
-    ],
-  },
-  {
-    key: 'energy', emoji: '⚡', label: '精神活力', question: '{name}今天精神头怎么样？',
-    options: [
-      { label: '活力满满，拆家选手', score: 5 },
-      { label: '正常活动', score: 4 },
-      { label: '有点蔫，不太想动', score: 2 },
-      { label: '趴着不动，精神差', score: 1 },
-    ],
-  },
-  {
-    key: 'weight', emoji: '⚖', label: '体重确认', question: '体重今天称了吗？（参考：上周28.0kg）',
-    options: [
-      { label: '28.0kg 左右，稳定', score: 5 },
-      { label: '27.5-27.9kg，小幅下降', score: 3 },
-      { label: '28.5kg 以上，小幅上升', score: 3 },
-      { label: '今天没称', score: 0 },
-    ],
-  },
-]
-
-const SYMPTOM_STEPS = [
-  {
-    key: 'symptom', title: '第1步：主要症状', question: '出现了什么症状？',
-    options: ['呕吐 / 反胃', '腹泻 / 软便', '食欲不振', '精神萎靡 / 嗜睡', '皮肤瘙痒 / 掉毛', '咳嗽 / 打喷嚏'],
-  },
-  {
-    key: 'duration', title: '第2步：持续时间', question: '这个症状持续多久了？',
-    options: ['刚开始，不到半天', '今天一整天了', '2-3天了', '超过3天了'],
-  },
-  {
-    key: 'severity', title: '第3步：严重程度', question: '症状的严重程度如何？',
-    options: ['轻微的，不太影响日常', '中等，能看出不舒服', '比较严重，明显异常', '非常严重，需要急救'],
-  },
-  {
-    key: 'other', title: '第4步：其他信息', question: '还有没有其他异常？',
-    options: ['没有其他异常', '体温偏高 / 发烧', '有外伤或肿块', '眼睛/鼻子有分泌物'],
-  },
-]
-
-const NAMING_STEPS = [
-  {
-    key: 'gender', question: '新宝贝是男生还是女生呀？',
-    options: ['男生 ♂', '女生 ♀', '还不知道 / 无所谓'],
-  },
-  {
-    key: 'style', question: '你喜欢什么风格的名字？',
-    options: ['古风诗意（如：墨韵、云栖）', '可爱萌系（如：团团、布丁）', '食物系列（如：年糕、汤圆）', '自然元素（如：星河、山月）'],
-  },
-]
 
 const PLUS_MENU_ITEMS = [
   { icon: '📋', label: '健康打卡', sub: '5项日常检查，1分钟完成', bg: 'rgba(232,168,56,0.12)' },
@@ -170,455 +53,126 @@ const PLUS_MENU_ITEMS = [
   { icon: '🏠', label: '看家庭', sub: '家人动态 + 家庭周报', bg: 'rgba(224,133,107,0.12)' },
 ]
 
-let messageIdCounter = 0
-function genId(): string {
-  return `msg_${++messageIdCounter}_${Date.now()}`
-}
-
-function generateNames(style: string): NamingResult[] {
-  if (style.includes('古风')) return [
-    { name: '墨韵', meaning: '墨香氤氲，韵味悠长。适合气质优雅的宝贝', score: 95 },
-    { name: '云栖', meaning: '云深不知处，栖居于心。安静温柔的好名字', score: 92 },
-    { name: '霁月', meaning: '雨过天晴，月明如洗。寓意拨云见日，好运连连', score: 88 },
-  ]
-  if (style.includes('可爱')) return [
-    { name: '布丁', meaning: '甜甜蜜蜜，软软糯糯。让人忍不住想rua', score: 93 },
-    { name: '泡芙', meaning: '外表酥脆内心柔软，可爱又有个性', score: 90 },
-    { name: '奶糖', meaning: '奶香四溢，甜而不腻。治愈系首选', score: 87 },
-  ]
-  if (style.includes('食物')) return [
-    { name: '年糕', meaning: '年年高升，黏人暖心。适合粘人的小可爱', score: 94 },
-    { name: '汤圆', meaning: '团团圆圆，白白胖胖。寓意家庭美满幸福', score: 91 },
-    { name: '麻薯', meaning: 'Q弹软糯，外表朴素内有惊喜。独一无二的小特别', score: 85 },
-  ]
-  return [
-    { name: '星河', meaning: '璀璨星河，独一无二。愿它成为你生命中最亮的光', score: 96 },
-    { name: '山月', meaning: '山间明月，清辉婉转。安静而坚定的陪伴', score: 90 },
-    { name: '朝露', meaning: '清晨的露珠，纯净珍贵。每一天都是新的开始', score: 87 },
-  ]
-}
-
-function parseRecommendResult(text: string): NamingResult[] {
-  const results: NamingResult[] = []
-  const lines = text.split('\n').filter(l => l.trim())
-  for (const line of lines) {
-    const scoreMatch = line.match(/(\d{1,3})\s*分/)
-    const nameMatch = line.match(/[「【《]?\s*(.{1,8})\s*[」】》]?[:：\s]+(.+)/)
-    if (nameMatch) {
-      results.push({
-        name: nameMatch[1].replace(/[「」【】《》]/g, '').trim(),
-        meaning: nameMatch[2].trim(),
-        score: scoreMatch ? parseInt(scoreMatch[1]) : 85,
-      })
-    }
-  }
-  if (results.length === 0) {
-    const nameRegex = /(\d+)[.、]\s*[「【《]?\s*(.{1,8})\s*[」】》]?\s*[:：\s-]+(.+)/g
-    let match: RegExpExecArray | null
-    while ((match = nameRegex.exec(text)) !== null) {
-      results.push({
-        name: match[2].replace(/[「」【】《》]/g, '').trim(),
-        meaning: match[3].trim(),
-        score: parseInt(match[1]) * 10,
-      })
-    }
-  }
-  return results.slice(0, 5)
-}
-
 export default function Index() {
   const themeClass = useThemeClass()
   const petInfo = usePetInfo()
-  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [plusMenuOpen, setPlusMenuOpen] = useState(false)
-  const [isTyping, setIsTyping] = useState(false)
-  const [checkinStep, setCheckinStep] = useState(-1)
-  const [checkinData, setCheckinData] = useState<Record<string, { label: string; score: number }>>({})
-  const [symptomStep, setSymptomStep] = useState(-1)
-  const [symptomData, setSymptomData] = useState<Record<string, string>>({})
-  const [namingStep, setNamingStep] = useState(-1)
-  const [namingData, setNamingData] = useState<Record<string, string>>({})
-  const [foodActive, setFoodActive] = useState(false)
-  const [memoryActive, setMemoryActive] = useState(false)
   const [showGreetingQuickActions, setShowGreetingQuickActions] = useState(true)
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([])
+  const [currentQuickActions, setCurrentQuickActions] = useState<QuickAction[]>([
+    { action: 'checkin', label: '打卡', emoji: '💩' },
+    { action: 'food', label: '查食物', emoji: '🔍' },
+    { action: 'symptom', label: '症状初筛', emoji: '💊' },
+  ])
 
-  const scrollRef = useRef<any>(null)
+  const chat = useChatCore({
+    petInfo,
+    inputValue,
+    setInputValue,
+    setPlusMenuOpen,
+    setShowGreetingQuickActions,
+  })
 
-  const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = 999999
-      }
-    }, 100)
-  }, [])
+  const checkin = useCheckinFlow({
+    addAiMsg: chat.addAiMsg,
+    addUserMsg: chat.addUserMsg,
+    addMessage: chat.addMessage,
+    petInfo,
+  })
 
+  const symptom = useSymptomFlow({
+    addAiMsg: chat.addAiMsg,
+    addUserMsg: chat.addUserMsg,
+    addMessage: chat.addMessage,
+    petInfo,
+  })
+
+  const naming = useNamingFlow({
+    addAiMsg: chat.addAiMsg,
+    addUserMsg: chat.addUserMsg,
+    addMessage: chat.addMessage,
+    petInfo,
+  })
+
+  const food = useFoodFlow({
+    addAiMsg: chat.addAiMsg,
+    addUserMsg: chat.addUserMsg,
+    addMessage: chat.addMessage,
+    setIsTyping: chat.setIsTyping,
+    petInfo,
+  })
+
+  const memory = useMemoryFlow({
+    addAiMsg: chat.addAiMsg,
+    addUserMsg: chat.addUserMsg,
+    setIsTyping: chat.setIsTyping,
+    petInfo,
+  })
+
+  // 将食物/回忆流程处理器注册到聊天核心，打破循环依赖
   useEffect(() => {
-    scrollToBottom()
-  }, [messages, isTyping, scrollToBottom])
+    chat.setFlowHandlers({
+      foodActive: food.foodActive,
+      selectFood: food.selectFood,
+      memoryActive: memory.memoryActive,
+      handleMemoryRecord: memory.handleMemoryRecord,
+    })
+  })
 
-  const addMessage = useCallback((msg: Omit<Message, 'id'>) => {
-    const newMsg: Message = { ...msg, id: genId() }
-    setMessages(prev => [...prev, newMsg])
-  }, [])
-
-  const addAiMsg = useCallback((content: string, options?: string[]) => {
-    addMessage({ type: 'ai', content, options })
-  }, [addMessage])
-
-  const addUserMsg = useCallback((content: string) => {
-    addMessage({ type: 'user', content })
-  }, [addMessage])
-
-  const handleSend = async () => {
-    const text = inputValue.trim()
-    if (!text) return
-    setInputValue('')
-    setPlusMenuOpen(false)
-    setShowGreetingQuickActions(false)
-
-    if (foodActive) {
-      selectFood(text)
-      return
-    }
-
-    if (memoryActive) {
-      handleMemoryRecord(text)
-      return
-    }
-
-    addUserMsg(text)
-
-    const context: ChatContext = {
-      petId: petInfo.activePet?.id,
-      petName: petInfo.name,
-      petBreed: petInfo.breed,
-      petAge: petInfo.age,
-    }
-
-    setIsTyping(true)
-    try {
-      const result = await sendChatMessage(text, context, chatHistory)
-      setIsTyping(false)
-
-      if (result.blocked) {
-        addAiMsg(result.reply)
-      } else {
-        addAiMsg(result.reply)
-        setChatHistory(prev => [
-          ...prev.slice(-18),
-          { role: 'user', content: text },
-          { role: 'assistant', content: result.reply },
-        ])
-      }
-    } catch (err) {
-      setIsTyping(false)
-      logger.error('index', 'AI chat failed', err)
-      addAiMsg('抱歉，我现在有点走神了…请稍后再试，或者试试点击快捷按钮进行打卡/查食物。')
-    }
+  // 长按消息复制内容
+  const handleLongPress = (msg: Message) => {
+    if (!msg.content) return
+    Taro.setClipboardData({
+      data: msg.content,
+      success: () => {
+        Taro.showToast({ title: '已复制', icon: 'success', duration: 1500 })
+      },
+    })
   }
 
   const handleQuickAction = (action: string) => {
     setShowGreetingQuickActions(false)
-    if (action === 'checkin') startCheckin()
-    else if (action === 'food') startFoodCheck()
-    else if (action === 'symptom') startSymptomCheck()
+    if (action === 'checkin') checkin.startCheckin()
+    else if (action === 'food') food.handleFoodQuery()
+    else if (action === 'symptom') symptom.startSymptom()
+    else if (action === 'naming') naming.startNaming()
+    else if (action === 'memory') memory.startMemoryRecord()
+  }
+
+  // 用户发送消息后，根据消息内容更新快捷操作推荐
+  const handleSendWithSuggestions = () => {
+    const text = inputValue.trim()
+    if (!text) return
+    // 分析用户消息，更新推荐
+    const suggestions = suggestQuickActions(text)
+    setCurrentQuickActions(suggestions)
+    // 调用原始 handleSend
+    chat.handleSend()
   }
 
   const handlePlusMenuItem = (index: number) => {
     setPlusMenuOpen(false)
     switch (index) {
-      case 0: startCheckin(); break
-      case 1: startNaming(); break
-      case 2: startMemoryRecord(); break
+      case 0: checkin.startCheckin(); break
+      case 1: naming.startNaming(); break
+      case 2: memory.startMemoryRecord(); break
       case 3: Taro.navigateTo({ url: '/pagesPet/breed/index' }); break
       case 4: Taro.switchTab({ url: '/pages/family/index' }); break
     }
   }
 
-  const startCheckin = () => {
-    setCheckinData({})
-    setCheckinStep(0)
-    addAiMsg('好的！让我们来做个快速打卡 ✦\n\n一共5项，大概1分钟完成～我们从第一项开始：')
-    setTimeout(() => askCheckinItem(0), 600)
-  }
-
-  const askCheckinItem = (step: number) => {
-    setCheckinStep(step)
-    if (step >= CHECKIN_ITEMS.length) {
-      finishCheckin()
-      return
-    }
-    const item = CHECKIN_ITEMS[step]
-    const progress = `${step + 1}/5`
-    addAiMsg(`${item.emoji} ${progress} ${item.label}\n${item.question.replace(/\{name\}/g, petInfo.name)}`, item.options.map(o => o.label))
-  }
-
-  const selectCheckinOption = (label: string) => {
-    const item = CHECKIN_ITEMS[checkinStep]
-    const option = item.options.find(o => o.label === label)
-    if (!option) return
-    addUserMsg(label)
-    setCheckinData(prev => ({ ...prev, [item.key]: { label, score: option.score } }))
-    const next = checkinStep + 1
-    setCheckinStep(next)
-    setTimeout(() => askCheckinItem(next), 400)
-  }
-
-  const finishCheckin = () => {
-    const entries = Object.entries(checkinData)
-    const total = entries.reduce((s, [, v]) => s + v.score, 0)
-    const maxScore = entries.length * 5
-    const rate = Math.round((total / maxScore) * 100)
-    setCheckinStep(-1)
-
-    const stats = entries.map(([k, v]) => {
-      const item = CHECKIN_ITEMS.find(it => it.key === k)
-      return { label: item?.label || k, value: v.label, emoji: item?.emoji }
-    })
-    const card: CardData = {
-      type: 'checkin_result',
-      data: {},
-      title: '📊 今日健康报告',
-      score: rate,
-      maxScore: 100,
-      stats,
-    }
-    let summary = '打卡完成！健康报告出炉 ✦'
-    if (rate >= 90) summary += '\n\n太棒了！状态满分 ✦ 继续保持！'
-    else if (rate >= 70) summary += '\n\n整体还不错！有些项目需要注意一下～'
-    else summary += '\n\n状态不太理想，建议多观察。可以做个症状初筛看看。'
-    addMessage({ type: 'ai', content: summary, card })
-  }
-
-  const startFoodCheck = () => {
-    setFoodActive(true)
-    addAiMsg('请告诉我你想查询的食物名称，我来帮你分析它对宠物是否安全～')
-  }
-
-  const selectFood = async (foodName: string) => {
-    addUserMsg(`查一下「${foodName}」`)
-    setFoodActive(false)
-    if (!petInfo.activePet?.id) {
-      addAiMsg('请先添加宠物后再查询食物安全。')
-      return
-    }
-    setIsTyping(true)
-    try {
-      const userId = useAuthStore.getState().user?.id || ''
-      const result = await queryFood(userId, petInfo.activePet.id, foodName, petInfo.activePet.species as 'dog' | 'cat')
-      setIsTyping(false)
-
-      const isSafe = result.safetyLevel === 'safe'
-      const verdict = isSafe ? '✅ 可以吃（适量）' : '🚫 不能吃'
-      const safetyEmoji = result.safetyLevel === 'toxic' ? '☠️' : result.safetyLevel === 'dangerous' ? '⚠️' : result.safetyLevel === 'caution' ? '⚡' : '✅'
-      const card: CardData = {
-        type: 'food_result',
-        data: {},
-        title: '📋 分析结果',
-        safe: isSafe,
-        risk: result.safetyLevel === 'toxic' ? 'P0' : result.safetyLevel === 'dangerous' ? 'P1' : 'P4',
-        icon: safetyEmoji,
-        foodName: result.foodName,
-        desc: result.detail || '',
-        advice: result.firstAid || (isSafe ? '适量喂食即可。' : '请勿喂食！'),
-      }
-      let summary = `${safetyEmoji} ${result.foodName} ${verdict}`
-      if (!isSafe) {
-        summary += '\n\n🚨 这是高风险食物，请务必远离！'
-        if (result.symptoms && result.symptoms.length > 0) {
-          summary += `\n中毒症状：${result.symptoms.join('、')}`
-        }
-      }
-      addMessage({ type: 'ai', content: summary, card })
-    } catch (err) {
-      setIsTyping(false)
-      logger.error('index', 'food query failed', err)
-      addAiMsg('抱歉，食物查询暂时不可用，请稍后再试。')
-    }
-  }
-
-  const startMemoryRecord = () => {
-    setMemoryActive(true)
-    addAiMsg('要记录一段回忆吗？在输入框写下这个值得记住的瞬间吧～')
-  }
-
-  const handleMemoryRecord = async (text: string) => {
-    setMemoryActive(false)
-    if (!petInfo.activePet?.id) {
-      addAiMsg('请先添加宠物后再记录回忆。')
-      return
-    }
-    setIsTyping(true)
-    try {
-      const userId = useAuthStore.getState().user?.id || ''
-      await timelineService.addMoment({
-        userId,
-        petId: petInfo.activePet.id,
-        type: 'memory',
-        content: {
-          petName: petInfo.name,
-          petEmoji: petInfo.emoji,
-          description: text,
-        },
-      })
-      setIsTyping(false)
-      addAiMsg('回忆已记录 ✦\n\n你可以在「时光」页面查看所有回忆哦～')
-    } catch (err) {
-      setIsTyping(false)
-      logger.error('index', 'memory record failed', err)
-      addAiMsg('回忆已保存到本地 ✦\n\n你可以在「时光」页面查看所有回忆～')
-    }
-  }
-
-  const startSymptomCheck = () => {
-    setSymptomData({})
-    setSymptomStep(0)
-    addAiMsg('了解！让我做一个症状初筛 ✦\n\n⚠ 这是AI预评估，不能替代专业兽医诊断。如果情况紧急请直接就医。\n\n一共4个问题：')
-    setTimeout(() => askSymptomItem(0), 600)
-  }
-
-  const askSymptomItem = (step: number) => {
-    setSymptomStep(step)
-    if (step >= SYMPTOM_STEPS.length) {
-      finishSymptomCheck()
-      return
-    }
-    const s = SYMPTOM_STEPS[step]
-    addAiMsg(`${s.title}\n${s.question.replace(/\{name\}/g, petInfo.name)}`, s.options)
-  }
-
-  const selectSymptomOption = (text: string) => {
-    const s = SYMPTOM_STEPS[symptomStep]
-    addUserMsg(text)
-    setSymptomData(prev => ({ ...prev, [s.key]: text }))
-    const next = symptomStep + 1
-    setSymptomStep(next)
-    setTimeout(() => askSymptomItem(next), 400)
-  }
-
-  const finishSymptomCheck = () => {
-    setSymptomStep(-1)
-    const severity = symptomData.severity || ''
-    let riskLevel = 'low'
-    let riskLabel = '暂不严重'
-    let riskColor = '#8CAD7E'
-    let advice = '👍 看起来暂时不严重，继续观察即可。保持正常饮食和作息。'
-
-    if (severity.includes('非常严重')) {
-      riskLevel = 'critical'
-      riskLabel = '紧急'
-      riskColor = '#E04040'
-      advice = '🚨 症状紧急！建议立即带它前往最近的宠物医院。不要等待，不要自行用药。'
-    } else if (severity.includes('比较严重')) {
-      riskLevel = 'high'
-      riskLabel = '建议尽快就医'
-      riskColor = '#E0856B'
-      advice = '⚠ 症状比较明显，建议24小时内去看兽医。暂时保持安静，提供充足的清水。'
-    } else if (severity.includes('中等')) {
-      riskLevel = 'mid'
-      riskLabel = '可先观察'
-      riskColor = '#E8A838'
-      advice = '⚡ 可以先在家观察1-2天。如果症状加重再考虑就医。'
-    }
-
-    const symptomInfo = [
-      { label: '主要症状', value: symptomData.symptom || '-' },
-      { label: '持续时间', value: symptomData.duration || '-' },
-      { label: '严重程度', value: severity || '-' },
-      { label: '其他', value: symptomData.other || '-' },
-    ]
-    const card: CardData = {
-      type: 'symptom_result',
-      data: {},
-      title: '📋 症状评估报告',
-      riskLevel,
-      risk: riskLabel,
-      symptomInfo,
-      advice,
-      hospitalList: riskLevel === 'critical' || riskLevel === 'high'
-        ? ['🏥 瑞鹏宠物医院 · 1.2km', '🏥 美联众合 · 2.5km', '🏥 芭比堂 · 3.1km']
-        : undefined,
-    }
-    const summary = `初筛完成 ✦\n\n风险等级：${riskLabel}`
-    addMessage({ type: 'ai', content: summary, card })
-  }
-
-  const startNaming = () => {
-    setNamingData({})
-    setNamingStep(0)
-    addAiMsg('要给新宝贝取名字吗？太开心了！让我来帮你 ✦\n\n请先告诉我一些基本信息～')
-    setTimeout(() => askNamingItem(0), 500)
-  }
-
-  const askNamingItem = (step: number) => {
-    setNamingStep(step)
-    if (step >= NAMING_STEPS.length) {
-      finishNaming()
-      return
-    }
-    const s = NAMING_STEPS[step]
-    addAiMsg(s.question.replace(/\{name\}/g, petInfo.name), s.options)
-  }
-
-  const selectNamingOption = (text: string) => {
-    const s = NAMING_STEPS[namingStep]
-    addUserMsg(text)
-    setNamingData(prev => ({ ...prev, [s.key]: text }))
-    const next = namingStep + 1
-    setNamingStep(next)
-    setTimeout(() => askNamingItem(next), 400)
-  }
-
-  const finishNaming = async () => {
-    setNamingStep(-1)
-    const style = namingData.style || ''
-    const genderText = namingData.gender || ''
-
-    let names: NamingResult[] = []
-
-    if (!CONFIG.USE_MOCK) {
-      try {
-        const pet = usePetStore.getState().currentPet
-        const breed = pet?.breed || '未知品种'
-        const birthDate = pet?.birthDate || ''
-        const gender = genderText.includes('男') ? 'male' : genderText.includes('女') ? 'female' : 'unknown'
-
-        const result = await recommendNames(breed, birthDate, gender)
-        const parsed = parseRecommendResult(result)
-        if (parsed.length > 0) {
-          names = parsed
-        }
-      } catch {
-        // true AI API不可用时降级到本地生成
-      }
-    }
-
-    if (names.length === 0) {
-      names = generateNames(style)
-    }
-
-    const card: CardData = {
-      type: 'naming_cards',
-      data: {},
-      names,
-    }
-    addMessage({ type: 'ai', content: '基于你的偏好，我为你推荐以下名字 ✦', card })
-  }
-
   const getCurrentFlowType = (): 'checkin' | 'symptom' | 'naming' | null => {
-    if (checkinStep >= 0) return 'checkin'
-    if (symptomStep >= 0) return 'symptom'
-    if (namingStep >= 0) return 'naming'
+    if (checkin.checkinStep >= 0) return 'checkin'
+    if (symptom.symptomStep >= 0) return 'symptom'
+    if (naming.namingStep >= 0) return 'naming'
     return null
   }
 
   const handleOptionClick = (option: string) => {
     const flowType = getCurrentFlowType()
-    if (flowType === 'checkin') selectCheckinOption(option)
-    else if (flowType === 'symptom') selectSymptomOption(option)
-    else if (flowType === 'naming') selectNamingOption(option)
+    if (flowType === 'checkin') checkin.handleCheckinAnswer(option)
+    else if (flowType === 'symptom') symptom.handleSymptomAnswer(option)
+    else if (flowType === 'naming') naming.handleNamingAnswer(option)
   }
 
   const renderMessageContent = (msg: Message) => {
@@ -745,7 +299,10 @@ export default function Index() {
         <Text className='chat-star chat-star--6'>✧</Text>
       </View>
 
-      {!petInfo.hasPet ? (
+      {petInfo.isLoading && !petInfo.hasPet ? (
+        /* 加载中：骨架屏 */
+        <HomeSkeleton />
+      ) : !petInfo.hasPet ? (
         /* 空状态：引导用户添加宠物 */
         <View className='chat-empty'>
           <View className='chat-empty-icon'>🐾</View>
@@ -776,7 +333,7 @@ export default function Index() {
         className='chat-msg-list'
         scrollY
         scrollWithAnimation
-        ref={scrollRef}
+        ref={chat.scrollRef}
       >
 
         <View className='msg-row ai'>
@@ -787,45 +344,47 @@ export default function Index() {
             <View className='msg-bubble'>
               <Text>早安呀！我是{petInfo.name}的AI小助手 ✦{'\n\n'}{petInfo.name}今天怎么样？来打个卡吧～ 或者告诉我你想了解什么？</Text>
             </View>
-            {showGreetingQuickActions && checkinStep < 0 && symptomStep < 0 && namingStep < 0 && !foodActive && !memoryActive && (
+            {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
-                <View className='msg-quick-btn' onClick={() => handleQuickAction('checkin')}>
-                  <Text>💩 打卡</Text>
-                </View>
-                <View className='msg-quick-btn' onClick={() => handleQuickAction('food')}>
-                  <Text>🔍 查食物</Text>
-                </View>
-                <View className='msg-quick-btn' onClick={() => handleQuickAction('symptom')}>
-                  <Text>💊 症状初筛</Text>
-                </View>
+                {currentQuickActions.map(qa => (
+                  <View key={qa.action} className='msg-quick-btn' onClick={() => handleQuickAction(qa.action)}>
+                    <Text>{qa.emoji} {qa.label}</Text>
+                  </View>
+                ))}
               </View>
             )}
           </View>
         </View>
 
-        {messages.map((msg, idx) => (
+        {chat.messages.map((msg, idx) => (
           <View key={msg.id} className={`msg-row ${msg.type}`}>
             <View className='msg-avatar'>
               <Text>{msg.type === 'ai' ? '🤖' : '😊'}</Text>
             </View>
             <View className='msg-bubble-wrap'>
-              <View className='msg-bubble'>
+              <View
+                className={`msg-bubble ${msg.id === chat.streamingId ? 'msg-bubble--streaming' : ''}`}
+                onClick={msg.id === chat.streamingId ? chat.skipStream : undefined}
+                onLongPress={() => handleLongPress(msg)}
+              >
                 {renderMessageContent(msg)}
+                {msg.id === chat.streamingId && msg.content && (
+                  <Text className='streaming-cursor'>▋</Text>
+                )}
               </View>
+              {msg.id === chat.streamingId && (
+                <Text className='streaming-hint'>点击跳过 ↑</Text>
+              )}
 
               {msg.card && renderCard(msg.card)}
 
-              {idx === messages.length - 1 && msg.type === 'ai' && showGreetingQuickActions && checkinStep < 0 && symptomStep < 0 && namingStep < 0 && !foodActive && (
+              {idx === chat.messages.length - 1 && msg.type === 'ai' && showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
                 <View className='msg-quick-actions'>
-                  <View className='msg-quick-btn' onClick={() => handleQuickAction('checkin')}>
-                    <Text>💩 打卡</Text>
-                  </View>
-                  <View className='msg-quick-btn' onClick={() => handleQuickAction('food')}>
-                    <Text>🔍 查食物</Text>
-                  </View>
-                  <View className='msg-quick-btn' onClick={() => handleQuickAction('symptom')}>
-                    <Text>💊 症状初筛</Text>
-                  </View>
+                  {currentQuickActions.map(qa => (
+                    <View key={qa.action} className='msg-quick-btn' onClick={() => handleQuickAction(qa.action)}>
+                      <Text>{qa.emoji} {qa.label}</Text>
+                    </View>
+                  ))}
                 </View>
               )}
 
@@ -846,7 +405,7 @@ export default function Index() {
           </View>
         ))}
 
-        {isTyping && (
+        {chat.isTyping && (
           <View className='msg-row ai'>
             <View className='msg-avatar'>
               <Text>🤖</Text>
@@ -894,13 +453,13 @@ export default function Index() {
             className='chat-input-field'
             value={inputValue}
             onInput={(e) => setInputValue(e.detail.value)}
-            onConfirm={handleSend}
+            onConfirm={handleSendWithSuggestions}
             onFocus={() => setPlusMenuOpen(false)}
             placeholder={`说说${petInfo.name}今天的情况...`}
             placeholderStyle='color: #556'
             confirmType='send'
           />
-          <View className='chat-send-btn' onClick={handleSend}>
+          <View className='chat-send-btn' onClick={handleSendWithSuggestions}>
             <Text className='chat-send-text'>↑</Text>
           </View>
         </View>
