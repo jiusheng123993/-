@@ -158,6 +158,12 @@
   to   { transform: rotate(360deg); }
 }
 
+// —— 浮动脉冲（拍照按钮） ——
+@keyframes floatPulse {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
 // —— 骨架屏加载 ——
 @keyframes skeletonLoading {
   0%   { background-position: -200% 0; }

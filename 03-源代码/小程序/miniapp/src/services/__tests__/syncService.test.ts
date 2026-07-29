@@ -42,8 +42,9 @@ describe('SyncService', () => {
   })
 
   describe('isAvailable', () => {
-    it('should return false in mock mode', () => {
-      expect(service.isAvailable()).toBe(false)
+    it('should return false when no userId', () => {
+      const svc = new SyncService('')
+      expect(svc.isAvailable()).toBe(false)
     })
   })
 
@@ -63,7 +64,8 @@ describe('SyncService', () => {
 
   describe('pushTable', () => {
     it('should return zero pushed when not available', async () => {
-      const result = await service.pushTable('pet_profiles')
+      const svc = new SyncService('')
+      const result = await svc.pushTable('pet_profiles')
       expect(result.pushed).toBe(0)
       expect(result.error).toBe('云端不可用')
     })
@@ -71,7 +73,8 @@ describe('SyncService', () => {
 
   describe('pullTable', () => {
     it('should return zero pulled when not available', async () => {
-      const result = await service.pullTable('pet_profiles')
+      const svc = new SyncService('')
+      const result = await svc.pullTable('pet_profiles')
       expect(result.pulled).toBe(0)
       expect(result.error).toBe('云端不可用')
     })
@@ -79,7 +82,8 @@ describe('SyncService', () => {
 
   describe('syncAll', () => {
     it('should return result with errors when not available', async () => {
-      const result = await service.syncAll()
+      const svc = new SyncService('')
+      const result = await svc.syncAll()
       expect(result.success).toBe(false)
       expect(result.pushed).toBe(0)
       expect(result.pulled).toBe(0)
@@ -112,7 +116,8 @@ describe('SyncService', () => {
 
   describe('clearCloudData', () => {
     it('should return error when not available', async () => {
-      const result = await service.clearCloudData()
+      const svc = new SyncService('')
+      const result = await svc.clearCloudData()
       expect(result.success).toBe(false)
       expect(result.error).toBe('云端不可用')
     })

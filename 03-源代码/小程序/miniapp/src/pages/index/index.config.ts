@@ -1,4 +1,4 @@
 export default definePageConfig({
   navigationBarTitleText: '星寰海',
-  navigationStyle: 'custom',
+  navigationStyle: 'default',
 })

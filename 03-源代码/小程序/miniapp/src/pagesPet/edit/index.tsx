@@ -7,6 +7,7 @@ import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { safeNavigateBack } from '../../utils/navigation'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import '../add/index.scss'
 
@@ -141,13 +142,14 @@ export default function EditPet() {
 
   const handleChooseAvatar = () => {
     trackEvent('choose_avatar')
-    Taro.chooseImage({
+    chooseImageWithPrivacy({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        updateField('avatarUrl', res.tempFilePaths[0])
-      },
+    }).then((res) => {
+      updateField('avatarUrl', res.tempFilePaths[0])
+    }).catch((err) => {
+      console.warn('[EditPet] chooseImage failed:', err)
     })
   }
 

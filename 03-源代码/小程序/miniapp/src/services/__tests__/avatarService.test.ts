@@ -1,13 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { memoryStore, mockSelectOne, mockUpdate, mockGeneratePetImage, mockIsMock } = vi.hoisted(() => {
+const { memoryStore, mockGeneratePetImage, mockApiPut } = vi.hoisted(() => {
   const memoryStore = new Map<string, unknown>()
   return {
     memoryStore,
-    mockSelectOne: vi.fn(),
-    mockUpdate: vi.fn(),
     mockGeneratePetImage: vi.fn(),
-    mockIsMock: { value: true },
+    mockApiPut: vi.fn(),
   }
 })
 
@@ -21,11 +19,9 @@ vi.mock('@tarojs/taro', () => ({
   },
 }))
 
-vi.mock('../supabaseClient', () => ({
-  supabaseClient: {
-    selectOne: mockSelectOne,
-    update: mockUpdate,
-    get isMock() { return mockIsMock.value },
+vi.mock('../api', () => ({
+  api: {
+    put: mockApiPut,
   },
 }))
 
@@ -33,18 +29,6 @@ vi.mock('../../engines/petAvatar/seedreamAdapter', () => ({
   seedreamAdapter: {
     generatePetImage: mockGeneratePetImage,
   },
-}))
-
-vi.mock('../../config/supabase', () => ({
-  ENV: {
-    development: {
-      apiBaseUrl: 'http://localhost:3000',
-      supabaseUrl: 'http://localhost:54321',
-      supabaseKey: 'mock-key',
-      useMock: true,
-    },
-  },
-  STORAGE_KEYS: { TOKEN: 'xhh_token' },
 }))
 
 vi.mock('../../constants', () => ({
@@ -66,9 +50,7 @@ describe('avatarService', () => {
   beforeEach(() => {
     memoryStore.clear()
     vi.clearAllMocks()
-    mockIsMock.value = true
-    mockSelectOne.mockResolvedValue({ data: null, error: null, status: 200 })
-    mockUpdate.mockResolvedValue({ data: null, error: null, status: 200 })
+    mockApiPut.mockResolvedValue({})
     mockGeneratePetImage.mockResolvedValue({ success: false, error: 'stub' })
   })
 
@@ -124,8 +106,7 @@ describe('avatarService', () => {
   })
 
   describe('saveAvatarCustomization', () => {
-    it('saves to local storage only in mock mode', async () => {
-      mockIsMock.value = true
+    it('saves to local storage', async () => {
       const custom = {
         species: 'cat' as const,
         style: 'cartoon' as const,
@@ -135,11 +116,9 @@ describe('avatarService', () => {
       }
       await saveAvatarCustomization(custom)
       expect(memoryStore.get('xhh_avatar_custom')).toEqual(custom)
-      expect(mockUpdate).not.toHaveBeenCalled()
     })
 
-    it('saves to local storage and DB in real mode', async () => {
-      mockIsMock.value = false
+    it('calls API when pet ID is set in storage', async () => {
       memoryStore.set('xhh_current_pet_id', 'pet-123')
       const custom = {
         species: 'cat' as const,
@@ -150,15 +129,14 @@ describe('avatarService', () => {
       }
       await saveAvatarCustomization(custom)
       expect(memoryStore.get('xhh_avatar_custom')).toEqual(custom)
-      expect(mockUpdate).toHaveBeenCalledWith('pet_profiles', expect.objectContaining({
+      expect(mockApiPut).toHaveBeenCalledWith('/api/pets/pet-123', {
         avatarStyle: 'cartoon',
         avatarCartoonUrl: 'https://example.com/avatar.png',
         avatarGeneratedAt: '2025-01-01',
-      }), { id: 'eq.pet-123' })
+      })
     })
 
-    it('skips DB when no pet ID in storage', async () => {
-      mockIsMock.value = false
+    it('skips API when no pet ID in storage', async () => {
       const custom = {
         species: 'dog' as const,
         style: 'cartoon' as const,
@@ -166,13 +144,12 @@ describe('avatarService', () => {
       }
       await saveAvatarCustomization(custom)
       expect(memoryStore.get('xhh_avatar_custom')).toEqual(custom)
-      expect(mockUpdate).not.toHaveBeenCalled()
+      expect(mockApiPut).not.toHaveBeenCalled()
     })
 
-    it('saves to local storage even when DB fails', async () => {
-      mockIsMock.value = false
+    it('saves to local storage even when API fails', async () => {
       memoryStore.set('xhh_current_pet_id', 'pet-456')
-      mockUpdate.mockRejectedValue(new Error('DB error'))
+      mockApiPut.mockRejectedValue(new Error('API error'))
       const custom = {
         species: 'dog' as const,
         style: 'cartoon' as const,
@@ -184,16 +161,7 @@ describe('avatarService', () => {
   })
 
   describe('generateAvatarImage', () => {
-    it('returns null when free quota exceeded and not member', async () => {
-      memoryStore.set('xhh_avatar_gen_count', 1)
-      mockSelectOne.mockResolvedValue({ data: null, error: null, status: 200 })
-      const result = await generateAvatarImage('dog', '旺财', 'cartoon')
-      expect(result).toBeNull()
-      expect(mockGeneratePetImage).not.toHaveBeenCalled()
-    })
-
-    it('generates avatar for free user within quota', async () => {
-      mockSelectOne.mockResolvedValue({ data: null, error: null, status: 200 })
+    it('generates avatar and returns result on success', async () => {
       mockGeneratePetImage.mockResolvedValue({
         success: true,
         imageUrl: 'data:image/svg+xml,...',
@@ -201,11 +169,10 @@ describe('avatarService', () => {
       const result = await generateAvatarImage('dog', '旺财', 'cartoon')
       expect(result).not.toBeNull()
       expect(result!.success).toBe(true)
-      expect(getGenerationCount()).toBe(1)
+      expect(mockGeneratePetImage).toHaveBeenCalled()
     })
 
     it('returns null when generation fails', async () => {
-      mockSelectOne.mockResolvedValue({ data: null, error: null, status: 200 })
       mockGeneratePetImage.mockResolvedValue({
         success: false,
         error: 'API error',

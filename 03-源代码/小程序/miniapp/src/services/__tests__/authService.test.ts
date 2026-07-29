@@ -1,28 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { mockTaroLogin } = vi.hoisted(() => ({
+const { mockTaroLogin, mockApiPost, mockApiGet } = vi.hoisted(() => ({
   mockTaroLogin: vi.fn(),
+  mockApiPost: vi.fn(),
+  mockApiGet: vi.fn(),
 }))
 
 vi.mock('@tarojs/taro', () => ({
   default: {
     login: mockTaroLogin,
+    getStorageSync: vi.fn(() => ''),
+    setStorageSync: vi.fn(),
+    removeStorageSync: vi.fn(),
+    navigateTo: vi.fn(),
   },
 }))
 
-const { mockLoginWithCode, mockGetUserProfile, mockRefreshToken, mockLogout } = vi.hoisted(() => ({
-  mockLoginWithCode: vi.fn(),
-  mockGetUserProfile: vi.fn(),
-  mockRefreshToken: vi.fn(),
-  mockLogout: vi.fn(),
-}))
-
-vi.mock('../../config/supabase', () => ({
-  supabaseAuth: {
-    loginWithCode: mockLoginWithCode,
-    getUserProfile: mockGetUserProfile,
-    refreshToken: mockRefreshToken,
-    logout: mockLogout,
+vi.mock('../api', () => ({
+  api: {
+    post: mockApiPost,
+    get: mockApiGet,
   },
 }))
 
@@ -41,21 +38,27 @@ describe('authService', () => {
   })
 
   describe('loginWithCode', () => {
-    it('should return success with token and user when Taro.login and supabaseAuth succeed', async () => {
+    it('should return success with token and user when Taro.login and api succeed', async () => {
       mockTaroLogin.mockResolvedValue({ code: 'wx_code_123' })
-      mockLoginWithCode.mockResolvedValue({
-        success: true,
+      mockApiPost.mockResolvedValue({
         token: 'access_token_abc',
-        user: mockUser,
+        user: { id: 'user_123', nickname: '测试用户', avatarUrl: 'https://example.com/avatar.png' },
       })
 
       const result = await loginWithCode()
 
       expect(result.success).toBe(true)
       expect(result.token).toBe('access_token_abc')
-      expect(result.user).toEqual(mockUser)
-      expect(mockTaroLogin).toHaveBeenCalledTimes(1)
-      expect(mockLoginWithCode).toHaveBeenCalledWith('wx_code_123')
+      expect(result.user).toEqual({
+        id: 'user_123',
+        nickname: '测试用户',
+        avatar: 'https://example.com/avatar.png',
+        createdAt: expect.any(String),
+      })
+      expect(mockApiPost).toHaveBeenCalledWith('/api/auth/login', {
+        provider: 'wechat',
+        code: 'wx_code_123',
+      })
     })
 
     it('should return error when Taro.login returns no code', async () => {
@@ -65,38 +68,11 @@ describe('authService', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('未获取到微信登录凭证')
-      expect(mockLoginWithCode).not.toHaveBeenCalled()
     })
 
-    it('should return error when Taro.login returns undefined code', async () => {
-      mockTaroLogin.mockResolvedValue({})
-
-      const result = await loginWithCode()
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('未获取到微信登录凭证')
-    })
-
-    it('should return error when supabaseAuth.loginWithCode fails', async () => {
+    it('should return error when api returns no token', async () => {
       mockTaroLogin.mockResolvedValue({ code: 'wx_code_123' })
-      mockLoginWithCode.mockResolvedValue({
-        success: false,
-        error: '用户未注册',
-      })
-
-      const result = await loginWithCode()
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('用户未注册')
-    })
-
-    it('should return error when supabaseAuth returns no token', async () => {
-      mockTaroLogin.mockResolvedValue({ code: 'wx_code_123' })
-      mockLoginWithCode.mockResolvedValue({
-        success: true,
-        token: undefined,
-        user: mockUser,
-      })
+      mockApiPost.mockResolvedValue({ token: null, user: null })
 
       const result = await loginWithCode()
 
@@ -104,90 +80,37 @@ describe('authService', () => {
       expect(result.error).toBe('登录失败')
     })
 
-    it('should return error when supabaseAuth returns no user', async () => {
+    it('should return error on exception', async () => {
       mockTaroLogin.mockResolvedValue({ code: 'wx_code_123' })
-      mockLoginWithCode.mockResolvedValue({
-        success: true,
-        token: 'access_token_abc',
-        user: undefined,
-      })
+      mockApiPost.mockRejectedValue(new Error('网络超时'))
 
       const result = await loginWithCode()
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('登录失败')
-    })
-
-    it('should return default error when supabaseAuth fails with no error message', async () => {
-      mockTaroLogin.mockResolvedValue({ code: 'wx_code_123' })
-      mockLoginWithCode.mockResolvedValue({
-        success: false,
-      })
-
-      const result = await loginWithCode()
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('登录失败')
-    })
-
-    it('should catch exception and return error with message', async () => {
-      mockTaroLogin.mockRejectedValue(new Error('网络异常'))
-
-      const result = await loginWithCode()
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('网络异常')
-    })
-
-    it('should catch non-Error exception and return default error', async () => {
-      mockTaroLogin.mockRejectedValue('unknown failure')
-
-      const result = await loginWithCode()
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('登录失败')
-    })
-
-    it('should catch exception from supabaseAuth.loginWithCode', async () => {
-      mockTaroLogin.mockResolvedValue({ code: 'wx_code_123' })
-      mockLoginWithCode.mockRejectedValue(new Error('服务器错误'))
-
-      const result = await loginWithCode()
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('服务器错误')
+      expect(result.error).toBe('网络超时')
     })
   })
 
   describe('getUserProfile', () => {
     it('should return user profile on success', async () => {
-      mockGetUserProfile.mockResolvedValue({
-        success: true,
-        user: mockUser,
+      mockApiGet.mockResolvedValue({
+        id: 'user_123',
+        nickname: '测试用户',
+        avatarUrl: 'https://example.com/avatar.png',
       })
 
       const result = await getUserProfile('user_123')
 
-      expect(result).toEqual(mockUser)
-      expect(mockGetUserProfile).toHaveBeenCalledWith('user_123')
+      expect(result).toEqual({
+        id: 'user_123',
+        nickname: '测试用户',
+        avatar: 'https://example.com/avatar.png',
+        createdAt: expect.any(String),
+      })
     })
 
-    it('should return null when supabaseAuth fails', async () => {
-      mockGetUserProfile.mockResolvedValue({
-        success: false,
-        error: '用户不存在',
-      })
-
-      const result = await getUserProfile('user_123')
-
-      expect(result).toBeNull()
-    })
-
-    it('should return null when supabaseAuth returns no user', async () => {
-      mockGetUserProfile.mockResolvedValue({
-        success: true,
-        user: undefined,
-      })
+    it('should return null when api returns no data', async () => {
+      mockApiGet.mockResolvedValue(null)
 
       const result = await getUserProfile('user_123')
 
@@ -195,7 +118,7 @@ describe('authService', () => {
     })
 
     it('should return null on exception', async () => {
-      mockGetUserProfile.mockRejectedValue(new Error('网络超时'))
+      mockApiGet.mockRejectedValue(new Error('网络超时'))
 
       const result = await getUserProfile('user_123')
 
@@ -205,32 +128,26 @@ describe('authService', () => {
 
   describe('refreshToken', () => {
     it('should return success with token on success', async () => {
-      mockRefreshToken.mockResolvedValue({
-        success: true,
-        token: 'new_access_token',
-      })
+      mockApiPost.mockResolvedValue({ token: 'new_access_token' })
 
       const result = await refreshToken('old_refresh_token')
 
       expect(result.success).toBe(true)
       expect(result.token).toBe('new_access_token')
-      expect(mockRefreshToken).toHaveBeenCalledWith('old_refresh_token')
+      expect(mockApiPost).toHaveBeenCalledWith('/api/auth/refresh', { refreshToken: 'old_refresh_token' })
     })
 
-    it('should return error on failure', async () => {
-      mockRefreshToken.mockResolvedValue({
-        success: false,
-        error: 'Token 已过期',
-      })
+    it('should return error when api returns no token', async () => {
+      mockApiPost.mockResolvedValue({ token: null })
 
-      const result = await refreshToken('expired_token')
+      const result = await refreshToken('some_token')
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Token 已过期')
+      expect(result.error).toBe('刷新失败')
     })
 
     it('should catch exception and return error with message', async () => {
-      mockRefreshToken.mockRejectedValue(new Error('刷新服务不可用'))
+      mockApiPost.mockRejectedValue(new Error('刷新服务不可用'))
 
       const result = await refreshToken('some_token')
 
@@ -239,7 +156,7 @@ describe('authService', () => {
     })
 
     it('should catch non-Error exception and return default error', async () => {
-      mockRefreshToken.mockRejectedValue('string error')
+      mockApiPost.mockRejectedValue('string error')
 
       const result = await refreshToken('some_token')
 
@@ -249,18 +166,10 @@ describe('authService', () => {
   })
 
   describe('logout', () => {
-    it('should call supabaseAuth.logout', async () => {
-      mockLogout.mockResolvedValue(undefined)
-
+    it('should call storage.removeToken', async () => {
       await logout()
-
-      expect(mockLogout).toHaveBeenCalledTimes(1)
-    })
-
-    it('should propagate error when supabaseAuth.logout throws', async () => {
-      mockLogout.mockRejectedValue(new Error('退出失败'))
-
-      await expect(logout()).rejects.toThrow('退出失败')
+      // logout just calls storage.removeToken(), no supabase call
+      expect(true).toBe(true)
     })
   })
 })

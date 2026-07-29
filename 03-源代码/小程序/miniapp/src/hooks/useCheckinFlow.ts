@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { CardData, CheckinItem, PetInfo } from '../types/chatTypes'
+import { usePetStore } from '../stores/petStore'
 
 const CHECKIN_ITEMS: CheckinItem[] = [
   {
@@ -39,11 +40,11 @@ const CHECKIN_ITEMS: CheckinItem[] = [
     ],
   },
   {
-    key: 'weight', emoji: '⚖', label: '体重确认', question: '体重今天称了吗？（参考：上周28.0kg）',
+    key: 'weight', emoji: '⚖', label: '体重确认', question: '体重今天称了吗？',
     options: [
-      { label: '28.0kg 左右，稳定', score: 5 },
-      { label: '27.5-27.9kg，小幅下降', score: 3 },
-      { label: '28.5kg 以上，小幅上升', score: 3 },
+      { label: '体重稳定', score: 5 },
+      { label: '小幅下降', score: 3 },
+      { label: '小幅上升', score: 3 },
       { label: '今天没称', score: 0 },
     ],
   },
@@ -60,12 +61,21 @@ export interface UseCheckinFlowParams {
  * 健康打卡流程 Hook
  *
  * 管理打卡步骤与打卡数据，
+ * 支持多宠物选择（多宠物时先选宠物再打卡），
  * 负责 5 项健康指标的逐项询问、选项处理与最终报告生成。
  */
 export function useCheckinFlow(params: UseCheckinFlowParams) {
   const { addAiMsg, addUserMsg, addMessage, petInfo } = params
   const [checkinStep, setCheckinStep] = useState(-1)
   const [checkinData, setCheckinData] = useState<Record<string, { label: string; score: number }>>({})
+  const [selectedPetName, setSelectedPetName] = useState<string>('')
+
+  const pets = usePetStore(s => s.pets)
+
+  /** 获取当前打卡的目标宠物名 */
+  const getPetName = useCallback(() => {
+    return selectedPetName || petInfo.name
+  }, [selectedPetName, petInfo.name])
 
   const finishCheckin = useCallback(() => {
     setCheckinData(prevData => {
@@ -75,6 +85,7 @@ export function useCheckinFlow(params: UseCheckinFlowParams) {
       const rate = Math.round((total / maxScore) * 100)
 
       setCheckinStep(-1)
+      setSelectedPetName('')
 
       const stats = entries.map(([k, v]) => {
         const item = CHECKIN_ITEMS.find(it => it.key === k)
@@ -88,14 +99,15 @@ export function useCheckinFlow(params: UseCheckinFlowParams) {
         maxScore: 100,
         stats,
       }
-      let summary = '打卡完成！健康报告出炉 ✦'
+      const petName = getPetName()
+      let summary = `${petName}的打卡完成！健康报告出炉 ✦`
       if (rate >= 90) summary += '\n\n太棒了！状态满分 ✦ 继续保持！'
       else if (rate >= 70) summary += '\n\n整体还不错！有些项目需要注意一下～'
       else summary += '\n\n状态不太理想，建议多观察。可以做个症状初筛看看。'
       addMessage({ type: 'ai', content: summary, card })
       return prevData
     })
-  }, [addMessage])
+  }, [addMessage, getPetName])
 
   const askCheckinItem = useCallback(
     (step: number) => {
@@ -105,35 +117,85 @@ export function useCheckinFlow(params: UseCheckinFlowParams) {
         return
       }
       const item = CHECKIN_ITEMS[step]
+      const petName = getPetName()
       const progress = `${step + 1}/5`
       addAiMsg(
-        `${item.emoji} ${progress} ${item.label}\n${item.question.replace(/\{name\}/g, petInfo.name)}`,
+        `${item.emoji} ${progress} ${item.label}\n${item.question.replace(/\{name\}/g, petName)}`,
         item.options.map(o => o.label)
       )
     },
-    [addAiMsg, finishCheckin, petInfo.name]
+    [addAiMsg, finishCheckin, getPetName]
   )
 
   const startCheckin = useCallback(() => {
     setCheckinData({})
+    // 多宠物时先让用户选择
+    if (pets.length > 1) {
+      setCheckinStep(-2)
+      addAiMsg(
+        '好的！要为哪只毛孩子打卡呢？',
+        pets.map(p => `${p.species === 'cat' ? '🐱' : '🐕'} ${p.name}`)
+      )
+      return
+    }
+    // 单宠物直接开始
     setCheckinStep(0)
-    addAiMsg('好的！让我们来做个快速打卡 ✦\n\n一共5项，大概1分钟完成～我们从第一项开始：')
+    const petName = getPetName()
+    addAiMsg(`好的！让我们来给${petName}做个快速打卡 ✦\n\n一共5项，大概1分钟完成～我们从第一项开始：`)
     setTimeout(() => askCheckinItem(0), 600)
-  }, [addAiMsg, askCheckinItem])
+  }, [addAiMsg, askCheckinItem, pets, getPetName])
 
   /** 处理用户对某一项打卡的选择 */
   const handleCheckinAnswer = useCallback(
-    (label: string) => {
+    (label: string): boolean => {
+      // 宠物选择步骤
+      if (checkinStep === -2) {
+        const pet = pets.find(p => `${p.species === 'cat' ? '🐱' : '🐕'} ${p.name}` === label)
+        if (pet) {
+          setSelectedPetName(pet.name)
+          addUserMsg(label)
+          setCheckinStep(0)
+          addAiMsg(`好的！让我们来给${pet.name}做个快速打卡 ✦\n\n一共5项，大概1分钟完成～我们从第一项开始：`)
+          setTimeout(() => askCheckinItem(0), 600)
+          return true
+        }
+        // 尝试模糊匹配宠物名
+        const fuzzyPet = pets.find(p => label.includes(p.name))
+        if (fuzzyPet) {
+          setSelectedPetName(fuzzyPet.name)
+          addUserMsg(label)
+          setCheckinStep(0)
+          addAiMsg(`好的！让我们来给${fuzzyPet.name}做个快速打卡 ✦\n\n一共5项，大概1分钟完成～我们从第一项开始：`)
+          setTimeout(() => askCheckinItem(0), 600)
+          return true
+        }
+        return false
+      }
+
       const item = CHECKIN_ITEMS[checkinStep]
+      if (!item) return false
       const option = item.options.find(o => o.label === label)
-      if (!option) return
-      addUserMsg(label)
-      setCheckinData(prev => ({ ...prev, [item.key]: { label, score: option.score } }))
-      const next = checkinStep + 1
-      setCheckinStep(next)
-      setTimeout(() => askCheckinItem(next), 400)
+      if (option) {
+        addUserMsg(label)
+        setCheckinData(prev => ({ ...prev, [item.key]: { label, score: option.score } }))
+        const next = checkinStep + 1
+        setCheckinStep(next)
+        setTimeout(() => askCheckinItem(next), 400)
+        return true
+      }
+      // 模糊匹配：语音输入可能不精确
+      const fuzzyOption = item.options.find(o => label.includes(o.label) || o.label.includes(label))
+      if (fuzzyOption) {
+        addUserMsg(fuzzyOption.label)
+        setCheckinData(prev => ({ ...prev, [item.key]: { label: fuzzyOption.label, score: fuzzyOption.score } }))
+        const next = checkinStep + 1
+        setCheckinStep(next)
+        setTimeout(() => askCheckinItem(next), 400)
+        return true
+      }
+      return false
     },
-    [addUserMsg, askCheckinItem, checkinStep]
+    [addUserMsg, askCheckinItem, checkinStep, pets]
   )
 
   return {

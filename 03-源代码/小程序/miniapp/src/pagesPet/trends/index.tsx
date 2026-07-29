@@ -35,27 +35,27 @@ import './index.scss'
 type TimeRange = 'week' | 'month' | 'quarter'
 type TrendTab = 'weight' | 'appetite' | 'stool' | 'summary'
 
-const TIME_RANGE_OPTIONS: { key: TimeRange; label: string }[] = [
+export const TIME_RANGE_OPTIONS: { key: TimeRange; label: string }[] = [
   { key: 'week', label: '近1周' },
   { key: 'month', label: '近1月' },
   { key: 'quarter', label: '近3月' }
 ]
 
-const TREND_TABS: { key: TrendTab; label: string }[] = [
+export const TREND_TABS: { key: TrendTab; label: string }[] = [
   { key: 'weight', label: '体重' },
   { key: 'appetite', label: '食欲' },
   { key: 'stool', label: '便便' },
   { key: 'summary', label: '综合' }
 ]
 
-const APPETITE_LABELS: Record<string, string> = {
+export const APPETITE_LABELS: Record<string, string> = {
   normal: '正常',
   decreased: '减少',
   increased: '增加',
   none: '不吃'
 }
 
-const STOOL_LABELS: Record<string, string> = {
+export const STOOL_LABELS: Record<string, string> = {
   normal: '正常',
   soft: '偏软',
   diarrhea: '腹泻',
@@ -63,14 +63,14 @@ const STOOL_LABELS: Record<string, string> = {
   bloody: '便血'
 }
 
-const APPETITE_COLORS: Record<string, string> = {
+export const APPETITE_COLORS: Record<string, string> = {
   normal: '#52C41A',
   decreased: '#FAAD14',
   increased: '#FF8C42',
   none: '#FF4D4F'
 }
 
-const STOOL_COLORS: Record<string, string> = {
+export const STOOL_COLORS: Record<string, string> = {
   normal: '#52C41A',
   soft: '#FAAD14',
   diarrhea: '#FF8C42',
@@ -78,7 +78,7 @@ const STOOL_COLORS: Record<string, string> = {
   bloody: '#FF4D4F'
 }
 
-const RISK_COLORS: Record<string, string> = {
+export const RISK_COLORS: Record<string, string> = {
   normal: '#52C41A',
   caution: '#FAAD14',
   warning: '#FF8C42',

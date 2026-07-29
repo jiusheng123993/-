@@ -26,7 +26,7 @@ import { EVENT } from '../../constants/analyticsEvents'
 import type { Checkin } from '../../types'
 import './index.scss'
 
-const APPETITE_OPTIONS = [
+export const APPETITE_OPTIONS = [
   { value: 3 as const, emoji: '😋', label: '正常' },
   { value: 2 as const, emoji: '😐', label: '少吃' },
   { value: 4 as const, emoji: '🍽️', label: '多吃' },
@@ -34,7 +34,7 @@ const APPETITE_OPTIONS = [
   { value: 5 as const, emoji: '🤮', label: '呕吐' },
 ]
 
-const SPIRIT_OPTIONS = [
+export const SPIRIT_OPTIONS = [
   { value: 3 as const, emoji: '⚡', label: '正常' },
   { value: 2 as const, emoji: '😴', label: '安静' },
   { value: 4 as const, emoji: '😊', label: '兴奋' },
@@ -42,7 +42,7 @@ const SPIRIT_OPTIONS = [
   { value: 1 as const, emoji: '😞', label: '萎靡' },
 ]
 
-const POOP_OPTIONS = [
+export const POOP_OPTIONS = [
   { value: 3 as const, emoji: '💩', label: '正常' },
   { value: 4 as const, emoji: '🟤', label: '偏软' },
   { value: 2 as const, emoji: '💧', label: '腹泻' },
@@ -50,7 +50,7 @@ const POOP_OPTIONS = [
   { value: 1 as const, emoji: '🩸', label: '带血' },
 ]
 
-const EXERCISE_OPTIONS = [
+export const EXERCISE_OPTIONS = [
   { value: 2 as const, emoji: '🏃', label: '正常' },
   { value: 1 as const, emoji: '🛋️', label: '少' },
   { value: 3 as const, emoji: '🏋️', label: '多' },
@@ -97,32 +97,32 @@ const STOOL_DISPLAY: Record<string, { emoji: string; label: string }> = {
   hard: { emoji: '🪨', label: '便秘' },
 }
 
-function mapAppetiteLevel(level: number): Checkin['appetite'] {
+export function mapAppetiteLevel(level: number): Checkin['appetite'] {
   if (level <= 2) return 'poor'
   if (level === 3) return 'normal'
   return 'good'
 }
 
-function mapSpiritLevel(level: number): Checkin['mood'] {
+export function mapSpiritLevel(level: number): Checkin['mood'] {
   if (level <= 2) return 'sad'
   if (level === 3) return 'normal'
   return 'happy'
 }
 
-function mapPoopLevel(level: number): Checkin['stool'] {
+export function mapPoopLevel(level: number): Checkin['stool'] {
   if (level <= 2) return 'loose'
   if (level === 3) return 'normal'
   return 'hard'
 }
 
-function computeRiskLevel(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): string {
+export function computeRiskLevel(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): string {
   if (stool === 'loose' && appetite === 'poor' && mood === 'sad') return 'emergency'
   if (appetite === 'poor' && mood === 'sad') return 'high'
   if (stool === 'loose' || appetite === 'poor' || mood === 'sad') return 'medium'
   return 'low'
 }
 
-function computeAnomalyItems(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): string[] {
+export function computeAnomalyItems(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): string[] {
   const items: string[] = []
   if (mood === 'sad') items.push('spirit')
   if (appetite === 'poor') items.push('appetite')
@@ -130,7 +130,7 @@ function computeAnomalyItems(mood: Checkin['mood'], appetite: Checkin['appetite'
   return items
 }
 
-function computeHasAnomaly(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): boolean {
+export function computeHasAnomaly(mood: Checkin['mood'], appetite: Checkin['appetite'], stool: Checkin['stool']): boolean {
   return mood === 'sad' || appetite === 'poor' || stool !== 'normal'
 }
 

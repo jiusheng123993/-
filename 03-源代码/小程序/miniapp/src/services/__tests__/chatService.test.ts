@@ -11,6 +11,11 @@ vi.mock('../../utils/ruleGuard', () => ({
   sanitizeOutput: vi.fn((t: string) => t),
 }))
 
+vi.mock('../../utils/authGuard', () => ({
+  requireAuth: vi.fn(),
+  AuthenticationError: class extends Error { constructor(m: string) { super(m); this.name = 'AuthenticationError' } },
+}))
+
 import { sendChatMessage } from '../chatService'
 
 describe('sendChatMessage', () => {

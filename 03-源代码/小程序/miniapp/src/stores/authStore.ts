@@ -1,4 +1,5 @@
-﻿import create from 'zustand'
+import Taro from '@tarojs/taro'
+import create from 'zustand'
 import { api } from '../services/api'
 import { storage } from '../utils/storage'
 import type { User } from '../types'
@@ -46,7 +47,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async () => {
     set({ isLoading: true })
     try {
-      const res = await api.login('mock_code')
+      const { code } = await Taro.login()
+      if (!code) {
+        throw new Error('获取微信登录凭证失败')
+      }
+      const res = await api.login(code)
       storage.setToken(res.token)
       storage.setRefreshToken(res.refreshToken)
       storage.setUser(res.user)

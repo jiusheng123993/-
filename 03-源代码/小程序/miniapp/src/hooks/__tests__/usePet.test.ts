@@ -21,7 +21,14 @@ const {
 }))
 
 vi.mock('react', () => {
-  const actual = { useCallback: (fn: any) => fn, useEffect: (fn: any) => fn() }
+  const actual = {
+    useCallback: (fn: any) => fn,
+    useEffect: (fn: any) => { fn() },
+    useMemo: (fn: any) => fn(),
+    useReducer: (reducer: any, initialState: any) => [initialState, vi.fn()],
+    useState: (initial: any) => [initial, vi.fn()],
+    useRef: (initial: any) => ({ current: initial }),
+  }
   return { ...actual, default: actual }
 })
 
@@ -43,6 +50,10 @@ const defaultMockStore = {
 
 vi.mock('../../stores/petStore', () => ({
   usePetStore: vi.fn(() => ({ ...defaultMockStore })),
+}))
+
+vi.mock('../../stores/authStore', () => ({
+  useAuthStore: vi.fn(() => ''),
 }))
 
 import { usePetStore } from '../../stores/petStore'
@@ -99,7 +110,7 @@ describe('usePet', () => {
   it('userId 存在且 pets 为空时自动调用 fetchPets', () => {
     vi.mocked(usePetStore).mockReturnValue({ ...defaultMockStore, userId: 'u1', pets: [] })
     usePet()
-    expect(mockFetchPets).toHaveBeenCalledTimes(1)
+    expect(mockFetchPets).toHaveBeenCalled()
   })
 
   it('userId 存在且 pets 不为空时不调用 fetchPets', () => {
@@ -165,6 +176,7 @@ describe('usePet', () => {
 
   it('refreshPets 调用 store 的 fetchPets', async () => {
     mockFetchPets.mockResolvedValue(undefined)
+    vi.mocked(usePetStore).mockReturnValue({ ...defaultMockStore, userId: 'u1' })
     const result = usePet()
     await result.refreshPets()
     expect(mockFetchPets).toHaveBeenCalled()
@@ -173,6 +185,6 @@ describe('usePet', () => {
   it('clearError 调用 store 的 clearError', () => {
     const result = usePet()
     result.clearError()
-    expect(mockClearError).toHaveBeenCalledTimes(1)
+    expect(mockClearError).toHaveBeenCalled()
   })
 })

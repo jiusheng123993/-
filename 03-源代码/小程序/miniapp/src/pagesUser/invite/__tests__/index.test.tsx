@@ -51,9 +51,15 @@ vi.mock('@tarojs/taro', () => ({
     showToast: mockShowToast,
     setStorageSync: vi.fn(),
     getStorageSync: vi.fn(() => null),
+    getStorageInfoSync: vi.fn(() => ({ keys: [] })),
+    setNavigationBarColor: vi.fn(() => ({ catch: vi.fn() })),
+    setTabBarStyle: vi.fn(() => ({ catch: vi.fn() })),
+    eventCenter: { on: vi.fn(), off: vi.fn(), trigger: vi.fn() },
   },
+  useDidShow: vi.fn(),
   useShareAppMessage: vi.fn(),
   useShareTimeline: vi.fn(),
+  eventCenter: { on: vi.fn(), off: vi.fn(), trigger: vi.fn() },
 }))
 
 vi.mock('../../../components', () => ({

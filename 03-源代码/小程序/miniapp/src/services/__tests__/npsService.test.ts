@@ -18,14 +18,13 @@ vi.mock('@tarojs/taro', () => ({
   },
 }))
 
-const { mockInsert } = vi.hoisted(() => ({
-  mockInsert: vi.fn<() => Promise<{ data: unknown; error: string | null; status: number }>>(),
+const { mockApiPost } = vi.hoisted(() => ({
+  mockApiPost: vi.fn(),
 }))
 
-vi.mock('../supabaseClient', () => ({
-  supabaseClient: {
-    insert: mockInsert,
-    isMock: true,
+vi.mock('../api', () => ({
+  api: {
+    post: mockApiPost,
   },
 }))
 
@@ -63,17 +62,13 @@ describe('npsService', () => {
   beforeEach(() => {
     memoryStore.clear()
     vi.clearAllMocks()
-    mockInsert.mockResolvedValue({
-      data: [{
-        id: 'resp-1',
-        userId: 'user-123',
-        score: 8,
-        triggerEvent: 'day_7',
-        feedback: 'Great app',
-        submittedAt: new Date().toISOString(),
-      }],
-      error: null,
-      status: 201,
+    mockApiPost.mockResolvedValue({
+      id: 'resp-1',
+      userId: 'user-123',
+      score: 8,
+      triggerEvent: 'day_7',
+      feedback: 'Great app',
+      submittedAt: new Date().toISOString(),
     })
   })
 
@@ -160,13 +155,13 @@ describe('npsService', () => {
     it('should reject score < 0', async () => {
       const result = await submitNpsResponse('user-123', -1, 'day_7', 'bad')
       expect(result).toBeNull()
-      expect(mockInsert).not.toHaveBeenCalled()
+      expect(mockApiPost).not.toHaveBeenCalled()
     })
 
     it('should reject score > 10', async () => {
       const result = await submitNpsResponse('user-123', 11, 'day_7', 'bad')
       expect(result).toBeNull()
-      expect(mockInsert).not.toHaveBeenCalled()
+      expect(mockApiPost).not.toHaveBeenCalled()
     })
 
     it('should submit valid response', async () => {
@@ -174,7 +169,7 @@ describe('npsService', () => {
       expect(result).not.toBeNull()
       expect(result!.score).toBe(8)
       expect(result!.triggerEvent).toBe('day_7')
-      expect(mockInsert).toHaveBeenCalledWith('nps_responses', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/nps/responses', {
         user_id: 'user-123',
         score: 8,
         trigger_event: 'day_7',

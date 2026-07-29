@@ -6,6 +6,7 @@ import { usePetStore } from '../../stores/petStore'
 import PageLoading from '../../components/PageLoading'
 import PetAvatar from '../../components/PetAvatar'
 import { useThemeClass } from '../../hooks/useThemeClass'
+import { getPetFacts, type PetFact } from '../../services/petService'
 import type { ExpressionContext } from '../../types/avatarTypes'
 import './index.scss'
 
@@ -21,12 +22,21 @@ const defaultExpressionContext: ExpressionContext = {
   isDeceased: false,
 }
 
+const FACT_ICONS: Record<string, string> = {
+  like: '❤️',
+  dislike: '💔',
+  habit: '🔄',
+  personality: '🌟',
+  general: '📝',
+}
+
 export default function PetProfile() {
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isInitialized = useAuthStore(state => state.isInitialized)
   const { pets, currentPet, fetchPets, switchPet, markPetDeceased } = usePetStore()
   const [pageReady, setPageReady] = useState(false)
+  const [facts, setFacts] = useState<PetFact[]>([])
   const themeClass = useThemeClass()
 
   const pet = currentPet || (pets.length > 0 ? pets[0] : undefined)
@@ -51,6 +61,13 @@ export default function PetProfile() {
     }
     loadData()
   }, [isInitialized, isAuthenticated, user])
+
+  // 当切换宠物时，加载其特征数据
+  useEffect(() => {
+    if (pet && pageReady) {
+      getPetFacts(pet.id).then(setFacts).catch(() => setFacts([]))
+    }
+  }, [pet?.id, pageReady])
 
   const navigateTo = (url: string) => {
     Taro.navigateTo({ url })
@@ -178,6 +195,20 @@ export default function PetProfile() {
           </View>
         </View>
       </View>
+
+      {facts.length > 0 && (
+        <View className='profile-section'>
+          <Text className='profile-section-title'>它的喜好与习惯</Text>
+          <View className='profile-facts-list'>
+            {facts.map((fact) => (
+              <View key={fact.id} className={`profile-fact-item profile-fact-item--${fact.category}`}>
+                <Text className='profile-fact-icon'>{FACT_ICONS[fact.category] || '📝'}</Text>
+                <Text className='profile-fact-text'>{fact.fact}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View className='profile-section'>
         <Text className='profile-section-title'>品种特征</Text>

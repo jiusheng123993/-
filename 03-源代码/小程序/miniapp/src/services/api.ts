@@ -55,7 +55,8 @@ async function request<T>(path: string, options?: { method?: string; data?: any;
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
-    const body = res.data as ApiResponse<T>
+    const body = res.data as ApiResponse<T> & { success?: boolean }
+    if (body.success) return body.data as T
     if (body.code === 0) return body.data
     throw new Error(body.message || '请求失败')
   } catch (err: any) {
@@ -85,11 +86,11 @@ export const api = {
   },
   login: async (code: string): Promise<LoginResponse> => {
     if (useMock()) return mockApi.login(code)
-    return request<LoginResponse>('/auth/login', { method: 'POST', data: { provider: 'wechat', code } })
+    return request<LoginResponse>('/api/auth/login', { method: 'POST', data: { provider: 'wechat', code } })
   },
   getUser: async (): Promise<User> => {
     if (useMock()) return mockApi.getUser()
-    return request<User>('/auth/session')
+    return request<User>('/api/auth/session')
   },
   getPets: async (userId: string): Promise<Pet[]> => {
     if (useMock()) return mockApi.getPets(userId)
@@ -113,11 +114,11 @@ export const api = {
   },
   getCheckins: async (petId: string): Promise<Checkin[]> => {
     if (useMock()) return mockApi.getCheckins(petId)
-    return request<Checkin[]>(`/pets/${petId}/checkins`)
+    return request<Checkin[]>(`/api/pets/${petId}/checkins`)
   },
   createCheckin: async (data: Partial<Checkin>): Promise<Checkin> => {
     if (useMock()) return mockApi.createCheckin(data)
-    return request<Checkin>(`/pets/${data.petId}/checkins`, { method: 'POST', data })
+    return request<Checkin>(`/api/pets/${data.petId}/checkins`, { method: 'POST', data })
   },
   getMembership: async (userId: string): Promise<Membership | null> => {
     if (useMock()) return mockApi.getMembership(userId)

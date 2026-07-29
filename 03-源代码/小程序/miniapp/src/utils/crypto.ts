@@ -3,10 +3,19 @@ import SHA256 from 'crypto-js/sha256';
 import Utf8 from 'crypto-js/enc-utf8';
 import Base64 from 'crypto-js/enc-base64';
 
-const APP_SALT = (process.env as Record<string, string | undefined>).TARO_APP_CRYPTO_SALT || 'xhh-v2-aes-salt-2026-dev';
+function getAppSalt(): string {
+  const salt = (process.env as Record<string, string | undefined>).TARO_APP_CRYPTO_SALT
+  if (!salt) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('TARO_APP_CRYPTO_SALT 环境变量未配置，生产环境必须设置')
+    }
+    return 'xhh-v2-aes-salt-2026-dev'
+  }
+  return salt
+}
 
 function deriveKey(userId: string): string {
-  return SHA256(APP_SALT + ':' + userId).toString();
+  return SHA256(getAppSalt() + ':' + userId).toString();
 }
 
 export function encrypt(data: string, userId: string): string {

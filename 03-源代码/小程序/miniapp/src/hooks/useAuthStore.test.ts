@@ -1,40 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {
-  mockLoginWithCode,
-  mockLogout,
-  mockRefreshToken,
-  mockRequestAccountDeletion,
-  mockCancelDeletion,
-  mockGetDataPrivacyStatus,
+  mockApiLogin,
+  mockApiGetUser,
+  mockStorageGetToken,
+  mockStorageGetUser,
+  mockStorageSetToken,
+  mockStorageSetRefreshToken,
+  mockStorageSetUser,
+  mockStorageClear,
 } = vi.hoisted(() => ({
-  mockLoginWithCode: vi.fn(),
-  mockLogout: vi.fn(),
-  mockRefreshToken: vi.fn(),
-  mockRequestAccountDeletion: vi.fn(),
-  mockCancelDeletion: vi.fn(),
-  mockGetDataPrivacyStatus: vi.fn(),
+  mockApiLogin: vi.fn(),
+  mockApiGetUser: vi.fn(),
+  mockStorageGetToken: vi.fn(),
+  mockStorageGetUser: vi.fn(),
+  mockStorageSetToken: vi.fn(),
+  mockStorageSetRefreshToken: vi.fn(),
+  mockStorageSetUser: vi.fn(),
+  mockStorageClear: vi.fn(),
 }))
 
-vi.mock('../config/supabase', () => ({
-  supabaseAuth: {
-    loginWithCode: mockLoginWithCode,
-    logout: mockLogout,
-    refreshToken: mockRefreshToken,
-  },
-  STORAGE_KEYS: {
-    TOKEN: 'token',
-    REFRESH_TOKEN: 'refresh_token',
-    USER: 'user',
-  },
-  ENV: {
-    development: { apiBaseUrl: 'http://localhost:3000', useMock: true },
-    production: { apiBaseUrl: 'https://api.example.com', useMock: false },
+vi.mock('../services/api', () => ({
+  api: {
+    login: mockApiLogin,
+    getUser: mockApiGetUser,
   },
 }))
 
-vi.mock('../utils/jwt', () => ({
-  verifyToken: vi.fn(() => true),
+vi.mock('../utils/storage', () => ({
+  storage: {
+    getToken: mockStorageGetToken,
+    getUser: mockStorageGetUser,
+    setToken: mockStorageSetToken,
+    setRefreshToken: mockStorageSetRefreshToken,
+    setUser: mockStorageSetUser,
+    clear: mockStorageClear,
+  },
 }))
 
 vi.mock('@tarojs/taro', () => ({
@@ -45,17 +46,13 @@ vi.mock('@tarojs/taro', () => ({
   },
 }))
 
-vi.mock('../services/dataPrivacyService', () => ({
-  requestAccountDeletion: mockRequestAccountDeletion,
-  cancelAccountDeletion: mockCancelDeletion,
-  getDataPrivacyStatus: mockGetDataPrivacyStatus,
-}))
-
 import { useAuthStore } from '../stores/authStore'
 
 describe('useAuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockStorageGetToken.mockReturnValue(null)
+    mockStorageGetUser.mockReturnValue(null)
     useAuthStore.setState({
       token: null,
       user: null,
@@ -81,8 +78,7 @@ describe('useAuthStore', () => {
       avatar: 'https://example.com/avatar.png',
       createdAt: '2026-07-20T00:00:00Z',
     }
-    mockLoginWithCode.mockResolvedValue({
-      success: true,
+    mockApiLogin.mockResolvedValue({
       token: 'mock_token',
       refreshToken: 'mock_refresh_token',
       user: mockUser,
@@ -95,6 +91,9 @@ describe('useAuthStore', () => {
     expect(state.token).toBe('mock_token')
     expect(state.isAuthenticated).toBe(true)
     expect(state.isLoading).toBe(false)
+    expect(mockStorageSetToken).toHaveBeenCalledWith('mock_token')
+    expect(mockStorageSetRefreshToken).toHaveBeenCalledWith('mock_refresh_token')
+    expect(mockStorageSetUser).toHaveBeenCalledWith(mockUser)
   })
 
   it('logout 清除用户状态', async () => {
@@ -119,6 +118,7 @@ describe('useAuthStore', () => {
     expect(state.user).toBeNull()
     expect(state.isAuthenticated).toBe(false)
     expect(state.isLoading).toBe(false)
+    expect(mockStorageClear).toHaveBeenCalled()
   })
 
   it('getUserInfo 返回用户信息', async () => {
@@ -129,8 +129,7 @@ describe('useAuthStore', () => {
       avatar: 'https://example.com/avatar.png',
       createdAt: '2026-07-20T00:00:00Z',
     }
-    mockLoginWithCode.mockResolvedValue({
-      success: true,
+    mockApiLogin.mockResolvedValue({
       token: 'mock_token',
       refreshToken: 'mock_refresh_token',
       user: mockUser,

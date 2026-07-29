@@ -59,14 +59,7 @@ export async function flushEvents(): Promise<void> {
   const queue = getQueue()
   if (queue.length === 0) return
 
-  const eventsToSend = [...queue]
-
-  try {
-    await api.post('/analytics/events', { events: eventsToSend })
-    Taro.setStorageSync(EVENT_QUEUE_KEY, '[]')
-  } catch {
-    // keep queue on failure, retry next time
-  }
+  Taro.setStorageSync(EVENT_QUEUE_KEY, '[]')
 }
 
 export function getQueueLength(): number {

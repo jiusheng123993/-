@@ -1,8 +1,8 @@
 {
   "miniprogramRoot": "dist/",
-  "projectname": "xinghuanhai-miniapp",
-  "description": "星寰海 - AI宠物管家",
-  "appid": "wx08d8d6b155bf7860",
+  "projectname": "galaxy-pet-diary",
+  "description": "星河宠记 - 记得它，就是最好的爱",
+  "appid": "wxabdfebe007586e53",
   "setting": {
     "urlCheck": true,
     "es6": false,

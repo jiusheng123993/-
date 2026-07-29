@@ -652,14 +652,15 @@ describe('AnxietyIntervention', () => {
     expect(Taro.navigateTo).toHaveBeenCalledWith({ url: '/pagesPet/trends/index' })
   })
 
-  it('hospital action shows toast', () => {
+  it('hospital action navigates to hospital page', () => {
+    const onDismiss = vi.fn()
     const { container } = render(
       <AnxietyIntervention
         type='sick_anxiety'
         context={sickContext}
         petName='旺财'
         species='dog'
-        onDismiss={vi.fn()}
+        onDismiss={onDismiss}
       />,
     )
     fireEvent.click(screen.getByText('下一步'))
@@ -667,7 +668,8 @@ describe('AnxietyIntervention', () => {
     const actionBtns = container.querySelectorAll('.anxiety-intervention__action-btn')
     const hospitalBtn = Array.from(actionBtns).find(btn => btn.textContent?.includes('找附近医院'))
     fireEvent.click(hospitalBtn!)
-    expect(Taro.showToast).toHaveBeenCalledWith({ title: '附近医院功能开发中', icon: 'none' })
+    expect(onDismiss).toHaveBeenCalled()
+    expect(Taro.navigateTo).toHaveBeenCalledWith({ url: '/pagesPet/hospital/index' })
   })
 
   it('new_owner_anxiety last step has only done action', () => {

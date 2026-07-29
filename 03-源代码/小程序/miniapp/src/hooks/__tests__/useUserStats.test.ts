@@ -15,7 +15,14 @@ const {
 }))
 
 vi.mock('react', () => {
-  const actual = { useMemo: (fn: any) => fn(), useCallback: (fn: any) => fn(), useEffect: (fn: any) => fn() }
+  const actual = {
+    useMemo: (fn: any) => fn(),
+    useCallback: (fn: any) => fn,
+    useEffect: (fn: any) => { fn() },
+    useReducer: (reducer: any, initialState: any) => [initialState, vi.fn()],
+    useState: (initial: any) => [initial, vi.fn()],
+    useRef: (initial: any) => ({ current: initial }),
+  }
   return { ...actual, default: actual }
 })
 
@@ -38,7 +45,7 @@ describe('useUserStats', () => {
     vi.clearAllMocks()
     mockGetStorageArray.mockReturnValue([])
     mockPetStoreSelector.mockImplementation((selector: any) => selector({ pets: [] }))
-    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ entries: [] }))
+    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ checkins: [] }))
   })
 
   it('返回值包含所有预期字段', () => {
@@ -67,8 +74,8 @@ describe('useUserStats', () => {
   })
 
   it('checkinCount 返回打卡记录数量', () => {
-    const entries = [{ id: 'e1' }, { id: 'e2' }, { id: 'e3' }] as any[]
-    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ entries }))
+    const checkins = [{ id: 'e1' }, { id: 'e2' }, { id: 'e3' }] as any[]
+    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ checkins }))
     const result = useUserStats()
     expect(result.checkinCount).toBe(3)
   })
@@ -94,16 +101,16 @@ describe('useUserStats', () => {
   it('有打卡记录时 usageDays 大于 0', () => {
     const pastDate = new Date()
     pastDate.setDate(pastDate.getDate() - 5)
-    const entries = [{ id: 'e1', createdAt: pastDate.toISOString() }] as any[]
-    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ entries }))
+    const checkins = [{ id: 'e1', createdAt: pastDate.toISOString() }] as any[]
+    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ checkins }))
     const result = useUserStats()
     expect(result.usageDays).toBeGreaterThanOrEqual(5)
   })
 
   it('只有一条打卡记录时 usageDays 至少为 1', () => {
     const now = new Date()
-    const entries = [{ id: 'e1', createdAt: now.toISOString() }] as any[]
-    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ entries }))
+    const checkins = [{ id: 'e1', createdAt: now.toISOString() }] as any[]
+    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ checkins }))
     const result = useUserStats()
     expect(result.usageDays).toBeGreaterThanOrEqual(1)
   })
@@ -113,11 +120,11 @@ describe('useUserStats', () => {
     olderDate.setDate(olderDate.getDate() - 10)
     const newerDate = new Date()
     newerDate.setDate(newerDate.getDate() - 3)
-    const entries = [
+    const checkins = [
       { id: 'e2', createdAt: newerDate.toISOString() },
       { id: 'e1', createdAt: olderDate.toISOString() },
     ] as any[]
-    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ entries }))
+    mockCheckinStoreSelector.mockImplementation((selector: any) => selector({ checkins }))
     const result = useUserStats()
     expect(result.usageDays).toBeGreaterThanOrEqual(10)
   })
@@ -126,7 +133,7 @@ describe('useUserStats', () => {
 describe('getUsageDays', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockCheckinStoreGetState.mockReturnValue({ entries: [] })
+    mockCheckinStoreGetState.mockReturnValue({ checkins: [] })
   })
 
   it('无打卡记录时返回 0', () => {
@@ -137,7 +144,7 @@ describe('getUsageDays', () => {
     const pastDate = new Date()
     pastDate.setDate(pastDate.getDate() - 7)
     mockCheckinStoreGetState.mockReturnValue({
-      entries: [{ id: 'e1', createdAt: pastDate.toISOString() }],
+      checkins: [{ id: 'e1', createdAt: pastDate.toISOString() }],
     })
     expect(getUsageDays()).toBeGreaterThanOrEqual(7)
   })
@@ -162,7 +169,7 @@ describe('getPetCount', () => {
 describe('getCheckinCount', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockCheckinStoreGetState.mockReturnValue({ entries: [] })
+    mockCheckinStoreGetState.mockReturnValue({ checkins: [] })
   })
 
   it('无打卡记录时返回 0', () => {
@@ -170,7 +177,7 @@ describe('getCheckinCount', () => {
   })
 
   it('有打卡记录时返回数量', () => {
-    mockCheckinStoreGetState.mockReturnValue({ entries: [{ id: 'e1' }, { id: 'e2' }] })
+    mockCheckinStoreGetState.mockReturnValue({ checkins: [{ id: 'e1' }, { id: 'e2' }] })
     expect(getCheckinCount()).toBe(2)
   })
 })
@@ -225,7 +232,7 @@ describe('getAllStats', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockPetStoreGetState.mockReturnValue({ pets: [{ id: 'p1' }] })
-    mockCheckinStoreGetState.mockReturnValue({ entries: [{ id: 'e1', createdAt: new Date().toISOString() }] })
+    mockCheckinStoreGetState.mockReturnValue({ checkins: [{ id: 'e1', createdAt: new Date().toISOString() }] })
     mockGetStorageArray.mockImplementation((key: string) => {
       if (key === 'vaccine_data') return [{ id: 'v1' }]
       if (key === 'symptom_data') return [{ id: 's1' }, { id: 's2' }]

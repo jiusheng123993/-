@@ -55,8 +55,57 @@ $transition-slow: 0.4s ease;
 // ============================================
 // 默认主题：樱语花境（Sakura Dream）
 // 柔雾玫瑰粉 — 温柔浪漫，如漫步樱花雨中
+// 注意：CSS 变量设置在 app-root（普通 <view>）而非 page（原生组件），
+// 因为微信小程序中 page 原生组件的 CSS 变量可能无法可靠层叠到子元素。
+// 同时保留 page 上的变量作为兜底，确保 app-root 未渲染时也有基础样式。
 // ============================================
 page {
+  --primary: #C88EA8;
+  --primary-rgb: 200, 142, 168;
+  --primary-light: #E8C8D8;
+  --primary-light-rgb: 232, 200, 216;
+  --primary-dark: #A06880;
+  --primary-dark-rgb: 160, 104, 128;
+  --primary-bg: rgba(200, 142, 168, 0.08);
+
+  --success: #8EA898;
+  --success-rgb: 142, 168, 152;
+  --warning: #C8A078;
+  --danger: #C87070;
+  --danger-rgb: 200, 112, 112;
+  --danger-light: rgba(200, 112, 112, 0.12);
+  --danger-bg: rgba(200, 112, 112, 0.2);
+  --teal: #7EA8A0;
+  --teal-rgb: 126, 168, 160;
+  --coral: #D0A098;
+  --coral-rgb: 208, 160, 152;
+  --sage: #8EA898;
+  --sage-rgb: 142, 168, 152;
+
+  --text-primary: #E8D8DE;
+  --text-secondary: #A098A0;
+  --text-tertiary: #786870;
+  --text-placeholder: #685860;
+  --text-hint: #988898;
+  --text-inverse: #1A1418;
+
+  --bg-page: #1A1418;
+  --bg-card: #2A1E24;
+  --bg-secondary: #241820;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --border: rgba(200, 142, 168, 0.15);
+  --border-light: rgba(200, 142, 168, 0.08);
+  --divider: rgba(200, 142, 168, 0.06);
+
+  --gradient-page: linear-gradient(180deg, #160E14 0%, #1A1418 30%, #241820 70%, #2A1E24 100%);
+  --gradient-card: linear-gradient(135deg, rgba(200, 142, 168, 0.12), rgba(200, 142, 168, 0.04));
+  --gradient-gold: linear-gradient(135deg, #C88EA8, #E8C8D8);
+  --gradient-warm: linear-gradient(135deg, #C88EA8, #D8A8B8, #E8C8D8);
+}
+
+// app-root 同样设置默认主题变量，确保在普通 <view> 元素上也可用（小程序 page 原生组件层叠不可靠）
+.app-root {
   --primary: #C88EA8;
   --primary-rgb: 200, 142, 168;
   --primary-light: #E8C8D8;

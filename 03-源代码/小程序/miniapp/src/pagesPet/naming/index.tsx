@@ -28,7 +28,7 @@ export default function NamingPage() {
     if (!breed || !birthDate || !gender) return
     setLoading(true)
     try {
-      const res = await recommendNames(breed, birthDate, gender)
+      const res = await recommendNames({ breed, birthDate, gender })
       setResult(res)
     } catch {
       setResult('推荐服务暂时不可用，请稍后再试。')

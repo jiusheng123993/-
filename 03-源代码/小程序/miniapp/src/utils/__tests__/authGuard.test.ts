@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { mockIsTokenFormatValid, mockValidateTokenWithServer } = vi.hoisted(() => ({
+const { mockIsTokenFormatValid } = vi.hoisted(() => ({
   mockIsTokenFormatValid: vi.fn(),
-  mockValidateTokenWithServer: vi.fn(),
 }))
 
 vi.mock('@tarojs/taro', () => ({
@@ -15,14 +14,15 @@ vi.mock('@tarojs/taro', () => ({
 
 vi.mock('../jwt', () => ({
   isTokenFormatValid: mockIsTokenFormatValid,
-  validateTokenWithServer: mockValidateTokenWithServer,
 }))
 
-vi.mock('../../config/supabase', () => ({
-  STORAGE_KEYS: {
-    TOKEN: 'xhh_token',
-    REFRESH_TOKEN: 'xhh_refresh_token',
-    USER: 'xhh_user',
+vi.mock('../../config', () => ({
+  CONFIG: {
+    STORAGE_KEYS: {
+      TOKEN: 'xhh_token',
+      REFRESH_TOKEN: 'xhh_refresh_token',
+      USER: 'xhh_user',
+    },
   },
 }))
 
@@ -44,7 +44,6 @@ describe('authGuard', () => {
     vi.clearAllMocks()
     mockGetStorageSync.mockReturnValue('')
     mockIsTokenFormatValid.mockReturnValue(false)
-    mockValidateTokenWithServer.mockResolvedValue(false)
   })
 
   describe('getAuthenticatedUserId', () => {
@@ -164,26 +163,22 @@ describe('authGuard', () => {
       expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
     })
 
-    it('should navigate to login when server validation fails', async () => {
+    it('should navigate to login when token valid but user info missing', async () => {
       mockGetStorageSync.mockImplementation((key: string) => {
         if (key === SK.TOKEN) return 'valid-token'
-        if (key === SK.USER) return JSON.stringify({ id: 'user-123' })
         return ''
       })
       mockIsTokenFormatValid.mockReturnValue(true)
-      mockValidateTokenWithServer.mockResolvedValue(false)
       await expect(requireAuthAsync()).rejects.toThrow(AuthenticationError)
-      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
     })
 
-    it('should return userId and token when server validation passes', async () => {
+    it('should return userId and token when authenticated', async () => {
       mockGetStorageSync.mockImplementation((key: string) => {
         if (key === SK.TOKEN) return 'valid-token'
         if (key === SK.USER) return JSON.stringify({ id: 'user-123' })
         return ''
       })
       mockIsTokenFormatValid.mockReturnValue(true)
-      mockValidateTokenWithServer.mockResolvedValue(true)
       const result = await requireAuthAsync()
       expect(result.userId).toBe('user-123')
       expect(result.token).toBe('valid-token')

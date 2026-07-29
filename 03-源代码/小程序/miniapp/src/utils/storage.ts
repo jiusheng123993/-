@@ -1,16 +1,48 @@
 import Taro from '@tarojs/taro'
 import { CONFIG } from '../config'
 
+function obfuscate(data: string): string {
+  const key = 'xhh-secure-storage-v2'
+  const bytes: number[] = []
+  for (let i = 0; i < data.length; i++) {
+    bytes.push(data.charCodeAt(i) ^ key.charCodeAt(i % key.length))
+  }
+  return String.fromCharCode(...bytes)
+}
+
+function encodeForStorage(data: string): string {
+  try {
+    return Taro.arrayBufferToBase64(new Uint8Array(
+      [...obfuscate(data)].map(c => c.charCodeAt(0))
+    ).buffer)
+  } catch {
+    return data
+  }
+}
+
+function decodeFromStorage(encoded: string): string {
+  try {
+    const buffer = Taro.base64ToArrayBuffer(encoded)
+    const bytes = new Uint8Array(buffer)
+    const encodedStr = String.fromCharCode(...bytes)
+    return obfuscate(encodedStr)
+  } catch {
+    return encoded
+  }
+}
+
 export const storage = {
   getToken: (): string | null => {
     try {
-      return Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN) || null
+      const raw = Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN)
+      if (!raw) return null
+      return decodeFromStorage(raw)
     } catch {
       return null
     }
   },
   setToken: (token: string) => {
-    Taro.setStorageSync(CONFIG.STORAGE_KEYS.TOKEN, token)
+    Taro.setStorageSync(CONFIG.STORAGE_KEYS.TOKEN, encodeForStorage(token))
   },
   removeToken: () => {
     Taro.removeStorageSync(CONFIG.STORAGE_KEYS.TOKEN)
@@ -31,13 +63,15 @@ export const storage = {
   },
   getRefreshToken: (): string | null => {
     try {
-      return Taro.getStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN) || null
+      const raw = Taro.getStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN)
+      if (!raw) return null
+      return decodeFromStorage(raw)
     } catch {
       return null
     }
   },
   setRefreshToken: (token: string) => {
-    Taro.setStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, token)
+    Taro.setStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, encodeForStorage(token))
   },
   removeRefreshToken: () => {
     Taro.removeStorageSync(CONFIG.STORAGE_KEYS.REFRESH_TOKEN)

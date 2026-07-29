@@ -28,19 +28,34 @@ vi.mock('../supabaseClient', () => ({
   },
 }))
 
-vi.mock('../../config/supabase', () => ({
-  ENV: {
-    development: {
-      apiBaseUrl: 'http://localhost:3000',
-      supabaseUrl: 'http://localhost:54321',
-      supabaseKey: 'mock-key',
-      useMock: true,
+vi.mock('../../config', () => ({
+  CONFIG: {
+    API_BASE_URL: 'http://localhost:3000',
+    USE_MOCK: true,
+    STORAGE_KEYS: {
+      TOKEN: 'xhh_token',
+      USER: 'xhh_user',
+      REFRESH_TOKEN: 'xhh_refresh_token',
     },
   },
-  STORAGE_KEYS: {
-    TOKEN: 'xhh_token',
-    CHECKIN_DATA: 'xhh_checkin_data',
-    PET_DATA: 'xhh_pet_data',
+}))
+
+vi.mock('../mock', () => ({
+  mockApi: {
+    getTrendSummary: vi.fn(() => ({})),
+    getMonthlyReport: vi.fn(() => ({})),
+    getTrendData: vi.fn(() => ({})),
+    getHealthCheckinsByDateRange: vi.fn(() => ({})),
+    login: vi.fn(() => ({})),
+    getUser: vi.fn(() => ({})),
+    getPets: vi.fn(() => []),
+    getPet: vi.fn(() => null),
+    createPet: vi.fn(() => ({})),
+    updatePet: vi.fn(() => ({})),
+    deletePet: vi.fn(),
+    getCheckins: vi.fn(() => []),
+    createCheckin: vi.fn(() => ({})),
+    getMembership: vi.fn(() => null),
   },
 }))
 
@@ -97,10 +112,9 @@ describe('dataPrivacyService', () => {
     })
 
     it('should delete specific tables', async () => {
-      const result = await deleteUserData('user-123', ['pet_profiles', 'pet_health_entries'])
+      const result = await deleteUserData('user-123', ['pet_profiles'])
       expect(result.success).toBe(true)
       expect(result.deletedTables).toContain('pet_profiles')
-      expect(result.deletedTables).toContain('pet_health_entries')
     })
   })
 

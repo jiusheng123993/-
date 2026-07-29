@@ -6,6 +6,7 @@ export type { SeedreamGenerateParams, SeedreamGenerateResult, PetImageParams }
 import { getPetFaceDataUri } from './svgRenderer'
 import { EXPRESSION_MAP } from './expressionEngine'
 import { CONFIG } from '../../config'
+import { storage } from '../../utils/storage'
 
 function buildPetPrompt(params: PetImageParams): string {
   const speciesName = params.species === 'dog' ? '狗' : '猫'
@@ -56,7 +57,7 @@ export class SeedreamAdapter {
       style: params.style === 'realistic' ? 'realistic' : 'cartoon',
     }
 
-    const token = Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN)
+    const token = storage.getToken()
     const res = await Taro.request({
       url: `${CONFIG.API_BASE_URL}/api/avatar/generate`,
       method: 'POST',
@@ -105,7 +106,7 @@ export class SeedreamAdapter {
         style: 'cartoon',
       }
 
-      const token = Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN)
+      const token = storage.getToken()
       const res = await Taro.request({
         url: `${CONFIG.API_BASE_URL}/api/avatar/generate`,
         method: 'POST',

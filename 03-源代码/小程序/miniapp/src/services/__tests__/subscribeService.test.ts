@@ -470,14 +470,14 @@ describe('subscribeService', () => {
       const result = await sendSubscribeMessage(realTemplateId, messageData, '/pages/index')
 
       expect(result).toBe(true)
-      expect(Taro.request).toHaveBeenCalledWith({
-        url: expect.stringContaining('subscribe-send'),
-        method: 'POST',
-        data: { templateId: realTemplateId, data: messageData, page: '/pages/index' },
-        header: {
-          Authorization: 'Bearer test-token',
-          'Content-Type': 'application/json',
-        },
+      expect(Taro.request).toHaveBeenCalledTimes(1)
+      const callArg = vi.mocked(Taro.request).mock.calls[0][0] as Record<string, unknown>
+      expect(callArg.url).toContain('subscribe/send')
+      expect(callArg.method).toBe('POST')
+      expect(callArg.data).toEqual({ templateId: realTemplateId, data: messageData, page: '/pages/index' })
+      expect(callArg.header).toEqual({
+        Authorization: 'Bearer test-token',
+        'Content-Type': 'application/json',
       })
     })
 

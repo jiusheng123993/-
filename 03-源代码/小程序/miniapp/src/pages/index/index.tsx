@@ -1,6 +1,6 @@
-import { View, Text, ScrollView, Input } from '@tarojs/components'
+import { View, Text, ScrollView, Input, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { useChatCore } from '../../hooks/useChatCore'
 import { useCheckinFlow } from '../../hooks/useCheckinFlow'
@@ -8,10 +8,13 @@ import { useSymptomFlow } from '../../hooks/useSymptomFlow'
 import { useNamingFlow } from '../../hooks/useNamingFlow'
 import { useFoodFlow } from '../../hooks/useFoodFlow'
 import { useMemoryFlow } from '../../hooks/useMemoryFlow'
+import { useVoiceInput } from '../../hooks/useVoiceInput'
 import { usePetStore } from '../../stores/petStore'
-import type { CardData, Message, PetInfo } from '../../types/chatTypes'
+import type { CardData, Message, NamingDetail, PetInfo } from '../../types/chatTypes'
 import HomeSkeleton from '../../components/HomeSkeleton'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
+import { uploadVoiceForTranscription } from '../../services/voiceService'
 import './index.scss'
 
 function calcAge(birthDate: string): string {
@@ -57,7 +60,8 @@ export default function Index() {
   const themeClass = useThemeClass()
   const petInfo = usePetInfo()
   const [inputValue, setInputValue] = useState('')
-  const [plusMenuOpen, setPlusMenuOpen] = useState(false)
+  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
+  const [plusPanelOpen, setPlusPanelOpen] = useState(false)
   const [showGreetingQuickActions, setShowGreetingQuickActions] = useState(true)
   const [currentQuickActions, setCurrentQuickActions] = useState<QuickAction[]>([
     { action: 'checkin', label: '打卡', emoji: '💩' },
@@ -69,9 +73,11 @@ export default function Index() {
     petInfo,
     inputValue,
     setInputValue,
-    setPlusMenuOpen,
+    setPlusMenuOpen: setPlusPanelOpen,
     setShowGreetingQuickActions,
   })
+
+  const { agentToolStatus } = chat
 
   const checkin = useCheckinFlow({
     addAiMsg: chat.addAiMsg,
@@ -91,6 +97,9 @@ export default function Index() {
     addAiMsg: chat.addAiMsg,
     addUserMsg: chat.addUserMsg,
     addMessage: chat.addMessage,
+    streamAiReply: chat.streamAiReply,
+    setIsTyping: chat.setIsTyping,
+    updateMessageCard: chat.updateMessageCard,
     petInfo,
   })
 
@@ -109,13 +118,69 @@ export default function Index() {
     petInfo,
   })
 
-  // 将食物/回忆流程处理器注册到聊天核心，打破循环依赖
+  // 语音转文字处理中标记
+  const [isVoiceProcessing, setIsVoiceProcessing] = useState(false)
+
+  /** 语音录制完成后的处理：上传转文字 → 处理打卡或发送消息 */
+  const handleVoiceComplete = useCallback(async (tempFilePath: string) => {
+    setIsVoiceProcessing(true)
+    try {
+      const text = await uploadVoiceForTranscription(tempFilePath)
+      if (!text || text === '无法识别语音内容') {
+        Taro.showToast({ title: '未识别到语音内容，请重试', icon: 'none' })
+        return
+      }
+
+      // 如果在打卡流程中，将语音转文字结果作为打卡答案处理
+      const flowType = getCurrentFlowType()
+      if (flowType === 'checkin' && checkin.checkinStep >= -2) {
+        const matched = checkin.handleCheckinAnswer(text)
+        if (matched) return
+      }
+
+      // 如果不在打卡流程中或匹配失败，将语音内容作为文本消息发送
+      setInputValue(text)
+      // 使用 setTimeout 确保 setInputValue 已生效
+      setTimeout(() => {
+        chat.handleSend()
+      }, 50)
+    } catch (err) {
+      console.error('[VoiceComplete] Error:', err)
+      Taro.showToast({ title: '语音处理失败，请重试', icon: 'none' })
+    } finally {
+      setIsVoiceProcessing(false)
+    }
+  }, [checkin, chat, setInputValue])
+
+  const voice = useVoiceInput({
+    onRecordComplete: handleVoiceComplete,
+    maxDuration: 60,
+  })
+
+  // 将食物/回忆/取名流程处理器注册到聊天核心，打破循环依赖
   useEffect(() => {
     chat.setFlowHandlers({
       foodActive: food.foodActive,
       selectFood: food.selectFood,
       memoryActive: memory.memoryActive,
       handleMemoryRecord: memory.handleMemoryRecord,
+      namingTextActive: naming.isTextInputActive,
+      handleNamingText: naming.handleNamingText,
+      startNaming: naming.startNaming,
+      startCheckin: checkin.startCheckin,
+      startMemory: memory.startMemoryRecord,
+      startSymptom: symptom.startSymptom,
+      startFoodQuery: food.handleFoodQuery,
+      navigateToBreed: () => Taro.navigateTo({ url: '/pagesPet/breed/index' }),
+      // Layer 2: Agent 工具调用触发的流程动作映射
+      onToolAction: (action: string) => {
+        switch (action) {
+          case 'naming_flow': naming.startNaming(); break
+          case 'checkin_flow': checkin.startCheckin(); break
+          case 'memory_flow': memory.startMemoryRecord(); break
+          case 'symptom_flow': symptom.startSymptom(); break
+        }
+      },
     })
   })
 
@@ -128,6 +193,34 @@ export default function Index() {
         Taro.showToast({ title: '已复制', icon: 'success', duration: 1500 })
       },
     })
+  }
+
+  /** 取名流程 - 选择照片上传 */
+  const handleNamingPhotoChoose = async () => {
+    if (naming.isUploadingPhoto) return
+    try {
+      const res = await chooseImageWithPrivacy({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+      })
+      if (!res.tempFilePaths.length) return
+      await naming.handleNamingPhoto(res.tempFilePaths[0])
+    } catch (err: any) {
+      const errMsg = err?.errMsg || err?.message || ''
+      if (errMsg.includes('cancel')) {
+        return
+      }
+      console.error('[NamingPhotoChoose] Error:', errMsg, err)
+      // 根据错误类型给出更具体的提示
+      if (errMsg.includes('auth deny') || errMsg.includes('authorize')) {
+        Taro.showToast({ title: '需要相册/相机权限，请在设置中开启', icon: 'none', duration: 2500 })
+      } else if (errMsg.includes('api scope is not declared')) {
+        Taro.showToast({ title: '隐私协议未授权，请重新进入小程序', icon: 'none', duration: 2500 })
+      } else {
+        Taro.showToast({ title: '选择照片失败，请重试', icon: 'none' })
+      }
+    }
   }
 
   const handleQuickAction = (action: string) => {
@@ -151,7 +244,7 @@ export default function Index() {
   }
 
   const handlePlusMenuItem = (index: number) => {
-    setPlusMenuOpen(false)
+    setPlusPanelOpen(false)
     switch (index) {
       case 0: checkin.startCheckin(); break
       case 1: naming.startNaming(); break
@@ -176,12 +269,27 @@ export default function Index() {
   }
 
   const renderMessageContent = (msg: Message) => {
-    return msg.content.split('\n').map((line, i) => (
-      <Text key={i}>
-        {line}
-        {i < msg.content.split('\n').length - 1 && '\n'}
-      </Text>
-    ))
+    return (
+      <View>
+        {msg.imageUrl && (
+          <Image
+            className='msg-image'
+            src={msg.imageUrl}
+            mode='widthFix'
+            style={{ maxWidth: '360rpx', borderRadius: '12rpx', marginBottom: msg.content ? '12rpx' : '0' }}
+            onClick={() => {
+              Taro.previewImage({ urls: [msg.imageUrl!], current: msg.imageUrl })
+            }}
+          />
+        )}
+        {msg.content.split('\n').map((line, i) => (
+          <Text key={i}>
+            {line}
+            {i < msg.content.split('\n').length - 1 && '\n'}
+          </Text>
+        ))}
+      </View>
+    )
   }
 
   const renderCard = (card: CardData) => {
@@ -254,20 +362,177 @@ export default function Index() {
         )
       }
       case 'naming_cards': {
+        const isRefreshing = card.data?.refreshing === true
         return (
           <View>
-            {card.names?.map((n, ni) => (
-              <View key={ni} className='msg-naming-card'>
-                {ni === 0 && <View className='msg-naming-badge'><Text>推荐</Text></View>}
-                <Text className='msg-naming-name'>{n.name}</Text>
-                <View className='score-stars' style={{ marginBottom: '8rpx' }}>
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Text key={i}>{i <= Math.round(n.score / 20) ? '★' : '☆'}</Text>
-                  ))}
+            {isRefreshing ? (
+              <View className='msg-naming-refreshing'>
+                <Text className='msg-naming-refreshing-text'>AI 正在为你重新推荐...</Text>
+                <View className='msg-naming-refreshing-dots'>
+                  <View className='msg-naming-dot' />
+                  <View className='msg-naming-dot' />
+                  <View className='msg-naming-dot' />
                 </View>
-                <Text className='msg-naming-meaning'>{n.meaning}</Text>
               </View>
-            ))}
+            ) : (
+              <>
+                {card.names?.map((n, ni) => (
+                  <View
+                    key={ni}
+                    className='msg-naming-card msg-naming-card--clickable'
+                    onClick={() => naming.handleNamingDetail(n)}
+                    hoverClass='msg-naming-card--hover'
+                  >
+                    {ni === 0 && <View className='msg-naming-badge'><Text>推荐</Text></View>}
+                    <View className='msg-naming-header'>
+                      <Text className='msg-naming-name'>{n.name}</Text>
+                      <View className='score-stars' style={{ marginBottom: '4rpx' }}>
+                        {[1, 2, 3, 4, 5].map(i => (
+                          <Text key={i}>{i <= Math.round(n.score / 20) ? '★' : '☆'}</Text>
+                        ))}
+                      </View>
+                    </View>
+                    {n.wuxing && (
+                      <View className='msg-naming-tags'>
+                        <Text className='msg-naming-tag msg-naming-tag--wuxing'>五行：{n.wuxing}</Text>
+                        {n.starMansion && <Text className='msg-naming-tag msg-naming-tag--star'>星宿：{n.starMansion}</Text>}
+                      </View>
+                    )}
+                    {n.source && (
+                      <Text className='msg-naming-source'>{n.source}</Text>
+                    )}
+                    <Text className='msg-naming-meaning'>{n.meaning}</Text>
+                    <View className='msg-naming-detail-hint'>
+                      <Text>点击查看命理详情 →</Text>
+                    </View>
+                  </View>
+                ))}
+                <View
+                  className='msg-naming-refresh-btn'
+                  onClick={() => naming.refreshNaming()}
+                  hoverClass='msg-naming-refresh-btn--hover'
+                >
+                  <Text className='msg-naming-refresh-icon'>🔄</Text>
+                  <Text className='msg-naming-refresh-label'>不满意？换一批</Text>
+                </View>
+              </>
+            )}
+          </View>
+        )
+      }
+      case 'naming_detail': {
+        const d = card.detail as NamingDetail | undefined
+        if (!d) return null
+        return (
+          <View className='msg-naming-detail'>
+            {/* 头部 */}
+            <View className='msg-naming-detail-header'>
+              <Text className='msg-naming-detail-name'>{d.name}</Text>
+              <Text className='msg-naming-detail-subtitle'>命理深度分析</Text>
+            </View>
+
+            {/* 八字命理 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>☯</Text>
+                <Text>八字命理</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.bazi}</Text>
+            </View>
+
+            {/* 整体运势 */}
+            <View className='msg-naming-detail-section msg-naming-detail-section--fortune'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>⭐</Text>
+                <Text>整体运势</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.fortune}</Text>
+            </View>
+
+            {/* 事业/生活运势 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>🌟</Text>
+                <Text>事业/生活运势</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.careerFortune}</Text>
+            </View>
+
+            {/* 感情/人际运势 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>💕</Text>
+                <Text>感情/人际运势</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.loveFortune}</Text>
+            </View>
+
+            {/* 健康运势 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>🍀</Text>
+                <Text>健康运势</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.healthFortune}</Text>
+            </View>
+
+            {/* 性格特质 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>🎭</Text>
+                <Text>性格特质</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.personality}</Text>
+            </View>
+
+            {/* 笔画数理 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>✍</Text>
+                <Text>笔画数理</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.strokes}</Text>
+            </View>
+
+            {/* 吉祥三宝 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>🔮</Text>
+                <Text>吉祥三宝</Text>
+              </View>
+              <View className='msg-naming-detail-lucky'>
+                <View className='msg-naming-detail-lucky-item'>
+                  <Text className='msg-naming-detail-lucky-label'>方位</Text>
+                  <Text className='msg-naming-detail-lucky-val'>{d.luckyDirection}</Text>
+                </View>
+                <View className='msg-naming-detail-lucky-item'>
+                  <Text className='msg-naming-detail-lucky-label'>颜色</Text>
+                  <Text className='msg-naming-detail-lucky-val'>{d.luckyColor}</Text>
+                </View>
+                <View className='msg-naming-detail-lucky-item'>
+                  <Text className='msg-naming-detail-lucky-label'>数字</Text>
+                  <Text className='msg-naming-detail-lucky-val'>{d.luckyNumber}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* 与主人缘分 */}
+            <View className='msg-naming-detail-section'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>🤝</Text>
+                <Text>与主人缘分</Text>
+              </View>
+              <Text className='msg-naming-detail-text'>{d.karmaWithOwner}</Text>
+            </View>
+
+            {/* 总结寄语 */}
+            <View className='msg-naming-detail-section msg-naming-detail-section--summary'>
+              <View className='msg-naming-detail-section-title'>
+                <Text className='msg-naming-detail-icon'>✨</Text>
+                <Text>总结寄语</Text>
+              </View>
+              <Text className='msg-naming-detail-text msg-naming-detail-text--summary'>{d.summary}</Text>
+            </View>
           </View>
         )
       }
@@ -317,15 +582,12 @@ export default function Index() {
       <View className='chat-top-bar'>
         <View className='chat-top-left'>
           <View className='chat-pet-avatar'>
-            <Text>{petInfo.emoji}</Text>
+            <Text>🐾</Text>
           </View>
           <View className='chat-top-info'>
-            <Text className='chat-pet-name'>{petInfo.name}</Text>
-            <Text className='chat-pet-detail'>{petInfo.breed} · {petInfo.age}</Text>
+            <Text className='chat-pet-name'>星寰海</Text>
+            <Text className='chat-pet-detail'>AI 宠物管家</Text>
           </View>
-        </View>
-        <View className='chat-switch-btn' onClick={() => Taro.showToast({ title: '切换宠物', icon: 'none' })}>
-          <Text>切换</Text>
         </View>
       </View>
 
@@ -342,7 +604,7 @@ export default function Index() {
           </View>
           <View className='msg-bubble-wrap'>
             <View className='msg-bubble'>
-              <Text>早安呀！我是{petInfo.name}的AI小助手 ✦{'\n\n'}{petInfo.name}今天怎么样？来打个卡吧～ 或者告诉我你想了解什么？</Text>
+              <Text>早安呀！我是星寰海的AI小助手 ✦{'\n\n'}今天有什么可以帮你的？来打个卡吧～ 或者告诉我你想了解什么？</Text>
             </View>
             {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
@@ -368,7 +630,7 @@ export default function Index() {
                 onLongPress={() => handleLongPress(msg)}
               >
                 {renderMessageContent(msg)}
-                {msg.id === chat.streamingId && msg.content && (
+                {msg.id === chat.streamingId && (
                   <Text className='streaming-cursor'>▋</Text>
                 )}
               </View>
@@ -401,9 +663,71 @@ export default function Index() {
                   ))}
                 </View>
               )}
+
+              {/* 取名流程 - 照片上传步骤 */}
+              {idx === chat.messages.length - 1 && naming.currentStep?.type === 'photo' && naming.namingStep >= 0 && (
+                <View className='msg-naming-actions'>
+                  <View className='msg-naming-action-btn msg-naming-action-btn--upload' onClick={handleNamingPhotoChoose}>
+                    <Text>{naming.isUploadingPhoto ? '上传中...' : '📷 上传照片'}</Text>
+                  </View>
+                  <View className='msg-naming-action-btn msg-naming-action-btn--skip' onClick={naming.skipNamingPhoto}>
+                    <Text>{naming.currentStep?.skipLabel || '跳过'}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* 取名流程 - 描述步骤跳过按钮 */}
+              {idx === chat.messages.length - 1 && naming.currentStep?.type === 'text' && naming.currentStep?.key === 'description' && naming.namingStep >= 0 && (
+                <View className='msg-naming-actions'>
+                  <View className='msg-naming-action-btn msg-naming-action-btn--skip' onClick={naming.skipNamingDesc}>
+                    <Text>{naming.currentStep?.skipLabel || '跳过'}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* 回忆流程 - 照片上传按钮 */}
+              {idx === chat.messages.length - 1 && memory.memoryActive && (
+                <View className='msg-naming-actions'>
+                  {memory.memoryPhoto ? (
+                    <View className='msg-memory-photo-preview'>
+                      <Image
+                        className='msg-memory-photo-img'
+                        src={memory.memoryPhoto}
+                        mode='aspectFill'
+                      />
+                      <View className='msg-memory-photo-info'>
+                        <Text className='msg-memory-photo-label'>照片已选择</Text>
+                        <View className='msg-memory-photo-actions'>
+                          <View className='msg-naming-action-btn msg-naming-action-btn--upload' onClick={memory.handleMemoryPhoto}>
+                            <Text>更换</Text>
+                          </View>
+                          <View className='msg-naming-action-btn msg-naming-action-btn--skip' onClick={memory.clearMemoryPhoto}>
+                            <Text>删除</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  ) : (
+                    <View className='msg-naming-action-btn msg-naming-action-btn--upload' onClick={memory.handleMemoryPhoto}>
+                      <Text>{memory.isUploadingPhoto ? '上传中...' : '📷 拍照/上传照片'}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </View>
         ))}
+
+        {agentToolStatus && (
+          <View className='msg-row ai'>
+            <View className='msg-avatar'>
+              <Text>🤖</Text>
+            </View>
+            <View className='msg-bubble agent-status-bubble'>
+              <Text className='agent-status-text'>{agentToolStatus}</Text>
+            </View>
+          </View>
+        )}
 
         {chat.isTyping && (
           <View className='msg-row ai'>
@@ -424,48 +748,256 @@ export default function Index() {
       </ScrollView>
 
       <View className='chat-input-area'>
-        {plusMenuOpen && (
+        {/* + 功能面板 */}
+        {plusPanelOpen && (
           <>
-            <View className='chat-plus-overlay' onClick={() => setPlusMenuOpen(false)} />
-            <View className='chat-plus-menu'>
-              {PLUS_MENU_ITEMS.map((item, idx) => (
-                <View key={idx} className='plus-menu-item' onClick={() => handlePlusMenuItem(idx)}>
-                  <View className='plus-menu-icon-wrap' style={{ background: item.bg }}>
-                    <Text className='plus-menu-icon'>{item.icon}</Text>
+            <View
+              className='chat-plus-overlay'
+              catchMove
+              onClick={() => setPlusPanelOpen(false)}
+            />
+            <View className='chat-plus-panel' catchMove>
+              <View className='chat-plus-panel-grid'>
+                {PLUS_MENU_ITEMS.map((item, idx) => (
+                  <View
+                    key={idx}
+                    className='plus-panel-item'
+                    hoverClass='plus-panel-item--hover'
+                    hoverStayTime={80}
+                    onClick={() => handlePlusMenuItem(idx)}
+                  >
+                    <View className='plus-panel-icon-wrap' style={{ background: item.bg }}>
+                      <Text className='plus-panel-icon'>{item.icon}</Text>
+                    </View>
+                    <Text className='plus-panel-label'>{item.label}</Text>
                   </View>
-                  <View className='plus-menu-text'>
-                    <Text className='plus-menu-label'>{item.label}</Text>
-                    <Text className='plus-menu-sub'>{item.sub}</Text>
-                  </View>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
           </>
         )}
+
+        {/* 微信风格输入行 */}
         <View className='chat-input-row'>
+          {/* 语音/文字切换 */}
           <View
-            className='chat-plus-btn'
-            onClick={() => setPlusMenuOpen(!plusMenuOpen)}
+            className={`wx-toggle-btn ${inputMode === 'voice' ? 'wx-toggle-btn--active' : ''}`}
+            onClick={() => {
+              setInputMode(inputMode === 'text' ? 'voice' : 'text')
+              setPlusPanelOpen(false)
+            }}
           >
-            <Text className='chat-plus-text'>+</Text>
+            <Text className='wx-toggle-icon'>{inputMode === 'text' ? '🎤' : '⌨️'}</Text>
           </View>
-          <Input
-            className='chat-input-field'
-            value={inputValue}
-            onInput={(e) => setInputValue(e.detail.value)}
-            onConfirm={handleSendWithSuggestions}
-            onFocus={() => setPlusMenuOpen(false)}
-            placeholder={`说说${petInfo.name}今天的情况...`}
-            placeholderStyle='color: #556'
-            confirmType='send'
-          />
-          <View className='chat-send-btn' onClick={handleSendWithSuggestions}>
-            <Text className='chat-send-text'>↑</Text>
+
+          {/* 文字模式：输入框 */}
+          {inputMode === 'text' && (
+            <Input
+              className='chat-input-field'
+              value={inputValue}
+              onInput={(e) => setInputValue(e.detail.value)}
+              onConfirm={handleSendWithSuggestions}
+              onFocus={() => setPlusPanelOpen(false)}
+              placeholder={naming.isTextInputActive && naming.currentStep?.placeholder
+                ? naming.currentStep.placeholder
+                : '说说宠物今天的情况...'}
+              placeholderStyle='color: #556'
+              confirmType='send'
+            />
+          )}
+
+          {/* 语音模式：按住说话 */}
+          {inputMode === 'voice' && (
+            <View
+              className={`wx-hold-talk ${voice.isRecording ? 'wx-hold-talk--recording' : ''} ${isVoiceProcessing ? 'wx-hold-talk--processing' : ''}`}
+              onTouchStart={voice.startRecord}
+              onTouchEnd={voice.stopRecord}
+              onTouchCancel={voice.stopRecord}
+            >
+              {isVoiceProcessing ? (
+                <Text className='wx-hold-talk-text'>识别中...</Text>
+              ) : voice.isRecording ? (
+                <View className='wx-hold-talk-recording'>
+                  <View className='wx-hold-talk-wave'>
+                    <View className='wx-hold-talk-wave-bar' />
+                    <View className='wx-hold-talk-wave-bar' />
+                    <View className='wx-hold-talk-wave-bar' />
+                  </View>
+                  <Text className='wx-hold-talk-duration'>{voice.recordDuration}s 松开结束</Text>
+                </View>
+              ) : (
+                <Text className='wx-hold-talk-text'>按住 说话</Text>
+              )}
+            </View>
+          )}
+
+          {/* 照片按钮 */}
+          <View className='wx-icon-btn' onClick={chat.handleImageSend}>
+            <Text className='wx-icon-text'>📷</Text>
           </View>
+
+          {/* + 按钮 / 发送按钮 */}
+          {inputValue.trim() ? (
+            <View className='wx-send-btn' onClick={handleSendWithSuggestions}>
+              <Text className='wx-send-text'>↑</Text>
+            </View>
+          ) : (
+            <View
+              className={`wx-plus-btn ${plusPanelOpen ? 'wx-plus-btn--active' : ''}`}
+              onClick={() => {
+                setPlusPanelOpen(!plusPanelOpen)
+                setInputMode('text')
+              }}
+            >
+              <Text className='wx-plus-text'>+</Text>
+            </View>
+          )}
         </View>
         <View className='chat-input-safe' />
         </View>
         </>
+      )}
+
+      {/* 命理详情悬浮弹窗 */}
+      {naming.namingDetailPopup && (
+        <View className='naming-popup-overlay' onClick={naming.closeNamingDetail}>
+          <View className='naming-popup-card' onClick={(e: any) => e.stopPropagation()}>
+            {/* 关闭按钮 */}
+            <View className='naming-popup-close' onClick={naming.closeNamingDetail}>
+              <Text>✕</Text>
+            </View>
+
+            {/* 头部 */}
+            <View className='msg-naming-detail-header'>
+              <Text className='msg-naming-detail-name'>{naming.namingDetailPopup.name}</Text>
+              <Text className='msg-naming-detail-subtitle'>命理深度分析</Text>
+            </View>
+
+            <ScrollView className='naming-popup-body' scrollY enhanced showScrollbar={false}>
+              {naming.isDetailLoading ? (
+                /* 加载骨架屏 */
+                <View className='naming-popup-loading'>
+                  <View className='naming-popup-spinner'>
+                    <Text className='naming-popup-spinner-icon'>☯</Text>
+                  </View>
+                  <Text className='naming-popup-loading-text'>
+                    正在深度解析「{naming.namingDetailPopup.name}」的命理运势...
+                  </Text>
+                  <View className='naming-popup-skeleton'>
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <View key={i} className='naming-popup-skeleton-line' style={{ width: `${85 + Math.random() * 15}%` }} />
+                    ))}
+                  </View>
+                </View>
+              ) : (
+                <>
+              {/* 八字命理 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>☯</Text>
+                  <Text>八字命理</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.bazi}</Text>
+              </View>
+
+              {/* 整体运势 */}
+              <View className='msg-naming-detail-section msg-naming-detail-section--fortune'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>⭐</Text>
+                  <Text>整体运势</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.fortune}</Text>
+              </View>
+
+              {/* 事业/生活运势 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>🌟</Text>
+                  <Text>事业/生活运势</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.careerFortune}</Text>
+              </View>
+
+              {/* 感情/人际运势 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>💕</Text>
+                  <Text>感情/人际运势</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.loveFortune}</Text>
+              </View>
+
+              {/* 健康运势 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>🍀</Text>
+                  <Text>健康运势</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.healthFortune}</Text>
+              </View>
+
+              {/* 性格特质 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>🎭</Text>
+                  <Text>性格特质</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.personality}</Text>
+              </View>
+
+              {/* 笔画数理 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>✍</Text>
+                  <Text>笔画数理</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.strokes}</Text>
+              </View>
+
+              {/* 吉祥三宝 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>🔮</Text>
+                  <Text>吉祥三宝</Text>
+                </View>
+                <View className='msg-naming-detail-lucky'>
+                  <View className='msg-naming-detail-lucky-item'>
+                    <Text className='msg-naming-detail-lucky-label'>方位</Text>
+                    <Text className='msg-naming-detail-lucky-val'>{naming.namingDetailPopup.luckyDirection}</Text>
+                  </View>
+                  <View className='msg-naming-detail-lucky-item'>
+                    <Text className='msg-naming-detail-lucky-label'>颜色</Text>
+                    <Text className='msg-naming-detail-lucky-val'>{naming.namingDetailPopup.luckyColor}</Text>
+                  </View>
+                  <View className='msg-naming-detail-lucky-item'>
+                    <Text className='msg-naming-detail-lucky-label'>数字</Text>
+                    <Text className='msg-naming-detail-lucky-val'>{naming.namingDetailPopup.luckyNumber}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 与主人缘分 */}
+              <View className='msg-naming-detail-section'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>🤝</Text>
+                  <Text>与主人缘分</Text>
+                </View>
+                <Text className='msg-naming-detail-text'>{naming.namingDetailPopup.karmaWithOwner}</Text>
+              </View>
+
+              {/* 总结寄语 */}
+              <View className='msg-naming-detail-section msg-naming-detail-section--summary'>
+                <View className='msg-naming-detail-section-title'>
+                  <Text className='msg-naming-detail-icon'>✨</Text>
+                  <Text>总结寄语</Text>
+                </View>
+                <Text className='msg-naming-detail-text msg-naming-detail-text--summary'>{naming.namingDetailPopup.summary}</Text>
+              </View>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </View>
       )}
     </View>
   )

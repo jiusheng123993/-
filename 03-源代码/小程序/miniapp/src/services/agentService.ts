@@ -1,0 +1,253 @@
+/**
+ * 前端 Agent 服务
+ *
+ * 使用 Taro.request 的 enableChunked 模式模拟 SSE 流式接收
+ * 微信小程序不支持标准 EventSource，通过分块传输实现
+ */
+import Taro from '@tarojs/taro'
+import type { ChatMessage } from '../types/chatTypes'
+import { CONFIG } from '../config'
+import { storage } from '../utils/storage'
+import { logger } from '../logger'
+
+// ========== Agent 事件类型 ==========
+
+export interface AgentThinkingEvent {
+  type: 'thinking'
+  data: { iteration: number }
+}
+
+export interface AgentToolCallEvent {
+  type: 'tool_call'
+  data: {
+    name: string
+    arguments: Record<string, unknown>
+  }
+}
+
+export interface AgentToolResultEvent {
+  type: 'tool_result'
+  data: {
+    name: string
+    success: boolean
+    message?: string
+    data?: unknown
+  }
+}
+
+export interface AgentTokenEvent {
+  type: 'token'
+  data: { text: string }
+}
+
+export interface AgentDoneEvent {
+  type: 'done'
+  data: { content: string; iterations: number }
+}
+
+export interface AgentErrorEvent {
+  type: 'error'
+  data: { message: string }
+}
+
+export type AgentEvent =
+  | AgentThinkingEvent
+  | AgentToolCallEvent
+  | AgentToolResultEvent
+  | AgentTokenEvent
+  | AgentDoneEvent
+  | AgentErrorEvent
+
+// ========== 工具调用的友好展示名 ==========
+
+const TOOL_LABELS: Record<string, string> = {
+  get_pet_profile: '查看宠物档案',
+  get_pet_facts: '查看宠物特征',
+  get_recent_checkins: '查询近期打卡',
+  record_health_checkin: '记录健康打卡',
+  query_food_safety: '查询食物安全',
+  check_symptom: '症状评估',
+  get_vaccine_calendar: '查询疫苗日历',
+  get_health_trends: '分析健康趋势',
+  search_breed_info: '查询品种百科',
+  get_family_pets: '查看家庭宠物',
+  record_feeding: '记录喂养',
+  search_hospital: '搜索附近医院',
+  start_naming: '启动AI取名',
+  start_checkin: '启动健康打卡',
+  record_memory: '启动回忆记录',
+}
+
+export function getToolLabel(name: string): string {
+  return TOOL_LABELS[name] || name
+}
+
+// ========== 加载服务端持久化历史 ==========
+
+export interface HistoryEntry {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export async function loadAgentHistory(petId?: string, limit = 20): Promise<HistoryEntry[]> {
+  const token = storage.getToken()
+  if (!token) return []
+
+  try {
+    const params: string[] = [`limit=${limit}`]
+    if (petId) params.push(`petId=${encodeURIComponent(petId)}`)
+
+    const res = await Taro.request({
+      url: `${CONFIG.API_BASE_URL}/api/agent/history?${params.join('&')}`,
+      method: 'GET',
+      header: { Authorization: `Bearer ${token}` },
+    })
+
+    if (res.statusCode === 200) {
+      const body = res.data as { success: boolean; data: { history: HistoryEntry[] } }
+      if (body.success && body.data?.history) {
+        return body.data.history
+      }
+    }
+    return []
+  } catch {
+    return []
+  }
+}
+
+// ========== Agent 对话请求 ==========
+
+export interface AgentChatParams {
+  message: string
+  history?: ChatMessage[]
+  petId?: string
+}
+
+/**
+ * 发送 Agent 对话请求，返回事件流
+ *
+ * 微信小程序限制：不支持标准 SSE，通过 enableChunked 接收分块数据
+ * 服务端每次 send 一个 SSE 事件，客户端逐块解析
+ */
+export async function* agentChat(params: AgentChatParams): AsyncGenerator<AgentEvent> {
+  const token = storage.getToken()
+
+  let buffer = ''
+
+  try {
+    const requestTask = Taro.request({
+      url: `${CONFIG.API_BASE_URL}/api/agent/chat`,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
+        message: params.message,
+        history: params.history || [],
+        petId: params.petId,
+      },
+      enableChunked: true,
+      responseType: 'text',
+    })
+
+    // 监听分块数据
+    const done = await new Promise<boolean>((resolve, reject) => {
+      requestTask.onChunkReceived((res) => {
+        try {
+          // 微信小程序中 onChunkReceived 的 data 是 ArrayBuffer
+          // 微信小程序 enableChunked 模式下：
+        // - res.data 为 string 时：已经是文本
+        // - res.data 为 ArrayBuffer 时：Taro 自动 base64 编码了，需要解码
+        let text: string
+        if (typeof res.data === 'string') {
+          text = res.data
+        } else {
+          const b64 = Taro.arrayBufferToBase64(res.data as ArrayBuffer)
+          const uint8 = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
+          text = new TextDecoder().decode(uint8)
+        }
+
+          buffer += text
+        } catch {
+          // 忽略解码错误
+        }
+      })
+
+      // 请求完成
+      requestTask.then(() => resolve(true)).catch((err) => reject(err))
+    })
+
+    // 请求完成后，解析 buffer 中的所有 SSE 事件
+    const events = buffer.split('\n\n')
+    for (const block of events) {
+      if (!block.trim()) continue
+
+      const lines = block.split('\n')
+      let eventType = ''
+      let eventData = ''
+
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim()
+        } else if (line.startsWith('data: ')) {
+          eventData = line.slice(6).trim()
+        }
+      }
+
+      if (eventType && eventData) {
+        try {
+          const data = JSON.parse(eventData)
+          yield { type: eventType as AgentEvent['type'], data } as AgentEvent
+        } catch {
+          // 解析失败跳过
+        }
+      }
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '网络异常'
+    logger.error('agentService', 'Agent chat failed', err)
+    yield {
+      type: 'error',
+      data: { message: `连接失败: ${message}` },
+    }
+  }
+}
+
+/**
+ * 非流式 Agent 对话（降级方案）
+ * 当流式不可用时使用
+ */
+export async function agentChatFallback(params: AgentChatParams): Promise<{
+  reply: string
+  blocked: boolean
+}> {
+  const token = storage.getToken()
+
+  try {
+    const res = await Taro.request({
+      url: `${CONFIG.API_BASE_URL}/api/agent/chat`,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
+        message: params.message,
+        history: params.history || [],
+        petId: params.petId,
+      },
+    })
+
+    if (res.statusCode === 200) {
+      const body = res.data as { success: boolean; data: { reply: string; blocked?: boolean } }
+      if (body.success && body.data) {
+        return { reply: body.data.reply, blocked: body.data.blocked || false }
+      }
+    }
+    return { reply: 'AI 服务暂不可用，请稍后再试', blocked: false }
+  } catch (err) {
+    logger.error('agentService', 'Agent chat fallback failed', err)
+    return { reply: '网络异常，请检查网络连接后重试', blocked: false }
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, fireEvent, screen } from '@testing-library/react'
+import { render, fireEvent, screen, act } from '@testing-library/react'
 
 vi.mock('@tarojs/components', () => ({
   View: ({ children, className, style, onClick }: any) => (
@@ -143,7 +143,9 @@ describe('EmergencyAlert', () => {
   it('after 3 seconds, close button becomes enabled and calls onClose', () => {
     const onClose = vi.fn()
     const { container } = render(<EmergencyAlert {...defaultProps} onClose={onClose} />)
-    vi.advanceTimersByTime(3000)
+    act(() => { vi.advanceTimersToNextTimer() })  // 3 → 2
+    act(() => { vi.advanceTimersToNextTimer() })  // 2 → 1
+    act(() => { vi.advanceTimersToNextTimer() })  // 1 → 0, canClose=true
     const closeBtn = container.querySelector('.emergency-alert__btn--close')!
     expect(closeBtn.classList.contains('emergency-alert__btn--disabled')).toBe(false)
     expect(screen.getByText('我知道了')).toBeDefined()
@@ -154,11 +156,11 @@ describe('EmergencyAlert', () => {
   it('countdown decreases from 3 to 0 over 3 seconds', () => {
     render(<EmergencyAlert {...defaultProps} />)
     expect(screen.getByText('请仔细阅读 (3s)')).toBeDefined()
-    vi.advanceTimersByTime(1000)
+    act(() => { vi.advanceTimersToNextTimer() })
     expect(screen.getByText('请仔细阅读 (2s)')).toBeDefined()
-    vi.advanceTimersByTime(1000)
+    act(() => { vi.advanceTimersToNextTimer() })
     expect(screen.getByText('请仔细阅读 (1s)')).toBeDefined()
-    vi.advanceTimersByTime(1000)
+    act(() => { vi.advanceTimersToNextTimer() })
     expect(screen.getByText('我知道了')).toBeDefined()
   })
 

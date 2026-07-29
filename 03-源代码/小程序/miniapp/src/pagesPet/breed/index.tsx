@@ -1,10 +1,12 @@
 import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useThemeClass } from '../../hooks/useThemeClass'
+import { useThemeStore, type ThemeKey } from '../../stores/themeStore'
 import { BREED_DATA, type BreedItem } from '../../data/petKnowledge/breeds'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
+import { recognizeBreed, matchBreedInData, type BreedRecognizeResult } from '../../services/breedService'
 import './index.scss'
 
 const disclaimerText = new MedicalDisclaimer().getDisclaimer('green', 'breed')
@@ -31,7 +33,20 @@ export default function PetBreed() {
   const [speciesFilter, setSpeciesFilter] = useState<SpeciesFilter>('all')
   const [sizeFilter, setSizeFilter] = useState<SizeFilter>('all')
   const [displayCount, setDisplayCount] = useState<number>(20)
+  // 拍照识别状态
+  const [isRecognizing, setIsRecognizing] = useState(false)
+  const [recognizeResult, setRecognizeResult] = useState<BreedRecognizeResult | null>(null)
+  const [matchedBreedId, setMatchedBreedId] = useState<string | null>(null)
   const { trackPageView, trackEvent } = useAnalytics()
+
+  // 直接从 store 读取主题，避免 useThemeClass 内 useEffect 冗余 setState 触发渲染层异常
+  const [themeKey, setThemeKey] = useState<ThemeKey>(() => useThemeStore.getState().current)
+  useEffect(() => {
+    const handler = (t: ThemeKey) => { setThemeKey(t) }
+    Taro.eventCenter.on('themeChange', handler)
+    return () => { Taro.eventCenter.off('themeChange', handler) }
+  }, [])
+  const themeClass = `theme-${themeKey}`
 
   usePageView('breed')
 
@@ -84,8 +99,60 @@ export default function PetBreed() {
     setDisplayCount((prev) => prev + 20)
   }, [])
 
+  // 拍照识别品种
+  const handleCameraRecognize = useCallback(async () => {
+    if (isRecognizing) return
+
+    try {
+      const result = await chooseImageWithPrivacy({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['camera', 'album'],
+      })
+
+      if (!result.tempFilePaths || result.tempFilePaths.length === 0) return
+
+      setIsRecognizing(true)
+      trackEvent('breed_recognize_start', {})
+
+      const recognizeResult = await recognizeBreed(result.tempFilePaths[0])
+
+      if (recognizeResult) {
+        setRecognizeResult(recognizeResult)
+        // 在品种库中匹配
+        const matchedId = matchBreedInData(recognizeResult.breedName, recognizeResult.species, BREED_DATA)
+        setMatchedBreedId(matchedId)
+        trackEvent('breed_recognize_success', {
+          breedName: recognizeResult.breedName,
+          confidence: recognizeResult.confidence,
+          matched: !!matchedId,
+        })
+      }
+    } catch (err: any) {
+      // 用户取消选择不提示
+      if (err?.errMsg?.includes('cancel')) return
+      console.error('[Breed] 拍照识别失败:', err)
+    } finally {
+      setIsRecognizing(false)
+    }
+  }, [isRecognizing, trackEvent])
+
+  // 关闭识别结果弹窗
+  const handleCloseResult = useCallback(() => {
+    setRecognizeResult(null)
+    setMatchedBreedId(null)
+  }, [])
+
+  // 跳转到匹配的品种详情
+  const handleGoToDetail = useCallback(() => {
+    if (matchedBreedId) {
+      handleCloseResult()
+      Taro.navigateTo({ url: `/pagesPet/breed-detail/index?id=${matchedBreedId}` })
+    }
+  }, [matchedBreedId, handleCloseResult])
+
   return (
-    <View className='breed-page'>
+    <View className={`breed-page ${themeClass}`}>
       <View className='breed-page__header'>
         <Text className='breed-page__title'>品种百科</Text>
         <Text className='breed-page__subtitle'>
@@ -206,6 +273,96 @@ export default function PetBreed() {
       <View className='breed-page__disclaimer'>
         <Text className='breed-page__disclaimer-text'>{disclaimerText}</Text>
       </View>
+
+      {/* 拍照识别按钮 */}
+      <View
+        className={`breed-page__camera-btn ${isRecognizing ? 'breed-page__camera-btn--loading' : ''}`}
+        onClick={handleCameraRecognize}
+      >
+        <Text className='breed-page__camera-btn-icon'>{isRecognizing ? '⏳' : '📷'}</Text>
+      </View>
+
+      {/* 识别中遮罩 */}
+      {isRecognizing && (
+        <View className='breed-page__recognize-overlay'>
+          <View className='breed-page__recognize-loading'>
+            <View className='breed-page__recognize-spinner' />
+            <Text className='breed-page__recognize-loading-text'>AI 正在识别品种...</Text>
+            <Text className='breed-page__recognize-loading-sub'>请稍候，正在分析照片中的宠物</Text>
+          </View>
+        </View>
+      )}
+
+      {/* 识别结果弹窗 */}
+      {recognizeResult && !isRecognizing && (
+        <View className='breed-page__recognize-overlay' onClick={handleCloseResult}>
+          <View className='breed-page__recognize-modal' onClick={(e) => e.stopPropagation()}>
+            <View className='breed-page__recognize-modal-header'>
+              <Text className='breed-page__recognize-modal-title'>识别结果</Text>
+              <View className='breed-page__recognize-modal-close' onClick={handleCloseResult}>
+                <Text>✕</Text>
+              </View>
+            </View>
+
+            <View className='breed-page__recognize-modal-body'>
+              <View className='breed-page__recognize-species'>
+                <Text className='breed-page__recognize-species-icon'>
+                  {recognizeResult.species === 'dog' ? '🐶' : '🐱'}
+                </Text>
+                <Text className='breed-page__recognize-species-label'>
+                  {recognizeResult.species === 'dog' ? '犬类' : '猫类'}
+                </Text>
+              </View>
+
+              <Text className='breed-page__recognize-breed-name'>{recognizeResult.breedName}</Text>
+
+              <View className='breed-page__recognize-confidence'>
+                <View className='breed-page__recognize-confidence-bar'>
+                  <View
+                    className='breed-page__recognize-confidence-fill'
+                    style={{ width: `${recognizeResult.confidence}%` }}
+                  />
+                </View>
+                <Text className='breed-page__recognize-confidence-text'>
+                  置信度 {recognizeResult.confidence}%
+                </Text>
+              </View>
+
+              {recognizeResult.reason && (
+                <Text className='breed-page__recognize-reason'>{recognizeResult.reason}</Text>
+              )}
+
+              {matchedBreedId ? (
+                <View className='breed-page__recognize-match'>
+                  <Text className='breed-page__recognize-match-icon'>✅</Text>
+                  <Text className='breed-page__recognize-match-text'>已在品种百科中找到匹配品种</Text>
+                </View>
+              ) : (
+                <View className='breed-page__recognize-match breed-page__recognize-match--no'>
+                  <Text className='breed-page__recognize-match-icon'>🔍</Text>
+                  <Text className='breed-page__recognize-match-text'>
+                    品种百科中暂无该品种，可手动搜索查看
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View className='breed-page__recognize-modal-footer'>
+              {matchedBreedId && (
+                <View className='breed-page__recognize-btn breed-page__recognize-btn--primary' onClick={handleGoToDetail}>
+                  <Text>查看品种详情</Text>
+                </View>
+              )}
+              <View
+                className={`breed-page__recognize-btn ${matchedBreedId ? '' : 'breed-page__recognize-btn--primary'}`}
+                onClick={handleCloseResult}
+              >
+                <Text>{matchedBreedId ? '关闭' : '知道了'}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   )
 }

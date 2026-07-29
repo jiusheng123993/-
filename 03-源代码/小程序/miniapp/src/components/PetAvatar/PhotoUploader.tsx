@@ -1,6 +1,7 @@
 import { View, Text, Image } from '@tarojs/components'
 import { useCallback } from 'react'
 import Taro from '@tarojs/taro'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
 
 const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'heic']
 
@@ -15,7 +16,7 @@ export default function PhotoUploader({ value, onChange, disabled = false }: Pho
     if (disabled) return
 
     try {
-      const res = await Taro.chooseImage({
+      const res = await chooseImageWithPrivacy({
         count: 1,
         sizeType: ['compressed'],
         sourceType: ['album', 'camera'],

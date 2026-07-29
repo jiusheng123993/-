@@ -15,7 +15,7 @@ export interface ChatResponse {
 
 /** 聊天消息卡片数据，用于在消息流中渲染结构化卡片 */
 export interface CardData {
-  type: 'checkin_result' | 'food_result' | 'symptom_result' | 'naming_result' | 'naming_cards'
+  type: 'checkin_result' | 'food_result' | 'symptom_result' | 'naming_result' | 'naming_cards' | 'naming_detail'
   data: Record<string, unknown>
   title?: string
   score?: number
@@ -31,6 +31,7 @@ export interface CardData {
   riskLevel?: string
   symptomInfo?: { label: string; value: string }[]
   hospitalList?: string[]
+  detail?: NamingDetail
 }
 
 /** 首页聊天消息 */
@@ -38,6 +39,8 @@ export interface Message {
   id: string
   type: 'ai' | 'user'
   content: string
+  /** 图片消息的临时文件路径 */
+  imageUrl?: string
   options?: string[]
   card?: CardData
 }
@@ -54,8 +57,45 @@ export interface CheckinItem {
 /** 取名推荐结果 */
 export interface NamingResult {
   name: string
+  /** 诗词/典故出处 */
+  source: string
+  /** 五行属性 */
+  wuxing: string
+  /** 守护星宿 */
+  starMansion: string
+  /** 寓意解读 */
   meaning: string
+  /** 推荐评分 0-100 */
   score: number
+}
+
+/** 名字命理深度分析详情 */
+export interface NamingDetail {
+  name: string
+  /** 八字命理简析 */
+  bazi: string
+  /** 整体运势分析 */
+  fortune: string
+  /** 事业/生活运势 */
+  careerFortune: string
+  /** 感情/人际运势 */
+  loveFortune: string
+  /** 健康运势 */
+  healthFortune: string
+  /** 性格特质分析 */
+  personality: string
+  /** 名字笔画数理分析 */
+  strokes: string
+  /** 吉祥方位 */
+  luckyDirection: string
+  /** 吉祥颜色 */
+  luckyColor: string
+  /** 吉祥数字 */
+  luckyNumber: string
+  /** 与主人的缘分解析 */
+  karmaWithOwner: string
+  /** 总结寄语 */
+  summary: string
 }
 
 /** 首页宠物信息聚合（来自 usePetInfo） */

@@ -1,4 +1,4 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 @import '../../styles/_animations';
 
 .add-pet {
@@ -95,6 +95,10 @@
   &:active {
     border-color: $color-primary;
   }
+}
+
+.add-pet__picker--disabled {
+  opacity: 0.5;
 }
 
 .add-pet__picker-placeholder {
@@ -302,4 +306,153 @@
   font-size: $font-size-md;
   color: $color-text-primary;
   font-weight: $font-weight-semibold;
+}
+
+// ── 品种搜索面板 ──────────────────────────────────────
+
+.add-pet__breed-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: $color-bg-overlay;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+.add-pet__breed-panel {
+  width: 100%;
+  max-height: 75%;
+  background: $color-bg-card;
+  border-radius: $radius-xl $radius-xl 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.add-pet__breed-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-xl $spacing-lg $spacing-md;
+  border-bottom: 2rpx solid $color-divider;
+  flex-shrink: 0;
+}
+
+.add-pet__breed-panel-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.add-pet__breed-panel-close {
+  width: 56rpx;
+  height: 56rpx;
+  @include flex-center;
+  border-radius: $radius-full;
+  background: $color-bg-secondary;
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  @include press-feedback;
+}
+
+.add-pet__breed-panel-search {
+  display: flex;
+  align-items: center;
+  margin: $spacing-md $spacing-lg;
+  padding: 0 20rpx;
+  height: 80rpx;
+  background: $color-bg-secondary;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+  gap: $spacing-sm;
+}
+
+.add-pet__breed-panel-search-icon {
+  font-size: $font-size-md;
+  flex-shrink: 0;
+}
+
+.add-pet__breed-panel-search-input {
+  flex: 1;
+  height: 80rpx;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.add-pet__breed-panel-clear {
+  width: 44rpx;
+  height: 44rpx;
+  @include flex-center;
+  border-radius: $radius-full;
+  background: $color-border;
+  flex-shrink: 0;
+  @include press-feedback;
+
+  Text {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+  }
+}
+
+.add-pet__breed-panel-list {
+  flex: 1;
+  padding: 0 $spacing-lg $spacing-xl;
+}
+
+.add-pet__breed-panel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md 0;
+  border-bottom: 2rpx solid $color-divider;
+  @include press-feedback;
+}
+
+.add-pet__breed-panel-item--active {
+  .add-pet__breed-panel-item-name {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.add-pet__breed-panel-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.add-pet__breed-panel-item-name {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.add-pet__breed-panel-item-alias {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.add-pet__breed-panel-item-origin {
+  font-size: $font-size-xs;
+  color: $color-text-hint;
+  flex-shrink: 0;
+  margin-left: $spacing-md;
+}
+
+.add-pet__breed-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+}
+
+.add-pet__breed-panel-empty-hint {
+  margin-top: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-hint;
 }

@@ -12,7 +12,7 @@ vi.mock('@tarojs/components', () => ({
 }))
 
 vi.mock('@tarojs/taro', () => ({
-  default: { navigateTo: vi.fn() },
+  default: { navigateTo: vi.fn(), switchTab: vi.fn() },
 }))
 
 vi.mock('../../services/analyticsService', () => ({
@@ -92,7 +92,7 @@ describe('PaywallPopup', () => {
     const upgradeBtn = container.querySelector('.paywall-popup__btn--upgrade')!
     fireEvent.click(upgradeBtn)
     expect(onClose).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(Taro.navigateTo)).toHaveBeenCalledWith({ url: '/pages/member/index?plan=yearly' })
+    expect(vi.mocked(Taro.switchTab)).toHaveBeenCalledWith({ url: '/pages/member/index' })
   })
 
   it('shows plan options with prices', () => {

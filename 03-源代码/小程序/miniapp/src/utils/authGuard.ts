@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro'
 import { isTokenFormatValid } from './jwt'
 import { CONFIG } from '../config'
+import { storage } from './storage'
 
 const { TOKEN, USER, REFRESH_TOKEN } = CONFIG.STORAGE_KEYS
 
@@ -12,7 +13,7 @@ export class AuthenticationError extends Error {
 }
 
 export function getAuthenticatedUserId(): string {
-  const token = Taro.getStorageSync(TOKEN)
+  const token = storage.getToken()
   if (!token) {
     throw new AuthenticationError('未登录，请先登录')
   }
@@ -45,7 +46,7 @@ export function getAuthenticatedUserId(): string {
 }
 
 export async function requireAuthAsync(): Promise<{ userId: string; token: string }> {
-  const token = Taro.getStorageSync(TOKEN)
+  const token = storage.getToken()
   if (!token || !isTokenFormatValid(token)) {
     Taro.removeStorageSync(TOKEN)
     Taro.removeStorageSync(REFRESH_TOKEN)
@@ -59,7 +60,7 @@ export async function requireAuthAsync(): Promise<{ userId: string; token: strin
 }
 
 export function requireAuth(): { userId: string; token: string } {
-  const token = Taro.getStorageSync(TOKEN)
+  const token = storage.getToken()
   if (!token || !isTokenFormatValid(token)) {
     Taro.removeStorageSync(TOKEN)
     Taro.removeStorageSync(REFRESH_TOKEN)
@@ -73,6 +74,6 @@ export function requireAuth(): { userId: string; token: string } {
 }
 
 export function isAuthenticated(): boolean {
-  const token = Taro.getStorageSync(TOKEN)
+  const token = storage.getToken()
   return !!token && isTokenFormatValid(token)
 }

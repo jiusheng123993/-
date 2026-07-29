@@ -172,6 +172,62 @@
   font-weight: $font-weight-medium;
 }
 
+// ===== AI 提取的特征/喜好 =====
+.profile-facts-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.profile-fact-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 22rpx $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  transition: all 0.2s ease;
+  animation: cardStaggerIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+
+  &:active {
+    border-color: rgba($color-primary, 0.3);
+  }
+}
+
+.profile-fact-item:nth-child(1) { animation-delay: 0s; }
+.profile-fact-item:nth-child(2) { animation-delay: 0.06s; }
+.profile-fact-item:nth-child(3) { animation-delay: 0.12s; }
+.profile-fact-item:nth-child(4) { animation-delay: 0.18s; }
+.profile-fact-item:nth-child(5) { animation-delay: 0.24s; }
+
+.profile-fact-item--like {
+  border-left: 6rpx solid #FF6B81;
+}
+
+.profile-fact-item--dislike {
+  border-left: 6rpx solid #A0A0A0;
+}
+
+.profile-fact-item--habit {
+  border-left: 6rpx solid #4ECDC4;
+}
+
+.profile-fact-item--personality {
+  border-left: 6rpx solid #FFD93D;
+}
+
+.profile-fact-icon {
+  font-size: 36rpx;
+  flex-shrink: 0;
+}
+
+.profile-fact-text {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: 1.5;
+}
+
 // ===== 功能卡片 =====
 .profile-feature-card {
   padding: 0;

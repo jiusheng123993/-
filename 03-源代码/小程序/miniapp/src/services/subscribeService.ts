@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro';
 import { getStorage, setStorage } from '../utils/storage';
+import { storage } from '../utils/storage';
 import { logger } from '../logger';
 import { checkFrequency, recordSend } from './frequencyControlService';
 import { CONFIG } from '../config';
@@ -178,7 +179,7 @@ export async function sendSubscribeMessage(
   }
 
   try {
-    const token = Taro.getStorageSync(CONFIG.STORAGE_KEYS.TOKEN);
+    const token = storage.getToken();
 
     const res = await Taro.request({
       url: `${CONFIG.API_BASE_URL}/api/subscribe/send`,

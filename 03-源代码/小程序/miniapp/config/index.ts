@@ -1,4 +1,5 @@
 import { defineConfig } from '@tarojs/cli'
+import path from 'path'
 
 const config = {
   projectName: 'xinghuanhai-miniapp',
@@ -12,7 +13,9 @@ const config = {
   },
   sourceRoot: 'src',
   outputRoot: 'dist',
-  plugins: [],
+  plugins: [
+    path.join(__dirname, 'plugin-ensure-wxss.ts'),
+  ],
   defineConstants: {},
   copy: {
     patterns: [],
@@ -70,8 +73,8 @@ const config = {
     '@': 'src',
   },
   env: {
-    TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000'),
-    TARO_APP_USE_MOCK: JSON.stringify(process.env.TARO_APP_USE_MOCK || 'true'),
+    TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL || 'http://49.232.203.85'),
+    TARO_APP_USE_MOCK: JSON.stringify(process.env.TARO_APP_USE_MOCK || 'false'),
     TARO_APP_SUPABASE_URL: JSON.stringify(process.env.TARO_APP_SUPABASE_URL || ''),
     TARO_APP_SUPABASE_KEY: JSON.stringify(process.env.TARO_APP_SUPABASE_KEY || ''),
     TARO_APP_CRYPTO_SALT: JSON.stringify(process.env.TARO_APP_CRYPTO_SALT || ''),

@@ -1,9 +1,14 @@
-import { View, Text, ScrollView, Image, Canvas } from '@tarojs/components'
+import { View, Text, ScrollView, Image, Canvas, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePetStore } from '../../stores/petStore'
+import { useAuthStore } from '../../stores/authStore'
 import { getCheckins } from '../../services/checkinService'
+import { timelineService } from '../../services/timelineService'
+import { CONFIG } from '../../config'
+import { storage } from '../../utils/storage'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
 import {
   generateYearlyReview,
   renderYearlyReview,
@@ -235,6 +240,12 @@ export default function TimelinePage() {
   const currentPet = usePetStore((s) => s.currentPet)
   const userId = usePetStore((s) => s.userId)
 
+  // 新增回忆弹窗状态
+  const [showAddMemoryModal, setShowAddMemoryModal] = useState(false)
+  const [memoryText, setMemoryText] = useState('')
+  const [memoryPhotoPath, setMemoryPhotoPath] = useState<string | null>(null)
+  const [isMemorySubmitting, setIsMemorySubmitting] = useState(false)
+
   useEffect(() => {
     async function loadTimelineData() {
       try {
@@ -300,7 +311,78 @@ export default function TimelinePage() {
       Taro.showToast({ title: '请先选择宠物', icon: 'none' })
       return
     }
-    Taro.showToast({ title: '回忆功能即将上线', icon: 'none' })
+    setMemoryText('')
+    setMemoryPhotoPath(null)
+    setShowAddMemoryModal(true)
+  }
+
+  /** 选择回忆照片 */
+  const handleAddMemoryPhoto = async () => {
+    try {
+      const res = await chooseImageWithPrivacy({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+      })
+      if (!res.tempFilePaths.length) return
+      setMemoryPhotoPath(res.tempFilePaths[0])
+    } catch (err) {
+      if ((err as { errMsg?: string }).errMsg?.includes('cancel')) return
+      Taro.showToast({ title: '选择照片失败', icon: 'none' })
+    }
+  }
+
+  /** 提交回忆 */
+  const handleAddMemorySubmit = async () => {
+    const text = memoryText.trim()
+    if (!text) {
+      Taro.showToast({ title: '请写一段回忆描述', icon: 'none' })
+      return
+    }
+    if (!currentPet || !userId) return
+
+    setIsMemorySubmitting(true)
+    try {
+      // 上传照片
+      let photoUrl: string | null = null
+      if (memoryPhotoPath) {
+        const token = storage.getToken()
+        const uploadRes = await Taro.uploadFile({
+          url: `${CONFIG.API_BASE_URL}/api/timeline/photo/upload`,
+          filePath: memoryPhotoPath,
+          name: 'photo',
+          header: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        const uploadData = JSON.parse(uploadRes.data) as { success: boolean; data?: { url: string } }
+        if (uploadData.success) {
+          photoUrl = uploadData.data?.url || null
+        }
+      }
+
+      await timelineService.addMoment({
+        userId,
+        petId: currentPet.id,
+        type: 'memory',
+        content: {
+          petName: currentPet.name,
+          petEmoji: currentPet.species === 'cat' ? '🐱' : currentPet.species === 'dog' ? '🐕' : '🐾',
+          description: text,
+        },
+        photos: photoUrl ? [photoUrl] : [],
+      })
+
+      setShowAddMemoryModal(false)
+      Taro.showToast({ title: '回忆已保存 ✦', icon: 'success' })
+
+      // 刷新时间线数据
+      const entries = await getCheckins(currentPet.id, userId)
+      const generated = generateTimelineFromData(currentPet, entries)
+      setDynamicEvents(generated)
+    } catch {
+      Taro.showToast({ title: '保存失败，请重试', icon: 'none' })
+    } finally {
+      setIsMemorySubmitting(false)
+    }
   }
 
   const handleEventClick = (event: TimelineEvent) => {
@@ -519,6 +601,70 @@ export default function TimelinePage() {
         style={{ display: reviewCanvasRef.current ? 'block' : 'none', position: 'fixed', left: '-9999px', top: '-9999px', width: '750px', height: '1334px' }}
         type='2d'
       />
+
+      {/* 新增回忆弹窗 */}
+      {showAddMemoryModal && (
+        <View className='timeline-review-overlay' onClick={() => setShowAddMemoryModal(false)}>
+          <View className='timeline-review-modal' onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
+            <View className='timeline-review-header'>
+              <Text className='timeline-review-header-title'>新增回忆 ✦</Text>
+              <View className='timeline-review-header-close' onClick={() => setShowAddMemoryModal(false)}>
+                <Text>✕</Text>
+              </View>
+            </View>
+            <View className='timeline-add-memory-body'>
+              <Textarea
+                className='timeline-add-memory-textarea'
+                placeholder='写下这个值得记住的瞬间...'
+                value={memoryText}
+                onInput={(e: { detail: { value: string } }) => setMemoryText(e.detail.value)}
+                maxlength={500}
+                autoHeight
+              />
+              <View className='timeline-add-memory-photo-row'>
+                {memoryPhotoPath ? (
+                  <View className='timeline-add-memory-photo-preview'>
+                    <Image
+                      className='timeline-add-memory-photo-img'
+                      src={memoryPhotoPath}
+                      mode='aspectFill'
+                    />
+                    <View
+                      className='timeline-add-memory-photo-remove'
+                      onClick={() => setMemoryPhotoPath(null)}
+                    >
+                      <Text>✕</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View className='timeline-add-memory-photo-btn' onClick={handleAddMemoryPhoto}>
+                    <Text className='timeline-add-memory-photo-icon'>📷</Text>
+                    <Text className='timeline-add-memory-photo-label'>拍照/上传照片</Text>
+                  </View>
+                )}
+                {memoryPhotoPath && (
+                  <View className='timeline-add-memory-photo-change' onClick={handleAddMemoryPhoto}>
+                    <Text>更换照片</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+            <View className='timeline-review-actions'>
+              <View
+                className={`timeline-review-btn timeline-review-btn--primary ${isMemorySubmitting ? 'timeline-review-btn--disabled' : ''}`}
+                onClick={isMemorySubmitting ? undefined : handleAddMemorySubmit}
+              >
+                <Text className='timeline-review-btn-text'>
+                  {isMemorySubmitting ? '保存中...' : '💾 保存回忆'}
+                </Text>
+              </View>
+              <View className='timeline-review-btn timeline-review-btn--outline' onClick={() => setShowAddMemoryModal(false)}>
+                <Text className='timeline-review-btn-text'>取消</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
     </ScrollView>
   )
 }

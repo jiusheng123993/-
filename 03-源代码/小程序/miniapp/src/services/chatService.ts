@@ -99,7 +99,7 @@ export async function sendChatMessage(
   ]
 
   try {
-    const reply = await chat({ messages, temperature: 0.7 })
+    const reply = await chat({ messages, temperature: 0.7, petId: context.petId })
 
     const outputCheck = await guardCheckOutput(reply)
     if (outputCheck.isUnsafeMedicalAdvice) {

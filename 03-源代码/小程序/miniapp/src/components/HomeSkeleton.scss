@@ -1,4 +1,18 @@
-@import '../../styles/theme';
+$spacing-xs: 8rpx;
+$spacing-sm: 12rpx;
+$spacing-md: 16rpx;
+$spacing-lg: 24rpx;
+$spacing-xl: 32rpx;
+$radius-xs: 4rpx;
+$radius-sm: 8rpx;
+$radius-md: 16rpx;
+$radius-full: 999rpx;
+$shadow-xs: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+
+$color-bg-page: var(--bg-page, #1A1418);
+$color-bg-card: var(--bg-card, #2A1E24);
+$color-border: var(--border, rgba(200, 142, 168, 0.15));
+$color-border-light: var(--border-light, rgba(200, 142, 168, 0.08));
 
 @keyframes home-skeleton-shimmer {
   0% {

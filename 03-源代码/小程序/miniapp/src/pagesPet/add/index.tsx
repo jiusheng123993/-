@@ -1,14 +1,15 @@
-import { View, Text, Input, Picker, Switch, Textarea, Image } from '@tarojs/components'
+import { View, Text, Input, Picker, Switch, Textarea, Image, ScrollView } from '@tarojs/components'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useVaccine } from '../../hooks/useVaccine'
 import { useAuthStore } from '../../stores/authStore'
 import { BREED_DATA } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { safeNavigateBack } from '../../utils/navigation'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import './index.scss'
 
@@ -87,6 +88,8 @@ export default function AddPet() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [selectedBreed, setSelectedBreed] = useState<BreedItem | null>(null)
+  const [showBreedPanel, setShowBreedPanel] = useState(false)
+  const [breedSearch, setBreedSearch] = useState('')
 
   useEffect(() => {
     trackPageView('add_pet')
@@ -97,16 +100,14 @@ export default function AddPet() {
     return BREED_DATA.filter((b) => b.species === formData.species)
   }, [formData.species])
 
-  const breedOptions = useMemo(() => {
-    return filteredBreeds.map((b) => ({
-      value: b.id,
-      label: b.aliases.length > 0 ? `${b.name}（${b.aliases[0]}）` : b.name,
-    }))
-  }, [filteredBreeds])
-
-  const selectedBreedIndex = useMemo(() => {
-    return breedOptions.findIndex((b) => b.value === formData.breedId)
-  }, [breedOptions, formData.breedId])
+  const searchedBreeds = useMemo(() => {
+    if (!breedSearch.trim()) return filteredBreeds
+    const keyword = breedSearch.trim().toLowerCase()
+    return filteredBreeds.filter((b) =>
+      b.name.toLowerCase().includes(keyword) ||
+      b.aliases.some((a) => a.toLowerCase().includes(keyword))
+    )
+  }, [filteredBreeds, breedSearch])
 
   const updateField = <K extends keyof FormData>(key: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }))
@@ -120,15 +121,18 @@ export default function AddPet() {
     setSelectedBreed(null)
   }
 
-  const handleBreedChange = (e: { detail: { value: number } }) => {
-    const index = e.detail.value
-    const breed = filteredBreeds[index]
-    if (breed) {
-      updateField('breedId', breed.id)
-      updateField('breedName', breed.name)
-      setSelectedBreed(breed)
-    }
-  }
+  const handleOpenBreedPanel = useCallback(() => {
+    if (!formData.species) return
+    setBreedSearch('')
+    setShowBreedPanel(true)
+  }, [formData.species])
+
+  const handleSelectBreed = useCallback((breed: BreedItem) => {
+    updateField('breedId', breed.id)
+    updateField('breedName', breed.name)
+    setSelectedBreed(breed)
+    setShowBreedPanel(false)
+  }, [updateField])
 
   const handleBirthDateChange = (e: { detail: { value: string } }) => {
     updateField('birthDate', e.detail.value)
@@ -136,13 +140,14 @@ export default function AddPet() {
 
   const handleChooseAvatar = () => {
     trackEvent('choose_avatar')
-    Taro.chooseImage({
+    chooseImageWithPrivacy({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        updateField('avatarUrl', res.tempFilePaths[0])
-      },
+    }).then((res) => {
+      updateField('avatarUrl', res.tempFilePaths[0])
+    }).catch((err) => {
+      console.warn('[AddPet] chooseImage failed:', err)
     })
   }
 
@@ -278,22 +283,70 @@ export default function AddPet() {
 
         <View className='add-pet__form-item'>
           <Text className='add-pet__label add-pet__label--required'>品种</Text>
-          <Picker
-            mode='selector'
-            range={breedOptions}
-            rangeKey='label'
-            value={selectedBreedIndex >= 0 ? selectedBreedIndex : 0}
-            onChange={handleBreedChange as (e: unknown) => void}
-            disabled={!formData.species}
+          <View
+            className={`add-pet__picker ${!formData.species ? 'add-pet__picker--disabled' : ''}`}
+            onClick={handleOpenBreedPanel}
           >
-            <View className='add-pet__picker'>
-              <Text className={formData.breedName ? '' : 'add-pet__picker-placeholder'}>
-                {formData.breedName || '请选择品种'}
-              </Text>
-              <Text className='add-pet__picker-arrow'>▼</Text>
-            </View>
-          </Picker>
+            <Text className={formData.breedName ? '' : 'add-pet__picker-placeholder'}>
+              {formData.breedName || '请先选择物种，再搜索品种'}
+            </Text>
+            <Text className='add-pet__picker-arrow'>🔍</Text>
+          </View>
         </View>
+
+        {showBreedPanel && (
+          <View className='add-pet__breed-panel-overlay' onClick={() => setShowBreedPanel(false)}>
+            <View className='add-pet__breed-panel' onClick={(e: any) => e.stopPropagation()}>
+              <View className='add-pet__breed-panel-header'>
+                <Text className='add-pet__breed-panel-title'>选择品种</Text>
+                <View className='add-pet__breed-panel-close' onClick={() => setShowBreedPanel(false)}>
+                  <Text>✕</Text>
+                </View>
+              </View>
+              <View className='add-pet__breed-panel-search'>
+                <Text className='add-pet__breed-panel-search-icon'>🔍</Text>
+                <Input
+                  className='add-pet__breed-panel-search-input'
+                  placeholder='搜索品种名称或别名'
+                  placeholderClass='add-pet__input-placeholder'
+                  value={breedSearch}
+                  onInput={(e) => setBreedSearch(e.detail.value)}
+                  focus
+                  confirmType='search'
+                />
+                {breedSearch && (
+                  <View className='add-pet__breed-panel-clear' onClick={() => setBreedSearch('')}>
+                    <Text>✕</Text>
+                  </View>
+                )}
+              </View>
+              <ScrollView className='add-pet__breed-panel-list' scrollY enhanced showScrollbar={false}>
+                {searchedBreeds.length === 0 ? (
+                  <View className='add-pet__breed-panel-empty'>
+                    <Text>未找到匹配的品种</Text>
+                    <Text className='add-pet__breed-panel-empty-hint'>试试其他关键词吧</Text>
+                  </View>
+                ) : (
+                  searchedBreeds.map((breed) => (
+                    <View
+                      key={breed.id}
+                      className={`add-pet__breed-panel-item ${formData.breedId === breed.id ? 'add-pet__breed-panel-item--active' : ''}`}
+                      onClick={() => handleSelectBreed(breed)}
+                    >
+                      <View className='add-pet__breed-panel-item-info'>
+                        <Text className='add-pet__breed-panel-item-name'>{breed.name}</Text>
+                        {breed.aliases.length > 0 && (
+                          <Text className='add-pet__breed-panel-item-alias'>{breed.aliases.join('、')}</Text>
+                        )}
+                      </View>
+                      <Text className='add-pet__breed-panel-item-origin'>{breed.origin}</Text>
+                    </View>
+                  ))
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        )}
 
         {selectedBreed && (
           <View className='add-pet__breed-info'>

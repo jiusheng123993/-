@@ -522,3 +522,95 @@
     transform: translateY(0) scale(1);
   }
 }
+
+// ===== 新增回忆弹窗 =====
+.timeline-add-memory-body {
+  padding: 0 32rpx 24rpx;
+}
+
+.timeline-add-memory-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 20rpx;
+  border-radius: $radius-md;
+  background: $color-bg-secondary;
+  font-size: 28rpx;
+  color: $color-text-primary;
+  border: 1rpx solid $color-border-light;
+  box-sizing: border-box;
+}
+
+.timeline-add-memory-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.timeline-add-memory-photo-btn {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 28rpx;
+  border-radius: $radius-md;
+  background: $color-bg-secondary;
+  border: 2rpx dashed $color-border;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &:active {
+    border-color: $color-primary;
+    background: $color-primary-bg;
+  }
+}
+
+.timeline-add-memory-photo-icon {
+  font-size: 36rpx;
+}
+
+.timeline-add-memory-photo-label {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+}
+
+.timeline-add-memory-photo-preview {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.timeline-add-memory-photo-img {
+  width: 100%;
+  height: 100%;
+}
+
+.timeline-add-memory-photo-remove {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: $radius-full;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  color: #fff;
+}
+
+.timeline-add-memory-photo-change {
+  padding: 12rpx 20rpx;
+  font-size: 24rpx;
+  color: $color-primary;
+  border-radius: $radius-sm;
+  background: $color-primary-bg;
+  @include press-feedback;
+}
+
+.timeline-review-btn--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}

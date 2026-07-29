@@ -9,7 +9,14 @@ const {
 }))
 
 vi.mock('react', () => {
-  const actual = { useCallback: (fn: any) => fn, useEffect: (fn: any) => fn() }
+  const actual = {
+    useCallback: (fn: any) => fn,
+    useEffect: (fn: any) => { fn() },
+    useMemo: (fn: any) => fn(),
+    useReducer: (reducer: any, initialState: any) => [initialState, vi.fn()],
+    useState: (initial: any) => [initial, vi.fn()],
+    useRef: (initial: any) => ({ current: initial }),
+  }
   return { ...actual, default: actual }
 })
 
@@ -34,6 +41,10 @@ const defaultMockStore = {
 
 vi.mock('../stores/membershipStore', () => ({
   useMembershipStore: vi.fn(() => ({ ...defaultMockStore }))
+}))
+
+vi.mock('../stores/authStore', () => ({
+  useAuthStore: vi.fn(() => ''),
 }))
 
 import { useMembershipStore } from '../stores/membershipStore'
@@ -80,7 +91,7 @@ describe('useMembership', () => {
   it('会员且活跃时 isMember 为 true', () => {
     vi.mocked(useMembershipStore).mockReturnValue({
       ...defaultMockStore,
-      membership: { tier: 'member', status: 'active' },
+      membership: { level: 'member', status: 'active' },
     })
     const result = useMembership()
     expect(result.isMember).toBe(true)
@@ -89,7 +100,7 @@ describe('useMembership', () => {
   it('会员但非活跃时 isMember 为 false', () => {
     vi.mocked(useMembershipStore).mockReturnValue({
       ...defaultMockStore,
-      membership: { tier: 'member', status: 'expired' },
+      membership: { level: 'member', status: 'expired' },
     })
     const result = useMembership()
     expect(result.isMember).toBe(false)
@@ -98,7 +109,7 @@ describe('useMembership', () => {
   it('非会员时 isMember 为 false', () => {
     vi.mocked(useMembershipStore).mockReturnValue({
       ...defaultMockStore,
-      membership: { tier: 'free', status: 'active' },
+      membership: { level: 'free', status: 'active' },
     })
     const result = useMembership()
     expect(result.isMember).toBe(false)

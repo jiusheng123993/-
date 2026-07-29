@@ -28,9 +28,34 @@ export interface RuleGuardResult {
   action: 'pass' | 'block' | 'crisis_intervention'
 }
 
+function normalizeInput(text: string): string {
+  return text
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\s\u3000]+/g, '')
+    .replace(/[·•・‧･]/g, '')
+}
+
+const INPUT_MAX_LENGTH = 5000
+
 export function checkInput(text: string): RuleGuardResult {
+  if (!text) {
+    return { blocked: false, isCrisis: false, action: 'pass' }
+  }
+
+  if (text.length > INPUT_MAX_LENGTH) {
+    return {
+      blocked: true,
+      isCrisis: false,
+      reason: `输入内容过长，最多允许 ${INPUT_MAX_LENGTH} 字符`,
+      action: 'block'
+    }
+  }
+
+  const normalized = normalizeInput(text)
+
   for (const kw of SELF_HARM_KEYWORDS) {
-    if (text.includes(kw)) {
+    if (text.includes(kw) || normalized.includes(kw)) {
       return {
         blocked: true,
         isCrisis: true,
@@ -41,7 +66,7 @@ export function checkInput(text: string): RuleGuardResult {
   }
 
   for (const kw of ANIMAL_ABUSE_KEYWORDS) {
-    if (text.includes(kw)) {
+    if (text.includes(kw) || normalized.includes(kw)) {
       return {
         blocked: true,
         isCrisis: false,
@@ -65,9 +90,19 @@ export function checkInput(text: string): RuleGuardResult {
   return { blocked: false, isCrisis: false, action: 'pass' }
 }
 
-export function sanitizeOutput(text: string, maxLength: number = 150): string {
-  if (text.length > maxLength) {
-    return text.substring(0, maxLength) + '...'
-  }
+function escapeHtml(text: string): string {
   return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
+export function sanitizeOutput(text: string, maxLength: number = 150): string {
+  const escaped = escapeHtml(text)
+  if (escaped.length > maxLength) {
+    return escaped.substring(0, maxLength) + '...'
+  }
+  return escaped
 }

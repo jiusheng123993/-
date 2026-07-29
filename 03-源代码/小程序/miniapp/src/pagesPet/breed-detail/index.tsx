@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'
-import { useThemeClass } from '../../hooks/useThemeClass'
+import { useThemeStore, type ThemeKey } from '../../stores/themeStore'
 import { BREED_DATA, type BreedItem } from '../../data/petKnowledge/breeds'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
@@ -46,6 +46,15 @@ export default function BreedDetail() {
   const { trackEvent } = useAnalytics()
   usePageView('breed_detail')
 
+  // 直接从 store 读取主题，避免 useThemeClass 内 useEffect 冗余 setState 触发渲染层异常
+  const [themeKey, setThemeKey] = useState<ThemeKey>(() => useThemeStore.getState().current)
+  useEffect(() => {
+    const handler = (t: ThemeKey) => { setThemeKey(t) }
+    Taro.eventCenter.on('themeChange', handler)
+    return () => { Taro.eventCenter.off('themeChange', handler) }
+  }, [])
+  const themeClass = `theme-${themeKey}`
+
   useEffect(() => {
     const id = router.params.id
     if (id) {
@@ -67,7 +76,7 @@ export default function BreedDetail() {
 
   if (!breed) {
     return (
-      <View className='breed-detail'>
+      <View className={`breed-detail ${themeClass}`}>
         <View className='breed-detail__loading'>
           <Text className='breed-detail__loading-text'>加载中...</Text>
         </View>
@@ -76,7 +85,7 @@ export default function BreedDetail() {
   }
 
   return (
-    <View className='breed-detail'>
+    <View className={`breed-detail ${themeClass}`}>
       <ScrollView className='breed-detail__scroll' scrollY>
         <View className='breed-detail__hero'>
           <View className='breed-detail__hero-emoji'>

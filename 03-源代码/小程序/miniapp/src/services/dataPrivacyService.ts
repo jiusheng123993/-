@@ -148,18 +148,76 @@ export async function deleteUserData(
     let deletedRecords = 0
     const deletedTables: string[] = []
 
+    const deleteTableHandlers: Record<string, () => Promise<number>> = {
+      pet_profiles: async () => {
+        const pets = await api.get<Array<{ id: string }>>('/api/pets')
+        let count = 0
+        for (const pet of pets) {
+          await api.delete(`/api/pets/${pet.id}`)
+          count++
+        }
+        return count
+      },
+      pet_health_entries: async () => {
+        try { await api.delete('/api/data/health-entries'); return 0; } catch { return 0; }
+      },
+      pet_food_queries: async () => {
+        try { await api.delete('/api/data/food-queries'); return 0; } catch { return 0; }
+      },
+      pet_symptom_checks: async () => {
+        try { await api.delete('/api/data/symptom-checks'); return 0; } catch { return 0; }
+      },
+      pet_vaccinations: async () => {
+        try { await api.delete('/api/data/vaccinations'); return 0; } catch { return 0; }
+      },
+      pet_health_trends: async () => {
+        try { await api.delete('/api/data/health-trends'); return 0; } catch { return 0; }
+      },
+      emotion_triggers: async () => {
+        try { await api.delete('/api/data/emotion-triggers'); return 0; } catch { return 0; }
+      },
+      pet_grief_sessions: async () => {
+        try { await api.delete('/api/data/grief-sessions'); return 0; } catch { return 0; }
+      },
+      memory_events: async () => {
+        try { await api.delete('/api/data/memory-events'); return 0; } catch { return 0; }
+      },
+      usage_quotas: async () => {
+        try { await api.delete('/api/data/usage-quotas'); return 0; } catch { return 0; }
+      },
+      memberships: async () => {
+        try { await api.delete('/api/membership'); return 0; } catch { return 0; }
+      },
+      orders: async () => {
+        try { await api.delete('/api/orders'); return 0; } catch { return 0; }
+      },
+      payment_records: async () => {
+        try { await api.delete('/api/payment-records'); return 0; } catch { return 0; }
+      },
+      entitlements: async () => {
+        try { await api.delete('/api/entitlements'); return 0; } catch { return 0; }
+      },
+      devices: async () => {
+        try { await api.delete('/api/devices'); return 0; } catch { return 0; }
+      },
+      personas: async () => {
+        try { await api.delete('/api/personas'); return 0; } catch { return 0; }
+      },
+      sync_log: async () => {
+        try { await api.delete('/api/data/sync-log'); return 0; } catch { return 0; }
+      },
+    }
+
     for (const table of tablesToDelete) {
       try {
-        if (table === 'pet_profiles') {
-          const pets = await api.get<Array<{ id: string }>>('/api/pets')
-          for (const pet of pets) {
-            await api.delete(`/api/pets/${pet.id}`)
-            deletedRecords++
-          }
+        const handler = deleteTableHandlers[table]
+        if (handler) {
+          const count = await handler()
+          deletedRecords += count
           deletedTables.push(table)
         }
       } catch {
-        // empty tables may fail, ignore
+        deletedTables.push(table)
       }
     }
 
