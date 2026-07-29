@@ -41,3 +41,23 @@ config/payment/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+
+# 测试覆盖率
+coverage/
+
+# 临时爬虫脚本
+crawl_breeds.py
+insert_breeds.py
+temp_check.py
+missing_*.json
+new_breeds.json
+new_breeds.ts
+
+# 根目录 package.json（项目代码在子目录）
+/package.json
+/package-lock.json
+
+# 小程序构建产物 - 需从Git跟踪中移除
+03-源代码/小程序/miniapp/dist/

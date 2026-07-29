@@ -550,7 +550,7 @@ CREATE TABLE IF NOT EXISTS pet_families (
 CREATE TABLE IF NOT EXISTS pet_family_members (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id  UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
-  pet_id     UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  pet_id     TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
   role       TEXT,
   joined_at  TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(family_id, pet_id)
@@ -561,8 +561,8 @@ CREATE TABLE IF NOT EXISTS pet_family_members (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS pet_lineage (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  parent_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
-  child_id     UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  parent_id    TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  child_id     TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
   litter_date  DATE,
   UNIQUE(parent_id, child_id)
 );
@@ -574,7 +574,7 @@ CREATE TABLE IF NOT EXISTS pet_moments (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   family_id   UUID REFERENCES pet_families(id),
-  pet_id      UUID REFERENCES pet_profiles(id),
+  pet_id      TEXT REFERENCES pet_profiles(id),
   type        TEXT NOT NULL,
   content     JSONB NOT NULL,
   photos      TEXT[],
@@ -592,7 +592,7 @@ CREATE INDEX IF NOT EXISTS idx_moments_user ON pet_moments(user_id, created_at D
 CREATE TABLE IF NOT EXISTS pet_milestones (
   id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  pet_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  pet_id    TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
   title     TEXT NOT NULL,
   date      DATE NOT NULL,
   type      TEXT NOT NULL,
@@ -607,13 +607,72 @@ CREATE INDEX IF NOT EXISTS idx_milestones_pet ON pet_milestones(pet_id, date DES
 CREATE TABLE IF NOT EXISTS pet_names (
   id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  pet_id    UUID NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  pet_id    TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
   name      TEXT NOT NULL,
   chosen    BOOLEAN DEFAULT FALSE,
   analysis  JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(pet_id, name)
 );
+
+-- ============================================================
+-- 37. pet_facts（宠物特征/喜好/习惯记录表）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_facts (
+  id            BIGSERIAL PRIMARY KEY,
+  pet_id        TEXT NOT NULL,
+  user_id       TEXT NOT NULL,
+  category      TEXT NOT NULL DEFAULT 'general',
+  fact          TEXT NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pet_facts_pet ON pet_facts(pet_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_pet_facts_user ON pet_facts(user_id);
+
+-- ============================================================
+-- 38. agent_conversations（Agent 对话持久化）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS agent_conversations (
+  id            BIGSERIAL PRIMARY KEY,
+  user_id       TEXT NOT NULL,
+  pet_id        TEXT,
+  role          TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system', 'tool')),
+  content       TEXT NOT NULL,
+  metadata      JSONB DEFAULT '{}',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_conv_user ON agent_conversations(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_conv_pet ON agent_conversations(pet_id, created_at DESC);
+
+-- ============================================================
+-- 39. agent_memories（Agent 结构化记忆，memory-body 核心）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS agent_memories (
+  id            BIGSERIAL PRIMARY KEY,
+  user_id       TEXT NOT NULL,
+  pet_id        TEXT,
+  category      TEXT NOT NULL,
+  key           TEXT NOT NULL,
+  content       TEXT NOT NULL,
+  importance    INTEGER NOT NULL DEFAULT 1,
+  confidence    REAL NOT NULL DEFAULT 1.0,
+  source        TEXT NOT NULL DEFAULT 'auto',
+  evidence      TEXT[],
+  last_recalled TIMESTAMPTZ,
+  decay_rate    REAL NOT NULL DEFAULT 0.01,
+  status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'dormant', 'expired', 'contradicted')),
+  meta          JSONB DEFAULT '{}',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, pet_id, key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_mem_user ON agent_memories(user_id, pet_id);
+CREATE INDEX IF NOT EXISTS idx_agent_mem_category ON agent_memories(pet_id, category);
+CREATE INDEX IF NOT EXISTS idx_agent_mem_importance ON agent_memories(pet_id, importance DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_mem_recall ON agent_memories(pet_id, last_recalled DESC NULLS LAST);
 
 -- ============================================================
 -- 初始化知识库版本记录
