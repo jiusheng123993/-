@@ -61,3 +61,6 @@ new_breeds.ts
 
 # 小程序构建产物 - 需从Git跟踪中移除
 03-源代码/小程序/miniapp/dist/
+
+# 临时目录
+.temp/
