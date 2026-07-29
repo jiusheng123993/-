@@ -1,12 +1,19 @@
 import { Router, type Request, type Response } from 'express';
+import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.js';
-import { chat, guardCheck, guardCheckOutput } from '../services/aiService.js';
+import { chat, guardCheck, guardCheckOutput, bailianChat, bailianASR } from '../services/aiService.js';
+import { pool } from '../db.js';
 
 const router = Router();
 
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
 router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { messages, temperature, max_tokens } = req.body;
+    const { messages, temperature, max_tokens, petId } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       res.status(400).json({ success: false, message: 'messages 不能为空' });
@@ -15,11 +22,72 @@ router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
 
     const result = await chat(messages, { temperature, max_tokens });
     res.json({ success: true, data: { content: result } });
+
+    // 异步提取宠物特征，不阻塞主回复
+    if (petId && typeof petId === 'string' && messages.length > 0) {
+      const userMessages = messages.filter((m: { role: string }) => m.role === 'user');
+      if (userMessages.length > 0) {
+        const lastUserMsg = userMessages[userMessages.length - 1].content;
+        extractAndSavePetFacts(petId, req.userId as string, lastUserMsg).catch((err) => {
+          console.error('[PetFacts] 提取特征失败:', err.message);
+        });
+      }
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'AI 服务异常';
     res.status(500).json({ success: false, message });
   }
 });
+
+/**
+ * 从用户消息中提取宠物特征/喜好/习惯，保存到 pet_facts 表
+ */
+async function extractAndSavePetFacts(petId: string, userId: string, userMessage: string): Promise<void> {
+  // 过滤太短的消息，避免误提取
+  if (userMessage.length < 4) return;
+
+  const extractPrompt = `从以下用户消息中提取关于宠物的特征、喜好、习惯或性格信息。
+如果消息中包含"记录"、"记住"、"喜欢"、"讨厌"、"习惯"、"性格"等关键词，则提取相关内容。
+如果没有明确的宠物特征信息，返回空数组。
+返回格式：严格的 JSON 数组，每个元素包含 category 和 fact 字段。
+category 可选值：like（喜欢）、dislike（讨厌）、habit（习惯）、personality（性格）、general（其他）
+fact 字段：一句话描述具体特征，不超过 100 字。
+
+用户消息：${userMessage}
+
+请只返回 JSON 数组，不要包含其他文字。`;
+
+  try {
+    const extractResult = await chat(
+      [{ role: 'user', content: extractPrompt }],
+      { temperature: 0, max_tokens: 300 }
+    );
+
+    // 尝试从回复中提取 JSON 数组
+    const jsonMatch = extractResult.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return;
+
+    const facts = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(facts) || facts.length === 0) return;
+
+    for (const fact of facts) {
+      if (!fact.fact || typeof fact.fact !== 'string') continue;
+      const category = ['like', 'dislike', 'habit', 'personality', 'general'].includes(fact.category)
+        ? fact.category
+        : 'general';
+
+      await pool.query(
+        'INSERT INTO pet_facts (pet_id, user_id, category, fact) VALUES ($1, $2, $3, $4)',
+        [petId, userId, category, fact.fact.substring(0, 200)]
+      );
+      console.log(`[PetFacts] 已保存特征: pet=${petId}, category=${category}, fact=${fact.fact.substring(0, 50)}`);
+    }
+  } catch (err) {
+    // 提取失败不影响主流程，仅记录日志
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[PetFacts] 提取特征异常:', msg);
+  }
+}
 
 router.post('/guard', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -34,6 +102,23 @@ router.post('/guard', authMiddleware, async (req: Request, res: Response) => {
     res.json({ success: true, data: result });
   } catch (error) {
     const message = error instanceof Error ? error.message : '安全检测异常';
+    res.status(500).json({ success: false, message });
+  }
+});
+
+router.post('/guard/output', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { text } = req.body;
+
+    if (!text || typeof text !== 'string') {
+      res.status(400).json({ success: false, message: 'text 参数不能为空' });
+      return;
+    }
+
+    const result = await guardCheckOutput(text);
+    res.json({ isUnsafeMedicalAdvice: result.isUnsafeMedicalAdvice });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '输出安全检测异常';
     res.status(500).json({ success: false, message });
   }
 });
@@ -119,6 +204,124 @@ router.post('/naming/recommend', authMiddleware, async (req: Request, res: Respo
     res.json({ success: true, data: { names: [], raw: result } });
   } catch (error) {
     const message = error instanceof Error ? error.message : '取名推荐异常';
+    res.status(500).json({ success: false, message });
+  }
+});
+
+/**
+ * 语音转文字接口
+ * 接收音频上传，使用 AI 进行语音识别，返回转写文本
+ */
+router.post('/voice', authMiddleware, upload.single('audio'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, message: '请上传音频文件' });
+      return;
+    }
+
+    const audioBase64 = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype || 'audio/mp3';
+
+    const text = await bailianASR(audioBase64, mimeType);
+
+    res.json({
+      success: true,
+      data: {
+        text: text.trim() || '无法识别语音内容',
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '语音转文字服务异常';
+    console.error('[Voice] 语音转文字失败:', message);
+    res.status(500).json({ success: false, message });
+  }
+});
+
+/**
+ * 拍照识别品种接口
+ * 接收宠物照片上传，使用 AI 多模态能力识别品种
+ */
+router.post('/breed-recognize', authMiddleware, upload.single('photo'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, message: '请上传宠物照片' });
+      return;
+    }
+
+    const imageBase64 = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype || 'image/jpeg';
+
+    const systemPrompt = `你是一个专业的宠物品种识别专家。请根据用户提供的宠物照片，识别出宠物的品种。
+    
+分析要求：
+1. 判断这是狗还是猫
+2. 识别具体品种名称（中文名）
+3. 给出置信度（0-100）
+
+请严格按以下 JSON 格式返回，不要包含其他文字：
+{
+  "species": "dog" 或 "cat",
+  "breedName": "品种中文名",
+  "confidence": 85,
+  "reason": "识别依据的简短说明（20字以内）"
+}`;
+
+    const result = await bailianChat(
+      [
+        { role: 'system' as const, content: systemPrompt },
+        {
+          role: 'user' as const,
+          content: [
+            {
+              type: 'text' as const,
+              text: '请识别这张照片中的宠物品种：',
+            },
+            {
+              type: 'image_url' as const,
+              image_url: {
+                url: `data:${mimeType};base64,${imageBase64}`,
+              },
+            },
+          ],
+        },
+      ],
+      { temperature: 0.1, max_tokens: 300 }
+    );
+
+    // 解析 AI 返回的 JSON
+    try {
+      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        res.json({ success: false, message: '未能识别出品种，请尝试更清晰的照片' });
+        return;
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      const species = parsed.species === 'cat' ? 'cat' : 'dog';
+      const breedName = parsed.breedName || '';
+      const confidence = Math.min(100, Math.max(0, Number(parsed.confidence) || 50));
+      const reason = parsed.reason || '';
+
+      if (!breedName) {
+        res.json({ success: false, message: '未能识别出品种，请尝试更清晰的照片' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: {
+          species,
+          breedName,
+          confidence,
+          reason,
+        },
+      });
+    } catch {
+      res.json({ success: false, message: '品种识别结果解析失败，请重试' });
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '品种识别服务异常';
+    console.error('[BreedRecognize] 品种识别失败:', message);
     res.status(500).json({ success: false, message });
   }
 });

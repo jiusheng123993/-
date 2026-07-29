@@ -15,6 +15,12 @@ export const config = {
     baseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
     model: process.env.AI_MODEL || 'deepseek-chat',
   },
+  bailian: {
+    apiKey: process.env.BAILIAN_API_KEY || '',
+    baseUrl: process.env.BAILIAN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    visionModel: process.env.BAILIAN_VISION_MODEL || 'qwen3.6-plus',
+    asrModel: process.env.BAILIAN_ASR_MODEL || 'fun-asr',
+  },
   wechat: {
     appId: process.env.WECHAT_APPID || '',
     secret: process.env.WECHAT_SECRET || '',

@@ -197,4 +197,22 @@ router.post('/:id/deceased', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/pets/:id/facts - 获取宠物 AI 提取的特征/喜好
+router.get('/:id/facts', async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, pet_id, category, fact, created_at
+       FROM pet_facts
+       WHERE pet_id = $1 AND user_id = $2
+       ORDER BY created_at DESC`,
+      [req.params.id, req.userId]
+    );
+
+    res.json({ success: true, data: toCamelCaseArray(rows) });
+  } catch (err) {
+    console.error('[Pets Facts Error]', err);
+    res.status(500).json({ success: false, message: '服务器内部错误' });
+  }
+});
+
 export default router;

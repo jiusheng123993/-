@@ -1,0 +1,701 @@
+/**
+ * memory-body 记忆引擎 — Agent 核心壁垒
+ *
+ * 五层架构：
+ *   1. memoryIngestor  — 摄入：从对话自动提取结构化记忆
+ *   2. memoryGraph     — 图谱：记忆关联、矛盾检测、模式发现
+ *   3. memoryRetrieval — 检索：按语义相关性 + 时效性 + 重要性检索
+ *   4. memoryEvolution — 演化：置信度调整、记忆合并、关键转折点
+ *   5. memoryDecay     — 衰减：不重要记忆自然降级，重要记忆加固
+ */
+import { pool } from '../db.js';
+import { config } from '../config.js';
+
+// ========== 类型定义 ==========
+
+export interface MemoryEntry {
+  id?: number;
+  userId: string;
+  petId: string | null;
+  category: MemoryCategory;
+  key: string;
+  content: string;
+  importance: number;
+  confidence: number;
+  source: 'auto' | 'manual' | 'contradiction_resolved';
+  evidence: string[];
+  decayRate: number;
+  status: 'active' | 'dormant' | 'expired' | 'contradicted';
+  meta: Record<string, unknown>;
+}
+
+export type MemoryCategory =
+  | 'health'        // 健康相关（症状、体征、趋势）
+  | 'behavior'      // 行为习惯（作息、活动）
+  | 'habit'         // 日常生活习惯（如早上7点遛狗）
+  | 'preference'    // 偏好（喜欢/讨厌的食物、玩具等）
+  | 'event'         // 重要事件（就医、生日、旅行）
+  | 'feeding'       // 喂养记录模式
+  | 'medical'       // 医疗记录（疫苗、手术、用药）
+  | 'contradiction' // 矛盾记忆（同一事物有冲突记录）
+  | 'general';      // 通用
+
+export interface ExtractedFact {
+  category: MemoryCategory;
+  key: string;
+  content: string;
+  importance: number;
+  evidence: string[];
+}
+
+export interface ContradictionResult {
+  found: boolean;
+  existing: MemoryEntry | null;
+  newContent: string;
+  newEvidence: string;
+  action: 'confirm_new' | 'keep_old' | 'unresolved';
+}
+
+export interface MemoryContext {
+  /** 注入系统提示词的相关记忆 */
+  memories: string;
+  /** 发现的矛盾警告 */
+  contradictions: string;
+  /** 健康趋势洞察 */
+  healthInsights: string;
+  /** 本次对话中提取的新事实 */
+  extractedFacts: ExtractedFact[];
+}
+
+export interface HealthInsight {
+  type: 'trend' | 'anomaly' | 'milestone' | 'reminder';
+  title: string;
+  description: string;
+  severity: 'info' | 'caution' | 'warning';
+}
+
+// ========== API 调用辅助 ==========
+
+function getApiKey(): string {
+  return config.ai?.apiKey || '';
+}
+
+function getBaseUrl(): string {
+  return config.ai?.baseUrl || 'https://api.deepseek.com/v1';
+}
+
+function getModel(): string {
+  return config.ai?.model || 'deepseek-chat';
+}
+
+/** 调用 LLM 做结构化提取（轻量级，temperature=0） */
+async function callLLMForExtraction(
+  systemPrompt: string,
+  userContent: string,
+): Promise<string | null> {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+
+  try {
+    const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: getModel(),
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent },
+        ],
+        temperature: 0,
+        max_tokens: 800,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!response.ok) return null;
+    const data = (await response.json()) as {
+      choices: Array<{ message: { content: string } }>;
+    };
+    return data.choices[0]?.message?.content || null;
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================================
+// 1. memoryIngestor — 从对话自动提取结构化记忆
+// ============================================================================
+
+/**
+ * 从一轮对话中提取可持久化的记忆事实
+ * 每次 Agent 回复完成后调用，异步执行不阻塞用户
+ */
+export async function ingestMemories(
+  userId: string,
+  petId: string,
+  userMessage: string,
+  assistantMessage: string,
+  existingMemories: MemoryEntry[],
+): Promise<ExtractedFact[]> {
+  const apiKey = getApiKey();
+  if (!apiKey) return [];
+
+  const existingContext = existingMemories.length > 0
+    ? existingMemories
+        .slice(0, 20)
+        .map((m) => `  [${m.category}] ${m.key}: ${m.content}`)
+        .join('\n')
+    : '（暂无已有记忆）';
+
+  const systemPrompt = `你是宠物记忆提取器。从用户和AI助手的对话中，提取值得长期记住的信息。
+
+## 分类标准
+- health: 症状、体征、健康变化（如"上周开始掉毛"）
+- behavior: 行为习惯变化（如"最近不爱出门散步"）
+- habit: 日常生活规律（如"每天早上7点遛狗"）
+- preference: 喜好（如"喜欢吃牛肉"、"讨厌洗澡"）
+- event: 重要事件（如"上周六打了疫苗"）
+- feeding: 喂养记录（如"现在每天吃200g狗粮"）
+- medical: 医疗相关（如"上次体检医生说心脏有点杂音"）
+- general: 其他值得记住的信息
+
+## 规则
+1. 只提取 NEW 信息（与已有记忆不重复）
+2. 只提取 FACTS，不提取观点或建议
+3. 每条信息必须是将来有用的长期记忆
+4. importance 1-10：8-10=医疗/重要事件，5-7=健康/行为变化，1-4=日常偏好/习惯
+5. 能明确时间的事件必须像这样标注：{date: "2026-03-15", event: "疫苗"}
+
+## 输出格式（纯 JSON 数组）
+[{"category":"类型","key":"唯一键_英文snake_case","content":"记忆内容","importance":5,"evidence":["原对话中的证据片段"]}]
+
+## 已有记忆（勿重复）
+${existingContext}
+
+## 对话
+用户: ${userMessage}
+助手: ${assistantMessage}
+
+只输出 JSON 数组，如果无需提取则输出 []。`;
+
+  const result = await callLLMForExtraction(systemPrompt, `${userMessage}\n${assistantMessage}`);
+  if (!result) return [];
+
+  try {
+    const jsonStr = result.replace(/```json\s*|```/g, '').trim();
+    const facts: ExtractedFact[] = JSON.parse(jsonStr);
+    if (!Array.isArray(facts)) return [];
+
+    const validFacts = facts.filter(
+      (f) => f.category && f.key && f.content && typeof f.importance === 'number',
+    );
+
+    // 写入数据库
+    for (const fact of validFacts) {
+      await upsertMemory(userId, petId, fact);
+    }
+
+    return validFacts;
+  } catch {
+    return [];
+  }
+}
+
+/** UPSERT 记忆（新记忆覆盖旧同 key 记忆） */
+async function upsertMemory(
+  userId: string,
+  petId: string,
+  fact: ExtractedFact,
+): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO agent_memories
+         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta)
+       VALUES ($1,$2,$3,$4,$5,$6,0.8,'auto',$7,$8)
+       ON CONFLICT (user_id, pet_id, key)
+       DO UPDATE SET
+         content = EXCLUDED.content,
+         importance = GREATEST(agent_memories.importance, EXCLUDED.importance),
+         confidence = LEAST(1.0, agent_memories.confidence + 0.1),
+         evidence = agent_memories.evidence || EXCLUDED.evidence,
+         updated_at = now()`,
+      [
+        userId,
+        petId,
+        fact.category,
+        fact.key,
+        fact.content,
+        fact.importance,
+        fact.evidence,
+        JSON.stringify({ extractedAt: new Date().toISOString() }),
+      ],
+    );
+  } catch {
+    // 静默失败，不阻塞对话
+  }
+}
+
+// ============================================================================
+// 2. memoryGraph — 矛盾检测 & 模式发现
+// ============================================================================
+
+/**
+ * 检测用户新输入是否与已有记忆矛盾
+ */
+export async function detectContradiction(
+  userId: string,
+  petId: string,
+  userMessage: string,
+): Promise<ContradictionResult[]> {
+  const apiKey = getApiKey();
+  if (!apiKey) return [];
+
+  // 获取相关记忆
+  const memories = await getActiveMemories(userId, petId);
+  if (memories.length === 0) return [];
+
+  const memoryContext = memories
+    .slice(0, 30)
+    .map((m) => `[${m.category}:${m.key}] ${m.content} (置信度:${m.confidence.toFixed(1)})`)
+    .join('\n');
+
+  const systemPrompt = `你是矛盾检测器。判断用户新输入是否与已有记忆矛盾。
+
+## 规则
+1. 只有直接矛盾才算（如"豆豆喜欢牛肉" vs "豆豆不吃牛肉"）
+2. 信息补充不算矛盾（如"以前每天吃200g" vs "现在每天吃250g"）
+3. 每对矛盾标注：confirm_new=新信息更可信, keep_old=旧记忆保留, unresolved=无法判断
+
+## 已有记忆
+${memoryContext}
+
+## 用户新输入
+${userMessage}
+
+## 输出格式（纯 JSON 数组）
+[{"existing_key":"冲突的已有记忆key","existing_memory":"已有记忆内容","new_content":"新的说法","new_evidence":"用户原始语句","action":"confirm_new|keep_old|unresolved"}]
+如果无矛盾输出 []。`;
+
+  const result = await callLLMForExtraction(systemPrompt, userMessage);
+  if (!result) return [];
+
+  try {
+    const jsonStr = result.replace(/```json\s*|```/g, '').trim();
+    const contradictions = JSON.parse(jsonStr);
+    if (!Array.isArray(contradictions)) return [];
+
+    const results: ContradictionResult[] = [];
+    for (const c of contradictions) {
+      const existing = memories.find((m) => m.key === c.existing_key);
+      results.push({
+        found: true,
+        existing: existing || null,
+        newContent: c.new_content || '',
+        newEvidence: c.new_evidence || '',
+        action: c.action || 'unresolved',
+      });
+
+      // 标记旧记忆状态
+      if (existing?.id) {
+        await pool.query(
+          `UPDATE agent_memories SET status = 'contradicted', updated_at = now()
+           WHERE id = $1`,
+          [existing.id],
+        );
+      }
+
+      // 如果是 confirm_new，创建新记忆替代
+      if (c.action === 'confirm_new' && c.new_content) {
+        await pool.query(
+          `INSERT INTO agent_memories
+             (user_id, pet_id, category, key, content, importance, confidence, source, evidence, status, meta)
+           VALUES ($1,$2,'contradiction',$3,$4,$5,0.7,'contradiction_resolved',$6,'active',$7)
+           ON CONFLICT (user_id, pet_id, key) DO UPDATE SET
+             content = EXCLUDED.content,
+             importance = EXCLUDED.importance,
+             source = 'contradiction_resolved',
+             updated_at = now()`,
+          [
+            userId,
+            petId,
+            c.existing_key + '_v2',
+            c.new_content,
+            existing?.importance || 5,
+            [c.new_evidence],
+            JSON.stringify({ resolvedAt: new Date().toISOString(), replacedKey: c.existing_key }),
+          ],
+        );
+      }
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================================
+// 3. memoryRetrieval — 智能检索
+// ============================================================================
+
+/**
+ * 获取当前活跃的记忆（用于注入系统提示词）
+ * 策略：重要性高 + 最近被检索过 + 非衰减状态
+ */
+export async function getActiveMemories(
+  userId: string,
+  petId: string,
+  limit = 30,
+): Promise<MemoryEntry[]> {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM agent_memories
+       WHERE user_id = $1 AND pet_id = $2 AND status = 'active'
+       ORDER BY importance DESC, last_recalled DESC NULLS LAST, created_at DESC
+       LIMIT $3`,
+      [userId, petId, limit],
+    );
+
+    return rows.map(rowToMemoryEntry);
+  } catch {
+    return [];
+  }
+}
+
+function rowToMemoryEntry(row: Record<string, unknown>): MemoryEntry {
+  return {
+    id: row.id as number,
+    userId: row.user_id as string,
+    petId: row.pet_id as string | null,
+    category: row.category as MemoryCategory,
+    key: row.key as string,
+    content: row.content as string,
+    importance: row.importance as number,
+    confidence: row.confidence as number,
+    source: row.source as MemoryEntry['source'],
+    evidence: (row.evidence as string[]) || [],
+    decayRate: row.decay_rate as number,
+    status: row.status as MemoryEntry['status'],
+    meta: (row.meta as Record<string, unknown>) || {},
+  };
+}
+
+/**
+ * 构建 Agent 对话的记忆上下文
+ * 检索：语义相关 + 重要性 + 时效性
+ */
+export async function buildMemoryContext(
+  userId: string,
+  petId: string,
+  userMessage: string,
+): Promise<MemoryContext> {
+  const memories = await getActiveMemories(userId, petId);
+
+  // 按类别分组记忆
+  const byCategory = new Map<MemoryCategory, MemoryEntry[]>();
+  for (const m of memories) {
+    if (!byCategory.has(m.category)) byCategory.set(m.category, []);
+    byCategory.get(m.category)!.push(m);
+  }
+
+  // 构建记忆文本（优先重要度高 + 记录总数不超过 20 条）
+  const memoryLines: string[] = [];
+  const categoryOrder: MemoryCategory[] = ['medical', 'health', 'contradiction', 'habit', 'preference', 'feeding', 'behavior', 'event', 'general'];
+  for (const cat of categoryOrder) {
+    const catMemories = byCategory.get(cat);
+    if (!catMemories) continue;
+    for (const m of catMemories.slice(0, 5)) {
+      memoryLines.push(`- [${m.category}] ${m.content}（重要性:${m.importance}）`);
+    }
+  }
+  const memoriesText = memoryLines.slice(0, 20).join('\n');
+
+  // 健康趋势洞察
+  const healthInsights = await generateHealthInsights(userId, petId);
+
+  // 标记这些记忆为 "已检索"
+  const memoryIds = memories.slice(0, 20).filter((m) => m.id).map((m) => m.id!);
+  if (memoryIds.length > 0) {
+    try {
+      await pool.query(
+        `UPDATE agent_memories SET last_recalled = now()
+         WHERE id = ANY($1::bigint[])`,
+        [memoryIds],
+      );
+    } catch {
+      // 静默
+    }
+  }
+
+  return {
+    memories: memoriesText,
+    contradictions: '',
+    healthInsights,
+    extractedFacts: [],
+  };
+}
+
+// ============================================================================
+// 4. 健康趋势洞察生成
+// ============================================================================
+
+async function generateHealthInsights(
+  userId: string,
+  petId: string,
+): Promise<string> {
+  try {
+    // 读取最近 60 天打卡记录
+    const { rows } = await pool.query(
+      `SELECT spirit_level, appetite_level, poop_level, exercise_level, weight, note, created_at
+       FROM pet_health_entries
+       WHERE pet_id = $1 AND user_id = $2 AND created_at >= NOW() - INTERVAL '60 days'
+       ORDER BY created_at ASC`,
+      [petId, userId],
+    );
+
+    if (rows.length < 3) return '';
+
+    const insights: HealthInsight[] = [];
+
+    // 体重趋势
+    const weights = rows.filter((r: Record<string, unknown>) => r.weight).map((r: Record<string, unknown>) => Number(r.weight));
+    if (weights.length >= 3) {
+      const first = weights[0];
+      const last = weights[weights.length - 1];
+      const diff = last - first;
+      if (Math.abs(diff) > 1) {
+        insights.push({
+          type: 'trend',
+          title: '体重变化',
+          description: `近60天体重从${first}kg变为${last}kg（${diff > 0 ? '+' : ''}${diff.toFixed(1)}kg）`,
+          severity: Math.abs(diff) > 3 ? 'warning' : 'info',
+        });
+      }
+    }
+
+    // 异常天数统计
+    const scoreMap: Record<string, number> = { '很好': 4, '正常': 3, '一般': 2, '不太好': 1 };
+    const abnormalDays = rows.filter((r: Record<string, unknown>) => {
+      const s = scoreMap[r.spirit_level as string] || 3;
+      const a = scoreMap[r.appetite_level as string] || 3;
+      return s <= 2 || a <= 2;
+    });
+
+    if (abnormalDays.length > rows.length * 0.3) {
+      insights.push({
+        type: 'anomaly',
+        title: '异常频率偏高',
+        description: `近60天中${abnormalDays.length}/${rows.length}天有异常指标，占比${Math.round((abnormalDays.length / rows.length) * 100)}%`,
+        severity: abnormalDays.length > rows.length * 0.5 ? 'warning' : 'caution',
+      });
+    }
+
+    // 连续异常
+    let consecutiveAbnormal = 0;
+    let maxConsecutive = 0;
+    for (const r of rows) {
+      const s = scoreMap[r.spirit_level as string] || 3;
+      const a = scoreMap[r.appetite_level as string] || 3;
+      if (s <= 2 || a <= 2) {
+        consecutiveAbnormal++;
+        maxConsecutive = Math.max(maxConsecutive, consecutiveAbnormal);
+      } else {
+        consecutiveAbnormal = 0;
+      }
+    }
+
+    if (maxConsecutive >= 3) {
+      insights.push({
+        type: 'anomaly',
+        title: '连续异常',
+        description: `最多连续${maxConsecutive}天出现异常指标`,
+        severity: 'warning',
+      });
+    }
+
+    // 疫苗逾期检测
+    const { rows: vaccines } = await pool.query(
+      `SELECT vaccine_name, scheduled_date
+       FROM pet_vaccines
+       WHERE pet_id = $1 AND user_id = $2 AND status != 'completed'
+         AND scheduled_date < NOW() - INTERVAL '7 days'
+       ORDER BY scheduled_date ASC`,
+      [petId, userId],
+    );
+
+    if (vaccines.length > 0) {
+      const overdueList = vaccines.map((v: Record<string, unknown>) =>
+        `${v.vaccine_name}（${new Date(v.scheduled_date as string).toLocaleDateString('zh-CN')}到期）`,
+      ).join('、');
+      insights.push({
+        type: 'reminder',
+        title: '疫苗逾期',
+        description: `${overdueList}已逾期，建议尽快安排`,
+        severity: 'warning',
+      });
+    }
+
+    if (insights.length === 0) return '';
+
+    return '## 健康洞察（从历史数据自动分析）\n' +
+      insights.map((i) => {
+        const icon = i.severity === 'warning' ? '⚠️' : i.severity === 'caution' ? '⚡' : 'ℹ️';
+        return `${icon} **${i.title}**：${i.description}`;
+      }).join('\n');
+  } catch {
+    return '';
+  }
+}
+
+// ============================================================================
+// 5. memoryDecay — 衰减管理
+// ============================================================================
+
+/**
+ * 执行记忆衰减（建议通过定时任务每天调用一次）
+ * 规则：
+ *  - importance 1-3：30天无检索 → dormant
+ *  - importance 4-6：60天无检索 → dormant
+ *  - importance 7-10：120天无检索 → dormant
+ *  - dormant 180天 → expired
+ */
+export async function runMemoryDecay(): Promise<{ dormanted: number; expired: number }> {
+  let dormanted = 0;
+  let expired = 0;
+
+  try {
+    // 低重要性记忆 → dormant
+    const { rowCount: d1 } = await pool.query(
+      `UPDATE agent_memories SET status = 'dormant', updated_at = now()
+       WHERE status = 'active'
+         AND importance <= 3
+         AND (last_recalled IS NULL OR last_recalled < NOW() - INTERVAL '30 days')
+         AND created_at < NOW() - INTERVAL '30 days'`,
+    );
+    dormanted += d1 || 0;
+
+    // 中重要性记忆 → dormant
+    const { rowCount: d2 } = await pool.query(
+      `UPDATE agent_memories SET status = 'dormant', updated_at = now()
+       WHERE status = 'active'
+         AND importance BETWEEN 4 AND 6
+         AND (last_recalled IS NULL OR last_recalled < NOW() - INTERVAL '60 days')
+         AND created_at < NOW() - INTERVAL '60 days'`,
+    );
+    dormanted += d2 || 0;
+
+    // 高重要性记忆 → dormant
+    const { rowCount: d3 } = await pool.query(
+      `UPDATE agent_memories SET status = 'dormant', updated_at = now()
+       WHERE status = 'active'
+         AND importance >= 7
+         AND (last_recalled IS NULL OR last_recalled < NOW() - INTERVAL '120 days')
+         AND created_at < NOW() - INTERVAL '120 days'`,
+    );
+    dormanted += d3 || 0;
+
+    // 休眠 → 过期
+    const { rowCount: exh } = await pool.query(
+      `UPDATE agent_memories SET status = 'expired', updated_at = now()
+       WHERE status = 'dormant'
+         AND updated_at < NOW() - INTERVAL '180 days'`,
+    );
+    expired += exh || 0;
+
+    return { dormanted, expired };
+  } catch {
+    return { dormanted, expired };
+  }
+}
+
+// ============================================================================
+// 6. 对话持久化
+// ============================================================================
+
+/** 保存一条对话消息 */
+export async function saveConversation(
+  userId: string,
+  petId: string | null,
+  role: 'user' | 'assistant',
+  content: string,
+  metadata?: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO agent_conversations (user_id, pet_id, role, content, metadata)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, petId, role, content.substring(0, 2000), JSON.stringify(metadata || {})],
+    );
+  } catch {
+    // 静默
+  }
+}
+
+/** 加载最近的对话历史 */
+export async function loadConversationHistory(
+  userId: string,
+  petId: string | null,
+  limit = 20,
+): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+  try {
+    const { rows } = await pool.query(
+      `SELECT role, content FROM agent_conversations
+       WHERE user_id = $1 AND pet_id = $2
+       ORDER BY created_at DESC LIMIT $3`,
+      [userId, petId, limit],
+    );
+
+    return rows
+      .reverse()
+      .map((r: Record<string, unknown>) => ({
+        role: r.role as 'user' | 'assistant',
+        content: r.content as string,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================================
+// 7. 记忆总结 — 生成"关于这只宠物我知道什么"
+// ============================================================================
+
+/** 生成宠物的综合记忆摘要（用于首次对话注入） */
+export async function summarizePetMemory(
+  userId: string,
+  petId: string,
+): Promise<string> {
+  const memories = await getActiveMemories(userId, petId, 50);
+  if (memories.length === 0) return '';
+
+  const byCategory = new Map<MemoryCategory, string[]>();
+  for (const m of memories) {
+    if (!byCategory.has(m.category)) byCategory.set(m.category, []);
+    byCategory.get(m.category)!.push(m.content);
+  }
+
+  const categoryLabels: Record<MemoryCategory, string> = {
+    health: '健康记录',
+    medical: '医疗记录',
+    behavior: '行为习惯',
+    habit: '日常规律',
+    preference: '偏好',
+    feeding: '喂养',
+    event: '重要事件',
+    contradiction: '已解决的认识变化',
+    general: '其他',
+  };
+
+  const sections: string[] = [];
+  for (const [cat, items] of byCategory) {
+    if (items.length === 0) continue;
+    sections.push(`### ${categoryLabels[cat]}\n${items.map((i) => `- ${i}`).join('\n')}`);
+  }
+
+  return sections.join('\n\n');
+}
+
+console.log('[MemoryService] memory-body 引擎已就绪');

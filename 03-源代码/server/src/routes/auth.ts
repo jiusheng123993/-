@@ -37,6 +37,7 @@ router.post('/login', async (req: Request, res: Response) => {
       const wxData = (await wxRes.json()) as { openid?: string; errcode?: number; errmsg?: string };
 
       if (!wxData.openid) {
+        console.error('[Auth] 微信 jscode2session 失败:', wxData.errcode, wxData.errmsg);
         res.status(400).json({ success: false, message: '微信登录失败，请重试' });
         return;
       }
@@ -67,8 +68,9 @@ router.post('/login', async (req: Request, res: Response) => {
       data: { token, user: toCamelCase(user) },
     });
   } catch (err) {
-    console.error('[Auth Login Error]', err);
-    res.status(500).json({ success: false, message: '服务器内部错误' });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[Auth Login Error]', message, err);
+    res.status(500).json({ success: false, message: `服务器内部错误: ${message}` });
   }
 });
 

@@ -1,8 +1,17 @@
 import { config } from '../config.js';
 
+export interface ChatMessageContentPart {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: {
+    url: string;
+    detail?: 'low' | 'high' | 'auto';
+  };
+}
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | ChatMessageContentPart[];
 }
 
 export interface ChatOptions {
@@ -158,4 +167,101 @@ export async function guardCheckOutput(text: string): Promise<GuardOutputResult>
   } catch {
     return { isUnsafeMedicalAdvice: false };
   }
+}
+
+// ========== 阿里云百炼 API（多模态：视觉 + 语音） ==========
+
+function getBailianApiKey(): string {
+  return config.bailian.apiKey || '';
+}
+
+function getBailianBaseUrl(): string {
+  return config.bailian.baseUrl || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+}
+
+function getBailianVisionModel(): string {
+  return config.bailian.visionModel || 'qwen3.6-plus';
+}
+
+/**
+ * 调用百炼大模型（兼容 OpenAI 格式）
+ * 支持文本和图片多模态输入
+ */
+export async function bailianChat(
+  messages: ChatMessage[],
+  options?: ChatOptions & { model?: string },
+): Promise<string> {
+  const apiKey = getBailianApiKey();
+
+  if (!apiKey) {
+    return '百炼 AI 服务暂未配置，请联系管理员设置 BAILIAN_API_KEY 环境变量。';
+  }
+
+  const temperature = options?.temperature ?? 0.7;
+  const maxTokens = options?.max_tokens ?? 1024;
+  const model = options?.model || getBailianVisionModel();
+
+  const response = await fetch(`${getBailianBaseUrl()}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`百炼 API error: ${response.status} ${errorText}`);
+  }
+
+  const data = (await response.json()) as ChatCompletionResponse;
+  return data.choices[0].message.content;
+}
+
+/**
+ * 百炼语音识别（Fun-ASR）
+ * 使用 DashScope 原生 API 进行语音转文字
+ */
+export async function bailianASR(audioBase64: string, mimeType: string): Promise<string> {
+  const apiKey = getBailianApiKey();
+
+  if (!apiKey) {
+    throw new Error('百炼 AI 服务暂未配置');
+  }
+
+  // 将 base64 转为 Buffer
+  const audioBuffer = Buffer.from(audioBase64, 'base64');
+
+  // 构建 FormData
+  const formData = new FormData();
+  formData.append('model', 'fun-asr');
+  formData.append('file', new Blob([audioBuffer], { type: mimeType }), `audio.${mimeType.split('/')[1] || 'mp3'}`);
+
+  // 使用 DashScope 原生 API（非 OpenAI 兼容格式）
+  const dashscopeBase = getBailianBaseUrl().replace('/compatible-mode/v1', '');
+  const response = await fetch(`${dashscopeBase}/api/v1/services/audio/asr/transcription`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`百炼 ASR error: ${response.status} ${errorText}`);
+  }
+
+  const data = (await response.json()) as {
+    output?: { text?: string };
+    text?: string;
+  };
+
+  return data.output?.text || data.text || '';
 }

@@ -5,7 +5,7 @@ import { pool } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const SQL_PATH = path.resolve(__dirname, '..', '..', '..', '..', '04-数据库', 'postgres', 'init.sql');
+const SQL_PATH = path.resolve(__dirname, '..', '..', '..', '04-数据库', 'postgres', 'init.sql');
 
 async function migrate() {
   console.log('[Migrate] 读取 SQL 文件:', SQL_PATH);

@@ -16,7 +16,11 @@ import aiRoutes from './routes/ai.js';
 import avatarRoutes from './routes/avatar.js';
 import membershipRoutes from './routes/membership.js';
 import wardrobeRoutes from './routes/wardrobe.js';
+import timelineRoutes from './routes/timeline.js';
+import namingRoutes from './routes/naming.js';
+import agentRoutes from './routes/agentRouter.js';
 import { cleanStaleTasks } from './services/taskQueue.js';
+import { runMemoryDecay } from './services/memoryService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,6 +47,9 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/avatar', avatarRoutes);
 app.use('/api/membership', membershipRoutes);
 app.use('/api/wardrobe', wardrobeRoutes);
+app.use('/api/timeline', timelineRoutes);
+app.use('/api/naming', namingRoutes);
+app.use('/api/agent', agentRoutes);
 
 app.use(errorHandler);
 
@@ -66,6 +73,12 @@ app.listen(config.port, () => {
   runCleanup();
 
   setInterval(runCleanup, 24 * 60 * 60 * 1000);
+
+  // 记忆衰减（每天一次）
+  runMemoryDecay().catch(() => {});
+  setInterval(() => {
+    runMemoryDecay().catch(() => {});
+  }, 24 * 60 * 60 * 1000);
 });
 
 export default app;

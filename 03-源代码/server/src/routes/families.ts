@@ -21,7 +21,7 @@ async function verifyPetOwnership(petId: string, userId: string): Promise<boolea
   return (result.rowCount ?? 0) > 0;
 }
 
-router.post('/api/families', authMiddleware, async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { name, avatar_url } = req.body;
@@ -46,7 +46,7 @@ router.post('/api/families', authMiddleware, async (req: Request, res: Response)
   }
 });
 
-router.get('/api/families', authMiddleware, async (req: Request, res: Response) => {
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
 
@@ -70,7 +70,7 @@ router.get('/api/families', authMiddleware, async (req: Request, res: Response) 
   }
 });
 
-router.get('/api/families/:id', authMiddleware, async (req: Request, res: Response) => {
+router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.userId!;
@@ -107,7 +107,7 @@ router.get('/api/families/:id', authMiddleware, async (req: Request, res: Respon
   }
 });
 
-router.put('/api/families/:id', authMiddleware, async (req: Request, res: Response) => {
+router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const familyId = req.params.id as string;
     const userId = req.userId!;
@@ -160,7 +160,7 @@ router.put('/api/families/:id', authMiddleware, async (req: Request, res: Respon
   }
 });
 
-router.delete('/api/families/:id', authMiddleware, async (req: Request, res: Response) => {
+router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
     const familyId = req.params.id as string;
     const userId = req.userId!;
@@ -183,7 +183,7 @@ router.delete('/api/families/:id', authMiddleware, async (req: Request, res: Res
   }
 });
 
-router.post('/api/families/:id/members', authMiddleware, async (req: Request, res: Response) => {
+router.post('/:id/members', authMiddleware, async (req: Request, res: Response) => {
   try {
     const familyId = req.params.id as string;
     const userId = req.userId!;
@@ -231,7 +231,7 @@ router.post('/api/families/:id/members', authMiddleware, async (req: Request, re
   }
 });
 
-router.delete('/api/families/:id/members/:petId', authMiddleware, async (req: Request, res: Response) => {
+router.delete('/:id/members/:petId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const familyId = req.params.id as string;
     const petId = req.params.petId as string;
@@ -257,6 +257,120 @@ router.delete('/api/families/:id/members/:petId', authMiddleware, async (req: Re
   } catch (err) {
     console.error('[Families RemoveMember Error]', err);
     res.status(500).json({ success: false, message: '移除成员失败' });
+  }
+});
+
+// 获取家庭动态 (moments)
+router.get('/:id/moments', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const userId = req.userId!;
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    const isOwner = await verifyFamilyOwnership(familyId, userId);
+    if (!isOwner) {
+      res.status(403).json({ success: false, message: '无权查看此家庭' });
+      return;
+    }
+
+    // 获取家庭成员的宠物ID列表
+    const memberResult = await pool.query(
+      'SELECT pet_id FROM pet_family_members WHERE family_id = $1',
+      [familyId]
+    );
+    const petIds = memberResult.rows.map((r: { pet_id: string }) => r.pet_id);
+
+    if (petIds.length === 0) {
+      res.json({ success: true, data: [] });
+      return;
+    }
+
+    const placeholders = petIds.map((_: string, i: number) => `$${i + 1}`).join(',');
+
+    // 聚合健康打卡作为动态
+    const { rows } = await pool.query(
+      `SELECT
+         h.id, h.pet_id AS "petId", h.user_id AS "userId",
+         'checkin' AS type,
+         json_build_object(
+           'poopLevel', h.poop_level,
+           'appetiteLevel', h.appetite_level,
+           'spiritLevel', h.spirit_level,
+           'exerciseLevel', h.exercise_level,
+           'weight', h.weight,
+           'riskLevel', h.risk_level,
+           'note', h.note
+         ) AS content,
+         h.created_at AS "createdAt"
+       FROM pet_health_entries h
+       WHERE h.pet_id IN (${placeholders})
+       ORDER BY h.created_at DESC
+       LIMIT $${petIds.length + 1}`,
+      [...petIds, limit]
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('[Families Moments Error]', err);
+    res.status(500).json({ success: false, message: '获取动态失败' });
+  }
+});
+
+// 获取家庭新动态 (since timestamp)
+router.get('/:id/moments/new', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const userId = req.userId!;
+    const since = req.query.since as string;
+
+    if (!since) {
+      res.status(400).json({ success: false, message: 'since 参数不能为空' });
+      return;
+    }
+
+    const isOwner = await verifyFamilyOwnership(familyId, userId);
+    if (!isOwner) {
+      res.status(403).json({ success: false, message: '无权查看此家庭' });
+      return;
+    }
+
+    const memberResult = await pool.query(
+      'SELECT pet_id FROM pet_family_members WHERE family_id = $1',
+      [familyId]
+    );
+    const petIds = memberResult.rows.map((r: { pet_id: string }) => r.pet_id);
+
+    if (petIds.length === 0) {
+      res.json({ success: true, data: [] });
+      return;
+    }
+
+    const placeholders = petIds.map((_: string, i: number) => `$${i + 1}`).join(',');
+
+    const { rows } = await pool.query(
+      `SELECT
+         h.id, h.pet_id AS "petId", h.user_id AS "userId",
+         'checkin' AS type,
+         json_build_object(
+           'poopLevel', h.poop_level,
+           'appetiteLevel', h.appetite_level,
+           'spiritLevel', h.spirit_level,
+           'exerciseLevel', h.exercise_level,
+           'weight', h.weight,
+           'riskLevel', h.risk_level,
+           'note', h.note
+         ) AS content,
+         h.created_at AS "createdAt"
+       FROM pet_health_entries h
+       WHERE h.pet_id IN (${placeholders}) AND h.created_at > $${petIds.length + 1}
+       ORDER BY h.created_at DESC`,
+      [...petIds, since]
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error('[Families NewMoments Error]', err);
+    res.status(500).json({ success: false, message: '获取新动态失败' });
   }
 });
 
