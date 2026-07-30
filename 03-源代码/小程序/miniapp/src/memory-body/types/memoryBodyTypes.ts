@@ -190,3 +190,84 @@ export interface VaccineReminder {
   daysUntilDue: number;
   isOverdue: boolean;
 }
+
+// ===== 记忆引擎深化 v2 - 新增类型 =====
+
+export interface FoodMemory {
+  foodName: string
+  petId: string
+  safetyLevel: 'safe' | 'caution' | 'dangerous' | 'toxic'
+  feedings: FeedingEvent[]
+  totalFeedings: number
+  lastFedDate: string | null
+  preference: 'likes' | 'neutral' | 'dislikes' | 'unknown'
+}
+
+export interface FeedingEvent {
+  date: string
+  amount?: number
+  reaction?: 'good' | 'normal' | 'refused' | 'upset_stomach'
+}
+
+export interface DietProfile {
+  petId: string
+  safeFoods: string[]
+  dangerousFoods: string[]
+  allergies: string[]
+  diversityScore: number
+  preferenceSummary: string
+}
+
+export interface BehaviorObservation {
+  date: string
+  category: 'energy' | 'social' | 'sleep' | 'appetite_behavior' | 'other'
+  description: string
+  severity?: 'normal' | 'notable' | 'concern'
+}
+
+export interface BehavioralBaseline {
+  petId: string
+  personalityTraits: string[]
+  dailyBaseline: {
+    sleepHours?: number
+    activityLevel?: 'low' | 'medium' | 'high'
+    socialWithHumans?: 'friendly' | 'shy' | 'aggressive'
+    socialWithPets?: 'friendly' | 'shy' | 'aggressive'
+  }
+  recentConcerns: BehaviorObservation[]
+  behaviorSummary: string
+}
+
+export interface PetMilestone {
+  id: string
+  petId: string
+  type: 'adoption' | 'birthday' | 'first_checkin' | 'vaccine_complete'
+       | 'recovery' | 'achievement' | 'custom'
+  title: string
+  date: string
+  description?: string
+  icon?: string
+}
+
+export interface UnifiedPetMemory {
+  petId: string
+  profile: {
+    name: string
+    species: string
+    breed: string
+    age: string
+    gender: string
+  }
+  health: import('../types/memoryBodyTypes').HealthProfile | null
+  diet: DietProfile | null
+  behavior: BehavioralBaseline | null
+  milestones: PetMilestone[]
+  summary: string
+}
+
+export interface MemoryFragment {
+  type: 'health' | 'diet' | 'behavior' | 'milestone'
+  date: string
+  content: string
+  relevance: number
+}
