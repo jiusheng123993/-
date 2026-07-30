@@ -1,9 +1,15 @@
+/**
+ * AI 聊天服务
+ *
+ * 宠物健康助手的对话处理，含安全检查（规则守卫 + AI 内容审核）、系统提示构建
+ */
 import type { ChatMessage } from '../types/chatTypes'
 import { chat, guardCheck, guardCheckOutput } from './aiProvider'
 import { checkInput as ruleCheck, sanitizeOutput } from '../utils/ruleGuard'
 import { SYSTEM_PROMPT_BASE } from '../types/chatTypes'
 import { requireAuth } from '../utils/authGuard'
 import { logger } from '../logger'
+import { AiMemoryInjector } from '../memory-body/injectors/aiMemoryInjector'
 
 export interface ChatContext {
   petId?: string
@@ -48,12 +54,20 @@ export interface ChatResult {
   blocked: boolean
 }
 
+/**
+ * 发送聊天消息给 AI 助手
+ * 经过规则检查、AI 内容审核、输出安全过滤后返回回复
+ * @param userMessage - 用户输入的消息
+ * @param context - 对话上下文（宠物信息等）
+ * @param history - 历史消息列表
+ * @returns 回复内容和是否被拦截
+ */
 export async function sendChatMessage(
   userMessage: string,
   context: ChatContext,
   history: ChatMessage[] = []
 ): Promise<ChatResult> {
-  requireAuth()
+  const { userId } = requireAuth()
 
   const ruleResult = ruleCheck(userMessage)
   if (ruleResult.blocked) {
@@ -91,12 +105,34 @@ export async function sendChatMessage(
     }
   }
 
-  const systemPrompt = buildSystemPrompt(context)
+  let systemPrompt = buildSystemPrompt(context)
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
     ...history.slice(-10),
     { role: 'user', content: userMessage }
   ]
+
+  // 注入宠物记忆到 AI 对话
+  if (userId && context.petId) {
+    try {
+      const injector = new AiMemoryInjector(userId)
+      const memoryContext = injector.buildSystemPrompt({
+        id: context.petId,
+        name: context.petName || '',
+        species: '',
+        breed: context.petBreed || '',
+        gender: '',
+        birthDate: '',
+      })
+      if (memoryContext) {
+        systemPrompt = systemPrompt ? `${systemPrompt}\n${memoryContext}` : memoryContext
+        messages[0] = { ...messages[0], content: systemPrompt }
+      }
+    } catch (e) {
+      // 记忆注入失败不影响主流程
+      console.warn('[MemoryInjector] failed to inject memory context', e)
+    }
+  }
 
   try {
     const reply = await chat({ messages, temperature: 0.7, petId: context.petId })
