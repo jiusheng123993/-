@@ -1,4 +1,4 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 
 .pet-trends-page {
   min-height: 100vh;
@@ -392,6 +392,90 @@
   flex-shrink: 0;
 }
 
+// ==================== 健康概览摘要 ====================
+.trend-glance {
+  @include card-base;
+  padding: 28rpx 32rpx;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.trend-glance__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.trend-glance__title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.trend-glance__score {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.trend-glance__score-value {
+  font-size: 40rpx;
+  font-weight: $font-weight-bold;
+}
+
+.trend-glance__score-label {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.trend-glance__score--good { color: $color-success; }
+.trend-glance__score--fair { color: $color-primary; }
+.trend-glance__score--poor { color: $color-danger; }
+
+.trend-glance__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.trend-glance__row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.trend-glance__row-icon {
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.trend-glance__row-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.trend-glance__row-label {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.trend-glance__row-value {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.trend-glance__row-value--good { color: $color-success; }
+.trend-glance__row-value--warn { color: $color-primary; }
+.trend-glance__row-value--bad { color: $color-danger; }
+
+// ==================== 柱状图入场动效 ====================
+@keyframes barGrow {
+  0% { height: 0; }
+}
+
 .trend-chart__bar-chart {
   display: flex;
   align-items: flex-end;
@@ -399,6 +483,7 @@
   height: 280rpx;
   padding-bottom: 8rpx;
   overflow-x: auto;
+  animation: fadeInUp 0.4s ease-out;
 }
 
 .trend-chart__bar-item {
@@ -442,6 +527,7 @@
   width: 100%;
   border-radius: 8rpx 8rpx 0 0;
   transition: height $transition-normal;
+  animation: barGrow 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .trend-chart__bar-label {

@@ -1,4 +1,4 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 @import '../../styles/_animations';
 
 .pet-checkin {
@@ -46,20 +46,83 @@
   gap: $spacing-lg;
 }
 
+// ==================== 进度指示条 ====================
+.pet-checkin__progress {
+  @include card-base;
+  border-radius: $radius-xl;
+  padding: $spacing-lg $spacing-xl;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  margin-bottom: $spacing-lg;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.pet-checkin__progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.pet-checkin__progress-title {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.pet-checkin__progress-text {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.pet-checkin__progress-track {
+  height: 8rpx;
+  background: $color-primary-bg;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.pet-checkin__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $color-primary, $color-primary-dark);
+  border-radius: 4rpx;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ==================== 区块卡片 ====================
 .pet-checkin__section {
   @include card-base;
   border-radius: $radius-xl;
   padding: $spacing-xl;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.4s ease-out both;
 }
 
+// 依次入场延迟
+.pet-checkin__section:nth-child(1) { animation-delay: 0.05s; }
+.pet-checkin__section:nth-child(2) { animation-delay: 0.1s; }
+.pet-checkin__section:nth-child(3) { animation-delay: 0.15s; }
+.pet-checkin__section:nth-child(4) { animation-delay: 0.2s; }
+.pet-checkin__section:nth-child(5) { animation-delay: 0.25s; }
+.pet-checkin__section:nth-child(6) { animation-delay: 0.3s; }
+
 .pet-checkin__section-title {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
   margin-bottom: 20rpx;
   letter-spacing: 1rpx;
+}
+
+.pet-checkin__section-title-badge {
+  font-size: 20rpx;
+  color: $color-text-inverse;
+  background: $color-primary;
+  padding: 2rpx 12rpx;
+  border-radius: 16rpx;
+  margin-left: auto;
 }
 
 .pet-checkin__options {
@@ -79,32 +142,74 @@
   background: $color-primary-bg;
   border-radius: $radius-xl;
   border: 2rpx solid transparent;
-  transition: all $transition-normal;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex: 1;
   @include press-feedback;
 }
 
 .pet-checkin__option--active {
-  background: $color-primary-bg;
+  background: rgba($color-primary, 0.08);
   border-color: $color-primary;
   box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.2);
+  transform: scale(1.05);
 }
 
 .pet-checkin__option-emoji {
   font-size: 40rpx;
   line-height: 1;
   margin-bottom: 8rpx;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pet-checkin__option--active .pet-checkin__option-emoji {
+  transform: scale(1.2);
 }
 
 .pet-checkin__option-label {
   font-size: 22rpx;
   color: $color-text-tertiary;
   font-weight: $font-weight-medium;
+  transition: color $transition-fast;
 }
 
 .pet-checkin__option--active .pet-checkin__option-label {
   color: $color-primary;
   font-weight: $font-weight-semibold;
+}
+
+// 选中态弹跳入口
+@keyframes optionPopIn {
+  0% { transform: scale(0.9); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pet-checkin__option--active {
+  animation: optionPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// ==================== 快捷体重 ====================
+.pet-checkin__weight-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.pet-checkin__weight-preset {
+  padding: 12rpx 24rpx;
+  border-radius: 24rpx;
+  background: $color-primary-bg;
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  border: 2rpx solid transparent;
+  transition: all $transition-normal;
+  @include press-feedback;
+}
+
+.pet-checkin__weight-preset:active {
+  border-color: $color-primary;
+  background: rgba($color-primary, 0.08);
 }
 
 .pet-checkin__toggle {

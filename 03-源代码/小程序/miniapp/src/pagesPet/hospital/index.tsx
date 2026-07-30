@@ -152,7 +152,7 @@ export default function HospitalPage() {
     <View className='hospital-page'>
       <View className='hospital-page__search'>
         <View className='hospital-page__search-input-wrap'>
-          <Text className='hospital-page__search-icon'></Text>
+          <Text className='hospital-page__search-icon'>🔍</Text>
           <Input
             className='hospital-page__search-input'
             placeholder='搜索医院名称、地址或服务'
@@ -161,6 +161,14 @@ export default function HospitalPage() {
             onInput={(e) => setSearchText(e.detail.value)}
             onConfirm={handleSearch}
           />
+          {searchText && (
+            <View
+              className='hospital-page__search-clear'
+              onClick={() => { setSearchText(''); loadHospitals() }}
+            >
+              <Text>✕</Text>
+            </View>
+          )}
         </View>
         <View className='hospital-page__search-btn' onClick={handleSearch}>
           <Text className='hospital-page__search-btn-text'>搜索</Text>

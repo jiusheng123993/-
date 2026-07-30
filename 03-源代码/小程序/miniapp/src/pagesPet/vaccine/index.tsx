@@ -340,6 +340,20 @@ export default function PetVaccine() {
         </View>
       ) : (
         <>
+          {/* 完成进度条 */}
+          <View className='pet-vaccine__progress'>
+            <View className='pet-vaccine__progress-header'>
+              <Text className='pet-vaccine__progress-title'>疫苗完成进度</Text>
+              <Text className='pet-vaccine__progress-text'>{stats.completed}/{stats.total} 项</Text>
+            </View>
+            <View className='pet-vaccine__progress-track'>
+              <View
+                className='pet-vaccine__progress-fill'
+                style={{ width: stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : '0%' }}
+              />
+            </View>
+          </View>
+
           <View className='pet-vaccine__stats'>
             <View className='pet-vaccine__stats-item'>
               <Text className='pet-vaccine__stats-value pet-vaccine__stats-value--completed'>
@@ -362,6 +376,40 @@ export default function PetVaccine() {
               <Text className='pet-vaccine__stats-label'>已逾期</Text>
             </View>
           </View>
+
+          {/* 到期摘要卡片 */}
+          {(overdueReminders.length > 0 || upcomingReminders.length > 0) && (
+            <View className='pet-vaccine__next-due'>
+              <View className='pet-vaccine__next-due-header'>
+                <Text className='pet-vaccine__next-due-title'>📋 待处理事项</Text>
+                {overdueReminders.length > 0 && (
+                  <Text className='pet-vaccine__next-due-count'>{overdueReminders.length}</Text>
+                )}
+              </View>
+              <View className='pet-vaccine__next-due-list'>
+                {overdueReminders.slice(0, 3).map((r) => (
+                  <View key={r.record.id} className='pet-vaccine__next-due-item'>
+                    <Text className='pet-vaccine__next-due-item-icon'>⚠️</Text>
+                    <View className='pet-vaccine__next-due-item-info'>
+                      <Text className='pet-vaccine__next-due-item-name'>{r.record.category}</Text>
+                      <Text className='pet-vaccine__next-due-item-date'>已于 {r.record.nextDate} 逾期</Text>
+                    </View>
+                    <Text className='pet-vaccine__next-due-item-status pet-vaccine__next-due-item-status--overdue'>逾期</Text>
+                  </View>
+                ))}
+                {upcomingReminders.slice(0, 3).map((r) => (
+                  <View key={r.record.id} className='pet-vaccine__next-due-item'>
+                    <Text className='pet-vaccine__next-due-item-icon'>📅</Text>
+                    <View className='pet-vaccine__next-due-item-info'>
+                      <Text className='pet-vaccine__next-due-item-name'>{r.record.category}</Text>
+                      <Text className='pet-vaccine__next-due-item-date'>{r.record.nextDate} 到期</Text>
+                    </View>
+                    <Text className='pet-vaccine__next-due-item-status pet-vaccine__next-due-item-status--upcoming'>即将</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {(upcomingReminders.length > 0 || overdueReminders.length > 0) && (
             <View className='pet-vaccine__reminders'>

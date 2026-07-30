@@ -1,4 +1,4 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 @import '../../styles/_animations';
 
 .pet-diary {
@@ -97,7 +97,15 @@
 .pet-diary__entry {
   display: flex;
   margin-bottom: 0;
+  animation: fadeInUp 0.4s ease-out both;
 }
+
+.pet-diary__entry:nth-child(1) { animation-delay: 0.05s; }
+.pet-diary__entry:nth-child(2) { animation-delay: 0.1s; }
+.pet-diary__entry:nth-child(3) { animation-delay: 0.15s; }
+.pet-diary__entry:nth-child(4) { animation-delay: 0.2s; }
+.pet-diary__entry:nth-child(5) { animation-delay: 0.25s; }
+.pet-diary__entry:nth-child(6) { animation-delay: 0.3s; }
 
 .pet-diary__entry-left {
   display: flex;
@@ -115,6 +123,12 @@
   flex-shrink: 0;
   background: $color-primary;
   box-shadow: 0 0 6px rgba($color-primary, 0.4);
+  animation: diaryDotPulse 2s ease-in-out infinite;
+}
+
+@keyframes diaryDotPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba($color-primary, 0.3); }
+  50% { box-shadow: 0 0 10px rgba($color-primary, 0.6); }
 }
 
 .pet-diary__line {

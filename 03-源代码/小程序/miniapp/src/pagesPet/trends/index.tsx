@@ -817,6 +817,72 @@ export default function PetTrendsPage() {
     )
   }
 
+  /** 健康概览摘要（显示在图表上方） */
+  const renderHealthGlance = () => {
+    if (!summary || activeTab === 'summary') return null
+
+    // 计算健康评分（基于异常天数比例）
+    const healthScore = summary.totalDays > 0
+      ? Math.max(0, Math.min(100, Math.round((1 - (summary.abnormalDays || 0) / summary.totalDays) * 100)))
+      : 100
+    const scoreLevel = healthScore >= 80 ? 'good' : healthScore >= 60 ? 'fair' : 'poor'
+    const scoreEmoji = healthScore >= 80 ? '🌟' : healthScore >= 60 ? '💡' : '⚠️'
+
+    const totalDays = summary.totalDays || 0
+    const abnormalDays = summary.abnormalDays || 0
+    const weightChange = summary.weightChangePercent || 0
+
+    const glanceRows = [
+      {
+        icon: '📅',
+        label: '统计周期',
+        value: `${totalDays} 天 · ${abnormalDays} 天异常`,
+        highlight: abnormalDays > 0 ? 'warn' : 'good',
+      },
+      {
+        icon: '⚖️',
+        label: '体重变化',
+        value: weightChange === 0 ? '稳定' : `${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)}%`,
+        highlight: Math.abs(weightChange) > 5 ? 'bad' : Math.abs(weightChange) > 2 ? 'warn' : 'good',
+      },
+      {
+        icon: '📊',
+        label: activeTab === 'weight' ? '最新体重' : activeTab === 'appetite' ? '最新食欲' : '最新便便',
+        value: activeTab === 'weight'
+          ? (trendData.find(d => d.weight)?.weight ? `${trendData.find(d => d.weight)?.weight}kg` : '暂无')
+          : activeTab === 'appetite'
+          ? (APPETITE_LABELS[trendData[trendData.length - 1]?.appetite || 'normal'] || '正常')
+          : (STOOL_LABELS[trendData[trendData.length - 1]?.stool || 'normal'] || '正常'),
+        highlight: 'good',
+      },
+    ]
+
+    return (
+      <View className='trend-glance'>
+        <View className='trend-glance__header'>
+          <Text className='trend-glance__title'>📈 健康概览</Text>
+          <View className='trend-glance__score'>
+            <Text className='trend-glance__score-value trend-glance__score--{scoreLevel}'>{scoreEmoji} {healthScore}</Text>
+            <Text className='trend-glance__score-label'>分</Text>
+          </View>
+        </View>
+        <View className='trend-glance__rows'>
+          {glanceRows.map((row, idx) => (
+            <View key={idx} className='trend-glance__row'>
+              <Text className='trend-glance__row-icon'>{row.icon}</Text>
+              <View className='trend-glance__row-info'>
+                <Text className='trend-glance__row-label'>{row.label}</Text>
+                <Text className={`trend-glance__row-value trend-glance__row-value--${row.highlight}`}>
+                  {row.value}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    )
+  }
+
   const renderChart = () => {
     switch (activeTab) {
       case 'weight':
@@ -887,6 +953,7 @@ export default function PetTrendsPage() {
           <PageError message={error} onRetry={loadTrendData} />
         ) : (
           <View className='pet-trends__chart-area'>
+            {renderHealthGlance()}
             {renderChart()}
           </View>
         )}

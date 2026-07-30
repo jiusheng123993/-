@@ -1,4 +1,4 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 
 .pet-vaccine {
   min-height: 100vh;
@@ -51,6 +51,134 @@
   line-height: 1.6;
 }
 
+// ==================== 进度条 ====================
+.pet-vaccine__progress {
+  @include card-base;
+  padding: 24rpx 32rpx;
+  margin-bottom: 24rpx;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.pet-vaccine__progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.pet-vaccine__progress-title {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.pet-vaccine__progress-text {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.pet-vaccine__progress-track {
+  height: 10rpx;
+  background: $color-primary-bg;
+  border-radius: 5rpx;
+  overflow: hidden;
+}
+
+.pet-vaccine__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $color-success, $color-primary);
+  border-radius: 5rpx;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ==================== 到期摘要卡片 ====================
+.pet-vaccine__next-due {
+  @include card-base;
+  padding: 24rpx 32rpx;
+  margin-bottom: 24rpx;
+  border-left: 8rpx solid $color-primary;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.pet-vaccine__next-due-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.pet-vaccine__next-due-title {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.pet-vaccine__next-due-count {
+  font-size: 22rpx;
+  color: $color-text-inverse;
+  background: $color-danger;
+  padding: 2rpx 14rpx;
+  border-radius: 14rpx;
+  font-weight: $font-weight-semibold;
+}
+
+.pet-vaccine__next-due-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.pet-vaccine__next-due-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 16rpx;
+  background: $color-primary-bg;
+  border-radius: 16rpx;
+}
+
+.pet-vaccine__next-due-item-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.pet-vaccine__next-due-item-info {
+  flex: 1;
+}
+
+.pet-vaccine__next-due-item-name {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  display: block;
+}
+
+.pet-vaccine__next-due-item-date {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  display: block;
+  margin-top: 2rpx;
+}
+
+.pet-vaccine__next-due-item-status {
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+}
+
+.pet-vaccine__next-due-item-status--overdue {
+  color: $color-danger;
+}
+
+.pet-vaccine__next-due-item-status--due {
+  color: $color-primary;
+}
+
+.pet-vaccine__next-due-item-status--upcoming {
+  color: $color-success;
+}
+
+// ==================== 区块入场动效 ====================
 .pet-vaccine__stats {
   @include card-base;
   padding: 32rpx;
@@ -58,7 +186,18 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
+  animation: fadeInUp 0.3s ease-out;
 }
+
+.pet-vaccine__reminders,
+.pet-vaccine__auto-schedule,
+.pet-vaccine__deworming {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.pet-vaccine__reminders { animation-delay: 0.05s; }
+.pet-vaccine__auto-schedule { animation-delay: 0.1s; }
+.pet-vaccine__deworming { animation-delay: 0.15s; }
 
 .pet-vaccine__stats-item {
   display: flex;

@@ -56,6 +56,13 @@ export const EXERCISE_OPTIONS = [
   { value: 3 as const, emoji: '🏋️', label: '多' },
 ]
 
+/** 快捷体重预设（kg）—— 按宠物体型分组 */
+const WEIGHT_PRESETS = [
+  { label: '小型', weights: ['2.5', '3.0', '4.0', '5.0'] },
+  { label: '中型', weights: ['8.0', '10.0', '12.0', '15.0'] },
+  { label: '大型', weights: ['20.0', '25.0', '30.0', '35.0'] },
+]
+
 const APPETITE_LABELS: Record<number, string> = { 1: '不吃', 2: '少吃', 3: '正常', 4: '多吃', 5: '呕吐' }
 const SPIRIT_LABELS: Record<number, string> = { 1: '萎靡', 2: '安静', 3: '正常', 4: '兴奋', 5: '亢奋' }
 const POOP_LABELS: Record<number, string> = { 1: '带血', 2: '腹泻', 3: '正常', 4: '偏软', 5: '便秘' }
@@ -344,6 +351,24 @@ export default function PetCheckin() {
     setShowAchievementShare(false)
   }, [])
 
+  /** 表单完成进度（核心4项中已选的字段数/4） */
+  const formProgress = useMemo(() => {
+    let filled = 0
+    if (formData.appetiteLevel) filled++
+    if (formData.spiritLevel) filled++
+    if (formData.poopLevel) filled++
+    if (formData.exerciseLevel) filled++
+    return { filled, total: 4, percent: Math.round((filled / 4) * 100) }
+  }, [formData])
+
+  const handleWeightPreset = (value: string) => {
+    setWeightText(value)
+    const num = parseFloat(value)
+    if (!isNaN(num)) {
+      setFormData((prev) => ({ ...prev, weight: num }))
+    }
+  }
+
   const isLoading = petLoading || checkinLoading
 
   const todayHasAnomaly = todayCheckin ? computeHasAnomaly(todayCheckin.mood, todayCheckin.appetite, todayCheckin.stool) : false
@@ -493,8 +518,27 @@ export default function PetCheckin() {
         </View>
       ) : (
         <View className='pet-checkin__form'>
+          {/* 进度指示条 */}
+          <View className='pet-checkin__progress'>
+            <View className='pet-checkin__progress-header'>
+              <Text className='pet-checkin__progress-title'>打卡进度</Text>
+              <Text className='pet-checkin__progress-text'>{formProgress.filled}/{formProgress.total}</Text>
+            </View>
+            <View className='pet-checkin__progress-track'>
+              <View
+                className='pet-checkin__progress-fill'
+                style={{ width: `${formProgress.percent}%` }}
+              />
+            </View>
+          </View>
+
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>🍽️ 食欲</Text>
+            <Text className='pet-checkin__section-title'>
+              🍽️ 食欲
+              {formData.appetiteLevel !== 3 && (
+                <Text className='pet-checkin__section-title-badge'>已选</Text>
+              )}
+            </Text>
             <View className='pet-checkin__options'>
               {APPETITE_OPTIONS.map((option) => (
                 <View
@@ -510,7 +554,12 @@ export default function PetCheckin() {
           </View>
 
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>⚡ 精力</Text>
+            <Text className='pet-checkin__section-title'>
+              ⚡ 精力
+              {formData.spiritLevel !== 3 && (
+                <Text className='pet-checkin__section-title-badge'>已选</Text>
+              )}
+            </Text>
             <View className='pet-checkin__options'>
               {SPIRIT_OPTIONS.map((option) => (
                 <View
@@ -526,7 +575,12 @@ export default function PetCheckin() {
           </View>
 
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>💩 便便</Text>
+            <Text className='pet-checkin__section-title'>
+              💩 便便
+              {formData.poopLevel !== 3 && (
+                <Text className='pet-checkin__section-title-badge'>已选</Text>
+              )}
+            </Text>
             <View className='pet-checkin__options'>
               {POOP_OPTIONS.map((option) => (
                 <View
@@ -542,7 +596,12 @@ export default function PetCheckin() {
           </View>
 
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>🏃 运动</Text>
+            <Text className='pet-checkin__section-title'>
+              🏃 运动
+              {formData.exerciseLevel !== 2 && (
+                <Text className='pet-checkin__section-title-badge'>已选</Text>
+              )}
+            </Text>
             <View className='pet-checkin__options'>
               {EXERCISE_OPTIONS.map((option) => (
                 <View
@@ -558,7 +617,12 @@ export default function PetCheckin() {
           </View>
 
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>⚖️ 体重（选填，kg）</Text>
+            <Text className='pet-checkin__section-title'>
+              ⚖️ 体重（选填，kg）
+              {formData.weight !== undefined && (
+                <Text className='pet-checkin__section-title-badge'>已填</Text>
+              )}
+            </Text>
             <Input
               className='pet-checkin__weight-input'
               type='digit'
@@ -567,6 +631,20 @@ export default function PetCheckin() {
               value={weightText}
               onInput={(e) => handleWeightChange(e.detail.value)}
             />
+            {/* 快捷体重预设 */}
+            <View className='pet-checkin__weight-presets'>
+              {WEIGHT_PRESETS.map((group) => (
+                group.weights.map((w) => (
+                  <View
+                    key={w}
+                    className='pet-checkin__weight-preset'
+                    onClick={() => handleWeightPreset(w)}
+                  >
+                    <Text>{w} kg</Text>
+                  </View>
+                ))
+              ))}
+            </View>
           </View>
 
           <View className='pet-checkin__section'>
