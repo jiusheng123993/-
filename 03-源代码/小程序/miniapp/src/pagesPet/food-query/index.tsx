@@ -1,6 +1,10 @@
-import { View, Text, Input } from '@tarojs/components'
+/**
+ * 食物查询页面
+ * 查询食物对宠物的安全性，支持搜索、分类筛选、历史记录
+ */
+import { View, Text, Input, ScrollView } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useFoodQuery } from '../../hooks/useFoodQuery'
@@ -21,6 +25,7 @@ import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { EVENT } from '../../constants/analyticsEvents'
 import type { ExpressionContext } from '../../engines/petAvatar'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import { DietMemoryAdapter } from '../../memory-body/adapters/dietMemoryAdapter'
 import { checkNpsEligibility, submitNpsResponse, dismissNpsSurvey } from '../../services/npsService'
 import NpsSurvey from '../../components/NpsSurvey'
 import type { NpsTriggerEvent } from '../../types/npsTypes'
@@ -34,11 +39,28 @@ const SAFETY_LEVEL_LABELS: Record<string, string> = {
 }
 
 const SAFETY_LEVEL_COLORS: Record<string, string> = {
-  safe: '#4CAF50',
-  caution: '#FFC107',
-  dangerous: '#FF9800',
-  toxic: '#F44336',
+  safe: '#8EA898',
+  caution: '#C8A078',
+  dangerous: '#D09070',
+  toxic: '#C87070',
 }
+
+// 食物建议列表（快速搜索用）
+const FOOD_SUGGESTIONS = [
+  '巧克力', '葡萄', '洋葱', '大蒜', '木糖醇', '夏威夷果',
+  '苹果', '香蕉', '蓝莓', '草莓', '西瓜', '芒果', '柠檬',
+  '鸡胸肉', '三文鱼', '鸡蛋', '虾', '瘦牛肉',
+  '胡萝卜', '西兰花', '南瓜', '红薯', '黄瓜',
+  '牛奶', '奶酪', '蜂蜜', '花生酱',
+]
+
+// 快捷分类
+const QUICK_CATEGORIES = [
+  { label: '🍎 水果', foods: ['苹果', '香蕉', '西瓜', '草莓', '蓝莓', '芒果'] },
+  { label: '🥬 蔬菜', foods: ['胡萝卜', '西兰花', '南瓜', '红薯', '黄瓜', '菠菜'] },
+  { label: '🥩 肉类', foods: ['鸡胸肉', '三文鱼', '鸡蛋', '虾', '瘦牛肉'] },
+  { label: '☠️ 有毒', foods: ['巧克力', '葡萄', '洋葱', '大蒜', '木糖醇'] },
+]
 
 export default function PetFoodQuery() {
   const { pets, currentPet, switchPet, isLoading: petLoading, initUser: initPetUser } = usePet()
@@ -54,9 +76,19 @@ export default function PetFoodQuery() {
   const [showNpsSurvey, setShowNpsSurvey] = useState(false)
   const [npsTriggerEvent, setNpsTriggerEvent] = useState<NpsTriggerEvent>('manual')
   const [showToxicAlert, setShowToxicAlert] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
   const { anxietyState, checkNewOwnerAnxiety, dismissNewOwnerAnxiety } = useAnxietyDetection()
   const { showCrisisReferral, crisisSeverity, trackEvent: trackEmotion, dismissCrisisReferral, handleFollowUp } = useEmotionTracking(currentPet?.id || null)
   const { trackPageView, trackEvent } = useAnalytics()
+
+  // 过滤搜索建议
+  const filteredSuggestions = useMemo(() => {
+    if (!searchText.trim()) return []
+    const q = searchText.trim().toLowerCase()
+    return FOOD_SUGGESTIONS.filter(f => f.includes(q) || q.includes(f)).slice(0, 8)
+  }, [searchText])
 
   usePageView('food_query')
 
@@ -106,8 +138,9 @@ export default function PetFoodQuery() {
     }
   }, [currentPet, checkNewOwnerAnxiety])
 
-  const handleSearch = async () => {
-    if (!currentPet || !searchText.trim()) return
+  const doSearch = useCallback(async (foodName: string) => {
+    if (!currentPet || !foodName.trim()) return
+    setShowSuggestions(false)
     if (!isMember && user?.id) {
       const access = await checkAccess('food_query')
       if (!access.allowed) {
@@ -127,10 +160,21 @@ export default function PetFoodQuery() {
       return
     }
     try {
-      // 传递品种信息以实现品种特殊禁忌检查
-      const result = await queryFood(userId, currentPet.id, searchText.trim(), currentPet.species)
-      trackEvent(AnalyticsEventName.FoodQuery, { keyword: searchText.trim(), resultSafetyLevel: result.safetyLevel, isMember })
+      const result = await queryFood(userId, currentPet.id, foodName, currentPet.species)
+      trackEvent(AnalyticsEventName.FoodQuery, { keyword: foodName, resultSafetyLevel: result.safetyLevel, isMember })
       incrementFoodQueryCount()
+      // 记录食物查询到记忆引擎
+      if (userId && currentPet?.id && result) {
+        try {
+          const dietAdapter = new DietMemoryAdapter(userId)
+          dietAdapter.recordFeeding(currentPet.id, foodName, {
+            date: new Date().toISOString().split('T')[0],
+            reaction: result.safetyLevel === 'safe' ? 'good' : 'normal',
+          })
+        } catch (e) {
+          // 记忆记录失败不影响主流程
+        }
+      }
       if (result.safetyLevel === 'toxic') {
         setShowToxicAlert(true)
         trackEmotion('food_query', 'moderate')
@@ -138,6 +182,20 @@ export default function PetFoodQuery() {
     } catch {
       Taro.showToast({ title: '查询失败，请重试', icon: 'none' })
     }
+  }, [currentPet, userId, isMember, stats, queryFood, checkAccess, shouldShowPaywall, markPaywallShown, trackEvent, incrementFoodQueryCount])
+
+  const handleSearch = () => doSearch(searchText.trim())
+
+  const handleSuggestionClick = (food: string) => {
+    setSearchText(food)
+    setShowSuggestions(false)
+    doSearch(food)
+  }
+
+  const handleCategoryClick = (food: string) => {
+    setSearchText(food)
+    setSelectedCategory(food)
+    doSearch(food)
   }
 
   const handleHistoryClick = async (foodName: string) => {
@@ -232,14 +290,48 @@ export default function PetFoodQuery() {
       ) : (
         <>
           <View className='pet-food-query__search'>
-            <Input
-              className='pet-food-query__input'
-              placeholder='输入食物名称，如巧克力、葡萄...'
-              placeholderClass='pet-food-query__input-placeholder'
-              value={searchText}
-              onInput={(e) => setSearchText(e.detail.value)}
-              onConfirm={handleSearch}
-            />
+            <View className='pet-food-query__search-input-wrapper'>
+              <Text className='pet-food-query__search-icon'>🔍</Text>
+              <Input
+                className='pet-food-query__input'
+                placeholder='输入食物名称，如柠檬、巧克力...'
+                placeholderClass='pet-food-query__input-placeholder'
+                value={searchText}
+                onInput={(e) => {
+                  setSearchText(e.detail.value)
+                  setShowSuggestions(true)
+                }}
+                onFocus={() => searchText.trim() && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onConfirm={handleSearch}
+              />
+              {searchText && (
+                <Text
+                  className='pet-food-query__search-clear'
+                  onClick={() => {
+                    setSearchText('')
+                    setShowSuggestions(false)
+                  }}
+                >
+                  ✕
+                </Text>
+              )}
+              {/* 搜索建议下拉 */}
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <View className='pet-food-query__suggestions'>
+                  {filteredSuggestions.map((food) => (
+                    <View
+                      key={food}
+                      className='pet-food-query__suggestion-item'
+                      onMouseDown={() => handleSuggestionClick(food)}
+                    >
+                      <Text className='pet-food-query__suggestion-icon'>🍽️</Text>
+                      <Text className='pet-food-query__suggestion-text'>{food}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
             <View
               className={`pet-food-query__search-btn${!isMember && stats && stats.remainingFree <= 0 ? ' pet-food-query__search-btn--disabled' : ''}`}
               onClick={!isMember && stats && stats.remainingFree <= 0 ? undefined : handleSearch}
@@ -257,6 +349,26 @@ export default function PetFoodQuery() {
                   : '今日免费次数已用完'}
             </View>
           )}
+
+          {/* 快捷分类 */}
+          <ScrollView className='pet-food-query__categories' scrollX>
+            {QUICK_CATEGORIES.map((cat) => (
+              <View key={cat.label} className='pet-food-query__category-group'>
+                <Text className='pet-food-query__category-label'>{cat.label}</Text>
+                <View className='pet-food-query__category-chips'>
+                  {cat.foods.map((food) => (
+                    <Text
+                      key={food}
+                      className={`pet-food-query__category-chip${selectedCategory === food ? ' pet-food-query__category-chip--active' : ''}`}
+                      onClick={() => handleCategoryClick(food)}
+                    >
+                      {food}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
 
           {lastResult ? (
             <View className={`pet-food-query__result pet-food-query__result--${lastResult.safetyLevel}`}>
@@ -376,6 +488,23 @@ export default function PetFoodQuery() {
             <View className='pet-food-query__empty'>
               <Text className='pet-food-query__empty-icon'>🔍</Text>
               <Text className='pet-food-query__empty-text'>输入食物名称，查询对宠物是否安全</Text>
+              <View className='pet-food-query__empty-examples'>
+                <Text className='pet-food-query__empty-examples-title'>试试搜索：</Text>
+                <View className='pet-food-query__empty-example-chips'>
+                  {['巧克力', '葡萄', '柠檬', '鸡胸肉', '苹果'].map((food) => (
+                    <Text
+                      key={food}
+                      className='pet-food-query__empty-example-chip'
+                      onClick={() => {
+                        setSearchText(food)
+                        doSearch(food)
+                      }}
+                    >
+                      {food}
+                    </Text>
+                  ))}
+                </View>
+              </View>
             </View>
           )}
 

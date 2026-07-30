@@ -1,3 +1,7 @@
+/**
+ * 健康打卡页面
+ * 宠物日常健康数据记录（食欲、精力、便便、运动、体重）
+ */
 import { View, Text, Input, Textarea } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
@@ -20,6 +24,7 @@ import type { AchievementConfig } from '../../components/AchievementCard'
 import { getCrisisMessage } from '../../engines/emotion'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { updateLastCheckinDate } from '../../services/churnDetectionService'
+import { MilestoneAdapter } from '../../memory-body/adapters/milestoneAdapter'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { EVENT } from '../../constants/analyticsEvents'
@@ -275,6 +280,17 @@ export default function PetCheckin() {
       }
 
       updateLastCheckinDate()
+
+      // 同步里程碑到记忆引擎
+      if (userId && currentPet?.id) {
+        try {
+          const milestoneAdapter = new MilestoneAdapter(userId)
+          const streakDays = useCheckinStore.getState().streakDays
+          milestoneAdapter.syncFromCheckins(currentPet.id, streakDays)
+        } catch (e) {
+          // 里程碑同步失败不影响主流程
+        }
+      }
 
       const consecutiveDays = calculateConsecutiveAnomalyDays()
       if (consecutiveDays >= 7) {

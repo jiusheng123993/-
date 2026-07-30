@@ -1,3 +1,7 @@
+/**
+ * 喂养建议页面
+ * 宠物个性化喂养方案与建议
+ */
 import { View, Text, ScrollView, Input, Textarea, Picker } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { useEffect, useState, useCallback } from 'react'
@@ -12,6 +16,7 @@ import {
   type FeedingProfile,
 } from '../../services/feedingService'
 import { getChronicRecords } from '../../services/chronicService'
+import { DietMemoryAdapter } from '../../memory-body/adapters/dietMemoryAdapter'
 import './index.scss'
 
 interface FeedingRecord {
@@ -122,6 +127,21 @@ export default function FeedingAdvicePage() {
     saveRecords([newRecord, ...records])
     setShowAdd(false)
     Taro.showToast({ title: '记录成功', icon: 'success' })
+
+    // 记录喂养到记忆引擎
+    if (user?.id && pet?.id) {
+      try {
+        const dietAdapter = new DietMemoryAdapter(user.id)
+        dietAdapter.recordFeeding(pet.id, data.foodType, {
+          date: data.date || new Date().toISOString().split('T')[0],
+          amount: data.amount,
+          reaction: data.appetite === 'good' ? 'good' : data.appetite === 'poor' ? 'refused' : 'normal',
+        })
+      } catch (e) {
+        // 记忆记录失败不影响主流程
+      }
+    }
+
     loadData()
   }
 
