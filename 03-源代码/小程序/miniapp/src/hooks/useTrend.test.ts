@@ -1,3 +1,7 @@
+/**
+ * useTrend 测试
+ * 验证健康趋势 Hook 的所有方法和 Store 调用
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

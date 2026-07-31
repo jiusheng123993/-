@@ -1,3 +1,7 @@
+/**
+ * 疫苗驱虫日历页面
+ * 疫苗/驱虫记录管理、到期提醒、推荐接种计划
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useMemo, useCallback } from 'react'

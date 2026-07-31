@@ -1,3 +1,7 @@
+/**
+ * 保存穿搭操作栏组件
+ * 提供保存、还原和分享穿搭的底部操作栏
+ */
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'

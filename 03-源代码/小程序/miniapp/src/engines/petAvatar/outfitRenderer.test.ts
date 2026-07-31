@@ -1,3 +1,7 @@
+/**
+ * outfitRenderer 测试
+ * 验证装扮图层组合器的排序、SVG 包装和物种差异缩放
+ */
 import { describe, it, expect, vi } from 'vitest'
 import { composeOutfitLayers, resolveOutfitLayers } from './outfitRenderer'
 import type { OutfitLayer, OutfitSlotMap } from '../../types/wardrobeTypes'

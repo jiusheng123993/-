@@ -1,6 +1,17 @@
+/**
+ * 宠物日记引擎
+ * 根据健康打卡数据和里程碑，以宠物口吻自动生成个性化日记文本
+ */
 import type { PetHealthEntry, DiaryTone, DiaryEntry } from '../../types/avatarTypes'
 
 export type { DiaryTone, DiaryEntry }
+
+/**
+ * 宠物日记引擎
+ *
+ * 根据健康打卡数据和里程碑（连续签到、生日、恢复等），
+ * 以宠物口吻自动生成个性化日记文本。
+ */
 
 const DIARY_TEMPLATES: Record<string, DiaryEntry[]> = {
   all_normal: [
@@ -77,6 +88,7 @@ function pickDeterministic<T>(arr: T[], seed: string): T {
   return arr[hashCode(seed) % arr.length]
 }
 
+/** 根据打卡数据生成日记条目 */
 export function generateDiaryEntry(
   entry: PetHealthEntry,
   streakDays: number,
@@ -120,6 +132,7 @@ export function generateDiaryEntry(
   return pickDeterministic(DIARY_TEMPLATES.default, seed)
 }
 
+/** 生成当日日记（无打卡数据时返回提醒） */
 export function generateDiaryForToday(
   entry: PetHealthEntry | null,
   streakDays: number,

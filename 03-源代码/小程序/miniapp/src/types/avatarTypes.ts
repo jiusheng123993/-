@@ -15,6 +15,7 @@ export type PetExpression =
 
 export type PetSpecies = 'dog' | 'cat'
 
+/** 日记语气类型 */
 export type DiaryTone = 'happy' | 'neutral' | 'tired' | 'sick' | 'proud'
 
 export type AnimationType =
@@ -38,6 +39,7 @@ export interface ExpressionConfig {
   outfitSlots?: OutfitSlotMap
 }
 
+/** 表情计算上下文 */
 export interface ExpressionContext {
   todayEntry: PetHealthEntry | null
   hasAnomaly: boolean
@@ -95,6 +97,7 @@ export interface AchievementConfig {
   color: string
 }
 
+/** 头像定制信息 */
 export interface AvatarCustomization {
   species: PetSpecies
   style: 'cartoon' | 'realistic'
@@ -104,7 +107,7 @@ export interface AvatarCustomization {
   cartoonUrl?: string
 }
 
-// 2D 形象生成相关类型
+/** 2D 形象角度 */
 export type AvatarAngle = 'front' | 'left' | 'right' | 'back' | 'left45' | 'right45'
 
 export type AvatarExpression =
@@ -112,6 +115,7 @@ export type AvatarExpression =
   | 'love' | 'cool' | 'angry' | 'thinking'
   | 'surprised' | 'crying' | 'celebrate' | 'naughty'
 
+/** 2D 形象动作 */
 export type AvatarAction =
   | 'sit' | 'stand' | 'lie' | 'jump'
   | 'wave' | 'eat' | 'play' | 'sleep'
@@ -133,6 +137,7 @@ export interface ActionOption {
   emoji: string
 }
 
+/** 2D 形象图片 */
 export interface Avatar2DImage {
   id: string
   angle: AvatarAngle
@@ -142,6 +147,7 @@ export interface Avatar2DImage {
   sortOrder: number
 }
 
+/** 2D 形象包（含任务和图片列表） */
 export interface Avatar2DPack {
   task: GenerationTask | null
   images: Avatar2DImage[]
@@ -160,6 +166,7 @@ export interface Avatar3DResult {
 }
 
 export type TaskType = '2d' | '3d' | 'theme_suite'
+/** 生成任务状态 */
 export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export interface GenerationTask {
@@ -182,6 +189,7 @@ export interface UploadPhotoResult {
   message?: string
 }
 
+/** 2D 形象生成接口响应 */
 export interface Generate2DResult {
   success: boolean
   data?: { taskId: string; status: string }

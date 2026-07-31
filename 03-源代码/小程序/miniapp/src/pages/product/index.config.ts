@@ -1,1 +1,2 @@
+/** 宠物用品页面配置 */
 export default definePageConfig({ navigationBarTitleText: '宠物用品' })

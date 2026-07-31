@@ -22,6 +22,7 @@ export interface Pet {
   updatedAt: string
 }
 
+/** 健康打卡记录 */
 export interface Checkin {
   id: string
   petId: string
@@ -52,6 +53,7 @@ export interface ApiResponse<T> {
   message: string
 }
 
+/** 登录响应数据 */
 export interface LoginResponse {
   user: User
   token: string

@@ -1,3 +1,7 @@
+/**
+ * 饰品解锁弹窗组件
+ * 展示饰品获取方式（免费/成就/付费/会员），引导用户解锁
+ */
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'

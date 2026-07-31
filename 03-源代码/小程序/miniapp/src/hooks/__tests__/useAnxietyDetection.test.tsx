@@ -1,3 +1,7 @@
+/**
+ * useAnxietyDetection 测试
+ * 验证宠物健康焦虑检测 Hook 的各项检测和消除功能
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React, { useEffect, useRef } from 'react'
 import { render, act } from '@testing-library/react'

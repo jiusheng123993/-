@@ -1,3 +1,8 @@
+/**
+ * 佣金服务
+ *
+ * 合作推广佣金规则管理、点击/转化记录、结算统计
+ */
 import Taro from '@tarojs/taro'
 import { getStorage, setStorage } from '../utils/storage'
 

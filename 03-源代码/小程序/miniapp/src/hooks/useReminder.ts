@@ -1,3 +1,7 @@
+/**
+ * 疫苗/驱虫提醒 Hook
+ * 提供订阅管理、即将到期和逾期的提醒查询、本地提醒调度
+ */
 import { useCallback } from 'react';
 import { useReminderStore } from '../stores/reminderStore';
 import type { ReminderItem, LocalReminder } from '../services/reminderService';
@@ -29,6 +33,10 @@ interface UseReminderReturn {
   clearError: () => void;
 }
 
+/**
+ * 疫苗/驱虫提醒 Hook
+ * 提供订阅管理、即将到期和逾期的提醒查询、本地提醒调度
+ */
 export function useReminder(): UseReminderReturn {
   const {
     subscriptionStatus,

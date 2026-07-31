@@ -1,13 +1,25 @@
+/**
+ * 回忆时间线路由 - 宠物回忆/日记的管理
+ * 创建和查询回忆记录（按宠物/家庭/用户），上传回忆照片
+ */
 import { Router, type Request, type Response } from 'express';
 import crypto from 'crypto';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { pool } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createTimelineEventSchema, timelineMomentsQuerySchema } from '../schemas/index.js';
 import { config } from '../config.js';
+import { PetRepository } from '../repositories/petRepository.js';
+import { FamilyMemberRepository } from '../repositories/familyRepository.js';
+import { TimelineRepository } from '../repositories/timelineRepository.js';
 
 const router = Router();
+
+const petRepository = new PetRepository();
+const familyMemberRepository = new FamilyMemberRepository();
+const timelineRepository = new TimelineRepository();
 
 // 照片上传配置
 const upload = multer({
@@ -24,22 +36,14 @@ const upload = multer({
 });
 
 // 创建回忆
-router.post('/moments', authMiddleware, async (req: Request, res: Response) => {
+router.post('/moments', authMiddleware, validate({ body: createTimelineEventSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { petId, type, content, photos } = req.body;
 
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: '请提供宠物ID' });
-      return;
-    }
-
     // 校验宠物归属
-    const petResult = await pool.query(
-      'SELECT 1 FROM pet_profiles WHERE id = $1 AND user_id = $2',
-      [petId, userId]
-    );
-    if (petResult.rowCount === 0) {
+    const isOwner = await petRepository.isOwner(petId, userId);
+    if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
     }
@@ -49,14 +53,16 @@ router.post('/moments', authMiddleware, async (req: Request, res: Response) => {
     const momentContent = content || {};
     const momentPhotos = Array.isArray(photos) ? photos : [];
 
-    const result = await pool.query(
-      `INSERT INTO pet_moments (id, user_id, pet_id, type, content, photos)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [momentId, userId, petId, momentType, JSON.stringify(momentContent), momentPhotos]
+    const row = await timelineRepository.createMoment(
+      momentId,
+      userId,
+      petId,
+      momentType,
+      JSON.stringify(momentContent),
+      momentPhotos,
     );
 
-    res.json({ success: true, data: result.rows[0] });
+    res.json({ success: true, data: row });
   } catch (err) {
     console.error('[Timeline CreateMoment Error]', err);
     res.status(500).json({ success: false, message: '保存回忆失败' });
@@ -64,48 +70,28 @@ router.post('/moments', authMiddleware, async (req: Request, res: Response) => {
 });
 
 // 获取回忆列表
-router.get('/moments', authMiddleware, async (req: Request, res: Response) => {
+router.get('/moments', authMiddleware, validate({ query: timelineMomentsQuerySchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
-    const petId = req.query.pet_id as string;
-    const familyId = req.query.family_id as string;
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const petId = req.query.pet_id as string | undefined;
+    const familyId = req.query.family_id as string | undefined;
+    const limit = req.query.limit as unknown as number;
 
-    let rows: any[];
+    let rows;
 
     if (familyId) {
       // 按家庭查询：获取家庭成员宠物ID，再查回忆
-      const memberResult = await pool.query(
-        'SELECT pet_id FROM pet_family_members WHERE family_id = $1',
-        [familyId]
-      );
-      const petIds = memberResult.rows.map((r: { pet_id: string }) => r.pet_id);
+      const petIds = await familyMemberRepository.findPetIdsByFamilyId(familyId);
       if (petIds.length === 0) {
         res.json({ success: true, data: [] });
         return;
       }
-      const placeholders = petIds.map((_: string, i: number) => `$${i + 1}`).join(',');
-      const result = await pool.query(
-        `SELECT * FROM pet_moments WHERE pet_id IN (${placeholders})
-         ORDER BY created_at DESC LIMIT $${petIds.length + 1}`,
-        [...petIds, limit]
-      );
-      rows = result.rows;
+      rows = await timelineRepository.findByPetIds(petIds, limit);
     } else if (petId) {
-      const result = await pool.query(
-        `SELECT * FROM pet_moments WHERE pet_id = $1 AND user_id = $2
-         ORDER BY created_at DESC LIMIT $3`,
-        [petId, userId, limit]
-      );
-      rows = result.rows;
+      rows = await timelineRepository.findByPetAndUser(petId, userId, limit);
     } else {
       // 查询当前用户所有回忆
-      const result = await pool.query(
-        `SELECT * FROM pet_moments WHERE user_id = $1
-         ORDER BY created_at DESC LIMIT $2`,
-        [userId, limit]
-      );
-      rows = result.rows;
+      rows = await timelineRepository.findByUser(userId, limit);
     }
 
     res.json({ success: true, data: rows });

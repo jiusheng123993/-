@@ -1,3 +1,7 @@
+/**
+ * 效果追踪页面
+ * 用户使用效果数据统计与展示
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'

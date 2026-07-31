@@ -1,3 +1,7 @@
+/**
+ * 宠物头像组件
+ * 根据表情上下文计算表情，支持 2D 头像展示、日记显示和饰品穿戴
+ */
 import { View, Text, Image } from '@tarojs/components'
 import { useMemo } from 'react'
 import {

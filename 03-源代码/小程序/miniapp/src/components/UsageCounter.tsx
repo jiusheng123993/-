@@ -1,3 +1,7 @@
+/**
+ * 使用额度统计组件
+ * 展示免费版与会员版的功能额度对比
+ */
 import { View, Text } from '@tarojs/components'
 import { MEMBERSHIP_BENEFITS } from '../services/membershipService'
 import type { MembershipBenefit } from '../services/membershipService'

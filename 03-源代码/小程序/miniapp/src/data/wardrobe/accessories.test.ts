@@ -1,4 +1,8 @@
 import { describe, it, expect } from 'vitest'
+/**
+ * 配饰数据测试
+ * 验证配饰定义的正确性和完整性
+ */
 import { ACCESSORIES, getAccessoriesBySlot, getDefaultAccessories, getAccessoryById } from './accessories'
 import { getActiveThemes, getThemeById } from './themeSuites'
 import type { AccessorySlot } from '../../types/wardrobeTypes'

@@ -1,3 +1,7 @@
+/**
+ * useCheckin 测试
+ * 验证健康打卡 Hook 的查询、提交和连续天数追踪
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
 

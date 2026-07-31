@@ -1,3 +1,7 @@
+/**
+ * 主题套系数据
+ * 宠物头像主题套系的定义，含节日、季节、生日等分类
+ */
 import type { ThemeSuiteDef } from '../../types/wardrobeTypes'
 
 export const THEME_SUITES: ThemeSuiteDef[] = [

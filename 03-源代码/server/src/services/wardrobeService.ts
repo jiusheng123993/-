@@ -1,3 +1,7 @@
+/**
+ * 衣橱业务服务 - 宠物配饰装备/卸下/解锁的业务逻辑
+ * 包含归属校验、槽位校验、成就验证、会员配额检查
+ */
 import { pool } from '../db.js';
 import * as wardrobeRepo from '../repositories/wardrobeRepository.js';
 import { sanitizeLog } from '../utils/sanitize.js';

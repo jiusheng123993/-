@@ -1,3 +1,7 @@
+/**
+ * 付费墙弹窗组件
+ * 功能次数用完后引导用户开通会员，展示套餐对比和选择
+ */
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { useState } from 'react'

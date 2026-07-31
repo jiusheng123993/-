@@ -1,6 +1,17 @@
+/**
+ * 宠物表情引擎
+ * 定义 8 种宠物表情及其视觉配置，根据健康数据上下文计算最适合的表情
+ */
 import type { PetHealthEntry, HealthRiskLevel, PetExpression, ExpressionConfig, ExpressionContext, AnimationType } from '../../types/avatarTypes'
 
 export type { PetExpression, ExpressionConfig, ExpressionContext }
+
+/**
+ * 宠物表情引擎
+ *
+ * 定义8种宠物表情及其对应的视觉配置（眼睛、嘴巴、配饰、动画），
+ * 根据健康数据上下文（打卡、风险等级、里程碑等）计算最适合的表情。
+ */
 
 export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
   happy: {
@@ -77,6 +88,7 @@ export const EXPRESSION_MAP: Record<PetExpression, ExpressionConfig> = {
   },
 }
 
+/** 根据上下文计算宠物当前表情 */
 export function calculateExpression(ctx: ExpressionContext): ExpressionConfig {
   if (ctx.isDeceased) {
     return EXPRESSION_MAP.sleepy
@@ -121,10 +133,12 @@ export function calculateExpression(ctx: ExpressionContext): ExpressionConfig {
   return EXPRESSION_MAP.happy
 }
 
+/** 根据食物安全结果获取对应表情 */
 export function getExpressionForFoodResult(isSafe: boolean): ExpressionConfig {
   return isSafe ? EXPRESSION_MAP.happy : EXPRESSION_MAP.scared
 }
 
+/** 根据症状初筛风险等级获取对应表情 */
 export function getExpressionForSymptomResult(riskLevel: HealthRiskLevel): ExpressionConfig {
   switch (riskLevel) {
     case 'emergency':
@@ -138,6 +152,7 @@ export function getExpressionForSymptomResult(riskLevel: HealthRiskLevel): Expre
   }
 }
 
+/** 根据疫苗是否逾期获取对应表情 */
 export function getExpressionForVaccineDue(isOverdue: boolean): ExpressionConfig {
   return isOverdue ? EXPRESSION_MAP.worried : EXPRESSION_MAP.happy
 }

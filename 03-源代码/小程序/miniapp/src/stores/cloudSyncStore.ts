@@ -1,6 +1,11 @@
-﻿import create from 'zustand'
+/**
+ * 云同步状态管理
+ * 管理多表数据的手动全量/增量云端同步，支持导入导出和状态监控
+ */
+import create from 'zustand'
 import { getSyncService, type SyncService, type SyncResult, type SyncStatus, type SyncTable } from '../services/syncService'
 
+/** 云同步状态定义 */
 interface CloudSyncState {
   syncService: SyncService | null
   statuses: SyncStatus[]
@@ -25,6 +30,10 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
   lastSyncResult: null,
   error: null,
 
+  /**
+   * 初始化同步服务
+   * @param userId - 用户 ID
+   */
   init: (userId: string) => {
     const service = getSyncService(userId)
     set({ syncService: service })
@@ -32,6 +41,7 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     set({ statuses })
   },
 
+  /** 全量同步所有数据表 */
   syncAll: async () => {
     const { syncService } = get()
     if (!syncService) {
@@ -55,6 +65,10 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     }
   },
 
+  /**
+   * 单表同步（先推后拉）
+   * @param table - 要同步的数据表
+   */
   syncTable: async (table: SyncTable) => {
     const { syncService } = get()
     if (!syncService) {
@@ -82,6 +96,7 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     }
   },
 
+  /** 从同步服务刷新各表状态 */
   refreshStatuses: () => {
     const { syncService } = get()
     if (syncService) {
@@ -89,6 +104,7 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     }
   },
 
+  /** 导出所有云端数据 */
   exportData: async () => {
     const { syncService } = get()
     if (!syncService) {
@@ -97,6 +113,10 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     return syncService.exportAllData()
   },
 
+  /**
+   * 导入数据到云端
+   * @param data - 要导入的数据
+   */
   importData: async (data: Record<string, unknown>) => {
     const { syncService } = get()
     if (!syncService) {
@@ -105,6 +125,7 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     return syncService.importData(data)
   },
 
+  /** 清空云端所有数据 */
   clearCloudData: async () => {
     const { syncService } = get()
     if (!syncService) {
@@ -113,6 +134,7 @@ export const useCloudSyncStore = create<CloudSyncState>((set, get) => ({
     return syncService.clearCloudData()
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   }

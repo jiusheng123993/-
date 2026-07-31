@@ -1,3 +1,7 @@
+/**
+ * 编辑宠物页面
+ * 修改宠物信息表单，预填已有数据
+ */
 import { View, Text, Input, Picker, Switch, Textarea, Image } from '@tarojs/components'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'

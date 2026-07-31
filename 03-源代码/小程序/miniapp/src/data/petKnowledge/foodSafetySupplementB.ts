@@ -1,3 +1,7 @@
+/**
+ * 补充保健食品数据 B
+ * 宠物食物安全数据库 - 营养补充品和保健品部分 B
+ */
 import type { FoodSafetyItem } from './foodSafety'
 
 export const FOOD_SAFETY_SUPPLEMENT_B: FoodSafetyItem[] = [

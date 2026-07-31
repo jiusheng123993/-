@@ -1,3 +1,7 @@
+/**
+ * 主题状态管理
+ * 管理主题切换、持久化和原生导航栏/标签栏颜色适配
+ */
 import create from 'zustand';
 import Taro from '@tarojs/taro';
 
@@ -144,6 +148,7 @@ export const THEME_LIST: ThemeMeta[] = [
 const THEME_STORAGE_KEY = 'xhh_theme';
 const DEFAULT_THEME: ThemeKey = 'sakura-dream-light';
 
+/** 主题状态定义 */
 interface ThemeState {
   current: ThemeKey;
   loadTheme: () => void;
@@ -151,6 +156,7 @@ interface ThemeState {
   applyNativeBars: (theme: ThemeKey) => void;
 }
 
+/** 从本地存储获取已保存的主题 */
 function getStoredTheme(): ThemeKey {
   try {
     const raw = Taro.getStorageSync(THEME_STORAGE_KEY);
@@ -183,12 +189,17 @@ function applyNativeBars(theme: ThemeKey) {
 export const useThemeStore = create<ThemeState>((set) => ({
   current: getStoredTheme(),
 
+  /** 从本地存储加载主题并应用到原生组件 */
   loadTheme: () => {
     const theme = getStoredTheme();
     set({ current: theme });
     applyNativeBars(theme);
   },
 
+  /**
+   * 切换主题并持久化
+   * @param theme - 主题 key
+   */
   setTheme: (theme: ThemeKey) => {
     try {
       Taro.setStorageSync(THEME_STORAGE_KEY, theme);

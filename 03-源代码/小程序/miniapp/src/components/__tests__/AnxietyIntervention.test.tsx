@@ -1,3 +1,6 @@
+/**
+ * 焦虑干预组件测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, fireEvent, screen } from '@testing-library/react'
 import { createElement } from 'react'

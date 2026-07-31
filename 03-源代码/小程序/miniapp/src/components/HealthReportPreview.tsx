@@ -1,3 +1,7 @@
+/**
+ * 健康报告预览组件
+ * 将宠物健康数据渲染到 Canvas，支持保存图片和分享给兽医
+ */
 import { useEffect, useRef, useCallback } from 'react'
 import { View, Canvas, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'

@@ -1,3 +1,8 @@
+/**
+ * 健康报告服务
+ *
+ * 生成宠物健康报告文本，格式化输出
+ */
 import { getCheckinsByDateRange } from './checkinService'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
 import { getVaccineRecords } from './vaccineService'

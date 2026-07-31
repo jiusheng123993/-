@@ -1,3 +1,6 @@
+/**
+ * 周报服务测试
+ */
 import { describe, it, expect } from 'vitest'
 import {
   generateWeeklyReport,

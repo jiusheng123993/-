@@ -11,6 +11,10 @@
  * 策略：mock 底层依赖（storage / Taro / config / jwt），
  * 导入真实模块进行测试，验证安全边界是否牢固。
  */
+/**
+ * E2E 测试：安全审计
+ * 验证应用安全性，包含数据隔离、越权防护和敏感信息处理
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import Taro from '@tarojs/taro'
 

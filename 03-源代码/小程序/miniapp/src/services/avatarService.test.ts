@@ -1,3 +1,6 @@
+/**
+ * 头像服务测试（外部测试文件）
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // 使用 vi.hoisted 确保 mock 对象在 vi.mock 工厂执行时可用

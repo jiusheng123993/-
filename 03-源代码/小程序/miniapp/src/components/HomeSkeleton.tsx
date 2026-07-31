@@ -1,3 +1,7 @@
+/**
+ * 首页骨架屏组件
+ * 首页数据加载时展示的占位骨架，包含头部、宠物卡片、功能网格和卡片区域
+ */
 import { View } from '@tarojs/components'
 import './HomeSkeleton.scss'
 

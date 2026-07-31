@@ -1,3 +1,7 @@
+/**
+ * 套餐选择器组件
+ * 展示会员套餐列表，支持月度/季度/年度选择
+ */
 import { View, Text } from '@tarojs/components'
 import type { MembershipPlan, MembershipPlanConfig } from '../services/membershipService'
 import { MEMBERSHIP_PLANS } from '../services/membershipService'

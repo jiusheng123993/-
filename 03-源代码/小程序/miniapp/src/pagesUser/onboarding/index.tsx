@@ -1,3 +1,7 @@
+/**
+ * 新用户引导页面
+ * 首次使用引导轮播
+ */
 import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'

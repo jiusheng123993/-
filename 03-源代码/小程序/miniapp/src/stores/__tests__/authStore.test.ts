@@ -1,3 +1,6 @@
+/**
+ * 认证状态管理 - 单元测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const { mockApi, mockStorage } = vi.hoisted(() => {

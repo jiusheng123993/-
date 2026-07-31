@@ -1,3 +1,8 @@
+/**
+ * 慢性病管理服务
+ *
+ * 宠物慢性病记录的增删改查、复查提醒、趋势分析
+ */
 import { getStorage, setStorage } from '../utils/storage'
 import { getSyncService, type SyncTable } from './syncService'
 import type { ChronicRecord } from '../types/chronicTypes'

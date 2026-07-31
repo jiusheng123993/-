@@ -1,3 +1,8 @@
+/**
+ * 宠物档案服务
+ *
+ * 宠物资料的 CRUD、当前宠物切换、本地缓存与云端同步
+ */
 import { api } from './api';
 import { getStorage, setStorage, removeStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';

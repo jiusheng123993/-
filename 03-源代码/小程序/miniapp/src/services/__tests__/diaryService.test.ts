@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest'
+/**
+ * 日记服务测试
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { generateDiaryFromEntries, type DiaryRecord } from '../../../src/services/diaryService'
 import type { PetHealthEntry } from '../../../src/memory-body/types/memoryBodyTypes'
 

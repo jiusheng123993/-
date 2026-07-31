@@ -1,3 +1,7 @@
+/**
+ * 粒子背景动画组件
+ * 使用 Canvas 2D 绘制动态粒子连线背景
+ */
 import { View, Canvas } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useRef } from 'react'

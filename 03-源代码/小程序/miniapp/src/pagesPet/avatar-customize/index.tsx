@@ -1,3 +1,7 @@
+/**
+ * 宠物形象定制页面
+ * 宠物虚拟形象生成、装饰搭配
+ */
 import { View, Text, Image } from '@tarojs/components'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import Taro from '@tarojs/taro'

@@ -1,3 +1,6 @@
+/**
+ * NPS 满意度调查服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const memoryStore = new Map<string, unknown>()

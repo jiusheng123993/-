@@ -1,3 +1,7 @@
+/**
+ * 衣橱路由安全测试 - 纯函数逻辑验证
+ * 覆盖：slot 白名单、配饰归属校验、解锁源校验、配额校验、错误码映射
+ */
 import { describe, it, expect } from 'vitest';
 
 const VALID_SLOTS = ['head', 'neck', 'back', 'body', 'feet'] as const;

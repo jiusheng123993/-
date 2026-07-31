@@ -1,3 +1,7 @@
+/**
+ * 衣橱/装扮状态管理
+ * 管理宠物配饰库存、当前搭配、试穿记录和主题套装生成
+ */
 import create from 'zustand'
 import type {
   AccessorySlot,
@@ -40,6 +44,7 @@ import {
   type OutfitPreview,
 } from '../services/outfitComposition'
 
+/** 衣橱状态定义 */
 interface WardrobeState {
   userId: string | null
   petId: string | null
@@ -89,6 +94,11 @@ const initialState = {
 export const useWardrobeStore = create<WardrobeState>((set, get) => ({
   ...initialState,
 
+  /**
+   * 初始化衣橱，加载配饰库存、当前搭配和主题套装概览
+   * @param userId - 用户 ID
+   * @param petId - 宠物 ID
+   */
   initWardrobe: async (userId: string, petId: string) => {
     set({ userId, petId, isLoading: true, error: null })
     try {
@@ -113,6 +123,10 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /**
+   * 切换宠物并加载对应衣橱数据
+   * @param petId - 宠物 ID
+   */
   switchPet: async (petId: string) => {
     const { userId } = get()
     if (!userId) return
@@ -139,6 +153,11 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /**
+   * 装备配饰到指定槽位
+   * @param slot - 槽位
+   * @param accessoryId - 配饰 ID
+   */
   equip: async (slot: AccessorySlot, accessoryId: string) => {
     const { userId, petId } = get()
     if (!userId || !petId) return
@@ -156,6 +175,10 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /**
+   * 卸下指定槽位的配饰
+   * @param slot - 槽位
+   */
   unequip: async (slot: AccessorySlot) => {
     const { userId, petId } = get()
     if (!userId || !petId) return
@@ -173,6 +196,11 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /**
+   * 本地切换槽位配饰（带防抖异步同步到服务端）
+   * @param slot - 槽位
+   * @param accessoryId - 配饰 ID
+   */
   toggleSlot: (slot: AccessorySlot, accessoryId: string) => {
     const { userId, petId, outfit } = get()
     if (!userId || !petId) return
@@ -204,6 +232,7 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /** 清空所有槽位的配饰 */
   clearOutfit: () => {
     const { userId, petId, outfit } = get()
     if (!userId || !petId || !outfit) return
@@ -222,6 +251,7 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /** 保存当前试穿记录快照 */
   saveCurrentTryOn: async () => {
     const { userId, petId, outfit } = get()
     if (!userId || !petId || !outfit) return
@@ -234,6 +264,11 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /**
+   * 解锁配饰到库存
+   * @param accessoryId - 配饰 ID
+   * @param source - 解锁来源
+   */
   unlock: async (accessoryId: string, source: string) => {
     const { userId } = get()
     if (!userId) return
@@ -246,6 +281,10 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /**
+   * 生成主题套装（含异步任务轮询）
+   * @param suiteId - 主题套装 ID
+   */
   generateTheme: async (suiteId: string) => {
     const { userId, petId } = get()
     if (!userId || !petId) return
@@ -296,6 +335,7 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /** 刷新主题套装概览 */
   refreshThemeOverview: async () => {
     const { userId } = get()
     if (!userId) return
@@ -312,6 +352,7 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /** 从本地缓存刷新当前搭配 */
   refreshOutfit: () => {
     const { petId, outfit } = get()
     if (!petId) return
@@ -323,10 +364,12 @@ export const useWardrobeStore = create<WardrobeState>((set, get) => ({
     }
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   },
 
+  /** 重置衣橱所有状态 */
   reset: () => {
     clearOutfitSaveTimer()
     set(initialState)

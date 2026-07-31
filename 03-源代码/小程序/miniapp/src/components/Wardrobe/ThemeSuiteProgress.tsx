@@ -1,3 +1,7 @@
+/**
+ * 主题套装生成进度组件
+ * 展示主题套装从提交到完成的四步进度，支持失败重试和审核状态提示
+ */
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'
 import type { ThemeSuiteTask, ModerationResult } from '../../types/wardrobeTypes'

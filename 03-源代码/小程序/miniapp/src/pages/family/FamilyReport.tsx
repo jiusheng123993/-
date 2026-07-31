@@ -1,3 +1,7 @@
+/**
+ * 家庭健康周报组件
+ * 展示AI生成的宠物家庭健康周报摘要
+ */
 import { View, Text } from '@tarojs/components'
 import { getMoodEmoji, getMoodLabel } from '../../services/weeklyReportService'
 import type { PetProfile } from '../../services/petService'

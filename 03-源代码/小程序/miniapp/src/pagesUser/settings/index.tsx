@@ -1,3 +1,7 @@
+/**
+ * 设置页面
+ * 应用设置、通知管理、主题切换、账号管理
+ */
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, Text, Switch } from '@tarojs/components'
 import Taro from '@tarojs/taro'

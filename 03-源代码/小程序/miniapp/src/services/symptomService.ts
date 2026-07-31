@@ -1,3 +1,8 @@
+/**
+ * 症状查询服务
+ *
+ * 宠物症状分类浏览、搜索与 AI 辅助分析
+ */
 import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
 import { queueSync } from './syncHelper'

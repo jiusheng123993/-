@@ -1,6 +1,20 @@
+/**
+ * 宠物衣橱路由 - 配饰装备/卸下、主题套装管理
+ * 包括衣橱总览、配饰查询、装备/卸下、试穿快照、解锁配饰、主题套装生成
+ */
 import { Router, type Request, type Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import {
+  wardrobeOverviewQuerySchema,
+  wardrobeAccessoriesQuerySchema,
+  wardrobeEquipSchema,
+  wardrobeUnequipSchema,
+  wardrobeTryOnSchema,
+  wardrobeUnlockSchema,
+  themeSuiteGenerateSchema,
+} from '../schemas/index.js';
 import * as wardrobeService from '../services/wardrobeService.js';
 import * as themeSuiteService from '../services/themeSuiteService.js';
 import { WardrobeError } from '../services/wardrobeService.js';
@@ -47,15 +61,10 @@ function handleWardrobeError(res: Response, error: unknown): void {
   res.status(500).json({ success: false, message: '操作失败，请稍后重试' });
 }
 
-router.get('/overview', authMiddleware, async (req: Request, res: Response) => {
+router.get('/overview', authMiddleware, validate({ query: wardrobeOverviewQuerySchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const petId = req.query.petId as string;
-
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
-      return;
-    }
 
     const overview = await wardrobeService.getWardrobeOverview(userId, petId);
     res.json({ success: true, data: overview });
@@ -64,15 +73,11 @@ router.get('/overview', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-router.get('/accessories', authMiddleware, async (req: Request, res: Response) => {
+router.get('/accessories', authMiddleware, validate({ query: wardrobeAccessoriesQuerySchema }), async (req: Request, res: Response) => {
   try {
-    const slot = req.query.slot as string;
+    const slot = req.query.slot as string | undefined;
 
     if (slot) {
-      if (!VALID_SLOTS.includes(slot)) {
-        res.status(400).json({ success: false, message: '无效的槽位参数' });
-        return;
-      }
       const accessories = await wardrobeService.getAccessoriesBySlot(slot);
       res.json({ success: true, data: { accessories } });
       return;
@@ -85,30 +90,10 @@ router.get('/accessories', authMiddleware, async (req: Request, res: Response) =
   }
 });
 
-router.post('/equip', authMiddleware, equipLimiter, async (req: Request, res: Response) => {
+router.post('/equip', authMiddleware, equipLimiter, validate({ body: wardrobeEquipSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { petId, slot, accessoryId } = req.body;
-
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
-      return;
-    }
-
-    if (!slot || typeof slot !== 'string') {
-      res.status(400).json({ success: false, message: 'slot 参数不能为空' });
-      return;
-    }
-
-    if (!accessoryId || typeof accessoryId !== 'string') {
-      res.status(400).json({ success: false, message: 'accessoryId 参数不能为空' });
-      return;
-    }
-
-    if (!ID_PATTERN.test(accessoryId)) {
-      res.status(400).json({ success: false, message: 'accessoryId 格式不合法' });
-      return;
-    }
 
     const result = await wardrobeService.equipAccessory(userId, petId, slot, accessoryId);
     res.json({ success: true, data: result });
@@ -126,20 +111,10 @@ router.post('/equip', authMiddleware, equipLimiter, async (req: Request, res: Re
   }
 });
 
-router.post('/unequip', authMiddleware, equipLimiter, async (req: Request, res: Response) => {
+router.post('/unequip', authMiddleware, equipLimiter, validate({ body: wardrobeUnequipSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { petId, slot } = req.body;
-
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
-      return;
-    }
-
-    if (!slot || typeof slot !== 'string') {
-      res.status(400).json({ success: false, message: 'slot 参数不能为空' });
-      return;
-    }
 
     const result = await wardrobeService.unequipAccessory(userId, petId, slot);
     res.json({ success: true, data: result });
@@ -157,20 +132,10 @@ router.post('/unequip', authMiddleware, equipLimiter, async (req: Request, res: 
   }
 });
 
-router.post('/try-on', authMiddleware, equipLimiter, async (req: Request, res: Response) => {
+router.post('/try-on', authMiddleware, equipLimiter, validate({ body: wardrobeTryOnSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { petId, outfitSnapshot } = req.body;
-
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
-      return;
-    }
-
-    if (!outfitSnapshot || typeof outfitSnapshot !== 'object') {
-      res.status(400).json({ success: false, message: 'outfitSnapshot 参数不能为空' });
-      return;
-    }
 
     const result = await wardrobeService.saveTryOnSnapshot(userId, petId, outfitSnapshot);
     res.json({ success: true, data: result });
@@ -188,20 +153,10 @@ router.post('/try-on', authMiddleware, equipLimiter, async (req: Request, res: R
   }
 });
 
-router.post('/unlock', authMiddleware, async (req: Request, res: Response) => {
+router.post('/unlock', authMiddleware, validate({ body: wardrobeUnlockSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { accessoryId, source } = req.body;
-
-    if (!accessoryId || typeof accessoryId !== 'string') {
-      res.status(400).json({ success: false, message: 'accessoryId 参数不能为空' });
-      return;
-    }
-
-    if (!ID_PATTERN.test(accessoryId)) {
-      res.status(400).json({ success: false, message: 'accessoryId 格式不合法' });
-      return;
-    }
 
     const result = await wardrobeService.unlockAccessory(userId, accessoryId, source || 'default');
     res.json({ success: true, data: result });
@@ -229,25 +184,10 @@ router.get('/theme-suites', authMiddleware, async (req: Request, res: Response) 
   }
 });
 
-router.post('/theme-suites/generate', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
+router.post('/theme-suites/generate', authMiddleware, generateLimiter, validate({ body: themeSuiteGenerateSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const { petId, suiteId } = req.body;
-
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
-      return;
-    }
-
-    if (!suiteId || typeof suiteId !== 'string') {
-      res.status(400).json({ success: false, message: 'suiteId 参数不能为空' });
-      return;
-    }
-
-    if (!ID_PATTERN.test(suiteId)) {
-      res.status(400).json({ success: false, message: 'suiteId 格式不合法' });
-      return;
-    }
 
     const task = await themeSuiteService.generateThemeSuite(userId, petId, suiteId);
     res.json({ success: true, data: { taskId: task.id, status: task.status } });

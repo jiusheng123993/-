@@ -1,3 +1,7 @@
+/**
+ * 食物安全分享卡片组件
+ * 展示食物安全等级、危险成分和症状，支持保存图片和分享
+ */
 import { View, Text, Image, Canvas } from '@tarojs/components';
 import { useState, useCallback } from 'react';
 import Taro from '@tarojs/taro';

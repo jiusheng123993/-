@@ -1,3 +1,7 @@
+/**
+ * MedicalDisclaimer 测试
+ * 验证医疗免责声明引擎的各种场景声明文本
+ */
 import { describe, it, expect } from 'vitest'
 import { MedicalDisclaimer, mapFoodSafetyToHealthRisk } from '../MedicalDisclaimer'
 import type { UrgencyLevel } from '../PetSafetyHandler'

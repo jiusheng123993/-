@@ -1,3 +1,7 @@
+/**
+ * useAvatar3DTask 测试
+ * 验证 3D 形象生成任务 Hook 的轮询、状态管理和重试功能
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 

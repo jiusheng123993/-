@@ -1,3 +1,8 @@
+/**
+ * 本地提醒服务
+ *
+ * 疫苗/驱虫等本地提醒的调度、查询、过期管理
+ */
 import Taro from '@tarojs/taro';
 import type { VaccineRecord } from './vaccineService';
 import { getStorage, setStorage } from '../utils/storage';

@@ -1,4 +1,10 @@
-import Taro from '@tarojs/taro';
+/**
+ * 分享服务
+ *
+ * 生成并分享宠物健康报告/动态等内容的图片
+ */
+import Taro from '@tarojs/taro'
+import { CONFIG } from '../config'
 import { api } from './api';
 import {
   INVITE_CODE_LENGTH,

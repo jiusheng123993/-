@@ -23,6 +23,7 @@ export interface PetLineage {
   litterDate?: string
 }
 
+/** 家庭动态类型 */
 export type MomentType = 'photo' | 'milestone' | 'memory' | 'ai_summary' | 'checkin'
 
 export interface CheckinMomentContent {
@@ -41,12 +42,14 @@ export interface MilestoneMomentContent {
   description: string
 }
 
+/** 照片动态内容 */
 export interface PhotoMomentContent {
   petName: string
   petEmoji: string
   description: string
 }
 
+/** 记忆动态内容 */
 export interface MemoryMomentContent {
   petName: string
   petEmoji: string
@@ -58,6 +61,7 @@ export interface AiSummaryMomentContent {
   period: string
 }
 
+/** 动态内容联合类型 */
 export type MomentContent =
   | CheckinMomentContent
   | MilestoneMomentContent
@@ -78,6 +82,7 @@ export interface PetMoment {
   createdAt: string
 }
 
+/** 宠物里程碑 */
 export interface PetMilestone {
   id: string
   userId: string
@@ -90,6 +95,7 @@ export interface PetMilestone {
 
 export type PhotoType = 'generated' | 'uploaded'
 
+/** 家庭照片 */
 export interface FamilyPhoto {
   id: string
   familyId: string
@@ -102,6 +108,7 @@ export interface FamilyPhoto {
   createdAt: string
 }
 
+/** 宠物名字记录 */
 export interface PetName {
   id: string
   userId: string

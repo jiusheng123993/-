@@ -1,3 +1,7 @@
+/**
+ * 宠物虚拟形象模块统一导出入口
+ * 集中导出表情引擎、SVG 渲染器、日记引擎和 AI 生成适配器
+ */
 export {
   calculateExpression,
   getExpressionForFoodResult,

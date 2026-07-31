@@ -1,4 +1,8 @@
-﻿import create from 'zustand'
+/**
+ * 会员状态管理
+ * 管理会员信息、订阅方案、订单记录和功能权限校验
+ */
+import create from 'zustand'
 import { api } from '../services/api'
 import type { Membership } from '../types'
 import {
@@ -16,6 +20,7 @@ import {
   type PaymentOrder,
 } from '../services/membershipService'
 
+/** 会员状态定义 */
 interface MembershipState {
   userId: string | null
   membership: Membership | null
@@ -42,11 +47,19 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /**
+   * 初始化用户并加载会员信息
+   * @param userId - 用户 ID
+   */
   initUser: async (userId: string) => {
     set({ userId })
     await get().fetchMembership(userId)
   },
 
+  /**
+   * 获取会员状态
+   * @param userId - 用户 ID
+   */
   fetchMembership: async (userId: string) => {
     set({ isLoading: true })
     try {
@@ -66,6 +79,7 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
     }
   },
 
+  /** 获取订单列表 */
   fetchOrders: async () => {
     const { userId } = get()
     if (!userId) return
@@ -77,6 +91,11 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
     }
   },
 
+  /**
+   * 订阅会员方案
+   * @param plan - 会员方案
+   * @returns 订阅结果
+   */
   subscribePlan: async (plan: MembershipPlan) => {
     const { userId } = get()
     if (!userId) return { success: false, error: '用户未登录' }
@@ -95,6 +114,7 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
     }
   },
 
+  /** 取消订阅 */
   cancelSubscription: async () => {
     const { userId } = get()
     if (!userId) return
@@ -109,6 +129,7 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
     }
   },
 
+  /** 恢复购买状态 */
   restorePurchaseStatus: async () => {
     const { userId } = get()
     if (!userId) return
@@ -123,29 +144,46 @@ export const useMembershipStore = create<MembershipState>((set, get) => ({
     }
   },
 
+  /**
+   * 检查功能访问权限
+   * @param featureKey - 功能标识
+   */
   checkAccess: async (featureKey: string) => {
     const { userId } = get()
     if (!userId) return { allowed: false, remaining: 0, isMember: false }
     return checkFeatureAccess(userId, featureKey)
   },
 
+  /**
+   * 判断是否应显示付费墙
+   * @param featureKey - 功能标识
+   */
   shouldShowPaywallForFeature: async (featureKey: string) => {
     const { userId } = get()
     if (!userId) return false
     return shouldShowPaywall(userId, featureKey)
   },
 
+  /**
+   * 标记付费墙已展示
+   * @param featureKey - 功能标识
+   */
   markPaywallShownForFeature: async (featureKey: string) => {
     const { userId } = get()
     if (!userId) return
     await markPaywallShown(userId, featureKey)
   },
 
+  /**
+   * 获取宠物数量上限
+   * @returns 宠物数量上限
+   */
   getPetLimit: async () => {
     const { userId } = get()
     if (!userId) return 2
     return getPetCountLimit(userId)
   },
 
+  /** 清除错误状态 */
   clearError: () => set({ error: null }),
 }))

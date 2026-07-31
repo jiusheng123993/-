@@ -1,3 +1,7 @@
+/**
+ * 家庭页面快捷入口组件
+ * 展示功能快捷入口卡片
+ */
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { QuickEntry } from './utils'

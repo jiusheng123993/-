@@ -1,35 +1,42 @@
-import { Router, type Request, type Response } from 'express';
+/**
+ * 症状初筛路由 - 宠物症状分析与风险评估
+ * 提交症状检查记录，查询历史初筛结果（含分页）
+ */
+import { Router, type Request, type Response, type NextFunction } from 'express';
 import crypto from 'crypto';
-import { pool } from '../db.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { symptomCheckSchema, symptomHistoryQuerySchema } from '../schemas/index.js';
+import { PetRepository } from '../repositories/petRepository.js';
+import { SymptomRepository } from '../repositories/symptomRepository.js';
 
 const router = Router();
 
-async function verifyPetOwnership(petId: string, userId: string): Promise<boolean> {
-  const result = await pool.query(
-    'SELECT 1 FROM pet_profiles WHERE id = $1 AND user_id = $2',
-    [petId, userId]
-  );
-  return (result.rowCount ?? 0) > 0;
-}
+const petRepository = new PetRepository();
+const symptomRepository = new SymptomRepository();
 
-router.post('/api/pets/:petId/symptom-check', authMiddleware, async (req: Request, res: Response) => {
+async function checkPetOwnership(req: Request, res: Response, next: NextFunction) {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
-
-    const isOwner = await verifyPetOwnership(petId, userId);
+    const isOwner = await petRepository.isOwner(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
     }
+    next();
+  } catch (err) {
+    console.error('[Symptom Check Error]', err);
+    res.status(500).json({ success: false, message: '提交症状初筛失败' });
+  }
+}
+
+router.post('/api/pets/:petId/symptom-check', authMiddleware, checkPetOwnership, validate({ body: symptomCheckSchema }), async (req: Request, res: Response) => {
+  try {
+    const petId = req.params.petId as string;
+    const userId = req.userId!;
 
     const { symptoms, duration, severity, additional_info } = req.body;
-
-    if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
-      res.status(400).json({ success: false, message: '请提供症状列表' });
-      return;
-    }
 
     const validRiskLevels = ['normal', 'caution', 'warning', 'emergency'];
     const risk_level = validRiskLevels.includes(req.body.risk_level)
@@ -37,63 +44,47 @@ router.post('/api/pets/:petId/symptom-check', authMiddleware, async (req: Reques
       : 'normal';
 
     const id = crypto.randomUUID();
-    const result = await pool.query(
-      `INSERT INTO pet_symptom_checks (id, pet_id, user_id, symptoms, duration, severity, additional_info, risk_level, possible_conditions, ai_advice, recommended_actions, knowledge_match)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING *`,
-      [
-        id,
-        petId,
-        userId,
-        symptoms,
-        duration || null,
-        severity || null,
-        JSON.stringify(additional_info || {}),
-        risk_level,
-        req.body.possible_conditions || [],
-        req.body.ai_advice || null,
-        req.body.recommended_actions || [],
-        req.body.knowledge_match ? JSON.stringify(req.body.knowledge_match) : null,
-      ]
-    );
+    const row = await symptomRepository.createSymptomCheck(id, petId, userId, {
+      symptoms,
+      duration: duration || null,
+      severity: severity || null,
+      additional_info: JSON.stringify(additional_info || {}),
+      risk_level,
+      possible_conditions: req.body.possible_conditions || [],
+      ai_advice: req.body.ai_advice || null,
+      recommended_actions: req.body.recommended_actions || [],
+      knowledge_match: req.body.knowledge_match ? JSON.stringify(req.body.knowledge_match) : null,
+    });
 
-    res.json({ success: true, data: result.rows[0] });
+    res.json({ success: true, data: row });
   } catch (err) {
     console.error('[Symptom Check Error]', err);
     res.status(500).json({ success: false, message: '提交症状初筛失败' });
   }
 });
 
-router.get('/api/pets/:petId/symptom-check/history', authMiddleware, async (req: Request, res: Response) => {
+router.get('/api/pets/:petId/symptom-check/history', authMiddleware, validate({ query: symptomHistoryQuerySchema }), async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
 
-    const isOwner = await verifyPetOwnership(petId, userId);
+    const isOwner = await petRepository.isOwner(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
     }
 
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const pageSize = Math.min(50, Math.max(1, parseInt(req.query.pageSize as string) || 20));
+    const page = req.query.page as unknown as number;
+    const pageSize = req.query.page_size as unknown as number;
     const offset = (page - 1) * pageSize;
 
-    const countResult = await pool.query(
-      'SELECT COUNT(*) FROM pet_symptom_checks WHERE pet_id = $1 AND user_id = $2',
-      [petId, userId]
-    );
-    const total = parseInt(countResult.rows[0].count, 10);
-
-    const result = await pool.query(
-      'SELECT * FROM pet_symptom_checks WHERE pet_id = $1 AND user_id = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4',
-      [petId, userId, pageSize, offset]
-    );
+    const total = await symptomRepository.countByPetAndUser(petId, userId);
+    const list = await symptomRepository.findHistoryPage(petId, userId, pageSize, offset);
 
     res.json({
       success: true,
       data: {
-        list: result.rows,
+        list,
         total,
         page,
         pageSize,

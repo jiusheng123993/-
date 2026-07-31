@@ -1,3 +1,7 @@
+/**
+ * 成就分享卡片组件
+ * 支持将成就卡片渲染为图片并保存或分享给好友
+ */
 import { View, Text, Canvas } from '@tarojs/components';
 import { useState, useCallback } from 'react';
 import Taro from '@tarojs/taro';

@@ -1,3 +1,6 @@
+/**
+ * 认证服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { mockTaroLogin, mockApiPost, mockApiGet } = vi.hoisted(() => ({

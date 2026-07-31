@@ -1,3 +1,7 @@
+/**
+ * memory-body 类型定义
+ * 定义宠物健康数据、疫苗接种、症状检查、食物查询、记忆引擎等核心类型
+ */
 export type PetSpecies = 'dog' | 'cat';
 
 export type PetGender = 'male' | 'female' | 'unknown';

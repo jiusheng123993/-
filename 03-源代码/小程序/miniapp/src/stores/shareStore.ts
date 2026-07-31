@@ -1,4 +1,8 @@
-﻿import create from 'zustand'
+/**
+ * 分享和邀请状态管理
+ * 管理邀请码、分享统计、分享动作记录和奖励发放
+ */
+import create from 'zustand'
 import {
   getOrCreateInviteCode,
   getShareStats,
@@ -7,6 +11,7 @@ import {
 } from '../services/shareService'
 import type { ShareCardType, ShareStats, ShareRewardResult } from '../types/shareTypes'
 
+/** 分享状态定义 */
 interface ShareStoreState {
   inviteCode: string
   shareStats: ShareStats | null
@@ -26,6 +31,10 @@ export const useShareStore = create<ShareStoreState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /**
+   * 获取或创建邀请码
+   * @param userId - 用户 ID
+   */
   fetchInviteCode: async (userId: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -36,6 +45,10 @@ export const useShareStore = create<ShareStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取分享统计数据
+   * @param userId - 用户 ID
+   */
   fetchShareStats: async (userId: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -46,6 +59,13 @@ export const useShareStore = create<ShareStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 记录一次分享动作并更新本地统计
+   * @param userId - 用户 ID
+   * @param cardType - 分享卡片类型
+   * @param petId - 宠物 ID
+   * @param platform - 分享平台
+   */
   recordShareAction: async (userId: string, cardType: ShareCardType, petId: string, platform: string) => {
     try {
       await recordShare(userId, cardType, petId, platform)
@@ -65,6 +85,11 @@ export const useShareStore = create<ShareStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 检查并发放邀请奖励
+   * @param userId - 用户 ID
+   * @returns 奖励发放结果
+   */
   checkAndGrantReward: async (userId: string) => {
     try {
       const result = await grantShareReward(userId)
@@ -86,5 +111,6 @@ export const useShareStore = create<ShareStoreState>((set, get) => ({
     }
   },
 
+  /** 清除错误状态 */
   clearError: () => set({ error: null }),
 }))

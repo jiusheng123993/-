@@ -5,6 +5,10 @@
  * 标记疫苗完成 → 手动添加记录 → 到期提醒验证。
  * 使用真实的 vaccineService 函数，mock 底层 api 和 storage。
  */
+/**
+ * E2E 测试：疫苗日历
+ * 验证疫苗接种排期和提醒功能
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // ============================================================

@@ -1,3 +1,6 @@
+/**
+ * 宠物形象生成进度组件测试
+ */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import GenerationProgress from './GenerationProgress';

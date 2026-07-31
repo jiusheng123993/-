@@ -1,3 +1,7 @@
+/**
+ * 宠物形象生成进度组件
+ * 展示 2D/3D 形象的生成进度条、完成提示和失败重试
+ */
 import { View, Text } from '@tarojs/components'
 
 interface GenerationProgressProps {

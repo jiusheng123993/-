@@ -1,8 +1,14 @@
+/**
+ * AI 服务提供者
+ *
+ * 封装 AI 对话请求、内容安全审核（输入/输出）的 HTTP 客户端
+ */
 import Taro from '@tarojs/taro'
 import type { ChatMessage, ChatResponse } from '../types/chatTypes'
 import { CONFIG } from '../config'
 import { storage } from '../utils/storage'
 
+/** AI 对话请求接口 */
 interface ChatRequest {
   messages: ChatMessage[]
   temperature?: number
@@ -10,6 +16,11 @@ interface ChatRequest {
   petId?: string
 }
 
+/**
+ * 发送 AI 对话请求
+ * @param request - 对话参数（消息列表/温度/最大 token 数等）
+ * @returns AI 回复文本
+ */
 export async function chat(request: ChatRequest): Promise<string> {
   const token = storage.getToken()
   try {
@@ -38,12 +49,17 @@ export async function chat(request: ChatRequest): Promise<string> {
   }
 }
 
+/** AI 内容安全审核结果 */
 export interface GuardResult {
   isHarmful: boolean
   score: number
   isCrisis: boolean
 }
 
+/**
+ * 用户输入安全审核
+ * @param text - 用户输入文本
+ */
 export async function guardCheck(text: string): Promise<GuardResult> {
   const token = storage.getToken()
   try {
@@ -65,6 +81,10 @@ export async function guardCheck(text: string): Promise<GuardResult> {
   }
 }
 
+/**
+ * AI 输出安全审核（医疗建议合规检查）
+ * @param text - AI 回复文本
+ */
 export async function guardCheckOutput(text: string): Promise<{ isUnsafeMedicalAdvice: boolean }> {
   const token = storage.getToken()
   try {

@@ -1,3 +1,4 @@
+/** 数据导出结果 */
 export interface DataExportResult {
   success: boolean
   data?: string
@@ -22,6 +23,7 @@ export type AccountDeletionReason =
   | 'too_complicated'
   | 'other'
 
+/** 账号注销请求 */
 export interface AccountDeletionRequest {
   reason: AccountDeletionReason
   customReason?: string
@@ -35,6 +37,7 @@ export interface AccountDeletionResult {
   gracePeriodDays: number
 }
 
+/** 数据隐私状态概览 */
 export interface DataPrivacyStatus {
   lastExportAt: string | null
   lastDeleteAt: string | null

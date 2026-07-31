@@ -1,3 +1,7 @@
+/**
+ * 症状初筛 Hook
+ * 提供症状分类查询、症状选取、AI 分析和历史记录管理
+ */
 import { useEffect, useCallback } from 'react'
 import { useSymptomStore } from '../stores/symptomStore'
 import type { SymptomCheckResult, SymptomCategory } from '../services/symptomService'
@@ -25,6 +29,10 @@ interface UseSymptomReturn {
   clearError: () => void
 }
 
+/**
+ * 症状初筛 Hook
+ * 提供症状分类查询、症状选取、AI 分析和历史记录管理
+ */
 export function useSymptom(): UseSymptomReturn {
   const {
     categories,

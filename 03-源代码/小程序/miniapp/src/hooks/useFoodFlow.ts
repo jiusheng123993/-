@@ -1,3 +1,7 @@
+/**
+ * 食物查询流程 Hook
+ * 管理食物查询激活状态，负责发起食物安全查询并生成结果卡片
+ */
 import { useCallback, useState } from 'react'
 import { queryFood } from '../services/foodService'
 import { useAuthStore } from '../stores/authStore'

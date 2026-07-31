@@ -1,3 +1,7 @@
+/**
+ * 宠物档案页面
+ * 展示宠物基本信息、喜好习惯、健康信息、操作入口
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'

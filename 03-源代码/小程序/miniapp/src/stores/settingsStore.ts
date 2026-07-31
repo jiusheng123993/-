@@ -1,4 +1,8 @@
-﻿import create from 'zustand';
+/**
+ * 应用设置状态管理
+ * 管理通知偏好、本地缓存清理和数据导入导出
+ */
+import create from 'zustand';
 import Taro from '@tarojs/taro';
 import { clearSubscribeStatus } from '../services/subscribeService';
 import { MiniProgramMemoryBodyStore } from '../memory-body/store/miniProgramMemoryBodyStore';
@@ -10,6 +14,7 @@ const NOTIFICATION_KEY = 'xhh_notification_settings';
 const PET_DATA_KEY = 'pet_data';
 const CHECKIN_DATA_KEY = 'checkin_data';
 
+/** 通知设置定义 */
 export interface NotificationSettings {
   checkinReminder: boolean;
   vaccineReminder: boolean;
@@ -22,6 +27,7 @@ const DEFAULT_NOTIFICATION: NotificationSettings = {
   healthAlert: true,
 };
 
+/** 设置状态定义 */
 interface SettingsState {
   notification: NotificationSettings;
   isLoading: boolean;
@@ -36,6 +42,7 @@ interface SettingsState {
   exportData: () => string;
 }
 
+/** 从本地存储加载通知设置 */
 function loadNotificationFromStorage(): NotificationSettings {
   try {
     const raw = Taro.getStorageSync(NOTIFICATION_KEY);
@@ -51,12 +58,14 @@ function loadNotificationFromStorage(): NotificationSettings {
   }
 }
 
+/** 保存通知设置到本地存储 */
 function saveNotificationToStorage(settings: NotificationSettings): void {
   try {
     Taro.setStorageSync(NOTIFICATION_KEY, JSON.stringify(settings));
   } catch {}
 }
 
+/** 清除指定本地存储 key */
 function clearStorageKey(key: string): void {
   try {
     Taro.removeStorageSync(key);
@@ -68,11 +77,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /** 从本地存储加载设置 */
   loadSettings: () => {
     const settings = loadNotificationFromStorage();
     set({ notification: settings });
   },
 
+  /**
+   * 更新单个通知设置项
+   * @param key - 通知设置项 key
+   * @param value - 新值
+   */
   updateNotification: (key, value) => {
     const current = get().notification;
     const updated = { ...current, [key]: value };
@@ -80,6 +95,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ notification: updated });
   },
 
+  /** 清除所有本地缓存 */
   clearCache: () => {
     set({ isLoading: true });
     try {
@@ -90,6 +106,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
+  /** 清除打卡记录数据 */
   clearCheckinData: () => {
     set({ isLoading: true });
     try {
@@ -101,6 +118,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
+  /** 清除宠物数据 */
   clearPetData: () => {
     set({ isLoading: true });
     try {
@@ -111,6 +129,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
+  /** 清除所有数据（宠物、打卡、订阅等） */
   clearAllData: () => {
     set({ isLoading: true });
     try {
@@ -124,6 +143,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
+  /** 导出用户数据为 JSON 字符串 */
   exportData: () => {
     const checkinData = getStorageArray(CHECKIN_DATA_KEY);
     const petData = getStorageArray(PET_DATA_KEY);

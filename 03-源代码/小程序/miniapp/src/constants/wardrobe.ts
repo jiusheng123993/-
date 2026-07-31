@@ -1,5 +1,9 @@
 import type { AccessorySlot } from '../types/wardrobeTypes'
 
+/**
+ * 衣橱/换装常量配置
+ * 管理配饰槽位、层级、错误码、主题生成等核心参数
+ */
 export const ACCESSORY_SLOTS = ['head', 'neck', 'back', 'body', 'feet'] as const
 
 export const SLOT_Z_INDEX: Record<AccessorySlot, number> = {

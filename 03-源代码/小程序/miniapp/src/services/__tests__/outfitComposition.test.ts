@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest'
+/**
+ * 穿搭预览服务测试
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   buildOutfitPreview,
   toggleSlotInOutfit,

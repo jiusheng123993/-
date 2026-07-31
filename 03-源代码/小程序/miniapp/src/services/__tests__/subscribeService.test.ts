@@ -1,3 +1,6 @@
+/**
+ * 订阅消息服务测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockStorage: Record<string, string> = {}

@@ -1,3 +1,8 @@
+/**
+ * 宠物喂养个性化建议服务
+ *
+ * 根据宠物档案、慢病记录和品种特征生成喂养建议
+ */
 import type { PetProfile } from './petService'
 import type { ChronicRecord } from '../types/chronicTypes'
 import { getChronicRecords } from './chronicService'

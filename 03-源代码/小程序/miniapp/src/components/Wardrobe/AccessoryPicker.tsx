@@ -1,3 +1,7 @@
+/**
+ * 饰品选择器组件
+ * 按槽位分类展示饰品列表，支持已拥有饰品的穿戴和未拥有饰品的解锁引导
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useState, useMemo, useCallback } from 'react'
 import type { AccessorySlot, AccessoryDef, UserAccessoryInventory, UnlockSource } from '../../types/wardrobeTypes'

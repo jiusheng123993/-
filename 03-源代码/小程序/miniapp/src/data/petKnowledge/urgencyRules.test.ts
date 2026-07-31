@@ -1,3 +1,7 @@
+/**
+ * 紧急规则测试
+ * 验证紧急程度判断规则的正确性
+ */
 import { describe, it, expect } from 'vitest'
 import { URGENCY_RULES } from './urgencyRules'
 

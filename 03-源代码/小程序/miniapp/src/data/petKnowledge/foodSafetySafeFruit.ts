@@ -1,5 +1,9 @@
 import type { FoodSafetyItem } from './foodSafety'
 
+/**
+ * 安全水果数据
+ * 宠物可安全食用的水果列表（含去核去籽等注意事项）
+ */
 export const FOOD_SAFETY_SAFE_FRUIT: FoodSafetyItem[] = [
   {
     id: 'pear',
@@ -288,5 +292,144 @@ export const FOOD_SAFETY_SAFE_FRUIT: FoodSafetyItem[] = [
     safetyLevel: 'safe',
     speciesApplicable: ['dog', 'cat'],
     detail: '大蕉煮熟后少量喂食是安全的，含钾和纤维。必须煮熟，生大蕉难以消化。建议少量煮熟后喂食。'
+  },
+  {
+    id: 'lemon',
+    name: '柠檬',
+    aliases: ['lemon', '黄柠檬', '青柠檬', '柠檬果', '香水柠檬'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '柠檬去籽去皮后少量果肉喂食通常是安全的，含维生素C。柠檬酸含量高，大量可能刺激胃肠，不宜过量。果皮含柠檬烯和精油对宠物有毒（尤其浓缩精油），去皮的果肉少量安全。猫通常不喜酸味，不必强迫喂食。'
+  },
+  {
+    id: 'lemon_peel',
+    name: '柠檬皮（不可喂食）',
+    aliases: ['柠檬皮', '干柠檬片', '柠檬干'],
+    safetyLevel: 'dangerous',
+    speciesApplicable: ['dog', 'cat'],
+    dangerousCompounds: ['柠檬烯', '补骨脂素', '柠檬精油'],
+    symptoms: ['呕吐', '腹泻', '皮肤光敏', '中枢抑制'],
+    detail: '柠檬皮含高浓度柠檬烯和精油，大量摄入可导致中毒。干柠檬片仍含精油成分，不建议喂食。果肉少量安全，但果皮和精油有毒性。柠檬精油浓缩后毒性更强。'
+  },
+  {
+    id: 'lime',
+    name: '青柠',
+    aliases: ['lime', '酸橙', '莱姆'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '青柠去籽去皮后少量果肉喂食通常是安全的。果皮含精油有刺激性，不宜喂食。酸度较高，大量可刺激胃肠。建议极少量果肉。'
+  },
+  {
+    id: 'passion_fruit',
+    name: '百香果',
+    aliases: ['passion fruit', '鸡蛋果', '热情果'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '百香果少量果肉喂食是安全的，含维生素C和纤维。籽较小通常可耐受，但大量可能刺激胃肠。酸度极高，建议极少量测试。'
+  },
+  {
+    id: 'pomegranate',
+    name: '石榴',
+    aliases: ['pomegranate', '红石榴', '安石榴'],
+    safetyLevel: 'caution',
+    speciesApplicable: ['dog', 'cat'],
+    dangerousCompounds: ['鞣酸', '石榴碱'],
+    detail: '石榴少量果肉通常安全，但果皮和根含石榴碱有毒性。籽硬可能造成胃肠刺激或梗阻。建议只给极少量果肉，并确保去籽去果皮。部分犬猫可能出现胃肠不适。'
+  },
+  {
+    id: 'longan',
+    name: '龙眼',
+    aliases: ['longan', '桂圆', '龙眼肉'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '龙眼去壳去核后少量果肉喂食是安全的，含维生素C和糖分。必须去壳去核（核可造成梗阻）。含糖量极高不宜过量。建议极少量去核果肉。'
+  },
+  {
+    id: 'lychee',
+    name: '荔枝',
+    aliases: ['lychee', '荔枝果', '糯米糍', '妃子笑'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '荔枝去壳去核后少量果肉喂食是安全的，含维生素C。必须去壳去核（核可造成梗阻）。含糖量极高不宜过量。建议极少量去核果肉。'
+  },
+  {
+    id: 'mango',
+    name: '芒果',
+    aliases: ['mango', '芒果肉', '青芒果', '台农芒'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '芒果去皮去核后少量果肉喂食是安全的，含维生素A和C。必须去核（核含微量氰苷且可造成梗阻）。芒果皮含漆酚，部分宠物可能过敏。果肉含糖量高不宜过量。'
+  },
+  {
+    id: 'papaya',
+    name: '木瓜',
+    aliases: ['papaya', '番木瓜', '青木瓜', '木瓜肉'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '木瓜去皮去籽后少量喂食是安全的，含木瓜酵素助消化，含维生素A和C。籽不宜食用。建议少量去皮去籽果肉。'
+  },
+  {
+    id: 'pineapple',
+    name: '菠萝',
+    aliases: ['pineapple', '凤梨', '菠萝肉', '金钻凤梨'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '菠萝去皮去芯后少量喂食是安全的，含菠萝蛋白酶和维生素C。菠萝蛋白酶大量可刺激口腔黏膜。含糖量较高不宜过量。建议少量新鲜菠萝肉。'
+  },
+  {
+    id: 'watermelon',
+    name: '西瓜',
+    aliases: ['watermelon', '西瓜肉', '无籽西瓜'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '西瓜去籽后少量果肉喂食是安全的，含水量高补水好。必须去籽（籽可造成梗阻）。瓜皮不宜喂食。含糖量较高不宜过量。建议少量去籽红肉。'
+  },
+  {
+    id: 'banana',
+    name: '香蕉',
+    aliases: ['banana', '香蕉肉', '芭蕉'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '香蕉去皮后少量喂食是安全的，含钾和维生素B6。含糖和淀粉较高不宜过量。建议少量切片。香蕉皮不易消化不建议喂食。'
+  },
+  {
+    id: 'blueberry',
+    name: '蓝莓',
+    aliases: ['blueberry', '蓝莓果', '野生蓝莓'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '蓝莓少量喂食是安全的，含抗氧化物和维生素C。低热量高纤维。建议少量新鲜或冷冻蓝莓（不要加糖）。'
+  },
+  {
+    id: 'strawberry',
+    name: '草莓',
+    aliases: ['strawberry', '草莓果', '士多啤梨'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '草莓去蒂后少量喂食是安全的，含维生素C和纤维。含糖量较高不宜过量。建议少量新鲜草莓。'
+  },
+  {
+    id: 'raspberry',
+    name: '树莓',
+    aliases: ['raspberry', '覆盆子', '红树莓'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '树莓少量喂食是安全的，含抗氧化物和纤维，含微量木糖醇但量极低安全。建议少量新鲜树莓。'
+  },
+  {
+    id: 'cranberry',
+    name: '蔓越莓',
+    aliases: ['cranberry', '小红莓', '酸果蔓'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '蔓越莓少量喂食是安全的，含抗氧化物有助于泌尿道健康。酸度较高不宜大量。建议少量新鲜或干燥蔓越莓（不加糖）。'
+  },
+  {
+    id: 'apple',
+    name: '苹果',
+    aliases: ['apple', '苹果肉', '红苹果', '青苹果'],
+    safetyLevel: 'safe',
+    speciesApplicable: ['dog', 'cat'],
+    detail: '苹果去核去籽后少量喂食是安全的，含纤维和维生素C。必须去核去籽（籽含微量氰苷）。果肉安全，果核梗不可食。含糖量较高不宜过量。'
   },
 ]

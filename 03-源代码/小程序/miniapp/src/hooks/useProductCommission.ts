@@ -1,3 +1,7 @@
+/**
+ * 商品分销佣金 Hook
+ * 管理宠物商品推荐链接的点击追踪、购买转化及佣金预估
+ */
 import { useState, useCallback, useRef } from 'react'
 import {
   recordClick,
@@ -18,6 +22,10 @@ export interface UseProductCommissionOptions {
   sourcePage: string
 }
 
+/**
+ * 商品分销佣金 Hook
+ * 管理宠物商品推荐链接的点击追踪、购买转化及佣金预估
+ */
 export function useProductCommission(options: UseProductCommissionOptions) {
   const [stats, setStats] = useState<CommissionStats | null>(null)
   const clickIdRef = useRef<string | null>(null)

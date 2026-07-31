@@ -1,3 +1,8 @@
+/**
+ * 周报服务
+ *
+ * 生成宠物健康周报，汇总一周健康数据
+ */
 import type { PetProfile } from './petService'
 import type { PetMoment } from '../types/familyTypes'
 

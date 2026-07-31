@@ -1,3 +1,7 @@
+/**
+ * 登录页面
+ * 微信一键登录入口
+ */
 import { View, Text, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState } from 'react'

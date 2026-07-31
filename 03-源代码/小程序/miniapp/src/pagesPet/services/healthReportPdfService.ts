@@ -1,3 +1,4 @@
+/** 健康报告PDF生成服务 */
 import Taro from '@tarojs/taro'
 import { getCheckinsByDateRange } from '../../services/checkinService'
 import { getVaccineRecords } from '../../services/vaccineService'

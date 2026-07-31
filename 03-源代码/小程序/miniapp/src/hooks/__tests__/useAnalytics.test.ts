@@ -1,3 +1,7 @@
+/**
+ * useAnalytics 测试
+ * 验证数据埋点 Hook 的页面浏览和自定义事件追踪
+ */
 import { describe, it, expect, vi } from 'vitest'
 import { trackEvent } from '../../services/analyticsService'
 import { useAnalytics } from '../useAnalytics'

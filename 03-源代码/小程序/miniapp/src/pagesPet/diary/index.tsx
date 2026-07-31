@@ -1,3 +1,7 @@
+/**
+ * 成长日记页面
+ * 宠物每日AI日记生成与展示
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'

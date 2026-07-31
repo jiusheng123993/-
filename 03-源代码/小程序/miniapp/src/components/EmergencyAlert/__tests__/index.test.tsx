@@ -1,3 +1,6 @@
+/**
+ * 紧急健康预警组件测试
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, fireEvent, screen, act } from '@testing-library/react'
 

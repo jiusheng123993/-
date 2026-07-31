@@ -1,3 +1,7 @@
+/**
+ * 隐私弹窗组件
+ * 使用功能前展示隐私协议同意弹窗
+ */
 import { View, Text } from '@tarojs/components'
 import './PrivacyPopup.scss'
 

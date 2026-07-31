@@ -1,3 +1,8 @@
+/**
+ * Mock 数据服务
+ *
+ * 提供开发/测试阶段的模拟数据，涵盖宠物、打卡、趋势、家庭、动态等场景
+ */
 import type { User, Pet, Checkin, Membership } from '../types'
 import type { PetFamily, PetFamilyMember, PetLineage, PetMoment, FamilyPhoto } from '../types/familyTypes'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
@@ -17,6 +22,7 @@ const mockCheckins: Checkin[] = [
   { id: 'ck_003', petId: 'pet_002', userId: 'user_001', date: '2024-07-22', mood: 'happy', appetite: 'good', stool: 'normal', weight: 28.5, createdAt: '2024-07-22T08:00:00Z' },
 ]
 
+/** 生成 60 天的模拟健康数据（含异常/风险标记） */
 function generateMockHealthEntries(): PetHealthEntry[] {
   const now = new Date()
   const entries: PetHealthEntry[] = []
@@ -111,6 +117,7 @@ const mockFamilyPhotos: FamilyPhoto[] = [
 
 const mockLineages: PetLineage[] = []
 
+/** 生成模拟的宠物动态数据（打卡/里程碑/照片/回忆） */
 function generateMockMoments(): PetMoment[] {
   const now = new Date()
   const moments: PetMoment[] = [
@@ -201,7 +208,9 @@ function wait(ms?: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms ?? delay))
 }
 
+/** Mock API 实例 - 模拟全部后端接口响应 */
 export const mockApi = {
+  /** 模拟微信登录 */
   login: async (code: string): Promise<{ user: User; token: string; refreshToken: string }> => {
     await wait()
     return { user: mockUsers[0], token: 'mock_token_' + Date.now(), refreshToken: 'mock_refresh_' + Date.now() }

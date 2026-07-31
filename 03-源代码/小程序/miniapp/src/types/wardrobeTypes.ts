@@ -1,13 +1,17 @@
 import type { PetSpecies } from './avatarTypes'
 
+/** 配饰佩戴部位类型 */
 export type AccessorySlot = 'head' | 'neck' | 'back' | 'body' | 'feet'
 
+/** 配饰解锁来源 */
 export type UnlockSource = 'default' | 'achievement' | 'paid' | 'member'
 
 export type ThemeCategory = 'festival' | 'season' | 'birthday' | 'special'
 
+/** 审核结果类型 */
 export type ModerationResult = 'pass' | 'review' | 'block'
 
+/** 穿搭槽位映射（部位 → 配饰 ID） */
 export type OutfitSlotMap = Partial<Record<AccessorySlot, string>>
 
 export interface OutfitLayer {
@@ -30,6 +34,7 @@ export interface AccessoryDef {
   isActive: boolean
 }
 
+/** 用户配饰库存 */
 export interface UserAccessoryInventory {
   id: number
   userId: string
@@ -38,12 +43,14 @@ export interface UserAccessoryInventory {
   unlockSource: string
 }
 
+/** 宠物穿搭 */
 export interface PetOutfit {
   petId: string
   outfitSlots: OutfitSlotMap
   updatedAt: string
 }
 
+/** 主题套系定义 */
 export interface ThemeSuiteDef {
   id: string
   name: string
@@ -55,6 +62,7 @@ export interface ThemeSuiteDef {
   isActive: boolean
 }
 
+/** 主题套系生成任务 */
 export interface ThemeSuiteTask {
   id: string
   userId: string

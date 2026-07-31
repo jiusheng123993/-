@@ -1,3 +1,6 @@
+/**
+ * 衣橱/装扮状态管理 - 单元测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { memoryStore } = vi.hoisted(() => {

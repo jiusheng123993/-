@@ -1,10 +1,15 @@
-﻿import create from 'zustand'
+/**
+ * 食物安全查询状态管理
+ * 管理宠物食物安全性查询、查询历史、统计数据
+ */
+import create from 'zustand'
 import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes'
 export type { PetFoodQuery }
 import type { FoodQueryStats } from '../services/foodService'
 export type { FoodQueryStats }
 import { queryFood, getQueryHistory, getQueryStats } from '../services/foodService'
 
+/** 食物查询状态定义 */
 interface FoodQueryStoreState {
   history: PetFoodQuery[]
   lastResult: PetFoodQuery | null
@@ -25,6 +30,14 @@ export const useFoodQueryStore = create<FoodQueryStoreState>((set) => ({
   isLoading: false,
   error: null,
 
+  /**
+   * 查询食物对宠物的安全性
+   * @param userId - 用户 ID
+   * @param petId - 宠物 ID
+   * @param foodName - 食物名称
+   * @param species - 宠物物种（dog/cat）
+   * @returns 查询结果
+   */
   queryFood: async (userId, petId, foodName, species) => {
     set({ isLoading: true, error: null })
     try {
@@ -44,6 +57,11 @@ export const useFoodQueryStore = create<FoodQueryStoreState>((set) => ({
     }
   },
 
+  /**
+   * 获取查询历史
+   * @param petId - 宠物 ID
+   * @param userId - 用户 ID
+   */
   fetchHistory: async (petId, userId) => {
     set({ isLoading: true, error: null })
     try {
@@ -57,6 +75,11 @@ export const useFoodQueryStore = create<FoodQueryStoreState>((set) => ({
     }
   },
 
+  /**
+   * 获取查询统计数据
+   * @param petId - 宠物 ID
+   * @param userId - 用户 ID
+   */
   fetchStats: async (petId, userId) => {
     set({ isLoading: true, error: null })
     try {
@@ -70,6 +93,7 @@ export const useFoodQueryStore = create<FoodQueryStoreState>((set) => ({
     }
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   }

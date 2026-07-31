@@ -1,3 +1,7 @@
+/**
+ * 家庭页面
+ * 家庭宠物健康排行、AI周报、动态信息流、宠物列表、快捷入口
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'

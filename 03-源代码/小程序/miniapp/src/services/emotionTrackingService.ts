@@ -1,3 +1,8 @@
+/**
+ * 情绪追踪服务
+ *
+ * 记录用户异常情绪事件，计算情绪评分、趋势分析、危机干预触发
+ */
 import Taro from '@tarojs/taro'
 
 export type EmotionEventType = 'anomaly_detected' | 'symptom_check' | 'food_query' | 'grief_detected' | 'anxiety_detected'

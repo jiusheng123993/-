@@ -1,3 +1,7 @@
+/**
+ * 症状初筛路由集成测试
+ * 覆盖：症状提交、历史查询（分页）、参数校验、归属校验
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -203,7 +207,7 @@ describe('GET /api/pets/:petId/symptom-check/history - 获取初筛历史', () =
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
-      .get('/api/pets/pet-001/symptom-check/history?page=2&pageSize=10');
+      .get('/api/pets/pet-001/symptom-check/history?page=2&page_size=10');
 
     expect(res.status).toBe(200);
     expect(res.body.data.page).toBe(2);

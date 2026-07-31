@@ -1,3 +1,7 @@
+/**
+ * 健康趋势路由集成测试
+ * 覆盖：趋势数据查询、月度报告、参数边界值、归属校验
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -50,7 +54,7 @@ const mockHealthEntry2 = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  mockPool.query.mockReset();
 });
 
 describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
@@ -109,28 +113,20 @@ describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
     expect(res.body.data.days).toBe(1);
   });
 
-  it('days 超过 365 时截断为 365', async () => {
-    mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
-
+  it('days 超过 365 时返回 400（schema 拒绝）', async () => {
     const res = await request(createApp())
       .get('/api/pets/pet-001/trends?type=weight&days=500');
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.days).toBe(365);
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 
-  it('days 为负数时截断为 1', async () => {
-    mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
-
+  it('days 为负数时返回 400（schema 拒绝）', async () => {
     const res = await request(createApp())
       .get('/api/pets/pet-001/trends?type=weight&days=-10');
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.days).toBe(1);
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 
   it('无数据时返回空趋势', async () => {

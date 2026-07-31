@@ -1,3 +1,7 @@
+/**
+ * 慢性病追踪页面
+ * 宠物慢性病记录管理与追踪
+ */
 import { View, Text, ScrollView, Input, Textarea, Picker } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { useEffect, useState, useCallback } from 'react'

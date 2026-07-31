@@ -1,3 +1,6 @@
+/**
+ * 频次控制服务测试
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mockStorage: Record<string, string> = {}

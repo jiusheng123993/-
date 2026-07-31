@@ -1,3 +1,8 @@
+/**
+ * 数据隐私服务
+ *
+ * 用户数据导出/删除、账号注销申请、数据隐私状态管理
+ */
 import Taro from '@tarojs/taro'
 import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'
@@ -162,7 +167,7 @@ export async function deleteUserData(
         try { await api.delete('/api/data/health-entries'); return 0; } catch { return 0; }
       },
       pet_food_queries: async () => {
-        try { await api.delete('/api/data/food-queries'); return 0; } catch { return 0; }
+        try { await api.delete('/api/food'); return 0; } catch { return 0; }
       },
       pet_symptom_checks: async () => {
         try { await api.delete('/api/data/symptom-checks'); return 0; } catch { return 0; }

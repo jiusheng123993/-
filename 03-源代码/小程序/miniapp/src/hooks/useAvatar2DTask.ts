@@ -1,3 +1,7 @@
+/**
+ * 2D 宠物形象生成任务 Hook
+ * 管理 2D 头像生成任务的轮询、状态跟踪与结果获取
+ */
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Taro from '@tarojs/taro'
 import { getTaskProgress, getAvatar2DImages, incrementPhotoGenerationCount } from '../services/avatarService'
@@ -18,6 +22,10 @@ interface UseAvatar2DTaskResult {
   setTaskId: (id: string) => void
 }
 
+/**
+ * 2D 宠物形象生成任务 Hook
+ * 管理 2D 头像生成任务的轮询、状态跟踪与结果获取
+ */
 export function useAvatar2DTask(petId: string): UseAvatar2DTaskResult {
   const [taskId, setTaskId] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)

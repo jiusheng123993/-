@@ -1,3 +1,7 @@
+/**
+ * Taro API Mock
+ * 模拟 Taro 框架的常用 API，用于组件单元测试
+ */
 import { vi } from 'vitest'
 
 const Taro = {

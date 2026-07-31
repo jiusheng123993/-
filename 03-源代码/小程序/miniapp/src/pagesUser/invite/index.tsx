@@ -1,3 +1,7 @@
+/**
+ * 邀请好友页面
+ * 邀请好友使用、分享功能
+ */
 import { View, Text, Button } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'

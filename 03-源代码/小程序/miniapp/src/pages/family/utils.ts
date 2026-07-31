@@ -1,3 +1,4 @@
+/** 家庭页面工具函数和类型定义 */
 import type { PetProfile } from '../../services/petService'
 import type { PetMoment } from '../../types/familyTypes'
 

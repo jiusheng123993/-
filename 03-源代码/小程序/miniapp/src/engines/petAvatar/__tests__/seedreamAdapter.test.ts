@@ -1,3 +1,7 @@
+/**
+ * seedreamAdapter 测试
+ * 验证 AI 图像生成适配器的 stub 模式、真实 API 调用和安全降级
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SeedreamAdapter, seedreamAdapter } from '../seedreamAdapter'
 import { getPetFaceDataUri } from '../svgRenderer'

@@ -1,3 +1,7 @@
+/**
+ * 健康趋势页面
+ * 宠物体重、食欲、便便趋势图展示，AI分析，健康报告导出
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { View, Text, ScrollView, Button } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'

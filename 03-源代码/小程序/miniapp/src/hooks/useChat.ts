@@ -1,9 +1,17 @@
+/**
+ * 对话 AI 聊天 Hook
+ * 提供发送聊天消息、管理消息列表和加载状态的接口
+ */
 import { useCallback } from 'react'
 import { useChatStore } from '../stores/chatStore'
 import { sendChatMessage } from '../services/chatService'
 import type { ChatMessage } from '../types/chatTypes'
 import { usePetStore } from '../stores/petStore'
 
+/**
+ * 对话 AI 聊天 Hook
+ * 提供发送聊天消息、管理消息列表和加载状态的接口
+ */
 export function useChat() {
   const { messages, isLoading, addMessage, setLoading } = useChatStore()
   const { currentPet } = usePetStore()

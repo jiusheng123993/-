@@ -1,3 +1,7 @@
+/**
+ * 3D 模型查看器组件
+ * 展示宠物 3D 模型缩略图，支持拖拽旋转、双指缩放、重置视角和模型下载
+ */
 import { View, Text, Image, Button } from '@tarojs/components'
 import { useState, useCallback, useRef } from 'react'
 import Taro from '@tarojs/taro'

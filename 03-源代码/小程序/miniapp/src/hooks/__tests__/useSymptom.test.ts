@@ -1,3 +1,7 @@
+/**
+ * useSymptom 测试
+ * 验证症状初筛 Hook 的分类查询和 AI 分析功能
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

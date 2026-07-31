@@ -1,8 +1,20 @@
+/**
+ * 宠物 SVG 表情渲染器
+ * 根据表情配置和物种构建宠物面部 SVG 图形，支持狗/猫两种物种及装扮图层叠加
+ */
 import type { ExpressionConfig, PetSpecies, SvgPetFace } from '../../types/avatarTypes'
 import type { OutfitLayer } from '../../types/wardrobeTypes'
 import { composeOutfitLayers } from './outfitRenderer'
 
 export type { SvgPetFace }
+
+/**
+ * 宠物 SVG 表情渲染器
+ *
+ * 根据表情配置和物种构建宠物面部 SVG 图形，
+ * 支持狗/猫两种物种的眼、耳、嘴、配饰渲染，
+ * 以及装扮图层的叠加显示。
+ */
 
 const DOG_BASE = {
   body: '<ellipse cx="50" cy="55" rx="42" ry="38" fill="#F5DEB3"/>',
@@ -46,6 +58,7 @@ const ACCESSORY_DEFS: Record<string, string> = {
   warning: '<text x="75" y="25" font-size="14">⚠️</text>',
 }
 
+/** 构建宠物面部 SVG */
 export function buildSvgFace(
   expression: ExpressionConfig,
   species: PetSpecies = 'dog',
@@ -82,6 +95,7 @@ export function buildSvgFace(
   return svg
 }
 
+/** 将 SVG 字符串编码为 data URI */
 export function svgToDataUri(svg: string): string {
   const encoded = encodeURIComponent(svg)
     .replace(/'/g, '%27')
@@ -89,6 +103,7 @@ export function svgToDataUri(svg: string): string {
   return `data:image/svg+xml,${encoded}`
 }
 
+/** 直接获取宠物头像的 data URI */
 export function getPetFaceDataUri(
   expression: ExpressionConfig,
   species: PetSpecies = 'dog',

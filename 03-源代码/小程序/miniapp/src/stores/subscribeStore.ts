@@ -1,4 +1,8 @@
-﻿import create from 'zustand'
+/**
+ * 消息订阅状态管理
+ * 管理微信订阅消息模板的授权状态和订阅请求
+ */
+import create from 'zustand'
 import {
   requestAllSubscribes,
   requestFollowupSubscribe,
@@ -10,6 +14,7 @@ import {
   TEMPLATE_IDS,
 } from '../services/subscribeService'
 
+/** 订阅状态定义 */
 interface SubscribeStoreState {
   statuses: SubscribeStatus[]
   isLoading: boolean
@@ -30,11 +35,13 @@ export const useSubscribeStore = create<SubscribeStoreState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /** 获取所有订阅模板的授权状态 */
   fetchStatuses: () => {
     const statuses = getAllSubscribeStatus()
     set({ statuses })
   },
 
+  /** 请求订阅所有模板 */
   requestAll: async () => {
     set({ isLoading: true, error: null })
     try {
@@ -49,6 +56,7 @@ export const useSubscribeStore = create<SubscribeStoreState>((set, get) => ({
     }
   },
 
+  /** 请求订阅回访提醒模板 */
   requestFollowup: async () => {
     set({ isLoading: true, error: null })
     try {
@@ -63,6 +71,7 @@ export const useSubscribeStore = create<SubscribeStoreState>((set, get) => ({
     }
   },
 
+  /** 请求订阅护理计划提醒模板 */
   requestCarePlan: async () => {
     set({ isLoading: true, error: null })
     try {
@@ -77,20 +86,27 @@ export const useSubscribeStore = create<SubscribeStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 检查指定模板是否已授权
+   * @param templateId - 模板 ID
+   */
   isAccepted: (templateId: string) => {
     return hasAcceptedSubscribe(templateId)
   },
 
+  /** 检查是否有任一模板已授权 */
   hasAnyAccepted: () => {
     const { statuses } = get()
     return statuses.some((s) => s.accepted)
   },
 
+  /** 清除所有订阅授权状态 */
   clearAll: () => {
     clearSubscribeStatus()
     set({ statuses: [] })
   },
 
+  /** 清除错误状态 */
   clearError: () => set({ error: null }),
 }))
 

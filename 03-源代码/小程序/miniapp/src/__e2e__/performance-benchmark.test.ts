@@ -7,7 +7,11 @@
  * 2. 存储操作性能（< 10ms）
  * 3. 批量操作性能（< 50ms）
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+/**
+ * E2E 测试：性能基准
+ * 验证应用性能基准，包含启动时间、API 响应和渲染性能
+ */
+import { describe, it, expect, vi } from 'vitest'
 
 // ============================================================
 // Mock 层：共享的 mock storage

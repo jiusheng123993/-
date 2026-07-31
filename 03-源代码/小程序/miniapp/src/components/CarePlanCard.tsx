@@ -1,3 +1,7 @@
+/**
+ * 护理计划卡片组件
+ * 显示为宠物定制的 3 天观察护理方案
+ */
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'
 import { generateCarePlan, type CarePlan } from '../engines/emotion'

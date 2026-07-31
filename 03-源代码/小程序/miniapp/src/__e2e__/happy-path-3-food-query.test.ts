@@ -1,3 +1,7 @@
+/**
+ * E2E 测试：食物安全查询
+ * 验证宠物食物安全查询功能
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockStorage: Record<string, string> = {}
@@ -45,7 +49,7 @@ describe('Happy Path 3: 食物查询 → 安全等级展示', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     Object.keys(mockStorage).forEach((k) => delete mockStorage[k])
-    vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+    vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
     vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
     vi.mocked(isMember).mockResolvedValue(false)
     vi.mocked(getQuotaLimit).mockResolvedValue(5)
@@ -95,23 +99,18 @@ describe('Happy Path 3: 食物查询 → 安全等级展示', () => {
       isMemberQuery: false,
       createdAt: new Date(),
     }
-    vi.mocked(api.post).mockResolvedValue(mockApiResult)
+    vi.mocked(api.get).mockResolvedValue(mockApiResult)
 
     const result = await queryFood(USER_ID, PET_ID, '苹果', 'dog')
 
     expect(result.foodName).toBe('苹果')
     expect(result.safetyLevel).toBe('safe')
     expect(result.id).toBe('api_apple_001')
-    expect(api.post).toHaveBeenCalledWith('/api/food-queries', {
-      petId: PET_ID,
-      foodName: '苹果',
-      species: 'dog',
-      breed: undefined,
-    })
+    expect(api.get).toHaveBeenCalledWith('/api/food/query', { keyword: '苹果' })
   })
 
   it('获取查询历史 → 验证历史包含所有查询', async () => {
-    vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+    vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
     await queryFood(USER_ID, PET_ID, '巧克力', 'dog')
     await queryFood(USER_ID, PET_ID, '鸡胸肉', 'dog')
@@ -129,7 +128,7 @@ describe('Happy Path 3: 食物查询 → 安全等级展示', () => {
   })
 
   it('获取查询统计 → 验证 totalQueries、todayQueries、remainingFree', async () => {
-    vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+    vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
     vi.mocked(isMember).mockResolvedValue(false)
     vi.mocked(getQuotaLimit).mockResolvedValue(5)
 
@@ -145,7 +144,7 @@ describe('Happy Path 3: 食物查询 → 安全等级展示', () => {
   })
 
   it('获取今日查询次数 → 验证计数与今日查询匹配', async () => {
-    vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+    vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
     await queryFood(USER_ID, PET_ID, '巧克力', 'dog')
     await queryFood(USER_ID, PET_ID, '鸡胸肉', 'dog')

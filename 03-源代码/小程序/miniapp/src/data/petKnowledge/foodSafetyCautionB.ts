@@ -1,3 +1,7 @@
+/**
+ * 谨慎食物数据 B
+ * 宠物食物安全数据库 - 需谨慎喂食的食物/植物清单 B
+ */
 import type { FoodSafetyItem } from './foodSafety'
 
 export const FOOD_SAFETY_CAUTION_B: FoodSafetyItem[] = [

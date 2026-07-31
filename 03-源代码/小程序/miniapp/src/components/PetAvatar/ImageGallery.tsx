@@ -1,3 +1,7 @@
+/**
+ * 宠物形象画廊组件
+ * 展示多角度表情和动作图片，支持标签切换、角度选择和 3D 生成入口
+ */
 import { View, Text, Image, ScrollView } from '@tarojs/components'
 import { useState, useMemo } from 'react'
 import { AVATAR_EXPRESSIONS, AVATAR_ANGLES, AVATAR_ACTION_ANGLES, AVATAR_ACTIONS } from '../../constants'

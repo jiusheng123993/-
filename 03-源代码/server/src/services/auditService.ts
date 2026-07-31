@@ -1,3 +1,7 @@
+/**
+ * 审计日志服务 - 记录用户敏感操作日志
+ * 所有装备、解锁、生成等敏感操作必须通过此服务记录
+ */
 import { pool } from '../db.js';
 import { sanitizeLog } from '../utils/sanitize.js';
 import type { Request } from 'express';

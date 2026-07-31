@@ -1,3 +1,7 @@
+/**
+ * 疫苗日历组件
+ * 按月展示疫苗和驱虫记录的日历视图，支持日期点击和月份切换
+ */
 import { View, Text } from '@tarojs/components';
 import { useMemo, useState } from 'react';
 import type { VaccineRecord } from '../../services/vaccineService';

@@ -1,3 +1,7 @@
+/**
+ * Seedream AI 图像生成适配器
+ * 封装与 Seedream 图像生成 API 的交互，支持宠物头像和成就图像的生成，提供 stub 模式
+ */
 import Taro from '@tarojs/taro'
 import type { ExpressionConfig, PetSpecies, SeedreamGenerateParams, SeedreamGenerateResult, PetImageParams } from '../../types/avatarTypes'
 
@@ -17,6 +21,13 @@ function buildPetPrompt(params: PetImageParams): string {
   return `一只${colorText}${breedText}${speciesName}，${params.expression.label}的表情，${styleText}，高质量，干净背景`
 }
 
+/**
+ * Seedream AI 图像生成适配器
+ *
+ * 封装与 Seedream 图像生成 API 的交互，
+ * 支持宠物头像和成就图像的生成，
+ * 提供 stub 模式用于开发和测试环境。
+ */
 export class SeedreamAdapter {
   private useStub: boolean
 
@@ -24,6 +35,7 @@ export class SeedreamAdapter {
     this.useStub = useStub
   }
 
+  /** 生成宠物头像图像 */
   async generatePetImage(params: PetImageParams): Promise<SeedreamGenerateResult> {
     if (this.useStub) {
       return this.generateStubImage(params)
@@ -87,6 +99,7 @@ export class SeedreamAdapter {
     return { success: false, error: `请求失败: ${res.statusCode}` }
   }
 
+  /** 生成成就庆祝图像 */
   async generateAchievementImage(
     achievementType: string,
     petName: string,

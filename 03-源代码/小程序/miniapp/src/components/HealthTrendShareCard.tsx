@@ -1,3 +1,7 @@
+/**
+ * 健康趋势分享卡片组件
+ * 展示宠物健康趋势概览和 AI 分析，支持保存图片和分享
+ */
 import { View, Text, Image, Canvas } from '@tarojs/components';
 import { useState, useCallback } from 'react';
 import Taro from '@tarojs/taro';

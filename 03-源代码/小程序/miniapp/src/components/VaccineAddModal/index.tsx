@@ -1,3 +1,7 @@
+/**
+ * 疫苗/驱虫记录添加弹窗组件
+ * 支持新增和编辑疫苗/驱虫记录，包含类型选择、种类选择、日期设置和补充信息
+ */
 import { View, Text, Input, Textarea, Picker } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useState, useEffect } from 'react';

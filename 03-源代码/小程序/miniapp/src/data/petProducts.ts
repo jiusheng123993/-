@@ -1,3 +1,9 @@
+/**
+ * 宠物商品数据
+ * 各电商平台的宠物商品信息，含佣金比例和推广链接
+ */
+
+/** 宠物商品信息 */
 export interface PetProduct {
   id: string
   name: string

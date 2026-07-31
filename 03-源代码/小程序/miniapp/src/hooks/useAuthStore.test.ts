@@ -1,3 +1,7 @@
+/**
+ * authStore 测试
+ * 验证登录、登出和用户信息获取等认证流程
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

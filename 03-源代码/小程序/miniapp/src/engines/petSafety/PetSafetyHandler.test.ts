@@ -1,3 +1,7 @@
+/**
+ * PetSafetyHandler 测试
+ * 验证宠物安全处理器的食物、症状和打卡三种安全检查场景
+ */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PetSafetyHandler } from './PetSafetyHandler'
 import { ToxicFoodFilter } from './ToxicFoodFilter'

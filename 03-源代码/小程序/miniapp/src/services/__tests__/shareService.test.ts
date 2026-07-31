@@ -1,3 +1,6 @@
+/**
+ * 分享服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const memoryStore = new Map<string, unknown>()

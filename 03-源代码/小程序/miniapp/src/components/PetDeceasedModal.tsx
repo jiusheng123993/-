@@ -1,3 +1,7 @@
+/**
+ * 宠物离世标记弹窗组件
+ * 确认标记宠物已离世，选择离世日期
+ */
 import { View, Text, Picker } from '@tarojs/components'
 import { useState } from 'react'
 import './PetDeceasedModal.scss'

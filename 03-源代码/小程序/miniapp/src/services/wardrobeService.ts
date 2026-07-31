@@ -1,3 +1,8 @@
+/**
+ * 衣橱系统服务
+ *
+ * 宠物配饰的本地装备/卸载/搭配、云端同步与试穿快照管理
+ */
 import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
 import { queueSync } from './syncHelper'

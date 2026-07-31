@@ -1,5 +1,10 @@
+/**
+ * AI 服务层 - 封装对 DeepSeek 和阿里云百炼 API 的调用
+ * 提供文本对话、安全内容检测、语音识别、多模态识别能力
+ */
 import { config } from '../config.js';
 
+/** AI 多模态消息内容块（文本或图片） */
 export interface ChatMessageContentPart {
   type: 'text' | 'image_url';
   text?: string;
@@ -9,22 +14,26 @@ export interface ChatMessageContentPart {
   };
 }
 
+/** AI 对话消息 */
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string | ChatMessageContentPart[];
 }
 
+/** AI 对话选项 */
 export interface ChatOptions {
   temperature?: number;
   max_tokens?: number;
 }
 
+/** 输入安全检测结果 */
 export interface GuardResult {
   isHarmful: boolean;
   score: number;
   isCrisis: boolean;
 }
 
+/** 输出安全检测结果（医疗建议检查） */
 export interface GuardOutputResult {
   isUnsafeMedicalAdvice: boolean;
 }
@@ -49,6 +58,12 @@ function getModel(): string {
   return config.ai.model || 'deepseek-chat';
 }
 
+/**
+ * AI 对话 - 调用 DeepSeek 兼容 API 进行文本对话
+ * @param messages - 对话消息列表
+ * @param options - 对话参数（温度、最大 token 数）
+ * @returns AI 回复文本
+ */
 export async function chat(
   messages: ChatMessage[],
   options?: ChatOptions,
@@ -85,6 +100,11 @@ export async function chat(
   return data.choices[0].message.content;
 }
 
+/**
+ * 输入安全检测 - 判断用户输入是否包含有害意图
+ * @param text - 用户输入文本
+ * @returns 安全检测结果
+ */
 export async function guardCheck(text: string): Promise<GuardResult> {
   const apiKey = getApiKey();
 
@@ -129,6 +149,11 @@ export async function guardCheck(text: string): Promise<GuardResult> {
   }
 }
 
+/**
+ * 输出安全检测 - 检查 AI 回复是否包含不安全的医疗建议
+ * @param text - AI 回复文本
+ * @returns 输出安全检测结果
+ */
 export async function guardCheckOutput(text: string): Promise<GuardOutputResult> {
   const apiKey = getApiKey();
 
@@ -184,8 +209,10 @@ function getBailianVisionModel(): string {
 }
 
 /**
- * 调用百炼大模型（兼容 OpenAI 格式）
- * 支持文本和图片多模态输入
+ * 调用百炼大模型（兼容 OpenAI 格式）- 支持多模态输入
+ * @param messages - 对话消息列表（支持文本和图片）
+ * @param options - 对话参数
+ * @returns AI 回复文本
  */
 export async function bailianChat(
   messages: ChatMessage[],
@@ -225,8 +252,10 @@ export async function bailianChat(
 }
 
 /**
- * 百炼语音识别（Fun-ASR）
- * 使用 DashScope 原生 API 进行语音转文字
+ * 百炼语音识别（Fun-ASR）- 将音频转为文字
+ * @param audioBase64 - Base64 编码的音频数据
+ * @param mimeType - 音频 MIME 类型
+ * @returns 转写文本
  */
 export async function bailianASR(audioBase64: string, mimeType: string): Promise<string> {
   const apiKey = getBailianApiKey();

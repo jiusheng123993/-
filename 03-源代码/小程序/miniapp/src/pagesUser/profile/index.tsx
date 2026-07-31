@@ -1,3 +1,7 @@
+/**
+ * 用户资料页面
+ * 用户个人信息展示与编辑
+ */
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useState, useEffect, useCallback } from 'react';

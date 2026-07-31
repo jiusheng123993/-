@@ -1,5 +1,9 @@
 import { getStorage, setStorage } from '../../utils/storage';
 
+/**
+ * 小程序 memory-body 存储管理
+ * 提供健康记录和记忆数据的清空能力
+ */
 const STORAGE_KEYS = {
   HEALTH_ENTRIES: 'health_entries',
   MEMORY_INDEX: 'memory_index',

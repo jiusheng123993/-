@@ -1,3 +1,7 @@
+/**
+ * 医院分销佣金 Hook
+ * 管理医院合作伙伴的点击追踪、转化记录与佣金统计
+ */
 import { useState, useCallback, useRef } from 'react'
 import {
   recordClick,
@@ -19,6 +23,10 @@ export interface UseHospitalCommissionOptions {
   isPartner?: boolean
 }
 
+/**
+ * 医院分销佣金 Hook
+ * 管理医院合作伙伴的点击追踪、转化记录与佣金统计
+ */
 export function useHospitalCommission(options: UseHospitalCommissionOptions) {
   const [stats, setStats] = useState<CommissionStats | null>(null)
   const clickIdRef = useRef<string | null>(null)

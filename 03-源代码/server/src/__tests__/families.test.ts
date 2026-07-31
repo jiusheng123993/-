@@ -1,3 +1,7 @@
+/**
+ * 家庭管理路由集成测试
+ * 覆盖：家庭 CRUD、成员管理、归属校验、动态查询
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -42,7 +46,7 @@ import familiesRouter from '../routes/families.js';
 function createApp() {
   const app = express();
   app.use(express.json());
-  app.use('/', familiesRouter);
+  app.use('/api/families', familiesRouter);
   return app;
 }
 
@@ -73,7 +77,8 @@ const mockMember = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  // mockReset 清除 mock 队列（含 mockResolvedValueOnce 残留），避免测试间污染
+  mockPool.query.mockReset();
 });
 
 describe('POST /api/families - 创建家庭', () => {
@@ -298,14 +303,14 @@ describe('POST /api/families/:id/members - 添加成员', () => {
 
     const res = await request(createApp())
       .post('/api/families/family-001/members')
-      .send({ pet_id: 'pet-001', role: 'member' });
+      .send({ petId: 'pet-001', role: 'member' });
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.pet_id).toBe('pet-001');
   });
 
-  it('参数校验：缺少 pet_id，返回 400', async () => {
+  it('参数校验：缺少 petId，返回 400', async () => {
     mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'family-001' }], rowCount: 1 });
 
     const res = await request(createApp())
@@ -324,7 +329,7 @@ describe('POST /api/families/:id/members - 添加成员', () => {
 
     const res = await request(createApp())
       .post('/api/families/family-001/members')
-      .send({ pet_id: 'other-pet', role: 'member' });
+      .send({ petId: 'other-pet', role: 'member' });
 
     expect(res.status).toBe(403);
     expect(res.body.success).toBe(false);
@@ -339,7 +344,7 @@ describe('POST /api/families/:id/members - 添加成员', () => {
 
     const res = await request(createApp())
       .post('/api/families/family-001/members')
-      .send({ pet_id: 'pet-001', role: 'member' });
+      .send({ petId: 'pet-001', role: 'member' });
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
@@ -351,7 +356,7 @@ describe('POST /api/families/:id/members - 添加成员', () => {
 
     const res = await request(createApp())
       .post('/api/families/other-family/members')
-      .send({ pet_id: 'pet-001', role: 'member' });
+      .send({ petId: 'pet-001', role: 'member' });
 
     expect(res.status).toBe(403);
     expect(res.body.success).toBe(false);

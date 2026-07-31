@@ -1,3 +1,6 @@
+/**
+ * 埋点分析服务测试
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { trackEvent, flushEvents, getQueueLength, clearQueue } from '../analyticsService'
 

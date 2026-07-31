@@ -1,3 +1,7 @@
+/**
+ * useAuth 测试
+ * 验证用户认证 Hook 的登录、登出和状态管理
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

@@ -1,3 +1,7 @@
+/**
+ * 空状态引导组件
+ * 用户无宠物时展示欢迎语、添加宠物入口及核心功能亮点
+ */
 import { View, Text } from '@tarojs/components'
 import './EmptyStateGuide.scss'
 

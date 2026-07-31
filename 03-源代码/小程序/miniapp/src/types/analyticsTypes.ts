@@ -1,3 +1,4 @@
+/** 分析事件名称枚举 */
 export enum AnalyticsEventName {
   UserRegister = 'user_register',
   PetCreate = 'pet_create',

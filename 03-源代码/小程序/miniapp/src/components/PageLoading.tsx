@@ -1,3 +1,7 @@
+/**
+ * 页面加载组件
+ * 显示加载动画和提示文字
+ */
 import { View, Text } from '@tarojs/components'
 import './PageLoading.scss'
 

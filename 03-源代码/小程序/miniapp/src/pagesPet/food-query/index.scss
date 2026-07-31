@@ -1,4 +1,4 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 @import '../../styles/_animations';
 
 .pet-food-query {
@@ -19,17 +19,18 @@
   color: $color-text-tertiary;
 }
 
+/* ===== 空状态 ===== */
 .pet-food-query__empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 120rpx 48rpx;
+  padding: 80rpx 48rpx 40rpx;
 }
 
 .pet-food-query__empty-icon {
-  font-size: 96rpx;
-  margin-bottom: 24rpx;
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
 }
 
 .pet-food-query__empty-text {
@@ -39,33 +40,101 @@
   line-height: 1.6;
 }
 
+.pet-food-query__empty-examples {
+  margin-top: 32rpx;
+  text-align: center;
+}
+
+.pet-food-query__empty-examples-title {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-hint;
+  margin-bottom: 16rpx;
+}
+
+.pet-food-query__empty-example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+.pet-food-query__empty-example-chip {
+  font-size: $font-size-sm;
+  color: $color-primary-light;
+  padding: 12rpx 28rpx;
+  border-radius: 40rpx;
+  background: rgba($color-primary, 0.08);
+  border: 1px solid rgba($color-primary, 0.15);
+  transition: all 0.3s ease;
+  @include press-feedback;
+}
+
+.pet-food-query__empty-example-chip:active {
+  background: rgba($color-primary, 0.2);
+  transform: scale(0.95);
+}
+
+/* ===== 搜索栏 ===== */
 .pet-food-query__search {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16rpx;
   margin-top: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
+  position: relative;
+  z-index: 10;
+}
+
+.pet-food-query__search-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: $color-primary-bg;
+  border-radius: 32rpx;
+  border: 1px solid $color-border;
+  transition: border-color $transition-normal;
+  min-height: 88rpx;
+}
+
+.pet-food-query__search-input-wrapper:focus-within {
+  border-color: $color-primary-light;
+  box-shadow: 0 0 0 2rpx rgba($color-primary-light, 0.15);
+}
+
+.pet-food-query__search-icon {
+  font-size: 32rpx;
+  padding-left: 28rpx;
+  flex-shrink: 0;
 }
 
 .pet-food-query__input {
   flex: 1;
   height: 88rpx;
-  padding: 0 32rpx;
-  background: $color-primary-bg;
-  border-radius: 32rpx;
+  padding: 0 16rpx;
   font-size: $font-size-md;
   color: $color-text-primary;
-  border: 1px solid $color-border;
+  background: transparent;
+  border: none;
   box-sizing: border-box;
-  transition: border-color $transition-normal;
+  min-width: 0;
 }
 
 .pet-food-query__input-placeholder {
   color: $color-text-placeholder;
 }
 
+.pet-food-query__search-clear {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+  padding: 0 20rpx;
+  flex-shrink: 0;
+  @include press-feedback;
+}
+
 .pet-food-query__search-btn {
-  width: 140rpx;
+  min-width: 140rpx;
   height: 88rpx;
   background: linear-gradient(135deg, $color-primary, $color-primary-dark);
   color: #FFFFFF;
@@ -83,12 +152,110 @@
   box-shadow: none;
 }
 
+/* ===== 搜索建议下拉 ===== */
+.pet-food-query__suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8rpx;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: 20rpx;
+  padding: 12rpx 0;
+  z-index: 100;
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.3);
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.pet-food-query__suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  gap: 16rpx;
+  transition: background $transition-fast;
+  @include press-feedback;
+}
+
+.pet-food-query__suggestion-item:active {
+  background: $color-primary-bg;
+}
+
+.pet-food-query__suggestion-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.pet-food-query__suggestion-text {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+/* ===== 快捷分类 ===== */
+.pet-food-query__categories {
+  margin-bottom: 16rpx;
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4rpx 0;
+}
+
+.pet-food-query__category-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-right: 24rpx;
+  padding: 12rpx 16rpx;
+  background: $color-primary-bg;
+  border: 1px solid $color-border;
+  border-radius: 40rpx;
+  vertical-align: top;
+}
+
+.pet-food-query__category-label {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  font-weight: $font-weight-semibold;
+  flex-shrink: 0;
+}
+
+.pet-food-query__category-chips {
+  display: inline-flex;
+  gap: 8rpx;
+  flex-wrap: nowrap;
+}
+
+.pet-food-query__category-chip {
+  display: inline-block;
+  font-size: 22rpx;
+  color: $color-text-primary;
+  padding: 6rpx 18rpx;
+  border-radius: 30rpx;
+  background: $color-bg-card;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  @include press-feedback;
+}
+
+.pet-food-query__category-chip:active {
+  background: rgba($color-primary, 0.2);
+  transform: scale(0.95);
+}
+
+.pet-food-query__category-chip--active {
+  background: $color-primary;
+  color: $color-text-inverse;
+  border-color: $color-primary;
+}
+
+/* ===== 查询配额 ===== */
 .pet-food-query__quota {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
   text-align: center;
-  margin-bottom: 16rpx;
-  padding: 12rpx 24rpx;
+  margin-bottom: 12rpx;
+  padding: 10rpx 24rpx;
   @include card-base;
 }
 
@@ -97,34 +264,37 @@
   font-weight: $font-weight-semibold;
 }
 
+/* ===== 查询结果 ===== */
 .pet-food-query__result {
   @include card-base;
   padding: 32rpx;
   margin-bottom: 24rpx;
   animation: fadeInUp 0.4s ease-out;
+  overflow: hidden;
+  position: relative;
 }
 
-.pet-food-query__result--safe {
-  border-left: 8rpx solid $color-success;
+.pet-food-query__result::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8rpx;
+  height: 100%;
+  border-radius: 0 4rpx 4rpx 0;
 }
 
-.pet-food-query__result--caution {
-  border-left: 8rpx solid $color-primary;
-}
-
-.pet-food-query__result--dangerous {
-  border-left: 8rpx solid $color-primary-dark;
-}
-
-.pet-food-query__result--toxic {
-  border-left: 8rpx solid $color-danger;
-}
+.pet-food-query__result--safe::before { background: $color-success; }
+.pet-food-query__result--caution::before { background: $color-primary; }
+.pet-food-query__result--dangerous::before { background: $color-primary-dark; }
+.pet-food-query__result--toxic::before { background: $color-danger; }
 
 .pet-food-query__result-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20rpx;
+  padding-left: 8rpx;
 }
 
 .pet-food-query__result-name {
@@ -136,30 +306,19 @@
 .pet-food-query__result-badge {
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 24rpx;
   color: #FFFFFF;
 }
 
-.pet-food-query__result-badge--safe {
-  background: $color-success;
-}
-
-.pet-food-query__result-badge--caution {
-  background: $color-primary;
-  color: $color-text-inverse;
-}
-
-.pet-food-query__result-badge--dangerous {
-  background: $color-primary-dark;
-}
-
-.pet-food-query__result-badge--toxic {
-  background: $color-danger;
-}
+.pet-food-query__result-badge--safe { background: $color-success; }
+.pet-food-query__result-badge--caution { background: $color-primary; color: $color-text-inverse; }
+.pet-food-query__result-badge--dangerous { background: $color-primary-dark; }
+.pet-food-query__result-badge--toxic { background: $color-danger; }
 
 .pet-food-query__result-section {
   margin-top: 20rpx;
+  padding-left: 8rpx;
 }
 
 .pet-food-query__result-section-title {
@@ -189,6 +348,7 @@
   border-radius: 20rpx;
   background: rgba($color-primary, 0.08);
   color: $color-text-secondary;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .pet-food-query__result-tag--danger {
@@ -219,6 +379,29 @@
   line-height: 1.7;
 }
 
+/* ===== 分享按钮 ===== */
+.pet-food-query__result-share-btn {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: $gradient-card;
+  border: 1px solid $color-border;
+  border-radius: 24rpx;
+  text-align: center;
+  @include press-feedback;
+  transition: all 0.3s ease;
+}
+
+.pet-food-query__result-share-btn:active {
+  transform: scale(0.97);
+}
+
+.pet-food-query__result-share-btn-text {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-primary-light;
+}
+
+/* ===== 查询历史 ===== */
 .pet-food-query__history {
   margin-top: 24rpx;
 }
@@ -242,8 +425,15 @@
   align-items: center;
   justify-content: space-between;
   @include card-base;
-  padding: 24rpx;
+  padding: 24rpx 28rpx;
   @include press-feedback;
+  transition: all 0.25s ease;
+  border-left: 6rpx solid transparent;
+}
+
+.pet-food-query__history-item:active {
+  transform: scale(0.98);
+  background: $color-bg-secondary;
 }
 
 .pet-food-query__history-item-left {
@@ -273,23 +463,10 @@
   font-size: 22rpx;
   color: $color-text-tertiary;
   flex-shrink: 0;
+  margin-left: 12rpx;
 }
 
-.pet-food-query__disclaimer {
-  padding: 20rpx;
-  background: rgba($color-primary, 0.06);
-  border: 1px solid rgba($color-primary, 0.12);
-  border-radius: 16rpx;
-  margin-top: 24rpx;
-}
-
-.pet-food-query__disclaimer-text {
-  font-size: 22rpx;
-  color: $color-primary-light;
-  line-height: 1.5;
-}
-
-/* 品种特殊禁忌样式 */
+/* ===== 品种特殊禁忌 ===== */
 .pet-food-query__result-section--breed {
   background: $color-bg-secondary;
   border-radius: 24rpx;
@@ -329,22 +506,10 @@
   color: #FFFFFF;
 }
 
-.pet-food-query__breed-warning-level--toxic {
-  background: $color-danger;
-}
-
-.pet-food-query__breed-warning-level--dangerous {
-  background: $color-primary-dark;
-}
-
-.pet-food-query__breed-warning-level--caution {
-  background: $color-primary;
-  color: $color-text-inverse;
-}
-
-.pet-food-query__breed-warning-level--info {
-  background: $color-teal;
-}
+.pet-food-query__breed-warning-level--toxic { background: $color-danger; }
+.pet-food-query__breed-warning-level--dangerous { background: $color-primary-dark; }
+.pet-food-query__breed-warning-level--caution { background: $color-primary; color: $color-text-inverse; }
+.pet-food-query__breed-warning-level--info { background: $color-teal; }
 
 .pet-food-query__breed-warning-reason {
   display: block;
@@ -376,4 +541,19 @@
   color: $color-success;
   line-height: 1.5;
   flex: 1;
+}
+
+/* ===== 免责声明 ===== */
+.pet-food-query__disclaimer {
+  padding: 20rpx;
+  background: rgba($color-primary, 0.06);
+  border: 1px solid rgba($color-primary, 0.12);
+  border-radius: 16rpx;
+  margin-top: 24rpx;
+}
+
+.pet-food-query__disclaimer-text {
+  font-size: 22rpx;
+  color: $color-primary-light;
+  line-height: 1.5;
 }

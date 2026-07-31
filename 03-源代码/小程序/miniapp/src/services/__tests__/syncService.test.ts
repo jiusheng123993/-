@@ -1,3 +1,6 @@
+/**
+ * 数据同步服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { SyncService, getSyncService, type SyncRecord, type SyncTable } from '../syncService'
 

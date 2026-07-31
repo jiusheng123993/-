@@ -1,3 +1,7 @@
+/**
+ * 有毒食物过滤器
+ * 根据食物名称、宠物物种和品种，查询食物安全等级并生成警告信息
+ */
 import { FOOD_SAFETY_DATA, type FoodSafetyItem as DataSourceFoodSafetyItem } from '../../data/petKnowledge/foodSafety';
 import {
   getBreedFoodWarning,

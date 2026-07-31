@@ -1,5 +1,10 @@
+/**
+ * 衣橱数据访问层 - 配饰、用户库存、宠物穿搭、试穿历史的数据库操作
+ * 提供完整的 CRUD 和事务性查询接口
+ */
 import { pool } from '../db.js';
 
+/** 配饰数据行 */
 export interface AccessoryRow {
   id: string;
   name: string;
@@ -13,6 +18,7 @@ export interface AccessoryRow {
   createdAt: string;
 }
 
+/** 用户配饰库存行 */
 export interface UserAccessoryRow {
   id: number;
   userId: string;
@@ -21,12 +27,14 @@ export interface UserAccessoryRow {
   unlockSource: string;
 }
 
+/** 宠物穿搭行 */
 export interface PetOutfitRow {
   petId: string;
   outfitSlots: Record<string, string | null>;
   updatedAt: string;
 }
 
+/** 试穿历史行 */
 export interface TryOnHistoryRow {
   id: number;
   userId: string;

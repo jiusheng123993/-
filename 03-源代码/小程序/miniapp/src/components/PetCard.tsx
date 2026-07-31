@@ -1,3 +1,7 @@
+/**
+ * 宠物信息卡片组件
+ * 展示宠物的头像、名称、品种、年龄、体重等信息，支持点击和长按操作
+ */
 import { View, Text, Image } from '@tarojs/components';
 import type { PetProfile } from '../services/petService';
 import './PetCard.scss';

@@ -1,3 +1,7 @@
+/**
+ * 添加宠物页面
+ * 宠物信息表单输入，支持品种搜索选择、头像上传
+ */
 import { View, Text, Input, Picker, Switch, Textarea, Image, ScrollView } from '@tarojs/components'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'

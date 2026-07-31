@@ -1,1 +1,2 @@
+/** SVG 圆顶礼帽 */
 export const SVG_HAT_BOWLER = `<g transform="translate(30, 5)"><ellipse cx="20" cy="8" rx="20" ry="5" fill="#333"/><rect x="10" y="0" width="20" height="8" rx="2" fill="#333"/><ellipse cx="20" cy="0" rx="12" ry="4" fill="#444"/></g>`

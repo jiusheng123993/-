@@ -1,4 +1,8 @@
-﻿import create from 'zustand'
+/**
+ * 健康趋势状态管理
+ * 管理宠物健康趋势数据、趋势摘要、月度报告和各类趋势查询
+ */
+import create from 'zustand'
 import type { TrendDataPoint, TrendSummary, MonthlyReport } from '../services/trendService'
 import {
   getTrendData,
@@ -11,6 +15,7 @@ import {
 } from '../services/trendService'
 import { setStorageUserId } from '../utils/storage'
 
+/** 趋势状态定义 */
 interface TrendStoreState {
   userId: string
   trendData: TrendDataPoint[]
@@ -39,12 +44,22 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /**
+   * 初始化用户并持久化 userId
+   * @param userId - 用户 ID
+   */
   initUser: (userId: string) => {
     if (!userId) throw new Error('[TrendStore] userId is required')
     setStorageUserId(userId)
     set({ userId })
   },
 
+  /**
+   * 获取趋势数据
+   * @param petId - 宠物 ID
+   * @param startDate - 开始日期
+   * @param endDate - 结束日期
+   */
   fetchTrendData: async (petId: string, startDate: string, endDate: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -58,6 +73,11 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取趋势摘要
+   * @param petId - 宠物 ID
+   * @param period - 周期（周/月/季度）
+   */
   fetchSummary: async (petId: string, period: 'week' | 'month' | 'quarter') => {
     set({ isLoading: true, error: null })
     try {
@@ -71,6 +91,11 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取月度报告
+   * @param petId - 宠物 ID
+   * @param month - 月份（格式：YYYY-MM）
+   */
   fetchMonthlyReport: async (petId: string, month: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -84,6 +109,11 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取体重趋势
+   * @param petId - 宠物 ID
+   * @param months - 月数，默认 3 个月
+   */
   fetchWeightTrend: async (petId: string, months: number = 3) => {
     set({ isLoading: true, error: null })
     try {
@@ -97,6 +127,11 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取食欲趋势
+   * @param petId - 宠物 ID
+   * @param months - 月数，默认 3 个月
+   */
   fetchAppetiteTrend: async (petId: string, months: number = 3) => {
     set({ isLoading: true, error: null })
     try {
@@ -110,6 +145,11 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取便便趋势
+   * @param petId - 宠物 ID
+   * @param months - 月数，默认 3 个月
+   */
   fetchStoolTrend: async (petId: string, months: number = 3) => {
     set({ isLoading: true, error: null })
     try {
@@ -123,6 +163,12 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取异常天数数据
+   * @param petId - 宠物 ID
+   * @param startDate - 开始日期
+   * @param endDate - 结束日期
+   */
   fetchAbnormalDays: async (petId: string, startDate: string, endDate: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -136,10 +182,12 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
     }
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   },
 
+  /** 重置所有状态为初始值 */
   reset: () => {
     set({
       trendData: [],

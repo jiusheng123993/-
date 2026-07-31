@@ -1,3 +1,7 @@
+/**
+ * usePet 测试
+ * 验证宠物信息管理 Hook 的增删改查和状态管理
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

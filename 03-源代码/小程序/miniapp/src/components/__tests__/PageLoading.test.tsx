@@ -1,3 +1,6 @@
+/**
+ * 页面加载组件测试
+ */
 import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 

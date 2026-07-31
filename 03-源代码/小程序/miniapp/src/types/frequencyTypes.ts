@@ -1,5 +1,6 @@
 export type TimeWindow = 'minute' | 'hour' | 'day' | 'week' | 'month'
 
+/** 频率控制规则 */
 export interface FrequencyRule {
   templateId: string
   minInterval: number // 最小间隔（分钟）
@@ -9,12 +10,14 @@ export interface FrequencyRule {
   enabled: boolean // 是否启用
 }
 
+/** 发送记录 */
 export interface SendRecord {
   templateId: string
   sentAt: number // 时间戳
   success: boolean
 }
 
+/** 免打扰设置 */
 export interface DoNotDisturbSetting {
   enabled: boolean
   startHour: number // 0-23
@@ -24,6 +27,7 @@ export interface DoNotDisturbSetting {
   timezone: string
 }
 
+/** 频率控制完整配置 */
 export interface FrequencyControlConfig {
   defaultRules: FrequencyRule[]
   userRules: Record<string, FrequencyRule> // key: templateId

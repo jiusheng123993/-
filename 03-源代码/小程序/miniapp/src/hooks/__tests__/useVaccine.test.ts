@@ -1,3 +1,7 @@
+/**
+ * useVaccine 测试
+ * 验证疫苗管理 Hook 的增删改查和提醒功能
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

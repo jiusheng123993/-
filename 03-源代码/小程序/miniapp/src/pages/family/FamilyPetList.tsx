@@ -1,3 +1,7 @@
+/**
+ * 宠物列表组件（家庭页）
+ * 横向滚动展示所有宠物卡片，支持点击切换
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import type { PetProfile } from '../../services/petService'
 import { calcAge, getScoreLevel, type RankedPet } from './utils'

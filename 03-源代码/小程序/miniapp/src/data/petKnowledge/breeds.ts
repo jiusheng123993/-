@@ -1,3 +1,9 @@
+/**
+ * 品种数据库
+ * 宠物品种详细数据，含体型、性情、遗传疾病和特殊护理建议
+ */
+
+/** 品种条目 */
 export interface BreedItem {
   id: string
   name: string

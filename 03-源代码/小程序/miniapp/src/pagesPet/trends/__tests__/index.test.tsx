@@ -1,3 +1,4 @@
+/** 健康趋势页面单元测试 */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'

@@ -1,3 +1,7 @@
+/**
+ * E2E 测试：AI 聊天对话
+ * 验证 AI 宠物管家的聊天对话功能
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockStorage: Record<string, string> = {}

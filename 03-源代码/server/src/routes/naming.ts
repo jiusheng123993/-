@@ -1,3 +1,7 @@
+/**
+ * 取名参考照片上传路由
+ * 为 AI 取名流程提供照片上传功能
+ */
 import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';

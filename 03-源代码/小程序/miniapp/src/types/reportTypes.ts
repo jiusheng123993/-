@@ -1,3 +1,4 @@
+/** 健康报告数据 */
 export interface HealthReportData {
   pet: {
     id: string
@@ -38,6 +39,7 @@ export interface HealthReportData {
   aiAnalysis?: string
 }
 
+/** 画布渲染配置 */
 export interface CanvasRenderOptions {
   canvasId: string
   width?: number

@@ -1,3 +1,9 @@
+/**
+ * 食物安全数据库入口
+ * 聚合所有安全等级的食物数据，提供统一的查询接口
+ */
+
+/** 食物安全条目 */
 export interface FoodSafetyItem {
   id: string
   name: string

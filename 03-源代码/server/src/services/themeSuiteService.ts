@@ -1,3 +1,7 @@
+/**
+ * 主题套装生成服务 - 管理和执行主题套装（节日/季节）的 AI 图像生成
+ * 包含配额管理、内容审核、失败重试、提示词构建
+ */
 import { pool } from '../db.js';
 import { config } from '../config.js';
 import * as suiteRepo from '../repositories/themeSuiteRepository.js';

@@ -1,5 +1,10 @@
+/**
+ * 宠物形象生成服务 - 调用 Seedream API 生成宠物形象
+ * 支持卡通/写实风格，配置缺失时生成 SVG 占位图
+ */
 import { config } from '../config.js';
 
+/** 宠物形象生成请求参数 */
 export interface GeneratePetImageParams {
   petId: string;
   species: string;
@@ -9,6 +14,7 @@ export interface GeneratePetImageParams {
   style?: string;
 }
 
+/** 宠物形象生成结果 */
 export interface GeneratePetImageResult {
   url: string;
   isPlaceholder: boolean;

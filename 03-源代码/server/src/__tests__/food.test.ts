@@ -1,3 +1,7 @@
+/**
+ * 食物安全查询路由集成测试
+ * 覆盖：食物查询、历史记录、模糊匹配、数据隔离
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -91,7 +95,7 @@ describe('GET /food/query - 查询食物', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.source).toBe('placeholder');
     expect(res.body.message).toContain('暂无该食物数据');
-    expect(res.body.data.safetyLevel).toBe('caution');
+    expect(res.body.data[0].safetyLevel).toBe('caution');
   });
 
   it('参数校验：缺少 keyword，返回 400', async () => {

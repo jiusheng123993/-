@@ -1,3 +1,7 @@
+/**
+ * 会员体系 Hook
+ * 提供会员订阅、功能权限校验、支付墙控制等能力
+ */
 import { useEffect, useCallback } from 'react'
 import { useMembershipStore } from '../stores/membershipStore'
 import { useAuthStore } from '../stores/authStore'
@@ -39,6 +43,10 @@ function toMembershipInfo(membership: Membership | null): MembershipInfo | null 
   }
 }
 
+/**
+ * 会员体系 Hook
+ * 提供会员订阅、功能权限校验、支付墙控制等能力
+ */
 export function useMembership(): UseMembershipReturn {
   const {
     userId,

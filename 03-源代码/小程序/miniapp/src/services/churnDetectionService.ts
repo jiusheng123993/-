@@ -1,3 +1,8 @@
+/**
+ * 用户流失检测与召回服务
+ *
+ * 检测用户活跃度下降，触发不同级别的召回策略（消息/通知/站内提醒）
+ */
 import Taro from '@tarojs/taro'
 import { getStorage, setStorage } from '../utils/storage'
 import { logger } from '../logger'

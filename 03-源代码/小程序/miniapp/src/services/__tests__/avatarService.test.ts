@@ -1,3 +1,6 @@
+/**
+ * 头像服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { memoryStore, mockGeneratePetImage, mockApiPut } = vi.hoisted(() => {

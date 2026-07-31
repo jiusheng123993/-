@@ -1,3 +1,8 @@
+/**
+ * 成就服务测试
+ *
+ * 覆盖生日/连续打卡/疫苗/彩虹桥/节日成就检测逻辑
+ */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 const mockStorage: Record<string, string> = {}

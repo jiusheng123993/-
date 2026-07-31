@@ -1,3 +1,7 @@
+/**
+ * 危机转介卡片组件
+ * 提供心理援助热线拨打、紧急就医引导及后续跟进功能
+ */
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback } from 'react'

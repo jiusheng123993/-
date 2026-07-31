@@ -1,3 +1,7 @@
+/**
+ * 宠物切换器组件
+ * 横向滚动展示所有宠物，支持切换当前宠物和添加新宠物
+ */
 import { View, Text, Image, ScrollView } from '@tarojs/components'
 import type { PetProfile } from '../services/petService'
 import './PetSwitcher.scss'

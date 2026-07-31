@@ -1,3 +1,8 @@
+/**
+ * 语音服务
+ *
+ * 微信小程序语音录制/播放/识别管理
+ */
 import Taro from '@tarojs/taro'
 import { CONFIG } from '../config'
 import { storage } from '../utils/storage'

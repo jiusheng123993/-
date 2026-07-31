@@ -1,5 +1,10 @@
+/**
+ * 主题套装数据访问层 - theme_suites 和 theme_suite_tasks 表的数据库操作
+ * 提供主题套装查询、任务创建/更新、月度配额统计、行级锁（防并发）
+ */
 import { pool } from '../db.js';
 
+/** 主题套装数据行 */
 export interface ThemeSuiteRow {
   id: string;
   name: string;
@@ -12,6 +17,7 @@ export interface ThemeSuiteRow {
   createdAt: string;
 }
 
+/** 主题套装生成任务行 */
 export interface ThemeSuiteTaskRow {
   id: string;
   userId: string;

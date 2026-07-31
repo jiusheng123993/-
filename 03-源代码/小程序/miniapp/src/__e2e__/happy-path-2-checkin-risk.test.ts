@@ -1,10 +1,8 @@
 /**
- * E2E Happy Path 2: 健康打卡 → 风险检测 → 打卡记录
- *
- * 模拟完整的健康打卡流程：从正常打卡到异常检测，再到打卡记录查询。
- * 使用真实的 checkinService 函数，mock 底层 api 和 storage。
+ * E2E 测试：健康打卡与风险初筛
+ * 验证每日健康打卡和症状风险评估流程
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AnomalyItem } from '../memory-body/types/memoryBodyTypes'
 
 // ============================================================

@@ -1,3 +1,7 @@
+/**
+ * 品种百科页面
+ * 宠物品种查询、AI图片识别品种、特征信息展示
+ */
 import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useCallback, useEffect } from 'react'

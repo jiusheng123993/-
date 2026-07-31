@@ -1,3 +1,7 @@
+/**
+ * 品种食物禁忌数据测试
+ * 验证品种-食物禁忌映射的正确性
+ */
 import { describe, it, expect } from 'vitest'
 import {
   BREED_FOOD_WARNINGS,

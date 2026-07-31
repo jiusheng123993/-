@@ -1,3 +1,7 @@
+/**
+ * useUserStats 测试
+ * 验证用户数据统计 Hook 的各项计数和天数计算
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

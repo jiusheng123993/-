@@ -29,6 +29,7 @@ export interface ChronicTrendPoint {
   severityCounts: Record<string, number>
 }
 
+/** 复查提醒 */
 export interface CheckupReminder {
   record: ChronicRecord
   daysUntil: number
@@ -59,6 +60,7 @@ export const CHRONIC_SEVERITY_MAP = {
   severe: { label: '重度', color: '#f5222d' },
 } as const
 
+/** 慢性病状态映射（颜色和标签） */
 export const CHRONIC_STATUS_MAP = {
   active: { label: '活跃中', color: '#1890ff' },
   managed: { label: '已控制', color: '#52c41a' },

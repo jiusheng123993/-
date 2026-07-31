@@ -1,3 +1,7 @@
+/**
+ * 宠物衣橱穿搭 Hook
+ * 管理宠物配件的库存、穿搭插槽切换、主题套装生成与保存
+ */
 import { useEffect, useCallback, useRef } from 'react'
 import { useWardrobeStore } from '../stores/wardrobeStore'
 import { useAuthStore } from '../stores/authStore'
@@ -33,6 +37,10 @@ interface UseWardrobeReturn {
   getSlotLabel: (slot: AccessorySlot) => string
 }
 
+/**
+ * 宠物衣橱穿搭 Hook
+ * 管理宠物配件的库存、穿搭插槽切换、主题套装生成与保存
+ */
 export function useWardrobe(): UseWardrobeReturn {
   const store = useWardrobeStore()
   const authUserId = useAuthStore(s => s.user?.id || '')

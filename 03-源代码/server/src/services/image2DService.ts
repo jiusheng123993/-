@@ -1,3 +1,7 @@
+/**
+ * 2D 形象包生成服务 - 调用 Seedream API 批量生成宠物多角度表情包
+ * 包含表情、角度、动作三种维度，支持 429 重试和并发控制
+ */
 import { config } from '../config.js';
 import { pool } from '../db.js';
 import { updateTaskProgress, updateTaskStatus, updateTaskResult } from './taskQueue.js';

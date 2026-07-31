@@ -1,3 +1,7 @@
+/**
+ * 疫苗/驱虫自动排程引擎
+ * 根据宠物出生日期、品种和已有接种记录，自动生成疫苗和驱虫的排程计划
+ */
 import { DOG_VACCINE_SCHEDULE, CAT_VACCINE_SCHEDULE } from '../data/petKnowledge/vaccineSchedule'
 import type { VaccineScheduleTemplate } from '../data/petKnowledge/vaccineSchedule'
 
@@ -26,6 +30,13 @@ export interface DewormingScheduleItem {
   daysUntilDue: number
   reminderLevel: 0 | 1 | 2 | 3
 }
+
+/**
+ * 疫苗/驱虫自动排程引擎
+ *
+ * 根据宠物出生日期、品种和已有接种记录，
+ * 自动生成疫苗和驱虫的排程计划，包含提醒等级计算。
+ */
 
 function getLifeStage(birthDate: string): 'puppy_kitten' | 'adult' | 'senior' {
   const birth = new Date(birthDate)
@@ -75,6 +86,7 @@ function parseWeekAgeToDate(birthDate: string, weekOrAge: string): string | null
   return null
 }
 
+/** 自动生成疫苗排程 */
 export function generateAutoVaccineSchedule(pet: PetInfo): AutoScheduleItem[] {
   const lifeStage = getLifeStage(pet.birthDate)
   const templates = getScheduleTemplates(pet.species)
@@ -179,6 +191,7 @@ function calculateStatusAndReminder(scheduledDate: string, now: Date): { status:
   return { status, daysUntilDue: diffDays, reminderLevel }
 }
 
+/** 自动生成驱虫排程 */
 export function generateDewormingSchedule(pet: PetInfo): DewormingScheduleItem[] {
   const birth = new Date(pet.birthDate)
   const now = new Date()
@@ -239,14 +252,17 @@ function calculateDewormingStatusAndReminder(scheduledDate: string, now: Date): 
   return calculateStatusAndReminder(scheduledDate, now) as { status: DewormingScheduleItem['status']; daysUntilDue: number; reminderLevel: 0 | 1 | 2 | 3 }
 }
 
+/** 获取需要提醒的疫苗项 */
 export function getVaccineReminders(schedule: AutoScheduleItem[]): AutoScheduleItem[] {
   return schedule.filter(item => item.reminderLevel > 0)
 }
 
+/** 获取需要提醒的驱虫项 */
 export function getDewormingReminders(schedule: DewormingScheduleItem[]): DewormingScheduleItem[] {
   return schedule.filter(item => item.reminderLevel > 0)
 }
 
+/** 获取提醒消息内容（标题+正文） */
 export function getReminderMessage(reminderLevel: 1 | 2 | 3, type: 'vaccine' | 'deworming', name: string): { title: string; content: string } {
   if (type === 'vaccine') {
     switch (reminderLevel) {

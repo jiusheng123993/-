@@ -1,5 +1,9 @@
 import { AnalyticsEventName } from '../types/analyticsTypes'
 
+/**
+ * 分析事件常量映射
+ * 将枚举值映射为便捷常量，统一全站分析事件引用
+ */
 export const EVENT = {
   USER_REGISTER: AnalyticsEventName.UserRegister,
   PET_CREATE: AnalyticsEventName.PetCreate,

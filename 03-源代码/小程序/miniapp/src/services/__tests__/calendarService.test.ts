@@ -1,3 +1,6 @@
+/**
+ * 日历服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getFamilyCalendarEvents, getEventsByDay, hasEventsOnDay, type CalendarEvent } from '../calendarService'
 

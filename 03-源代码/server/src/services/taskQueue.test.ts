@@ -1,3 +1,7 @@
+/**
+ * 任务队列服务单元测试
+ * 覆盖：任务创建、进度更新、状态管理、权限隔离、过期清理
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { mockPool, mockClient } = vi.hoisted(() => {

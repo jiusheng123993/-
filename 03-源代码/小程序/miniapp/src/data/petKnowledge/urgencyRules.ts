@@ -1,3 +1,9 @@
+/**
+ * 紧急程度判断规则
+ * 基于症状组合、持续时长、物种/年龄/品种等因素自动升级紧急级别
+ */
+
+/** 紧急判断条件 */
 export interface UrgencyCondition {
   field: string
   operator: 'contains' | 'equals' | 'greater_than' | 'less_than' | 'any_of'

@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
+/** 健康打卡页面单元测试 */
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock all dependencies required by the source module before importing
 vi.mock('../../../hooks/useThemeClass', () => ({ useThemeClass: vi.fn(() => '') }))

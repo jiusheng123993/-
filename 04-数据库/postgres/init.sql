@@ -751,3 +751,209 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+-- ============================================================
+-- 40. pet_memoir_records（宠物回忆录任务记录）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_memoir_records (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pet_id        TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  memoir_type   TEXT NOT NULL,
+  status        TEXT DEFAULT 'pending',
+  source_photos TEXT[] NOT NULL,
+  source_text   TEXT,
+  narrative_structure JSONB,
+  video_url     TEXT,
+  preview_url   TEXT,
+  cost_credits  INTEGER,
+  payment_id    UUID,
+  error_message TEXT,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  completed_at  TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_memoir_records_user ON pet_memoir_records(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_memoir_records_status ON pet_memoir_records(status) WHERE status = 'pending';
+
+-- ============================================================
+-- 40. pet_family_feeds（家庭动态墙）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_family_feeds (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id     UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  pet_id        TEXT REFERENCES pet_profiles(id) ON DELETE SET NULL,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  feed_type     TEXT NOT NULL,
+  content       TEXT NOT NULL,
+  photos        TEXT[],
+  ai_generated  BOOLEAN DEFAULT FALSE,
+  source_ref    TEXT,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_feeds_family ON pet_family_feeds(family_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_feeds_type ON pet_family_feeds(family_id, feed_type);
+
+-- ============================================================
+-- 41. pet_family_weekly_reports（家庭周报）
+-- Phase 1.5：按家庭维度生成周报，记录一周健康/活动/家庭统计
+-- UNIQUE(family_id, year, week_number) 防止同周重复生成
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_family_weekly_reports (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id      UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  week_number    INTEGER NOT NULL,
+  year           INTEGER NOT NULL,
+  report_data    JSONB NOT NULL,
+  ai_insight     TEXT,
+  share_card_url TEXT,
+  created_at     TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(family_id, year, week_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_family ON pet_family_weekly_reports(family_id, year DESC, week_number DESC);
+
+-- ============================================================
+-- 42. share_cards（分享卡片）
+-- Phase 1.5：用户生成分享卡片，记录 card_type/card_data/share_count
+-- card_data 为 JSONB：插入时 JSON.stringify，用于存储 source_data/style 等卡片渲染信息
+-- share_count 记录分享次数，share_channel 记录最近一次分享渠道
+-- ============================================================
+CREATE TABLE IF NOT EXISTS share_cards (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  card_type     TEXT NOT NULL,
+  card_data     JSONB NOT NULL,
+  card_url      TEXT,
+  share_channel TEXT,
+  share_count   INTEGER DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_share_cards_user ON share_cards(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_share_cards_type ON share_cards(card_type, created_at DESC);
+
+-- ============================================================
+-- 43. pet_relationships（宠物关系 - 血缘+非血缘）
+-- Phase 1.5：家族图谱模块，记录宠物之间的各种关系（朋友/对手/伴侣/配偶等）
+-- UNIQUE(pet_id_a, pet_id_b, relation_type) 防止同类型关系重复
+-- 注：pet_profiles.id 为 TEXT，故 pet_id_a/pet_id_b 用 TEXT
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_relationships (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id     UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  pet_id_a      TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  pet_id_b      TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  relation_type TEXT NOT NULL,
+  direction     TEXT,
+  label_a       TEXT,
+  label_b       TEXT,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(pet_id_a, pet_id_b, relation_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_relationships_family ON pet_relationships(family_id);
+CREATE INDEX IF NOT EXISTS idx_relationships_pet_a ON pet_relationships(pet_id_a);
+CREATE INDEX IF NOT EXISTS idx_relationships_pet_b ON pet_relationships(pet_id_b);
+
+-- ============================================================
+-- 44. pet_lineage 扩展字段（family_id, created_at）
+-- 原 pet_lineage 表已存在（id/parent_id/child_id/litter_date），
+-- 此处补充 family_id（用于家庭隔离过滤）和 created_at（用于排序）
+-- 使用 DO 块做幂等 ALTER，避免重复执行报错
+-- ============================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pet_lineage' AND column_name = 'family_id'
+  ) THEN
+    ALTER TABLE pet_lineage
+      ADD COLUMN family_id UUID REFERENCES pet_families(id) ON DELETE CASCADE;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'pet_lineage' AND column_name = 'created_at'
+  ) THEN
+    ALTER TABLE pet_lineage
+      ADD COLUMN created_at TIMESTAMPTZ DEFAULT NOW();
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_lineage_family ON pet_lineage(family_id);
+CREATE INDEX IF NOT EXISTS idx_lineage_parent ON pet_lineage(parent_id);
+CREATE INDEX IF NOT EXISTS idx_lineage_child ON pet_lineage(child_id);
+
+-- ============================================================
+-- 45. pet_family_graph_snapshots（家族图谱快照）
+-- Phase 1.5：保存家族图谱的布局快照，支持历史回看和分享
+-- graph_data 为 JSONB：插入时 JSON.stringify，包含 nodes/edges 等图谱结构
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_family_graph_snapshots (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id     UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  layout_type   TEXT NOT NULL,
+  graph_data    JSONB NOT NULL,
+  thumbnail_url TEXT,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_snapshots_family ON pet_family_graph_snapshots(family_id, created_at DESC);
+
+-- ============================================================
+-- 46. pet_roles（宠物角色）
+-- Phase 1.5：宠物在家庭中的角色（如：家长/孩子/哥哥/妹妹等）
+-- UNIQUE(pet_id, role_type) 防止同一宠物重复担任同类型角色
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_roles (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pet_id        TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  family_id     UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  role_type     TEXT NOT NULL,
+  assignment    TEXT NOT NULL,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(pet_id, role_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_roles_family ON pet_roles(family_id);
+CREATE INDEX IF NOT EXISTS idx_roles_pet ON pet_roles(pet_id);
+
+-- ============================================================
+-- 47. pet_yearly_reviews（年度回忆图集）
+-- Phase 1.5：每只宠物每年的回顾图集，含统计/月度亮点/里程碑/成长曲线
+-- UNIQUE(pet_id, year) 防止同一宠物同一年重复创建
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_yearly_reviews (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pet_id        TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
+  year          INTEGER NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'draft',
+  review_data   JSONB NOT NULL DEFAULT '{}'::jsonb,
+  cover_url     TEXT,
+  video_url     TEXT,
+  paid          BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(pet_id, year)
+);
+
+CREATE INDEX IF NOT EXISTS idx_yearly_reviews_user ON pet_yearly_reviews(user_id, year DESC);
+CREATE INDEX IF NOT EXISTS idx_yearly_reviews_pet ON pet_yearly_reviews(pet_id, year DESC);
+
+-- ============================================================
+-- 48. pet_leaderboard_snapshots（家庭排行榜快照）
+-- Phase 1.5：缓存家庭周/月/总榜数据，避免实时聚合查询
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_leaderboard_snapshots (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id     UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  period        TEXT NOT NULL,
+  rankings      JSONB NOT NULL DEFAULT '[]'::jsonb,
+  computed_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(family_id, period)
+);
+
+CREATE INDEX IF NOT EXISTS idx_leaderboard_family ON pet_leaderboard_snapshots(family_id, period);

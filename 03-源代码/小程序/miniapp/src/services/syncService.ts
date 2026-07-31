@@ -1,3 +1,8 @@
+/**
+ * 数据同步服务
+ *
+ * 本地数据变更队列管理，含重试/冲突检测/在线状态感知
+ */
 import { api } from './api'
 import { encrypt, decrypt } from '../utils/crypto'
 import { getStorage, setStorage } from '../utils/storage'
@@ -51,7 +56,7 @@ const TABLE_ENDPOINTS: Record<SyncTable, { list: string; item: (id: string) => s
   pet_health_entries: { list: '/api/checkins', item: (id: string) => `/api/checkins/${id}` },
   pet_vaccinations: { list: '/api/vaccines', item: (id: string) => `/api/vaccines/${id}` },
   pet_symptom_checks: { list: '/api/symptom-checks', item: (id: string) => `/api/symptom-checks/${id}` },
-  pet_food_queries: { list: '/api/food-queries', item: (id: string) => `/api/food-queries/${id}` },
+  pet_food_queries: { list: '/api/food', item: (id: string) => `/api/food/${id}` },
   emotion_triggers: null,
   pet_grief_sessions: null,
   pet_outfits: null,

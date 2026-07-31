@@ -1,3 +1,7 @@
+/**
+ * 认证路由集成测试 - 登录/用户资料 CRUD
+ * 覆盖：正常流程、参数校验、数据归属、错误处理
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';

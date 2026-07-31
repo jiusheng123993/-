@@ -1,3 +1,7 @@
+/**
+ * 宠物换装页面
+ * 宠物配饰搭配、主题套装预览与切换
+ */
 import { View, Text } from '@tarojs/components'
 import { useState, useCallback, useMemo } from 'react'
 import Taro from '@tarojs/taro'

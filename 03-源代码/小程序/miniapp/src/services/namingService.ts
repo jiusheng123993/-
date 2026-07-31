@@ -1,3 +1,8 @@
+/**
+ * AI 取名服务
+ *
+ * 调用 AI 为宠物生成名字建议，含本地缓存
+ */
 import Taro from '@tarojs/taro'
 import { chat, guardCheck } from './aiProvider'
 import { checkInput } from '../utils/ruleGuard'
@@ -75,6 +80,8 @@ export interface RecommendNamesParams {
   style?: string
   photoUrl?: string
   description?: string
+  /** 已推荐过的名字，避免重复 */
+  excludeNames?: string[]
 }
 
 /**
@@ -85,13 +92,14 @@ export interface RecommendNamesParams {
 export async function recommendNames(params: RecommendNamesParams): Promise<string> {
   requireAuth()
 
-  const { breed, birthDate, gender, style, photoUrl, description } = params
+  const { breed, birthDate, gender, style, photoUrl, description, excludeNames } = params
 
   const safeBreed = sanitizeInput(breed)
   const safeBirthDate = sanitizeInput(birthDate)
   const safeGender = sanitizeInput(gender)
   const safeStyle = style ? sanitizeInput(style) : undefined
   const safeDesc = description ? sanitizeInput(description) : undefined
+  const safeExcludeNames = excludeNames?.filter(n => n.length <= 10).map(n => sanitizeInput(n))
 
   const ruleResult = checkInput(safeBreed + safeGender + (safeDesc || ''))
   if (ruleResult.blocked) {
@@ -108,6 +116,7 @@ export async function recommendNames(params: RecommendNamesParams): Promise<stri
     style: safeStyle,
     photoUrl,
     description: safeDesc,
+    excludeNames: safeExcludeNames,
   })
 
   return await chat({
@@ -116,6 +125,7 @@ export async function recommendNames(params: RecommendNamesParams): Promise<stri
       { role: 'user', content: prompt },
     ],
     temperature: 0.9,
+    max_tokens: 2048,
   })
 }
 
@@ -179,5 +189,6 @@ export async function analyzeNameDetail(params: AnalyzeNameDetailParams): Promis
       { role: 'user', content: prompt },
     ],
     temperature: 0.85,
+    max_tokens: 2048,
   })
 }

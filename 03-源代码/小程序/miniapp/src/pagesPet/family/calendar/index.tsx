@@ -1,3 +1,7 @@
+/**
+ * 家庭日历页面
+ * 宠物家庭日历事件展示与管理
+ */
 import { useState, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'

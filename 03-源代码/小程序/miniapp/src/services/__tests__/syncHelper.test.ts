@@ -1,3 +1,6 @@
+/**
+ * 同步辅助工具测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { queueSync, trySyncAll, trySyncTable } from '../syncHelper'
 import { getSyncService } from '../syncService'

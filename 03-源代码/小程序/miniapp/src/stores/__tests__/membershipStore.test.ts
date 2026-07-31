@@ -1,3 +1,6 @@
+/**
+ * 会员状态管理 - 单元测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useMembershipStore } from '../membershipStore'
 import * as membershipService from '../../services/membershipService'

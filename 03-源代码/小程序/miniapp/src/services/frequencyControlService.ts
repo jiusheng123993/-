@@ -1,3 +1,8 @@
+/**
+ * 频次控制服务
+ *
+ * 本地频率限制（限流），避免高频操作对服务器造成压力
+ */
 import { getStorage, setStorage } from '../utils/storage'
 import {
   type FrequencyRule,

@@ -1,3 +1,7 @@
+/**
+ * 3D 模型生成服务单元测试
+ * 覆盖：无 2D 图像处理、API 失败、轮询成功/失败/超时、进度计算、异常处理
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const {

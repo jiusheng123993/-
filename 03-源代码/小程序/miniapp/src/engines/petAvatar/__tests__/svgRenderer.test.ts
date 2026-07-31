@@ -1,3 +1,7 @@
+/**
+ * svgRenderer 测试
+ * 验证 SVG 面部渲染器的各类表情输出和数据 URI 编码
+ */
 import { describe, it, expect } from 'vitest'
 import { buildSvgFace, svgToDataUri, getPetFaceDataUri } from '../svgRenderer'
 import { EXPRESSION_MAP } from '../expressionEngine'

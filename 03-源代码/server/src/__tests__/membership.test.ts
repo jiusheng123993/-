@@ -1,3 +1,7 @@
+/**
+ * 会员管理路由集成测试
+ * 覆盖：会员状态、订阅（多种计划）、取消订阅、配额查询
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';

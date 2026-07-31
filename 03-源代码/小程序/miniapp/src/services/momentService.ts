@@ -1,3 +1,8 @@
+/**
+ * 宠物动态服务
+ *
+ * 宠物家庭动态（打卡/里程碑/照片/回忆）的查询与缓存
+ */
 import { api } from './api'
 import { mockApi } from './mock'
 import { CONFIG } from '../config'

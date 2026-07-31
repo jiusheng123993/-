@@ -1,3 +1,7 @@
+/**
+ * 聊天核心 Hook
+ * 管理消息列表、流式输出、打字效果、语义意图识别与 Agent 编排
+ */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { sendChatMessage, type ChatContext } from '../services/chatService'

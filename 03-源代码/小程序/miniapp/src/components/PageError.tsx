@@ -1,3 +1,7 @@
+/**
+ * 页面错误组件
+ * 显示错误信息和重试按钮
+ */
 import { View, Text } from '@tarojs/components'
 import './PageError.scss'
 

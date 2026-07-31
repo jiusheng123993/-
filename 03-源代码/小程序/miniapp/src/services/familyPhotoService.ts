@@ -1,3 +1,8 @@
+/**
+ * 家庭合照生成服务
+ *
+ * Canvas 绘制宠物全家福图片，含装饰元素/头像/文字，支持保存和分享
+ */
 import Taro from '@tarojs/taro'
 import type { PetProfile } from './petService'
 

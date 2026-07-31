@@ -1,3 +1,6 @@
+/**
+ * 衣橱系统服务测试
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const { memoryStore } = vi.hoisted(() => {

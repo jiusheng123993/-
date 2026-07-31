@@ -1,3 +1,7 @@
+/**
+ * 照片上传组件
+ * 支持拍照或从相册选择宠物照片，含格式校验和隐私授权
+ */
 import { View, Text, Image } from '@tarojs/components'
 import { useCallback } from 'react'
 import Taro from '@tarojs/taro'

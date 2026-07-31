@@ -1,3 +1,7 @@
+/**
+ * 宠物用品商城页面
+ * 商品分类浏览、智能推荐、佣金展示
+ */
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState, useMemo, useCallback } from 'react'

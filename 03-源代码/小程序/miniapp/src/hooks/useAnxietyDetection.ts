@@ -1,3 +1,7 @@
+/**
+ * 宠物健康焦虑检测 Hook
+ * 通过分析打卡数据、食物查询和症状检查频率，检测主人是否存在过度焦虑
+ */
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import {
@@ -9,6 +13,10 @@ import { useCheckinStore } from '../stores/checkinStore'
 import { useSymptomStore } from '../stores/symptomStore'
 import { useFoodQueryStore } from '../stores/foodQueryStore'
 
+/**
+ * 宠物健康焦虑检测 Hook
+ * 通过分析打卡数据、食物查询和症状检查频率，检测主人是否存在过度焦虑
+ */
 interface AnxietyDetectionState {
   showSickAnxiety: boolean
   showNewOwnerAnxiety: boolean
@@ -29,6 +37,10 @@ const SICK_ANXIETY_KEY = 'sick_anxiety_dismissed'
 const NEW_OWNER_ANXIETY_KEY = 'new_owner_anxiety_dismissed'
 const LAST_CHECK_KEY = 'anxiety_last_check'
 
+/**
+ * 焦虑检测 Hook
+ * 提供疾病焦虑和新手主人焦虑的检测、展示与消除功能
+ */
 export function useAnxietyDetection(): UseAnxietyDetectionReturn {
   const [anxietyState, setAnxietyState] = useState<AnxietyDetectionState>({
     showSickAnxiety: false,

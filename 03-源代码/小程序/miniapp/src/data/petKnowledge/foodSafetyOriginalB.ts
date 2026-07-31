@@ -1,3 +1,7 @@
+/**
+ * 原始食材安全数据 B
+ * 宠物食物安全数据库 - 原始/未加工食材部分 B
+ */
 import type { FoodSafetyItem } from './foodSafety'
 
 export const FOOD_SAFETY_ORIGINAL_B: FoodSafetyItem[] = [

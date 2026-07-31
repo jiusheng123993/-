@@ -1,3 +1,7 @@
+/**
+ * 首页页面
+ * 宠物看护AI助手对话、快捷操作入口、打卡/取名/食物查询等流程
+ */
 import { View, Text, ScrollView, Input, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useState } from 'react'

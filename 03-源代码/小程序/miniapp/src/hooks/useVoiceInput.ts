@@ -1,3 +1,7 @@
+/**
+ * 语音输入 Hook
+ * 封装微信录音管理器，管理录音状态与生命周期，提供 press-and-hold 式语音输入
+ */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 

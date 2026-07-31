@@ -1,3 +1,7 @@
+/**
+ * NPS 满意度调查组件
+ * 收集用户推荐度评分（0-10）和反馈意见
+ */
 import { useState, useCallback } from 'react';
 import { View, Text, Input } from '@tarojs/components';
 import type { NpsTriggerEvent } from '../types/npsTypes';

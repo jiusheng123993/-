@@ -1,3 +1,7 @@
+/**
+ * 宠物取名页面
+ * AI宠物取名、名字命理解读、名字推荐
+ */
 import { useState } from 'react'
 import { View, Text, Input, Button } from '@tarojs/components'
 import { interpretName, recommendNames } from '../../services/namingService'

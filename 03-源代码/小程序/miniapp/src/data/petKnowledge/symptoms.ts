@@ -1,3 +1,9 @@
+/**
+ * 症状数据库
+ * 宠物常见症状的详细定义，含紧急程度、常见原因和家庭观察建议
+ */
+
+/** 症状条目 */
 export interface SymptomItem {
   id: string
   name: string

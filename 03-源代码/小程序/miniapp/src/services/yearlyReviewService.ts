@@ -1,3 +1,8 @@
+/**
+ * 年度回顾服务
+ *
+ * 生成宠物年度回顾数据（统计/亮点/回忆），用于分享展示
+ */
 import Taro from '@tarojs/taro'
 import type { PetProfile } from './petService'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'

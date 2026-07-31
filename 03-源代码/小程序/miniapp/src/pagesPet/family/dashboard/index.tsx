@@ -1,3 +1,7 @@
+/**
+ * 家庭看板页面
+ * 宠物家庭聚合看板、健康总览
+ */
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { View, Text, Canvas } from '@tarojs/components'
 import Taro from '@tarojs/taro'

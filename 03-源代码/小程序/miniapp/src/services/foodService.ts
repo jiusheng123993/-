@@ -1,4 +1,9 @@
-import { api } from './api';
+/**
+ * 食物安全查询服务
+ *
+ * 宠物食品百科查询、历史记录、查询统计（次数/配额）
+ */
+import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage';
 import { ToxicFoodFilter } from '../engines/petSafety';
 import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes';
@@ -65,7 +70,7 @@ export async function queryFood(
 ): Promise<PetFoodQuery> {
   requirePetOwnership(petId, userId);
   try {
-    const result = await api.post<PetFoodQuery>('/api/food-queries', { petId, foodName, species, breed });
+    const result = await api.get<PetFoodQuery>('/api/food/query', { keyword: foodName });
     const queries = getLocalQueries(petId, userId);
     queries.unshift(result);
     saveLocalQueries(petId, userId, queries);
@@ -117,7 +122,7 @@ export async function queryFood(
 export async function getQueryHistory(petId: string, userId: string): Promise<PetFoodQuery[]> {
   requirePetOwnership(petId, userId);
   try {
-    const result = await api.get<PetFoodQuery[]>(`/api/pets/${petId}/food-queries`);
+    const result = await api.get<PetFoodQuery[]>('/api/food/history');
     saveLocalQueries(petId, userId, result);
     return result;
   } catch (error) {
@@ -127,8 +132,15 @@ export async function getQueryHistory(petId: string, userId: string): Promise<Pe
 
 export async function getQueryStats(petId: string, userId: string): Promise<FoodQueryStats> {
   try {
-    const result = await api.get<FoodQueryStats>(`/api/food-queries/stats?petId=${petId}`);
-    return result;
+    const result = await api.get<{ totalQueries: number; todayQueries: number }>('/api/food/stats');
+    const memberUser = await isMember(userId);
+    const limit = await getQuotaLimit('food_query', userId);
+    return {
+      totalQueries: result.totalQueries,
+      todayQueries: result.todayQueries,
+      remainingFree: limit === -1 ? -1 : Math.max(0, limit - result.todayQueries),
+      isMemberUser: memberUser,
+    };
   } catch (error) {
     const queries = getLocalQueries(petId, userId);
     const today = new Date().toISOString().slice(0, 10);
@@ -153,7 +165,7 @@ export async function getQueryStats(petId: string, userId: string): Promise<Food
 
 export async function getTodayQueryCount(petId: string, userId: string): Promise<number> {
   try {
-    const result = await api.get<{ count: number }>(`/api/food-queries/today-count?petId=${petId}`);
+    const result = await api.get<{ count: number }>('/api/food/today-count');
     return result.count;
   } catch (error) {
     const queries = getLocalQueries(petId, userId);

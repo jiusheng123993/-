@@ -1,3 +1,8 @@
+/**
+ * 通知跟进服务
+ *
+ * 用户跟进任务（随访）的调度/查询/过期清理
+ */
 import Taro from '@tarojs/taro';
 import { getStorage, setStorage } from '../utils/storage';
 import { logger } from '../logger';

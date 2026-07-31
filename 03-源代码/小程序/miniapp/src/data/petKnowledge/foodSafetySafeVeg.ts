@@ -1,5 +1,9 @@
 import type { FoodSafetyItem } from './foodSafety'
 
+/**
+ * 安全蔬菜数据
+ * 宠物可安全食用的蔬菜列表（含煮熟去皮等注意事项）
+ */
 export const FOOD_SAFETY_SAFE_VEG: FoodSafetyItem[] = [
   {
     id: 'cauliflower',

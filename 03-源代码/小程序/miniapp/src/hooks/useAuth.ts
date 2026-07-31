@@ -1,3 +1,7 @@
+/**
+ * 用户认证 Hook
+ * 提供登录、登出、登录状态管理及自动初始化能力
+ */
 import { useEffect } from 'react';
 import Taro from '@tarojs/taro';
 import { useAuthStore } from '../stores/authStore';
@@ -12,6 +16,10 @@ interface UseAuthReturn {
   logout: () => Promise<void>;
 }
 
+/**
+ * 用户认证 Hook
+ * 提供登录、登出、登录状态管理及自动初始化能力
+ */
 export function useAuth(): UseAuthReturn {
   const {
     user,

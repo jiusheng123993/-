@@ -1,3 +1,7 @@
+/**
+ * 组件库统一导出入口
+ * 集中导出所有公共组件供外部引用
+ */
 export { default as PaywallPopup } from './PaywallPopup'
 export { default as PrivacyPopup } from './PrivacyPopup'
 export { default as PetCard } from './PetCard'

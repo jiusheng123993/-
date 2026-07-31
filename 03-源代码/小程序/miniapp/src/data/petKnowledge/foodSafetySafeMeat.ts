@@ -1,5 +1,9 @@
 import type { FoodSafetyItem } from './foodSafety'
 
+/**
+ * 安全肉类数据
+ * 宠物可安全食用的肉类、水产和蛋类列表（含去骨去刺等注意事项）
+ */
 export const FOOD_SAFETY_SAFE_MEAT: FoodSafetyItem[] = [
   {
     id: 'chicken_liver',

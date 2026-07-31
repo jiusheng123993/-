@@ -1,3 +1,9 @@
+/**
+ * 疫苗排期数据
+ * 犬猫疫苗接种计划，含核心/非核心疫苗分类、WSAVA 标准排期和品种建议
+ */
+
+/** 疫苗条目 */
 export interface VaccineItem {
   id: string
   name: string

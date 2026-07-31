@@ -1,3 +1,8 @@
+/**
+ * NPS 满意度调查服务
+ *
+ * 用户净推荐值（NPS）评分/反馈提交与统计
+ */
 import Taro from '@tarojs/taro';
 import { api } from './api';
 import {

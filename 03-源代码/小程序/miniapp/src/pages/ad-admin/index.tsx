@@ -1,3 +1,7 @@
+/**
+ * 广告管理页面
+ * 配置流量主广告位ID和统计管理
+ */
 import { View, Text, ScrollView, Input, Switch } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useCallback } from 'react'

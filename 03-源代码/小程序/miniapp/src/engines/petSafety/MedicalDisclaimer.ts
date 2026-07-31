@@ -1,3 +1,7 @@
+/**
+ * 医疗免责声明引擎
+ * 根据安全评估的紧迫程度和上下文，提供对应级别的医疗免责声明文本
+ */
 import type { UrgencyLevel } from './PetSafetyHandler';
 import type { FoodSafetyLevel } from './ToxicFoodFilter';
 import type { HealthRiskLevel } from '../../memory-body/types/memoryBodyTypes';
@@ -6,6 +10,13 @@ export interface DisclaimerConfig {
   position: 'prefix' | 'suffix' | 'standalone';
   urgencyLevel: UrgencyLevel;
 }
+
+/**
+ * 医疗免责声明引擎
+ *
+ * 根据安全评估的紧迫程度和上下文（食物、症状、打卡等），
+ * 提供对应级别的医疗免责声明文本。所有声明均强调"不替代专业兽医诊断"。
+ */
 
 const GENERAL_DISCLAIMER = '本建议仅供参考，不替代专业兽医诊断。如有疑虑请及时就医。';
 const EMERGENCY_DISCLAIMER = '⚠️ 检测到紧急情况！请立即联系兽医或前往最近的宠物医院。本评估不替代专业诊断。';
@@ -42,6 +53,7 @@ const HEALTH_RISK_DISCLAIMER_MAP: Record<HealthRiskLevel, string> = {
 };
 
 export class MedicalDisclaimer {
+  /** 根据紧迫度和上下文获取对应免责声明 */
   getDisclaimer(urgency: UrgencyLevel, context: 'food' | 'symptom' | 'checkin' | 'trend' | 'vaccine' | 'breed'): string {
     switch (context) {
       case 'food':
@@ -61,10 +73,12 @@ export class MedicalDisclaimer {
     }
   }
 
+  /** 获取紧急情况免责声明 */
   getEmergencyDisclaimer(): string {
     return EMERGENCY_DISCLAIMER;
   }
 
+  /** 根据食物安全等级获取免责声明 */
   getFoodDisclaimer(safetyLevel: FoodSafetyLevel): string {
     switch (safetyLevel) {
       case 'toxic':
@@ -80,10 +94,12 @@ export class MedicalDisclaimer {
     }
   }
 
+  /** 根据健康风险等级获取食物免责声明 */
   getFoodDisclaimerByHealthRisk(riskLevel: HealthRiskLevel): string {
     return HEALTH_RISK_DISCLAIMER_MAP[riskLevel];
   }
 
+  /** 根据紧迫度获取症状免责声明 */
   getSymptomDisclaimer(urgency: UrgencyLevel): string {
     switch (urgency) {
       case 'red':
@@ -99,18 +115,22 @@ export class MedicalDisclaimer {
     }
   }
 
+  /** 获取打卡数据免责声明 */
   getCheckinDisclaimer(hasAnomaly: boolean): string {
     return hasAnomaly ? CHECKIN_ANOMALY_DISCLAIMER : CHECKIN_NORMAL_DISCLAIMER;
   }
 
+  /** 获取健康趋势免责声明 */
   getTrendDisclaimer(): string {
     return TREND_DISCLAIMER;
   }
 
+  /** 获取疫苗提醒免责声明 */
   getVaccineDisclaimer(): string {
     return VACCINE_DISCLAIMER;
   }
 
+  /** 获取品种健康信息免责声明 */
   getBreedDisclaimer(): string {
     return BREED_DISCLAIMER;
   }

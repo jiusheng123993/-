@@ -1,3 +1,7 @@
+/**
+ * 健康打卡 Hook
+ * 提供宠物每日健康打卡的查询、提交与连续天数追踪
+ */
 import { useCallback } from 'react';
 import { useCheckinStore } from '../stores/checkinStore';
 import type { Checkin } from '../types';
@@ -12,6 +16,10 @@ interface UseCheckinReturn {
   fetchCheckins: (petId: string) => Promise<void>;
 }
 
+/**
+ * 健康打卡 Hook
+ * 提供宠物每日健康打卡的查询、提交与连续天数追踪
+ */
 export function useCheckin(): UseCheckinReturn {
   const {
     checkins,

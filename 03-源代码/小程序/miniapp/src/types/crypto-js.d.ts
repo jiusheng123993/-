@@ -1,3 +1,4 @@
+/** crypto-js 类型声明 */
 declare module 'crypto-js/aes' {
   import type { LibCipherParams } from 'crypto-js';
 

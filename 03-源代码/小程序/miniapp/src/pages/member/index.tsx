@@ -1,3 +1,7 @@
+/**
+ * 会员中心页面
+ * 会员套餐选择、权益展示、订阅管理
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'

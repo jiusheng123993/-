@@ -1,3 +1,8 @@
+/**
+ * 健康趋势服务
+ *
+ * 宠物健康趋势数据查询（体重/食欲/排便/异常天），月报生成
+ */
 import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
 import type { PetHealthEntry } from './checkinService'

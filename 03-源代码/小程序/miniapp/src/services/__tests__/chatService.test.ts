@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
+/**
+ * 聊天服务测试
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('../aiProvider', () => ({
   chat: vi.fn().mockResolvedValue('这是一条AI回复'),

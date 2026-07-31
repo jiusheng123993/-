@@ -1,3 +1,7 @@
+/**
+ * 症状初筛流程 Hook
+ * 管理 4 步症状询问流程，负责选项处理与风险评估报告生成
+ */
 import { useCallback, useState } from 'react'
 import type { CardData, PetInfo } from '../types/chatTypes'
 

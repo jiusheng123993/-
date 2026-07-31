@@ -1,3 +1,7 @@
+/**
+ * 穿搭预览组件
+ * 展示宠物穿戴饰品后的形象和各槽位状态
+ */
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'
 import PetAvatar from '../PetAvatar'

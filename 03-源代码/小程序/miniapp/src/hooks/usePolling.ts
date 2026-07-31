@@ -1,3 +1,7 @@
+/**
+ * 轮询 Hook
+ * 支持页面可见性控制、前后台切换自动暂停/恢复的定时轮询
+ */
 import { useEffect, useRef, useCallback } from 'react'
 import Taro from '@tarojs/taro'
 
@@ -11,6 +15,10 @@ interface UsePollingReturn {
   forceRefresh: () => void
 }
 
+/**
+ * 轮询 Hook
+ * 支持页面可见性控制、前后台切换自动暂停/恢复的定时轮询
+ */
 export function usePolling(
   fetcher: () => Promise<void>,
   options: UsePollingOptions,

@@ -1,3 +1,7 @@
+/**
+ * 哀伤陪伴组件
+ * 引导用户走完宠物离世后的情绪处理流程：表达感受、书写留言、在线连接
+ */
 import { View, Text, Input } from '@tarojs/components'
 import { useState, useCallback } from 'react'
 import {

@@ -1,3 +1,7 @@
+/**
+ * 情绪响应卡片组件
+ * 根据情绪干预类型显示对应的提示信息和操作按钮
+ */
 import { View, Text } from '@tarojs/components'
 import { useCallback } from 'react'
 import type { EmotionIntervention } from '../engines/emotion'

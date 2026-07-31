@@ -1,5 +1,8 @@
+/**
+ * AI 取名流程 Hook
+ * 支持推荐模式和解读模式，管理取名步骤、AI 推荐、照片上传和命理详情弹窗
+ */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Taro from '@tarojs/taro'
 import { recommendNames, uploadNamingPhoto, interpretName, analyzeNameDetail } from '../services/namingService'
 import { usePetStore } from '../stores/petStore'
 import { CONFIG } from '../config'
@@ -78,7 +81,7 @@ function shuffle<T>(arr: T[]): T[] {
   return result
 }
 
-function generateFallbackNames(style: string): NamingResult[] {
+function generateFallbackNames(style: string, excludeNames?: string[]): NamingResult[] {
   const allNames: Record<string, NamingResult[]> = {
     '古风诗意': [
       { name: '墨韵', source: '《墨池记》"临池学书，池水尽墨"', wuxing: '水', starMansion: '壁水貐', meaning: '墨香氤氲，韵味悠长。适合气质优雅、安静从容的宝贝。', score: 95 },
@@ -184,11 +187,15 @@ function generateFallbackNames(style: string): NamingResult[] {
   }
 
   const matched = Object.entries(allNames).find(([key]) => style.includes(key))
-  if (matched) return shuffle(matched[1]).slice(0, 5)
+  if (matched) {
+    const filtered = matched[1].filter(n => !excludeNames?.includes(n.name))
+    return shuffle(filtered).slice(0, 5)
+  }
 
   // 不限风格 → 从所有风格中混合抽取（大幅增加多样性）
   const allPool = Object.values(allNames).flat()
-  return shuffle(allPool).slice(0, 5)
+  const filtered = allPool.filter(n => !excludeNames?.includes(n.name))
+  return shuffle(filtered).slice(0, 5)
 }
 
 // ── 解析 AI 返回的 JSON ───────────────────────────────────
@@ -286,6 +293,13 @@ export function useNamingFlow(params: UseNamingFlowParams) {
   const namingCardMsgIdRef = useRef<string | null>(null)
   /** 是否正在换一批 */
   const [isRefreshing, setIsRefreshing] = useState(false)
+  /** 已推荐过的名字，避免重复推荐 */
+  const seenNamesRef = useRef<Set<string>>(new Set())
+
+  /** 将推荐结果加入已推荐名单 */
+  const addToSeenNames = useCallback((names: NamingResult[]) => {
+    names.forEach(n => seenNamesRef.current.add(n.name))
+  }, [])
 
   /** 当前步骤是否处于文本输入模式（需要路由聊天输入到取名流程） */
   const isTextInputActive = namingStep >= 0
@@ -307,7 +321,7 @@ export function useNamingFlow(params: UseNamingFlowParams) {
   // ── 调用 AI 获取名字推荐（可复用于换一批） ─────────────
 
   /** 调用 AI 服务获取名字推荐，失败时返回 null */
-  const fetchAiNames = useCallback(async (): Promise<NamingResult[] | null> => {
+  const fetchAiNames = useCallback(async (excludeNames?: string[]): Promise<NamingResult[] | null> => {
     if (CONFIG.USE_MOCK) {
       console.log('[NamingFlow] USE_MOCK=true，跳过 AI 调用')
       return null
@@ -335,6 +349,7 @@ export function useNamingFlow(params: UseNamingFlowParams) {
         style,
         photoUrl: photoUrl || undefined,
         description: description || undefined,
+        excludeNames,
       })
       setIsTyping(false)
 
@@ -343,14 +358,17 @@ export function useNamingFlow(params: UseNamingFlowParams) {
       const parsed = parseRecommendResult(result)
       console.log('[NamingFlow] 解析结果数量:', parsed.length)
       if (parsed.length > 0) {
-        return parsed
+        // 过滤掉已推荐过的（AI 可能不严格遵守排除指令）
+        const filtered = excludeNames && excludeNames.length > 0
+          ? parsed.filter(n => !excludeNames.includes(n.name))
+          : parsed
+        return filtered.slice(0, 5)
       }
       console.warn('[NamingFlow] AI 返回了结果但解析失败，原始内容:', result.substring(0, 200))
     } catch (err) {
       setIsTyping(false)
       const errMsg = err instanceof Error ? err.message : String(err)
       console.error('[NamingFlow] AI 推荐调用失败:', errMsg)
-      Taro.showToast({ title: 'AI 服务异常，使用本地推荐', icon: 'none', duration: 2000 })
     }
     return null
   }, [photoUrl, setIsTyping])
@@ -371,8 +389,11 @@ export function useNamingFlow(params: UseNamingFlowParams) {
     }
 
     if (names.length === 0) {
-      names = generateFallbackNames(style || '不限风格')
+      const excludeList = Array.from(seenNamesRef.current)
+      names = generateFallbackNames(style || '不限风格', excludeList)
     }
+
+    addToSeenNames(names)
 
     const card: CardData = {
       type: 'naming_cards',
@@ -393,7 +414,7 @@ export function useNamingFlow(params: UseNamingFlowParams) {
       const msgId = addMessage({ type: 'ai', content: '', card })
       namingCardMsgIdRef.current = msgId
     })
-  }, [addMessage, photoUrl, setIsTyping, streamAiReply, fetchAiNames])
+  }, [addMessage, photoUrl, setIsTyping, streamAiReply, fetchAiNames, addToSeenNames])
 
   // ── 换一批 ──────────────────────────────────────────
 
@@ -415,7 +436,8 @@ export function useNamingFlow(params: UseNamingFlowParams) {
     })
 
     let names: NamingResult[] = []
-    const aiNames = await fetchAiNames()
+    const excludeList = Array.from(seenNamesRef.current)
+    const aiNames = await fetchAiNames(excludeList)
     if (aiNames && aiNames.length > 0) {
       names = aiNames
     }
@@ -423,8 +445,10 @@ export function useNamingFlow(params: UseNamingFlowParams) {
     if (names.length === 0) {
       const currentData = namingDataRef.current
       const style = currentData.style || '不限风格'
-      names = generateFallbackNames(style)
+      names = generateFallbackNames(style, excludeList)
     }
+
+    addToSeenNames(names)
 
     updateMessageCard(msgId, {
       type: 'naming_cards',
@@ -432,7 +456,7 @@ export function useNamingFlow(params: UseNamingFlowParams) {
       names,
     })
     setIsRefreshing(false)
-  }, [isRefreshing, fetchAiNames, updateMessageCard])
+  }, [isRefreshing, fetchAiNames, updateMessageCard, addToSeenNames])
 
   /** 解析 AI 返回的命理详情 JSON */
 function parseDetailResult(text: string): NamingDetail | null {
@@ -613,6 +637,7 @@ function generateFallbackDetail(name: string, wuxing: string, starMansion: strin
     setNamingStep(0)
     setPhotoUrl(null)
     setNamingDetailPopup(null)
+    seenNamesRef.current = new Set()
     addAiMsg('要给宝贝取名字吗？太开心了！让我来帮你 ✦\n\n你想怎么用呢？', MODE_SELECT_STEP.options)
   }, [addAiMsg])
 

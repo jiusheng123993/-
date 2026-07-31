@@ -1,3 +1,7 @@
+/**
+ * 推荐内容卡片组件
+ * 展示热门品种百科、食物安全速查等推荐功能入口，支持关闭
+ */
 import { View, Text } from '@tarojs/components'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'

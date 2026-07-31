@@ -1,4 +1,10 @@
+/**
+ * 时间线服务
+ *
+ * 宠物动态时间线的查询/轮询/缓存管理
+ */
 import { api } from './api'
+import { getStorage, setStorage } from '../utils/storage'
 import type { PetMoment, PetMilestone } from '../types/familyTypes'
 
 export const timelineService = {

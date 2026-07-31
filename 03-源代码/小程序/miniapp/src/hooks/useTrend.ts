@@ -1,6 +1,14 @@
+/**
+ * 健康趋势分析 Hook
+ * 提供体重、食欲、排便等健康数据的趋势查询与分析
+ */
 import { useCallback } from 'react'
 import { useTrendStore } from '../stores/trendStore'
 
+/**
+ * 健康趋势分析 Hook
+ * 提供体重、食欲、排便等健康数据的趋势查询与分析
+ */
 export function useTrend() {
   const trendData = useTrendStore((s) => s.trendData)
   const summary = useTrendStore((s) => s.summary)

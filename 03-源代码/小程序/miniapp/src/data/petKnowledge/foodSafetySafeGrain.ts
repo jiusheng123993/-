@@ -1,5 +1,9 @@
 import type { FoodSafetyItem } from './foodSafety'
 
+/**
+ * 安全谷物和补充剂数据
+ * 宠物可安全食用的谷物、保健品和天然补充品列表
+ */
 export const FOOD_SAFETY_SAFE_GRAIN: FoodSafetyItem[] = [
   {
     id: 'white_rice',

@@ -1,3 +1,7 @@
+/**
+ * useReminder 测试
+ * 验证疫苗/驱虫提醒 Hook 的订阅、查询和本地提醒调度
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

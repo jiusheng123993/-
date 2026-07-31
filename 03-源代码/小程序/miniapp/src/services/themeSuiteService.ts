@@ -1,4 +1,10 @@
+/**
+ * 主题套装服务
+ *
+ * 宠物主题套装的生成/任务状态轮询/配额管理
+ */
 import Taro from '@tarojs/taro'
+import { CONFIG } from '../config'
 import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
 import type {

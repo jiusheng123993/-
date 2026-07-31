@@ -1,3 +1,7 @@
+/**
+ * 情绪追踪 Hook
+ * 管理宠物主人的情绪评分、趋势分析及危机干预转介
+ */
 import { useState, useCallback, useEffect } from 'react'
 import {
   type EmotionEventType,
@@ -22,6 +26,10 @@ interface UseEmotionTrackingReturn {
   handleFollowUp: (action: 'contacted' | 'okay') => void
 }
 
+/**
+ * 情绪追踪 Hook
+ * 管理宠物主人的情绪评分、趋势分析及危机干预转介
+ */
 export function useEmotionTracking(petId: string | null): UseEmotionTrackingReturn {
   const [emotionScore, setEmotionScore] = useState(0)
   const [emotionTrend, setEmotionTrend] = useState<EmotionTrend>('stable')

@@ -1,3 +1,7 @@
+/**
+ * useFoodQuery 测试
+ * 验证食物查询 Hook 的所有方法和返回值
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

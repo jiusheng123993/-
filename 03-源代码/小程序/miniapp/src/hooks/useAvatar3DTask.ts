@@ -1,3 +1,7 @@
+/**
+ * 3D 宠物形象生成任务 Hook
+ * 管理 3D 模型生成任务的轮询、状态跟踪、结果获取与重试
+ */
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Taro from '@tarojs/taro'
 import { getTaskProgress, getAvatar3DModel, increment3DGenerationCount, generate3DAvatar } from '../services/avatarService'
@@ -19,6 +23,10 @@ interface UseAvatar3DTaskResult {
   retry: (petId: string, image2DTaskId: string) => Promise<void>
 }
 
+/**
+ * 3D 宠物形象生成任务 Hook
+ * 管理 3D 模型生成任务的轮询、状态跟踪、结果获取与重试
+ */
 export function useAvatar3DTask(petId: string): UseAvatar3DTaskResult {
   const [taskId, setTaskId] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)

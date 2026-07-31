@@ -1,3 +1,8 @@
+/**
+ * 日历事件服务
+ *
+ * 聚合疫苗接种、驱虫、健康打卡等事件，生成家庭日历视图
+ */
 import { getRecordsByMonth, type VaccineRecord } from './vaccineService'
 import { getCheckinsByDateRange } from './checkinService'
 import { getAuthenticatedUserId, isAuthenticated } from '../utils/authGuard'

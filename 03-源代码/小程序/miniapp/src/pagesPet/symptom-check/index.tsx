@@ -1,3 +1,7 @@
+/**
+ * 症状初筛页面
+ * 宠物症状选择、AI分析、风险评级、就医建议
+ */
 import { View, Text, Textarea, Input, ScrollView } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'

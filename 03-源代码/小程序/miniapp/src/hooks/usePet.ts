@@ -1,3 +1,7 @@
+/**
+ * 宠物信息管理 Hook
+ * 提供宠物资料的增删改查、切换及状态管理
+ */
 import { useEffect, useCallback } from 'react';
 import { usePetStore, type PetProfile } from '../stores/petStore';
 import { useAuthStore } from '../stores/authStore';
@@ -17,6 +21,10 @@ interface UsePetReturn {
   clearError: () => void;
 }
 
+/**
+ * 宠物信息管理 Hook
+ * 提供宠物资料的增删改查、切换及状态管理
+ */
 export function usePet(): UsePetReturn {
   const {
     userId,

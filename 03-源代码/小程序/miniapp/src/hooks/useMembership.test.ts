@@ -1,3 +1,7 @@
+/**
+ * useMembership 测试
+ * 验证会员体系 Hook 的订阅、权限校验和会员状态
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {

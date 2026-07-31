@@ -1,3 +1,7 @@
+/**
+ * 回忆录制流程 Hook
+ * 管理回忆录制激活状态、照片选择和上传，将用户输入的回忆写入时间线服务
+ */
 import { useCallback, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { timelineService } from '../services/timelineService'

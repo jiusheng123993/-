@@ -1,3 +1,7 @@
+/**
+ * 分析漏斗配置
+ * 定义用户行为路径的关键步骤，用于转化率和用户行为分析
+ */
 export const FUNNELS = {
   ONBOARDING: {
     name: 'onboarding',

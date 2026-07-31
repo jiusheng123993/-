@@ -1,4 +1,8 @@
-﻿import create from 'zustand'
+/**
+ * 疫苗/驱虫状态管理
+ * 管理疫苗和驱虫记录、到期提醒、初始计划生成
+ */
+import create from 'zustand'
 import type { VaccineRecord, CreateVaccineData } from '../services/vaccineService'
 import {
   getVaccineRecords,
@@ -11,6 +15,7 @@ import {
   generateInitialPlan,
 } from '../services/vaccineService'
 
+/** 疫苗状态定义 */
 interface VaccineStoreState {
   records: VaccineRecord[]
   upcomingRecords: VaccineRecord[]
@@ -37,6 +42,10 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /**
+   * 获取疫苗/驱虫记录列表
+   * @param petId - 宠物 ID
+   */
   fetchRecords: async (petId: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -50,6 +59,11 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 添加疫苗/驱虫记录
+   * @param data - 创建数据
+   * @returns 创建后的记录
+   */
   addRecord: async (data) => {
     set({ isLoading: true, error: null })
     try {
@@ -68,6 +82,11 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 更新疫苗/驱虫记录
+   * @param id - 记录 ID
+   * @param data - 要更新的字段
+   */
   updateRecord: async (id, data) => {
     set({ isLoading: true, error: null })
     try {
@@ -87,6 +106,10 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 删除疫苗/驱虫记录
+   * @param id - 记录 ID
+   */
   removeRecord: async (id) => {
     set({ isLoading: true, error: null })
     try {
@@ -106,6 +129,10 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 标记记录为已完成
+   * @param id - 记录 ID
+   */
   markCompleted: async (id) => {
     set({ isLoading: true, error: null })
     try {
@@ -125,6 +152,11 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取即将到期的记录
+   * @param petId - 宠物 ID
+   * @param days - 提前天数，默认 30 天
+   */
   fetchUpcoming: async (petId: string, days = 30) => {
     set({ isLoading: true, error: null })
     try {
@@ -138,6 +170,10 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取已过期的记录
+   * @param petId - 宠物 ID
+   */
   fetchOverdue: async (petId: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -151,6 +187,11 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 根据宠物信息生成初始疫苗/驱虫计划
+   * @param petId - 宠物 ID
+   * @param petInfo - 宠物信息（物种、品种、出生日期）
+   */
   initPlan: async (petId, petInfo) => {
     set({ isLoading: true, error: null })
     try {
@@ -164,12 +205,19 @@ export const useVaccineStore = create<VaccineStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 按年月筛选记录
+   * @param year - 年份
+   * @param month - 月份（0-11）
+   * @returns 匹配的记录列表
+   */
   getRecordsByMonth: (year: number, month: number) => {
     const monthStr = String(month + 1).padStart(2, '0')
     const prefix = `${year}-${monthStr}`
     return get().records.filter((r) => r.date.startsWith(prefix) || r.nextDate.startsWith(prefix))
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   },

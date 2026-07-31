@@ -1,3 +1,7 @@
+/**
+ * 家族图谱页面
+ * 宠物家族关系图谱展示
+ */
 import { useEffect, useState, useMemo } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'

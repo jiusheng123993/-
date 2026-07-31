@@ -1,3 +1,7 @@
+/**
+ * 家庭动态组件
+ * 展示宠物打卡、里程碑、照片等家庭动态信息流
+ */
 import { View, Text, Image } from '@tarojs/components'
 import { formatMomentTime, getMomentTypeInfo } from '../../services/momentService'
 import type { PetMoment } from '../../types/familyTypes'

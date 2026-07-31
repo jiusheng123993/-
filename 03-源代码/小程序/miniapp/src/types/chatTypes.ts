@@ -1,10 +1,16 @@
+/**
+ * AI 聊天类型定义
+ * 定义聊天消息、意图识别、卡片渲染和智能体提示词等核心类型
+ */
 import type { PetProfile } from '../services/petService'
 
+/** 聊天消息（角色+内容） */
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
 }
 
+/** AI 对话响应 */
 export interface ChatResponse {
   choices: Array<{
     message: {
@@ -109,11 +115,13 @@ export interface PetInfo {
   activePet: PetProfile | null
 }
 
+/** 聊天意图识别 */
 export interface ChatIntent {
   type: 'checkin' | 'food_query' | 'symptom_check' | 'naming' | 'record_memory' | 'health_question' | 'general_chat'
   params?: Record<string, unknown>
 }
 
+/** AI 智能体系统提示词 */
 export const SYSTEM_PROMPT_BASE = `你是星寰海AI宠物管家。你温暖、精准、简洁。
 
 你的知识包括：

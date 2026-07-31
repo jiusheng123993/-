@@ -1,3 +1,8 @@
+/**
+ * 会员配置服务
+ *
+ * 会员方案定义/权益配置/配额管理
+ */
 import Taro from '@tarojs/taro'
 import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'

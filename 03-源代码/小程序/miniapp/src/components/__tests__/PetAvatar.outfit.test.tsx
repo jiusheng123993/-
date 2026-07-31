@@ -1,3 +1,6 @@
+/**
+ * 宠物头像饰品穿搭测试
+ */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 

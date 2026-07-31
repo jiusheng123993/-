@@ -3,6 +3,7 @@
  * 基于品种遗传特征、常见健康问题、体型等因素
  */
 
+/** 品种食物禁忌条目 */
 export interface BreedFoodWarning {
   breedId: string
   breedName: string

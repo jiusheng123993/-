@@ -1,3 +1,6 @@
+/**
+ * 健康打卡服务测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { AnomalyItem } from '../../memory-body/types/memoryBodyTypes'
 

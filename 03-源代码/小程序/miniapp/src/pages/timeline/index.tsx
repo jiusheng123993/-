@@ -1,3 +1,8 @@
+/**
+ * 时光页面
+ * 宠物时光线展示、回忆记录、年度回顾、视频回忆录入口
+ * 页面结构：固定顶部（头部+功能卡片）+ 可滚动时间线区域
+ */
 import { View, Text, ScrollView, Image, Canvas, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
@@ -343,7 +348,6 @@ export default function TimelinePage() {
 
     setIsMemorySubmitting(true)
     try {
-      // 上传照片
       let photoUrl: string | null = null
       if (memoryPhotoPath) {
         const token = storage.getToken()
@@ -374,7 +378,6 @@ export default function TimelinePage() {
       setShowAddMemoryModal(false)
       Taro.showToast({ title: '回忆已保存 ✦', icon: 'success' })
 
-      // 刷新时间线数据
       const entries = await getCheckins(currentPet.id, userId)
       const generated = generateTimelineFromData(currentPet, entries)
       setDynamicEvents(generated)
@@ -446,125 +449,175 @@ export default function TimelinePage() {
     reviewCanvasRef.current = false
   }, [])
 
+  /** 跳转到日常回忆录页面 */
+  const handleDailyMemoir = () => {
+    if (!currentPet) {
+      Taro.showToast({ title: '请先选择宠物', icon: 'none' })
+      return
+    }
+    Taro.navigateTo({ url: `/pagesPet/memoir-daily/index?petId=${currentPet.id}` })
+  }
+
+  /** 跳转到纪念Vlog页面 */
+  const handleMemorialVlog = () => {
+    if (!currentPet) {
+      Taro.showToast({ title: '请先选择宠物', icon: 'none' })
+      return
+    }
+    Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index?petId=${currentPet.id}` })
+  }
+
   const petName = currentPet?.name || '你的宠物'
 
   return (
-    <ScrollView className={`timeline-page ${themeClass}`} scrollY>
-      <View className='timeline-header'>
-        <Text className='timeline-title'>{petName}的时光</Text>
-        <Text className='timeline-title-star'>✦</Text>
-        <View className='timeline-add-btn' onClick={handleAddMemory}>
-          <Text className='timeline-add-icon'>+</Text>
-          <Text className='timeline-add-text'>新增回忆</Text>
+    <View className={`timeline-page ${themeClass}`}>
+      {/* ===== 固定顶部：头部 + 功能卡片 ===== */}
+      <View className='timeline-fixed-top'>
+        <View className='timeline-header'>
+          <Text className='timeline-title'>{petName}的时光</Text>
+          <Text className='timeline-title-star'>✦</Text>
+          <View className='timeline-add-btn' onClick={handleAddMemory}>
+            <Text className='timeline-add-icon'>+</Text>
+            <Text className='timeline-add-text'>新增回忆</Text>
+          </View>
+        </View>
+
+        <View className='timeline-function-row'>
+          {/* 年度回忆卡片 */}
+          <View className={`timeline-func-card ${reviewLoading ? 'timeline-func-card--loading' : ''}`} onClick={handleYearlyReview}>
+            <View className='timeline-func-card-icon timeline-func-card-icon--yearly'>
+              <Text className='timeline-func-card-emoji'>📖</Text>
+            </View>
+            <View className='timeline-func-card-text'>
+              <Text className='timeline-func-card-title'>年度回忆</Text>
+              <Text className='timeline-func-card-desc'>一键生成年度图集</Text>
+            </View>
+            <View className='timeline-func-card-arrow'>
+              <Text>{reviewLoading ? '⏳' : '→'}</Text>
+            </View>
+          </View>
+
+          {/* 日常回忆录卡片 */}
+          <View className='timeline-func-card' onClick={handleDailyMemoir}>
+            <View className='timeline-func-card-icon timeline-func-card-icon--daily'>
+              <Text className='timeline-func-card-emoji'>🎬</Text>
+            </View>
+            <View className='timeline-func-card-text'>
+              <Text className='timeline-func-card-title'>日常回忆录</Text>
+              <Text className='timeline-func-card-desc'>静图动效·温暖短片</Text>
+            </View>
+            <View className='timeline-func-card-arrow'>
+              <Text>→</Text>
+            </View>
+          </View>
+
+          {/* 纪念Vlog卡片 */}
+          <View className='timeline-func-card' onClick={handleMemorialVlog}>
+            <View className='timeline-func-card-icon timeline-func-card-icon--memorial'>
+              <Text className='timeline-func-card-emoji'>💎</Text>
+            </View>
+            <View className='timeline-func-card-text'>
+              <Text className='timeline-func-card-title'>纪念Vlog</Text>
+              <Text className='timeline-func-card-desc'>AI叙事·珍藏记忆</Text>
+            </View>
+            <View className='timeline-func-card-arrow'>
+              <Text>→</Text>
+            </View>
+          </View>
         </View>
       </View>
 
-      {showBanner && (
-        <View className='timeline-banner'>
-          <View className={`timeline-banner-inner ${flashback ? 'timeline-banner-inner--flashback' : ''}`}>
-            <View className='timeline-banner-glow' />
-            <View className='timeline-banner-content'>
-              <Text className='timeline-banner-icon'>
-                {flashback ? flashback.emoji : '💫'}
-              </Text>
-              <View className='timeline-banner-text-wrap'>
-                <Text className='timeline-banner-title'>
-                  {flashback ? flashback.title : '旧时光提醒'}
+      {/* ===== 可滚动区域：横幅 + 时间线 ===== */}
+      <ScrollView className='timeline-scroll' scrollY>
+        {showBanner && (
+          <View className='timeline-banner'>
+            <View className={`timeline-banner-inner ${flashback ? 'timeline-banner-inner--flashback' : ''}`}>
+              <View className='timeline-banner-glow' />
+              <View className='timeline-banner-content'>
+                <Text className='timeline-banner-icon'>
+                  {flashback ? flashback.emoji : '💫'}
                 </Text>
-                <Text className='timeline-banner-desc'>
-                  {flashback
-                    ? flashback.description
-                    : `坚持打卡，记录${petName}的每一天`
-                  }
-                </Text>
-              </View>
-              {flashback && (
-                <View className='timeline-banner-action' onClick={handleFlashbackAction}>
-                  <Text className='timeline-banner-action-text'>添加到时光线</Text>
+                <View className='timeline-banner-text-wrap'>
+                  <Text className='timeline-banner-title'>
+                    {flashback ? flashback.title : '旧时光提醒'}
+                  </Text>
+                  <Text className='timeline-banner-desc'>
+                    {flashback
+                      ? flashback.description
+                      : `坚持打卡，记录${petName}的每一天`
+                    }
+                  </Text>
                 </View>
-              )}
-            </View>
-            <View className='timeline-banner-close' onClick={() => setShowBanner(false)}>
-              <Text>✕</Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      <View className='timeline-yearly-card' onClick={handleYearlyReview}>
-        <View className='timeline-yearly-card-inner'>
-          <View className='timeline-yearly-card-icon-wrap'>
-            <Text className='timeline-yearly-card-icon'>📖</Text>
-          </View>
-          <View className='timeline-yearly-card-content'>
-            <Text className='timeline-yearly-card-title'>
-              {new Date().getFullYear()}年度回忆
-            </Text>
-            <Text className='timeline-yearly-card-desc'>
-              查看{petName}这一年的成长足迹
-            </Text>
-          </View>
-          <View className={`timeline-yearly-card-arrow ${reviewLoading ? 'timeline-yearly-card-arrow--loading' : ''}`}>
-            <Text>{reviewLoading ? '⏳' : '→'}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View className='timeline-list'>
-        {timelineEvents.map((event, index) => (
-          <View key={event.id} className='timeline-item' onClick={() => handleEventClick(event)}>
-            <View className='timeline-line-col'>
-              <View className={`timeline-dot timeline-dot--${event.type}`}>
-                <Text className='timeline-dot-emoji'>{event.emoji}</Text>
-              </View>
-              {index < timelineEvents.length - 1 && (
-                <View className='timeline-line' />
-              )}
-            </View>
-            <View className={`timeline-card timeline-card--${event.type}`}>
-              <View className='timeline-card-date'>
-                <Text className='timeline-date-text'>{event.date}</Text>
-                {event.type === 'milestone' && (
-                  <View className='timeline-milestone-badge'>
-                    <Text className='timeline-milestone-badge-text'>里程碑</Text>
-                  </View>
-                )}
-                {event.type === 'flashback' && (
-                  <View className='timeline-flashback-badge'>
-                    <Text className='timeline-flashback-badge-text'>旧时光</Text>
-                  </View>
-                )}
-                {event.type === 'ghost' && (
-                  <View className='timeline-ghost-badge'>
-                    <Text className='timeline-ghost-badge-text'>即将上线</Text>
+                {flashback && (
+                  <View className='timeline-banner-action' onClick={handleFlashbackAction}>
+                    <Text className='timeline-banner-action-text'>添加到时光线</Text>
                   </View>
                 )}
               </View>
-              <Text className='timeline-card-title'>{event.title}</Text>
-              <Text className='timeline-card-desc'>{event.description}</Text>
-              {event.photos.length > 0 ? (
-                <View className='timeline-photo-grid'>
-                  {event.photos.map((photo, pi) => (
-                    <View key={pi} className='timeline-photo-placeholder'>
-                      <Text className='timeline-photo-icon'>📷</Text>
+              <View className='timeline-banner-close' onClick={() => setShowBanner(false)}>
+                <Text>✕</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        <View className='timeline-list'>
+          {timelineEvents.map((event, index) => (
+            <View key={event.id} className='timeline-item' onClick={() => handleEventClick(event)}>
+              <View className='timeline-line-col'>
+                <View className={`timeline-dot timeline-dot--${event.type}`}>
+                  <Text className='timeline-dot-emoji'>{event.emoji}</Text>
+                </View>
+                {index < timelineEvents.length - 1 && (
+                  <View className='timeline-line' />
+                )}
+              </View>
+              <View className={`timeline-card timeline-card--${event.type}`}>
+                <View className='timeline-card-date'>
+                  <Text className='timeline-date-text'>{event.date}</Text>
+                  {event.type === 'milestone' && (
+                    <View className='timeline-milestone-badge'>
+                      <Text className='timeline-milestone-badge-text'>里程碑</Text>
                     </View>
-                  ))}
+                  )}
+                  {event.type === 'flashback' && (
+                    <View className='timeline-flashback-badge'>
+                      <Text className='timeline-flashback-badge-text'>旧时光</Text>
+                    </View>
+                  )}
+                  {event.type === 'ghost' && (
+                    <View className='timeline-ghost-badge'>
+                      <Text className='timeline-ghost-badge-text'>即将上线</Text>
+                    </View>
+                  )}
                 </View>
-              ) : event.type !== 'ghost' ? (
-                <View className='timeline-photo-empty'>
-                  <View className='timeline-photo-dashed'>
-                    <Text className='timeline-photo-add-icon'>+</Text>
-                    <Text className='timeline-photo-add-text'>添加照片</Text>
+                <Text className='timeline-card-title'>{event.title}</Text>
+                <Text className='timeline-card-desc'>{event.description}</Text>
+                {event.photos.length > 0 ? (
+                  <View className='timeline-photo-grid'>
+                    {event.photos.map((photo, pi) => (
+                      <View key={pi} className='timeline-photo-placeholder'>
+                        <Text className='timeline-photo-icon'>📷</Text>
+                      </View>
+                    ))}
                   </View>
-                </View>
-              ) : null}
+                ) : event.type !== 'ghost' ? (
+                  <View className='timeline-photo-empty'>
+                    <View className='timeline-photo-dashed'>
+                      <Text className='timeline-photo-add-icon'>+</Text>
+                      <Text className='timeline-photo-add-text'>添加照片</Text>
+                    </View>
+                  </View>
+                ) : null}
+              </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      <View className='timeline-bottom-safe' />
+        <View className='timeline-bottom-safe' />
+      </ScrollView>
 
+      {/* ===== 年度回忆弹窗 ===== */}
       {showReviewModal && reviewImageUrl && yearlyReview && (
         <View className='timeline-review-overlay' onClick={handleCloseReview}>
           <View className='timeline-review-modal' onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
@@ -602,7 +655,7 @@ export default function TimelinePage() {
         type='2d'
       />
 
-      {/* 新增回忆弹窗 */}
+      {/* ===== 新增回忆弹窗 ===== */}
       {showAddMemoryModal && (
         <View className='timeline-review-overlay' onClick={() => setShowAddMemoryModal(false)}>
           <View className='timeline-review-modal' onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}>
@@ -665,6 +718,6 @@ export default function TimelinePage() {
           </View>
         </View>
       )}
-    </ScrollView>
+    </View>
   )
 }

@@ -1,3 +1,7 @@
+/**
+ * emotion 引擎测试
+ * 验证悲伤检测、焦虑检测、干预创建和危机转介等功能
+ */
 import { describe, it, expect } from 'vitest'
 import {
   detectSickAnxiety,

@@ -1,3 +1,7 @@
+/**
+ * svgRenderer 装扮图层测试
+ * 验证 SVG 渲染器叠加装扮图层的效果和排序逻辑
+ */
 import { describe, it, expect } from 'vitest'
 import { buildSvgFace, getPetFaceDataUri } from '../svgRenderer'
 import { EXPRESSION_MAP } from '../expressionEngine'

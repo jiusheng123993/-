@@ -1,3 +1,7 @@
+/**
+ * 状态管理统一导出入口
+ * 集中导出所有 Zustand store，方便外部引用
+ */
 export { useAuthStore } from './authStore'
 export { useSettingsStore } from './settingsStore'
 export { useThemeStore } from './themeStore'

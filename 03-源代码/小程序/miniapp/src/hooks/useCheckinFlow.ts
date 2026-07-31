@@ -1,3 +1,7 @@
+/**
+ * 健康打卡流程 Hook
+ * 管理打卡步骤与打卡数据，支持多宠物选择和 5 项健康指标的逐项询问
+ */
 import { useCallback, useState } from 'react'
 import type { CardData, CheckinItem, PetInfo } from '../types/chatTypes'
 import { usePetStore } from '../stores/petStore'

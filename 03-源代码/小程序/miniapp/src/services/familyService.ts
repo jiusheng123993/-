@@ -1,3 +1,10 @@
+/**
+ * 宠物家庭服务
+ *
+ * 宠物家庭的创建/成员管理/血缘追踪/合照管理，含本地缓存与云同步
+ */
+import Taro from '@tarojs/taro'
+import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'
 import { mockApi } from './mock'
 import { CONFIG } from '../config'

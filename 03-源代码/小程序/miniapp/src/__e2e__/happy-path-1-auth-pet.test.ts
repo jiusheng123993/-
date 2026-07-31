@@ -1,10 +1,8 @@
 /**
- * E2E Happy Path 1: 注册登录 → 添加宠物 → 首页展示
- *
- * 模拟完整的用户旅程：从未登录状态开始，登录后添加宠物，验证首页展示。
- * 使用真实的 authStore 和 petStore，mock 底层 api 和 storage。
+ * E2E 测试：认证与宠物档案
+ * 验证用户登录注册和宠物档案创建流程
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AnomalyItem } from '../memory-body/types/memoryBodyTypes'
 
 // ============================================================

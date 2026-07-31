@@ -14,6 +14,8 @@ export interface RecommendParams {
   style?: string
   photoUrl?: string
   description?: string
+  /** 已推荐过的名字，需避免重复 */
+  excludeNames?: string[]
 }
 
 /**
@@ -22,7 +24,7 @@ export interface RecommendParams {
  * 要求 AI 返回结构化 JSON，便于前端解析展示。
  */
 export function buildRecommendPrompt(params: RecommendParams): string {
-  const { breed, birthDate, gender, season, style, photoUrl, description } = params
+  const { breed, birthDate, gender, season, style, photoUrl, description, excludeNames } = params
 
   const parts: string[] = [
     `为一只${breed}推荐5个中文宠物名字。`,
@@ -39,6 +41,10 @@ export function buildRecommendPrompt(params: RecommendParams): string {
 
   if (description) {
     parts.push(`主人对宠物的描述：${description}。请结合这些特点推荐名字。`)
+  }
+
+  if (excludeNames && excludeNames.length > 0) {
+    parts.push(`\n以下名字已经推荐过，请务必避免重复推荐：${excludeNames.join('、')}。`)
   }
 
   parts.push(

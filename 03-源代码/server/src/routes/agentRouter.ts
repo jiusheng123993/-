@@ -1,13 +1,21 @@
+/**
+ * AI Agent 路由 - 智能对话和工具调用
+ * 支持 SSE 流式对话、对话历史加载、工具列表查询
+ */
 import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { agentHistoryQuerySchema, agentChatSchema } from '../schemas/index.js';
 import { agentLoop, guardCheckInput, type AgentContext, type ChatMessage } from '../services/agentService.js';
 import { loadConversationHistory, saveConversation } from '../services/memoryService.js';
-import { pool } from '../db.js';
+import { PetRepository } from '../repositories/petRepository.js';
 
 // 注册所有工具（副作用导入）
 import '../services/agentTools.js';
 
 const router = Router();
+
+const petRepository = new PetRepository();
 
 /**
  * POST /api/agent/chat
@@ -21,18 +29,8 @@ const router = Router();
  * - done: 对话完成
  * - error: 错误
  */
-router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
+router.post('/chat', authMiddleware, validate({ body: agentChatSchema }), async (req: Request, res: Response) => {
   const { message, history, petId } = req.body;
-
-  // 参数校验
-  if (!message || typeof message !== 'string' || message.trim().length === 0) {
-    res.status(400).json({ success: false, message: 'message 不能为空' });
-    return;
-  }
-  if (message.length > 2000) {
-    res.status(400).json({ success: false, message: '消息过长，最多 2000 字' });
-    return;
-  }
 
   // 安全守卫
   const guardResult = await guardCheckInput(message);
@@ -53,11 +51,8 @@ router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
   let validPetId: string | undefined;
   if (petId && typeof petId === 'string') {
     try {
-      const { rows } = await pool.query(
-        'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
-        [petId, userId]
-      );
-      if (rows.length > 0) {
+      const isOwner = await petRepository.isOwner(petId, userId);
+      if (isOwner) {
         validPetId = petId;
       }
     } catch {
@@ -68,12 +63,9 @@ router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
   // 如果没有指定 petId，自动获取用户的第一只宠物
   if (!validPetId) {
     try {
-      const { rows } = await pool.query(
-        'SELECT id, name, breed FROM pet_profiles WHERE user_id = $1 ORDER BY created_at LIMIT 1',
-        [userId]
-      );
-      if (rows.length > 0) {
-        validPetId = rows[0].id;
+      const firstPet = await petRepository.findFirstByUser(userId);
+      if (firstPet) {
+        validPetId = firstPet.id;
       }
     } catch {
       // 无宠物也可对话
@@ -138,13 +130,13 @@ router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
   };
 
   try {
-    for await (const event of agentLoop(message.trim(), historyMessages, context)) {
+    for await (const event of agentLoop(message, historyMessages, context)) {
       if (closed) break;
       emit(event.type, event.data);
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Agent 异常';
-    emit('error', { message });
+    const errorMessage = error instanceof Error ? error.message : 'Agent 异常';
+    emit('error', { message: errorMessage });
   } finally {
     if (!closed) {
       try {
@@ -160,10 +152,10 @@ router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
  * GET /api/agent/history
  * 加载持久化对话历史
  */
-router.get('/history', authMiddleware, async (req: Request, res: Response) => {
+router.get('/history', authMiddleware, validate({ query: agentHistoryQuerySchema }), async (req: Request, res: Response) => {
   const userId = req.userId as string;
   const petId = (req.query.petId as string) || null;
-  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+  const limit = req.query.limit as unknown as number;
 
   try {
     const history = await loadConversationHistory(userId, petId, limit);

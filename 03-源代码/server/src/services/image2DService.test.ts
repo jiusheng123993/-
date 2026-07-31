@@ -1,3 +1,7 @@
+/**
+ * 2D 形象包生成服务单元测试
+ * 覆盖：常量同步校验、429 重试、批次并发、进度计算
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const {
@@ -42,8 +46,6 @@ vi.mock('../config.js', () => ({
   },
 }));
 
-global.fetch = mockFetch;
-
 import {
   EXPRESSIONS,
   ANGLES,
@@ -52,6 +54,7 @@ import {
 } from './image2DService.js';
 
 beforeEach(() => {
+  vi.stubGlobal('fetch', mockFetch);
   vi.clearAllMocks();
   mockPoolQuery.mockResolvedValue({ rowCount: 1 });
   mockUpdateTaskProgress.mockResolvedValue(undefined);
@@ -94,7 +97,7 @@ describe('image2DService callSeedream 429 重试逻辑', () => {
     mockFetch.mockImplementation(async () => {
       callCount++;
       if (callCount <= 2) {
-        return { ok: false, status: 429 };
+        return { ok: false, status: 429, json: async () => ({ data: [] }) };
       }
       return { ok: true, status: 200, json: async () => ({ data: [{ url: 'https://cdn.example.com/retry-success.png' }] }) };
     });
@@ -115,7 +118,7 @@ describe('image2DService callSeedream 429 重试逻辑', () => {
   });
 
   it('429 重试耗尽后应继续处理（单图失败不中断整体）', async () => {
-    mockFetch.mockImplementation(async () => ({ ok: false, status: 429 }));
+    mockFetch.mockImplementation(async () => ({ ok: false, status: 429, json: async () => ({ data: [] }) }));
 
     const { generate2DAvatarPack } = await import('./image2DService.js');
 
@@ -131,7 +134,7 @@ describe('image2DService callSeedream 429 重试逻辑', () => {
   });
 
   it('非 429 错误不应触发重试 delay', async () => {
-    mockFetch.mockImplementation(async () => ({ ok: false, status: 500 }));
+    mockFetch.mockImplementation(async () => ({ ok: false, status: 500, json: async () => ({ data: [] }) }));
 
     const { generate2DAvatarPack } = await import('./image2DService.js');
 

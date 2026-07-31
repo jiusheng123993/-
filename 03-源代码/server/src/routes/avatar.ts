@@ -1,16 +1,35 @@
+/**
+ * 宠物形象生成路由 - AI 生成宠物头像、2D/3D 形象
+ * 支持头像生成、照片上传、2D 形象包生成、3D 模型生成、任务进度查询
+ * 通过 PetRepository、MembershipRepository、AvatarGenerationRepository 等访问数据库
+ */
 import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
-import { pool } from '../db.js';
 import { generatePetImage } from '../services/avatarService.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
 import { generate2DAvatarPack } from '../services/image2DService.js';
 import { generate3DModel } from '../services/model3DService.js';
 import { v4 as uuidv4 } from 'uuid';
+import { PetRepository } from '../repositories/petRepository.js';
+import { MembershipRepository } from '../repositories/membershipRepository.js';
+import {
+  AvatarGenerationRepository,
+  Avatar2DImageRepository,
+  Avatar3DModelRepository,
+} from '../repositories/avatarRepository.js';
+import { AvatarTaskRepository, type AvatarTaskType } from '../repositories/avatarTaskRepository.js';
 
 const router = Router();
+
+const petRepository = new PetRepository();
+const membershipRepository = new MembershipRepository();
+const avatarGenerationRepository = new AvatarGenerationRepository();
+const avatar2DImageRepository = new Avatar2DImageRepository();
+const avatar3DModelRepository = new Avatar3DModelRepository();
+const avatarTaskRepository = new AvatarTaskRepository();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -64,27 +83,18 @@ function isOwnedPhotoUrl(url: string, userId: string): boolean {
   return parts.length >= 4 && parts[1] === userId;
 }
 
-// 查询用户当月已成功的 2D 任务数
-async function countMonthlyTasks(userId: string, taskType: '2d' | '3d'): Promise<number> {
+// 查询用户当月已成功的指定类型任务数（用于配额校验）
+async function countMonthlyTasks(userId: string, taskType: AvatarTaskType): Promise<number> {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
-  const result = await pool.query(
-    `SELECT COUNT(*)::int AS count FROM avatar_generation_tasks
-     WHERE user_id = $1 AND task_type = $2 AND status = 'completed' AND created_at >= $3`,
-    [userId, taskType, monthStart],
-  );
-  return result.rows[0]?.count ?? 0;
+  return avatarTaskRepository.countMonthlyCompleted(userId, taskType, monthStart);
 }
 
-// 查询用户会员状态
+// 查询用户会员状态（用于配额校验和会员限制）
 async function getUserMembership(userId: string): Promise<{ isMember: boolean; status: string }> {
-  const result = await pool.query(
-    'SELECT tier, status, expires_at FROM memberships WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
-    [userId],
-  );
-  if (result.rowCount === 0) return { isMember: false, status: 'none' };
-  const row = result.rows[0] as { tier: string; status: string; expires_at: string | null };
+  const row = await membershipRepository.findTierAndStatus(userId);
+  if (!row) return { isMember: false, status: 'none' };
   // 过期检查
   if (row.status === 'active' && row.expires_at && new Date(row.expires_at) < new Date()) {
     return { isMember: false, status: 'expired' };
@@ -95,7 +105,7 @@ async function getUserMembership(userId: string): Promise<{ isMember: boolean; s
 router.post('/generate', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { petId, style } = req.body;
-    const userId = req.userId;
+    const userId = req.userId!;
 
     if (!petId || typeof petId !== 'string') {
       res.status(400).json({ success: false, message: 'petId 参数不能为空' });
@@ -105,47 +115,34 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
     // style 白名单校验
     const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
 
-    const petResult = await pool.query(
-      'SELECT id, species, breed, gender, avatar_photo_url FROM pet_profiles WHERE id = $1 AND user_id = $2',
-      [petId, userId],
-    );
+    const pet = await petRepository.findByIdAndUser(petId, userId);
 
-    if (petResult.rowCount === 0) {
+    if (!pet) {
       res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
       return;
     }
 
-    const pet = petResult.rows[0] as {
-      id: string;
-      species: string;
-      breed: string;
-      gender: string;
-      avatar_photo_url: string | null;
-    };
-
     const generationId = uuidv4();
 
-    await pool.query(
-      `INSERT INTO avatar_generations (id, user_id, pet_id, prompt, style, status)
-       VALUES ($1, $2, $3, $4, $5, 'processing')`,
-      [generationId, userId, petId, `为${pet.breed}生成${safeStyle}风格形象`, safeStyle],
-    );
+    await avatarGenerationRepository.createGeneration({
+      id: generationId,
+      user_id: userId,
+      pet_id: petId,
+      prompt: `为${pet.breed}生成${safeStyle}风格形象`,
+      style: safeStyle,
+    });
 
     const result = await generatePetImage({
       petId: pet.id,
       species: pet.species,
       breed: pet.breed,
-      gender: pet.gender,
+      gender: pet.gender ?? '',
       photoUrl: pet.avatar_photo_url || undefined,
       style: safeStyle,
     });
 
     if (result.isPlaceholder) {
-      await pool.query(
-        `UPDATE avatar_generations SET status = 'failed', error = 'Image generation service unavailable'
-         WHERE id = $1`,
-        [generationId],
-      );
+      await avatarGenerationRepository.markFailed(generationId, 'Image generation service unavailable');
 
       res.json({
         success: true,
@@ -159,17 +156,8 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
       return;
     }
 
-    await pool.query(
-      `UPDATE pet_profiles SET avatar_cartoon_url = $1, avatar_style = $2, avatar_generated_at = now()
-       WHERE id = $3`,
-      [result.url, safeStyle, petId],
-    );
-
-    await pool.query(
-      `UPDATE avatar_generations SET status = 'completed', result_url = $1, completed_at = now()
-       WHERE id = $2`,
-      [result.url, generationId],
-    );
+    await petRepository.updateAvatarGenerated(petId, result.url, safeStyle);
+    await avatarGenerationRepository.markCompleted(generationId, result.url);
 
     res.json({
       success: true,
@@ -198,11 +186,8 @@ router.post('/photo/upload', authMiddleware, photoUploadLimiter, upload.single('
     }
 
     // 校验宠物归属
-    const petCheck = await pool.query(
-      'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
-      [petId, userId],
-    );
-    if (petCheck.rowCount === 0) {
+    const isOwner = await petRepository.isOwner(petId, userId);
+    if (!isOwner) {
       res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
       return;
     }
@@ -277,17 +262,12 @@ router.post('/generate-2d', authMiddleware, generateLimiter, async (req: Request
       }
     }
 
-    const petResult = await pool.query(
-      'SELECT id, species, breed FROM pet_profiles WHERE id = $1 AND user_id = $2',
-      [petId, userId],
-    );
+    const pet = await petRepository.findByIdAndUser(petId, userId);
 
-    if (petResult.rowCount === 0) {
+    if (!pet) {
       res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
       return;
     }
-
-    const pet = petResult.rows[0] as { id: string; species: string; breed: string };
 
     const task = await createTask(userId, petId, '2d', referencePhotoUrl);
 
@@ -348,11 +328,8 @@ router.post('/generate-3d', authMiddleware, generateLimiter, async (req: Request
     }
 
     // 校验 petId 归属
-    const petResult = await pool.query(
-      'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
-      [petId, userId],
-    );
-    if (petResult.rowCount === 0) {
+    const isOwner = await petRepository.isOwner(petId, userId);
+    if (!isOwner) {
       res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
       return;
     }
@@ -423,28 +400,20 @@ router.get('/images/:petId', authMiddleware, async (req: Request, res: Response)
       return;
     }
 
-    const result = await pool.query(
-      `SELECT id, angle, expression, image_url, is_selected, sort_order
-       FROM avatar_2d_images
-       WHERE task_id = $1
-       ORDER BY sort_order`,
-      [task.id],
-    );
-
-    const images = result.rows.map((row: Record<string, unknown>) => ({
-      id: row.id,
-      angle: row.angle,
-      expression: row.expression,
-      imageUrl: row.image_url,
-      isSelected: row.is_selected,
-      sortOrder: row.sort_order,
-    }));
+    const images = await avatar2DImageRepository.findByTaskId(task.id);
 
     res.json({
       success: true,
       data: {
         task,
-        images,
+        images: images.map((row) => ({
+          id: row.id,
+          angle: row.angle,
+          expression: row.expression,
+          imageUrl: row.image_url,
+          isSelected: row.is_selected,
+          sortOrder: row.sort_order,
+        })),
       },
     });
   } catch (error) {
@@ -465,15 +434,7 @@ router.get('/model/:petId', authMiddleware, async (req: Request, res: Response) 
       return;
     }
 
-    const result = await pool.query(
-      `SELECT id, model_url, thumbnail_url, created_at
-       FROM avatar_3d_models
-       WHERE task_id = $1
-       ORDER BY created_at DESC LIMIT 1`,
-      [task.id],
-    );
-
-    const raw = result.rows[0] as Record<string, unknown> | null;
+    const raw = await avatar3DModelRepository.findLatestByTaskId(task.id);
     const model = raw ? {
       id: raw.id,
       modelUrl: raw.model_url,

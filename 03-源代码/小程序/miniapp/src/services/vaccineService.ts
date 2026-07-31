@@ -1,5 +1,10 @@
 import Taro from '@tarojs/taro';
-import { api } from './api';
+/**
+ * 疫苗管理服务
+ *
+ * 宠物疫苗/驱虫记录的增删改查、提醒计划生成、日期计算
+ */
+import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
 import { generateAutoVaccineSchedule, generateDewormingSchedule } from '../engines/vaccineScheduler';

@@ -1,3 +1,7 @@
+/**
+ * diaryEngine 测试
+ * 验证宠物日记引擎的各种模板选择和优先级逻辑
+ */
 import { describe, it, expect } from 'vitest'
 import { generateDiaryEntry, generateDiaryForToday, type DiaryEntry } from '../diaryEngine'
 import type { PetHealthEntry } from '../../../memory-body/types/memoryBodyTypes'

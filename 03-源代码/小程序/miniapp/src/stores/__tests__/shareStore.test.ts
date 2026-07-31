@@ -1,3 +1,6 @@
+/**
+ * 分享和邀请状态管理 - 单元测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const {

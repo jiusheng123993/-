@@ -1,3 +1,7 @@
+/**
+ * 紧急健康预警组件
+ * 展示紧急健康预警弹窗，含倒计时关闭机制和快捷操作按钮
+ */
 import { View, Text } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'

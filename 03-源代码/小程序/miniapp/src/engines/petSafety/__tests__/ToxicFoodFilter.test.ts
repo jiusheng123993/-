@@ -1,3 +1,7 @@
+/**
+ * ToxicFoodFilter 测试
+ * 验证有毒食物过滤器的精确匹配、别名匹配、模糊匹配和品种警告
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   ToxicFoodFilter,

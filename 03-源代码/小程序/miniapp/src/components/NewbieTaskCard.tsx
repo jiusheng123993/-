@@ -1,3 +1,7 @@
+/**
+ * 新手任务卡片组件
+ * 引导新用户完成添加宠物、首次打卡、食物查询三项任务，完成后展示庆祝动画
+ */
 import { View, Text } from '@tarojs/components'
 import { useState, useEffect, useMemo } from 'react'
 import Taro from '@tarojs/taro'

@@ -1,3 +1,7 @@
+/**
+ * 情绪/心理引擎
+ * 提供悲伤情绪阶段检测、疾病焦虑和新手主人焦虑识别、心理干预创建和危机转介评估
+ */
 import type { GriefStep, GriefStepConfig } from '../types/emotionTypes'
 
 export type GriefStage = 'denial' | 'anger' | 'bargaining' | 'depression' | 'acceptance'
@@ -39,6 +43,14 @@ export interface EmotionIntervention {
   anxietyLevel?: AnxietyLevel
   requiresCrisisReferral: boolean
 }
+
+/**
+ * 情绪/心理引擎
+ *
+ * 提供悲伤情绪阶段检测、疾病焦虑和新手主人焦虑识别、
+ * 心理干预创建和危机转介评估等功能。
+ * 使用关键词匹配和阈值判断来触发相应情绪支持。
+ */
 
 const GRIEF_KEYWORDS: Record<GriefStage, string[]> = {
   denial: ['不相信', '不可能', '不会吧', '假的', '搞错', '不接受'],
@@ -127,6 +139,7 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
+/** 评估是否应该触发情绪干预 */
 export function evaluateTrigger(
   type: EmotionSceneType,
   context: SickAnxietyContext | NewOwnerAnxietyContext,
@@ -140,6 +153,7 @@ export function evaluateTrigger(
   return false
 }
 
+/** 通过关键词匹配检测当前悲伤阶段 */
 export function detectGriefStage(text: string): GriefStage {
   let maxMatches = 0
   let detectedStage: GriefStage = 'denial'
@@ -153,35 +167,43 @@ export function detectGriefStage(text: string): GriefStage {
   return detectedStage
 }
 
+/** 获取对应悲伤阶段的安慰回复 */
 export function getGriefResponse(stage: GriefStage): string {
   return pickRandom(GRIEF_STAGE_RESPONSES[stage])
 }
 
+/** 获取悲伤对话开场白 */
 export function getGriefOpening(): string {
   return GRIEF_OPENING
 }
 
+/** 获取悲伤对话结束语 */
 export function getGriefClosing(): string {
   return GRIEF_CLOSING
 }
 
+/** 获取悲伤对话跟进追问 */
 export function getGriefFollowUp(): string {
   return pickRandom(GRIEF_FOLLOW_UPS)
 }
 
+/** 检测是否存在疾病焦虑（连续异常天数 >= 3） */
 export function detectSickAnxiety(context: SickAnxietyContext): boolean {
   return context.consecutiveAnomalyDays >= 3
 }
 
+/** 获取疾病焦虑安抚消息 */
 export function getSickAnxietyMessage(context: SickAnxietyContext): string {
   const level: AnxietyLevel = context.consecutiveAnomalyDays >= 7 ? 'severe' : context.consecutiveAnomalyDays >= 5 ? 'moderate' : 'mild'
   return pickRandom(SICK_ANXIETY_RESPONSES[level])
 }
 
+/** 检测是否存在新手主人焦虑 */
 export function detectNewOwnerAnxiety(context: NewOwnerAnxietyContext): boolean {
   return context.foodQueryCount >= 5 || context.symptomCheckCount >= 3
 }
 
+/** 获取新手主人焦虑安抚消息 */
 export function getNewOwnerAnxietyMessage(context: NewOwnerAnxietyContext, species: string, petName: string): string {
   const queryTotal = context.foodQueryCount + context.symptomCheckCount
   const level: AnxietyLevel = queryTotal >= 15 ? 'severe' : queryTotal >= 8 ? 'moderate' : 'mild'
@@ -189,6 +211,7 @@ export function getNewOwnerAnxietyMessage(context: NewOwnerAnxietyContext, speci
   return template.replace(/毛孩子/g, petName).replace(/宠物/g, species === 'cat' ? '猫咪' : '狗狗')
 }
 
+/** 判断是否应该触发情绪干预 */
 export function shouldTriggerEmotionIntervention(
   type: EmotionSceneType,
   context: SickAnxietyContext | NewOwnerAnxietyContext,
@@ -204,10 +227,12 @@ const EXTREME_EMOTION_KEYWORDS: string[] = [
   '没有意义', '生不如死', '解脱', '一了百了',
 ]
 
+/** 检测极端情绪（自杀/自残倾向） */
 export function detectExtremeEmotion(text: string): boolean {
   return EXTREME_EMOTION_KEYWORDS.some(kw => text.includes(kw))
 }
 
+/** 获取危机干预消息 */
 export function getCrisisMessage(type: EmotionSceneType, level?: AnxietyLevel): string {
   if (type === 'grief') {
     return '失去挚爱的宠物家人，这种痛很难独自承受。如果你感到难以承受，请寻求专业帮助。'
@@ -218,16 +243,19 @@ export function getCrisisMessage(type: EmotionSceneType, level?: AnxietyLevel): 
   return '如果你感到情绪难以承受，请寻求专业帮助。你不需要独自面对。'
 }
 
+/** 判断是否需要危机转介 */
 export function requiresCrisisReferral(type: EmotionSceneType, level?: AnxietyLevel): boolean {
   if (type === 'grief') return true
   if (type === 'sick_anxiety' && level === 'severe') return true
   return false
 }
 
+/** 获取疾病焦虑等级 */
 export function getSickAnxietyLevel(context: SickAnxietyContext): AnxietyLevel {
   return context.consecutiveAnomalyDays >= 7 ? 'severe' : context.consecutiveAnomalyDays >= 5 ? 'moderate' : 'mild'
 }
 
+/** 创建情绪干预记录 */
 export function createIntervention(
   type: EmotionSceneType,
   userId: string,
@@ -250,6 +278,7 @@ export function createIntervention(
   }
 }
 
+/** 获取对应场景的法律免责声明 */
 export function getDisclaimer(type: EmotionSceneType): string {
   return DISCLAIMERS[type] || DISCLAIMERS.sick_anxiety
 }
@@ -279,6 +308,7 @@ export const GRIEF_FLOW_STEPS: GriefStepConfig[] = [
   },
 ]
 
+/** 获取悲伤流程各步骤消息 */
 export function getGriefStepMessage(step: GriefStep, petName: string, selectedFeeling?: string): string {
   switch (step) {
     case 'name':
@@ -322,6 +352,7 @@ const CARE_PLAN_TEMPLATES: Record<number, { title: string; icon: string; suggest
   },
 }
 
+/** 生成3天护理计划 */
 export function generateCarePlan(
   petName: string,
   anomalyItems?: string[]

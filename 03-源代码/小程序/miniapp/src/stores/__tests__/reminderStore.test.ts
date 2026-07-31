@@ -1,3 +1,6 @@
+/**
+ * 提醒订阅状态管理 - 单元测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useReminderStore } from '../reminderStore'
 import * as reminderService from '../../services/reminderService'

@@ -1,3 +1,6 @@
+/**
+ * 报告服务测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 vi.mock('../checkinService', () => ({

@@ -1,3 +1,7 @@
+/**
+ * 异常标记组件
+ * 在健康趋势图上标记异常点，展示风险等级和详情气泡
+ */
 import { useState } from 'react';
 import { View, Text } from '@tarojs/components';
 import './AnomalyMarker.scss';

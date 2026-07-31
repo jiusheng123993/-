@@ -1,3 +1,7 @@
+/**
+ * 日志工具
+ * 提供分级日志输出能力，开发环境输出 debug+，生产环境默认仅输出 warn+
+ */
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 const IS_DEV = process.env.NODE_ENV === 'development';

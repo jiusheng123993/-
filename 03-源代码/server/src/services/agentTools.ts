@@ -217,31 +217,70 @@ registerTool('query_food_safety', async (args, context): Promise<ToolResult> => 
     return { success: false, message: '请提供食物名称' };
   }
 
-  const { rows } = await pool.query(
-    'SELECT * FROM pet_food_queries WHERE food_name ILIKE $1 LIMIT 1',
-    [`%${foodName}%`]
+  // 1. 先查知识库（权威数据）
+  const { rows: knowledgeRows } = await pool.query(
+    `SELECT food_name, safety_level, detail, dangerous_compounds, toxic_doses,
+            symptoms, first_aid, species_applicable, aliases
+     FROM pet_food_safety_knowledge
+     WHERE food_name ILIKE $1
+        OR $1 = ANY(aliases)
+     LIMIT 1`,
+    [foodName]
   );
 
-  if (rows.length === 0) {
+  if (knowledgeRows.length > 0) {
+    const k = knowledgeRows[0];
+    const speciesLabel = k.species_applicable
+      ? `适用：${k.species_applicable.includes('dog') ? '犬' : ''}${k.species_applicable.includes('cat') ? '猫' : ''}`
+      : '';
+
     return {
       success: true,
       data: {
-        foodName,
-        found: false,
-        message: `未找到"${foodName}"的安全信息，建议避免喂食，或咨询兽医确认。`,
+        foodName: k.food_name,
+        safetyLevel: k.safety_level,
+        detail: k.detail,
+        dangerousCompounds: k.dangerous_compounds || [],
+        toxicDoses: k.toxic_doses || '',
+        symptoms: k.symptoms || [],
+        firstAid: k.first_aid || '',
+        speciesApplicable: k.species_applicable || [],
+        aliases: k.aliases || [],
+        source: 'knowledge_base',
       },
     };
   }
 
-  const f = rows[0];
+  // 2. 查用户历史查询记录（备用）
+  const { rows: queryRows } = await pool.query(
+    'SELECT * FROM pet_food_queries WHERE food_name ILIKE $1 LIMIT 1',
+    [`%${foodName}%`]
+  );
+
+  if (queryRows.length > 0) {
+    const q = queryRows[0];
+    return {
+      success: true,
+      data: {
+        foodName: q.food_name,
+        safetyLevel: q.safety_level || null,
+        detail: q.detail || '',
+        dangerousCompounds: q.dangerous_compounds || [],
+        symptoms: q.symptoms || [],
+        firstAid: q.first_aid || '',
+        source: 'user_history',
+      },
+    };
+  }
+
+  // 3. 知识库也没有 → 返回未找到，AI 可自行用知识回复
   return {
     success: true,
     data: {
-      foodName: f.food_name,
-      safe: f.safe_for_dogs ?? f.safe,
-      risk: f.risk_level || '未知',
-      advice: f.advice || f.description || '',
-      category: f.category || '',
+      foodName,
+      found: false,
+      source: 'not_found',
+      message: `"${foodName}"不在安全知识库中，请根据你的专业知识分析该食物对犬猫的安全性。`,
     },
   };
 });

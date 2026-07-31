@@ -1,3 +1,7 @@
+/**
+ * 疫苗记录卡片组件
+ * 展示单条疫苗/驱虫记录的详细信息，支持标记完成、编辑和删除
+ */
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import type { VaccineRecord } from '../../services/vaccineService';

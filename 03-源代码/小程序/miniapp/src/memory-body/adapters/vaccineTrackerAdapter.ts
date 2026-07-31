@@ -1,6 +1,10 @@
 import { getStorage, setStorage } from '../../utils/storage';
 import type { PetVaccination, VaccineReminder, VaccineReminderStatus } from '../types/memoryBodyTypes';
 
+/**
+ * 疫苗追踪适配器
+ * 管理疫苗接种记录的本地存储、提醒生成和状态追踪
+ */
 const STORAGE_KEYS = {
   VACCINATIONS: 'vaccinations',
   VACCINE_REMINDERS: 'vaccine_reminders'

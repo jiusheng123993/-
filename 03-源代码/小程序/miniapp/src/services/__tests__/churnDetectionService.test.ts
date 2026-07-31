@@ -1,3 +1,6 @@
+/**
+ * 流失检测服务测试
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const memoryStore: Record<string, string> = {}

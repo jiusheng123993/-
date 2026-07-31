@@ -1,3 +1,8 @@
+/**
+ * 健康打卡服务
+ *
+ * 宠物健康打卡的查询/创建/统计，含本地缓存与云端同步、风险评估与 AI 反馈
+ */
 import { api } from './api';
 import { getStorage, setStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
@@ -5,6 +10,7 @@ import { requirePetOwnership } from '../utils/petOwnership';
 import type { PetHealthEntry, HealthRiskLevel, AnomalyItem } from '../memory-body/types/memoryBodyTypes';
 export type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes';
 
+/** 健康打卡统计 */
 export interface HealthCheckinStats {
   totalCheckins: number;
   streak: number;
@@ -47,6 +53,7 @@ function mapRiskLevel(legacy: LegacyRiskLevel): HealthRiskLevel {
   }
 }
 
+/** 打卡输入参数 */
 export interface CheckinInput {
   petId: string;
   userId: string;
@@ -111,6 +118,11 @@ function entryDateStr(entry: PetHealthEntry): string {
   return String(entry.createdAt).slice(0, 10);
 }
 
+/**
+ * 获取打卡记录列表（含本地缓存兜底）
+ * @param petId - 宠物 ID
+ * @param userId - 用户 ID
+ */
 export async function getCheckins(petId: string, userId: string): Promise<PetHealthEntry[]> {
   requirePetOwnership(petId, userId);
   try {
@@ -122,6 +134,13 @@ export async function getCheckins(petId: string, userId: string): Promise<PetHea
   }
 }
 
+/**
+ * 按日期范围查询打卡记录
+ * @param petId - 宠物 ID
+ * @param userId - 用户 ID
+ * @param startDate - 开始日期 (YYYY-MM-DD)
+ * @param endDate - 结束日期 (YYYY-MM-DD)
+ */
 export async function getCheckinsByDateRange(
   petId: string,
   userId: string,
@@ -143,6 +162,10 @@ export async function getCheckinsByDateRange(
   }
 }
 
+/**
+ * 创建打卡记录（先写云端，失败则存本地）
+ * @param data - 打卡输入参数
+ */
 export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry> {
   requirePetOwnership(data.petId, data.userId);
   const riskLevel = calculateRiskLevel(data);
@@ -194,6 +217,11 @@ export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry>
   }
 }
 
+/**
+ * 获取今日打卡记录
+ * @param petId - 宠物 ID
+ * @param userId - 用户 ID
+ */
 export async function getTodayCheckin(petId: string, userId: string): Promise<PetHealthEntry | null> {
   const today = new Date().toISOString().slice(0, 10);
   try {
@@ -207,6 +235,11 @@ export async function getTodayCheckin(petId: string, userId: string): Promise<Pe
   }
 }
 
+/**
+ * 获取打卡统计数据
+ * @param petId - 宠物 ID
+ * @param userId - 用户 ID
+ */
 export async function getCheckinStats(petId: string, userId: string): Promise<HealthCheckinStats> {
   try {
     const result = await api.get<HealthCheckinStats>(`/api/pets/${petId}/checkins/stats`);

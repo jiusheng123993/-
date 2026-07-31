@@ -1,3 +1,7 @@
+/**
+ * 应用全局常量
+ * 包含版本号、客服热线、NPS 配置、头像样式、成就类型等核心常量
+ */
 export const APP_VERSION = '1.0.0';
 export const HOTLINE_NUMBER = '400-161-9995';
 export const INVITE_CODE_LENGTH = 6;

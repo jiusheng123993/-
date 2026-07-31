@@ -1,3 +1,7 @@
+/**
+ * 宠物安全处理器
+ * 统一处理食物安全查询、症状紧急评估和健康打卡异常检测，支持分级应急处置
+ */
 import { ToxicFoodFilter, type FoodSafetyItem, type FoodSafetyLevel } from './ToxicFoodFilter';
 import { MedicalDisclaimer } from './MedicalDisclaimer';
 import type { HealthRiskLevel } from '../../memory-body/types/memoryBodyTypes';

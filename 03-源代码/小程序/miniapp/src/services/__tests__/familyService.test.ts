@@ -1,3 +1,6 @@
+/**
+ * 家庭服务测试
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('../api', () => ({

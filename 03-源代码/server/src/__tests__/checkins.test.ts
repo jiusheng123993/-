@@ -1,3 +1,7 @@
+/**
+ * 健康打卡路由集成测试
+ * 覆盖：打卡创建、历史查询、今日打卡、参数校验、归属校验
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -67,7 +71,7 @@ const mockCheckin = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  mockPool.query.mockReset();
 });
 
 describe('POST /pets/:petId/checkins - 创建打卡', () => {
@@ -222,16 +226,12 @@ describe('GET /pets/:petId/checkins - 获取打卡历史', () => {
     expect(res.body.success).toBe(true);
   });
 
-  it('无效的 days 参数使用默认值 30', async () => {
-    mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
-
+  it('无效的 days 参数返回 400（schema 拒绝非数字）', async () => {
     const res = await request(createApp())
       .get('/pets/pet-001/checkins?days=invalid');
 
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 
   it('宠物不属于当前用户，返回 404', async () => {

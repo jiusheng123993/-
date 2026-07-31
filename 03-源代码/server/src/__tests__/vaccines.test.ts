@@ -1,3 +1,7 @@
+/**
+ * 疫苗和驱虫路由集成测试
+ * 覆盖：疫苗列表、添加记录、标记完成、参数校验、归属校验
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';

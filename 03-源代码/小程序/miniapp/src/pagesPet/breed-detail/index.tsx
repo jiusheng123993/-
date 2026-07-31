@@ -1,3 +1,7 @@
+/**
+ * 品种详情页面
+ * 宠物品种详细信息展示、特征、疾病、护理建议
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'

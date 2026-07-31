@@ -1,3 +1,7 @@
+/**
+ * 配饰数据
+ * 宠物穿搭系统的配饰定义，含部位、SVG 路径和解锁方式
+ */
 import type { AccessoryDef } from '../../types/wardrobeTypes'
 import type { PetSpecies } from '../../types/avatarTypes'
 

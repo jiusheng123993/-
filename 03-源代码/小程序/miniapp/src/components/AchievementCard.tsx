@@ -1,3 +1,7 @@
+/**
+ * 成就卡片组件
+ * 展示宠物各类成就（生日、疫苗、连续打卡等），含宠物头像和成就信息
+ */
 import { View, Text, Image } from '@tarojs/components'
 import { useMemo } from 'react'
 import { getPetFaceDataUri, EXPRESSION_MAP } from '../engines/petAvatar'

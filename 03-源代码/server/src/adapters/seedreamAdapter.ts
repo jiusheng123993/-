@@ -1,11 +1,17 @@
+/**
+ * Seedream AI 图像生成适配器
+ * 封装对火山引擎 Seedream 文生图 API 的调用
+ */
 import { config } from '../config.js';
 
+/** Seedream 图像生成请求参数 */
 export interface SeedreamGenerateParams {
   prompt: string;
   size?: string;
   model?: string;
 }
 
+/** Seedream 图像生成结果 */
 export interface SeedreamGenerateResult {
   url: string | null;
   error: string | null;

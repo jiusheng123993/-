@@ -1,20 +1,30 @@
+/**
+ * 会员管理路由 - 会员订阅与用量配额管理
+ * 查询会员状态、订阅/取消会员、查询当日使用配额
+ * 通过 MembershipRepository、PaymentOrderRepository、UsageQuotaRepository 访问数据库
+ */
 import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { pool } from '../db.js';
+import { validate } from '../middleware/validate.js';
+import { createOrderSchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
+import { MembershipRepository } from '../repositories/membershipRepository.js';
+import { PaymentOrderRepository } from '../repositories/paymentOrderRepository.js';
+import { UsageQuotaRepository } from '../repositories/usageQuotaRepository.js';
 
 const router = Router();
 
+const membershipRepository = new MembershipRepository();
+const paymentOrderRepository = new PaymentOrderRepository();
+const usageQuotaRepository = new UsageQuotaRepository();
+
 router.get('/status', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = req.userId!;
 
-    const result = await pool.query(
-      'SELECT id, tier, plan, status, price, expires_at, started_at FROM memberships WHERE user_id = $1',
-      [userId],
-    );
+    const membership = await membershipRepository.findStatusByUser(userId);
 
-    if (result.rowCount === 0) {
+    if (!membership) {
       res.json({
         success: true,
         data: {
@@ -27,16 +37,6 @@ router.get('/status', authMiddleware, async (req: Request, res: Response) => {
       return;
     }
 
-    const membership = result.rows[0] as {
-      id: string;
-      tier: string;
-      plan: string | null;
-      status: string;
-      price: number | null;
-      expires_at: string | null;
-      started_at: string | null;
-    };
-
     const isExpired =
       membership.status === 'active' &&
       membership.expires_at &&
@@ -45,10 +45,7 @@ router.get('/status', authMiddleware, async (req: Request, res: Response) => {
     const effectiveStatus = isExpired ? 'expired' : membership.status;
 
     if (isExpired) {
-      await pool.query(
-        'UPDATE memberships SET status = $1, updated_at = now() WHERE id = $2',
-        ['expired', membership.id],
-      );
+      await membershipRepository.markExpired(membership.id);
     }
 
     res.json({
@@ -68,16 +65,10 @@ router.get('/status', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/subscribe', authMiddleware, async (req: Request, res: Response) => {
+router.post('/subscribe', authMiddleware, validate({ body: createOrderSchema }), async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = req.userId!;
     const { plan } = req.body;
-
-    const validPlans = ['monthly', 'quarterly', 'yearly'] as const;
-    if (!plan || !validPlans.includes(plan)) {
-      res.status(400).json({ success: false, message: 'plan 参数无效，可选值：monthly, quarterly, yearly' });
-      return;
-    }
 
     const planPrices: Record<string, number> = {
       monthly: 2990,
@@ -98,56 +89,22 @@ router.post('/subscribe', authMiddleware, async (req: Request, res: Response) =>
     const now = new Date();
     const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-    await pool.query('BEGIN');
+    await membershipRepository.subscribeWithTransaction(
+      { id: orderId, userId, plan, amount: price },
+      { plan, price, expiresAt },
+      paymentOrderRepository,
+    );
 
-    try {
-      await pool.query(
-        `INSERT INTO payment_orders (id, user_id, plan, amount, status, channel)
-         VALUES ($1, $2, $3, $4, 'pending', 'wechat')`,
-        [orderId, userId, plan, price],
-      );
-
-      const existingMember = await pool.query(
-        'SELECT id FROM memberships WHERE user_id = $1',
-        [userId],
-      );
-
-      if (existingMember.rowCount === 0) {
-        await pool.query(
-          `INSERT INTO memberships (user_id, tier, plan, status, price, expires_at, started_at)
-           VALUES ($1, 'member', $2, 'active', $3, $4, now())`,
-          [userId, plan, price, expiresAt],
-        );
-      } else {
-        await pool.query(
-          `UPDATE memberships SET tier = 'member', plan = $1, status = 'active', price = $2,
-           expires_at = $3, started_at = now(), updated_at = now()
-           WHERE user_id = $4`,
-          [plan, price, expiresAt, userId],
-        );
-      }
-
-      await pool.query(
-        `UPDATE payment_orders SET status = 'paid', paid_at = now() WHERE id = $1`,
-        [orderId],
-      );
-
-      await pool.query('COMMIT');
-
-      res.json({
-        success: true,
-        data: {
-          orderId,
-          plan,
-          price,
-          expiresAt: expiresAt.toISOString(),
-          status: 'active',
-        },
-      });
-    } catch (error) {
-      await pool.query('ROLLBACK');
-      throw error;
-    }
+    res.json({
+      success: true,
+      data: {
+        orderId,
+        plan,
+        price,
+        expiresAt: expiresAt.toISOString(),
+        status: 'active',
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : '订阅异常';
     res.status(500).json({ success: false, message });
@@ -156,16 +113,11 @@ router.post('/subscribe', authMiddleware, async (req: Request, res: Response) =>
 
 router.post('/cancel', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = req.userId!;
 
-    const result = await pool.query(
-      `UPDATE memberships SET status = 'cancelled', cancelled_at = now(), updated_at = now()
-       WHERE user_id = $1 AND status = 'active'
-       RETURNING id, tier, plan, expires_at`,
-      [userId],
-    );
+    const cancelled = await membershipRepository.cancelActive(userId);
 
-    if (result.rowCount === 0) {
+    if (!cancelled) {
       res.status(404).json({ success: false, message: '未找到活跃的会员订阅' });
       return;
     }
@@ -174,7 +126,7 @@ router.post('/cancel', authMiddleware, async (req: Request, res: Response) => {
       success: true,
       data: {
         message: '会员已取消，到期前仍可继续使用',
-        expiresAt: result.rows[0].expires_at,
+        expiresAt: cancelled.expires_at,
       },
     });
   } catch (error) {
@@ -185,16 +137,12 @@ router.post('/cancel', authMiddleware, async (req: Request, res: Response) => {
 
 router.get('/usage', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = req.userId!;
     const today = new Date().toISOString().split('T')[0];
 
-    const result = await pool.query(
-      `SELECT food_queries_count, symptom_checks_count, trend_days_viewed
-       FROM usage_quotas WHERE user_id = $1 AND date = $2`,
-      [userId, today],
-    );
+    const quota = await usageQuotaRepository.findTodayUsage(userId, today);
 
-    if (result.rowCount === 0) {
+    if (!quota) {
       res.json({
         success: true,
         data: {
@@ -208,12 +156,6 @@ router.get('/usage', authMiddleware, async (req: Request, res: Response) => {
       });
       return;
     }
-
-    const quota = result.rows[0] as {
-      food_queries_count: number;
-      symptom_checks_count: number;
-      trend_days_viewed: number;
-    };
 
     res.json({
       success: true,

@@ -1,3 +1,8 @@
+/**
+ * 宠物日记服务
+ *
+ * 根据健康打卡记录生成拟人化宠物日记
+ */
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
 import { generateDiaryEntry, type DiaryEntry } from '../engines/petAvatar/diaryEngine'
 

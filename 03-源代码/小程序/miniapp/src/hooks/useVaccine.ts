@@ -1,3 +1,7 @@
+/**
+ * 疫苗管理 Hook
+ * 提供疫苗记录的增删改查、接种完成标记和按月份筛选
+ */
 import { useEffect, useCallback } from 'react';
 import { useVaccineStore } from '../stores/vaccineStore';
 import type { VaccineRecord, CreateVaccineData } from '../services/vaccineService';
@@ -20,6 +24,10 @@ interface UseVaccineReturn {
   clearError: () => void;
 }
 
+/**
+ * 疫苗管理 Hook
+ * 提供疫苗记录的增删改查、接种完成标记和按月份筛选
+ */
 export function useVaccine(): UseVaccineReturn {
   const {
     records,

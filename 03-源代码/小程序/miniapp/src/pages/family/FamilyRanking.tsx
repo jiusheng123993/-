@@ -1,3 +1,7 @@
+/**
+ * 家庭健康排行组件
+ * 展示宠物健康评分排名及角色标签（老大、团宠等）
+ */
 import { View, Text } from '@tarojs/components'
 import { RANK_MEDALS, getScoreLevel, type RankedPet } from './utils'
 

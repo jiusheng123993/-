@@ -1,3 +1,8 @@
+/**
+ * 穿搭预览服务
+ *
+ * 宠物配饰穿搭的组合管理、槽位操作、预览状态构建
+ */
 import type { OutfitSlotMap, AccessorySlot, OutfitLayer } from '../types/wardrobeTypes'
 import type { PetSpecies } from '../types/avatarTypes'
 import { resolveOutfitLayers, composeOutfitLayers } from '../engines/petAvatar/outfitRenderer'

@@ -1,24 +1,27 @@
+/**
+ * AI 服务路由 - 对话、安全检测、取名、语音识别、品种识别
+ * 集成 DeepSeek 和阿里云百炼 AI 服务
+ */
 import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { chatMessageSchema } from '../schemas/index.js';
 import { chat, guardCheck, guardCheckOutput, bailianChat, bailianASR } from '../services/aiService.js';
-import { pool } from '../db.js';
+import { PetFactRepository } from '../repositories/petFactRepository.js';
 
 const router = Router();
+
+const petFactRepository = new PetFactRepository();
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-router.post('/chat', authMiddleware, async (req: Request, res: Response) => {
+router.post('/chat', authMiddleware, validate({ body: chatMessageSchema }), async (req: Request, res: Response) => {
   try {
     const { messages, temperature, max_tokens, petId } = req.body;
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      res.status(400).json({ success: false, message: 'messages 不能为空' });
-      return;
-    }
 
     const result = await chat(messages, { temperature, max_tokens });
     res.json({ success: true, data: { content: result } });
@@ -76,9 +79,11 @@ fact 字段：一句话描述具体特征，不超过 100 字。
         ? fact.category
         : 'general';
 
-      await pool.query(
-        'INSERT INTO pet_facts (pet_id, user_id, category, fact) VALUES ($1, $2, $3, $4)',
-        [petId, userId, category, fact.fact.substring(0, 200)]
+      await petFactRepository.insertFact(
+        petId,
+        userId,
+        category,
+        fact.fact.substring(0, 200),
       );
       console.log(`[PetFacts] 已保存特征: pet=${petId}, category=${category}, fact=${fact.fact.substring(0, 50)}`);
     }

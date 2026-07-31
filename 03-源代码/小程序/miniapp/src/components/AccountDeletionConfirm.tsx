@@ -1,8 +1,13 @@
+/**
+ * 账号注销确认组件
+ * 展示注销警告信息、注销原因选择、确认码输入及确认/取消操作
+ */
 import React, { useState, useCallback } from 'react'
 import { View, Text, Input, Button, Radio, RadioGroup } from '@tarojs/components'
 import type { AccountDeletionReason } from '../types/dataPrivacyTypes'
 import './AccountDeletionConfirm.scss'
 
+/** 账号注销确认组件属性 */
 interface Props {
   confirmCode: string
   onConfirm: (reason: AccountDeletionReason, customReason: string, code: string) => void

@@ -1,3 +1,7 @@
+/**
+ * 宠物医院查询页面
+ * 附近宠物医院搜索、筛选、电话导航
+ */
 import { View, Text, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'

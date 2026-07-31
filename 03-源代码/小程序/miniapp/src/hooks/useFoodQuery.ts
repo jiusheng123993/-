@@ -1,3 +1,7 @@
+/**
+ * 食物查询 Hook
+ * 提供宠物食物安全查询的历史记录、统计分析等功能
+ */
 import { useCallback } from 'react';
 import { useFoodQueryStore } from '../stores/foodQueryStore';
 import type { PetFoodQuery, FoodQueryStats } from '../stores/foodQueryStore';
@@ -14,6 +18,10 @@ interface UseFoodQueryReturn {
   clearError: () => void;
 }
 
+/**
+ * 食物查询 Hook
+ * 提供宠物食物安全查询的历史记录、统计分析等功能
+ */
 export function useFoodQuery(): UseFoodQueryReturn {
   const {
     history,

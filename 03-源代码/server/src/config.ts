@@ -1,3 +1,7 @@
+/**
+ * 应用配置管理 - 集中管理所有环境变量和配置项
+ * 从 .env 文件加载配置，提供统一的配置访问入口
+ */
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
+/** 应用全局配置对象 */
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghuanhai',

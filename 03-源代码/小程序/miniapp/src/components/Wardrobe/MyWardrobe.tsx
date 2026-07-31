@@ -1,3 +1,7 @@
+/**
+ * 我的衣橱组件
+ * 展示饰品统计、主题套装和试穿历史记录
+ */
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'
 import type { UserAccessoryInventory, TryOnHistoryEntry, ThemeSuiteTask, OutfitSlotMap, AccessorySlot } from '../../types/wardrobeTypes'

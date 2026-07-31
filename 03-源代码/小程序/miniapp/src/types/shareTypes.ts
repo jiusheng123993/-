@@ -1,5 +1,7 @@
+/** 分享卡片类型 */
 export type ShareCardType = 'food' | 'health_trend' | 'vaccine' | 'achievement';
 
+/** 分享记录 */
 export interface ShareRecord {
   id: string;
   userId: string;
@@ -10,6 +12,7 @@ export interface ShareRecord {
   inviteCode: string;
 }
 
+/** 邀请码 */
 export interface InviteCode {
   code: string;
   userId: string;
@@ -37,6 +40,7 @@ export interface ShareStats {
   successfulInvites: number;
 }
 
+/** 健康趋势分享数据 */
 export interface HealthTrendShareData {
   petName: string;
   petAvatar: string;
@@ -53,6 +57,7 @@ export interface VaccineShareData {
   badgeTitle: string;
 }
 
+/** 成就分享数据 */
 export interface AchievementShareData {
   petName: string;
   petAvatar: string;

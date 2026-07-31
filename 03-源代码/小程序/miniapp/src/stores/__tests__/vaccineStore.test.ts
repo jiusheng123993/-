@@ -1,3 +1,6 @@
+/**
+ * 疫苗/驱虫状态管理 - 单元测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useVaccineStore } from '../vaccineStore'
 import * as vaccineService from '../../services/vaccineService'

@@ -1,3 +1,7 @@
+/**
+ * 用户协议/隐私政策页面
+ * 展示用户协议、隐私政策等法律文本
+ */
 import { View, Text, RichText } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect } from 'react'

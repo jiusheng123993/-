@@ -1,3 +1,7 @@
+/**
+ * 照片上传服务 - 将宠物照片保存到本地文件系统
+ * 包含文件类型校验、大小限制、目录隔离
+ */
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config.js';

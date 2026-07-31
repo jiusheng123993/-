@@ -1,3 +1,7 @@
+/**
+ * 图标组件
+ * 通过 SVG data URI 渲染矢量图标，支持自定义大小和颜色
+ */
 import { Image } from '@tarojs/components'
 import './Icon.scss'
 

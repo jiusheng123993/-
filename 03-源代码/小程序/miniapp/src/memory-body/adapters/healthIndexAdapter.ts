@@ -1,6 +1,10 @@
 import { getStorage, setStorage } from '../../utils/storage';
 import type { PetHealthEntry, HealthProfile, HealthTrendPoint, AnomalyItem, HealthRiskLevel } from '../types/memoryBodyTypes';
 
+/**
+ * 健康指数适配器
+ * 管理宠物健康打卡记录的本地存储、索引构建和健康画像生成
+ */
 const STORAGE_KEYS = {
   HEALTH_ENTRIES: 'health_entries',
   HEALTH_INDEX: 'health_index',

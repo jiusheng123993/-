@@ -1,3 +1,7 @@
+/**
+ * 3D 模型生成服务 - 调用 Meshy API 从 2D 图片生成 3D 模型
+ * 支持多视图（多角度 2D 图）和单图降级模式
+ */
 import { config } from '../config.js';
 import { pool } from '../db.js';
 import { updateTaskProgress, updateTaskStatus, updateTaskResult } from './taskQueue.js';

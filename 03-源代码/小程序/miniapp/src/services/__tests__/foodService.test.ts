@@ -1,3 +1,6 @@
+/**
+ * 食物安全查询服务测试
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockStorage: Record<string, string> = {}
@@ -73,22 +76,17 @@ describe('foodService', () => {
   describe('queryFood', () => {
     it('should return API result and save to local storage when API succeeds', async () => {
       const mockResult = makeApiQueryResult({ foodName: '苹果', safetyLevel: 'safe' })
-      vi.mocked(api.post).mockResolvedValue(mockResult)
+      vi.mocked(api.get).mockResolvedValue(mockResult)
 
       const result = await queryFood('user_001', 'pet_001', '苹果', 'dog')
 
       expect(result.foodName).toBe('苹果')
       expect(result.safetyLevel).toBe('safe')
-      expect(api.post).toHaveBeenCalledWith('/api/food-queries', {
-        petId: 'pet_001',
-        foodName: '苹果',
-        species: 'dog',
-        breed: undefined,
-      })
+      expect(api.get).toHaveBeenCalledWith('/api/food/query', { keyword: '苹果' })
     })
 
     it('should fallback to local engine when API fails', async () => {
-      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
       const result = await queryFood('user_001', 'pet_001', '巧克力', 'dog')
 
@@ -98,7 +96,7 @@ describe('foodService', () => {
     })
 
     it('should return toxic level for toxic food via local engine', async () => {
-      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
       const result = await queryFood('user_001', 'pet_001', '葡萄', 'dog')
 
@@ -108,7 +106,7 @@ describe('foodService', () => {
     })
 
     it('should return safe level for safe food via local engine', async () => {
-      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
       const result = await queryFood('user_001', 'pet_001', '鸡胸肉', 'dog')
 
@@ -130,7 +128,7 @@ describe('foodService', () => {
       expect(result).toHaveLength(2)
       expect(result[0].foodName).toBe('巧克力')
       expect(result[1].foodName).toBe('苹果')
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet_001/food-queries')
+      expect(api.get).toHaveBeenCalledWith('/api/food/history')
     })
 
     it('should fallback to local storage when API fails', async () => {
@@ -161,10 +159,10 @@ describe('foodService', () => {
       const mockStats = {
         totalQueries: 10,
         todayQueries: 3,
-        remainingFree: 2,
-        isMemberUser: false,
       }
       vi.mocked(api.get).mockResolvedValue(mockStats)
+      vi.mocked(isMember).mockResolvedValue(false)
+      vi.mocked(getQuotaLimit).mockResolvedValue(5)
 
       const result = await getQueryStats('pet_001', 'user_001')
 
@@ -172,7 +170,7 @@ describe('foodService', () => {
       expect(result.todayQueries).toBe(3)
       expect(result.remainingFree).toBe(2)
       expect(result.isMemberUser).toBe(false)
-      expect(api.get).toHaveBeenCalledWith('/api/food-queries/stats?petId=pet_001')
+      expect(api.get).toHaveBeenCalledWith('/api/food/stats')
     })
 
     it('should fallback to local calculation when API fails', async () => {
@@ -217,7 +215,7 @@ describe('foodService', () => {
       const result = await getTodayQueryCount('pet_001', 'user_001')
 
       expect(result).toBe(5)
-      expect(api.get).toHaveBeenCalledWith('/api/food-queries/today-count?petId=pet_001')
+      expect(api.get).toHaveBeenCalledWith('/api/food/today-count')
     })
 
     it('should fallback to local calculation when API fails', async () => {

@@ -1,4 +1,8 @@
-﻿import create from 'zustand'
+/**
+ * 症状自查状态管理
+ * 管理症状分类、症状选择、AI 分析结果和历史记录
+ */
+import create from 'zustand'
 import type { SymptomCheckResult, SymptomCategory } from '../services/symptomService'
 import type { PetProfile } from '../services/petService'
 import {
@@ -11,6 +15,7 @@ import {
 import { queueSync } from '../services/syncHelper'
 import { useAuthStore } from './authStore'
 
+/** 症状状态定义 */
 interface SymptomStoreState {
   categories: SymptomCategory[]
   selectedSymptoms: string[]
@@ -42,11 +47,16 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  /**
+   * 获取症状分类列表
+   * @param species - 筛选物种（cat/dog）
+   */
   fetchCategories: (species?: 'cat' | 'dog') => {
     const categories = getSymptomCategories(species)
     set({ categories })
   },
 
+  /** 选中一个症状 */
   selectSymptom: (symptomId: string) => {
     const { selectedSymptoms } = get()
     if (selectedSymptoms.includes(symptomId)) {
@@ -55,6 +65,7 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
     set({ selectedSymptoms: [...selectedSymptoms, symptomId] })
   },
 
+  /** 取消选中一个症状 */
   deselectSymptom: (symptomId: string) => {
     const { selectedSymptoms } = get()
     set({
@@ -62,6 +73,13 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
     })
   },
 
+  /**
+   * 对已选症状进行 AI 分析
+   * @param petId - 宠物 ID
+   * @param additionalInfo - 附加信息
+   * @param petProfile - 宠物档案
+   * @returns 分析结果
+   */
   analyzeSymptoms: async (petId, additionalInfo, petProfile) => {
     const { selectedSymptoms } = get()
     if (selectedSymptoms.length === 0) {
@@ -91,6 +109,10 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取历史检查记录
+   * @param petId - 宠物 ID
+   */
   fetchHistory: async (petId: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -104,6 +126,10 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 获取单条检查结果详情
+   * @param id - 检查记录 ID
+   */
   fetchCheckResult: async (id: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -124,6 +150,10 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
     }
   },
 
+  /**
+   * 删除检查记录
+   * @param id - 检查记录 ID
+   */
   removeCheckResult: async (id: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -141,10 +171,12 @@ export const useSymptomStore = create<SymptomStoreState>((set, get) => ({
     }
   },
 
+  /** 清空已选症状和当前结果 */
   clearSelection: () => {
     set({ selectedSymptoms: [], currentResult: null })
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   },

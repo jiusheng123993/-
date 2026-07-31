@@ -1,3 +1,8 @@
+/**
+ * 附近医院搜索服务
+ *
+ * 根据位置获取附近宠物医院信息
+ */
 import Taro from '@tarojs/taro'
 import {
   getNearbyHospitals as getNearbyHospitalsData,

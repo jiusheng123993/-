@@ -1,3 +1,8 @@
+/**
+ * 同步辅助工具
+ *
+ * 提供本地数据变更的同步队列操作（入队/空闲同步/去重）
+ */
 import { getSyncService, type SyncTable } from './syncService'
 
 export function queueSync(table: SyncTable, recordId: string, action: 'insert' | 'update' | 'delete', data: unknown, userId: string): void {

@@ -1,3 +1,7 @@
+/**
+ * 广告单元 ID 配置
+ * 管理小程序各广告位的单元 ID，当前为空占位，接入广告平台后填充
+ */
 export const AD_UNIT_IDS = {
   BANNER_HOME: '',
   BANNER_FAMILY: '',

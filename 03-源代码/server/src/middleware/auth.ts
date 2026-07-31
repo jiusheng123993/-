@@ -1,7 +1,12 @@
+/**
+ * 认证中间件 - JWT token 验证
+ * 验证接口请求中的 Bearer token，解析用户身份注入到请求对象
+ */
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config.js';
 
+/** JWT token 解码后的负载结构 */
 export interface JwtPayload {
   userId: string;
   jti?: string;

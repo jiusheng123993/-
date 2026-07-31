@@ -1,3 +1,7 @@
+/**
+ * 骨架屏通用组件
+ * 支持 text/rect/circle/card 四种变体，可自定义行数、宽度和高度
+ */
 import { View } from '@tarojs/components'
 import './Skeleton.scss'
 

@@ -1,3 +1,7 @@
+/**
+ * 宠物资料状态管理
+ * 管理宠物列表、当前宠物选择、CRUD 操作和头像生成任务追踪
+ */
 import Taro from '@tarojs/taro'
 import create from 'zustand'
 import {
@@ -10,6 +14,7 @@ import {
   type PetProfile,
 } from '../services/petService'
 
+/** 宠物状态定义 */
 interface PetState {
   userId: string | null
   pets: PetProfile[]
@@ -39,11 +44,19 @@ export const usePetStore = create<PetState>((set, get) => ({
   avatar2DTaskId: null,
   avatar3DTaskId: null,
 
+  /**
+   * 初始化用户并加载宠物列表
+   * @param userId - 用户 ID
+   */
   initUser: async (userId: string) => {
     set({ userId })
     await get().fetchPets(userId)
   },
 
+  /**
+   * 获取宠物列表，自动选中第一个宠物
+   * @param userId - 用户 ID
+   */
   fetchPets: async (userId: string) => {
     set({ isLoading: true, error: null })
     try {
@@ -64,6 +77,11 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /**
+   * 添加新宠物
+   * @param data - 宠物资料（不含 id/时间戳）
+   * @returns 创建后的宠物资料
+   */
   addPet: async (data) => {
     const { userId } = get()
     if (!userId) throw new Error('用户未登录')
@@ -85,6 +103,11 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /**
+   * 更新宠物资料
+   * @param id - 宠物 ID
+   * @param data - 要更新的字段
+   */
   updatePet: async (id, data) => {
     const { userId } = get()
     if (!userId) throw new Error('用户未登录')
@@ -105,6 +128,10 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /**
+   * 删除宠物
+   * @param id - 宠物 ID
+   */
   removePet: async (id) => {
     const { userId } = get()
     if (!userId) throw new Error('用户未登录')
@@ -130,6 +157,11 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /**
+   * 标记宠物离世
+   * @param id - 宠物 ID
+   * @param date - 离世日期
+   */
   markPetDeceased: async (id, date) => {
     const { userId } = get()
     if (!userId) throw new Error('用户未登录')
@@ -150,6 +182,10 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /**
+   * 切换当前宠物
+   * @param id - 宠物 ID
+   */
   switchPet: async (id) => {
     const { userId } = get()
     if (!userId) throw new Error('用户未登录')
@@ -167,10 +203,15 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /** 清除错误状态 */
   clearError: () => {
     set({ error: null })
   },
 
+  /**
+   * 设置 2D 头像生成任务 ID
+   * @param taskId - 任务 ID，传 null 表示清除
+   */
   setAvatar2DTaskId: (taskId) => {
     set({ avatar2DTaskId: taskId })
     if (taskId) {
@@ -180,6 +221,10 @@ export const usePetStore = create<PetState>((set, get) => ({
     }
   },
 
+  /**
+   * 设置 3D 头像生成任务 ID
+   * @param taskId - 任务 ID，传 null 表示清除
+   */
   setAvatar3DTaskId: (taskId) => {
     set({ avatar3DTaskId: taskId })
     if (taskId) {

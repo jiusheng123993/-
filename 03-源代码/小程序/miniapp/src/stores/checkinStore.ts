@@ -1,7 +1,12 @@
-﻿import create from 'zustand'
+/**
+ * 打卡状态管理
+ * 管理每日打卡记录、连续打卡天数和今日打卡状态
+ */
+import create from 'zustand'
 import { api } from '../services/api'
 import type { Checkin } from '../types'
 
+/** 打卡状态定义 */
 interface CheckinState {
   checkins: Checkin[]
   todayCheckin: Checkin | null
@@ -18,9 +23,14 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
   streakDays: 0,
   isLoading: false,
 
+  /** 初始化用户（预留接口） */
   initUser: async (userId: string) => {
   },
 
+  /**
+   * 获取打卡记录并计算连续打卡天数
+   * @param petId - 宠物 ID
+   */
   fetchCheckins: async (petId: string) => {
     set({ isLoading: true })
     try {
@@ -46,6 +56,11 @@ export const useCheckinStore = create<CheckinState>((set, get) => ({
     }
   },
 
+  /**
+   * 执行今日打卡
+   * @param data - 打卡数据
+   * @returns 创建后的打卡记录
+   */
   doCheckin: async (data: Partial<Checkin>) => {
     const checkin = await api.createCheckin(data)
     set(state => ({

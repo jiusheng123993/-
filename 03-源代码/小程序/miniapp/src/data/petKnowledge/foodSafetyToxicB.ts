@@ -1,3 +1,7 @@
+/**
+ * 有毒食物数据 B
+ * 宠物食物安全数据库 - 对宠物有毒的食物/植物清单 B
+ */
 import type { FoodSafetyItem } from './foodSafety'
 
 export const FOOD_SAFETY_TOXIC_B: FoodSafetyItem[] = [

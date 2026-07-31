@@ -1,3 +1,8 @@
+/**
+ * 广告服务
+ *
+ * 微信小程序广告组件封装（Banner/激励视频/插屏），含频次控制和统计
+ */
 import Taro from '@tarojs/taro'
 import { getStorage, setStorage } from '../utils/storage'
 

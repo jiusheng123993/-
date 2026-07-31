@@ -1,3 +1,7 @@
+/**
+ * expressionEngine 测试
+ * 验证表情引擎的表达式计算和场景匹配逻辑
+ */
 import { describe, it, expect } from 'vitest'
 import {
   calculateExpression,

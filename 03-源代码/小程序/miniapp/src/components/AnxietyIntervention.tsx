@@ -1,3 +1,7 @@
+/**
+ * 焦虑干预组件
+ * 针对宠物健康焦虑和新手养宠焦虑提供分步引导，包含护理计划和危机转介
+ */
 import { View, Text } from '@tarojs/components'
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import Taro from '@tarojs/taro'

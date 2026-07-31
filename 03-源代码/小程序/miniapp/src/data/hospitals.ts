@@ -1,3 +1,9 @@
+/**
+ * 医院数据
+ * 全国主要城市宠物医院信息，含合作医院和 24 小时急诊医院
+ */
+
+/** 医院信息 */
 export interface HospitalInfo {
   id: string
   name: string

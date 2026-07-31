@@ -1,3 +1,8 @@
+/**
+ * 埋点分析服务
+ *
+ * 用户行为事件追踪、漏斗分析、页面停留统计，本地队列存储后批量上报
+ */
 import Taro from '@tarojs/taro'
 import { api } from './api'
 import type { UserProperties, FunnelStep } from '../types/analyticsTypes'

@@ -1,3 +1,7 @@
+/**
+ * 异步任务队列管理 - 管理 2D/3D 形象生成任务的生命周期
+ * 支持任务创建、进度更新、状态管理、过期清理
+ */
 import { pool } from '../db.js';
 import { v4 as uuidv4 } from 'uuid';
 

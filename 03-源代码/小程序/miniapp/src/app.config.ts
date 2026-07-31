@@ -76,6 +76,8 @@ export default defineAppConfig({
         'family/calendar/index',
         'family/lineage/index',
         'wardrobe/index',
+        'memoir-daily/index',
+        'memoir-vlog/index',
       ],
     },
     {

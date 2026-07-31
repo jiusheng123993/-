@@ -1,3 +1,7 @@
+/**
+ * 主题管理 Hook
+ * 提供当前主题 key 的响应式获取与 CSS 类名转换，自动应用原生导航栏样式
+ */
 import { useEffect, useState } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { useThemeStore, type ThemeKey } from '../stores/themeStore'

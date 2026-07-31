@@ -1,3 +1,7 @@
+/**
+ * 消息模板 ID 配置
+ * 管理微信订阅消息的模板 ID，用于推送提醒通知
+ */
 export const FOLLOWUP_TEMPLATE_ID =
   process.env.TARO_APP_FOLLOWUP_TEMPLATE_ID || 'FOLLOWUP_TEMPLATE_ID_PLACEHOLDER'
 

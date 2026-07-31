@@ -1,3 +1,7 @@
+/**
+ * 主题套装画廊组件
+ * 按分类展示主题套装，显示生成配额和生成状态
+ */
 import { View, Text } from '@tarojs/components'
 import { useMemo } from 'react'
 import type { ThemeSuiteDef, ThemeQuotaInfo, ThemeSuiteTask } from '../../types/wardrobeTypes'

@@ -1,3 +1,7 @@
+/**
+ * 宠物管理路由集成测试 - 宠物 CRUD 和离世标记
+ * 覆盖：正常流程、参数校验、横向越权防护、错误处理
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';

@@ -1,5 +1,7 @@
+/** NPS 触发事件类型 */
 export type NpsTriggerEvent = 'day_7' | 'day_30' | 'after_share' | 'after_export' | 'manual';
 
+/** NPS 调查问题 */
 export interface NpsQuestion {
   id: string;
   score: number;
@@ -7,6 +9,7 @@ export interface NpsQuestion {
   text: string;
 }
 
+/** NPS 调查配置 */
 export interface NpsSurveyConfig {
   triggerEvent: NpsTriggerEvent;
   minDaysSinceSignup: number;
@@ -14,6 +17,7 @@ export interface NpsSurveyConfig {
   questions: NpsQuestion[];
 }
 
+/** NPS 用户反馈记录 */
 export interface NpsResponse {
   id: string;
   userId: string;

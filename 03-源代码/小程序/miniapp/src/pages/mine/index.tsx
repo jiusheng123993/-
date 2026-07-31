@@ -1,3 +1,7 @@
+/**
+ * 我的页面
+ * 用户信息展示、宠物切换、数据统计、功能菜单入口
+ */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'

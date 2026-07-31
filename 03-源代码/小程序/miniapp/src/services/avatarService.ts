@@ -1,3 +1,8 @@
+/**
+ * 宠物头像服务
+ *
+ * 本地 SVG 头像生成、AI 云端头像生成（2D/3D）、照片上传、配额管理
+ */
 import Taro from '@tarojs/taro'
 import { getPetFaceDataUri } from '../engines/petAvatar/svgRenderer'
 import { calculateExpression } from '../engines/petAvatar/expressionEngine'

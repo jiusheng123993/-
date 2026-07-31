@@ -1,3 +1,6 @@
+/**
+ * 使用额度统计组件测试
+ */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
