@@ -80,20 +80,20 @@ vi.mock('../../services/api', () => ({
 
 // Mock aiProvider
 vi.mock('../../services/aiProvider', () => ({
-  chat: (...args: unknown[]) => mockChat(...args),
-  guardCheck: (...args: unknown[]) => mockGuardCheck(...args),
-  guardCheckOutput: (...args: unknown[]) => mockGuardCheckOutput(...args),
+  chat: mockChat,
+  guardCheck: mockGuardCheck,
+  guardCheckOutput: mockGuardCheckOutput,
 }))
 
 // Mock ruleGuard
 vi.mock('../../utils/ruleGuard', () => ({
-  checkInput: (...args: unknown[]) => mockRuleCheck(...args),
-  sanitizeOutput: (...args: unknown[]) => mockSanitizeOutput(...args),
+  checkInput: mockRuleCheck,
+  sanitizeOutput: mockSanitizeOutput,
 }))
 
 // Mock authGuard
 vi.mock('../../utils/authGuard', () => ({
-  requireAuth: vi.fn(),
+  requireAuth: vi.fn(() => ({ userId: 'user-1', token: 'mock-token' })),
 }))
 
 // Mock config

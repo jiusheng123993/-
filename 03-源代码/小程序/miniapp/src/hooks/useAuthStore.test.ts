@@ -44,6 +44,7 @@ vi.mock('../utils/storage', () => ({
 
 vi.mock('@tarojs/taro', () => ({
   default: {
+    login: vi.fn(() => ({ code: 'mock-code' })),
     getStorageSync: vi.fn(() => null),
     setStorageSync: vi.fn(),
     removeStorageSync: vi.fn(),

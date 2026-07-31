@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { MemoryAggregator } from '../aggregator/memoryAggregator'
 
 const mockStorage: Record<string, string> = {}

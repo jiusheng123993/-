@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { BehaviorAdapter } from '../adapters/behaviorAdapter'
 
 const mockStorage: Record<string, string> = {}

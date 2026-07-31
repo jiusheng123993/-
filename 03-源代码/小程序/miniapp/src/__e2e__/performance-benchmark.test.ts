@@ -11,7 +11,7 @@
  * E2E 测试：性能基准
  * 验证应用性能基准，包含启动时间、API 响应和渲染性能
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ============================================================
 // Mock 层：共享的 mock storage
@@ -123,6 +123,7 @@ import { generateDiaryFromEntries } from '../services/diaryService'
 import { getStorage, setStorage } from '../utils/storage'
 import type { PetProfile } from '../services/petService'
 import type { ChronicRecord } from '../types/chronicTypes'
+import type { PetMoment } from '../types/familyTypes'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
 
 // ============================================================
@@ -319,7 +320,7 @@ describe('性能基准测试', () => {
         checkinDays: 6,
         anomalyDays: 1,
         streak: 7,
-        recentMoments: [] as Array<{ type: string }>,
+        recentMoments: [] as PetMoment[],
       }
 
       const avgTime = measureTime(() => {

@@ -14,6 +14,19 @@ vi.mock('../utils/storage', () => ({
   setStorage: vi.fn((key: string, value: unknown) => {
     mockStorage[key] = JSON.stringify(value)
   }),
+  // aiProvider 依赖 storage 命名导出（utils/storage.ts 的 storage 对象）
+  storage: {
+    getToken: vi.fn(() => 'mock_token'),
+    setToken: vi.fn(),
+    removeToken: vi.fn(),
+    getUser: vi.fn(() => null),
+    setUser: vi.fn(),
+    removeUser: vi.fn(),
+    getRefreshToken: vi.fn(() => null),
+    setRefreshToken: vi.fn(),
+    removeRefreshToken: vi.fn(),
+    clear: vi.fn(),
+  },
 }))
 
 const { mockTaroRequest } = vi.hoisted(() => {
@@ -49,7 +62,7 @@ describe('Happy Path 4: AI对话交互 → 智能回复', () => {
     it('发送聊天消息 → mock AI 回复，验证回复包含有用建议', async () => {
       mockTaroRequest.mockResolvedValue({
         statusCode: 200,
-        data: { reply: '猫咪食欲不振可能是压力、口腔问题或消化系统不适引起的。建议先观察猫咪的精神状态，如果持续超过24小时或伴有呕吐腹泻，请及时就医。' },
+        data: { success: true, data: { content: '猫咪食欲不振可能是压力、口腔问题或消化系统不适引起的。建议先观察猫咪的精神状态，如果持续超过24小时或伴有呕吐腹泻，请及时就医。' } },
       })
 
       const reply = await chat({
@@ -70,7 +83,7 @@ describe('Happy Path 4: AI对话交互 → 智能回复', () => {
     it('发送带宠物上下文的聊天消息 → 验证请求中包含宠物信息（名字、品种、年龄）', async () => {
       mockTaroRequest.mockResolvedValue({
         statusCode: 200,
-        data: { reply: '小橘作为中华田园猫，4岁属于青壮年阶段。请关注它的饮食和运动情况。' },
+        data: { success: true, data: { content: '小橘作为中华田园猫，4岁属于青壮年阶段。请关注它的饮食和运动情况。' } },
       })
 
       const reply = await chat({

@@ -75,7 +75,7 @@ vi.mock('../../services/checkinService', () => ({
 // ═══════════════════════════════════════════════════════════════════════════
 
 vi.mock('../../services/syncService', () => ({
-  getSyncService: (...args: unknown[]) => mockGetSyncService(...args),
+  getSyncService: mockGetSyncService,
   SyncService: class {
     queueForSync = mockQueueForSync
     syncAll = mockSyncAll

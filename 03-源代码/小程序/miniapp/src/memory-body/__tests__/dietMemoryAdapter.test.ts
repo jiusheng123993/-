@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { DietMemoryAdapter } from '../adapters/dietMemoryAdapter'
 
 const mockStorage: Record<string, string> = {}

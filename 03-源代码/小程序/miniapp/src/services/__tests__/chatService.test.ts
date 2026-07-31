@@ -15,7 +15,7 @@ vi.mock('../../utils/ruleGuard', () => ({
 }))
 
 vi.mock('../../utils/authGuard', () => ({
-  requireAuth: vi.fn(),
+  requireAuth: vi.fn(() => ({ userId: 'user-1', token: 'mock-token' })),
   AuthenticationError: class extends Error { constructor(m: string) { super(m); this.name = 'AuthenticationError' } },
 }))
 

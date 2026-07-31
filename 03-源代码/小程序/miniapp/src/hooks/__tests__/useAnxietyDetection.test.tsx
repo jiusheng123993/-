@@ -62,6 +62,13 @@ vi.mock('../../stores/foodQueryStore', () => ({
 
 import { useAnxietyDetection } from '../useAnxietyDetection'
 
+/** 生成距今 days 天的 ISO 日期（YYYY-MM-DD），与 hook 的 7 天窗口逻辑保持一致 */
+function daysAgoISO(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - days)
+  return d.toISOString().split('T')[0]
+}
+
 function renderHookWithComponent<T>(hookFn: () => T) {
   let hookResult: T = null as any
   function TestComponent() {
@@ -130,11 +137,12 @@ describe('useAnxietyDetection', () => {
   })
 
   it('checkSickAnxiety 连续异常天数 >= 3 时触发 sick anxiety', async () => {
-    mockCheckinStore.checkins = [
-      { date: '2026-07-24', mood: 'sad', appetite: 'normal', stool: 'normal' },
-      { date: '2026-07-23', mood: 'sad', appetite: 'normal', stool: 'normal' },
-      { date: '2026-07-22', mood: 'sad', appetite: 'normal', stool: 'normal' },
-    ]
+    mockCheckinStore.checkins = [1, 2, 3].map(i => ({
+      date: daysAgoISO(i),
+      mood: 'sad',
+      appetite: 'normal',
+      stool: 'normal',
+    }))
     mockGetStorageSync.mockImplementation((key: string) => {
       if (key === 'anxiety_last_check') return null
       if (key === 'sick_anxiety_dismissed') return null
@@ -154,7 +162,7 @@ describe('useAnxietyDetection', () => {
 
   it('checkSickAnxiety 连续异常天数 >= 5 时 anxietyLevel 为 moderate', async () => {
     mockCheckinStore.checkins = Array.from({ length: 5 }, (_, i) => ({
-      date: `2026-07-${24 - i}`,
+      date: daysAgoISO(i + 1),
       mood: 'sad',
       appetite: 'normal',
       stool: 'normal',
@@ -174,8 +182,9 @@ describe('useAnxietyDetection', () => {
   })
 
   it('checkSickAnxiety 连续异常天数 >= 7 时 anxietyLevel 为 severe', async () => {
+    // 窗口为 diffDays < 7，故从今天（0）到 6 天前共 7 条都在窗口内
     mockCheckinStore.checkins = Array.from({ length: 7 }, (_, i) => ({
-      date: `2026-07-${25 - i}`,
+      date: daysAgoISO(i),
       mood: 'sad',
       appetite: 'normal',
       stool: 'normal',
@@ -195,10 +204,12 @@ describe('useAnxietyDetection', () => {
   })
 
   it('checkSickAnxiety 连续异常天数 < 3 时不触发', async () => {
-    mockCheckinStore.checkins = [
-      { date: '2026-07-24', mood: 'sad', appetite: 'normal', stool: 'normal' },
-      { date: '2026-07-23', mood: 'sad', appetite: 'normal', stool: 'normal' },
-    ]
+    mockCheckinStore.checkins = [1, 2].map(i => ({
+      date: daysAgoISO(i),
+      mood: 'sad',
+      appetite: 'normal',
+      stool: 'normal',
+    }))
     mockGetStorageSync.mockImplementation((key: string) => {
       if (key === 'anxiety_last_check') return null
       if (key === 'sick_anxiety_dismissed') return null
@@ -230,8 +241,8 @@ describe('useAnxietyDetection', () => {
   })
 
   it('dismissSickAnxiety 设置 storage 并重置 sick anxiety 状态', async () => {
-    mockCheckinStore.checkins = Array.from({ length: 4 }, (_, i) => ({
-      date: `2026-07-${24 - i}`,
+    mockCheckinStore.checkins = [1, 2, 3, 4].map(i => ({
+      date: daysAgoISO(i),
       mood: 'sad',
       appetite: 'normal',
       stool: 'normal',
@@ -428,8 +439,8 @@ describe('useAnxietyDetection', () => {
   })
 
   it('dismissNewOwnerAnxiety 不影响 sickAnxiety 状态', async () => {
-    mockCheckinStore.checkins = Array.from({ length: 4 }, (_, i) => ({
-      date: `2026-07-${24 - i}`,
+    mockCheckinStore.checkins = [1, 2, 3, 4].map(i => ({
+      date: daysAgoISO(i),
       mood: 'sad',
       appetite: 'normal',
       stool: 'normal',

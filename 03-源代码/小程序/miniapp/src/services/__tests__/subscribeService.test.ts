@@ -14,6 +14,19 @@ vi.mock('../../utils/storage', () => ({
   setStorage: vi.fn((key: string, value: unknown) => {
     mockStorage[`xhh_${key}`] = JSON.stringify(value)
   }),
+  // sendSubscribeMessage 依赖 storage 命名导出（utils/storage.ts 的 storage 对象）
+  storage: {
+    getToken: vi.fn(() => 'test-token'),
+    setToken: vi.fn(),
+    removeToken: vi.fn(),
+    getUser: vi.fn(() => null),
+    setUser: vi.fn(),
+    removeUser: vi.fn(),
+    getRefreshToken: vi.fn(() => null),
+    setRefreshToken: vi.fn(),
+    removeRefreshToken: vi.fn(),
+    clear: vi.fn(),
+  },
 }))
 
 vi.mock('@tarojs/taro', () => ({
@@ -474,7 +487,7 @@ describe('subscribeService', () => {
 
       expect(result).toBe(true)
       expect(Taro.request).toHaveBeenCalledTimes(1)
-      const callArg = vi.mocked(Taro.request).mock.calls[0][0] as Record<string, unknown>
+      const callArg = vi.mocked(Taro.request).mock.calls[0][0] as unknown as Record<string, unknown>
       expect(callArg.url).toContain('subscribe/send')
       expect(callArg.method).toBe('POST')
       expect(callArg.data).toEqual({ templateId: realTemplateId, data: messageData, page: '/pages/index' })

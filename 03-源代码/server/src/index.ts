@@ -24,6 +24,7 @@ import familiesRoutes from './routes/families.js';
 import aiRoutes from './routes/ai.js';
 import avatarRoutes from './routes/avatar.js';
 import membershipRoutes from './routes/membership.js';
+import paymentRoutes from './routes/payment.js';
 import wardrobeRoutes from './routes/wardrobe.js';
 import timelineRoutes from './routes/timeline.js';
 import namingRoutes from './routes/naming.js';
@@ -54,7 +55,17 @@ app.use(helmet());
 app.use(cors());
 
 // 请求体解析
-app.use(express.json({ limit: '10mb' }));
+// 微信回调接口需要 raw body 用于验签，通过 verify 钩子捕获原始请求体
+// 其他接口正常解析为 JSON
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => {
+    const expressReq = req as unknown as { originalUrl?: string; rawBody?: string };
+    if (expressReq.originalUrl?.endsWith('/api/payment/wechat/notify')) {
+      expressReq.rawBody = buf.toString('utf8');
+    }
+  },
+}));
 
 // 请求日志（脱敏记录）
 app.use(requestLogger);
@@ -93,6 +104,7 @@ app.use('/api/share-cards', shareCardsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/avatar', avatarRoutes);
 app.use('/api/membership', membershipRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/wardrobe', wardrobeRoutes);
 app.use('/api/timeline', timelineRoutes);
 app.use('/api/naming', namingRoutes);

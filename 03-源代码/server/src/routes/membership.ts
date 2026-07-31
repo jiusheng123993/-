@@ -2,6 +2,13 @@
  * 会员管理路由 - 会员订阅与用量配额管理
  * 查询会员状态、订阅/取消会员、查询当日使用配额
  * 通过 MembershipRepository、PaymentOrderRepository、UsageQuotaRepository 访问数据库
+ *
+ * 改造说明（v2）：
+ *   原 /subscribe 接口为模拟支付，直接创建订单+激活会员+标记已支付
+ *   新流程改为：/subscribe 创建支付订单 → 调微信支付下单 → 前端调起支付
+ *             → 微信回调 /api/payment/wechat/notify → 激活会员
+ *   保留 /subscribe 接口名称以兼容前端，但内部改为走支付流程
+ *   前端如需直接走支付，可调用 /api/payment/membership/order（推荐）
  */
 import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
@@ -11,12 +18,22 @@ import { v4 as uuidv4 } from 'uuid';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { PaymentOrderRepository } from '../repositories/paymentOrderRepository.js';
 import { UsageQuotaRepository } from '../repositories/usageQuotaRepository.js';
+import { UserRepository } from '../repositories/userRepository.js';
+import { createJsapiPayment } from '../services/wechatPayService.js';
 
 const router = Router();
 
 const membershipRepository = new MembershipRepository();
 const paymentOrderRepository = new PaymentOrderRepository();
 const usageQuotaRepository = new UsageQuotaRepository();
+const userRepository = new UserRepository();
+
+/** 会员订阅计划价格（分） */
+const PLAN_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
+  monthly: 2990,
+  quarterly: 7990,
+  yearly: 26900,
+};
 
 router.get('/status', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -65,44 +82,49 @@ router.get('/status', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /subscribe - 创建会员订阅支付订单
+ *
+ * 兼容旧前端调用：仍接受 { plan } 参数，但返回支付参数而非直接激活会员
+ * 前端拿到 payment 参数后调起 wx.requestPayment，支付完成后等待回调激活
+ *
+ * 推荐前端迁移到 /api/payment/membership/order（语义更清晰）
+ */
 router.post('/subscribe', authMiddleware, validate({ body: createOrderSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
-    const { plan } = req.body;
+    const { plan } = req.body as { plan: 'monthly' | 'quarterly' | 'yearly' };
 
-    const planPrices: Record<string, number> = {
-      monthly: 2990,
-      quarterly: 7990,
-      yearly: 26900,
-    };
+    const price = PLAN_PRICES[plan];
+    const description = `星寰海会员订阅-${plan === 'monthly' ? '月度' : plan === 'quarterly' ? '季度' : '年度'}`;
 
-    const planDurations: Record<string, number> = {
-      monthly: 30,
-      quarterly: 90,
-      yearly: 365,
-    };
+    // 查询用户 openid（JSAPI 支付必需）
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: '用户不存在' });
+      return;
+    }
 
-    const price = planPrices[plan];
-    const durationDays = planDurations[plan];
+    // 创建支付订单
     const orderId = uuidv4();
+    await paymentOrderRepository.createMembershipOrder({
+      id: orderId,
+      userId,
+      plan,
+      amount: price,
+    });
 
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
-
-    await membershipRepository.subscribeWithTransaction(
-      { id: orderId, userId, plan, amount: price },
-      { plan, price, expiresAt },
-      paymentOrderRepository,
-    );
+    // 调微信支付下单
+    const paymentParams = await createJsapiPayment(orderId, price, description, user.openid);
 
     res.json({
       success: true,
       data: {
-        orderId,
+        order_id: orderId,
         plan,
         price,
-        expiresAt: expiresAt.toISOString(),
-        status: 'active',
+        payment: paymentParams,
+        message: '订单已创建，请完成支付',
       },
     });
   } catch (error) {

@@ -44,11 +44,18 @@ describe('analyticsService', () => {
     expect(queue[0].properties.petSpecies).toBe('dog')
   })
 
-  it('queue respects max size', () => {
-    for (let i = 0; i < 110; i++) {
+  it('queue accumulates events below flush threshold', () => {
+    for (let i = 0; i < 15; i++) {
       trackEvent('test_event', { index: i })
     }
-    expect(getQueueLength()).toBe(100)
+    expect(getQueueLength()).toBe(15)
+  })
+
+  it('queue flushes events when reaching flush threshold', () => {
+    for (let i = 0; i < 25; i++) {
+      trackEvent('test_event', { index: i })
+    }
+    expect(getQueueLength()).toBe(5)
   })
 
   it('flushEvents clears the queue', async () => {

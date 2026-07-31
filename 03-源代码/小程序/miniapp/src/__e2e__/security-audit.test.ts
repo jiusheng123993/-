@@ -52,6 +52,49 @@ vi.mock('../utils/storage', () => ({
       return []
     }
   }),
+  // authGuard 依赖 storage 命名导出（utils/storage.ts 的 storage 对象）
+  storage: {
+    getToken: vi.fn(() => {
+      const raw = mockStorage['xhh_token']
+      return raw !== undefined && raw !== '' ? raw : null
+    }),
+    setToken: vi.fn((token: string) => {
+      mockStorage['xhh_token'] = token
+    }),
+    removeToken: vi.fn(() => {
+      delete mockStorage['xhh_token']
+    }),
+    getUser: vi.fn(() => {
+      const raw = mockStorage['xhh_user']
+      if (!raw) return null
+      try {
+        return JSON.parse(raw)
+      } catch {
+        return null
+      }
+    }),
+    setUser: vi.fn((user: unknown) => {
+      mockStorage['xhh_user'] = JSON.stringify(user)
+    }),
+    removeUser: vi.fn(() => {
+      delete mockStorage['xhh_user']
+    }),
+    getRefreshToken: vi.fn(() => {
+      const raw = mockStorage['xhh_refresh_token']
+      return raw !== undefined && raw !== '' ? raw : null
+    }),
+    setRefreshToken: vi.fn((token: string) => {
+      mockStorage['xhh_refresh_token'] = token
+    }),
+    removeRefreshToken: vi.fn(() => {
+      delete mockStorage['xhh_refresh_token']
+    }),
+    clear: vi.fn(() => {
+      delete mockStorage['xhh_token']
+      delete mockStorage['xhh_user']
+      delete mockStorage['xhh_refresh_token']
+    }),
+  },
 }))
 
 vi.mock('@tarojs/taro', () => ({

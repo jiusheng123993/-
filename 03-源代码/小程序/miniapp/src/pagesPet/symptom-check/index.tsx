@@ -491,7 +491,7 @@ export default function PetSymptomCheck() {
                           className={`pet-symptom-check__search-suggestion${
                             selectedSymptoms.includes(s.id) ? ' pet-symptom-check__search-suggestion--selected' : ''
                           }`}
-                          onMouseDown={() => handleSelectSearchSuggestion(s.id)}
+                          onClick={() => handleSelectSearchSuggestion(s.id)}
                         >
                           <Text className='pet-symptom-check__search-suggestion-name'>{s.name}</Text>
                           <Text className='pet-symptom-check__search-suggestion-cat'>{s.categoryName}</Text>

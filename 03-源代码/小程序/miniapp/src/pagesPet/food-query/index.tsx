@@ -323,7 +323,7 @@ export default function PetFoodQuery() {
                     <View
                       key={food}
                       className='pet-food-query__suggestion-item'
-                      onMouseDown={() => handleSuggestionClick(food)}
+                      onClick={() => handleSuggestionClick(food)}
                     >
                       <Text className='pet-food-query__suggestion-icon'>🍽️</Text>
                       <Text className='pet-food-query__suggestion-text'>{food}</Text>

@@ -140,6 +140,10 @@ export class MembershipRepository extends BaseRepository<MembershipRow> {
   /**
    * 事务化的订阅流程：创建订单 → 创建/更新会员 → 标记订单已支付
    * 任一步骤失败自动回滚，保证订单和会员状态原子更新
+   *
+   * 注意：此方法保留以兼容旧流程（membership.ts /subscribe 接口直接走模拟支付）
+   * 新流程（payment 模块走真实支付）应使用 activateMembership 方法
+   *
    * @param orderParams - 订单参数（id/userId/plan/amount）
    * @param subscribeParams - 会员订阅参数（plan/price/expiresAt）
    * @param paymentOrderRepo - 支付订单仓库实例
@@ -175,6 +179,35 @@ export class MembershipRepository extends BaseRepository<MembershipRow> {
     } catch (error) {
       await this.db.query('ROLLBACK');
       throw error;
+    }
+  }
+
+  /**
+   * 支付回调后激活会员（新流程）
+   *
+   * 由 payment 模块的微信回调调用，订单已标记 paid 后才调用此方法。
+   * 此方法只负责创建/续期会员，不操作订单状态（订单状态由 payment 模块管理）。
+   *
+   * 业务规则：
+   *   - 不存在会员记录：创建新会员
+   *   - 已存在会员：续期（覆盖原 plan 和 expires_at）
+   *
+   * @param userId - 用户 ID
+   * @param plan - 订阅计划：monthly/quarterly/yearly
+   * @param price - 实际支付金额（分）
+   * @param expiresAt - 会员到期时间
+   */
+  async activateMembership(
+    userId: string,
+    plan: string,
+    price: number,
+    expiresAt: Date,
+  ): Promise<void> {
+    const existing = await this.findByUser(userId);
+    if (existing === null) {
+      await this.createMembership({ userId, plan, price, expiresAt });
+    } else {
+      await this.renewMembership({ userId, plan, price, expiresAt });
     }
   }
 }

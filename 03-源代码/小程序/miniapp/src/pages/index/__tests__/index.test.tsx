@@ -90,6 +90,14 @@ vi.mock('@tarojs/taro', () => ({
     showToast: mockShowToast,
     switchTab: mockSwitchTab,
     setClipboardData: mockSetClipboardData,
+    // useVoiceInput 依赖录音管理器
+    getRecorderManager: vi.fn(() => ({
+      onStart: vi.fn(),
+      onStop: vi.fn(),
+      onError: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+    })),
   },
 }))
 
@@ -221,12 +229,10 @@ describe('calcAge', () => {
   })
 
   it('calculates years and months', () => {
-    // 构造一个距今 2 年 3 个月的日期
+    // 构造一个距今 2 年 3 个月的日期（用本地时间拼字符串避免时区偏移，月中 15 号避免月末溢出）
     const now = new Date()
-    const twoYearsThreeMonthsAgo = new Date(now)
-    twoYearsThreeMonthsAgo.setFullYear(now.getFullYear() - 2)
-    twoYearsThreeMonthsAgo.setMonth(now.getMonth() - 3)
-    const dateStr = twoYearsThreeMonthsAgo.toISOString().split('T')[0]
+    const target = new Date(now.getFullYear() - 2, now.getMonth() - 3, 15)
+    const dateStr = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`
 
     const result = calcAge(dateStr)
     expect(result).toBe('2岁3月')
@@ -330,9 +336,9 @@ describe('Index page — render states', () => {
 
     const { container } = render(createElement(Index))
 
-    // 应显示宠物名称和品种信息
-    expect(container.textContent).toContain('旺财')
-    expect(container.textContent).toContain('金毛')
+    // 顶栏固定显示应用名，不显示具体宠物名/品种
+    expect(container.textContent).toContain('星寰海')
+    expect(container.textContent).toContain('AI 宠物管家')
 
     // 应显示问候消息
     expect(container.textContent).toContain('AI小助手')
@@ -349,17 +355,18 @@ describe('Index page — render states', () => {
     expect(container.textContent).not.toContain('欢迎来到星寰海')
   })
 
-  it('renders dog emoji for dog species', () => {
+  it('renders paw emoji for dog species', () => {
     petStoreState.currentPet = mockPet
     petStoreState.pets = [mockPet]
     petStoreState.isLoading = false
 
     const { container } = render(createElement(Index))
 
-    expect(container.textContent).toContain('🐕')
+    // 顶栏头像统一为 🐾，不区分物种
+    expect(container.textContent).toContain('🐾')
   })
 
-  it('renders cat emoji for cat species', () => {
+  it('renders paw emoji for cat species', () => {
     const catPet = { ...mockPet, species: 'cat' as const, breed: '英短' }
     petStoreState.currentPet = catPet
     petStoreState.pets = [catPet]
@@ -367,7 +374,7 @@ describe('Index page — render states', () => {
 
     const { container } = render(createElement(Index))
 
-    expect(container.textContent).toContain('🐱')
+    expect(container.textContent).toContain('🐾')
   })
 
   it('renders default paw emoji for unknown species', () => {
@@ -391,7 +398,7 @@ describe('Index page — render states', () => {
 
     const skeleton = container.querySelector('[data-testid="home-skeleton"]')
     expect(skeleton).toBeFalsy()
-    expect(container.textContent).toContain('旺财')
+    expect(container.textContent).toContain('星寰海')
   })
 
   it('empty state add-pet button navigates to add pet page', () => {

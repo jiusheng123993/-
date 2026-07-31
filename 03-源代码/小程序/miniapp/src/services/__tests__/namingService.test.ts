@@ -162,6 +162,7 @@ describe('namingService', () => {
           { role: 'user', content: 'built recommend prompt' },
         ],
         temperature: 0.9,
+        max_tokens: 2048,
       })
     })
 

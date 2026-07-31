@@ -232,7 +232,7 @@ describe('E2E Happy Path 7: 疫苗日历完整流程', () => {
       const plannedRecords = getLocalRecords(petId)
       vi.mocked(api.get).mockResolvedValue(plannedRecords)
 
-      const janRecords = await getRecordsByMonth(2026, 1)
+      const janRecords = await getRecordsByMonth(petId, 2026, 1)
       expect(janRecords.length).toBeGreaterThanOrEqual(0)
     })
 

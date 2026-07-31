@@ -17,6 +17,16 @@ vi.mock('../config.js', () => ({
   config: {
     jwtSecret: 'test-jwt-secret',
     wechat: { appId: 'test-app-id', secret: 'test-secret' },
+    wechatPay: {
+      mock: true,
+      mchId: 'test-mch',
+      apiV3Key: '',
+      privateKey: '',
+      certSerialNo: '',
+      platformCertSerialNo: '',
+      platformCert: '',
+      notifyUrl: '',
+    },
     port: 3000,
     databaseUrl: 'postgresql://localhost/test',
     ai: { apiKey: '', baseUrl: '', model: '' },
@@ -65,7 +75,8 @@ const mockQuota = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  // 项目规范：使用 mockReset 而非 clearAllMocks，避免 mockResolvedValueOnce 队列在测试间泄漏
+  mockPool.query.mockReset();
 });
 
 describe('GET /membership/status - 获取会员状态', () => {
@@ -133,15 +144,16 @@ describe('GET /membership/status - 获取会员状态', () => {
   });
 });
 
-describe('POST /membership/subscribe - 订阅会员', () => {
-  it('正常订阅 monthly 计划', async () => {
+describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', () => {
+  /**
+   * 新流程（v2）：/subscribe 不再直接激活会员，而是创建支付订单 + 调微信支付下单
+   * 仅 2 个 DB 查询：userRepository.findById + paymentOrderRepository.createMembershipOrder
+   * 返回 { order_id, plan, price, payment, message }
+   */
+  it('正常订阅 monthly 计划：返回订单 + 支付参数', async () => {
     mockPool.query
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ rows: [mockMembership], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid' }], rowCount: 1 })  // findById
+      .mockResolvedValueOnce({ rows: [{ id: 'mock-order-uuid' }], rowCount: 1 });                       // createMembershipOrder
 
     const res = await request(createApp())
       .post('/membership/subscribe')
@@ -151,19 +163,16 @@ describe('POST /membership/subscribe - 订阅会员', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.plan).toBe('monthly');
     expect(res.body.data.price).toBe(2990);
-    expect(res.body.data.status).toBe('active');
-    expect(res.body.data.orderId).toBeDefined();
-    expect(res.body.data.expiresAt).toBeDefined();
+    expect(res.body.data.order_id).toBe('mock-order-uuid');
+    expect(res.body.data.payment).toBeDefined();
+    expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
+    expect(res.body.data.message).toContain('订单已创建');
   });
 
   it('正常订阅 quarterly 计划', async () => {
     mockPool.query
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'mock-order-uuid' }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/membership/subscribe')
@@ -177,12 +186,8 @@ describe('POST /membership/subscribe - 订阅会员', () => {
 
   it('正常订阅 yearly 计划', async () => {
     mockPool.query
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'mock-order-uuid' }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/membership/subscribe')
@@ -223,11 +228,20 @@ describe('POST /membership/subscribe - 订阅会员', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('服务端错误：事务失败应回滚', async () => {
-    mockPool.query
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error('Transaction failed'))
-      .mockResolvedValueOnce(undefined);
+  it('用户不存在返回 404', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // findById: empty
+
+    const res = await request(createApp())
+      .post('/membership/subscribe')
+      .send({ plan: 'monthly' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('用户不存在');
+  });
+
+  it('服务端错误：数据库异常返回 500', async () => {
+    mockPool.query.mockRejectedValueOnce(new Error('DB error'));
 
     const res = await request(createApp())
       .post('/membership/subscribe')

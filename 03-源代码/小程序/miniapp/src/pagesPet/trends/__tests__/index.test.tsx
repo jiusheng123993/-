@@ -1,4 +1,4 @@
-/** 健康趋势页面单元测试 */
+﻿/** 健康趋势页面单元测试 */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
@@ -22,7 +22,7 @@ const { mockFetchWeightTrend, mockFetchAppetiteTrend, mockFetchStoolTrend, mockF
 }))
 
 const { mockUseTrendFn } = vi.hoisted(() => ({
-  mockUseTrendFn: vi.fn(() => ({
+  mockUseTrendFn: vi.fn<any>(() => ({
     trendData: [],
     summary: null,
     monthlyReport: null,
@@ -38,11 +38,11 @@ const { mockUseTrendFn } = vi.hoisted(() => ({
 }))
 
 const { mockCheckAccess } = vi.hoisted(() => ({
-  mockCheckAccess: vi.fn(() => true),
+  mockCheckAccess: vi.fn<any>(() => true),
 }))
 
 const { mockUseMembershipFn } = vi.hoisted(() => ({
-  mockUseMembershipFn: vi.fn(() => ({
+  mockUseMembershipFn: vi.fn<any>(() => ({
     isMember: true,
     checkAccess: mockCheckAccess,
     shouldShowPaywall: false,
@@ -430,7 +430,7 @@ describe('健康趋势页 - 体重曲线展示', () => {
       makeTrendPoint({ date: '2024-01-02', weight: 30.5 }),
       makeTrendPoint({ date: '2024-01-03', weight: 31 }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -458,7 +458,7 @@ describe('健康趋势页 - 体重曲线展示', () => {
       makeTrendPoint({ date: '2024-01-01', weight: 40 }),
       makeTrendPoint({ date: '2024-01-02', weight: 40.5 }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -482,7 +482,7 @@ describe('健康趋势页 - 体重曲线展示', () => {
     const mockTrendData = [
       makeTrendPoint({ date: '2024-01-01', weight: 30 }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -544,7 +544,7 @@ describe('健康趋势页 - 食欲趋势展示', () => {
       makeTrendPoint({ date: '2024-01-02', appetite: 'decreased', weight: undefined }),
       makeTrendPoint({ date: '2024-01-03', appetite: 'increased', weight: undefined }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -569,7 +569,7 @@ describe('健康趋势页 - 食欲趋势展示', () => {
     const mockTrendData = [
       makeTrendPoint({ date: '2024-01-01', appetite: 'normal', weight: undefined }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -634,7 +634,7 @@ describe('健康趋势页 - 便便趋势展示', () => {
       makeTrendPoint({ date: '2024-01-02', stool: 'soft', weight: undefined }),
       makeTrendPoint({ date: '2024-01-03', stool: 'bloody', weight: undefined, hasAbnormal: true, riskLevel: 'emergency' }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -690,7 +690,7 @@ describe('健康趋势页 - 异常标记', () => {
       makeTrendPoint({ date: '2024-01-02', weight: 30.5, hasAbnormal: true, riskLevel: 'high', appetite: 'none' }),
       makeTrendPoint({ date: '2024-01-03', weight: 31 }),
     ]
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: null,
       monthlyReport: null,
@@ -727,7 +727,7 @@ describe('健康趋势页 - 异常标记', () => {
       aiAnalysis: '检测到异常',
     }
 
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: mockTrendData,
       summary: mockSummary,
       monthlyReport: null,
@@ -785,7 +785,7 @@ describe('健康趋势页 - 切换时间范围', () => {
   })
 
   it('会员用户可以看到所有时间范围（无锁定图标）', () => {
-    vi.mocked(useMembership).mockReturnValue({
+    mockUseMembershipFn.mockReturnValue({
       isMember: true,
       checkAccess: mockCheckAccess,
       shouldShowPaywall: false,
@@ -799,7 +799,7 @@ describe('健康趋势页 - 切换时间范围', () => {
   })
 
   it('免费用户近1月和近3月应显示锁定图标', () => {
-    vi.mocked(useMembership).mockReturnValue({
+    mockUseMembershipFn.mockReturnValue({
       isMember: false,
       checkAccess: mockCheckAccess,
       shouldShowPaywall: false,
@@ -862,7 +862,7 @@ describe('健康趋势页 - 月度AI健康报告', () => {
       recommendations: ['建议坚持每日打卡'],
     }
 
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: [],
       summary: {
         petId: 'pet-1',
@@ -938,7 +938,7 @@ describe('健康趋势页 - 空状态', () => {
   })
 
   it('加载中应显示 PageLoading', () => {
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: [],
       summary: null,
       monthlyReport: null,
@@ -958,7 +958,7 @@ describe('健康趋势页 - 空状态', () => {
   })
 
   it('有错误时应显示 PageError 并提供重试', () => {
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: [],
       summary: null,
       monthlyReport: null,
@@ -1064,7 +1064,7 @@ describe('健康趋势页 - AI 趋势分析', () => {
       aiAnalysis: '体重保持稳定，这是健康的好迹象。食欲整体正常。',
     }
 
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: [],
       summary: mockSummary,
       monthlyReport: null,
@@ -1099,7 +1099,7 @@ describe('健康趋势页 - AI 趋势分析', () => {
       aiAnalysis: '体重下降，需关注。',
     }
 
-    vi.mocked(useTrend).mockReturnValue({
+    mockUseTrendFn.mockReturnValue({
       trendData: [],
       summary: mockSummary,
       monthlyReport: null,
