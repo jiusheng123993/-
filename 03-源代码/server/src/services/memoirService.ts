@@ -29,6 +29,10 @@ export interface MemoirTaskResponse {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   progress: number;
   estimated_wait_seconds: number;
+  /** 生成完成后的视频地址（completed 时存在） */
+  video_url: string | null;
+  /** 生成完成后的预览地址（completed 时存在） */
+  preview_url: string | null;
   created_at: string;
 }
 
@@ -98,6 +102,8 @@ function buildTaskResponse(record: MemoirRecordRow): MemoirTaskResponse {
     status: record.status as MemoirTaskResponse['status'],
     progress: progressMap[record.status] ?? 0,
     estimated_wait_seconds: record.status === 'completed' ? 0 : DEFAULT_ESTIMATED_WAIT,
+    video_url: record.video_url,
+    preview_url: record.preview_url,
     created_at: record.created_at,
   };
 }
@@ -258,6 +264,74 @@ export async function createMemoir(
     source_photos: data.source_photos,
     source_text: data.source_text ?? null,
     narrative_structure: JSON.stringify(narrativeStructure),
+  });
+
+  return buildTaskResponse(record);
+}
+
+/**
+ * 支付回调后创建回忆录任务
+ *
+ * 与 createMemoir 的差异：
+ *   - 跳过付费校验（已完成支付，由 payment 模块保证订单有效性）
+ *   - 写入 payment_id 关联订单（用于审计和退款关联）
+ *   - 仍做归属校验、并发检查、产品线参数校验
+ *
+ * 安全约束：
+ *   - 调用方必须先校验订单状态为 paid 且属于该用户
+ *   - payment_id 应在订单已标记 paid 后才传入
+ *
+ * @param orderId - 支付订单 ID（payment_orders.id）
+ * @param userId - 用户 ID
+ * @param petId - 宠物 ID
+ * @param data - 回忆录创建参数（来自订单的 product_metadata）
+ * @throws MemoirError 如果归属/并发/参数校验失败
+ * @throws MemoirBusinessError 如果存在并发任务
+ */
+export async function createMemoirFromPayment(
+  orderId: string,
+  userId: string,
+  petId: string,
+  data: CreateMemoirInput,
+): Promise<MemoirTaskResponse> {
+  // 1. 归属校验（回调上下文已带 userId，但仍需校验 petId 归属）
+  const owns = await petRepository.isOwner(petId, userId);
+  if (!owns) {
+    throw new MemoirError(404, '宠物不存在');
+  }
+
+  // 2. 产品线参数校验（防止 product_metadata 被篡改）
+  validateProductLineParams(data);
+
+  // 3. 并发检查（同一宠物同时只能有一个 pending/processing 任务）
+  const activeTask = await memoirRepository.findActiveByPetId(petId);
+  if (activeTask) {
+    throw new MemoirBusinessError(
+      409,
+      '该宠物已有正在进行的回忆录任务',
+      MEMOIR_ERROR_CODES.CONCURRENT_TASK,
+    );
+  }
+
+  // 4. 解析叙事结构
+  const productLine = mapMemoirTypeToProductLine(data.memoir_type);
+  const cfg = PRODUCT_LINE_CONFIG[productLine];
+  const narrativeStructure = {
+    music_style: data.music_style ?? null,
+    duration: data.duration ?? cfg.defaultDuration,
+    style_preset: data.style_preset ?? null,
+  };
+
+  // 5. 插入任务记录，关联支付订单
+  const record = await memoirRepository.insert({
+    user_id: userId,
+    pet_id: petId,
+    memoir_type: data.memoir_type,
+    status: 'pending',
+    source_photos: data.source_photos,
+    source_text: data.source_text ?? null,
+    narrative_structure: JSON.stringify(narrativeStructure),
+    payment_id: orderId,
   });
 
   return buildTaskResponse(record);

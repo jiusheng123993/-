@@ -146,10 +146,77 @@ export const createVaccineSchema = z.object({
 
 // ===== 会员模块 =====
 
-/** 创建会员订单 */
+/** 创建会员订单（旧接口，保留以兼容 membership.ts 旧调用） */
 export const createOrderSchema = z.object({
   plan: z.enum(['monthly', 'quarterly', 'yearly'], { error: 'plan 参数无效，可选值：monthly, quarterly, yearly' }),
 });
+
+/** 创建会员订阅支付订单（新接口，走支付流程） */
+export const createMembershipOrderSchema = z.object({
+  plan: z.enum(['monthly', 'quarterly', 'yearly'], {
+    error: 'plan 参数无效，可选值：monthly, quarterly, yearly',
+  }),
+});
+
+// ===== 支付模块 - 创建回忆录订单 =====
+
+/**
+ * 创建回忆录付费订单
+ *
+ * 入参与 createMemoirSchema 保持一致，但走支付流程：
+ *   1. 服务端校验归属/并发/参数/价格
+ *   2. 创建 pending 订单（product_metadata 存业务上下文）
+ *   3. 调微信支付下单，返回 JSAPI 支付参数
+ *   4. 前端调起支付 → 微信回调 → 创建 memoir 任务
+ */
+export const createMemoirOrderSchema = z
+  .object({
+    pet_id: z.string({ error: 'pet_id 不能为空' }).min(1, 'pet_id 不能为空').max(100, 'pet_id 过长'),
+    memoir_type: z.enum(['daily', 'memorial', 'seasonal', 'milestone', 'custom'], {
+      error: 'memoir_type 必须为 daily/memorial/seasonal/milestone/custom',
+    }),
+    source_photos: z
+      .array(z.string().url(), { error: 'source_photos 不能为空' })
+      .min(1, '至少需要1张照片'),
+    source_text: z.string().max(2000).optional(),
+    music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
+    duration: z.number().int().min(5).max(180).optional(),
+    style_preset: z.string().max(100).optional(),
+  })
+  .superRefine((data, ctx) => {
+    // 照片数量按产品线差异化校验（与 createMemoirSchema 一致）
+    if (data.memoir_type === 'memorial') {
+      if (data.source_photos.length < 8 || data.source_photos.length > 15) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['source_photos'],
+          message: `纪念Vlog照片数量需8-15张，当前 ${data.source_photos.length} 张`,
+        });
+      }
+      if (data.duration !== undefined && (data.duration < 60 || data.duration > 90)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['duration'],
+          message: `纪念Vlog时长需60-90秒，当前 ${data.duration} 秒`,
+        });
+      }
+    } else {
+      if (data.source_photos.length < 1 || data.source_photos.length > 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['source_photos'],
+          message: `日常回忆录照片数量需1-3张，当前 ${data.source_photos.length} 张`,
+        });
+      }
+      if (data.duration !== undefined && (data.duration < 5 || data.duration > 30)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['duration'],
+          message: `日常回忆录时长需5-30秒，当前 ${data.duration} 秒`,
+        });
+      }
+    }
+  });
 
 // ===== 时间线模块 =====
 

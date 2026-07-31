@@ -27,14 +27,21 @@ interface BGMOption {
 
 /** API 响应类型 */
 interface CreateTaskResponse {
-  taskId: string
-  status: 'pending'
+  success?: boolean
+  data?: {
+    id: string
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+  }
 }
 
 interface TaskStatusResponse {
-  taskId: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  outputUrl?: string
+  success?: boolean
+  data?: {
+    id: string
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    video_url?: string
+    preview_url?: string
+  }
 }
 
 interface MemberCheckResponse {
@@ -57,6 +64,17 @@ const LOADING_STEPS = ['提交成功', '处理中', 'AI编排中', '生成视频
 const MAX_PHOTOS = 15
 const MIN_PHOTOS = 5
 const NARRATIVE_MAX_LENGTH = 500
+
+/** BGM key → 后端 music_style 枚举映射 */
+function mapBGMToMusicStyle(bgmKey: string): string {
+  const map: Record<string, string> = {
+    piano: 'peaceful',
+    guitar: 'warm',
+    strings: 'nostalgic',
+    upbeat: 'cheerful',
+  }
+  return map[bgmKey] || 'warm'
+}
 
 // ==================== 组件 ====================
 
@@ -259,16 +277,15 @@ export default function MemoirVlog() {
         method: 'POST',
         header: headers,
         data: {
-          photos: photos.map(p => p.path),
-          bgmId: selectedBGM,
-          style: 'memorial',
-          type: 'memorial',
-          narrative: narrative.trim() || '',
+          memoir_type: 'memorial',
+          source_photos: photos.map(p => p.path),
+          music_style: mapBGMToMusicStyle(selectedBGM),
+          source_text: narrative.trim() || '',
         },
       })
 
-      if (res.statusCode === 200 && res.data?.taskId) {
-        setTaskId(res.data.taskId)
+      if (res.statusCode === 201 && res.data?.data?.id) {
+        setTaskId(res.data.data.id)
         // 开始轮询
         setPolling(true)
       } else {
@@ -317,9 +334,9 @@ export default function MemoirVlog() {
         if (stopped) return
 
         if (res.statusCode === 200) {
-          const data = res.data
-          if (data.status === 'completed') {
-            setOutputUrl(data.outputUrl || '')
+          const data = res.data?.data
+          if (data?.status === 'completed') {
+            setOutputUrl(data.video_url || '')
             setLoading(false)
             setPolling(false)
             if (loadingTimerRef.current) {
@@ -328,7 +345,7 @@ export default function MemoirVlog() {
             }
             Taro.showToast({ title: '生成成功', icon: 'success' })
             goToStep(4)
-          } else if (data.status === 'failed') {
+          } else if (data?.status === 'failed') {
             setLoading(false)
             setPolling(false)
             if (loadingTimerRef.current) {

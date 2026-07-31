@@ -5,7 +5,7 @@
  * 事务化的订阅流程封装在 subscribeWithTransaction 方法中，保证订单和会员状态原子更新
  */
 import { BaseRepository } from './baseRepository.js';
-import { PaymentOrderRepository, type CreateOrderParams } from './paymentOrderRepository.js';
+import { PaymentOrderRepository, type CreateMembershipOrderParams } from './paymentOrderRepository.js';
 import type { QueryResultRow } from 'pg';
 
 /** 会员数据行 */
@@ -145,7 +145,7 @@ export class MembershipRepository extends BaseRepository<MembershipRow> {
    * @param paymentOrderRepo - 支付订单仓库实例
    */
   async subscribeWithTransaction(
-    orderParams: CreateOrderParams,
+    orderParams: CreateMembershipOrderParams,
     subscribeParams: { plan: string; price: number; expiresAt: Date },
     paymentOrderRepo: PaymentOrderRepository,
   ): Promise<void> {

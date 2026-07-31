@@ -27,14 +27,21 @@ interface PhotoItem {
 
 /** API 响应类型 */
 interface CreateTaskResponse {
-  taskId: string
-  status: 'pending'
+  success?: boolean
+  data?: {
+    id: string
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+  }
 }
 
 interface TaskStatusResponse {
-  taskId: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  outputUrl?: string
+  success?: boolean
+  data?: {
+    id: string
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    video_url?: string
+    preview_url?: string
+  }
 }
 
 // ==================== 常量 ====================
@@ -259,15 +266,15 @@ export default function MemoirDaily() {
         method: 'POST',
         header: headers,
         data: {
-          photos: photos.map(p => p.path),
-          bgmId: null,
-          style: selectedStyle,
-          type: 'daily',
+          memoir_type: 'daily',
+          source_photos: photos.map(p => p.path),
+          music_style: 'warm',
+          style_preset: selectedStyle,
         },
       })
 
-      if (res.statusCode === 200 && res.data?.taskId) {
-        setTaskId(res.data.taskId)
+      if (res.statusCode === 201 && res.data?.data?.id) {
+        setTaskId(res.data.data.id)
         setLoadingText('正在处理...')
         // 开始轮询
         setPolling(true)
@@ -308,20 +315,20 @@ export default function MemoirDaily() {
         if (stopped) return
 
         if (res.statusCode === 200) {
-          const data = res.data
-          if (data.status === 'completed') {
-            setOutputUrl(data.outputUrl || '')
+          const data = res.data?.data
+          if (data?.status === 'completed') {
+            setOutputUrl(data.video_url || '')
             setLoading(false)
             setPolling(false)
             Taro.showToast({ title: '生成成功', icon: 'success' })
             goToStep(3)
-          } else if (data.status === 'failed') {
+          } else if (data?.status === 'failed') {
             setLoading(false)
             setPolling(false)
             Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
           } else {
             // 继续轮询
-            setLoadingText(data.status === 'processing' ? '正在处理...' : '排队中...')
+            setLoadingText(data?.status === 'processing' ? '正在处理...' : '排队中...')
             timer = setTimeout(poll, 2000)
           }
         } else {

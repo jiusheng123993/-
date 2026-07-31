@@ -283,18 +283,23 @@ CREATE INDEX IF NOT EXISTS idx_hospital_referrals_user ON hospital_referrals(use
 -- 15. payment_orders（支付订单）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS payment_orders (
-  id              TEXT PRIMARY KEY,
-  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  plan            TEXT NOT NULL CHECK (plan IN ('monthly', 'quarterly', 'yearly')),
-  amount          INTEGER NOT NULL CHECK (amount > 0),
-  status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed', 'refunded', 'paid')),
-  channel         TEXT NOT NULL DEFAULT 'wechat',
-  paid_at         TIMESTAMPTZ,
-  created_at      TIMESTAMPTZ DEFAULT now()
+  id                TEXT PRIMARY KEY,
+  user_id           UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  plan              TEXT NOT NULL CHECK (plan IN ('monthly', 'quarterly', 'yearly', 'memoir_daily', 'memoir_memorial')),
+  amount            INTEGER NOT NULL CHECK (amount > 0),
+  status            TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed', 'refunded', 'paid')),
+  channel           TEXT NOT NULL DEFAULT 'wechat',
+  product_type      TEXT NOT NULL DEFAULT 'membership' CHECK (product_type IN ('membership', 'memoir')),
+  product_metadata  JSONB,
+  transaction_id    TEXT,
+  paid_at           TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_payment_orders_user ON payment_orders(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_payment_orders_status ON payment_orders(user_id, status) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_payment_orders_product_type ON payment_orders(product_type, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_orders_transaction_id ON payment_orders(transaction_id) WHERE transaction_id IS NOT NULL;
 
 -- ============================================================
 -- 16. avatar_generations（AI头像生成记录）
@@ -767,7 +772,7 @@ CREATE TABLE IF NOT EXISTS pet_memoir_records (
   video_url     TEXT,
   preview_url   TEXT,
   cost_credits  INTEGER,
-  payment_id    UUID,
+  payment_id    TEXT,
   error_message TEXT,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   completed_at  TIMESTAMPTZ

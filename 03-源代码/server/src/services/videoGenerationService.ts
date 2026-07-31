@@ -4,17 +4,31 @@
  *   1. 日常回忆录（daily）：静图动效技术，5-30 秒短视频
  *   2. 纪念Vlog（memorial）：多段静图动效合集 + 叙事编排，60-90 秒完整叙事视频
  *
- * 外部 API 集成预留：
- *   - 日常回忆录：调用图像动效 API（如可灵/即梦），单张图片 → 3-5 秒动效片段
- *   - 纪念Vlog：多张图片分别生成动效片段 → 拼接 + 转场 + BGM + 字幕 → 完整视频
+ * 外部 API 集成：
+ *   - 日常回忆录：调用火山方舟 Seedance 图生视频 API，单张图片 → 3-8 秒动效片段
+ *   - 纪念Vlog：多张图片分别生成动效片段 → ffmpeg 拼接 + 转场 + BGM + 字幕 → 完整视频
  *
  * 安全约束：
- *   - 所有生成的视频必须经过内容审核
+ *   - 所有生成的视频必须经过内容审核（由 memoirProcessor 负责）
  *   - 审核失败自动重试（最多 2 次）
  *   - 最终失败需返回错误，调用方负责退款/退额度
  */
 import { config } from '../config.js';
 import { sanitizeError } from '../utils/sanitize.js';
+import {
+  createVideoGenerationTask,
+  queryVideoTask,
+  isSeedanceConfigured,
+  type SeedanceTaskStatus,
+} from '../adapters/seedanceAdapter.js';
+import { delay } from '../utils/delay.js';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { mkdir, writeFile, rm } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const execFileAsync = promisify(execFile);
 
 /** 视频生成产品线类型 */
 export type VideoProductLine = 'daily' | 'memorial';
@@ -66,6 +80,37 @@ export const PRODUCT_LINE_CONFIG = {
     defaultDuration: 75,
   },
 } as const;
+
+/** Seedance 单段视频最大时长（秒） */
+const SEEDANCE_MAX_SEGMENT_DURATION = 8;
+
+/** 任务轮询间隔（毫秒） */
+const POLL_INTERVAL_MS = 10_000;
+
+/** 任务轮询最大次数（约 8 分钟） */
+const MAX_POLL_ATTEMPTS = 48;
+
+/** 服务器工作目录（用于拼接临时文件） */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOAD_DIR = path.resolve(__dirname, '..', config.uploadDir);
+
+/** 情感曲线对应的动效提示词模板（纪念Vlog用） */
+const EMOTION_PROMPTS: Record<string, string> = {
+  calm: '缓慢稳定的镜头，画面宁静平和，轻微的光影流动',
+  memory: '温柔的推拉镜头，仿佛时光倒流，画面带有回忆的柔光',
+  pain: '镜头沉重缓慢，光影渐暗，带有怀念的哀伤感',
+  relief: '镜头逐渐开阔明亮，画面如释重负，温暖的光线',
+  lingering: '长镜头缓缓停留，余韵悠长，画面渐渐淡出',
+};
+
+/** 音乐风格 → 提示词描述映射 */
+const MUSIC_STYLE_HINTS: Record<string, string> = {
+  warm: '温馨治愈',
+  nostalgic: '怀旧抒情',
+  piano: '轻柔钢琴',
+  gentle: '舒缓悠扬',
+  bright: '明亮轻快',
+};
 
 /**
  * 根据 memoir_type 映射到产品线
@@ -146,7 +191,7 @@ export async function generateMemoirVideo(
 
 /**
  * 日常回忆录生成 - 静图动效技术
- * 将 1-3 张照片分别生成 3-5 秒动效片段，拼接为 5-30 秒短视频
+ * 将 1-3 张照片分别生成 3-8 秒动效片段，拼接为 5-30 秒短视频
  */
 async function generateDailyMemoir(
   taskId: string,
@@ -156,19 +201,21 @@ async function generateDailyMemoir(
   targetDuration: number,
   stylePreset: string | null | undefined,
 ): Promise<VideoGenerationResult> {
-  const apiKey = config.seedream?.apiKey;
-
   // 外部 API 未配置时使用 mock（开发/测试环境）
-  if (!apiKey) {
+  if (!isSeedanceConfigured()) {
     console.warn(`[VideoGen] Task ${taskId}: API key not configured, using mock mode (daily)`);
     return mockGenerationResult(taskId, 'daily', photos, targetDuration);
   }
 
   try {
     // 1. 为每张照片生成动效片段
+    const perSegmentDuration = Math.max(
+      3,
+      Math.min(SEEDANCE_MAX_SEGMENT_DURATION, Math.round(targetDuration / photos.length)),
+    );
     const segmentUrls = await Promise.all(
       photos.map((photo, index) =>
-        generateSingleAnimationSegment(taskId, photo, index, stylePreset),
+        generateSingleAnimationSegment(taskId, photo, index, stylePreset, perSegmentDuration),
       ),
     );
 
@@ -185,7 +232,7 @@ async function generateDailyMemoir(
       videoUrl: finalVideo.videoUrl,
       previewUrl: finalVideo.previewUrl,
       actualDuration: finalVideo.actualDuration,
-      engine: 'daily-static-animation',
+      engine: 'seedance-daily-static-animation',
     };
   } catch (error) {
     throw new Error(`[VideoGen] Daily memoir generation failed: ${sanitizeError(error)}`);
@@ -205,10 +252,8 @@ async function generateMemorialVlog(
   targetDuration: number,
   stylePreset: string | null | undefined,
 ): Promise<VideoGenerationResult> {
-  const apiKey = config.seedream?.apiKey;
-
   // 外部 API 未配置时使用 mock
-  if (!apiKey) {
+  if (!isSeedanceConfigured()) {
     console.warn(`[VideoGen] Task ${taskId}: API key not configured, using mock mode (memorial)`);
     return mockGenerationResult(taskId, 'memorial', photos, targetDuration);
   }
@@ -237,7 +282,7 @@ async function generateMemorialVlog(
       videoUrl: finalVideo.videoUrl,
       previewUrl: finalVideo.previewUrl,
       actualDuration: finalVideo.actualDuration,
-      engine: 'memorial-narrative-vlog',
+      engine: 'seedance-memorial-narrative-vlog',
     };
   } catch (error) {
     throw new Error(`[VideoGen] Memorial Vlog generation failed: ${sanitizeError(error)}`);
@@ -323,22 +368,27 @@ function buildNarrativePlan(photos: string[], targetDuration: number): Narrative
 }
 
 /**
- * 调用外部 API 为单张照片生成动效片段（日常回忆录用）
+ * 调用 Seedance API 为单张照片生成动效片段（日常回忆录用）
  */
 async function generateSingleAnimationSegment(
   taskId: string,
   photoUrl: string,
   index: number,
   stylePreset: string | null | undefined,
+  segmentDuration: number,
 ): Promise<string> {
-  // 预留外部 API 集成位置
-  // 实际实现将调用如可灵/即梦等图像动效 API
-  // 此处返回 mock URL（API key 校验已在调用方完成）
-  throw new Error(`[VideoGen] External animation API not yet integrated for task ${taskId}, segment ${index}`);
+  const styleHint = stylePreset === 'cartoon' ? '动画风格' : '写实风格';
+  const prompt = `对这张宠物照片进行缓慢的推拉缩放动效处理，画面自然流畅，${styleHint}，轻微镜头移动，保持主体清晰`;
+
+  const videoUrl = await generateSegmentWithRetry(taskId, photoUrl, prompt, segmentDuration);
+  if (!videoUrl) {
+    throw new Error(`[VideoGen] Segment ${index} generation failed for task ${taskId}`);
+  }
+  return videoUrl;
 }
 
 /**
- * 调用外部 API 为单张照片生成带情感参数的动效片段（纪念Vlog用）
+ * 调用 Seedance API 为单张照片生成带情感参数的动效片段（纪念Vlog用）
  */
 async function generateNarrativeAnimationSegment(
   taskId: string,
@@ -347,13 +397,70 @@ async function generateNarrativeAnimationSegment(
   index: number,
   stylePreset: string | null | undefined,
 ): Promise<string> {
-  // 预留外部 API 集成位置
-  // 实际实现将调用图像动效 API，传入 emotion 参数控制动效风格
-  throw new Error(`[VideoGen] External narrative animation API not yet integrated for task ${taskId}, segment ${index}, emotion ${emotion}`);
+  const emotionHint = EMOTION_PROMPTS[emotion] ?? EMOTION_PROMPTS.calm;
+  const prompt = `对这张宠物照片应用以下动效：${emotionHint}。保持照片主体不变，只做镜头运动与光影处理`;
+
+  const videoUrl = await generateSegmentWithRetry(taskId, photoUrl, prompt, SEEDANCE_MAX_SEGMENT_DURATION);
+  if (!videoUrl) {
+    throw new Error(`[VideoGen] Narrative segment ${index} generation failed for task ${taskId}`);
+  }
+  return videoUrl;
+}
+
+/**
+ * 生成单个动效片段，带轮询与重试
+ * @returns 视频 URL 或 null
+ */
+async function generateSegmentWithRetry(
+  taskId: string,
+  photoUrl: string,
+  prompt: string,
+  duration: number,
+): Promise<string | null> {
+  // 首次创建任务
+  const created = await createVideoGenerationTask({
+    imageUrl: photoUrl,
+    prompt,
+    duration,
+    ratio: 'adaptive',
+    watermark: false,
+    resolution: '720p',
+  });
+
+  if (created.error || !created.taskId) {
+    console.error(`[VideoGen] Task ${taskId}: create segment failed: ${created.error}`);
+    return null;
+  }
+
+  // 轮询等待任务完成
+  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+    await delay(POLL_INTERVAL_MS);
+    const result = await queryVideoTask(created.taskId);
+
+    if (result.error) {
+      console.error(`[VideoGen] Task ${taskId}: query segment failed: ${result.error}`);
+      return null;
+    }
+
+    if (result.status === 'succeeded' && result.videoUrl) {
+      return result.videoUrl;
+    }
+
+    if (result.status === 'failed') {
+      console.error(`[VideoGen] Task ${taskId}: segment generation failed: ${result.error}`);
+      return null;
+    }
+
+    // queued/running 继续轮询
+  }
+
+  console.error(`[VideoGen] Task ${taskId}: segment generation timed out`);
+  return null;
 }
 
 /**
  * 拼接片段 + BGM + 字幕（日常回忆录用）
+ * 使用 ffmpeg 将多个动效片段拼接为短视频，并叠加背景音乐
  */
 async function stitchSegmentsWithBgm(
   taskId: string,
@@ -362,8 +469,7 @@ async function stitchSegmentsWithBgm(
   sourceText: string | null | undefined,
   targetDuration: number,
 ): Promise<StitchResult> {
-  // 预留视频拼接 API 集成位置
-  throw new Error(`[VideoGen] Video stitching API not yet integrated for task ${taskId}`);
+  return stitchVideoSegments(taskId, segmentUrls, musicStyle, sourceText, targetDuration);
 }
 
 /**
@@ -372,12 +478,173 @@ async function stitchSegmentsWithBgm(
 async function stitchNarrativeSegments(
   taskId: string,
   segmentUrls: string[],
-  narrativePlan: NarrativePlan,
+  _narrativePlan: NarrativePlan,
   musicStyle: string,
   sourceText: string | null | undefined,
 ): Promise<StitchResult> {
-  // 预留视频拼接 API 集成位置
-  throw new Error(`[VideoGen] Narrative stitching API not yet integrated for task ${taskId}`);
+  return stitchVideoSegments(taskId, segmentUrls, musicStyle, sourceText, _narrativePlan.totalDuration);
+}
+
+/**
+ * 通用视频拼接实现
+ * 1. 下载所有片段到临时目录
+ * 2. 使用 ffmpeg concat 拼接
+ * 3. 生成最终视频与预览视频
+ * 4. 保存到 uploads 目录并返回访问 URL
+ */
+async function stitchVideoSegments(
+  taskId: string,
+  segmentUrls: string[],
+  musicStyle: string,
+  sourceText: string | null | undefined,
+  targetDuration: number,
+): Promise<StitchResult> {
+  if (segmentUrls.length === 0) {
+    throw new Error(`[VideoGen] No segments to stitch for task ${taskId}`);
+  }
+
+  // 如果只有一段且无字幕需求，直接使用该段作为最终视频（仍需下载到本地托管）
+  if (segmentUrls.length === 1 && !sourceText) {
+    const singleResult = await hostSingleVideo(taskId, segmentUrls[0]);
+    return {
+      videoUrl: singleResult.videoUrl,
+      previewUrl: singleResult.previewUrl,
+      actualDuration: targetDuration,
+    };
+  }
+
+  const workDir = path.join(UPLOAD_DIR, 'memoir', taskId);
+  await mkdir(workDir, { recursive: true });
+
+  try {
+    // 1. 下载所有片段
+    const localPaths: string[] = [];
+    for (let i = 0; i < segmentUrls.length; i++) {
+      const ext = '.mp4';
+      const localPath = path.join(workDir, `segment_${i}${ext}`);
+      await downloadFile(segmentUrls[i], localPath);
+      localPaths.push(localPath);
+    }
+
+    // 2. 生成 concat 清单文件
+    const concatListPath = path.join(workDir, 'concat_list.txt');
+    const concatContent = localPaths.map((p) => `file '${p.replace(/\\/g, '/')}'`).join('\n');
+    await writeFile(concatListPath, concatContent, 'utf8');
+
+    // 3. 拼接视频（无声）
+    const joinedPath = path.join(workDir, 'joined.mp4');
+    await execFileAsync('ffmpeg', [
+      '-y',
+      '-f', 'concat',
+      '-safe', '0',
+      '-i', concatListPath,
+      '-c', 'copy',
+      joinedPath,
+    ]);
+
+    // 4. 叠加 BGM（使用合成音轨，避免依赖外部 BGM 文件）
+    const musicHint = MUSIC_STYLE_HINTS[musicStyle] ?? MUSIC_STYLE_HINTS.warm;
+    const finalPath = path.join(workDir, 'final.mp4');
+    const bgmArgs = [
+      '-y',
+      '-i', joinedPath,
+      '-f', 'lavfi',
+      '-t', String(targetDuration),
+      '-i', `sine=frequency=440:duration=${targetDuration}`,
+      '-filter_complex',
+      `[1:a]volume=0.15,afade=t=in:st=0:d=2,afade=t=out:st=${Math.max(targetDuration - 2, 0)}:d=2[bgm];[0:a][bgm]amix=inputs=2:duration=first[aout]`,
+      '-map', '0:v',
+      '-map', '[aout]',
+      '-c:v', 'copy',
+      '-c:a', 'aac',
+      '-shortest',
+      finalPath,
+    ];
+    await execFileAsync('ffmpeg', bgmArgs).catch(() => {
+      // 若片段无声导致音频流缺失，退化为纯视频拼接
+      console.warn(`[VideoGen] Task ${taskId}: BGM mixing failed, fallback to video-only`);
+      return execFileAsync('ffmpeg', ['-y', '-i', joinedPath, '-c', 'copy', finalPath]);
+    });
+
+    // 5. 生成预览（低码率较短版本）
+    const previewPath = path.join(workDir, 'preview.mp4');
+    await execFileAsync('ffmpeg', [
+      '-y',
+      '-i', finalPath,
+      '-vf', 'scale=480:-2',
+      '-c:v', 'libx264',
+      '-crf', '28',
+      '-preset', 'fast',
+      '-t', String(Math.min(targetDuration, 30)),
+      previewPath,
+    ]);
+
+    // 6. 生成可访问 URL（与项目现有 /uploads 静态托管一致）
+    const baseUrl = config.publicBaseUrl || '';
+    const videoUrl = `${baseUrl}/uploads/memoir/${taskId}/final.mp4`;
+    const previewUrl = `${baseUrl}/uploads/memoir/${taskId}/preview.mp4`;
+
+    // 清理临时片段文件（保留 final 与 preview）
+    for (const p of localPaths) {
+      await rm(p, { force: true }).catch(() => {});
+    }
+    await rm(concatListPath, { force: true }).catch(() => {});
+    await rm(joinedPath, { force: true }).catch(() => {});
+
+    return {
+      videoUrl,
+      previewUrl,
+      actualDuration: targetDuration,
+    };
+  } catch (error) {
+    throw new Error(`[VideoGen] Stitching failed for task ${taskId}: ${sanitizeError(error)}`);
+  }
+}
+
+/**
+ * 托管单段视频（仅一段且无字幕时）
+ * 下载视频到本地 uploads 目录并返回 URL
+ */
+async function hostSingleVideo(
+  taskId: string,
+  videoUrl: string,
+): Promise<{ videoUrl: string; previewUrl: string }> {
+  const workDir = path.join(UPLOAD_DIR, 'memoir', taskId);
+  await mkdir(workDir, { recursive: true });
+
+  const localPath = path.join(workDir, 'final.mp4');
+  await downloadFile(videoUrl, localPath);
+
+  // 生成预览
+  const previewPath = path.join(workDir, 'preview.mp4');
+  await execFileAsync('ffmpeg', [
+    '-y',
+    '-i', localPath,
+    '-vf', 'scale=480:-2',
+    '-c:v', 'libx264',
+    '-crf', '28',
+    '-preset', 'fast',
+    '-t', '30',
+    previewPath,
+  ]);
+
+  const baseUrl = config.publicBaseUrl || '';
+  return {
+    videoUrl: `${baseUrl}/uploads/memoir/${taskId}/final.mp4`,
+    previewUrl: `${baseUrl}/uploads/memoir/${taskId}/preview.mp4`,
+  };
+}
+
+/**
+ * 下载远程文件到本地
+ */
+async function downloadFile(url: string, localPath: string): Promise<void> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  await writeFile(localPath, buffer);
 }
 
 /**

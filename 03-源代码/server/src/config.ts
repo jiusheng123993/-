@@ -33,6 +33,10 @@ export const config = {
   seedream: {
     apiKey: process.env.SEEDREAM_API_KEY || '',
   },
+  seedance: {
+    apiKey: process.env.SEEDANCE_API_KEY || '',
+    model: process.env.SEEDANCE_MODEL || 'doubao-seedance-1-5-pro-251215',
+  },
   meshy: {
     apiKey: process.env.MESHY_API_KEY || '',
     baseUrl: 'https://api.meshy.ai',
@@ -40,5 +44,18 @@ export const config = {
   moderate: {
     apiKey: process.env.MODERATE_API_KEY || '',
   },
+  wechatPay: {
+    /** Mock 模式：true=本地开发模拟支付，不调真实微信 API；false=真实微信支付 V3 */
+    mock: process.env.WECHAT_PAY_MOCK !== 'false',
+    mchId: process.env.WECHAT_PAY_MCH_ID || '',
+    apiV3Key: process.env.WECHAT_PAY_API_V3_KEY || '',
+    privateKey: process.env.WECHAT_PAY_PRIVATE_KEY || '',
+    certSerialNo: process.env.WECHAT_PAY_CERT_SERIAL_NO || '',
+    platformCertSerialNo: process.env.WECHAT_PAY_PLATFORM_CERT_SERIAL_NO || '',
+    platformCert: process.env.WECHAT_PAY_PLATFORM_CERT || '',
+    notifyUrl: process.env.WECHAT_PAY_NOTIFY_URL || '',
+  },
   uploadDir: process.env.UPLOAD_DIR || './uploads',
+  /** 对外可访问的服务基础地址（用于生成视频/图片的完整 URL），未配置时返回相对路径 */
+  publicBaseUrl: process.env.PUBLIC_BASE_URL || '',
 };
