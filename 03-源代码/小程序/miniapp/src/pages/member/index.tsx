@@ -17,8 +17,8 @@ const PLANS = [
     name: '月度会员',
     price: '¥9.9',
     period: '/月',
-    originalPrice: '¥39.9',
-    tag: '热门',
+    originalPrice: '¥29.9',
+    tag: '限时3.3折',
     features: [
       '无限次食物查询',
       'AI症状初筛（每日5次）',
@@ -30,10 +30,10 @@ const PLANS = [
   {
     key: 'yearly',
     name: '年度会员',
-    price: '¥199',
+    price: '¥88',
     period: '/年',
-    originalPrice: '¥358.8',
-    tag: '最划算',
+    originalPrice: '¥269',
+    tag: '限时3.3折',
     features: [
       '月度会员全部权益',
       'AI症状初筛（无限次）',

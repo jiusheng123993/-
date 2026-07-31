@@ -15,6 +15,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createOrderSchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
+import { isMembershipPromoActive } from '../config/featureFlags.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { PaymentOrderRepository } from '../repositories/paymentOrderRepository.js';
 import { UsageQuotaRepository } from '../repositories/usageQuotaRepository.js';
@@ -28,12 +29,24 @@ const paymentOrderRepository = new PaymentOrderRepository();
 const usageQuotaRepository = new UsageQuotaRepository();
 const userRepository = new UserRepository();
 
-/** 会员订阅计划价格（分） */
-const PLAN_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
-  monthly: 2990,
-  quarterly: 7990,
-  yearly: 26900,
+/** 会员订阅计划促销价（分） - 上线前三个月 3.3 折获客 */
+const PLAN_PROMO_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
+  monthly: 990,    // 9.9 元
+  quarterly: 2590, // 25.9 元
+  yearly: 8800,    // 88 元
 };
+
+/** 会员订阅计划常规价（分） */
+const PLAN_REGULAR_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
+  monthly: 2990,   // 29.9 元
+  quarterly: 7990, // 79.9 元
+  yearly: 26900,   // 269 元
+};
+
+/** 获取当前生效的会员计划价格（促销开关控制） */
+function getPlanPrice(plan: 'monthly' | 'quarterly' | 'yearly'): number {
+  return isMembershipPromoActive() ? PLAN_PROMO_PRICES[plan] : PLAN_REGULAR_PRICES[plan];
+}
 
 router.get('/status', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -95,7 +108,7 @@ router.post('/subscribe', authMiddleware, validate({ body: createOrderSchema }),
     const userId = req.userId!;
     const { plan } = req.body as { plan: 'monthly' | 'quarterly' | 'yearly' };
 
-    const price = PLAN_PRICES[plan];
+    const price = getPlanPrice(plan);
     const description = `星寰海会员订阅-${plan === 'monthly' ? '月度' : plan === 'quarterly' ? '季度' : '年度'}`;
 
     // 查询用户 openid（JSAPI 支付必需）

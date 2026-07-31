@@ -137,7 +137,7 @@ const mockPendingMembershipOrder = {
   id: 'order-002',
   user_id: 'test-user-id',
   plan: 'monthly',
-  amount: 2990,
+  amount: 990,
   status: 'pending',
   channel: 'wechat',
   product_type: 'membership',
@@ -325,13 +325,13 @@ describe('POST /api/payment/membership/order - 创建会员订阅订单', () => 
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.amount).toBe(2990);
+    expect(res.body.data.amount).toBe(990);
     expect(res.body.data.plan).toBe('monthly');
     expect(res.body.data.payment).toBeDefined();
     expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
   });
 
-  it('创建年度订阅订单返回 26900 分（269 元）', async () => {
+  it('创建年度订阅订单返回 8800 分（88 元）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [mockUserRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockPendingMembershipOrder], rowCount: 1 });
@@ -341,7 +341,7 @@ describe('POST /api/payment/membership/order - 创建会员订阅订单', () => 
       .send({ plan: 'yearly' });
 
     expect(res.status).toBe(201);
-    expect(res.body.data.amount).toBe(26900);
+    expect(res.body.data.amount).toBe(8800);
   });
 
   it('非法 plan 值返回 400', async () => {
@@ -426,7 +426,7 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
       .set('Wechatpay-Nonce', 'test-nonce')
       .set('Wechatpay-Serial', 'test-serial')
       .set('Wechatpay-Signature', 'test-signature')
-      .send(buildMockNotifyBody(orderId, 'SUCCESS', 2990));
+      .send(buildMockNotifyBody(orderId, 'SUCCESS', 990));
 
     expect(res.status).toBe(200);
     expect(res.body.code).toBe('SUCCESS');

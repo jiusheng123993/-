@@ -162,7 +162,7 @@ describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', ()
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.plan).toBe('monthly');
-    expect(res.body.data.price).toBe(2990);
+    expect(res.body.data.price).toBe(990);
     expect(res.body.data.order_id).toBe('mock-order-uuid');
     expect(res.body.data.payment).toBeDefined();
     expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
@@ -181,7 +181,7 @@ describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', ()
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.plan).toBe('quarterly');
-    expect(res.body.data.price).toBe(7990);
+    expect(res.body.data.price).toBe(2590);
   });
 
   it('正常订阅 yearly 计划', async () => {
@@ -196,7 +196,7 @@ describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', ()
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.plan).toBe('yearly');
-    expect(res.body.data.price).toBe(26900);
+    expect(res.body.data.price).toBe(8800);
   });
 
   it('参数校验：无效的 plan，返回 400', async () => {

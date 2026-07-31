@@ -621,26 +621,27 @@ describe('UAT 验收测试', () => {
         expect(plans).toContain('yearly')
       })
 
-      it('月度会员价格应为 9.9 元', () => {
+      it('月度会员价格应为 9.9 元（促销原价 29.9）', () => {
         const monthly = MEMBERSHIP_PLANS.find(p => p.plan === 'monthly')
         expect(monthly).toBeDefined()
         expect(monthly!.price).toBe(9.9)
+        expect(monthly!.originalPrice).toBe(29.9)
         expect(monthly!.durationDays).toBe(30)
       })
 
-      it('季度会员价格应为 25.9 元（原价 29.7）', () => {
+      it('季度会员价格应为 25.9 元（促销原价 79.9）', () => {
         const quarterly = MEMBERSHIP_PLANS.find(p => p.plan === 'quarterly')
         expect(quarterly).toBeDefined()
         expect(quarterly!.price).toBe(25.9)
-        expect(quarterly!.originalPrice).toBe(29.7)
+        expect(quarterly!.originalPrice).toBe(79.9)
         expect(quarterly!.durationDays).toBe(90)
       })
 
-      it('年度会员价格应为 88 元（原价 118.8）', () => {
+      it('年度会员价格应为 88 元（促销原价 269）', () => {
         const yearly = MEMBERSHIP_PLANS.find(p => p.plan === 'yearly')
         expect(yearly).toBeDefined()
         expect(yearly!.price).toBe(88)
-        expect(yearly!.originalPrice).toBe(118.8)
+        expect(yearly!.originalPrice).toBe(269)
         expect(yearly!.durationDays).toBe(365)
       })
     })

@@ -71,6 +71,13 @@ const DEFAULT_FLAGS: FeatureFlag[] = [
     expiresAt: '2026-09-15',
     description: 'WebSocket 实时推送',
   },
+  {
+    key: 'membership_promo',
+    enabled: true,
+    rolloutPercentage: 100,
+    expiresAt: '2026-10-31',
+    description: '会员促销价（3.3折，上线前三个月获客，到期恢复原价）',
+  },
 ];
 
 /** 功能开关缓存（运行时可从数据库刷新） */
@@ -116,6 +123,20 @@ export function isFeatureEnabled(flagKey: string, userId?: string): boolean {
 
   // 无 userId 时只看全局开关和百分比
   return flag.rolloutPercentage === 100;
+}
+
+/**
+ * 判断会员促销价是否生效（membership_promo 开关）
+ * 与 isFeatureEnabled 语义相反：促销开关过期后应关闭（恢复原价），而非默认开启
+ * @returns 促销价是否生效
+ */
+export function isMembershipPromoActive(): boolean {
+  const flag = flagCache.get('membership_promo');
+  if (!flag || !flag.enabled) return false;
+  // 促销过期后恢复原价
+  if (new Date(flag.expiresAt) < new Date()) return false;
+  // 促销统一生效（不按用户灰度）
+  return true;
 }
 
 /**

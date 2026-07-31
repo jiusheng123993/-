@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createMemoirOrderSchema, createMembershipOrderSchema } from '../schemas/index.js';
+import { isMembershipPromoActive } from '../config/featureFlags.js';
 import { PaymentOrderRepository } from '../repositories/paymentOrderRepository.js';
 import { UserRepository } from '../repositories/userRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
@@ -48,12 +49,24 @@ const petRepository = new PetRepository();
 const membershipRepository = new MembershipRepository();
 const memoirRepository = new MemoirRepository();
 
-/** 会员订阅计划价格（分） - 与 membership.ts 保持一致 */
-const MEMBERSHIP_PLAN_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
-  monthly: 2990,
-  quarterly: 7990,
-  yearly: 26900,
+/** 会员订阅计划促销价（分） - 与 membership.ts 保持一致 */
+const MEMBERSHIP_PLAN_PROMO_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
+  monthly: 990,    // 9.9 元
+  quarterly: 2590, // 25.9 元
+  yearly: 8800,    // 88 元
 };
+
+/** 会员订阅计划常规价（分） */
+const MEMBERSHIP_PLAN_REGULAR_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
+  monthly: 2990,   // 29.9 元
+  quarterly: 7990, // 79.9 元
+  yearly: 26900,   // 269 元
+};
+
+/** 获取当前生效的会员计划价格（促销开关控制） */
+function getMembershipPlanPrice(plan: 'monthly' | 'quarterly' | 'yearly'): number {
+  return isMembershipPromoActive() ? MEMBERSHIP_PLAN_PROMO_PRICES[plan] : MEMBERSHIP_PLAN_REGULAR_PRICES[plan];
+}
 
 /** 会员订阅计划时长（天） */
 const MEMBERSHIP_PLAN_DURATION_DAYS: Record<'monthly' | 'quarterly' | 'yearly', number> = {
@@ -250,7 +263,7 @@ router.post(
       const userId = req.userId!;
       const { plan } = req.body as { plan: 'monthly' | 'quarterly' | 'yearly' };
 
-      const price = MEMBERSHIP_PLAN_PRICES[plan];
+      const price = getMembershipPlanPrice(plan);
       const description = `星寰海会员订阅-${plan === 'monthly' ? '月度' : plan === 'quarterly' ? '季度' : '年度'}`;
 
       // 查询用户 openid

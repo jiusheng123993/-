@@ -195,7 +195,7 @@ export default function Mine() {
             <Text className='mine-vip-banner-icon'>👑</Text>
             <View>
               <Text className='mine-vip-banner-title'>开通会员</Text>
-              <Text className='mine-vip-banner-desc'>解锁全部功能，首月仅需¥29.9</Text>
+              <Text className='mine-vip-banner-desc'>解锁全部功能，首月仅需¥9.9</Text>
             </View>
           </View>
           <Text className='mine-vip-banner-arrow'>›</Text>
