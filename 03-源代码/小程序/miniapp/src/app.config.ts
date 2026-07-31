@@ -89,6 +89,7 @@ export default defineAppConfig({
         'agreement/index',
         'invite/index',
         'effect-tracking/index',
+        'memory/index',
       ],
     },
   ],

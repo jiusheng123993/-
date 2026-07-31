@@ -6,6 +6,7 @@
 import type { User, Pet, Checkin, Membership } from '../types'
 import type { PetFamily, PetFamilyMember, PetLineage, PetMoment, FamilyPhoto } from '../types/familyTypes'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
+import type { MemoryEntry, MemoryUpdateResult } from '../types/memoryTypes'
 
 const mockUsers: User[] = [
   { id: 'user_001', nickname: '宠物家长', avatar: 'https://via.placeholder.com/100', phone: '13800138000', createdAt: '2024-01-01T00:00:00Z' },
@@ -466,5 +467,17 @@ export const mockApi = {
     )
     result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     return result
+  },
+
+  /** Mock：AI 记忆列表（空） */
+  listMemories: async (_petId?: string): Promise<MemoryEntry[]> => {
+    await wait(200)
+    return []
+  },
+
+  /** Mock：修正记忆 */
+  updateMemory: async (memoryId: number, content: string): Promise<MemoryUpdateResult> => {
+    await wait(200)
+    return { id: memoryId, content }
   },
 }

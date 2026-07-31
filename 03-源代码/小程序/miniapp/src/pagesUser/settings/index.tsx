@@ -210,6 +210,11 @@ export default function SettingsPage() {
     Taro.navigateTo({ url: `/pagesUser/agreement/index?type=${type}` })
   }, [])
 
+  const handleMemoryCorrection = useCallback(() => {
+    trackEvent('open_memory_correction')
+    Taro.navigateTo({ url: '/pagesUser/memory/index' })
+  }, [trackEvent])
+
   const handleThemeChange = useCallback((theme: ThemeKey) => {
     trackEvent('change_theme', { theme })
     setTheme(theme)
@@ -333,6 +338,10 @@ export default function SettingsPage() {
         <View className='settings-page__item' onClick={handleExportAllData}>
           <Text className='settings-page__item-label'>导出全部数据</Text>
           {exportingData && <Text className='settings-page__item-loading'>导出中...</Text>}
+          <Text className='settings-page__item-arrow'>›</Text>
+        </View>
+        <View className='settings-page__item' onClick={handleMemoryCorrection}>
+          <Text className='settings-page__item-label'>AI 记忆纠错</Text>
           <Text className='settings-page__item-arrow'>›</Text>
         </View>
         <View className='settings-page__item' onClick={handleDeleteCloudData}>
