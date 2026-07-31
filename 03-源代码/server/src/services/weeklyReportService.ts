@@ -2,10 +2,13 @@
  * 家庭周报业务服务层 - 编排家庭周报的核心业务逻辑
  * 职责：家庭归属校验、周报列表分页、最新周报、详情查询、手动生成
  * generateReport 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态）
- * ai_insight 和 share_card_url 暂为 null，待接入 AI 总结和分享卡片生成
+ * ai_insight 由 aiService.chat 生成（apiKey 未配置时返回 null）
+ * share_card_url 暂为 null，待接入分享卡片生成
  * 所有操作前先验证 family_id 属于当前用户，防止跨用户越权
  */
 import { pool } from '../db.js';
+import { config } from '../config.js';
+import { chat } from './aiService.js';
 import { WeeklyReportRepository, type WeeklyReportRow } from '../repositories/weeklyReportRepository.js';
 
 /** 周报列表查询参数 */
@@ -225,6 +228,51 @@ async function buildRealReportData(
 }
 
 /**
+ * 基于当周聚合数据生成 AI 总结（ai_insight）
+ * - apiKey 未配置时返回 null（开发/测试环境）
+ * - 调用 aiService.chat，提示词要求：温和积极、中文、不超过 200 字、给出 1 条可执行建议
+ * - AI 调用失败时返回 null，不阻断周报生成（周报数据本身已成功聚合）
+ *
+ * @param reportData - buildRealReportData 返回的聚合数据
+ * @returns AI 总结文本或 null
+ */
+async function buildAiInsight(
+  reportData: Record<string, unknown>,
+): Promise<string | null> {
+  if (!config.ai.apiKey) {
+    return null;
+  }
+
+  const systemPrompt = `你是"星寰海"AI 宠物管家的周报助手。请根据本周家庭数据生成一段中文周报总结，要求：
+1. 语气温和、积极、有温度，像朋友间的关心
+2. 不超过 200 字
+3. 简要概括本周健康状况和活跃度
+4. 结尾给出 1 条可执行的下周建议（如饮食、运动、观察重点）
+5. 不要使用 markdown 格式，纯文本即可
+6. 不要提及具体数字背后的技术字段名，用自然语言描述`;
+
+  const userPrompt = `本周家庭周报数据：
+${JSON.stringify(reportData, null, 2)}
+
+请生成周报总结。`;
+
+  try {
+    const insight = await chat(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      { temperature: 0.7, max_tokens: 400 },
+    );
+    return insight.trim() || null;
+  } catch (error) {
+    // AI 调用失败不阻断周报生成，降级为 null
+    console.error('[WeeklyReport AI Insight Error]', error);
+    return null;
+  }
+}
+
+/**
  * 分页查询家庭周报列表
  * - 校验家庭归属
  * - 查询列表 + 总数（并行）
@@ -305,7 +353,9 @@ export async function getReport(
  * - 校验家庭归属
  * - 计算当前 ISO 周年与周数
  * - 检查同周是否已生成（UNIQUE 预检），有则 409
- * - 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态），ai_insight 和 share_card_url 为 null
+ * - 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态）
+ * - 生成 AI 总结（apiKey 未配置或调用失败时为 null，不阻断流程）
+ * - share_card_url 暂为 null，待接入分享卡片生成
  */
 export async function generateReport(
   userId: string,
@@ -324,13 +374,14 @@ export async function generateReport(
   }
 
   const report_data = await buildRealReportData(familyId, year, weekNumber);
+  const ai_insight = await buildAiInsight(report_data);
 
   return weeklyReportRepository.insertReport({
     family_id: familyId,
     year,
     week_number: weekNumber,
     report_data,
-    ai_insight: null,
+    ai_insight,
     share_card_url: null,
   });
 }

@@ -1,0 +1,1371 @@
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/membership.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/membership.test.ts"
+index fabe5fc..2dd8ca6 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/membership.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/membership.test.ts"
+@@ -17,6 +17,16 @@ vi.mock('../config.js', () => ({
+   config: {
+     jwtSecret: 'test-jwt-secret',
+     wechat: { appId: 'test-app-id', secret: 'test-secret' },
++    wechatPay: {
++      mock: true,
++      mchId: 'test-mch',
++      apiV3Key: '',
++      privateKey: '',
++      certSerialNo: '',
++      platformCertSerialNo: '',
++      platformCert: '',
++      notifyUrl: '',
++    },
+     port: 3000,
+     databaseUrl: 'postgresql://localhost/test',
+     ai: { apiKey: '', baseUrl: '', model: '' },
+@@ -65,7 +75,8 @@ const mockQuota = {
+ };
+ 
+ beforeEach(() => {
+-  vi.clearAllMocks();
++  // 项目规范：使用 mockReset 而非 clearAllMocks，避免 mockResolvedValueOnce 队列在测试间泄漏
++  mockPool.query.mockReset();
+ });
+ 
+ describe('GET /membership/status - 获取会员状态', () => {
+@@ -133,15 +144,16 @@ describe('GET /membership/status - 获取会员状态', () => {
+   });
+ });
+ 
+-describe('POST /membership/subscribe - 订阅会员', () => {
+-  it('正常订阅 monthly 计划', async () => {
++describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', () => {
++  /**
++   * 新流程（v2）：/subscribe 不再直接激活会员，而是创建支付订单 + 调微信支付下单
++   * 仅 2 个 DB 查询：userRepository.findById + paymentOrderRepository.createMembershipOrder
++   * 返回 { order_id, plan, price, payment, message }
++   */
++  it('正常订阅 monthly 计划：返回订单 + 支付参数', async () => {
+     mockPool.query
+-      .mockResolvedValueOnce(undefined)
+-      .mockResolvedValueOnce({ rows: [mockMembership], rowCount: 1 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce(undefined);
++      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid' }], rowCount: 1 })  // findById
++      .mockResolvedValueOnce({ rows: [{ id: 'mock-order-uuid' }], rowCount: 1 });                       // createMembershipOrder
+ 
+     const res = await request(createApp())
+       .post('/membership/subscribe')
+@@ -151,19 +163,16 @@ describe('POST /membership/subscribe - 订阅会员', () => {
+     expect(res.body.success).toBe(true);
+     expect(res.body.data.plan).toBe('monthly');
+     expect(res.body.data.price).toBe(2990);
+-    expect(res.body.data.status).toBe('active');
+-    expect(res.body.data.orderId).toBeDefined();
+-    expect(res.body.data.expiresAt).toBeDefined();
++    expect(res.body.data.order_id).toBe('mock-order-uuid');
++    expect(res.body.data.payment).toBeDefined();
++    expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
++    expect(res.body.data.message).toContain('订单已创建');
+   });
+ 
+   it('正常订阅 quarterly 计划', async () => {
+     mockPool.query
+-      .mockResolvedValueOnce(undefined)
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce(undefined);
++      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid' }], rowCount: 1 })
++      .mockResolvedValueOnce({ rows: [{ id: 'mock-order-uuid' }], rowCount: 1 });
+ 
+     const res = await request(createApp())
+       .post('/membership/subscribe')
+@@ -177,12 +186,8 @@ describe('POST /membership/subscribe - 订阅会员', () => {
+ 
+   it('正常订阅 yearly 计划', async () => {
+     mockPool.query
+-      .mockResolvedValueOnce(undefined)
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+-      .mockResolvedValueOnce(undefined);
++      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid' }], rowCount: 1 })
++      .mockResolvedValueOnce({ rows: [{ id: 'mock-order-uuid' }], rowCount: 1 });
+ 
+     const res = await request(createApp())
+       .post('/membership/subscribe')
+@@ -223,11 +228,20 @@ describe('POST /membership/subscribe - 订阅会员', () => {
+     expect(res.body.success).toBe(false);
+   });
+ 
+-  it('服务端错误：事务失败应回滚', async () => {
+-    mockPool.query
+-      .mockResolvedValueOnce(undefined)
+-      .mockRejectedValueOnce(new Error('Transaction failed'))
+-      .mockResolvedValueOnce(undefined);
++  it('用户不存在返回 404', async () => {
++    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // findById: empty
++
++    const res = await request(createApp())
++      .post('/membership/subscribe')
++      .send({ plan: 'monthly' });
++
++    expect(res.status).toBe(404);
++    expect(res.body.success).toBe(false);
++    expect(res.body.message).toBe('用户不存在');
++  });
++
++  it('服务端错误：数据库异常返回 500', async () => {
++    mockPool.query.mockRejectedValueOnce(new Error('DB error'));
+ 
+     const res = await request(createApp())
+       .post('/membership/subscribe')
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/weeklyReports.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/weeklyReports.test.ts"
+index cb3f397..b2aaeee 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/weeklyReports.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/weeklyReports.test.ts"
+@@ -7,9 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
+ import request from 'supertest';
+ import express from 'express';
+ 
+-const { mockPool } = vi.hoisted(() => {
++const { mockPool, mockChat } = vi.hoisted(() => {
+   const pool = { query: vi.fn() };
+-  return { mockPool: pool };
++  const chatFn = vi.fn();
++  return { mockPool: pool, mockChat: chatFn };
+ });
+ 
+ vi.mock('../db.js', () => ({ pool: mockPool }));
+@@ -28,6 +29,10 @@ vi.mock('../config.js', () => ({
+   },
+ }));
+ 
++vi.mock('../services/aiService.js', () => ({
++  chat: (...args: unknown[]) => mockChat(...args),
++}));
++
+ vi.mock('../middleware/auth.js', () => ({
+   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+     _req.userId = 'test-user-id';
+@@ -36,6 +41,7 @@ vi.mock('../middleware/auth.js', () => ({
+ }));
+ 
+ import weeklyReportsRouter from '../routes/weeklyReports.js';
++import { config } from '../config.js';
+ 
+ function createApp() {
+   const app = express();
+@@ -140,6 +146,9 @@ function mockGenerateReportSuccess() {
+ beforeEach(() => {
+   // mockReset 清除 mock 队列（含 mockResolvedValueOnce 残留），避免测试间污染
+   mockPool.query.mockReset();
++  mockChat.mockReset();
++  // 每个测试前重置 apiKey 为空（默认走 null 分支，不调用 AI）
++  (config as unknown as { ai: { apiKey: string } }).ai.apiKey = '';
+ });
+ 
+ // ===== GET /api/families/:id/weekly-reports - 获取周报列表 =====
+@@ -523,4 +532,82 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报',
+     expect(res.status).toBe(500);
+     expect(res.body.success).toBe(false);
+   });
++
++  it('apiKey 未配置时 ai_insight 为 null', async () => {
++    // apiKey 默认为空（beforeEach 已重置），走 null 分支不调用 AI
++    mockGenerateReportSuccess();
++
++    const res = await request(createApp())
++      .post('/api/families/family-001/weekly-reports/generate');
++
++    expect(res.status).toBe(201);
++    // mockReport.ai_insight 为 null
++    expect(res.body.data.ai_insight).toBeNull();
++    // 不应调用 chat
++    expect(mockChat).not.toHaveBeenCalled();
++  });
++
++  it('apiKey 已配置时调用 AI 生成 ai_insight', async () => {
++    // 设置 apiKey 触发 AI 调用路径
++    (config as unknown as { ai: { apiKey: string } }).ai.apiKey = 'test-ai-key';
++    // mockReport 需要带 ai_insight 字段以反映 insertReport 返回值
++    const mockReportWithInsight = {
++      ...mockReport,
++      ai_insight: '本周宝贝状态平稳，打卡积极，下周可适当增加户外活动时间。',
++    };
++    mockChat.mockResolvedValueOnce('本周宝贝状态平稳，打卡积极，下周可适当增加户外活动时间。');
++
++    mockPool.query
++      .mockResolvedValueOnce(ownershipOk)        // 1. verifyFamilyOwnership
++      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // 2. findExisting
++      .mockResolvedValueOnce(emptyHealthAgg)     // 3. healthAgg
++      .mockResolvedValueOnce(emptySymptomAgg)    // 4. symptomAgg
++      .mockResolvedValueOnce(emptyFoodAgg)       // 5. foodAgg
++      .mockResolvedValueOnce(emptyFeedAgg)       // 6. feedAgg
++      .mockResolvedValueOnce(emptyBestDayAgg)    // 7. bestDayAgg
++      .mockResolvedValueOnce({ rows: [mockReportWithInsight], rowCount: 1 }); // 8. insertReport
++
++    const res = await request(createApp())
++      .post('/api/families/family-001/weekly-reports/generate');
++
++    expect(res.status).toBe(201);
++    // 验证调用了 chat（系统提示 + 用户提示）
++    expect(mockChat).toHaveBeenCalledTimes(1);
++    const chatArgs = mockChat.mock.calls[0][0] as Array<{ role: string; content: string }>;
++    expect(chatArgs).toHaveLength(2);
++    expect(chatArgs[0].role).toBe('system');
++    expect(chatArgs[0].content).toContain('星寰海');
++    expect(chatArgs[1].role).toBe('user');
++    expect(chatArgs[1].content).toContain('周报数据');
++    // insertReport 参数中 ai_insight 应为 AI 返回的文本
++    const insertCall = mockPool.query.mock.calls[7];
++    const params = insertCall[1] as unknown[];
++    // 第 5 个参数为 ai_insight（family_id, year, week_number, report_data, ai_insight, share_card_url）
++    expect(params[4]).toBe('本周宝贝状态平稳，打卡积极，下周可适当增加户外活动时间。');
++  });
++
++  it('AI 调用失败时降级为 null，不阻断周报生成', async () => {
++    (config as unknown as { ai: { apiKey: string } }).ai.apiKey = 'test-ai-key';
++    mockChat.mockRejectedValueOnce(new Error('AI service unavailable'));
++
++    mockPool.query
++      .mockResolvedValueOnce(ownershipOk)
++      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
++      .mockResolvedValueOnce(emptyHealthAgg)
++      .mockResolvedValueOnce(emptySymptomAgg)
++      .mockResolvedValueOnce(emptyFoodAgg)
++      .mockResolvedValueOnce(emptyFeedAgg)
++      .mockResolvedValueOnce(emptyBestDayAgg)
++      .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 });
++
++    const res = await request(createApp())
++      .post('/api/families/family-001/weekly-reports/generate');
++
++    expect(res.status).toBe(201);
++    expect(res.body.success).toBe(true);
++    // insertReport 参数中 ai_insight 应为 null（降级）
++    const insertCall = mockPool.query.mock.calls[7];
++    const params = insertCall[1] as unknown[];
++    expect(params[4]).toBeNull();
++  });
+ });
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts"
+index 52fd304..b6235ac 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts"
+@@ -24,6 +24,7 @@ import familiesRoutes from './routes/families.js';
+ import aiRoutes from './routes/ai.js';
+ import avatarRoutes from './routes/avatar.js';
+ import membershipRoutes from './routes/membership.js';
++import paymentRoutes from './routes/payment.js';
+ import wardrobeRoutes from './routes/wardrobe.js';
+ import timelineRoutes from './routes/timeline.js';
+ import namingRoutes from './routes/naming.js';
+@@ -54,7 +55,17 @@ app.use(helmet());
+ app.use(cors());
+ 
+ // 请求体解析
+-app.use(express.json({ limit: '10mb' }));
++// 微信回调接口需要 raw body 用于验签，通过 verify 钩子捕获原始请求体
++// 其他接口正常解析为 JSON
++app.use(express.json({
++  limit: '10mb',
++  verify: (req, _res, buf) => {
++    const expressReq = req as unknown as { originalUrl?: string; rawBody?: string };
++    if (expressReq.originalUrl?.endsWith('/api/payment/wechat/notify')) {
++      expressReq.rawBody = buf.toString('utf8');
++    }
++  },
++}));
+ 
+ // 请求日志（脱敏记录）
+ app.use(requestLogger);
+@@ -93,6 +104,7 @@ app.use('/api/share-cards', shareCardsRoutes);
+ app.use('/api/ai', aiRoutes);
+ app.use('/api/avatar', avatarRoutes);
+ app.use('/api/membership', membershipRoutes);
++app.use('/api/payment', paymentRoutes);
+ app.use('/api/wardrobe', wardrobeRoutes);
+ app.use('/api/timeline', timelineRoutes);
+ app.use('/api/naming', namingRoutes);
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/membershipRepository.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/membershipRepository.ts"
+index d2c12f0..52f5896 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/membershipRepository.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/membershipRepository.ts"
+@@ -140,6 +140,10 @@ export class MembershipRepository extends BaseRepository<MembershipRow> {
+   /**
+    * 事务化的订阅流程：创建订单 → 创建/更新会员 → 标记订单已支付
+    * 任一步骤失败自动回滚，保证订单和会员状态原子更新
++   *
++   * 注意：此方法保留以兼容旧流程（membership.ts /subscribe 接口直接走模拟支付）
++   * 新流程（payment 模块走真实支付）应使用 activateMembership 方法
++   *
+    * @param orderParams - 订单参数（id/userId/plan/amount）
+    * @param subscribeParams - 会员订阅参数（plan/price/expiresAt）
+    * @param paymentOrderRepo - 支付订单仓库实例
+@@ -177,4 +181,33 @@ export class MembershipRepository extends BaseRepository<MembershipRow> {
+       throw error;
+     }
+   }
++
++  /**
++   * 支付回调后激活会员（新流程）
++   *
++   * 由 payment 模块的微信回调调用，订单已标记 paid 后才调用此方法。
++   * 此方法只负责创建/续期会员，不操作订单状态（订单状态由 payment 模块管理）。
++   *
++   * 业务规则：
++   *   - 不存在会员记录：创建新会员
++   *   - 已存在会员：续期（覆盖原 plan 和 expires_at）
++   *
++   * @param userId - 用户 ID
++   * @param plan - 订阅计划：monthly/quarterly/yearly
++   * @param price - 实际支付金额（分）
++   * @param expiresAt - 会员到期时间
++   */
++  async activateMembership(
++    userId: string,
++    plan: string,
++    price: number,
++    expiresAt: Date,
++  ): Promise<void> {
++    const existing = await this.findByUser(userId);
++    if (existing === null) {
++      await this.createMembership({ userId, plan, price, expiresAt });
++    } else {
++      await this.renewMembership({ userId, plan, price, expiresAt });
++    }
++  }
+ }
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/routes/membership.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/routes/membership.ts"
+index 8f26d26..9ed4e8f 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/routes/membership.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/routes/membership.ts"
+@@ -2,6 +2,13 @@
+  * 会员管理路由 - 会员订阅与用量配额管理
+  * 查询会员状态、订阅/取消会员、查询当日使用配额
+  * 通过 MembershipRepository、PaymentOrderRepository、UsageQuotaRepository 访问数据库
++ *
++ * 改造说明（v2）：
++ *   原 /subscribe 接口为模拟支付，直接创建订单+激活会员+标记已支付
++ *   新流程改为：/subscribe 创建支付订单 → 调微信支付下单 → 前端调起支付
++ *             → 微信回调 /api/payment/wechat/notify → 激活会员
++ *   保留 /subscribe 接口名称以兼容前端，但内部改为走支付流程
++ *   前端如需直接走支付，可调用 /api/payment/membership/order（推荐）
+  */
+ import { Router, type Request, type Response } from 'express';
+ import { authMiddleware } from '../middleware/auth.js';
+@@ -11,12 +18,22 @@ import { v4 as uuidv4 } from 'uuid';
+ import { MembershipRepository } from '../repositories/membershipRepository.js';
+ import { PaymentOrderRepository } from '../repositories/paymentOrderRepository.js';
+ import { UsageQuotaRepository } from '../repositories/usageQuotaRepository.js';
++import { UserRepository } from '../repositories/userRepository.js';
++import { createJsapiPayment } from '../services/wechatPayService.js';
+ 
+ const router = Router();
+ 
+ const membershipRepository = new MembershipRepository();
+ const paymentOrderRepository = new PaymentOrderRepository();
+ const usageQuotaRepository = new UsageQuotaRepository();
++const userRepository = new UserRepository();
++
++/** 会员订阅计划价格（分） */
++const PLAN_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
++  monthly: 2990,
++  quarterly: 7990,
++  yearly: 26900,
++};
+ 
+ router.get('/status', authMiddleware, async (req: Request, res: Response) => {
+   try {
+@@ -65,44 +82,49 @@ router.get('/status', authMiddleware, async (req: Request, res: Response) => {
+   }
+ });
+ 
++/**
++ * POST /subscribe - 创建会员订阅支付订单
++ *
++ * 兼容旧前端调用：仍接受 { plan } 参数，但返回支付参数而非直接激活会员
++ * 前端拿到 payment 参数后调起 wx.requestPayment，支付完成后等待回调激活
++ *
++ * 推荐前端迁移到 /api/payment/membership/order（语义更清晰）
++ */
+ router.post('/subscribe', authMiddleware, validate({ body: createOrderSchema }), async (req: Request, res: Response) => {
+   try {
+     const userId = req.userId!;
+-    const { plan } = req.body;
+-
+-    const planPrices: Record<string, number> = {
+-      monthly: 2990,
+-      quarterly: 7990,
+-      yearly: 26900,
+-    };
+-
+-    const planDurations: Record<string, number> = {
+-      monthly: 30,
+-      quarterly: 90,
+-      yearly: 365,
+-    };
+-
+-    const price = planPrices[plan];
+-    const durationDays = planDurations[plan];
+-    const orderId = uuidv4();
++    const { plan } = req.body as { plan: 'monthly' | 'quarterly' | 'yearly' };
++
++    const price = PLAN_PRICES[plan];
++    const description = `星寰海会员订阅-${plan === 'monthly' ? '月度' : plan === 'quarterly' ? '季度' : '年度'}`;
+ 
+-    const now = new Date();
+-    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
++    // 查询用户 openid（JSAPI 支付必需）
++    const user = await userRepository.findById(userId);
++    if (!user) {
++      res.status(404).json({ success: false, message: '用户不存在' });
++      return;
++    }
++
++    // 创建支付订单
++    const orderId = uuidv4();
++    await paymentOrderRepository.createMembershipOrder({
++      id: orderId,
++      userId,
++      plan,
++      amount: price,
++    });
+ 
+-    await membershipRepository.subscribeWithTransaction(
+-      { id: orderId, userId, plan, amount: price },
+-      { plan, price, expiresAt },
+-      paymentOrderRepository,
+-    );
++    // 调微信支付下单
++    const paymentParams = await createJsapiPayment(orderId, price, description, user.openid);
+ 
+     res.json({
+       success: true,
+       data: {
+-        orderId,
++        order_id: orderId,
+         plan,
+         price,
+-        expiresAt: expiresAt.toISOString(),
+-        status: 'active',
++        payment: paymentParams,
++        message: '订单已创建，请完成支付',
+       },
+     });
+   } catch (error) {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/services/weeklyReportService.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/services/weeklyReportService.ts"
+index 61782f8..9b0eff4 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/services/weeklyReportService.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/services/weeklyReportService.ts"
+@@ -2,10 +2,13 @@
+  * 家庭周报业务服务层 - 编排家庭周报的核心业务逻辑
+  * 职责：家庭归属校验、周报列表分页、最新周报、详情查询、手动生成
+  * generateReport 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态）
+- * ai_insight 和 share_card_url 暂为 null，待接入 AI 总结和分享卡片生成
++ * ai_insight 由 aiService.chat 生成（apiKey 未配置时返回 null）
++ * share_card_url 暂为 null，待接入分享卡片生成
+  * 所有操作前先验证 family_id 属于当前用户，防止跨用户越权
+  */
+ import { pool } from '../db.js';
++import { config } from '../config.js';
++import { chat } from './aiService.js';
+ import { WeeklyReportRepository, type WeeklyReportRow } from '../repositories/weeklyReportRepository.js';
+ 
+ /** 周报列表查询参数 */
+@@ -224,6 +227,51 @@ async function buildRealReportData(
+   };
+ }
+ 
++/**
++ * 基于当周聚合数据生成 AI 总结（ai_insight）
++ * - apiKey 未配置时返回 null（开发/测试环境）
++ * - 调用 aiService.chat，提示词要求：温和积极、中文、不超过 200 字、给出 1 条可执行建议
++ * - AI 调用失败时返回 null，不阻断周报生成（周报数据本身已成功聚合）
++ *
++ * @param reportData - buildRealReportData 返回的聚合数据
++ * @returns AI 总结文本或 null
++ */
++async function buildAiInsight(
++  reportData: Record<string, unknown>,
++): Promise<string | null> {
++  if (!config.ai.apiKey) {
++    return null;
++  }
++
++  const systemPrompt = `你是"星寰海"AI 宠物管家的周报助手。请根据本周家庭数据生成一段中文周报总结，要求：
++1. 语气温和、积极、有温度，像朋友间的关心
++2. 不超过 200 字
++3. 简要概括本周健康状况和活跃度
++4. 结尾给出 1 条可执行的下周建议（如饮食、运动、观察重点）
++5. 不要使用 markdown 格式，纯文本即可
++6. 不要提及具体数字背后的技术字段名，用自然语言描述`;
++
++  const userPrompt = `本周家庭周报数据：
++${JSON.stringify(reportData, null, 2)}
++
++请生成周报总结。`;
++
++  try {
++    const insight = await chat(
++      [
++        { role: 'system', content: systemPrompt },
++        { role: 'user', content: userPrompt },
++      ],
++      { temperature: 0.7, max_tokens: 400 },
++    );
++    return insight.trim() || null;
++  } catch (error) {
++    // AI 调用失败不阻断周报生成，降级为 null
++    console.error('[WeeklyReport AI Insight Error]', error);
++    return null;
++  }
++}
++
+ /**
+  * 分页查询家庭周报列表
+  * - 校验家庭归属
+@@ -305,7 +353,9 @@ export async function getReport(
+  * - 校验家庭归属
+  * - 计算当前 ISO 周年与周数
+  * - 检查同周是否已生成（UNIQUE 预检），有则 409
+- * - 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态），ai_insight 和 share_card_url 为 null
++ * - 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态）
++ * - 生成 AI 总结（apiKey 未配置或调用失败时为 null，不阻断流程）
++ * - share_card_url 暂为 null，待接入分享卡片生成
+  */
+ export async function generateReport(
+   userId: string,
+@@ -324,13 +374,14 @@ export async function generateReport(
+   }
+ 
+   const report_data = await buildRealReportData(familyId, year, weekNumber);
++  const ai_insight = await buildAiInsight(report_data);
+ 
+   return weeklyReportRepository.insertReport({
+     family_id: familyId,
+     year,
+     week_number: weekNumber,
+     report_data,
+-    ai_insight: null,
++    ai_insight,
+     share_card_url: null,
+   });
+ }
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-4-ai-chat.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-4-ai-chat.test.ts"
+index 9ac62c3..d61929a 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-4-ai-chat.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-4-ai-chat.test.ts"
+@@ -14,6 +14,19 @@ vi.mock('../utils/storage', () => ({
+   setStorage: vi.fn((key: string, value: unknown) => {
+     mockStorage[key] = JSON.stringify(value)
+   }),
++  // aiProvider 依赖 storage 命名导出（utils/storage.ts 的 storage 对象）
++  storage: {
++    getToken: vi.fn(() => 'mock_token'),
++    setToken: vi.fn(),
++    removeToken: vi.fn(),
++    getUser: vi.fn(() => null),
++    setUser: vi.fn(),
++    removeUser: vi.fn(),
++    getRefreshToken: vi.fn(() => null),
++    setRefreshToken: vi.fn(),
++    removeRefreshToken: vi.fn(),
++    clear: vi.fn(),
++  },
+ }))
+ 
+ const { mockTaroRequest } = vi.hoisted(() => {
+@@ -49,7 +62,7 @@ describe('Happy Path 4: AI对话交互 → 智能回复', () => {
+     it('发送聊天消息 → mock AI 回复，验证回复包含有用建议', async () => {
+       mockTaroRequest.mockResolvedValue({
+         statusCode: 200,
+-        data: { reply: '猫咪食欲不振可能是压力、口腔问题或消化系统不适引起的。建议先观察猫咪的精神状态，如果持续超过24小时或伴有呕吐腹泻，请及时就医。' },
++        data: { success: true, data: { content: '猫咪食欲不振可能是压力、口腔问题或消化系统不适引起的。建议先观察猫咪的精神状态，如果持续超过24小时或伴有呕吐腹泻，请及时就医。' } },
+       })
+ 
+       const reply = await chat({
+@@ -70,7 +83,7 @@ describe('Happy Path 4: AI对话交互 → 智能回复', () => {
+     it('发送带宠物上下文的聊天消息 → 验证请求中包含宠物信息（名字、品种、年龄）', async () => {
+       mockTaroRequest.mockResolvedValue({
+         statusCode: 200,
+-        data: { reply: '小橘作为中华田园猫，4岁属于青壮年阶段。请关注它的饮食和运动情况。' },
++        data: { success: true, data: { content: '小橘作为中华田园猫，4岁属于青壮年阶段。请关注它的饮食和运动情况。' } },
+       })
+ 
+       const reply = await chat({
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-7-vaccine-calendar.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-7-vaccine-calendar.test.ts"
+index 7673841..cc1115c 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-7-vaccine-calendar.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-7-vaccine-calendar.test.ts"
+@@ -232,7 +232,7 @@ describe('E2E Happy Path 7: 疫苗日历完整流程', () => {
+       const plannedRecords = getLocalRecords(petId)
+       vi.mocked(api.get).mockResolvedValue(plannedRecords)
+ 
+-      const janRecords = await getRecordsByMonth(2026, 1)
++      const janRecords = await getRecordsByMonth(petId, 2026, 1)
+       expect(janRecords.length).toBeGreaterThanOrEqual(0)
+     })
+ 
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/performance-benchmark.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/performance-benchmark.test.ts"
+index 6880a64..a099626 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/performance-benchmark.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/performance-benchmark.test.ts"
+@@ -11,7 +11,7 @@
+  * E2E 测试：性能基准
+  * 验证应用性能基准，包含启动时间、API 响应和渲染性能
+  */
+-import { describe, it, expect, vi } from 'vitest'
++import { describe, it, expect, vi, beforeEach } from 'vitest'
+ 
+ // ============================================================
+ // Mock 层：共享的 mock storage
+@@ -123,6 +123,7 @@ import { generateDiaryFromEntries } from '../services/diaryService'
+ import { getStorage, setStorage } from '../utils/storage'
+ import type { PetProfile } from '../services/petService'
+ import type { ChronicRecord } from '../types/chronicTypes'
++import type { PetMoment } from '../types/familyTypes'
+ import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
+ 
+ // ============================================================
+@@ -319,7 +320,7 @@ describe('性能基准测试', () => {
+         checkinDays: 6,
+         anomalyDays: 1,
+         streak: 7,
+-        recentMoments: [] as Array<{ type: string }>,
++        recentMoments: [] as PetMoment[],
+       }
+ 
+       const avgTime = measureTime(() => {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/security-audit.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/security-audit.test.ts"
+index 0bb4c86..a33c7aa 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/security-audit.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/security-audit.test.ts"
+@@ -52,6 +52,49 @@ vi.mock('../utils/storage', () => ({
+       return []
+     }
+   }),
++  // authGuard 依赖 storage 命名导出（utils/storage.ts 的 storage 对象）
++  storage: {
++    getToken: vi.fn(() => {
++      const raw = mockStorage['xhh_token']
++      return raw !== undefined && raw !== '' ? raw : null
++    }),
++    setToken: vi.fn((token: string) => {
++      mockStorage['xhh_token'] = token
++    }),
++    removeToken: vi.fn(() => {
++      delete mockStorage['xhh_token']
++    }),
++    getUser: vi.fn(() => {
++      const raw = mockStorage['xhh_user']
++      if (!raw) return null
++      try {
++        return JSON.parse(raw)
++      } catch {
++        return null
++      }
++    }),
++    setUser: vi.fn((user: unknown) => {
++      mockStorage['xhh_user'] = JSON.stringify(user)
++    }),
++    removeUser: vi.fn(() => {
++      delete mockStorage['xhh_user']
++    }),
++    getRefreshToken: vi.fn(() => {
++      const raw = mockStorage['xhh_refresh_token']
++      return raw !== undefined && raw !== '' ? raw : null
++    }),
++    setRefreshToken: vi.fn((token: string) => {
++      mockStorage['xhh_refresh_token'] = token
++    }),
++    removeRefreshToken: vi.fn(() => {
++      delete mockStorage['xhh_refresh_token']
++    }),
++    clear: vi.fn(() => {
++      delete mockStorage['xhh_token']
++      delete mockStorage['xhh_user']
++      delete mockStorage['xhh_refresh_token']
++    }),
++  },
+ }))
+ 
+ vi.mock('@tarojs/taro', () => ({
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/__tests__/useAnxietyDetection.test.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/__tests__/useAnxietyDetection.test.tsx"
+index de88a76..fb0e4b3 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/__tests__/useAnxietyDetection.test.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/__tests__/useAnxietyDetection.test.tsx"
+@@ -62,6 +62,13 @@ vi.mock('../../stores/foodQueryStore', () => ({
+ 
+ import { useAnxietyDetection } from '../useAnxietyDetection'
+ 
++/** 生成距今 days 天的 ISO 日期（YYYY-MM-DD），与 hook 的 7 天窗口逻辑保持一致 */
++function daysAgoISO(days: number): string {
++  const d = new Date()
++  d.setDate(d.getDate() - days)
++  return d.toISOString().split('T')[0]
++}
++
+ function renderHookWithComponent<T>(hookFn: () => T) {
+   let hookResult: T = null as any
+   function TestComponent() {
+@@ -130,11 +137,12 @@ describe('useAnxietyDetection', () => {
+   })
+ 
+   it('checkSickAnxiety 连续异常天数 >= 3 时触发 sick anxiety', async () => {
+-    mockCheckinStore.checkins = [
+-      { date: '2026-07-24', mood: 'sad', appetite: 'normal', stool: 'normal' },
+-      { date: '2026-07-23', mood: 'sad', appetite: 'normal', stool: 'normal' },
+-      { date: '2026-07-22', mood: 'sad', appetite: 'normal', stool: 'normal' },
+-    ]
++    mockCheckinStore.checkins = [1, 2, 3].map(i => ({
++      date: daysAgoISO(i),
++      mood: 'sad',
++      appetite: 'normal',
++      stool: 'normal',
++    }))
+     mockGetStorageSync.mockImplementation((key: string) => {
+       if (key === 'anxiety_last_check') return null
+       if (key === 'sick_anxiety_dismissed') return null
+@@ -154,7 +162,7 @@ describe('useAnxietyDetection', () => {
+ 
+   it('checkSickAnxiety 连续异常天数 >= 5 时 anxietyLevel 为 moderate', async () => {
+     mockCheckinStore.checkins = Array.from({ length: 5 }, (_, i) => ({
+-      date: `2026-07-${24 - i}`,
++      date: daysAgoISO(i + 1),
+       mood: 'sad',
+       appetite: 'normal',
+       stool: 'normal',
+@@ -174,8 +182,9 @@ describe('useAnxietyDetection', () => {
+   })
+ 
+   it('checkSickAnxiety 连续异常天数 >= 7 时 anxietyLevel 为 severe', async () => {
++    // 窗口为 diffDays < 7，故从今天（0）到 6 天前共 7 条都在窗口内
+     mockCheckinStore.checkins = Array.from({ length: 7 }, (_, i) => ({
+-      date: `2026-07-${25 - i}`,
++      date: daysAgoISO(i),
+       mood: 'sad',
+       appetite: 'normal',
+       stool: 'normal',
+@@ -195,10 +204,12 @@ describe('useAnxietyDetection', () => {
+   })
+ 
+   it('checkSickAnxiety 连续异常天数 < 3 时不触发', async () => {
+-    mockCheckinStore.checkins = [
+-      { date: '2026-07-24', mood: 'sad', appetite: 'normal', stool: 'normal' },
+-      { date: '2026-07-23', mood: 'sad', appetite: 'normal', stool: 'normal' },
+-    ]
++    mockCheckinStore.checkins = [1, 2].map(i => ({
++      date: daysAgoISO(i),
++      mood: 'sad',
++      appetite: 'normal',
++      stool: 'normal',
++    }))
+     mockGetStorageSync.mockImplementation((key: string) => {
+       if (key === 'anxiety_last_check') return null
+       if (key === 'sick_anxiety_dismissed') return null
+@@ -230,8 +241,8 @@ describe('useAnxietyDetection', () => {
+   })
+ 
+   it('dismissSickAnxiety 设置 storage 并重置 sick anxiety 状态', async () => {
+-    mockCheckinStore.checkins = Array.from({ length: 4 }, (_, i) => ({
+-      date: `2026-07-${24 - i}`,
++    mockCheckinStore.checkins = [1, 2, 3, 4].map(i => ({
++      date: daysAgoISO(i),
+       mood: 'sad',
+       appetite: 'normal',
+       stool: 'normal',
+@@ -428,8 +439,8 @@ describe('useAnxietyDetection', () => {
+   })
+ 
+   it('dismissNewOwnerAnxiety 不影响 sickAnxiety 状态', async () => {
+-    mockCheckinStore.checkins = Array.from({ length: 4 }, (_, i) => ({
+-      date: `2026-07-${24 - i}`,
++    mockCheckinStore.checkins = [1, 2, 3, 4].map(i => ({
++      date: daysAgoISO(i),
+       mood: 'sad',
+       appetite: 'normal',
+       stool: 'normal',
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useAuthStore.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useAuthStore.test.ts"
+index 780ea21..633b540 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useAuthStore.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useAuthStore.test.ts"
+@@ -44,6 +44,7 @@ vi.mock('../utils/storage', () => ({
+ 
+ vi.mock('@tarojs/taro', () => ({
+   default: {
++    login: vi.fn(() => ({ code: 'mock-code' })),
+     getStorageSync: vi.fn(() => null),
+     setStorageSync: vi.fn(),
+     removeStorageSync: vi.fn(),
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/behaviorAdapter.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/behaviorAdapter.test.ts"
+index d62d15d..10386d4 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/behaviorAdapter.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/behaviorAdapter.test.ts"
+@@ -1,4 +1,4 @@
+-import { describe, it, expect, beforeEach } from 'vitest'
++import { describe, it, expect, beforeEach, vi } from 'vitest'
+ import { BehaviorAdapter } from '../adapters/behaviorAdapter'
+ 
+ const mockStorage: Record<string, string> = {}
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/dietMemoryAdapter.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/dietMemoryAdapter.test.ts"
+index ecf29e2..7678baf 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/dietMemoryAdapter.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/dietMemoryAdapter.test.ts"
+@@ -1,4 +1,4 @@
+-import { describe, it, expect, beforeEach } from 'vitest'
++import { describe, it, expect, beforeEach, vi } from 'vitest'
+ import { DietMemoryAdapter } from '../adapters/dietMemoryAdapter'
+ 
+ const mockStorage: Record<string, string> = {}
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/memoryAggregator.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/memoryAggregator.test.ts"
+index 10484f6..426fea0 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/memoryAggregator.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/memoryAggregator.test.ts"
+@@ -1,4 +1,4 @@
+-import { describe, it, expect, beforeEach } from 'vitest'
++import { describe, it, expect, beforeEach, vi } from 'vitest'
+ import { MemoryAggregator } from '../aggregator/memoryAggregator'
+ 
+ const mockStorage: Record<string, string> = {}
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/milestoneAdapter.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/milestoneAdapter.test.ts"
+index f6ad171..2225273 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/milestoneAdapter.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/memory-body/__tests__/milestoneAdapter.test.ts"
+@@ -1,4 +1,4 @@
+-import { describe, it, expect, beforeEach } from 'vitest'
++import { describe, it, expect, beforeEach, vi } from 'vitest'
+ import { MilestoneAdapter } from '../adapters/milestoneAdapter'
+ 
+ const mockStorage: Record<string, string> = {}
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/__tests__/index.test.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/__tests__/index.test.tsx"
+index 94b26ab..ba0c066 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/__tests__/index.test.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/__tests__/index.test.tsx"
+@@ -90,6 +90,14 @@ vi.mock('@tarojs/taro', () => ({
+     showToast: mockShowToast,
+     switchTab: mockSwitchTab,
+     setClipboardData: mockSetClipboardData,
++    // useVoiceInput 依赖录音管理器
++    getRecorderManager: vi.fn(() => ({
++      onStart: vi.fn(),
++      onStop: vi.fn(),
++      onError: vi.fn(),
++      start: vi.fn(),
++      stop: vi.fn(),
++    })),
+   },
+ }))
+ 
+@@ -221,12 +229,10 @@ describe('calcAge', () => {
+   })
+ 
+   it('calculates years and months', () => {
+-    // 构造一个距今 2 年 3 个月的日期
++    // 构造一个距今 2 年 3 个月的日期（用本地时间拼字符串避免时区偏移，月中 15 号避免月末溢出）
+     const now = new Date()
+-    const twoYearsThreeMonthsAgo = new Date(now)
+-    twoYearsThreeMonthsAgo.setFullYear(now.getFullYear() - 2)
+-    twoYearsThreeMonthsAgo.setMonth(now.getMonth() - 3)
+-    const dateStr = twoYearsThreeMonthsAgo.toISOString().split('T')[0]
++    const target = new Date(now.getFullYear() - 2, now.getMonth() - 3, 15)
++    const dateStr = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`
+ 
+     const result = calcAge(dateStr)
+     expect(result).toBe('2岁3月')
+@@ -330,9 +336,9 @@ describe('Index page — render states', () => {
+ 
+     const { container } = render(createElement(Index))
+ 
+-    // 应显示宠物名称和品种信息
+-    expect(container.textContent).toContain('旺财')
+-    expect(container.textContent).toContain('金毛')
++    // 顶栏固定显示应用名，不显示具体宠物名/品种
++    expect(container.textContent).toContain('星寰海')
++    expect(container.textContent).toContain('AI 宠物管家')
+ 
+     // 应显示问候消息
+     expect(container.textContent).toContain('AI小助手')
+@@ -349,17 +355,18 @@ describe('Index page — render states', () => {
+     expect(container.textContent).not.toContain('欢迎来到星寰海')
+   })
+ 
+-  it('renders dog emoji for dog species', () => {
++  it('renders paw emoji for dog species', () => {
+     petStoreState.currentPet = mockPet
+     petStoreState.pets = [mockPet]
+     petStoreState.isLoading = false
+ 
+     const { container } = render(createElement(Index))
+ 
+-    expect(container.textContent).toContain('🐕')
++    // 顶栏头像统一为 🐾，不区分物种
++    expect(container.textContent).toContain('🐾')
+   })
+ 
+-  it('renders cat emoji for cat species', () => {
++  it('renders paw emoji for cat species', () => {
+     const catPet = { ...mockPet, species: 'cat' as const, breed: '英短' }
+     petStoreState.currentPet = catPet
+     petStoreState.pets = [catPet]
+@@ -367,7 +374,7 @@ describe('Index page — render states', () => {
+ 
+     const { container } = render(createElement(Index))
+ 
+-    expect(container.textContent).toContain('🐱')
++    expect(container.textContent).toContain('🐾')
+   })
+ 
+   it('renders default paw emoji for unknown species', () => {
+@@ -391,7 +398,7 @@ describe('Index page — render states', () => {
+ 
+     const skeleton = container.querySelector('[data-testid="home-skeleton"]')
+     expect(skeleton).toBeFalsy()
+-    expect(container.textContent).toContain('旺财')
++    expect(container.textContent).toContain('星寰海')
+   })
+ 
+   it('empty state add-pet button navigates to add pet page', () => {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/__tests__/index.test.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/__tests__/index.test.tsx"
+index 78eaa22..a6eeed1 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/__tests__/index.test.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/__tests__/index.test.tsx"
+@@ -2,6 +2,9 @@
+ import { describe, it, expect, vi, beforeEach } from 'vitest'
+ import { render, screen } from '@testing-library/react'
+ 
++// vi.mock 工厂函数内使用 require，此处补充类型声明
++declare const require: (id: string) => any
++
+ const {
+   mockSwitchPet,
+   mockInitPetUser,
+@@ -39,7 +42,8 @@ const {
+   mockHandleFollowUp: vi.fn(),
+   mockTrackEvent: vi.fn(),
+   mockTrackPageView: vi.fn(),
+-  mockUsePet: vi.fn(() => ({
++  // hook mock 使用宽松类型，允许 mockReturnValue 注入不同状态
++  mockUsePet: vi.fn<any>(() => ({
+     pets: [],
+     currentPet: null,
+     switchPet: mockSwitchPet,
+@@ -53,7 +57,7 @@ const {
+     clearError: vi.fn(),
+     error: null,
+   })),
+-  mockUseFoodQuery: vi.fn(() => ({
++  mockUseFoodQuery: vi.fn<any>(() => ({
+     lastResult: null,
+     history: [],
+     stats: null,
+@@ -64,7 +68,7 @@ const {
+     error: null,
+     clearError: vi.fn(),
+   })),
+-  mockUseMembership: vi.fn(() => ({
++  mockUseMembership: vi.fn<any>(() => ({
+     isMember: false,
+     checkAccess: mockCheckAccess,
+     shouldShowPaywall: mockShouldShowPaywall,
+@@ -440,7 +444,7 @@ describe('FoodQueryPage', () => {
+ 
+       render(<PetFoodQuery />)
+ 
+-      expect(screen.getByPlaceholderText('输入食物名称，如巧克力、葡萄...')).toBeDefined()
++      expect(screen.getByPlaceholderText('输入食物名称，如柠檬、巧克力...')).toBeDefined()
+       expect(screen.getByText('搜索')).toBeDefined()
+       expect(screen.getByText('输入食物名称，查询对宠物是否安全')).toBeDefined()
+     })
+@@ -587,7 +591,8 @@ describe('FoodQueryPage', () => {
+ 
+       render(<PetFoodQuery />)
+ 
+-      expect(screen.getByText('巧克力')).toBeDefined()
++      // 巧克力同时出现在快捷分类区域与结果卡片，使用 getAllByText
++      expect(screen.getAllByText('巧克力').length).toBeGreaterThan(0)
+       expect(screen.getByText('有毒')).toBeDefined()
+       expect(screen.getByText('可可碱')).toBeDefined()
+       expect(screen.getByText('咖啡因')).toBeDefined()
+@@ -633,7 +638,8 @@ describe('FoodQueryPage', () => {
+ 
+       render(<PetFoodQuery />)
+ 
+-      expect(screen.getByText('苹果')).toBeDefined()
++      // 苹果同时出现在快捷分类区域与结果卡片，使用 getAllByText
++      expect(screen.getAllByText('苹果').length).toBeGreaterThan(0)
+       expect(screen.getByText('安全')).toBeDefined()
+       expect(screen.getByText('苹果对宠物是安全的，但要去掉果核。')).toBeDefined()
+     })
+@@ -739,8 +745,9 @@ describe('FoodQueryPage', () => {
+       render(<PetFoodQuery />)
+ 
+       expect(screen.getByText('查询历史')).toBeDefined()
+-      expect(screen.getByText('巧克力')).toBeDefined()
+-      expect(screen.getByText('苹果')).toBeDefined()
++      // 历史食物名同时出现在快捷分类区域与历史列表，使用 getAllByText
++      expect(screen.getAllByText('巧克力').length).toBeGreaterThan(0)
++      expect(screen.getAllByText('苹果').length).toBeGreaterThan(0)
+     })
+   })
+ })
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/index.tsx"
+index 31fd397..c51bb54 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/food-query/index.tsx"
+@@ -323,7 +323,7 @@ export default function PetFoodQuery() {
+                     <View
+                       key={food}
+                       className='pet-food-query__suggestion-item'
+-                      onMouseDown={() => handleSuggestionClick(food)}
++                      onClick={() => handleSuggestionClick(food)}
+                     >
+                       <Text className='pet-food-query__suggestion-icon'>🍽️</Text>
+                       <Text className='pet-food-query__suggestion-text'>{food}</Text>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/symptom-check/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/symptom-check/index.tsx"
+index 2d27314..5bc8484 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/symptom-check/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/symptom-check/index.tsx"
+@@ -491,7 +491,7 @@ export default function PetSymptomCheck() {
+                           className={`pet-symptom-check__search-suggestion${
+                             selectedSymptoms.includes(s.id) ? ' pet-symptom-check__search-suggestion--selected' : ''
+                           }`}
+-                          onMouseDown={() => handleSelectSearchSuggestion(s.id)}
++                          onClick={() => handleSelectSearchSuggestion(s.id)}
+                         >
+                           <Text className='pet-symptom-check__search-suggestion-name'>{s.name}</Text>
+                           <Text className='pet-symptom-check__search-suggestion-cat'>{s.categoryName}</Text>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/trends/__tests__/index.test.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/trends/__tests__/index.test.tsx"
+index 73ca6dd..007d81f 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/trends/__tests__/index.test.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/trends/__tests__/index.test.tsx"
+@@ -1,4 +1,4 @@
+-/** 健康趋势页面单元测试 */
++﻿/** 健康趋势页面单元测试 */
+ import { describe, it, expect, vi, beforeEach } from 'vitest'
+ import React from 'react'
+ import { render, fireEvent } from '@testing-library/react'
+@@ -22,7 +22,7 @@ const { mockFetchWeightTrend, mockFetchAppetiteTrend, mockFetchStoolTrend, mockF
+ }))
+ 
+ const { mockUseTrendFn } = vi.hoisted(() => ({
+-  mockUseTrendFn: vi.fn(() => ({
++  mockUseTrendFn: vi.fn<any>(() => ({
+     trendData: [],
+     summary: null,
+     monthlyReport: null,
+@@ -38,11 +38,11 @@ const { mockUseTrendFn } = vi.hoisted(() => ({
+ }))
+ 
+ const { mockCheckAccess } = vi.hoisted(() => ({
+-  mockCheckAccess: vi.fn(() => true),
++  mockCheckAccess: vi.fn<any>(() => true),
+ }))
+ 
+ const { mockUseMembershipFn } = vi.hoisted(() => ({
+-  mockUseMembershipFn: vi.fn(() => ({
++  mockUseMembershipFn: vi.fn<any>(() => ({
+     isMember: true,
+     checkAccess: mockCheckAccess,
+     shouldShowPaywall: false,
+@@ -430,7 +430,7 @@ describe('健康趋势页 - 体重曲线展示', () => {
+       makeTrendPoint({ date: '2024-01-02', weight: 30.5 }),
+       makeTrendPoint({ date: '2024-01-03', weight: 31 }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -458,7 +458,7 @@ describe('健康趋势页 - 体重曲线展示', () => {
+       makeTrendPoint({ date: '2024-01-01', weight: 40 }),
+       makeTrendPoint({ date: '2024-01-02', weight: 40.5 }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -482,7 +482,7 @@ describe('健康趋势页 - 体重曲线展示', () => {
+     const mockTrendData = [
+       makeTrendPoint({ date: '2024-01-01', weight: 30 }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -544,7 +544,7 @@ describe('健康趋势页 - 食欲趋势展示', () => {
+       makeTrendPoint({ date: '2024-01-02', appetite: 'decreased', weight: undefined }),
+       makeTrendPoint({ date: '2024-01-03', appetite: 'increased', weight: undefined }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -569,7 +569,7 @@ describe('健康趋势页 - 食欲趋势展示', () => {
+     const mockTrendData = [
+       makeTrendPoint({ date: '2024-01-01', appetite: 'normal', weight: undefined }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -634,7 +634,7 @@ describe('健康趋势页 - 便便趋势展示', () => {
+       makeTrendPoint({ date: '2024-01-02', stool: 'soft', weight: undefined }),
+       makeTrendPoint({ date: '2024-01-03', stool: 'bloody', weight: undefined, hasAbnormal: true, riskLevel: 'emergency' }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -690,7 +690,7 @@ describe('健康趋势页 - 异常标记', () => {
+       makeTrendPoint({ date: '2024-01-02', weight: 30.5, hasAbnormal: true, riskLevel: 'high', appetite: 'none' }),
+       makeTrendPoint({ date: '2024-01-03', weight: 31 }),
+     ]
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: null,
+       monthlyReport: null,
+@@ -727,7 +727,7 @@ describe('健康趋势页 - 异常标记', () => {
+       aiAnalysis: '检测到异常',
+     }
+ 
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: mockTrendData,
+       summary: mockSummary,
+       monthlyReport: null,
+@@ -785,7 +785,7 @@ describe('健康趋势页 - 切换时间范围', () => {
+   })
+ 
+   it('会员用户可以看到所有时间范围（无锁定图标）', () => {
+-    vi.mocked(useMembership).mockReturnValue({
++    mockUseMembershipFn.mockReturnValue({
+       isMember: true,
+       checkAccess: mockCheckAccess,
+       shouldShowPaywall: false,
+@@ -799,7 +799,7 @@ describe('健康趋势页 - 切换时间范围', () => {
+   })
+ 
+   it('免费用户近1月和近3月应显示锁定图标', () => {
+-    vi.mocked(useMembership).mockReturnValue({
++    mockUseMembershipFn.mockReturnValue({
+       isMember: false,
+       checkAccess: mockCheckAccess,
+       shouldShowPaywall: false,
+@@ -862,7 +862,7 @@ describe('健康趋势页 - 月度AI健康报告', () => {
+       recommendations: ['建议坚持每日打卡'],
+     }
+ 
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: [],
+       summary: {
+         petId: 'pet-1',
+@@ -938,7 +938,7 @@ describe('健康趋势页 - 空状态', () => {
+   })
+ 
+   it('加载中应显示 PageLoading', () => {
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: [],
+       summary: null,
+       monthlyReport: null,
+@@ -958,7 +958,7 @@ describe('健康趋势页 - 空状态', () => {
+   })
+ 
+   it('有错误时应显示 PageError 并提供重试', () => {
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: [],
+       summary: null,
+       monthlyReport: null,
+@@ -1064,7 +1064,7 @@ describe('健康趋势页 - AI 趋势分析', () => {
+       aiAnalysis: '体重保持稳定，这是健康的好迹象。食欲整体正常。',
+     }
+ 
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: [],
+       summary: mockSummary,
+       monthlyReport: null,
+@@ -1099,7 +1099,7 @@ describe('健康趋势页 - AI 趋势分析', () => {
+       aiAnalysis: '体重下降，需关注。',
+     }
+ 
+-    vi.mocked(useTrend).mockReturnValue({
++    mockUseTrendFn.mockReturnValue({
+       trendData: [],
+       summary: mockSummary,
+       monthlyReport: null,
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/analyticsService.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/analyticsService.test.ts"
+index 407a5c7..da66805 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/analyticsService.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/analyticsService.test.ts"
+@@ -44,11 +44,18 @@ describe('analyticsService', () => {
+     expect(queue[0].properties.petSpecies).toBe('dog')
+   })
+ 
+-  it('queue respects max size', () => {
+-    for (let i = 0; i < 110; i++) {
++  it('queue accumulates events below flush threshold', () => {
++    for (let i = 0; i < 15; i++) {
+       trackEvent('test_event', { index: i })
+     }
+-    expect(getQueueLength()).toBe(100)
++    expect(getQueueLength()).toBe(15)
++  })
++
++  it('queue flushes events when reaching flush threshold', () => {
++    for (let i = 0; i < 25; i++) {
++      trackEvent('test_event', { index: i })
++    }
++    expect(getQueueLength()).toBe(5)
+   })
+ 
+   it('flushEvents clears the queue', async () => {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/chatService.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/chatService.test.ts"
+index ca9315a..e7997ec 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/chatService.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/chatService.test.ts"
+@@ -15,7 +15,7 @@ vi.mock('../../utils/ruleGuard', () => ({
+ }))
+ 
+ vi.mock('../../utils/authGuard', () => ({
+-  requireAuth: vi.fn(),
++  requireAuth: vi.fn(() => ({ userId: 'user-1', token: 'mock-token' })),
+   AuthenticationError: class extends Error { constructor(m: string) { super(m); this.name = 'AuthenticationError' } },
+ }))
+ 
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/namingService.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/namingService.test.ts"
+index db88caf..a7a4cd3 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/namingService.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/namingService.test.ts"
+@@ -162,6 +162,7 @@ describe('namingService', () => {
+           { role: 'user', content: 'built recommend prompt' },
+         ],
+         temperature: 0.9,
++        max_tokens: 2048,
+       })
+     })
+ 
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/subscribeService.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/subscribeService.test.ts"
+index 003aa45..1a04faa 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/subscribeService.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/subscribeService.test.ts"
+@@ -14,6 +14,19 @@ vi.mock('../../utils/storage', () => ({
+   setStorage: vi.fn((key: string, value: unknown) => {
+     mockStorage[`xhh_${key}`] = JSON.stringify(value)
+   }),
++  // sendSubscribeMessage 依赖 storage 命名导出（utils/storage.ts 的 storage 对象）
++  storage: {
++    getToken: vi.fn(() => 'test-token'),
++    setToken: vi.fn(),
++    removeToken: vi.fn(),
++    getUser: vi.fn(() => null),
++    setUser: vi.fn(),
++    removeUser: vi.fn(),
++    getRefreshToken: vi.fn(() => null),
++    setRefreshToken: vi.fn(),
++    removeRefreshToken: vi.fn(),
++    clear: vi.fn(),
++  },
+ }))
+ 
+ vi.mock('@tarojs/taro', () => ({
+@@ -474,7 +487,7 @@ describe('subscribeService', () => {
+ 
+       expect(result).toBe(true)
+       expect(Taro.request).toHaveBeenCalledTimes(1)
+-      const callArg = vi.mocked(Taro.request).mock.calls[0][0] as Record<string, unknown>
++      const callArg = vi.mocked(Taro.request).mock.calls[0][0] as unknown as Record<string, unknown>
+       expect(callArg.url).toContain('subscribe/send')
+       expect(callArg.method).toBe('POST')
+       expect(callArg.data).toEqual({ templateId: realTemplateId, data: messageData, page: '/pages/index' })
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/test/setup.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/test/setup.ts"
+index 8c2a422..7ea36fe 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/test/setup.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/test/setup.ts"
+@@ -35,10 +35,19 @@ vi.mock('@tarojs/taro', () => ({
+     showModal: vi.fn(),
+     showLoading: vi.fn(),
+     hideLoading: vi.fn(),
++    login: vi.fn(() => ({ code: 'mock-code' })),
+     navigateTo: vi.fn(),
+     navigateBack: vi.fn(),
+     reLaunch: vi.fn(),
+     switchTab: vi.fn(),
++    // 录音管理器（useVoiceInput 依赖）
++    getRecorderManager: vi.fn(() => ({
++      onStart: vi.fn(),
++      onStop: vi.fn(),
++      onError: vi.fn(),
++      start: vi.fn(),
++      stop: vi.fn(),
++    })),
+     getStorageSync: vi.fn(() => null),
+     setStorageSync: vi.fn(),
+     removeStorageSync: vi.fn(),
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/env.d.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/env.d.ts"
+index 16058bd..4276ac5 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/env.d.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/env.d.ts"
+@@ -2,6 +2,7 @@
+ declare const process: {
+   env: {
+     TARO_APP_API_BASE_URL: string
++    TARO_APP_USE_MOCK?: string
+     TARO_APP_SUPABASE_URL: string
+     TARO_APP_SUPABASE_KEY: string
+     TARO_APP_JWT_SECRET: string
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/networkResilience.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/networkResilience.test.ts"
+index b517245..c0ea823 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/networkResilience.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/networkResilience.test.ts"
+@@ -75,7 +75,7 @@ vi.mock('../../services/checkinService', () => ({
+ // ═══════════════════════════════════════════════════════════════════════════
+ 
+ vi.mock('../../services/syncService', () => ({
+-  getSyncService: (...args: unknown[]) => mockGetSyncService(...args),
++  getSyncService: mockGetSyncService,
+   SyncService: class {
+     queueForSync = mockQueueForSync
+     syncAll = mockSyncAll
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/thirdPartyFallback.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/thirdPartyFallback.test.ts"
+index 77b3826..42356cc 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/thirdPartyFallback.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/thirdPartyFallback.test.ts"
+@@ -80,20 +80,20 @@ vi.mock('../../services/api', () => ({
+ 
+ // Mock aiProvider
+ vi.mock('../../services/aiProvider', () => ({
+-  chat: (...args: unknown[]) => mockChat(...args),
+-  guardCheck: (...args: unknown[]) => mockGuardCheck(...args),
+-  guardCheckOutput: (...args: unknown[]) => mockGuardCheckOutput(...args),
++  chat: mockChat,
++  guardCheck: mockGuardCheck,
++  guardCheckOutput: mockGuardCheckOutput,
+ }))
+ 
+ // Mock ruleGuard
+ vi.mock('../../utils/ruleGuard', () => ({
+-  checkInput: (...args: unknown[]) => mockRuleCheck(...args),
+-  sanitizeOutput: (...args: unknown[]) => mockSanitizeOutput(...args),
++  checkInput: mockRuleCheck,
++  sanitizeOutput: mockSanitizeOutput,
+ }))
+ 
+ // Mock authGuard
+ vi.mock('../../utils/authGuard', () => ({
+-  requireAuth: vi.fn(),
++  requireAuth: vi.fn(() => ({ userId: 'user-1', token: 'mock-token' })),
+ }))
+ 
+ // Mock config

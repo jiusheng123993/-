@@ -7,9 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 
-const { mockPool } = vi.hoisted(() => {
+const { mockPool, mockChat } = vi.hoisted(() => {
   const pool = { query: vi.fn() };
-  return { mockPool: pool };
+  const chatFn = vi.fn();
+  return { mockPool: pool, mockChat: chatFn };
 });
 
 vi.mock('../db.js', () => ({ pool: mockPool }));
@@ -28,6 +29,10 @@ vi.mock('../config.js', () => ({
   },
 }));
 
+vi.mock('../services/aiService.js', () => ({
+  chat: (...args: unknown[]) => mockChat(...args),
+}));
+
 vi.mock('../middleware/auth.js', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
     _req.userId = 'test-user-id';
@@ -36,6 +41,7 @@ vi.mock('../middleware/auth.js', () => ({
 }));
 
 import weeklyReportsRouter from '../routes/weeklyReports.js';
+import { config } from '../config.js';
 
 function createApp() {
   const app = express();
@@ -140,6 +146,9 @@ function mockGenerateReportSuccess() {
 beforeEach(() => {
   // mockReset 清除 mock 队列（含 mockResolvedValueOnce 残留），避免测试间污染
   mockPool.query.mockReset();
+  mockChat.mockReset();
+  // 每个测试前重置 apiKey 为空（默认走 null 分支，不调用 AI）
+  (config as unknown as { ai: { apiKey: string } }).ai.apiKey = '';
 });
 
 // ===== GET /api/families/:id/weekly-reports - 获取周报列表 =====
@@ -522,5 +531,83 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', 
 
     expect(res.status).toBe(500);
     expect(res.body.success).toBe(false);
+  });
+
+  it('apiKey 未配置时 ai_insight 为 null', async () => {
+    // apiKey 默认为空（beforeEach 已重置），走 null 分支不调用 AI
+    mockGenerateReportSuccess();
+
+    const res = await request(createApp())
+      .post('/api/families/family-001/weekly-reports/generate');
+
+    expect(res.status).toBe(201);
+    // mockReport.ai_insight 为 null
+    expect(res.body.data.ai_insight).toBeNull();
+    // 不应调用 chat
+    expect(mockChat).not.toHaveBeenCalled();
+  });
+
+  it('apiKey 已配置时调用 AI 生成 ai_insight', async () => {
+    // 设置 apiKey 触发 AI 调用路径
+    (config as unknown as { ai: { apiKey: string } }).ai.apiKey = 'test-ai-key';
+    // mockReport 需要带 ai_insight 字段以反映 insertReport 返回值
+    const mockReportWithInsight = {
+      ...mockReport,
+      ai_insight: '本周宝贝状态平稳，打卡积极，下周可适当增加户外活动时间。',
+    };
+    mockChat.mockResolvedValueOnce('本周宝贝状态平稳，打卡积极，下周可适当增加户外活动时间。');
+
+    mockPool.query
+      .mockResolvedValueOnce(ownershipOk)        // 1. verifyFamilyOwnership
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // 2. findExisting
+      .mockResolvedValueOnce(emptyHealthAgg)     // 3. healthAgg
+      .mockResolvedValueOnce(emptySymptomAgg)    // 4. symptomAgg
+      .mockResolvedValueOnce(emptyFoodAgg)       // 5. foodAgg
+      .mockResolvedValueOnce(emptyFeedAgg)       // 6. feedAgg
+      .mockResolvedValueOnce(emptyBestDayAgg)    // 7. bestDayAgg
+      .mockResolvedValueOnce({ rows: [mockReportWithInsight], rowCount: 1 }); // 8. insertReport
+
+    const res = await request(createApp())
+      .post('/api/families/family-001/weekly-reports/generate');
+
+    expect(res.status).toBe(201);
+    // 验证调用了 chat（系统提示 + 用户提示）
+    expect(mockChat).toHaveBeenCalledTimes(1);
+    const chatArgs = mockChat.mock.calls[0][0] as Array<{ role: string; content: string }>;
+    expect(chatArgs).toHaveLength(2);
+    expect(chatArgs[0].role).toBe('system');
+    expect(chatArgs[0].content).toContain('星寰海');
+    expect(chatArgs[1].role).toBe('user');
+    expect(chatArgs[1].content).toContain('周报数据');
+    // insertReport 参数中 ai_insight 应为 AI 返回的文本
+    const insertCall = mockPool.query.mock.calls[7];
+    const params = insertCall[1] as unknown[];
+    // 第 5 个参数为 ai_insight（family_id, year, week_number, report_data, ai_insight, share_card_url）
+    expect(params[4]).toBe('本周宝贝状态平稳，打卡积极，下周可适当增加户外活动时间。');
+  });
+
+  it('AI 调用失败时降级为 null，不阻断周报生成', async () => {
+    (config as unknown as { ai: { apiKey: string } }).ai.apiKey = 'test-ai-key';
+    mockChat.mockRejectedValueOnce(new Error('AI service unavailable'));
+
+    mockPool.query
+      .mockResolvedValueOnce(ownershipOk)
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+      .mockResolvedValueOnce(emptyHealthAgg)
+      .mockResolvedValueOnce(emptySymptomAgg)
+      .mockResolvedValueOnce(emptyFoodAgg)
+      .mockResolvedValueOnce(emptyFeedAgg)
+      .mockResolvedValueOnce(emptyBestDayAgg)
+      .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/families/family-001/weekly-reports/generate');
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    // insertReport 参数中 ai_insight 应为 null（降级）
+    const insertCall = mockPool.query.mock.calls[7];
+    const params = insertCall[1] as unknown[];
+    expect(params[4]).toBeNull();
   });
 });
