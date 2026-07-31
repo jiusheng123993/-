@@ -20,8 +20,8 @@ import {
   mapMemoirTypeToProductLine,
   type VideoGenerationResult,
 } from './videoGenerationService.js';
+import { moderateVideo } from './videoModerationService.js';
 import { sendToUser } from './websocketService.js';
-import { config } from '../config.js';
 import { sanitizeError } from '../utils/sanitize.js';
 
 /** 最大重试次数（审核失败时） */
@@ -237,59 +237,6 @@ async function handleRetry(taskId: string, _reason: string): Promise<boolean> {
   retryCountMap.set(taskId, currentCount + 1);
   await memoirRepository.resetToPending(taskId);
   return true;
-}
-
-/**
- * 视频内容审核
- * 调用内容审核 API 检查生成视频是否合规
- * @returns 'pass' | 'review' | 'block'
- */
-async function moderateVideo(videoUrl: string): Promise<'pass' | 'review' | 'block'> {
-  const apiKey = config.moderate?.apiKey;
-  if (!apiKey) {
-    console.warn('[MemoirProcessor] Content moderation API not configured, defaulting to pass');
-    return 'pass';
-  }
-
-  try {
-    // 调用内容审核 API（复用 themeSuiteService 中的审核逻辑）
-    // 此处使用视频审核接口，与图片审核类似
-    const response = await fetch('https://api.volcengine.com/v2/video/scan', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        video_urls: [videoUrl],
-        scenes: ['porn', 'terrorism', 'political', 'ad'],
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('[MemoirProcessor] Moderation API error: status', response.status);
-      return 'review';
-    }
-
-    const data = (await response.json()) as {
-      results?: Array<{ scene: string; suggestion: 'pass' | 'review' | 'block' }>;
-    };
-
-    if (!data.results || data.results.length === 0) {
-      console.warn('[MemoirProcessor] Moderation API returned empty results, defaulting to review');
-      return 'review';
-    }
-
-    const hasBlock = data.results.some((r) => r.suggestion === 'block');
-    const hasReview = data.results.some((r) => r.suggestion === 'review');
-
-    if (hasBlock) return 'block';
-    if (hasReview) return 'review';
-    return 'pass';
-  } catch (error) {
-    console.error('[MemoirProcessor] Moderation call failed:', sanitizeError(error));
-    return 'review';
-  }
 }
 
 /**

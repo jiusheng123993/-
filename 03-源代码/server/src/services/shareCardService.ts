@@ -5,6 +5,7 @@
  * 骨架阶段：card_url 使用 mock URL，card_data 存储请求的 source_data 和 style
  */
 import crypto from 'crypto';
+import { config } from '../config.js';
 import {
   ShareCardRepository,
   type ShareCardRow,
@@ -88,8 +89,8 @@ function buildMockCardData(
 
 /**
  * 生成分享卡片
- * - 构造 mock card_data
- * - 构造 mock card_url（用 crypto.randomUUID() 生成唯一 id）
+ * - 构造 card_data
+ * - 构造 card_url（基于 publicBaseUrl 生成，未配置时返回相对路径）
  * - 插入记录，share_count=0, share_channel=null
  */
 export async function generateCard(
@@ -98,7 +99,8 @@ export async function generateCard(
 ): Promise<ShareCardRow> {
   const cardId = crypto.randomUUID();
   const cardData = buildMockCardData(data.card_type, data.source_data, data.style);
-  const cardUrl = `https://placeholder.example.com/card/${cardId}.png`;
+  const base = config.publicBaseUrl || '';
+  const cardUrl = base ? `${base}/share-cards/${cardId}.png` : `/share-cards/${cardId}.png`;
 
   return shareCardRepository.insertCard({
     user_id: userId,

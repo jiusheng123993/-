@@ -1,10 +1,18 @@
 /**
  * 年度回忆图集业务服务层 - 编排年度回忆的核心业务逻辑
- * 职责：归属校验、年份唯一性检查、创建草稿、查询详情、列表分页、更新、视频生成占位
- * 骨架阶段不实现真实视频生成，仅创建任务并标记 status
+ * 职责：归属校验、年份唯一性检查、创建草稿、查询详情、列表分页、更新、视频生成
+ * 视频生成采用异步队列模式：提交任务后置 generating_video，异步调用视频生成服务，
+ * 内容审核通过后置 video_ready 并通过 WebSocket 通知用户，失败自动重试（最多 2 次）
  */
 import { YearlyReviewRepository, type YearlyReviewRow } from '../repositories/yearlyReviewRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
+import {
+  generateMemoirVideo,
+  type VideoProductLine,
+} from './videoGenerationService.js';
+import { moderateVideo } from './videoModerationService.js';
+import { sendToUser } from './websocketService.js';
+import { sanitizeError } from '../utils/sanitize.js';
 
 /** 创建年度回忆输入 */
 export interface CreateYearlyReviewInput {
@@ -86,6 +94,49 @@ function countPhotos(reviewData: Record<string, unknown> | null): number {
   }
   return total;
 }
+
+/**
+ * 从 review_data 提取全部照片 URL（sections[].photos 优先，custom_photos 兜底）
+ */
+function extractPhotos(reviewData: Record<string, unknown> | null): string[] {
+  if (!reviewData) return [];
+  const photos: string[] = [];
+
+  const sections = reviewData.sections;
+  if (Array.isArray(sections)) {
+    for (const section of sections) {
+      if (section && typeof section === 'object' && 'photos' in section) {
+        const sectionPhotos = (section as { photos?: unknown }).photos;
+        if (Array.isArray(sectionPhotos)) {
+          photos.push(...sectionPhotos.map(String).filter(Boolean));
+        }
+      }
+    }
+  }
+
+  if (photos.length === 0) {
+    const customPhotos = reviewData.custom_photos;
+    if (Array.isArray(customPhotos)) {
+      photos.push(...customPhotos.map(String).filter(Boolean));
+    }
+  }
+
+  return photos;
+}
+
+/**
+ * 根据照片数量选择视频产品线
+ * 8 张及以上走纪念 Vlog（叙事编排，最多 15 张），否则走日常回忆录（最多 3 张）
+ */
+function selectProductLine(photos: string[]): { productLine: VideoProductLine; sourcePhotos: string[] } {
+  if (photos.length >= 8) {
+    return { productLine: 'memorial', sourcePhotos: photos.slice(0, 15) };
+  }
+  return { productLine: 'daily', sourcePhotos: photos.slice(0, 3) };
+}
+
+/** 视频生成最大尝试次数（初始 1 次 + 重试 2 次） */
+const MAX_VIDEO_ATTEMPTS = 3;
 
 /**
  * 将数据行映射为详情响应
@@ -272,8 +323,11 @@ export async function updateYearlyReview(
 }
 
 /**
- * 生成年度视频（占位实现，仅标记状态为 generating_video）
- * 真实实现应通过异步任务队列处理
+ * 生成年度视频（异步队列模式）
+ * - 归属校验、状态校验
+ * - 提取照片素材并校验数量
+ * - 置状态为 generating_video（防重复触发）
+ * - 异步调用视频生成服务（不阻塞请求），完成后通过 WebSocket 通知
  */
 export async function generateYearlyVideo(
   userId: string,
@@ -298,14 +352,120 @@ export async function generateYearlyVideo(
     throw new YearlyReviewError(400, '草稿状态无法生成视频，请先完善内容');
   }
 
+  // 提取照片素材
+  const photos = extractPhotos(record.review_data);
+  if (photos.length === 0) {
+    throw new YearlyReviewError(400, '年度回忆暂无照片，请先补充照片后再生成视频');
+  }
+
   await yearlyReviewRepository.updateById(reviewId, {
     status: 'generating_video',
     updated_at: new Date().toISOString(),
   });
+
+  // 异步处理生成（fire-and-forget，不阻塞请求响应）
+  void processYearlyVideoGeneration(record, photos);
 
   return {
     id: reviewId,
     status: 'generating_video',
     message: '视频生成任务已提交，预计 5-10 分钟后完成',
   };
+}
+
+/**
+ * 异步处理年度视频生成
+ * - 选择产品线并调用视频生成服务
+ * - 内容审核（未配置审核 API 时降级通过）
+ * - 审核拒绝或生成失败自动重试（最多 2 次）
+ * - 最终成功置 video_ready、失败置 failed，均通过 WebSocket 通知用户
+ */
+async function processYearlyVideoGeneration(
+  record: YearlyReviewRow,
+  photos: string[],
+): Promise<void> {
+  const { productLine, sourcePhotos } = selectProductLine(photos);
+  let lastError = '';
+
+  try {
+    for (let attempt = 1; attempt <= MAX_VIDEO_ATTEMPTS; attempt++) {
+      try {
+        const result = await generateMemoirVideo({
+          taskId: record.id,
+          productLine,
+          sourcePhotos,
+          sourceText: null,
+          musicStyle: 'warm',
+          duration: null,
+          stylePreset: null,
+        });
+
+        // 内容审核
+        const moderationResult = await moderateVideo(result.videoUrl);
+        if (moderationResult === 'block') {
+          lastError = '内容审核未通过';
+          continue;
+        }
+        if (moderationResult === 'review') {
+          console.warn(`[YearlyReview] Video ${record.id} flagged for manual review`);
+        }
+
+        // 审核通过，标记完成
+        await yearlyReviewRepository.updateById(record.id, {
+          status: 'video_ready',
+          video_url: result.videoUrl,
+          updated_at: new Date().toISOString(),
+        });
+
+        notifyUser(record.user_id, {
+          type: 'yearly_video_ready',
+          reviewId: record.id,
+          videoUrl: result.videoUrl,
+        });
+        console.log(`[YearlyReview] Video ${record.id}: Completed successfully`);
+        return;
+      } catch (err) {
+        lastError = sanitizeError(err);
+        console.warn(`[YearlyReview] Video ${record.id} attempt ${attempt} failed:`, lastError);
+      }
+    }
+
+    // 重试次数用完，标记失败
+    await yearlyReviewRepository.updateById(record.id, {
+      status: 'failed',
+      updated_at: new Date().toISOString(),
+    });
+    notifyUser(record.user_id, {
+      type: 'yearly_video_failed',
+      reviewId: record.id,
+      reason: lastError || '视频生成失败',
+    });
+    console.error(`[YearlyReview] Video ${record.id}: Failed after max attempts`);
+  } catch (err) {
+    // 兜底：状态更新失败不影响进程，仅记录日志（防止异步 unhandled rejection）
+    console.error(`[YearlyReview] Video ${record.id} finalization failed:`, sanitizeError(err));
+  }
+}
+
+/**
+ * 通过 WebSocket 通知用户年度视频生成状态变更
+ */
+function notifyUser(
+  userId: string,
+  message: {
+    type: 'yearly_video_ready' | 'yearly_video_failed';
+    reviewId: string;
+    videoUrl?: string;
+    reason?: string;
+  },
+): void {
+  try {
+    sendToUser(userId, {
+      event: 'yearly_review_status',
+      data: message,
+    });
+  } catch (err) {
+    // WebSocket 通知失败不影响主流程，仅记录日志
+    console.warn(`[YearlyReview] WebSocket notify failed for user ${userId}:`, sanitizeError(err));
+  }
 }

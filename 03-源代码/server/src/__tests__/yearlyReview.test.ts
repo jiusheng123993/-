@@ -7,12 +7,29 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 
-const { mockPool } = vi.hoisted(() => {
+const { mockPool, mockGenerateMemoirVideo, mockModerateVideo, mockSendToUser } = vi.hoisted(() => {
   const pool = { query: vi.fn() };
-  return { mockPool: pool };
+  return {
+    mockPool: pool,
+    mockGenerateMemoirVideo: vi.fn(),
+    mockModerateVideo: vi.fn(),
+    mockSendToUser: vi.fn(),
+  };
 });
 
 vi.mock('../db.js', () => ({ pool: mockPool }));
+
+vi.mock('../services/videoGenerationService.js', () => ({
+  generateMemoirVideo: mockGenerateMemoirVideo,
+}));
+
+vi.mock('../services/videoModerationService.js', () => ({
+  moderateVideo: mockModerateVideo,
+}));
+
+vi.mock('../services/websocketService.js', () => ({
+  sendToUser: mockSendToUser,
+}));
 
 vi.mock('../config.js', () => ({
   config: {
@@ -98,6 +115,17 @@ const mockGeneratingRecord = {
 
 beforeEach(() => {
   mockPool.query.mockReset();
+  mockGenerateMemoirVideo.mockReset();
+  mockModerateVideo.mockReset();
+  mockSendToUser.mockReset();
+  // 默认：生成成功 + 审核通过
+  mockGenerateMemoirVideo.mockResolvedValue({
+    videoUrl: 'https://example.com/video.mp4',
+    previewUrl: 'https://example.com/preview.mp4',
+    actualDuration: 15,
+    engine: 'test-mock',
+  });
+  mockModerateVideo.mockResolvedValue('pass');
 });
 
 // ===== POST /api/pets/:petId/yearly-review - 创建年度回忆 =====
@@ -425,11 +453,12 @@ describe('PUT /api/pets/:petId/yearly-review/:reviewId - 更新', () => {
 
 // ===== POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成视频 =====
 describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成视频', () => {
-  it('completed 状态可生成视频', async () => {
+  it('completed 状态可生成视频（异步生成 + 审核通过 → video_ready）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 }) // find
-      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 }); // update
+      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 }) // update
+      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'video_ready', video_url: 'https://example.com/video.mp4' }], rowCount: 1 }); // async update
 
     const res = await request(createApp())
       .post('/api/pets/pet-001/yearly-review/review-002/generate-video');
@@ -438,6 +467,83 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
     expect(res.body.success).toBe(true);
     expect(res.body.data.status).toBe('generating_video');
     expect(res.body.data.message).toContain('视频生成');
+
+    // 等待异步生成完成
+    await vi.waitFor(() => {
+      expect(mockGenerateMemoirVideo).toHaveBeenCalled();
+    });
+    // 2 张照片 → daily 产品线
+    expect(mockGenerateMemoirVideo).toHaveBeenCalledWith(
+      expect.objectContaining({ productLine: 'daily', sourcePhotos: expect.any(Array) }),
+    );
+    expect(mockModerateVideo).toHaveBeenCalled();
+    expect(mockSendToUser).toHaveBeenCalledWith(
+      'test-user-id',
+      expect.objectContaining({ event: 'yearly_review_status' }),
+    );
+  });
+
+  it('completed 但无照片返回 400', async () => {
+    const recordNoPhotos = {
+      ...mockCompletedRecord,
+      review_data: { ...mockDraftRecord.review_data }, // 无 sections / custom_photos
+    };
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [recordNoPhotos], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/yearly-review/review-002/generate-video');
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain('照片');
+    expect(mockGenerateMemoirVideo).not.toHaveBeenCalled();
+  });
+
+  it('内容审核拒绝时自动重试，最终标记失败并通知', async () => {
+    mockModerateVideo.mockResolvedValue('block');
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 }) // find
+      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 }) // update
+      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'failed' }], rowCount: 1 }); // async failed update
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/yearly-review/review-002/generate-video');
+
+    expect(res.status).toBe(200);
+
+    // 3 次尝试全部因审核拒绝而重试
+    await vi.waitFor(() => {
+      expect(mockGenerateMemoirVideo).toHaveBeenCalledTimes(3);
+    });
+    expect(mockModerateVideo).toHaveBeenCalledTimes(3);
+    expect(mockSendToUser).toHaveBeenCalledWith(
+      'test-user-id',
+      expect.objectContaining({ event: 'yearly_review_status', data: expect.objectContaining({ type: 'yearly_video_failed' }) }),
+    );
+  });
+
+  it('视频生成失败时自动重试，最终标记失败', async () => {
+    mockGenerateMemoirVideo.mockRejectedValue(new Error('Seedance API error'));
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'failed' }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/yearly-review/review-002/generate-video');
+
+    expect(res.status).toBe(200);
+
+    await vi.waitFor(() => {
+      expect(mockGenerateMemoirVideo).toHaveBeenCalledTimes(3);
+    });
+    expect(mockSendToUser).toHaveBeenCalledWith(
+      'test-user-id',
+      expect.objectContaining({ event: 'yearly_review_status', data: expect.objectContaining({ type: 'yearly_video_failed' }) }),
+    );
   });
 
   it('draft 状态无法生成视频返回 400', async () => {
