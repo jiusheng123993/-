@@ -85,6 +85,58 @@ const mockReport = {
   created_at: '2026-07-30T00:00:00.000Z',
 };
 
+/**
+ * buildRealReportData 5 个并行聚合查询的空结果（无任何当周数据）
+ * Promise.all 按数组顺序同步发起 query 调用，mock 顺序确定：
+ *   1. healthAgg   - COUNT(*) 总是返回一行（全 0），COALESCE(AVG, 0) 也为 0
+ *   2. symptomAgg  - COUNT(*) 返回一行 { count: 0 }
+ *   3. foodAgg     - COUNT(*) 返回一行 { count: 0 }
+ *   4. feedAgg     - COUNT(*) 返回一行（全 0）
+ *   5. bestDayAgg  - GROUP BY 无数据时返回空 rows
+ */
+const emptyHealthAgg = {
+  rows: [{
+    checkin_count: 0,
+    avg_poop: 0,
+    avg_appetite: 0,
+    avg_spirit: 0,
+    anomaly_count: 0,
+  }],
+  rowCount: 1,
+};
+const emptySymptomAgg = { rows: [{ count: 0 }], rowCount: 1 };
+const emptyFoodAgg = { rows: [{ count: 0 }], rowCount: 1 };
+const emptyFeedAgg = {
+  rows: [{
+    feed_count: 0,
+    new_moments: 0,
+    new_milestones: 0,
+    new_events: 0,
+    active_pets: 0,
+  }],
+  rowCount: 1,
+};
+const emptyBestDayAgg = { rows: [], rowCount: 0 };
+
+/**
+ * 为 generateReport 正常路径设置 8 次 query 的 mock 序列：
+ *   1. verifyFamilyOwnership → ownershipOk
+ *   2. findExisting          → 不存在（空）
+ *   3-7. buildRealReportData → 5 个空聚合结果
+ *   8. insertReport          → 返回 mockReport
+ */
+function mockGenerateReportSuccess() {
+  mockPool.query
+    .mockResolvedValueOnce(ownershipOk)        // 1. verifyFamilyOwnership
+    .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // 2. findExisting (not exists)
+    .mockResolvedValueOnce(emptyHealthAgg)     // 3. healthAgg
+    .mockResolvedValueOnce(emptySymptomAgg)    // 4. symptomAgg
+    .mockResolvedValueOnce(emptyFoodAgg)       // 5. foodAgg
+    .mockResolvedValueOnce(emptyFeedAgg)       // 6. feedAgg
+    .mockResolvedValueOnce(emptyBestDayAgg)    // 7. bestDayAgg
+    .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 }); // 8. insertReport
+}
+
 beforeEach(() => {
   // mockReset 清除 mock 队列（含 mockResolvedValueOnce 残留），避免测试间污染
   mockPool.query.mockReset();
@@ -341,10 +393,7 @@ describe('GET /api/families/:id/weekly-reports/:reportId - 获取周报详情', 
 // ===== POST /api/families/:id/weekly-reports/generate - 手动生成周报 =====
 describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', () => {
   it('正常生成周报（返回 201）', async () => {
-    mockPool.query
-      .mockResolvedValueOnce(ownershipOk)                              // verifyFamilyOwnership
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                // findExisting (not exists)
-      .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 });     // insertReport
+    mockGenerateReportSuccess();
 
     const res = await request(createApp())
       .post('/api/families/family-001/weekly-reports/generate');
@@ -356,11 +405,8 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', 
     expect(res.body.data.share_card_url).toBeNull();
   });
 
-  it('生成的周报包含 mock report_data 结构', async () => {
-    mockPool.query
-      .mockResolvedValueOnce(ownershipOk)
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 });
+  it('生成的周报 report_data 来自真实聚合（空数据时为全 0 结构）', async () => {
+    mockGenerateReportSuccess();
 
     const res = await request(createApp())
       .post('/api/families/family-001/weekly-reports/generate');
@@ -388,10 +434,7 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', 
   });
 
   it('生成时检查同周是否已存在', async () => {
-    mockPool.query
-      .mockResolvedValueOnce(ownershipOk)
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 });
+    mockGenerateReportSuccess();
 
     await request(createApp())
       .post('/api/families/family-001/weekly-reports/generate');
@@ -405,16 +448,14 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', 
   });
 
   it('插入时 report_data 使用 JSON.stringify', async () => {
-    mockPool.query
-      .mockResolvedValueOnce(ownershipOk)
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [mockReport], rowCount: 1 });
+    mockGenerateReportSuccess();
 
     await request(createApp())
       .post('/api/families/family-001/weekly-reports/generate');
 
     // insert 查询参数中 report_data 应为字符串（JSON.stringify 后）
-    const insertCall = mockPool.query.mock.calls[2];
+    // 第 8 次调用（索引 7）为 insertReport
+    const insertCall = mockPool.query.mock.calls[7];
     const params = insertCall[1] as unknown[];
     // 找到 report_data 参数（第 4 个：family_id, year, week_number, report_data, ai_insight, share_card_url）
     const reportDataParam = params[3];
@@ -424,6 +465,29 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', 
     expect(parsed.health).toBeDefined();
     expect(parsed.activities).toBeDefined();
     expect(parsed.family).toBeDefined();
+  });
+
+  it('真实聚合调用 5 个并行查询（healthAgg/symptomAgg/foodAgg/feedAgg/bestDayAgg）', async () => {
+    mockGenerateReportSuccess();
+
+    await request(createApp())
+      .post('/api/families/family-001/weekly-reports/generate');
+
+    // 索引 2-6 为 buildRealReportData 的 5 个并行聚合查询
+    const aggCalls = mockPool.query.mock.calls.slice(2, 7);
+    // healthAgg：FROM pet_health_entries JOIN pet_family_members
+    expect(aggCalls[0][0]).toContain('pet_health_entries');
+    expect(aggCalls[0][0]).toContain('pet_family_members');
+    expect(aggCalls[0][0]).toContain('checkin_count');
+    // symptomAgg：FROM pet_symptom_checks JOIN pet_family_members
+    expect(aggCalls[1][0]).toContain('pet_symptom_checks');
+    // foodAgg：FROM pet_food_queries JOIN pet_families
+    expect(aggCalls[2][0]).toContain('pet_food_queries');
+    expect(aggCalls[2][0]).toContain('pet_families');
+    // feedAgg：FROM pet_family_feeds
+    expect(aggCalls[3][0]).toContain('pet_family_feeds');
+    // bestDayAgg：GROUP BY day
+    expect(aggCalls[4][0]).toContain('GROUP BY day');
   });
 
   it('同周已存在返回 409', async () => {

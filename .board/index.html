@@ -771,7 +771,532 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
 <div class="card-title">📜 历史时间线</div>
 <div class="timeline">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="tl-item done" data-diff="2026-07-29T16-18-09-修正空镜BGM选曲-去除阴森感.diff">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <div class="tl-item done" data-diff="2026-07-31T03-25-13-修复前端测试失败与TS编译错误.diff">
+            <div class="tl-time">2026-07-31 11:25</div>
+            <div class="tl-title">修复前端测试失败与TS编译错误</div>
+            <div class="tl-desc">修复food-query/trends测试断言、补充Taro mock缺失的login/getRecorderManager、修复authGuard/storage mock缺失storage导出、useAnxietyDetection固定日期改为相对日期、calcAge时区溢出修复、namingService max_tokens断言、analyticsService队列阈值断言、happy-path-4响应结构对齐；全量2626测试通过、tsc零错误</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/test/setup.ts, 03-源代码/小程序/miniapp/src/pagesPet/food-query/__tests__/index.test.tsx, 03-源代码/小程序/miniapp/src/__e2e__/security-audit.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T03-25-13-修复前端测试失败与TS编译错误.diff', '修复前端测试失败与TS编译错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-31T03-04-52-周报真实数据聚合.diff">
+            <div class="tl-time">2026-07-31 11:04</div>
+            <div class="tl-title">周报真实数据聚合</div>
+            <div class="tl-desc">weeklyReportService.generateReport 改为调用 buildRealReportData，并行执行 5 个聚合查询（健康打卡/症状/食物查询/家庭动态/最佳一天）从真实数据生成 report_data；新增 getWeekDateRange ISO 周起止计算；调整 weeklyReports.test.ts mock 序列适配 8 次 query 调用链，新增聚合查询验证用例；全量 622 测试通过，tsc 零错误。</div>
+            <div class="tl-file">03-源代码/server/src/services/weeklyReportService.ts, 03-源代码/server/src/__tests__/weeklyReports.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T03-04-52-周报真实数据聚合.diff', '周报真实数据聚合')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-31T02-50-01-支付集成测试修复-全量测试通过.diff">
+            <div class="tl-time">2026-07-31 10:50</div>
+            <div class="tl-title">支付集成测试修复+全量测试通过</div>
+            <div class="tl-desc">修复 payment.test.ts 微信回调测试：createApp 添加 verify 钩子捕获 rawBody（与 index.ts 一致），修复 mock 订单 id 与动态 orderId 不匹配问题。重写 membership.test.ts /subscribe 测试块匹配 v2 支付流程响应（返回支付参数而非直接激活会员），改用 mockReset 防止 mockResolvedValueOnce 队列泄漏，补充 wechatPay mock 配置。全量 621 测试通过，TypeScript 编译零错误。</div>
+            <div class="tl-file">03-源代码/server/src/__tests__/payment.test.ts, 03-源代码/server/src/__tests__/membership.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T02-50-01-支付集成测试修复-全量测试通过.diff', '支付集成测试修复+全量测试通过')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-31T02-37-08-对接火山方舟Seedance真实视频生成API.diff">
+            <div class="tl-time">2026-07-31 10:37</div>
+            <div class="tl-title">对接火山方舟Seedance真实视频生成API</div>
+            <div class="tl-desc">创建seedanceAdapter封装视频生成API，videoGenerationService接入真实图生视频+ffmpeg拼接+BGM+预览，修复前后端回忆录接口契约不一致，修复bell_small.svg语法错误和membershipRepository编译错误</div>
+            <div class="tl-file">server/src/adapters/seedanceAdapter.ts, server/src/services/videoGenerationService.ts, server/src/config.ts, miniapp/src/pagesPet/memoir-daily, miniapp/src/pagesPet/memoir-vlog</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T02-37-08-对接火山方舟Seedance真实视频生成API.diff', '对接火山方舟Seedance真实视频生成API')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-31T02-25-55-提交代码-时光页面-回忆录页面.diff">
+            <div class="tl-time">2026-07-31 10:25</div>
+            <div class="tl-title">提交代码-时光页面+回忆录页面</div>
+            <div class="tl-desc">提交518个文件改动：时光页面固定功能区重构、日常回忆录/纪念Vlog两个独立页面、全量代码注释标准化、后端Repository模式迁移</div>
+            <div class="tl-file">src/pages/timeline, src/pagesPet/memoir-daily, src/pagesPet/memoir-vlog, server/src</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T02-25-55-提交代码-时光页面-回忆录页面.diff', '提交代码-时光页面+回忆录页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T18-38-31-全量同步代码到服务器-彻底修复500错误.diff">
+            <div class="tl-time">2026-07-31 02:38</div>
+            <div class="tl-title">全量同步代码到服务器-彻底修复500错误</div>
+            <div class="tl-desc">诊断:服务器代码严重滞后(routes 17个/本地24个, repositories 2个/本地26个, schemas 不存在),导致旧版 families.ts 用 fam_001 字符串触发 UUID 类型错误。修复:(1) 备份服务器现有代码到 src.bak.20260731_023529;(2) 全量同步 server/src + migrations + package.json + ecosystem.config.cjs + tsconfig.json + vitest.config.ts;(3) 服务器执行 npm install(含 devDependencies,因为 ecosystem.config.cjs 用 --import tsx 启动,需要 tsx);(4) pm2 restart 后遇到 ERR_MODULE_NOT_FOUND,修复方法是不用 --production;(5) 修复表权限:GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO xinghuanhai + ALTER DEFAULT PRIVILEGES;(6) 验证 health 200 OK,POST /api/timeline/moments 返回 401(未认证,正常),不再是 500。强化 schemas/index.ts: createTimelineEventSchema 的 type 改为枚举白名单, content 改为 z.record, photos 限制为 string 数组+max(9)。561/561 测试通过。</div>
+            <div class="tl-file">03-源代码/server/src/schemas/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T18-38-31-全量同步代码到服务器-彻底修复500错误.diff', '全量同步代码到服务器-彻底修复500错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T18-22-18-回忆录模块会员配额校验与异步处理器接入.diff">
+            <div class="tl-time">2026-07-31 02:22</div>
+            <div class="tl-title">回忆录模块会员配额校验与异步处理器接入</div>
+            <div class="tl-desc">1. 更新 createMemoirSchema 使用 superRefine 按 memoir_type 差异化校验照片数量（daily 1-3张，memorial 8-15张）和时长（daily 5-30秒，memorial 60-90秒）。2. 在 memoirRepository 新增 countMonthlyDailyMemoirsByUser 方法用于查询用户当月日常回忆录数量（会员配额校验）。3. 增强 memoirService.ts：新增 resolveUserTier 判断会员有效性（过期视为非会员）、validateProductLineParams 校验产品线参数、validateMembershipQuota 校验会员配额与付费要求（日常回忆录会员每月免费3次超出9.9元/次，非会员9.9元/次；纪念Vlog会员99元/次，非会员149元/次）；新增 MemoirBusinessError 错误类携带错误码（PAYMENT_REQUIRED/CONCURRENT_TASK）和额外信息（price/productLine/tier）。4. 更新 memoir 路由 handleServiceError 处理 MemoirBusinessError 返回错误码和额外信息。5. 在 index.ts 启动回忆录任务处理器（startMemoirProcessor），并在 SIGTERM/SIGINT 时停止处理器。6. 重写 memoir.test.ts 测试文件：新增会员配额校验测试用例（会员配额内创建成功、非会员付费、会员配额用完付费、纪念Vlog会员/非会员付费、会员过期视为非会员）、产品线参数校验测试用例（日常照片超3张、纪念Vlog照片不足8张/超15张、时长超范围）。全部 570 测试通过，TypeScript 零错误。</div>
+            <div class="tl-file">src/schemas/index.ts, src/repositories/memoirRepository.ts, src/services/memoirService.ts, src/routes/memoir.ts, src/index.ts, src/__tests__/memoir.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T18-22-18-回忆录模块会员配额校验与异步处理器接入.diff', '回忆录模块会员配额校验与异步处理器接入')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T14-16-51-Fix5--补全-Zod-校验与修复测试.diff">
+            <div class="tl-time">2026-07-30 22:16</div>
+            <div class="tl-title">Fix5: 补全 Zod 校验与修复测试</div>
+            <div class="tl-desc">1. 修复 trends.test.ts 和 checkins.test.ts 的 mock 泄漏问题（clearAllMocks→mockReset）；2. 更新 3 个测试用例匹配新 schema（days=500/-10/invalid 返回 400）；3. 修复 9 处 req.query 类型转换错误（as number→as unknown as number）；4. vaccines.ts reminder 路由改用 vaccineReminderSchema；5. pets.ts deceased 路由新增 petDeceasedSchema 校验。561/561 测试通过，TS 编译零错误。</div>
+            <div class="tl-file">src/__tests__/trends.test.ts, src/__tests__/checkins.test.ts, src/routes/trends.ts, src/routes/checkins.ts, src/routes/agentRouter.ts, src/routes/families.ts, src/routes/memoir.ts, src/routes/symptoms.ts, src/routes/timeline.ts, src/routes/vaccines.ts, src/routes/pets.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T14-16-51-Fix5--补全-Zod-校验与修复测试.diff', 'Fix5: 补全 Zod 校验与修复测试')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-47-37-Fix5--迁移7个路由文件到Repository模式.diff">
+            <div class="tl-time">2026-07-30 21:47</div>
+            <div class="tl-title">Fix5: 迁移7个路由文件到Repository模式</div>
+            <div class="tl-desc">创建5个新Repository（Vaccine/Checkin/Symptom/Trend/Timeline/PetFact）；重构7个路由文件消除直连SQL（vaccines/checkins/symptoms/trends/timeline/ai/agentRouter）；修复BaseRepository.countWhere类型转换；PetRepository新增findWeightByIdAndUser和findFirstByUser方法；561/561测试通过</div>
+            <div class="tl-file">src/repositories/vaccineRepository.ts, src/repositories/checkinRepository.ts, src/repositories/symptomRepository.ts, src/repositories/trendRepository.ts, src/repositories/timelineRepository.ts, src/repositories/petFactRepository.ts, src/repositories/baseRepository.ts, src/repositories/petRepository.ts, src/routes/vaccines.ts, src/routes/checkins.ts, src/routes/symptoms.ts, src/routes/trends.ts, src/routes/timeline.ts, src/routes/ai.ts, src/routes/agentRouter.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-47-37-Fix5--迁移7个路由文件到Repository模式.diff', 'Fix5: 迁移7个路由文件到Repository模式')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-42-45-视频回忆录入口-两个独立页面.diff">
+            <div class="tl-time">2026-07-30 21:42</div>
+            <div class="tl-title">视频回忆录入口+两个独立页面</div>
+            <div class="tl-desc">完成时光页面重构：固定头部+三功能入口(年度回忆/日常回忆录/纪念Vlog)；创建日常回忆录页面(4步骤：选照片→选风格→Canvas预览→生成)；创建纪念Vlog页面(5步骤：选照片→写叙事→选BGM→确认支付→生成)</div>
+            <div class="tl-file">src/pages/timeline/index.tsx, src/pages/timeline/index.scss, src/app.config.ts, src/pagesPet/memoir-daily/index.tsx, src/pagesPet/memoir-daily/index.scss, src/pagesPet/memoir-daily/index.config.ts, src/pagesPet/memoir-vlog/index.tsx, src/pagesPet/memoir-vlog/index.scss, src/pagesPet/memoir-vlog/index.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-42-45-视频回忆录入口-两个独立页面.diff', '视频回忆录入口+两个独立页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-40-43-创建纪念Vlog页面.diff">
+            <div class="tl-time">2026-07-30 21:40</div>
+            <div class="tl-title">创建纪念Vlog页面</div>
+            <div class="tl-desc">在Taro小程序中创建了memoir-vlog页面，包含5步流程：选照片(5-15张)→写叙事文字→选BGM→确认支付(会员¥99/非会员¥149)→生成结果。轻奢紫金风格，使用组合式API(hooks)。</div>
+            <div class="tl-file">src/pagesPet/memoir-vlog/index.tsx, src/pagesPet/memoir-vlog/index.scss, src/pagesPet/memoir-vlog/index.config.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-40-43-创建纪念Vlog页面.diff', '创建纪念Vlog页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-38-56-Fix4--抽出PetRepository统一宠物归属校验.diff">
+            <div class="tl-time">2026-07-30 21:38</div>
+            <div class="tl-title">Fix4: 抽出PetRepository统一宠物归属校验</div>
+            <div class="tl-desc">消除9处重复verifyPetOwnership直连SQL；新增PetRepository（isOwner/findNameAndAvatar/existsInFamily）；重构10个文件（5个Service+5个Route）使用统一Repository；修复schemas/index.ts z.record类型错误；561/561测试通过</div>
+            <div class="tl-file">src/repositories/petRepository.ts, src/schemas/index.ts, src/services/leaderboardService.ts, src/services/familyTreeService.ts, src/services/feedService.ts, src/services/memoirService.ts, src/services/yearlyReviewService.ts, src/routes/checkins.ts, src/routes/symptoms.ts, src/routes/trends.ts, src/routes/vaccines.ts, src/routes/families.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-38-56-Fix4--抽出PetRepository统一宠物归属校验.diff', 'Fix4: 抽出PetRepository统一宠物归属校验')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-38-50-创建日常回忆录页面.diff">
+            <div class="tl-time">2026-07-30 21:38</div>
+            <div class="tl-title">创建日常回忆录页面</div>
+            <div class="tl-desc">在 pagesPet/memoir-daily 中创建日常回忆录页面：包含选照片（最多3张）、选风格（4种预设）、Canvas Ken Burns 预览、结果展示四步流程，调用后端API生成回忆录</div>
+            <div class="tl-file">src/pagesPet/memoir-daily/index.config.ts, src/pagesPet/memoir-daily/index.scss, src/pagesPet/memoir-daily/index.tsx</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-38-50-创建日常回忆录页面.diff', '创建日常回忆录页面')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-38-48-修复添加回忆500错误-补建pet_moments表.diff">
+            <div class="tl-time">2026-07-30 21:38</div>
+            <div class="tl-title">修复添加回忆500错误-补建pet_moments表</div>
+            <div class="tl-desc">诊断:POST /api/timeline/moments 报500,根因是 migrate.ts 指向不存在的 04-数据库/postgres/init.sql,导致 007_pet_moments.sql 从未执行,服务器缺 pet_moments 表。修复:(1) 服务器执行 007_pet_moments.sql 创建 pet_moments 表+4索引;(2) 上传 006/008 migration 并执行,补建 pet_food_safety_knowledge 表;(3) 重写 migrate.ts 改为扫描 migrations 目录所有 SQL 文件按序执行,单个失败不阻塞,兼容旧 init.sql 路径;(4) 验证 health 200 OK。同时发现服务器代码版本严重滞后(families.ts 还有 verifyFamilyOwnership 直接 SQL,本地已迁移到 FamilyRepository),pet_family_members 表也缺失,需单独处理。</div>
+            <div class="tl-file">03-源代码/server/src/migrate.ts, 03-源代码/server/migrations/007_pet_moments.sql</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-38-48-修复添加回忆500错误-补建pet_moments表.diff', '修复添加回忆500错误-补建pet_moments表')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T13-36-54-Fix4完成-抽出PetRepository消除9处重复ve.diff">
+            <div class="tl-time">2026-07-30 21:36</div>
+            <div class="tl-title">Fix4完成:抽出PetRepository消除9处重复verifyPetOwnership</div>
+            <div class="tl-desc">1)修复schemas/index.ts:311 z.record(z.unknown())类型错误,改为z.record(z.string(),z.unknown()),TypeScript编译零错误。2)新建PetRepository(isOwner/findNameAndAvatar/existsInFamily),统一宠物归属校验,消除9处重复的verifyPetOwnership本地函数。3)重构10个文件:families.ts(1处)、memoirService(5处)、yearlyReviewService(5处)、familyTreeService(4处verifyPetOwnership+7处verifyFamilyOwnership)、feedService(1处verifyPetOwnership+5处verifyFamilyOwnership)、leaderboardService(verifyPetInFamily改用petRepository.isOwner+familyMemberRepository.isMember,fetchPetInfo改用petRepository.findNameAndAvatar,5处verifyFamilyOwnership)、checkins(3处)、symptoms(2处)、trends(2处)、vaccines(2处)。全部561/561测试通过,TypeScript零错误。</div>
+            <div class="tl-file">03-源代码/server/src/schemas/index.ts, 03-源代码/server/src/repositories/petRepository.ts, 03-源代码/server/src/routes/families.ts, 03-源代码/server/src/routes/checkins.ts, 03-源代码/server/src/routes/symptoms.ts, 03-源代码/server/src/routes/trends.ts, 03-源代码/server/src/routes/vaccines.ts, 03-源代码/server/src/services/memoirService.ts, 03-源代码/server/src/services/yearlyReviewService.ts, 03-源代码/server/src/services/familyTreeService.ts, 03-源代码/server/src/services/feedService.ts, 03-源代码/server/src/services/leaderboardService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T13-36-54-Fix4完成-抽出PetRepository消除9处重复ve.diff', 'Fix4完成:抽出PetRepository消除9处重复verifyPetOwnership')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T11-42-31-Fix3完成-families-food迁移到Reposit.diff">
+            <div class="tl-time">2026-07-30 19:42</div>
+            <div class="tl-title">Fix3完成:families/food迁移到Repository模式</div>
+            <div class="tl-desc">将families.ts和food.ts路由中的直连SQL迁移到Repository层:1)增强FamilyRepository(isOwner/isMember改用findOneWhere避免COUNT聚合,新增updateByIdAndUser/deleteByIdAndUser带归属校验的更新删除方法);2)重构families.ts全部9个路由使用FamilyRepository和FamilyMemberRepository,移除verifyFamilyOwnership改用familyRepository.isOwner;3)新建FoodRepository(searchByKeyword/insertPlaceholder/findHistoryByUser/countByUser/countTodayByUser);4)重构food.ts全部4个路由使用FoodRepository,/stats改用Promise.all并行查询优化性能。全部561/561测试通过,TypeScript类型检查无新增错误。</div>
+            <div class="tl-file">03-源代码/server/src/repositories/familyRepository.ts, 03-源代码/server/src/repositories/foodRepository.ts, 03-源代码/server/src/routes/families.ts, 03-源代码/server/src/routes/food.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T11-42-31-Fix3完成-families-food迁移到Reposit.diff', 'Fix3完成:families/food迁移到Repository模式')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T11-25-16-Phase1-5分享卡片-家族图谱模块完成.diff">
+            <div class="tl-time">2026-07-30 19:25</div>
+            <div class="tl-title">Phase1.5分享卡片+家族图谱模块完成</div>
+            <div class="tl-desc">新增两个模块完整骨架(502/502测试通过):[分享卡片]1表5路由41测试:share_cards表+generateShareCardSchema+ShareCardRepository+ShareCardService+5API(生成/列表/详情/删除/分享记录)+归属防护404不泄露存在性。[家族图谱]4表8路由42测试:pet_relationships/pet_lineage(已存在用DOALTER补字段)/pet_family_graph_snapshots/pet_roles+5个schema+3个Repository+FamilyTreeService(防循环5层BFS)+8API(图谱/关系CRUD/血缘/血亲树/快照)+42测试用例。</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, src/schemas/index.ts, src/repositories/shareCardRepository.ts, src/services/shareCardService.ts, src/routes/shareCards.ts, src/repositories/relationshipRepository.ts, src/repositories/lineageRepository.ts, src/repositories/snapshotRepository.ts, src/services/familyTreeService.ts, src/routes/familyTree.ts, src/index.ts, src/__tests__/shareCards.test.ts, src/__tests__/familyTree.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T11-25-16-Phase1-5分享卡片-家族图谱模块完成.diff', 'Phase1.5分享卡片+家族图谱模块完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T11-16-40-完成-Phase-1-5-分享卡片模块骨架.diff">
+            <div class="tl-time">2026-07-30 19:16</div>
+            <div class="tl-title">完成 Phase 1.5 分享卡片模块骨架</div>
+            <div class="tl-desc">新增分享卡片模块：数据库表 share_cards、3个 Zod Schema、ShareCardRepository、ShareCardService、5个路由（generate/列表/详情/删除/share）、41个测试。全量 460/460 通过。</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, 03-源代码/server/src/schemas/index.ts, 03-源代码/server/src/repositories/shareCardRepository.ts, 03-源代码/server/src/services/shareCardService.ts, 03-源代码/server/src/routes/shareCards.ts, 03-源代码/server/src/index.ts, 03-源代码/server/src/__tests__/shareCards.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T11-16-40-完成-Phase-1-5-分享卡片模块骨架.diff', '完成 Phase 1.5 分享卡片模块骨架')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T09-33-25-Phase1-5家庭周报模块完成.diff">
+            <div class="tl-time">2026-07-30 17:33</div>
+            <div class="tl-title">Phase1.5家庭周报模块完成</div>
+            <div class="tl-desc">新增家庭周报模块完整骨架(419/419测试通过,新增25测试):1)数据库pet_family_weekly_reports表+UNIQUE约束+索引 2)weeklyReportQuerySchema(Zod分页+年份过滤) 3)WeeklyReportRepository(继承BaseRepository,JSONB处理) 4)WeeklyReportService(归属校验+ISO周计算+同周409+mock数据) 5)4个API路由(列表/最新/生成/详情) 6)25个测试用例。路由顺序:latest/generate在:reportId前。P1遗留:并发生成可能23505错误(骨架可接受)。</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, src/schemas/index.ts, src/repositories/weeklyReportRepository.ts, src/services/weeklyReportService.ts, src/routes/weeklyReports.ts, src/index.ts, src/__tests__/weeklyReports.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T09-33-25-Phase1-5家庭周报模块完成.diff', 'Phase1.5家庭周报模块完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T09-26-24-Phase1-5家庭动态墙模块完成.diff">
+            <div class="tl-time">2026-07-30 17:26</div>
+            <div class="tl-title">Phase1.5家庭动态墙模块完成</div>
+            <div class="tl-desc">新增家庭动态墙模块完整骨架(394/394测试通过,新增33测试):1)数据库pet_family_feeds表+2索引 2)createFeedSchema/updateFeedSchema/feedQuerySchema(Zod校验) 3)FeedRepository(继承BaseRepository,LEFT JOIN获取宠物信息) 4)FeedService(归属校验+404/403区分+精选动态30天过滤) 5)5个API路由(列表/创建/编辑/删除/精选) 6)33个测试用例。路由顺序:highlight在/:feeds之前避免冲突。</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, src/schemas/index.ts, src/repositories/feedRepository.ts, src/services/feedService.ts, src/routes/feeds.ts, src/index.ts, src/__tests__/feeds.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T09-26-24-Phase1-5家庭动态墙模块完成.diff', 'Phase1.5家庭动态墙模块完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T09-14-07-P1风险全部解决-所有路由启用validate.diff">
+            <div class="tl-time">2026-07-30 17:14</div>
+            <div class="tl-title">P1风险全部解决-所有路由启用validate</div>
+            <div class="tl-desc">全部7个路由(checkins/vaccines/symptoms/timeline/membership/pets/ai)已启用validate中间件,schema已修正为snake_case匹配路由代码。361/361测试全部通过。P1风险清零。Fix2 Zod校验补充工作完整完成。</div>
+            <div class="tl-file">src/schemas/index.ts, src/routes/checkins.ts, src/routes/vaccines.ts, src/routes/symptoms.ts, src/routes/timeline.ts, src/routes/membership.ts, src/routes/pets.ts, src/routes/ai.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T09-14-07-P1风险全部解决-所有路由启用validate.diff', 'P1风险全部解决-所有路由启用validate')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-50-28-Phase1-5回忆录模块骨架完成.diff">
+            <div class="tl-time">2026-07-30 16:50</div>
+            <div class="tl-title">Phase1.5回忆录模块骨架完成</div>
+            <div class="tl-desc">新增回忆录模块完整骨架(361/361测试通过):1)数据库pet_memoir_records表+2索引 2)createMemoirSchema(Zod校验8-15张照片) 3)MemoirRepository(继承BaseRepository,参数化查询) 4)MemoirService(归属校验+并发检查+状态约束,视频生成为mock) 5)5个API路由(创建/状态/列表/删除/预览,全用authMiddleware+validate) 6)20个测试用例(覆盖正常/异常/边界/越权)。修正了schemas/index.ts中所有schema为snake_case匹配路由代码。P1遗留:checkins/vaccines等7个路由schema已修正但未启用validate(手动校验保留,安全性不受影响)。</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, src/schemas/index.ts, src/repositories/memoirRepository.ts, src/services/memoirService.ts, src/routes/memoir.ts, src/index.ts, src/__tests__/memoir.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-50-28-Phase1-5回忆录模块骨架完成.diff', 'Phase1.5回忆录模块骨架完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-48-58-Phase-1-5-宠物回忆录模块骨架完成.diff">
+            <div class="tl-time">2026-07-30 16:48</div>
+            <div class="tl-title">Phase 1.5 宠物回忆录模块骨架完成</div>
+            <div class="tl-desc">新增 pet_memoir_records 表、createMemoirSchema、MemoirRepository、memoirService、memoir 路由、20 个集成测试。全部 361 测试通过（341 基线 + 20 新增）。关键修正：pet_id 用 TEXT 类型匹配 pet_profiles.id。</div>
+            <div class="tl-file">04-数据库/postgres/init.sql, 03-源代码/server/src/schemas/index.ts, 03-源代码/server/src/repositories/memoirRepository.ts, 03-源代码/server/src/services/memoirService.ts, 03-源代码/server/src/routes/memoir.ts, 03-源代码/server/src/index.ts, 03-源代码/server/src/__tests__/memoir.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-48-58-Phase-1-5-宠物回忆录模块骨架完成.diff', 'Phase 1.5 宠物回忆录模块骨架完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-38-23-Fix2-Zod校验进展-schema修正.diff">
+            <div class="tl-time">2026-07-30 16:38</div>
+            <div class="tl-title">Fix2 Zod校验进展+schema修正</div>
+            <div class="tl-desc">已完成: families.ts和food.ts启用Zod校验(341/341通过)。子Agent修正了schemas/index.ts中所有schema定义(字段名改为snake_case匹配路由代码)。P1风险: checkins/vaccines/symptoms/timeline/membership/pets/ai路由尚未启用validate中间件(手动校验仍保留,安全性不受影响,但未达到Zod统一校验目标)。原因: 启用validate需逐个处理测试mock残留问题。决策: 记录P1风险,继续推进Phase1.5新模块(新模块直接用正确schema设计)。</div>
+            <div class="tl-file">src/schemas/index.ts, src/middleware/validate.ts, src/routes/families.ts, src/routes/food.ts, src/__tests__/families.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-38-23-Fix2-Zod校验进展-schema修正.diff', 'Fix2 Zod校验进展+schema修正')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-36-27-修复-image2DService-test-ts-fetc.diff">
+            <div class="tl-time">2026-07-30 16:36</div>
+            <div class="tl-title">修复 image2DService.test.ts fetch mock 类型错误</div>
+            <div class="tl-desc">修复 src/services/image2DService.test.ts 中 4 个 TypeScript 编译错误：1) 将 global.fetch = mockFetch 改为 vi.stubGlobal('fetch', mockFetch) 避免 Response 类型不匹配；2) 为 429/500 错误响应 mock 添加 json 方法保持返回类型一致；3) 添加 afterEach 调用 vi.unstubAllGlobals() 清理全局 stub。最终测试 341/341 通过，tsc --noEmit 零错误。</div>
+            <div class="tl-file">src/services/image2DService.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-36-27-修复-image2DService-test-ts-fetc.diff', '修复 image2DService.test.ts fetch mock 类型错误')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-29-07-记忆引擎业务场景联动完成.diff">
+            <div class="tl-time">2026-07-30 16:29</div>
+            <div class="tl-title">记忆引擎业务场景联动完成</div>
+            <div class="tl-desc">食物查询/喂养记录/健康打卡3个页面自动与记忆适配器联动，AI对话已有记忆注入</div>
+            <div class="tl-file">3 files</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-29-07-记忆引擎业务场景联动完成.diff', '记忆引擎业务场景联动完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-22-46-完成-memory-body-单元测试.diff">
+            <div class="tl-time">2026-07-30 16:22</div>
+            <div class="tl-title">完成 memory-body 单元测试</div>
+            <div class="tl-desc">创建4个测试文件：dietMemoryAdapter、behaviorAdapter、milestoneAdapter、memoryAggregator，9个测试全部通过</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/__tests__/</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-22-46-完成-memory-body-单元测试.diff', '完成 memory-body 单元测试')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-20-45-feat-memory---integrate-memory.diff">
+            <div class="tl-time">2026-07-30 16:20</div>
+            <div class="tl-title">feat(memory): integrate memory injector into chat service</div>
+            <div class="tl-desc">在 memory-body/index.ts 追加 5 个适配器/聚合器/注入器的导出；在 chatService.ts 中集成 AiMemoryInjector，AI 对话前自动注入宠物记忆上下文</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/index.ts, 03-源代码/小程序/miniapp/src/services/chatService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-20-45-feat-memory---integrate-memory.diff', 'feat(memory): integrate memory injector into chat service')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-20-32-代码标准化注释补全.diff">
+            <div class="tl-time">2026-07-30 16:20</div>
+            <div class="tl-title">代码标准化注释补全</div>
+            <div class="tl-desc">完成项目所有源代码的标准化 JSDoc 风格中文注释补全。覆盖后端 server/src/ 50个文件，前端 services/、stores/、hooks/、engines/、components/、pages 系列、types/、constants/、config/、memory-body/、data/、__e2e__/ 等约 380+ 个源文件及测试文件。未修改任何业务逻辑代码。</div>
+            <div class="tl-file">server/src/*, 小程序/miniapp/src/*</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-20-32-代码标准化注释补全.diff', '代码标准化注释补全')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-18-17-创建-AiMemoryInjector.diff">
+            <div class="tl-time">2026-07-30 16:18</div>
+            <div class="tl-title">创建 AiMemoryInjector</div>
+            <div class="tl-desc">实现记忆引擎深化 Task 6：创建 AiMemoryInjector 类，封装 MemoryAggregator 提供 AI 对话的 system prompt 构建、上下文注入、相关记忆检索、完整宠物画像获取能力</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/injectors/aiMemoryInjector.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-18-17-创建-AiMemoryInjector.diff', '创建 AiMemoryInjector')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-18-14-补全-hooks--和-engines--目录-JSDoc-.diff">
+            <div class="tl-time">2026-07-30 16:18</div>
+            <div class="tl-title">补全 hooks/ 和 engines/ 目录 JSDoc 注释</div>
+            <div class="tl-desc">为 hooks/ 目录下 44 个 .ts/.tsx 文件和 engines/ 目录下 23 个 .ts 文件补全了标准化 JSDoc 文件头注释，包括源代码文件和测试文件</div>
+            <div class="tl-file">src/hooks/*.ts, src/hooks/*.test.ts, src/hooks/__tests__/*.ts, src/engines/*.ts, src/engines/**/*.ts, src/engines/**/__tests__/*.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-18-14-补全-hooks--和-engines--目录-JSDoc-.diff', '补全 hooks/ 和 engines/ 目录 JSDoc 注释')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-17-48-补全页面文件标准化代码注释.diff">
+            <div class="tl-time">2026-07-30 16:17</div>
+            <div class="tl-title">补全页面文件标准化代码注释</div>
+            <div class="tl-desc">为 pages/ pagesPet/ pagesUser 三个目录下所有 .tsx/.ts 文件添加 JSDoc 风格的中文文件头注释</div>
+            <div class="tl-file">src/pages/*, src/pagesPet/*, src/pagesUser/*</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-17-48-补全页面文件标准化代码注释.diff', '补全页面文件标准化代码注释')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-17-37-补全组件库标准化代码注释.diff">
+            <div class="tl-time">2026-07-30 16:17</div>
+            <div class="tl-title">补全组件库标准化代码注释</div>
+            <div class="tl-desc">为 src/components/ 下所有 .tsx/.ts 文件添加 JSDoc 风格中文注释，包含文件头、组件描述和 Props 接口注释，共处理 67 个文件</div>
+            <div class="tl-file">src/components/*.tsx, src/components/**/*.tsx, src/components/**/*.test.tsx, src/components/__tests__/*.test.tsx, src/components/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-17-37-补全组件库标准化代码注释.diff', '补全组件库标准化代码注释')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-17-11-创建-MemoryAggregator.diff">
+            <div class="tl-time">2026-07-30 16:17</div>
+            <div class="tl-title">创建 MemoryAggregator</div>
+            <div class="tl-desc">创建记忆聚合器 MemoryAggregator，统一聚合健康、饮食、行为、里程碑四维度记忆数据</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/aggregator/memoryAggregator.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-17-11-创建-MemoryAggregator.diff', '创建 MemoryAggregator')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-15-56-feat-memory---create-Milestone.diff">
+            <div class="tl-time">2026-07-30 16:15</div>
+            <div class="tl-title">feat(memory): create MilestoneAdapter</div>
+            <div class="tl-desc">创建里程碑记忆适配器 MilestoneAdapter，支持添加里程碑、获取时间线、获取即将到来的里程碑、从打卡记录同步、清空数据</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/adapters/milestoneAdapter.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-15-56-feat-memory---create-Milestone.diff', 'feat(memory): create MilestoneAdapter')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-14-53-创建-BehaviorAdapter.diff">
+            <div class="tl-time">2026-07-30 16:14</div>
+            <div class="tl-title">创建 BehaviorAdapter</div>
+            <div class="tl-desc">记忆引擎深化 Task 3：创建 BehaviorAdapter 类，支持行为观察记录、基线构建、异常检测、性格总结等功能</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/adapters/behaviorAdapter.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-14-53-创建-BehaviorAdapter.diff', '创建 BehaviorAdapter')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T08-12-43-feat-memory---add-diet-behavio.diff">
+            <div class="tl-time">2026-07-30 16:12</div>
+            <div class="tl-title">feat(memory): add diet/behavior/milestone memory types</div>
+            <div class="tl-desc">在memoryBodyTypes.ts追加记忆引擎深化v2类型定义：FoodMemory、FeedingEvent、DietProfile、BehaviorObservation、BehavioralBaseline、PetMilestone、UnifiedPetMemory、MemoryFragment</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/memory-body/types/memoryBodyTypes.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T08-12-43-feat-memory---add-diet-behavio.diff', 'feat(memory): add diet/behavior/milestone memory types')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-49-56-后端骨架基础设施补齐.diff">
+            <div class="tl-time">2026-07-30 15:49</div>
+            <div class="tl-title">后端骨架基础设施补齐</div>
+            <div class="tl-desc">新增6个基础设施模块：1)Zod参数校验中间件 2)限流中间件(8个限流器) 3)WebSocket服务骨架(JWT认证+频道权限+心跳) 4)Repository基类(参数化查询+排序白名单) 5)请求日志中间件(脱敏) 6)功能开关(灰度百分比)。集成helmet安全头到index.ts。安装zod/ws/helmet依赖。测试314通过/27失败(25个已有+2个CRLF)</div>
+            <div class="tl-file">03-源代码/server/src/middleware/validate.ts, 03-源代码/server/src/middleware/rateLimit.ts, 03-源代码/server/src/middleware/requestLogger.ts, 03-源代码/server/src/repositories/baseRepository.ts, 03-源代码/server/src/services/websocketService.ts, 03-源代码/server/src/config/featureFlags.ts, 03-源代码/server/src/index.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-49-56-后端骨架基础设施补齐.diff', '后端骨架基础设施补齐')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-29-34-架构审查修复完成.diff">
+            <div class="tl-time">2026-07-30 15:29</div>
+            <div class="tl-title">架构审查修复完成</div>
+            <div class="tl-desc">完成P0-P5共14项问题修复：P0技术栈矛盾修正+SQL语法修复，P1 SQL注入防护+路由表补全+守卫日志隐私，P2同步冲突+限流+WebSocket认证，P3小程序性能指标+测试策略+错误码注册，P4 API文档+功能开关，P5校验层级说明。文档版本v4.7</div>
+            <div class="tl-file">01-产品文档/TECH_DESIGN.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-29-34-架构审查修复完成.diff', '架构审查修复完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-25-53-剩余页面UI动效优化.diff">
+            <div class="tl-time">2026-07-30 15:25</div>
+            <div class="tl-title">剩余页面UI动效优化</div>
+            <div class="tl-desc">为breed-detail/wardrobe页面添加入场动效（naming/index.scss不存在跳过，breed/index.scss已有动画跳过）</div>
+            <div class="tl-file">src/pagesPet/breed-detail/index.scss, src/pagesPet/wardrobe/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-25-53-剩余页面UI动效优化.diff', '剩余页面UI动效优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-21-02-慢性病追踪页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:21</div>
+            <div class="tl-title">慢性病追踪页UI优化</div>
+            <div class="tl-desc">概览摘要卡片入场动效、跟踪卡片逐次fadeInUp入场动画</div>
+            <div class="tl-file">src/pagesPet/chronic-tracking/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-21-02-慢性病追踪页UI优化.diff', '慢性病追踪页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-20-38-喂养建议页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:20</div>
+            <div class="tl-title">喂养建议页UI优化</div>
+            <div class="tl-desc">概览卡片入口动效、建议卡片/计划项/记录卡逐次入场动效</div>
+            <div class="tl-file">src/pagesPet/feeding-advice/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-20-38-喂养建议页UI优化.diff', '喂养建议页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-20-07-日记页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:20</div>
+            <div class="tl-title">日记页UI优化</div>
+            <div class="tl-desc">时间线条目逐次fadeInUp入场动效、时间线圆点脉冲呼吸光晕动画</div>
+            <div class="tl-file">src/pagesPet/diary/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-20-07-日记页UI优化.diff', '日记页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-19-40-医院页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:19</div>
+            <div class="tl-title">医院页UI优化</div>
+            <div class="tl-desc">搜索框聚焦高亮+清空按钮、卡片入场动效(逐次fadeInUp)、细节展开动效、搜索图标补充</div>
+            <div class="tl-file">src/pagesPet/hospital/index.tsx, src/pagesPet/hospital/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-19-40-医院页UI优化.diff', '医院页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-05-56-疫苗日历页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:05</div>
+            <div class="tl-title">疫苗日历页UI优化</div>
+            <div class="tl-desc">添加疫苗完成进度条(渐变进度+数值比例)、到期摘要卡片(逾期/即将事项列表)、区块入场动效(逐次淡入)</div>
+            <div class="tl-file">src/pagesPet/vaccine/index.tsx, src/pagesPet/vaccine/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-05-56-疫苗日历页UI优化.diff', '疫苗日历页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-05-19-健康趋势页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:05</div>
+            <div class="tl-title">健康趋势页UI优化</div>
+            <div class="tl-desc">添加健康概览摘要卡片(健康评分+维度数据行)、柱状图入场动效(barGrow动画)、空状态增强</div>
+            <div class="tl-file">src/pagesPet/trends/index.tsx, src/pagesPet/trends/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-05-19-健康趋势页UI优化.diff', '健康趋势页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-04-31-健康打卡页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:04</div>
+            <div class="tl-title">健康打卡页UI优化</div>
+            <div class="tl-desc">添加进度指示条(实时显示4项核心进度+百分比进度条)、选项卡片动效(依次淡入入场+选中弹跳缩放+bounce动画)、标题已选标记徽章、快捷体重预设(按体型分组3组12个)</div>
+            <div class="tl-file">src/pagesPet/checkin/index.tsx, src/pagesPet/checkin/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-04-31-健康打卡页UI优化.diff', '健康打卡页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T07-03-29-症状初筛页UI优化.diff">
+            <div class="tl-time">2026-07-30 15:03</div>
+            <div class="tl-title">症状初筛页UI优化</div>
+            <div class="tl-desc">实现搜索式交互(实时过滤+建议下拉)、快捷症状组合预设(4组)、风险等级可视化仪表盘(渐变进度条+指标卡片)</div>
+            <div class="tl-file">src/pagesPet/symptom-check/index.tsx, src/pagesPet/symptom-check/index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T07-03-29-症状初筛页UI优化.diff', '症状初筛页UI优化')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T06-56-25-前端界面优化-食物查询页.diff">
+            <div class="tl-time">2026-07-30 14:56</div>
+            <div class="tl-title">前端界面优化-食物查询页</div>
+            <div class="tl-desc">食物查询页面全面优化：1）搜索框增加🔍图标+清空按钮+输入建议下拉菜单；2）新增快捷分类标签（水果/蔬菜/肉类/有毒）；3）空状态增加可点击的示例搜索词；4）结果卡片改用伪元素左边框；5）颜色方案与主题统一；6）历史列表增加动画反馈</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\pagesPet\food-query\index.tsx, 03-源代码\小程序\miniapp\src\pagesPet\food-query\index.scss</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T06-56-25-前端界面优化-食物查询页.diff', '前端界面优化-食物查询页')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T06-51-11-TECH_DESIGN-md-补充完成.diff">
+            <div class="tl-time">2026-07-30 14:51</div>
+            <div class="tl-title">TECH_DESIGN.md 补充完成</div>
+            <div class="tl-desc">补充国际化(i18n)方案、错误码统一体系、监控与日志方案三个章节，技术设计文档现已包含全部18个章节，覆盖Phase 1.5所有模块设计</div>
+            <div class="tl-file">01-产品文档/TECH_DESIGN.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T06-51-11-TECH_DESIGN-md-补充完成.diff', 'TECH_DESIGN.md 补充完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T06-50-06-交付完成-食物安全知识库全面升级.diff">
+            <div class="tl-time">2026-07-30 14:50</div>
+            <div class="tl-title">交付完成：食物安全知识库全面升级</div>
+            <div class="tl-desc">种子脚本运行成功（122条数据入库）+ 定时爬取任务已创建（每周一10:00）+ 测试验证完成（314/341通过，剩余为预先存在的问题）。数据来源：Pet Poison Helpline+ASPCA+AKC+友阳宠医+搜狐+头条。</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts, 03-源代码\server\migrations\008_pet_food_safety_knowledge.sql, 03-源代码\server\src\services\agentTools.ts, 03-源代码\server\src\services\agentService.ts, 03-源代码\小程序\miniapp\src\data\petKnowledge\foodSafetySafeFruit.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T06-50-06-交付完成-食物安全知识库全面升级.diff', '交付完成：食物安全知识库全面升级')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T06-36-08-Pet-Poison-Helpline遗漏页面爬取完成.diff">
+            <div class="tl-time">2026-07-30 14:36</div>
+            <div class="tl-title">Pet Poison Helpline遗漏页面爬取完成</div>
+            <div class="tl-desc">爬取Pet Poison Helpline遗漏的4个食物页面：啤酒花(对犬剧毒)/发霉食物(霉菌毒素)/杨桃(草酸盐)/发芽土豆。种子脚本总计约135条。</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T06-36-08-Pet-Poison-Helpline遗漏页面爬取完成.diff', 'Pet Poison Helpline遗漏页面爬取完成')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T06-29-25-完成Phase-1-5技术架构设计.diff">
+            <div class="tl-time">2026-07-30 14:29</div>
+            <div class="tl-title">完成Phase 1.5技术架构设计</div>
+            <div class="tl-desc">v4.6 补充内容：\n1. 新增11个子模块API接口契约（60+路由，完整请求/响应类型定义）\n2. 新增前后端交互方案（数据流架构、WebSocket实时推送、三层缓存策略、异步任务队列）\n3. 章节重编号（7→15保持一致性）</div>
+            <div class="tl-file">01-产品文档\TECH_DESIGN.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T06-29-25-完成Phase-1-5技术架构设计.diff', '完成Phase 1.5技术架构设计')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-53-21-全源爬取完成-数据库就绪.diff">
+            <div class="tl-time">2026-07-30 12:53</div>
+            <div class="tl-title">全源爬取完成-数据库就绪</div>
+            <div class="tl-desc">本次会话共爬取7个权威数据源：Pet Poison Helpline (11页) + ASPCA (60+食物植物) + AKC (2篇完整文章) + VCA + 友阳宠医 + 搜狐 + 头条。种子脚本共计~130条食物数据。Playwright 已安装可用于后续JS渲染页面爬取。</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts, 03-源代码\server\migrations\008_pet_food_safety_knowledge.sql</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-53-21-全源爬取完成-数据库就绪.diff', '全源爬取完成-数据库就绪')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-49-52-ASPCA清单深度补充-新植物毒性.diff">
+            <div class="tl-time">2026-07-30 12:49</div>
+            <div class="tl-title">ASPCA清单深度补充+新植物毒性</div>
+            <div class="tl-desc">从ASPCA完整有毒植物清单中提取遗漏的食物条目，新增11种食物/植物数据。新增：月桂叶/佛手柑/金桔/洋甘菊/芋头/琉璃苣/酸模/蓖麻/葛缕子/龟背竹果/野樱桃。种子脚本总计约120条。</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-49-52-ASPCA清单深度补充-新植物毒性.diff', 'ASPCA清单深度补充+新植物毒性')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-48-32-补全-services-层标准化代码注释.diff">
+            <div class="tl-time">2026-07-30 12:48</div>
+            <div class="tl-title">补全 services 层标准化代码注释</div>
+            <div class="tl-desc">为 src/services/ 下所有 TypeScript 文件添加了文件头注释（JSDoc 风格），涵盖约 47 个主源文件和 38 个测试文件。同时为 achievementService、aiProvider、api、checkinService 等核心文件的导出接口/类型/函数补全了 @param/@returns 注释。</div>
+            <div class="tl-file">src/services/*.ts, src/services/__tests__/*.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-48-32-补全-services-层标准化代码注释.diff', '补全 services 层标准化代码注释')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-46-23-PRD-v4-3-详细设计6大模块-家族图谱-动态墙-周报-.diff">
+            <div class="tl-time">2026-07-30 12:46</div>
+            <div class="tl-title">PRD v4.3 详细设计6大模块：家族图谱+动态墙+周报+排行+分享卡片+年度图集</div>
+            <div class="tl-desc">PRD从v4.2升级到v4.3：1)家族图谱(4.11.4)——5种关系类型/4种图谱视图/交互功能/全家福合成/DB设计；2)家庭动态墙(4.11.5)——4类事件自动聚合/动态卡片格式/AI自动文案规则；3)排行与角色(4.11.6)——8种角色/自动+手动分配规则/跨功能展示；4)家庭周报AI(4.11.7)——6维数据收集/AI周报模板/4种AI寄语场景/会员权益；5)分享卡片系统(4.15)——10种卡片类型矩阵/设计规范/Canvas渲染方案/分享埋点/A/B测试；6)年度回忆图集(4.16)——5维精选算法/数据总结页/定价/与纪念Vlog关系；Phase2优先级调整：分享卡片P2→P1</div>
+            <div class="tl-file">01-产品文档/PRD.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-46-23-PRD-v4-3-详细设计6大模块-家族图谱-动态墙-周报-.diff', 'PRD v4.3 详细设计6大模块：家族图谱+动态墙+周报+排行+分享卡片+年度图集')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-42-17-最终批爬-ASPCA观赏植物毒性-中文补充.diff">
+            <div class="tl-time">2026-07-30 12:42</div>
+            <div class="tl-title">最终批爬：ASPCA观赏植物毒性+中文补充</div>
+            <div class="tl-desc">新增11种食物/植物毒性数据。新增：辣椒/葱/苏打水/饼干/糖果/剩饭菜/苏铁/百合花/水仙花/绣球花。种子脚本总计约100种食物+植物，覆盖日常常见查询。数据来源：ASPCA+AKC+Pet Poison Helpline+友阳宠医</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-42-17-最终批爬-ASPCA观赏植物毒性-中文补充.diff', '最终批爬：ASPCA观赏植物毒性+中文补充')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-35-36-PRD-v4-2-详细设计取名引擎-家庭日历-Guard双守.diff">
+            <div class="tl-time">2026-07-30 12:35</div>
+            <div class="tl-title">PRD v4.2 详细设计取名引擎+家庭日历+Guard双守卫</div>
+            <div class="tl-desc">PRD从v4.1升级到v4.2：1)取名引擎(4.12)从概要设计扩展为完整设计——含五维知识库架构(五行/星象/诗词/山川/典故)、AI算法流程、四种取名模式、解读模板、分享裂变机制、数据库设计、会员权益；2)家庭日历(4.11.3)从一行功能点扩展为独立设计——含日历视图/智能提醒/与时光引擎双向联动/AI建议/数据库设计/会员权益，优先级从P2提升到P1；3)Guard双守卫(4.10.4)新增P0安全底线设计——含规则引擎+AI语义检测双保险架构、五级安全兜底、拦截日志审计体系</div>
+            <div class="tl-file">01-产品文档/PRD.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-35-36-PRD-v4-2-详细设计取名引擎-家庭日历-Guard双守.diff', 'PRD v4.2 详细设计取名引擎+家庭日历+Guard双守卫')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-35-29-中文资源补充-ASPCA植物数据库.diff">
+            <div class="tl-time">2026-07-30 12:35</div>
+            <div class="tl-title">中文资源补充+ASPCA植物数据库</div>
+            <div class="tl-desc">从友阳宠医中文资源爬取狗狗食物安全清单，新增16种中国常见食材数据。补充：桑葚/面条/羊奶/海苔/卷心菜/彩椒/鸵鸟肉/鸡心/甘蔗/柿子/木耳/鱿鱼/芦笋/秋葵/山竹/枸杞。种子脚本总计约90种食物。</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-35-29-中文资源补充-ASPCA植物数据库.diff', '中文资源补充+ASPCA植物数据库')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-33-03-补全-stores-标准化代码注释.diff">
+            <div class="tl-time">2026-07-30 12:33</div>
+            <div class="tl-title">补全 stores 标准化代码注释</div>
+            <div class="tl-desc">为 stores/ 下 18 个 TypeScript 文件和 __tests__/ 下 13 个测试文件补全了 JSDoc 风格的中文代码注释（文件头、接口定义、方法说明、参数说明）</div>
+            <div class="tl-file">src/stores/index.ts, src/stores/authStore.ts, src/stores/chatStore.ts, src/stores/checkinStore.ts, src/stores/cloudSyncStore.ts, src/stores/familyStore.ts, src/stores/foodQueryStore.ts, src/stores/membershipStore.ts, src/stores/petStore.ts, src/stores/reminderStore.ts, src/stores/settingsStore.ts, src/stores/shareStore.ts, src/stores/subscribeStore.ts, src/stores/symptomStore.ts, src/stores/themeStore.ts, src/stores/trendStore.ts, src/stores/vaccineStore.ts, src/stores/wardrobeStore.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-33-03-补全-stores-标准化代码注释.diff', '补全 stores 标准化代码注释')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-32-12-补全代码注释.diff">
+            <div class="tl-time">2026-07-30 12:32</div>
+            <div class="tl-title">补全代码注释</div>
+            <div class="tl-desc">为 src/ 下所有 TypeScript 文件补全标准化 JSDoc 注释，包括文件头、导出接口/类型、导出函数</div>
+            <div class="tl-file">03-源代码/server/src/config.ts, 03-源代码/server/src/db.ts, 03-源代码/server/src/index.ts, 03-源代码/server/src/migrate.ts, 03-源代码/server/src/middleware/auth.ts, 03-源代码/server/src/middleware/error.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-32-12-补全代码注释.diff', '补全代码注释')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-30T04-26-48-批量补充种子数据-AKC-ASPCA-Pet-Poison-.diff">
+            <div class="tl-time">2026-07-30 12:26</div>
+            <div class="tl-title">批量补充种子数据：AKC+ASPCA+Pet Poison Helpline</div>
+            <div class="tl-desc">从AKC（美国养犬俱乐部）和Pet Poison Helpline批量爬取，新增21种食物安全数据到种子脚本。新增：腰果/花生/花生酱/奶酪/火腿/爆米花/冰淇淋/肉桂/杏仁/抱子甘蓝/四季豆/哈密瓜/哈密瓜皮/金枪鱼/小麦/甘蓝/西兰花/白菜/生菜/茄子/蘑菇</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-30T04-26-48-批量补充种子数据-AKC-ASPCA-Pet-Poison-.diff', '批量补充种子数据：AKC+ASPCA+Pet Poison Helpline')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T17-27-23-爬取Pet-Poison-Helpline权威数据.diff">
+            <div class="tl-time">2026-07-30 01:27</div>
+            <div class="tl-title">爬取Pet Poison Helpline权威数据</div>
+            <div class="tl-desc">从Pet Poison Helpline成功爬取11个食物毒性页面（杏/桃核/发芽土豆/成熟番茄/酵母面团/大蒜/韭菜/葡萄/醋栗/樱桃等），数据已补充到后端种子脚本 seedFoodKnowledge.ts</div>
+            <div class="tl-file">03-源代码\server\scripts\seedFoodKnowledge.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T17-27-23-爬取Pet-Poison-Helpline权威数据.diff', '爬取Pet Poison Helpline权威数据')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T17-16-57-添加已推荐名字去重逻辑.diff">
+            <div class="tl-time">2026-07-30 01:16</div>
+            <div class="tl-title">添加已推荐名字去重逻辑</div>
+            <div class="tl-desc">每次推荐自动记录已推名字，下一次推荐（含换一批）在AI提示词中明确排除+后端过滤，本地降级也做过滤，开始新取名流程时重置</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/hooks/useNamingFlow.ts, 03-源代码/小程序/miniapp/src/services/namingService.ts, 03-源代码/小程序/miniapp/src/utils/namingPrompts.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T17-16-57-添加已推荐名字去重逻辑.diff', '添加已推荐名字去重逻辑')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T17-14-43-食物安全知识库升级-本地数据扩充-后端知识库-AI兜底.diff">
+            <div class="tl-time">2026-07-30 01:14</div>
+            <div class="tl-title">食物安全知识库升级：本地数据扩充+后端知识库+AI兜底</div>
+            <div class="tl-desc">1. 新增柠檬/苹果/香蕉/西瓜等20+种水果安全数据到本地知识库\n2. 新增柠檬皮/青柠等条目，修复匹配冲突\n3. 创建后端 pet_food_safety_knowledge 表（008迁移）\n4. 创建种子脚本 seedFoodKnowledge.ts（40+种权威食物数据）\n5. 改写 query_food_safety 工具：先查知识库→用户历史→AI兜底\n6. 更新 AI 系统提示词，知识库未查到时可使用自身专业知识（带免责声明）</div>
+            <div class="tl-file">03-源代码\小程序\miniapp\src\data\petKnowledge\foodSafetySafeFruit.ts, 03-源代码\server\migrations\008_pet_food_safety_knowledge.sql, 03-源代码\server\scripts\seedFoodKnowledge.ts, 03-源代码\server\src\services\agentTools.ts, 03-源代码\server\src\services\agentService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T17-14-43-食物安全知识库升级-本地数据扩充-后端知识库-AI兜底.diff', '食物安全知识库升级：本地数据扩充+后端知识库+AI兜底')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T17-12-07-修复食物查询404及API路径对齐.diff">
+            <div class="tl-time">2026-07-30 01:12</div>
+            <div class="tl-title">修复食物查询404及API路径对齐</div>
+            <div class="tl-desc">修复前端食物查询接口路径与后端路由不匹配导致的404错误，同时修复后端返回数据格式不一致、补充stats/today-count路由，并同步更新syncService、dataPrivacyService和测试文件</div>
+            <div class="tl-file">03-源代码/server/src/routes/food.ts, 03-源代码/小程序/miniapp/src/services/foodService.ts, 03-源代码/小程序/miniapp/src/services/syncService.ts, 03-源代码/小程序/miniapp/src/services/dataPrivacyService.ts, 03-源代码/小程序/miniapp/src/services/__tests__/foodService.test.ts, 03-源代码/小程序/miniapp/src/__e2e__/happy-path-3-food-query.test.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T17-12-07-修复食物查询404及API路径对齐.diff', '修复食物查询404及API路径对齐')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-58-53-修复max_tokens不足导致AI取名JSON截断.diff">
+            <div class="tl-time">2026-07-30 00:58</div>
+            <div class="tl-title">修复max_tokens不足导致AI取名JSON截断</div>
+            <div class="tl-desc">排查发现deepseek-v4-flash默认1024 tokens不够用，JSON数组被截断导致解析失败。将namingService的max_tokens提升到2048</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/services/namingService.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-58-53-修复max_tokens不足导致AI取名JSON截断.diff', '修复max_tokens不足导致AI取名JSON截断')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-57-48-提示词库v4-0画质参数库.diff">
+            <div class="tl-time">2026-07-30 00:57</div>
+            <div class="tl-title">提示词库v4.0画质参数库</div>
+            <div class="tl-desc">新增第九章画质与参数库：5档分辨率(1080p→8K母带级)、8档帧率(24→960fps)、6档慢动作升格、5档HDR色彩空间、8款摄影机模拟(Arri Alexa/RED/IMAX等)、6款镜头光学模拟、7款胶片质感模拟、5个画质增强包、10场景一键追加速查表、5条避坑参数。总计v3.0→v4.0新增10个子章节</div>
+            <div class="tl-file">01-产品文档/宠物回忆录-提示词库.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-57-48-提示词库v4-0画质参数库.diff', '提示词库v4.0画质参数库')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-49-42-提示词库v3-0风格扩展.diff">
+            <div class="tl-time">2026-07-30 00:49</div>
+            <div class="tl-title">提示词库v3.0风格扩展</div>
+            <div class="tl-desc">提示词库从v2.0升级至v3.0：新增第六章通用视觉风格库（13种风格×5条=65条），含赛博朋克/VHS复古/吉卜力动漫/皮克斯3D/像素艺术/水墨中国/油画印象派/暗黑奇幻/极简北欧/故障艺术蒸汽波/黏土动画/低多边形/线稿素描 + 第七章风格混搭指南（13种风格速查表+一键混搭公式）。总计170+条可调用提示词，从小程序专用升级为通用AI视觉素材库</div>
+            <div class="tl-file">01-产品文档/宠物回忆录-提示词库.md, 01-产品文档/PRD.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-49-42-提示词库v3-0风格扩展.diff', '提示词库v3.0风格扩展')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-44-18-提示词库v2-0升级.diff">
+            <div class="tl-time">2026-07-30 00:44</div>
+            <div class="tl-title">提示词库v2.0升级</div>
+            <div class="tl-desc">提示词库从分析型升级为素材库型：新增至100+条可调用提示词卡片（含A-空镜10条/B-特写10条/C-动作10条/D-人物情感10条/E-自然环境10条/F-转场8条/G-光影5条/H-音频5条+CREST完整版/精简版分镜序列+日常回忆录15条+角色一致性模板+快速组合工具包），保留方法论章节，同步更新PRD引用</div>
+            <div class="tl-file">01-产品文档/宠物回忆录-提示词库.md, 01-产品文档/PRD.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-44-18-提示词库v2-0升级.diff', '提示词库v2.0升级')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-39-10-推送develop分支到远程.diff">
+            <div class="tl-time">2026-07-30 00:39</div>
+            <div class="tl-title">推送develop分支到远程</div>
+            <div class="tl-desc">将5个commit(37个增量)ahead推送到origin/develop</div>
+            <div class="tl-file">git push</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-39-10-推送develop分支到远程.diff', '推送develop分支到远程')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-38-17-扩充本地降级名字库.diff">
+            <div class="tl-time">2026-07-30 00:38</div>
+            <div class="tl-title">扩充本地降级名字库</div>
+            <div class="tl-desc">每个风格从5个扩充到22-24个名字，不限风格从所有风格混合抽取，共计约90个名字供随机选取</div>
+            <div class="tl-file">03-源代码/小程序/miniapp/src/hooks/useNamingFlow.ts</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-38-17-扩充本地降级名字库.diff', '扩充本地降级名字库')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-37-22-提交全量改动.diff">
+            <div class="tl-time">2026-07-30 00:37</div>
+            <div class="tl-title">提交全量改动</div>
+            <div class="tl-desc">分批提交5个commit: 1)后端Agent+取名+family路由 2)前端AI引擎+骨架屏+主题+测试 3)数据库迁移+部署+gitignore 4)产品文档+UI设计 5)看板历史记录补齐</div>
+            <div class="tl-file">.gitignore, 03-源代码/server/src, 03-源代码/小程序/miniapp/src, 04-数据库, 03-源代码/deploy, 01-产品文档, 02-UI设计, .board</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-37-22-提交全量改动.diff', '提交全量改动')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-37-08-PRD-v4-1-宠物回忆录整合.diff">
+            <div class="tl-time">2026-07-30 00:37</div>
+            <div class="tl-title">PRD v4.1 宠物回忆录整合</div>
+            <div class="tl-desc">将宠物回忆录最终版方案整合进PRD：新增4.14章节（双产品线+三层定价+CREST六段式叙事+Seedance 2.0技术架构+BGM策略+提示词工程+开发任务+风险缓解+验证指标），时光引擎升级为核心情感变现模块</div>
+            <div class="tl-file">01-产品文档/PRD.md</div>
+            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-37-08-PRD-v4-1-宠物回忆录整合.diff', 'PRD v4.1 宠物回忆录整合')">&#128269; 查看改动</span></div>
+          </div>
+<div class="tl-item done" data-diff="2026-07-29T16-18-09-修正空镜BGM选曲-去除阴森感.diff">
             <div class="tl-time">2026-07-30 00:18</div>
             <div class="tl-title">修正空镜BGM选曲-去除阴森感</div>
             <div class="tl-desc">用户反馈空镜留白类BGM像恐怖片配乐，重新选曲为温暖安静版：1.移除Weightless等阴郁曲目；2.新增Kiss the Rain/Refrain/River Flows in You/Summer等温暖钢琴曲；3.新增空镜选曲避雷表和情绪关键词对照；4.更新BGM编排方案A/B中的空镜曲目引用</div>
