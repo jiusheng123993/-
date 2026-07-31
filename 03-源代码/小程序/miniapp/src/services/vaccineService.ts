@@ -154,7 +154,17 @@ export async function createVaccineRecord(data: CreateVaccineData): Promise<Vacc
   };
 
   try {
-    const result = await api.post<VaccineRecord>(`/api/pets/${data.petId}/vaccines`, newRecord);
+    // 后端 createVaccineSchema 使用 snake_case（必填 type/category/date/next_date）
+    const result = await api.post<VaccineRecord>(`/api/pets/${data.petId}/vaccines`, {
+      type: data.type,
+      category: data.category,
+      date: data.date,
+      next_date: nextDate,
+      status: newRecord.status,
+      hospital: data.hospital,
+      doctor: data.doctor,
+      notes: data.notes,
+    });
     const local = getLocalRecords(data.petId);
     local.push(result);
     saveLocalRecords(data.petId, local);
@@ -192,56 +202,50 @@ export async function updateVaccineRecord(
   id: string,
   data: Partial<Omit<VaccineRecord, 'id' | 'petId' | 'createdAt'>>
 ): Promise<VaccineRecord> {
-  try {
-    const result = await api.put<VaccineRecord>(`/api/vaccines/${id}`, data);
-
-    const allRecords = getAllLocalRecords();
-    const index = allRecords.findIndex((r) => r.id === id);
-    if (index !== -1) {
-      allRecords[index] = result;
-      saveLocalRecords(result.petId, allRecords.filter((r) => r.petId === result.petId));
-    }
-
-    return result;
-  } catch (error) {
-
-    const allRecords = getAllLocalRecords();
-    const index = allRecords.findIndex((r) => r.id === id);
-    if (index === -1) {
-      throw new Error('记录不存在');
-    }
-
-    const existing = allRecords[index];
-    const updated: VaccineRecord = {
-      ...existing,
-      ...data,
-      id,
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (data.category || data.date) {
-      updated.nextDate = calculateNextDate(
-        updated.category,
-        updated.date
-      );
-    }
-
-    if (updated.status !== 'completed') {
-      updated.status = calculateStatus(updated.nextDate);
-    }
-
-    allRecords[index] = updated;
-    saveLocalRecords(existing.petId, allRecords.filter((r) => r.petId === existing.petId));
-    return updated;
+  // 后端仅提供 complete/reminder 专用端点，无通用更新/删除端点：
+  // - 本地始终更新并持久化
+  // - status 变更为 completed 时 best-effort 调用 complete 端点同步云端
+  const allRecords = getAllLocalRecords();
+  const index = allRecords.findIndex((r) => r.id === id);
+  if (index === -1) {
+    throw new Error('记录不存在');
   }
+
+  const existing = allRecords[index];
+  const updated: VaccineRecord = {
+    ...existing,
+    ...data,
+    id,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (data.category || data.date) {
+    updated.nextDate = calculateNextDate(
+      updated.category,
+      updated.date
+    );
+  }
+
+  if (updated.status !== 'completed') {
+    updated.status = calculateStatus(updated.nextDate);
+  }
+
+  allRecords[index] = updated;
+  saveLocalRecords(existing.petId, allRecords.filter((r) => r.petId === existing.petId));
+
+  if (updated.status === 'completed') {
+    try {
+      await api.put(`/api/pets/${existing.petId}/vaccines/${id}/complete`);
+    } catch {
+      // 离线/网络失败时仅本地生效，后续由 syncHelper 兜底
+    }
+  }
+
+  return updated;
 }
 
 export async function deleteVaccineRecord(id: string): Promise<void> {
-  try {
-    await api.delete(`/api/vaccines/${id}`);
-  } catch (error) {
-  }
-
+  // 后端未提供删除端点，本地删除并持久化
   const allRecords = getAllLocalRecords();
   const target = allRecords.find((r) => r.id === id);
   if (!target) {

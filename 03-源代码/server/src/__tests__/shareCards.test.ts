@@ -7,10 +7,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 
-const { mockPool, mockCrypto } = vi.hoisted(() => {
+const { mockPool, mockCrypto, mockFs } = vi.hoisted(() => {
   const pool = { query: vi.fn() };
   const crypto = { randomUUID: vi.fn(() => 'mock-card-uuid') };
-  return { mockPool: pool, mockCrypto: crypto };
+  const fs = {
+    mkdirSync: vi.fn(),
+    writeFileSync: vi.fn(),
+  };
+  return { mockPool: pool, mockCrypto: crypto, mockFs: fs };
 });
 
 vi.mock('../db.js', () => ({ pool: mockPool }));
@@ -18,6 +22,12 @@ vi.mock('../db.js', () => ({ pool: mockPool }));
 vi.mock('crypto', () => ({
   default: mockCrypto,
   randomUUID: mockCrypto.randomUUID,
+}));
+
+vi.mock('fs', () => ({
+  default: mockFs,
+  mkdirSync: mockFs.mkdirSync,
+  writeFileSync: mockFs.writeFileSync,
 }));
 
 vi.mock('../config.js', () => ({
@@ -31,6 +41,7 @@ vi.mock('../config.js', () => ({
     moderate: { apiKey: '' },
     wechat: { appId: '', secret: '' },
     uploadDir: './uploads',
+    publicBaseUrl: '',
   },
 }));
 
@@ -50,22 +61,27 @@ function createApp() {
   return app;
 }
 
-/** mock 卡片数据（card_data 为对象，模拟 pg JSONB 自动解析结果） */
+/** mock 卡片数据（card_data 为对象，模拟 pg JSONB 自动解析结果）
+ * 结构对齐 shareCardService.buildCardData：title/icon/content/pet_name/date/style/source_data/generated_at
+ */
 const mockCardData = {
-  title: 'health_report 卡片',
-  content: '分享我的宠物生活',
+  title: '健康报告',
+  icon: '📊',
+  content: '本周健康打卡记录',
+  pet_name: null,
+  date: '2026-07-30',
   style: { theme: 'warm' },
   source_data: { pet_id: 'pet-001' },
   generated_at: '2026-07-30T00:00:00.000Z',
 };
 
-/** 模拟卡片记录 */
+/** 模拟卡片记录（card_url 为真实 SVG 文件路径） */
 const mockCard = {
   id: 'card-001',
   user_id: 'test-user-id',
   card_type: 'health_report',
   card_data: mockCardData,
-  card_url: 'https://placeholder.example.com/card/mock-card-uuid.png',
+  card_url: '/uploads/share-cards/test-user-id/mock-card-uuid.svg',
   share_channel: null,
   share_count: 0,
   created_at: '2026-07-30T00:00:00.000Z',
@@ -83,6 +99,9 @@ beforeEach(() => {
   mockPool.query.mockReset();
   mockCrypto.randomUUID.mockReset();
   mockCrypto.randomUUID.mockReturnValue('mock-card-uuid');
+  // fs mock 重置，避免调用记录跨测试污染
+  mockFs.mkdirSync.mockReset();
+  mockFs.writeFileSync.mockReset();
 });
 
 // ===== POST /api/share-cards/generate - 生成分享卡片 =====
@@ -119,7 +138,7 @@ describe('POST /api/share-cards/generate - 生成分享卡片', () => {
     expect(mockCrypto.randomUUID).toHaveBeenCalled();
   });
 
-  it('插入时 card_data 使用 JSON.stringify', async () => {
+  it('插入时 card_data 使用 JSON.stringify 并包含结构化字段', async () => {
     mockPool.query.mockResolvedValueOnce({ rows: [mockCard], rowCount: 1 });
 
     await request(createApp())
@@ -137,9 +156,75 @@ describe('POST /api/share-cards/generate - 生成分享卡片', () => {
     const cardDataParam = params[2];
     expect(typeof cardDataParam).toBe('string');
     const parsed = JSON.parse(cardDataParam as string);
-    expect(parsed.title).toBe('health_report 卡片');
+    // 验证新结构化字段
+    expect(parsed.title).toBe('健康报告');
+    expect(parsed.icon).toBe('📊');
+    expect(parsed.content).toBe('今天小旺很可爱');
     expect(parsed.source_data.pet_id).toBe('pet-001');
     expect(parsed.style.theme).toBe('cute');
+    expect(parsed.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('生成卡片时调用 fs.writeFileSync 保存 SVG 文件', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [mockCard], rowCount: 1 });
+
+    await request(createApp())
+      .post('/api/share-cards/generate')
+      .send({
+        card_type: 'health_report',
+        source_data: { pet_id: 'pet-001' },
+      });
+
+    // 验证 fs.writeFileSync 被调用（SVG 内容写入）
+    expect(mockFs.mkdirSync).toHaveBeenCalledWith(
+      expect.stringContaining('share-cards'),
+      { recursive: true },
+    );
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      expect.stringContaining('mock-card-uuid.svg'),
+      expect.stringContaining('<svg'),
+      'utf8',
+    );
+  });
+
+  it('card_url 格式为 /uploads/share-cards/{userId}/{cardId}.svg', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [mockCard], rowCount: 1 });
+
+    await request(createApp())
+      .post('/api/share-cards/generate')
+      .send({
+        card_type: 'milestone',
+        source_data: { milestone_id: 'm-001' },
+      });
+
+    // 验证 insertCard 传入的 card_url 参数格式
+    const insertCall = mockPool.query.mock.calls[0];
+    const params = insertCall[1] as unknown[];
+    const cardUrlParam = params[3];
+    expect(cardUrlParam).toBe('/uploads/share-cards/test-user-id/mock-card-uuid.svg');
+  });
+
+  it('fs 写入失败时降级为 card_url=null（不阻断卡片创建）', async () => {
+    mockFs.writeFileSync.mockImplementationOnce(() => {
+      throw new Error('Disk full');
+    });
+    mockPool.query.mockResolvedValueOnce({
+      rows: [{ ...mockCard, card_url: null }],
+      rowCount: 1,
+    });
+
+    const res = await request(createApp())
+      .post('/api/share-cards/generate')
+      .send({
+        card_type: 'health_report',
+        source_data: { pet_id: 'pet-001' },
+      });
+
+    expect(res.status).toBe(201);
+    // insertCard 传入的 card_url 应为 null（降级）
+    const insertCall = mockPool.query.mock.calls[0];
+    const params = insertCall[1] as unknown[];
+    expect(params[3]).toBeNull();
   });
 
   it('card_type 无效返回 400', async () => {
@@ -295,7 +380,7 @@ describe('GET /api/share-cards - 获取卡片列表', () => {
       .get('/api/share-cards');
 
     expect(res.body.data.items[0].card_data).toBeInstanceOf(Object);
-    expect(res.body.data.items[0].card_data.title).toBe('health_report 卡片');
+    expect(res.body.data.items[0].card_data.title).toBe('健康报告');
   });
 
   it('默认分页 page=1, page_size=20', async () => {

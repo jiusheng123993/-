@@ -73,7 +73,8 @@ const mockSnapshotRow = {
       badges: ['七日打卡'],
     },
   ],
-  computed_at: '2026-07-30T00:00:00.000Z',
+  // computed_at 设为当前时间，确保快照未过期（TTL=1小时），走读快照分支
+  computed_at: new Date().toISOString(),
 };
 
 beforeEach(() => {
@@ -98,10 +99,12 @@ describe('GET /api/families/:id/leaderboard - 排行榜', () => {
     expect(res.body.data.rankings[0].score).toBe(95);
   });
 
-  it('无快照返回空榜', async () => {
+  it('无快照时实时计算返回空榜（家庭无宠物）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // family ownership
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // snapshot (not found)
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // computeLeaderboard (no pets)
+      .mockResolvedValueOnce({ rows: [{ computed_at: new Date().toISOString() }], rowCount: 1 }); // upsertSnapshot
 
     const res = await request(createApp())
       .get('/api/families/fam-001/leaderboard?period=monthly');
@@ -109,6 +112,38 @@ describe('GET /api/families/:id/leaderboard - 排行榜', () => {
     expect(res.status).toBe(200);
     expect(res.body.data.period).toBe('monthly');
     expect(res.body.data.rankings).toHaveLength(0);
+  });
+
+  it('无快照时实时计算返回聚合排行', async () => {
+    const computedRow = {
+      pet_id: 'pet-001',
+      pet_name: '小白',
+      pet_avatar_url: 'https://example.com/avatar.jpg',
+      checkin_count: 7,
+      anomaly_count: 0,
+      feed_count: 3,
+      moment_count: 5,
+    };
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // family ownership
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // snapshot (not found)
+      .mockResolvedValueOnce({ rows: [computedRow], rowCount: 1 })         // computeLeaderboard
+      .mockResolvedValueOnce({ rows: [{ computed_at: new Date().toISOString() }], rowCount: 1 }); // upsertSnapshot
+
+    const res = await request(createApp())
+      .get('/api/families/fam-001/leaderboard?period=weekly');
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.rankings).toHaveLength(1);
+    expect(res.body.data.rankings[0].pet_name).toBe('小白');
+    expect(res.body.data.rankings[0].rank).toBe(1);
+    // score = 7*10 + 3*5 + 5*8 + 100*2 = 70 + 15 + 40 + 200 = 325
+    expect(res.body.data.rankings[0].score).toBe(325);
+    expect(res.body.data.rankings[0].metrics.checkin_count).toBe(7);
+    expect(res.body.data.rankings[0].metrics.health_score).toBe(100);
+    expect(res.body.data.rankings[0].badges).toContain('七日打卡');
+    expect(res.body.data.rankings[0].badges).toContain('动态达人');
+    expect(res.body.data.rankings[0].badges).toContain('健康宝宝');
   });
 
   it('默认 period=weekly', async () => {
@@ -150,6 +185,53 @@ describe('GET /api/families/:id/leaderboard - 排行榜', () => {
       .get('/api/families/fam-001/leaderboard');
 
     expect(res.status).toBe(500);
+  });
+});
+
+// ===== POST /api/families/:id/leaderboard/refresh - 手动刷新排行 =====
+describe('POST /api/families/:id/leaderboard/refresh - 手动刷新排行', () => {
+  it('正常刷新返回实时聚合排行', async () => {
+    const computedRow = {
+      pet_id: 'pet-001',
+      pet_name: '小白',
+      pet_avatar_url: 'https://example.com/avatar.jpg',
+      checkin_count: 7,
+      anomaly_count: 0,
+      feed_count: 3,
+      moment_count: 5,
+    };
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // family ownership
+      .mockResolvedValueOnce({ rows: [computedRow], rowCount: 1 })         // computeLeaderboard
+      .mockResolvedValueOnce({ rows: [{ computed_at: new Date().toISOString() }], rowCount: 1 }); // upsertSnapshot
+
+    const res = await request(createApp())
+      .post('/api/families/fam-001/leaderboard/refresh?period=weekly');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.period).toBe('weekly');
+    expect(res.body.data.rankings).toHaveLength(1);
+    expect(res.body.data.rankings[0].pet_name).toBe('小白');
+    expect(res.body.data.rankings[0].score).toBe(325);
+  });
+
+  it('刷新时家庭不存在返回 404', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // family ownership fail
+
+    const res = await request(createApp())
+      .post('/api/families/fam-999/leaderboard/refresh?period=weekly');
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('家庭不存在');
+  });
+
+  it('刷新时非法 period 返回 400', async () => {
+    const res = await request(createApp())
+      .post('/api/families/fam-001/leaderboard/refresh?period=invalid');
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 });
 

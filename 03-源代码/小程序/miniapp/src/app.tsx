@@ -5,6 +5,7 @@ import { useAuthStore } from './stores/authStore'
 import { useThemeStore } from './stores/themeStore'
 import { usePetStore } from './stores/petStore'
 import { useThemeClass } from './hooks/useThemeClass'
+import { wsClient } from './services/wsClient'
 import './app.scss'
 
 let ready = false
@@ -50,7 +51,9 @@ export default function App({ children }: any) {
       useThemeStore.getState().loadTheme()
       useAuthStore.getState().initialize().then(() => {
         const authState = useAuthStore.getState()
-        if (authState.user?.id) {
+        if (authState.user?.id && authState.token) {
+          // 建立实时推送连接（支付/视频生成等事件推送）
+          wsClient.connect(authState.token)
           usePetStore.getState().initUser(authState.user.id)
         }
         ready = true

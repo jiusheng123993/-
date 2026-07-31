@@ -364,16 +364,9 @@ describe('updateVaccineRecord', () => {
     clearLocalStorage()
   })
 
-  it('应更新记录并在 API 成功时同步', async () => {
+  it('应更新记录并持久化到本地', async () => {
     const record = makeRecord({ id: 'rec-1', category: 'DHPP' })
     seedLocalRecords([record])
-
-    vi.mocked(api.put).mockResolvedValue({
-      ...record,
-      category: 'rabies',
-      hospital: '爱心宠物医院',
-      updatedAt: today,
-    })
 
     const result = await updateVaccineRecord('rec-1', {
       category: 'rabies',
@@ -382,10 +375,7 @@ describe('updateVaccineRecord', () => {
 
     expect(result.category).toBe('rabies')
     expect(result.hospital).toBe('爱心宠物医院')
-    expect(api.put).toHaveBeenCalledWith('/api/vaccines/rec-1', {
-      category: 'rabies',
-      hospital: '爱心宠物医院',
-    })
+    expect(api.put).not.toHaveBeenCalled()
   })
 
   it('API 失败时应回退到本地更新', async () => {

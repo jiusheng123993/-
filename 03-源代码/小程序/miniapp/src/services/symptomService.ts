@@ -1355,9 +1355,19 @@ export async function analyzeSymptoms(
   }
 
   try {
+    // 后端 symptomCheckSchema 使用 snake_case，路径为单数 symptom-check
     const apiResult = await api.post<SymptomCheckResult>(
-      `/api/pets/${petId}/symptom-checks`,
-      result
+      `/api/pets/${petId}/symptom-check`,
+      {
+        symptoms: result.symptoms,
+        duration: result.additionalInfo?.duration,
+        severity: result.additionalInfo?.severity,
+        additional_info: result.additionalInfo,
+        risk_level: result.riskLevel,
+        possible_conditions: result.possibleConditions,
+        ai_advice: result.aiAdvice,
+        recommended_actions: result.recommendedActions,
+      }
     )
     const local = getLocalResults(petId)
     local.unshift(apiResult)
@@ -1373,9 +1383,13 @@ export async function analyzeSymptoms(
 
 export async function getCheckHistory(petId: string): Promise<SymptomCheckResult[]> {
   try {
-    const result = await api.get<SymptomCheckResult[]>(`/api/pets/${petId}/symptom-checks`)
-    saveLocalResults(petId, result)
-    return result
+    // 后端返回分页对象 { list, total, page, pageSize }
+    const result = await api.get<{ list: SymptomCheckResult[] }>(
+      `/api/pets/${petId}/symptom-check/history`,
+      { page: '1', page_size: '50' }
+    )
+    saveLocalResults(petId, result.list)
+    return result.list
   } catch (error) {
     return getLocalResults(petId)
   }

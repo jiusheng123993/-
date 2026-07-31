@@ -75,9 +75,10 @@ const ORDERS_KEY = 'membership_orders'
 const PAYWALL_SHOWN_KEY = 'paywall_shown'
 
 export const MEMBERSHIP_PLANS: MembershipPlanConfig[] = [
-  { plan: 'monthly', label: '月度会员', price: 9.9, originalPrice: 9.9, discountLabel: '', durationDays: 30 },
-  { plan: 'quarterly', label: '季度会员', price: 25.9, originalPrice: 29.7, discountLabel: '省3.8元', durationDays: 90 },
-  { plan: 'yearly', label: '年度会员', price: 88, originalPrice: 118.8, discountLabel: '省30.8元', durationDays: 365 },
+  // 前三个月 3.3 折获客促销：价格与 PRD 一致（9.9 元/月），originalPrice 为划线原价
+  { plan: 'monthly', label: '月度会员', price: 9.9, originalPrice: 29.9, discountLabel: '限时3.3折', durationDays: 30 },
+  { plan: 'quarterly', label: '季度会员', price: 25.9, originalPrice: 79.9, discountLabel: '限时3.3折', durationDays: 90 },
+  { plan: 'yearly', label: '年度会员', price: 88, originalPrice: 269, discountLabel: '限时3.3折', durationDays: 365 },
 ]
 
 export const MEMBERSHIP_BENEFITS: MembershipBenefit[] = [
@@ -161,9 +162,14 @@ function saveLocalOrders(userId: string, orders: PaymentOrder[]): void {
 export async function getMembershipStatus(userId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
   try {
-    const result = await api.get<MembershipInfo>('/membership')
-    saveLocalMembership(userId, result)
-    return result
+    const result = await api.get<Partial<MembershipInfo>>('/api/membership/status')
+    const info: MembershipInfo = {
+      ...getLocalMembership(userId),
+      ...result,
+      userId,
+    }
+    saveLocalMembership(userId, info)
+    return info
   } catch {
     return getLocalMembership(userId)
   }
@@ -186,27 +192,39 @@ export async function getPetCountLimit(userId: string): Promise<number> {
 
 export async function createPaymentOrder(userId: string, plan: MembershipPlan): Promise<CreateOrderResult> {
   if (!userId) throw new Error('[MembershipService] userId is required')
-  const productId = `membership_${plan}`
   try {
-    const result = await api.post<CreateOrderResult>('/orders', {
-      productId,
+    const result = await api.post<{
+      order_id: string
+      amount: number
+      plan: MembershipPlan
+      payment?: WechatPaymentParams
+    }>('/api/payment/membership/order', { plan })
+
+    const orderId = result.order_id
+    const createdAt = new Date().toISOString()
+    const mapped: CreateOrderResult = {
+      orderId,
+      amount: result.amount,
       channel: 'wechat',
-    })
+      status: 'pending',
+      createdAt,
+      paymentParams: result.payment,
+    }
     // 保存订单到本地
     const orders = getLocalOrders(userId)
     const order: PaymentOrder = {
-      id: result.orderId,
+      id: orderId,
       userId,
       plan,
       amount: result.amount,
       status: 'pending',
       channel: 'wechat',
-      createdAt: result.createdAt,
+      createdAt,
       paidAt: null,
     }
     orders.unshift(order)
     saveLocalOrders(userId, orders)
-    return result
+    return mapped
   } catch {
     // 离线模式：生成本地订单
     const planConfig = MEMBERSHIP_PLANS.find(p => p.plan === plan)
@@ -299,7 +317,7 @@ export async function completeWechatPayment(
 export async function pollOrderStatus(orderId: string, maxAttempts: number = 10, interval: number = 2000): Promise<PaymentStatus> {
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const order = await api.get<{ status: PaymentStatus }>(`/orders/${orderId}`)
+      const order = await api.get<{ status: PaymentStatus }>(`/api/payment/orders/${orderId}`)
       if (order.status === 'success' || order.status === 'paid') {
         return 'success'
       }
@@ -316,24 +334,37 @@ export async function pollOrderStatus(orderId: string, maxAttempts: number = 10,
 
 export async function confirmPayment(userId: string, orderId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
-  const result = await api.post<MembershipInfo>('/membership/payment-callback', { orderId })
-  saveLocalMembership(userId, result)
-  return result
+  // 微信回调已在服务端激活会员，此处同步本地订单状态并刷新会员缓存
+  const orders = getLocalOrders(userId)
+  const index = orders.findIndex((o) => o.id === orderId)
+  if (index !== -1) {
+    orders[index] = { ...orders[index], status: 'paid', paidAt: new Date().toISOString() }
+    saveLocalOrders(userId, orders)
+  }
+  return getMembershipStatus(userId)
 }
 
 export async function cancelMembership(userId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
 
   try {
-    const result = await api.post<MembershipInfo>('/membership/cancel', {})
-    saveLocalMembership(userId, result)
-    return result
+    const result = await api.post<{ message: string; expiresAt?: string | null }>('/api/membership/cancel', {})
+    const info = getLocalMembership(userId)
+    const updated: MembershipInfo = {
+      ...info,
+      status: 'cancelled',
+      cancelledAt: new Date().toISOString(),
+      expiresAt: result.expiresAt ?? info.expiresAt,
+    }
+    saveLocalMembership(userId, updated)
+    return updated
   } catch {
     const info = getLocalMembership(userId)
     if (info.tier !== 'member') throw new Error('[MembershipService] Not a member')
 
     const updated: MembershipInfo = {
       ...info,
+      status: 'cancelled',
       cancelledAt: new Date().toISOString(),
     }
     saveLocalMembership(userId, updated)
@@ -343,24 +374,14 @@ export async function cancelMembership(userId: string): Promise<MembershipInfo> 
 
 export async function restorePurchase(userId: string): Promise<MembershipInfo> {
   if (!userId) throw new Error('[MembershipService] userId is required')
-  try {
-    const result = await api.post<MembershipInfo>('/membership/restore', {})
-    saveLocalMembership(userId, result)
-    return result
-  } catch {
-    return getLocalMembership(userId)
-  }
+  // 后端无独立恢复端点：恢复购买 = 重新查询云端会员状态并刷新本地缓存
+  return getMembershipStatus(userId)
 }
 
 export async function getOrders(userId: string): Promise<PaymentOrder[]> {
   if (!userId) throw new Error('[MembershipService] userId is required')
-  try {
-    const result = await api.get<PaymentOrder[]>('/membership/orders')
-    saveLocalOrders(userId, result)
-    return result
-  } catch {
-    return getLocalOrders(userId)
-  }
+  // 后端无订单列表端点，返回本地订单
+  return getLocalOrders(userId)
 }
 
 export async function shouldShowPaywall(userId: string, featureKey: string): Promise<boolean> {
@@ -383,25 +404,21 @@ export async function markPaywallShown(userId: string, featureKey: string): Prom
 export async function checkFeatureAccess(userId: string, featureKey: string): Promise<{ allowed: boolean; remaining: number; isMember: boolean }> {
   if (!userId) throw new Error('[MembershipService] userId is required')
 
-  try {
-    const result = await api.get<{ allowed: boolean; remaining: number; isMember: boolean }>(`/quotas/check?featureKey=${featureKey}`)
-    return result
-  } catch {
-    const memberFlag = await isMember(userId)
-    if (memberFlag) {
-      return { allowed: true, remaining: Infinity, isMember: true }
-    }
-
-    const limit = FREE_QUOTA_LIMITS[featureKey] ?? 0
-    if (limit === 0) {
-      return { allowed: false, remaining: 0, isMember: false }
-    }
-
-    const todayKey = new Date().toISOString().slice(0, 10)
-    const usageKey = userKey(userId, `quota_${featureKey}_${todayKey}`)
-    const usedToday = getStorage<number>(usageKey) ?? 0
-    const remaining = Math.max(0, limit - usedToday)
-
-    return { allowed: remaining > 0, remaining, isMember: false }
+  // 后端无通用配额检查端点（仅 /api/membership/usage 覆盖部分功能），本地计算配额
+  const memberFlag = await isMember(userId)
+  if (memberFlag) {
+    return { allowed: true, remaining: Infinity, isMember: true }
   }
+
+  const limit = FREE_QUOTA_LIMITS[featureKey] ?? 0
+  if (limit === 0) {
+    return { allowed: false, remaining: 0, isMember: false }
+  }
+
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const usageKey = userKey(userId, `quota_${featureKey}_${todayKey}`)
+  const usedToday = getStorage<number>(usageKey) ?? 0
+  const remaining = Math.max(0, limit - usedToday)
+
+  return { allowed: remaining > 0, remaining, isMember: false }
 }

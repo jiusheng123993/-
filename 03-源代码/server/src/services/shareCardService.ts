@@ -1,10 +1,18 @@
 /**
  * 分享卡片业务服务层 - 编排分享卡片的核心业务逻辑
- * 职责：生成卡片、分页列表、详情查询、删除卡片、记录分享行为
+ * 职责：生成卡片（真实 SVG 渲染）、分页列表、详情查询、删除卡片、记录分享行为
  * 所有操作基于 user_id 做归属校验，防止跨用户越权访问
- * 骨架阶段：card_url 使用 mock URL，card_data 存储请求的 source_data 和 style
+ *
+ * SVG 渲染策略：
+ *   - 根据卡card_type 和 style.theme 生成纯 SVG 字符串
+ *   - 保存到 {uploadDir}/share-cards/{userId}/{cardId}.svg
+ *   - card_url 指向静态服务路径 /uploads/share-cards/{userId}/{cardId}.svg
+ *   - 配置 publicBaseUrl 时拼接为绝对 URL，否则返回相对路径
+ *   - 文件写入失败降级为仅记录 card_data，不阻断卡片创建（card_url=null）
  */
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { config } from '../config.js';
 import {
   ShareCardRepository,
@@ -70,17 +78,137 @@ export class ShareCardError extends Error {
 const shareCardRepository = new ShareCardRepository();
 
 /**
- * 构建 mock card_data（骨架阶段不实现真实卡片渲染）
- * 结构包含 title/content/style/source_data/generated_at
+ * 卡片类型元数据（标题/图标/默认文案）
+ * 用于 SVG 渲染时显示卡片类型标题和默认内容
  */
-function buildMockCardData(
+const CARD_TYPE_META: Record<string, { title: string; icon: string; defaultContent: string }> = {
+  health_report: { title: '健康报告', icon: '📊', defaultContent: '本周健康打卡记录' },
+  weekly_summary: { title: '周报总结', icon: '📝', defaultContent: '本周家庭周报' },
+  milestone: { title: '里程碑', icon: '🎯', defaultContent: '记录成长的重要时刻' },
+  family_tree: { title: '家族图谱', icon: '🌳', defaultContent: '毛孩子的家族关系' },
+  memoir: { title: '回忆录', icon: '📖', defaultContent: '珍贵的回忆时光' },
+  naming: { title: '取名', icon: '📛', defaultContent: '为毛孩子起的名字' },
+  birthday: { title: '生日', icon: '🎂', defaultContent: '毛孩子的生日庆典' },
+  achievement: { title: '成就', icon: '🏆', defaultContent: '达成的成就里程碑' },
+  daily_moment: { title: '日常动态', icon: '📸', defaultContent: '今日份的小确幸' },
+  yearly_review: { title: '年度回顾', icon: '📅', defaultContent: '这一年的温暖回忆' },
+};
+
+/**
+ * 主题配色方案
+ * 每个主题定义背景色、文字色、强调色、装饰色
+ */
+const THEME_PALETTES: Record<string, { bg: string; text: string; accent: string; deco: string }> = {
+  warm: { bg: '#FFF8F0', text: '#5D4037', accent: '#FF7043', deco: '#FFCC80' },
+  elegant: { bg: '#1A2332', text: '#E8D5B7', accent: '#D4AF37', deco: '#8B7355' },
+  cute: { bg: '#FFF0F5', text: '#6A1B4D', accent: '#FF69B4', deco: '#FFB6C1' },
+  minimal: { bg: '#FFFFFF', text: '#212121', accent: '#607D8B', deco: '#E0E0E0' },
+};
+
+/** SVG 画布尺寸（750x1000，适配小程序分享） */
+const SVG_WIDTH = 750;
+const SVG_HEIGHT = 1000;
+
+/**
+ * XML 转义（防止用户输入破坏 SVG 结构，避免 XSS/注入）
+ */
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * 生成分享卡片 SVG 字符串
+ * 布局：顶部应用名 → 中部卡片类型标题+图标 → 下部自定义文案 → 底部日期
+ *
+ * @param cardType - 卡片类型（10 种枚举）
+ * @param sourceData - 数据源（含 custom_text 等）
+ * @param style - 样式配置（theme/background_color/font_family）
+ * @param cardId - 卡片 ID（用于水印显示）
+ * @returns SVG 字符串
+ */
+export function renderCardSvg(
+  cardType: string,
+  sourceData: ShareCardSourceData,
+  style: ShareCardStyle | undefined,
+  cardId: string,
+): string {
+  const meta = CARD_TYPE_META[cardType] ?? { title: cardType, icon: '🐾', defaultContent: '分享我的宠物生活' };
+  const theme = style?.theme ?? 'warm';
+  const palette = THEME_PALETTES[theme] ?? THEME_PALETTES.warm;
+  const bgColor = style?.background_color || palette.bg;
+  const fontFamily = style?.font_family || 'PingFang SC, Microsoft YaHei, sans-serif';
+  const content = sourceData.custom_text || meta.defaultContent;
+  const date = new Date().toISOString().slice(0, 10);
+
+  // 应用名水印
+  const appName = '星寰海';
+  // 卡片 ID 短水印（取前 8 位）
+  const shortId = cardId.slice(0, 8);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_WIDTH}" height="${SVG_HEIGHT}" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="${escapeXml(bgColor)}"/>
+      <stop offset="100%" stop-color="${escapeXml(palette.deco)}" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <rect width="${SVG_WIDTH}" height="${SVG_HEIGHT}" fill="url(#bg-grad)"/>
+  <rect x="40" y="40" width="${SVG_WIDTH - 80}" height="${SVG_HEIGHT - 80}" fill="none" stroke="${escapeXml(palette.accent)}" stroke-width="2" rx="20" ry="20" opacity="0.5"/>
+  <text x="${SVG_WIDTH / 2}" y="120" font-family="${escapeXml(fontFamily)}" font-size="32" fill="${escapeXml(palette.accent)}" text-anchor="middle" opacity="0.7">${escapeXml(appName)}</text>
+  <text x="${SVG_WIDTH / 2}" y="280" font-family="${escapeXml(fontFamily)}" font-size="120" text-anchor="middle">${escapeXml(meta.icon)}</text>
+  <text x="${SVG_WIDTH / 2}" y="380" font-family="${escapeXml(fontFamily)}" font-size="48" font-weight="bold" fill="${escapeXml(palette.text)}" text-anchor="middle">${escapeXml(meta.title)}</text>
+  <line x1="200" y1="430" x2="${SVG_WIDTH - 200}" y2="430" stroke="${escapeXml(palette.accent)}" stroke-width="2" opacity="0.6"/>
+  <text x="${SVG_WIDTH / 2}" y="540" font-family="${escapeXml(fontFamily)}" font-size="36" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.85">${escapeXml(content)}</text>
+  <text x="${SVG_WIDTH / 2}" y="850" font-family="${escapeXml(fontFamily)}" font-size="28" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.6">${escapeXml(date)}</text>
+  <text x="${SVG_WIDTH - 60}" y="${SVG_HEIGHT - 60}" font-family="${escapeXml(fontFamily)}" font-size="20" fill="${escapeXml(palette.text)}" text-anchor="end" opacity="0.4">#${escapeXml(shortId)}</text>
+</svg>`;
+}
+
+/**
+ * 保存 SVG 文件到 uploads 目录
+ * 路径：{uploadDir}/share-cards/{userId}/{cardId}.svg
+ * 文件写入失败返回 null（降级处理，不阻断卡片创建）
+ *
+ * @param userId - 用户 ID（按用户隔离目录）
+ * @param cardId - 卡片 ID（文件名）
+ * @param svgContent - SVG 字符串
+ * @returns 相对 URL 路径（/uploads/share-cards/{userId}/{cardId}.svg），失败返回 null
+ */
+function saveCardSvg(userId: string, cardId: string, svgContent: string): string | null {
+  try {
+    const dirPath = path.join(config.uploadDir, 'share-cards', userId);
+    fs.mkdirSync(dirPath, { recursive: true });
+    const filePath = path.join(dirPath, `${cardId}.svg`);
+    fs.writeFileSync(filePath, svgContent, 'utf8');
+    return `/uploads/share-cards/${userId}/${cardId}.svg`;
+  } catch (error) {
+    // 文件写入失败不阻断卡片创建，降级为 card_url=null
+    console.error('[ShareCard SVG Save Error]', error);
+    return null;
+  }
+}
+
+/**
+ * 构建 card_data（存储到 JSONB 的结构化数据）
+ * 包含 title/content/pet_name/date/style/source_data/generated_at
+ */
+function buildCardData(
   cardType: string,
   sourceData: ShareCardSourceData,
   style?: ShareCardStyle,
 ): Record<string, unknown> {
+  const meta = CARD_TYPE_META[cardType] ?? { title: cardType, icon: '🐾', defaultContent: '分享我的宠物生活' };
   return {
-    title: `${cardType} 卡片`,
-    content: sourceData.custom_text || '分享我的宠物生活',
+    title: meta.title,
+    icon: meta.icon,
+    content: sourceData.custom_text || meta.defaultContent,
+    pet_name: null,
+    date: new Date().toISOString().slice(0, 10),
     style: style || { theme: 'warm' },
     source_data: sourceData,
     generated_at: new Date().toISOString(),
@@ -89,18 +217,31 @@ function buildMockCardData(
 
 /**
  * 生成分享卡片
- * - 构造 card_data
- * - 构造 card_url（基于 publicBaseUrl 生成，未配置时返回相对路径）
- * - 插入记录，share_count=0, share_channel=null
+ * - 渲染 SVG 字符串
+ * - 保存 SVG 文件到 uploads 目录
+ * - 构建 card_data 和 card_url
+ * - 插入数据库记录，share_count=0, share_channel=null
+ *
+ * @param userId - 用户 ID
+ * @param data - 生成卡片请求参数
+ * @returns 卡片记录（含 card_url，文件写入失败时 card_url=null）
  */
 export async function generateCard(
   userId: string,
   data: GenerateShareCardInput,
 ): Promise<ShareCardRow> {
   const cardId = crypto.randomUUID();
-  const cardData = buildMockCardData(data.card_type, data.source_data, data.style);
-  const base = config.publicBaseUrl || '';
-  const cardUrl = base ? `${base}/share-cards/${cardId}.png` : `/share-cards/${cardId}.png`;
+  const cardData = buildCardData(data.card_type, data.source_data, data.style);
+
+  // 渲染 SVG 并保存文件
+  const svgContent = renderCardSvg(data.card_type, data.source_data, data.style, cardId);
+  const relativeUrl = saveCardSvg(userId, cardId, svgContent);
+
+  // 拼接 card_url：配置 publicBaseUrl 时为绝对 URL，否则为相对路径，文件写入失败为 null
+  let cardUrl: string | null = null;
+  if (relativeUrl) {
+    cardUrl = config.publicBaseUrl ? `${config.publicBaseUrl}${relativeUrl}` : relativeUrl;
+  }
 
   return shareCardRepository.insertCard({
     user_id: userId,

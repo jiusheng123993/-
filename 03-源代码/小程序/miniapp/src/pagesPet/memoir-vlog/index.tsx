@@ -7,6 +7,7 @@ import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { CONFIG } from '../../config'
 import { storage } from '../../utils/storage'
+import { wsClient } from '../../services/wsClient'
 import './index.scss'
 
 // ==================== 类型定义 ====================
@@ -106,6 +107,8 @@ export default function MemoirVlog() {
   const [taskId, setTaskId] = useState('')
   const [outputUrl, setOutputUrl] = useState('')
   const [polling, setPolling] = useState(false)
+  /** WS 事件触发计数：收到 memoir_status 时自增，驱动立即刷新（替代等待轮询） */
+  const [refreshKey, setRefreshKey] = useState(0)
   const loadingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // ==================== 步骤切换 ====================
@@ -308,6 +311,17 @@ export default function MemoirVlog() {
 
   // ==================== 轮询任务状态 ====================
 
+  // 订阅 WS 事件：视频生成完成/失败时立即触发刷新（替代等待下一次轮询）
+  useEffect(() => {
+    if (!polling || !petId || !taskId) return
+
+    const unsubscribe = wsClient.on('memoir_status', (data) => {
+      if (data.taskId !== taskId) return
+      setRefreshKey((k) => k + 1)
+    })
+    return unsubscribe
+  }, [polling, petId, taskId])
+
   useEffect(() => {
     if (!polling || !petId || !taskId) return
 
@@ -372,7 +386,7 @@ export default function MemoirVlog() {
       stopped = true
       if (timer) clearTimeout(timer)
     }
-  }, [polling, petId, taskId, goToStep])
+  }, [polling, petId, taskId, goToStep, refreshKey])
 
   // ==================== 重新制作 ====================
 

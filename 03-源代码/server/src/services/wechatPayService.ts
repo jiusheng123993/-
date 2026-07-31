@@ -19,6 +19,7 @@
  *   - refund：退款（用于审核失败后自动退款）
  */
 import crypto from 'crypto';
+import fs from 'fs';
 import { config } from '../config.js';
 import { sanitizeLog } from '../utils/sanitize.js';
 
@@ -137,15 +138,24 @@ export async function queryOrder(orderId: string): Promise<{
     return { trade_state: 'SUCCESS', transaction_id: `mock_tx_${orderId}` };
   }
 
-  // 真实模式：GET /v3/pay/transactions/outtrade/{out_trade_no}
-  // 完整实现需调用微信 API，此处保留框架
-  throw new Error('[WechatPay] 真实模式 queryOrder 暂未实现，请配置 WECHAT_PAY_MOCK=true 或补充微信 SDK');
+  // 真实模式：GET /v3/pay/transactions/out-trade-no/{out_trade_no}?mchid={mchid}
+  const path = `/v3/pay/transactions/out-trade-no/${encodeURIComponent(orderId)}?mchid=${config.wechatPay.mchId}`;
+  const result = await requestWithSign<{
+    trade_state: string;
+    transaction_id?: string;
+    amount?: { total?: number; payer_total?: number };
+  }>('GET', path);
+  return {
+    trade_state: result.trade_state,
+    transaction_id: result.transaction_id,
+    amount_total: result.amount?.payer_total ?? result.amount?.total,
+  };
 }
 
 /**
  * 退款
  * @param orderId - 我方订单号
- * @param amount - 退款金额（分，应等于支付金额）
+ * @param amount - 退款金额（分，全额退款时应等于原支付金额）
  * @param reason - 退款原因
  */
 export async function refund(
@@ -163,8 +173,25 @@ export async function refund(
   }
 
   // 真实模式：POST /v3/refund/domestic/refunds
-  // 完整实现需调用微信 API
-  throw new Error('[WechatPay] 真实模式 refund 暂未实现，请配置 WECHAT_PAY_MOCK=true 或补充微信 SDK');
+  // amount.total 必须等于原订单金额（全额退款场景下即退款金额）
+  const result = await requestWithSign<{ refund_id: string; status: string }>(
+    'POST',
+    '/v3/refund/domestic/refunds',
+    {
+      out_refund_no: `R${orderId}`,
+      out_trade_no: orderId,
+      reason: reason.slice(0, 80),
+      notify_url: config.wechatPay.notifyUrl || undefined,
+      amount: { total: amount, currency: 'CNY', refund: amount },
+    },
+  );
+  if (!result.refund_id) {
+    throw new Error('[WechatPay] 退款请求失败：响应缺少 refund_id');
+  }
+  return {
+    refund_id: result.refund_id,
+    status: result.status as RefundResult['status'],
+  };
 }
 
 // ===== Mock 模式实现 =====
@@ -237,47 +264,292 @@ export function buildMockNotifyBody(
   });
 }
 
-// ===== 真实模式实现（框架，待接入真实微信支付 SDK） =====
+// ===== 真实模式实现（微信支付 V3，Node 内置 crypto + fetch，零额外依赖） =====
+
+/** 微信支付 V3 API 基础地址 */
+const WECHAT_PAY_API_BASE = 'https://api.mch.weixin.qq.com';
+
+/** 微信支付 API 请求 User-Agent（微信要求必填） */
+const WECHAT_PAY_UA = 'xinghuanhai-server/1.0.0';
+
+/** PEM 配置加载缓存（privateKey / platformCert） */
+const pemCache = new Map<string, string>();
+
+/** 商户私钥 KeyObject 缓存 */
+let cachedPrivateKey: crypto.KeyObject | null = null;
+
+/** 平台证书公钥 KeyObject 缓存 */
+let cachedPlatformPublicKey: crypto.KeyObject | null = null;
+
+/**
+ * 加载 PEM 配置：支持直接传 PEM 内容（-----BEGIN 开头）或文件路径
+ * @param value - 配置值
+ * @param envKey - 环境变量名（用于错误提示）
+ */
+function loadPemConfig(value: string, envKey: string): string {
+  const trimmed = (value || '').trim();
+  if (!trimmed) {
+    throw new Error(`[WechatPay] 缺少配置: ${envKey}（请参考 .env.example 配置微信支付）`);
+  }
+  if (trimmed.startsWith('-----BEGIN')) {
+    return trimmed;
+  }
+  // 文件路径模式（带缓存，避免每次请求读磁盘）
+  if (pemCache.has(trimmed)) return pemCache.get(trimmed)!;
+  if (fs.existsSync(trimmed)) {
+    const content = fs.readFileSync(trimmed, 'utf8').trim();
+    pemCache.set(trimmed, content);
+    return content;
+  }
+  throw new Error(`[WechatPay] ${envKey} 既不是 PEM 内容也不是有效文件路径`);
+}
+
+/** 获取商户私钥（用于请求签名 / paySign 计算） */
+function getPrivateKeyObject(): crypto.KeyObject {
+  if (!cachedPrivateKey) {
+    cachedPrivateKey = crypto.createPrivateKey(
+      loadPemConfig(config.wechatPay.privateKey, 'WECHAT_PAY_PRIVATE_KEY'),
+    );
+  }
+  return cachedPrivateKey;
+}
+
+/** 获取平台证书公钥（用于回调验签） */
+function getPlatformPublicKeyObject(): crypto.KeyObject {
+  if (!cachedPlatformPublicKey) {
+    cachedPlatformPublicKey = crypto.createPublicKey(
+      loadPemConfig(config.wechatPay.platformCert, 'WECHAT_PAY_PLATFORM_CERT'),
+    );
+  }
+  return cachedPlatformPublicKey;
+}
+
+/** SHA256-RSA2048 签名（微信支付 V3 规范） */
+function sha256WithRsa(data: string): string {
+  return crypto.createSign('RSA-SHA256').update(data).sign(getPrivateKeyObject(), 'base64');
+}
+
+/**
+ * 构建请求 Authorization 头并返回签名参数
+ *
+ * 签名串规则（官方规范）：
+ *   - POST：`POST\n{path}\n{timestamp}\n{nonce}\n{JSON请求体}\n`
+ *   - GET： `GET\n{path?query}\n{timestamp}\n{nonce}\n\n`（第 5 行为空 + 结尾换行）
+ *
+ * @param method - HTTP 方法
+ * @param pathWithQuery - 去掉域名的 path（含 query，不 URL 编码）
+ * @param bodyStr - JSON 请求体字符串（GET 传 undefined）
+ */
+function buildAuthorization(
+  method: 'GET' | 'POST',
+  pathWithQuery: string,
+  bodyStr?: string,
+): string {
+  const nonce = crypto.randomBytes(16).toString('hex');
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  // 拼接签名串：末行 body 有内容则为 body+换行，否则为空行
+  const signatureText = `${method}\n${pathWithQuery}\n${timestamp}\n${nonce}\n${bodyStr ? `${bodyStr}\n` : '\n'}`;
+  const signature = sha256WithRsa(signatureText);
+  return (
+    `WECHATPAY2-SHA256-RSA2048 mchid="${config.wechatPay.mchId}",` +
+    `nonce_str="${nonce}",` +
+    `timestamp="${timestamp}",` +
+    `serial_no="${config.wechatPay.certSerialNo}",` +
+    `signature="${signature}"`
+  );
+}
+
+/**
+ * 携带签名发送微信支付 V3 请求
+ * 非 2xx 响应解析 { code, message } 抛出业务错误
+ */
+async function requestWithSign<T>(
+  method: 'GET' | 'POST',
+  pathWithQuery: string,
+  body?: unknown,
+): Promise<T> {
+  const bodyStr = body !== undefined ? JSON.stringify(body) : undefined;
+  const authorization = buildAuthorization(method, pathWithQuery, bodyStr);
+
+  const headers: Record<string, string> = {
+    Authorization: authorization,
+    Accept: 'application/json',
+    'User-Agent': WECHAT_PAY_UA,
+  };
+  if (bodyStr !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const response = await fetch(`${WECHAT_PAY_API_BASE}${pathWithQuery}`, {
+    method,
+    headers,
+    body: bodyStr,
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    let message = `微信支付请求失败: HTTP ${response.status}`;
+    try {
+      const errBody = JSON.parse(text) as { code?: string; message?: string };
+      if (errBody.code || errBody.message) {
+        message = `微信支付请求失败: ${errBody.code || ''} ${errBody.message || ''}`.trim();
+      }
+    } catch {
+      // 非 JSON 错误体，保留默认错误信息
+    }
+    throw new Error(message);
+  }
+
+  return text ? (JSON.parse(text) as T) : ({} as T);
+}
+
+/**
+ * AES-256-GCM 解密微信回调 resource
+ *
+ * 规范：ciphertext 为 base64 编码，后 16 字节为 GCM 认证标签；
+ *       associated_data / nonce 为明文附加串，直接作为 AAD / nonce。
+ */
+function decipherGcm(ciphertext: string, associatedData: string, nonce: string): string {
+  const key = config.wechatPay.apiV3Key;
+  if (!key) {
+    throw new Error('[WechatPay] 缺少配置: WECHAT_PAY_API_V3_KEY（回调解密必需）');
+  }
+  const buf = Buffer.from(ciphertext, 'base64');
+  const authTag = buf.subarray(buf.length - 16);
+  const data = buf.subarray(0, buf.length - 16);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce);
+  decipher.setAuthTag(authTag);
+  decipher.setAAD(Buffer.from(associatedData, 'utf8'));
+  return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
+}
 
 /**
  * 真实模式创建 JSAPI 支付
- * 调用微信支付 V3 API：POST /v3/pay/transactions/jsapi
- *
- * TODO 待接入真实微信支付时实现：
- *   1. 构造请求体（appid、mchid、description、out_trade_no、amount、payer）
- *   2. 计算签名（SHA256-RSA2048）
- *   3. 发送 HTTP 请求，附带 Authorization 头
- *   4. 解析 prepay_id
- *   5. 计算 wx.requestPayment 所需的 paySign
+ * 调用微信支付 V3：POST /v3/pay/transactions/jsapi，返回前端 wx.requestPayment 所需参数
  */
 async function createRealJsapiPayment(
-  _orderId: string,
-  _amount: number,
-  _description: string,
-  _openid: string,
+  orderId: string,
+  amount: number,
+  description: string,
+  openid: string,
 ): Promise<JsapiPaymentParams> {
-  throw new Error(
-    '[WechatPay] 真实模式 createJsapiPayment 暂未实现。请配置 WECHAT_PAY_MOCK=true 进行开发，或接入 wechatpay-node-v3 SDK 后补充实现',
+  const appId = config.wechat.appId;
+  if (!appId) {
+    throw new Error('[WechatPay] 缺少配置: WECHAT_APPID');
+  }
+  if (!config.wechatPay.notifyUrl) {
+    throw new Error('[WechatPay] 缺少配置: WECHAT_PAY_NOTIFY_URL（回调地址必须公网可访问）');
+  }
+
+  const result = await requestWithSign<{ prepay_id: string }>(
+    'POST',
+    '/v3/pay/transactions/jsapi',
+    {
+      appid: appId,
+      mchid: config.wechatPay.mchId,
+      description,
+      out_trade_no: orderId,
+      notify_url: config.wechatPay.notifyUrl,
+      amount: { total: amount, currency: 'CNY' },
+      payer: { openid },
+    },
   );
+
+  if (!result.prepay_id) {
+    throw new Error('[WechatPay] 微信下单失败：响应缺少 prepay_id');
+  }
+
+  // 计算 wx.requestPayment 调起签名（签名串：appId\ntimeStamp\nnonceStr\nprepay_id=xxx\n）
+  const timeStamp = String(Math.floor(Date.now() / 1000));
+  const nonceStr = crypto.randomBytes(16).toString('hex');
+  const packageStr = `prepay_id=${result.prepay_id}`;
+  const paySignText = `${appId}\n${timeStamp}\n${nonceStr}\n${packageStr}\n`;
+  const paySign = sha256WithRsa(paySignText);
+
+  return {
+    prepay_id: result.prepay_id,
+    appId,
+    timeStamp,
+    nonceStr,
+    package: packageStr,
+    signType: 'RSA',
+    paySign,
+    orderId,
+  };
 }
 
 /**
  * 真实模式验签 + 解密回调
  *
- * TODO 待接入真实微信支付时实现：
- *   1. 校验 Wechatpay-Serial 是否为平台证书序列号
- *   2. 用平台证书公钥验签（signature 是对 timestamp\nnonce\nbody 的 SHA256-RSA2048 签名）
- *   3. 用 apiV3Key 解密 resource.ciphertext（AES-256-GCM，associated_data = resource.associated_data, nonce = resource.nonce）
- *   4. 返回结构化结果
+ * 步骤：
+ *   1. 时间戳防重放（±300s）
+ *   2. 校验 Wechatpay-Serial 是否等于配置的平台证书序列号
+ *   3. 用平台证书公钥验签（签名串：timestamp\nnonce\nrawBody\n，rawBody 必须为原始字符串）
+ *   4. 用 apiV3Key 解密 resource.ciphertext（AES-256-GCM）
+ *   5. 映射为 WechatNotifyResult
  */
 async function verifyAndDecodeRealNotify(
-  _timestamp: string,
-  _nonce: string,
-  _serial: string,
-  _signature: string,
-  _rawBody: string,
+  timestamp: string,
+  nonce: string,
+  serial: string,
+  signature: string,
+  rawBody: string,
 ): Promise<WechatNotifyResult> {
-  throw new Error(
-    '[WechatPay] 真实模式 verifyAndDecodeNotify 暂未实现。请配置 WECHAT_PAY_MOCK=true 进行开发，或接入 wechatpay-node-v3 SDK 后补充实现',
-  );
+  // 1. 时间戳防重放
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) {
+    throw new Error('[WechatPay] 回调时间戳超出有效范围（防重放校验失败）');
+  }
+
+  // 2. 平台证书序列号校验
+  const expectedSerial = config.wechatPay.platformCertSerialNo;
+  if (!expectedSerial) {
+    throw new Error('[WechatPay] 缺少配置: WECHAT_PAY_PLATFORM_CERT_SERIAL_NO');
+  }
+  if (serial !== expectedSerial) {
+    throw new Error('[WechatPay] 回调证书序列号不匹配');
+  }
+
+  // 3. 验签（rawBody 必须是微信发送的原始请求体）
+  const verify = crypto.createVerify('RSA-SHA256');
+  verify.update(`${timestamp}\n${nonce}\n${rawBody}\n`);
+  const valid = verify.verify(getPlatformPublicKeyObject(), signature, 'base64');
+  if (!valid) {
+    throw new Error('[WechatPay] 回调签名验证失败');
+  }
+
+  // 4. 解密 resource
+  const parsed = JSON.parse(rawBody) as {
+    resource?: {
+      algorithm?: string;
+      ciphertext?: string;
+      associated_data?: string;
+      nonce?: string;
+    };
+  };
+  const resource = parsed.resource;
+  if (!resource?.ciphertext || !resource.nonce) {
+    throw new Error('[WechatPay] 回调缺少 resource 加密内容');
+  }
+  const decrypted = decipherGcm(resource.ciphertext, resource.associated_data ?? '', resource.nonce);
+  const data = JSON.parse(decrypted) as {
+    out_trade_no?: string;
+    transaction_id?: string;
+    trade_state?: string;
+    amount?: { total?: number; payer_total?: number };
+    payer?: { openid?: string };
+  };
+
+  if (!data.out_trade_no || !data.transaction_id || !data.trade_state) {
+    throw new Error('[WechatPay] 回调解密内容缺少必需字段');
+  }
+
+  return {
+    out_trade_no: data.out_trade_no,
+    transaction_id: data.transaction_id,
+    trade_state: data.trade_state,
+    amount_total: data.amount?.payer_total ?? data.amount?.total ?? 0,
+    payer_openid: data.payer?.openid,
+  };
 }

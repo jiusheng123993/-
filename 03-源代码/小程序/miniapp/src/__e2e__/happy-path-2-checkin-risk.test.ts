@@ -515,18 +515,7 @@ describe('E2E Happy Path 2: 健康打卡 → 风险检测 → 打卡记录', () 
       })
       await createCheckin(input2)
 
-      // 查询统计
-      vi.mocked(api.get).mockResolvedValue({
-        totalCheckins: 2,
-        streak: 1,
-        lastCheckinDate: today,
-        weeklyCount: 2,
-        monthlyCount: 2,
-        consecutiveAnomalyDays: 0,
-        totalAnomalyDays: 0,
-        lastAnomalyDate: null,
-      })
-
+      // 查询统计（后端无 stats 接口，本地计算）
       const stats = await getCheckinStats(petId, userId)
 
       expect(stats.totalCheckins).toBeGreaterThanOrEqual(1)
@@ -535,12 +524,10 @@ describe('E2E Happy Path 2: 健康打卡 → 风险检测 → 打卡记录', () 
       expect(stats.monthlyCount).toBeGreaterThanOrEqual(0)
       expect(typeof stats.streak).toBe('number')
       expect(typeof stats.totalCheckins).toBe('number')
-      expect(api.get).toHaveBeenCalledWith(`/api/pets/${petId}/checkins/stats`)
+      expect(api.get).not.toHaveBeenCalledWith(`/api/pets/${petId}/checkins/stats`)
     })
 
-    it('API 失败时应该回退到本地计算', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('网络异常'))
-
+    it('无本地记录时应该返回空统计', async () => {
       const stats = await getCheckinStats(petId, userId)
 
       // 本地统计应该返回默认值
@@ -699,26 +686,12 @@ describe('E2E Happy Path 2: 健康打卡 → 风险检测 → 打卡记录', () 
       })
       await createCheckin(makeCheckinInput({ appetiteLevel: 4, spiritLevel: 4, poopLevel: 3 }))
 
-      vi.mocked(api.get).mockResolvedValue({
-        id: 'checkin-new',
-        petId,
-        userId,
-        poopLevel: 3,
-        appetiteLevel: 4,
-        spiritLevel: 4,
-        exerciseLevel: 2,
-        hasAnomaly: false,
-        anomalyItems: [],
-        riskLevel: 'low',
-        aiFeedback: '✅ 状态不错',
-        createdAt: new Date('2026-07-25T12:00:00.000Z'),
-      })
-
+      // 后端无 latest 接口，本地取最新记录
       const latest = await getLatestCheckin(petId, userId)
 
       expect(latest).not.toBeNull()
       expect(latest!.id).toBe('checkin-new')
-      expect(api.get).toHaveBeenCalledWith(`/api/pets/${petId}/checkins/latest`)
+      expect(api.get).not.toHaveBeenCalledWith(`/api/pets/${petId}/checkins/latest`)
     })
   })
 

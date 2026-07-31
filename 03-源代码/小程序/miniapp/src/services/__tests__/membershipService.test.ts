@@ -50,7 +50,7 @@ import {
   restorePurchase,
   getOrders,
 } from '../membershipService'
-import type { MembershipInfo, PaymentOrder, CreateOrderResult, WechatPaymentParams } from '../membershipService'
+import type { MembershipInfo, PaymentOrder } from '../membershipService'
 
 const userId = 'user-001'
 
@@ -111,7 +111,7 @@ describe('membershipService', () => {
       expect(status.tier).toBe('member')
       expect(status.status).toBe('active')
       expect(status.plan).toBe('monthly')
-      expect(api.get).toHaveBeenCalledWith('/membership')
+      expect(api.get).toHaveBeenCalledWith('/api/membership/status')
     })
 
     it('should fallback to local storage when API fails', async () => {
@@ -167,18 +167,16 @@ describe('membershipService', () => {
 
   describe('createPaymentOrder', () => {
     it('should create order via API and return CreateOrderResult', async () => {
-      const mockResult: CreateOrderResult = {
-        orderId: 'order_001',
-        amount: 9.9,
-        channel: 'wechat',
-        status: 'pending',
-        createdAt: '2025-01-01T00:00:00.000Z',
-        paymentParams: {
+      const mockResult = {
+        order_id: 'order_001',
+        amount: 990,
+        plan: 'monthly',
+        payment: {
           appId: 'wx123',
           timeStamp: '1234567890',
           nonceStr: 'abc',
           package: 'prepay_id=xxx',
-          signType: 'RSA',
+          signType: 'RSA' as const,
           paySign: 'sign123',
         },
       }
@@ -187,11 +185,11 @@ describe('membershipService', () => {
       const result = await createPaymentOrder(userId, 'monthly')
 
       expect(result.orderId).toBe('order_001')
-      expect(result.amount).toBe(9.9)
+      expect(result.amount).toBe(990)
       expect(result.channel).toBe('wechat')
       expect(result.paymentParams).toBeDefined()
       expect(result.paymentParams?.appId).toBe('wx123')
-      expect(api.post).toHaveBeenCalledWith('/orders', { productId: 'membership_monthly', channel: 'wechat' })
+      expect(api.post).toHaveBeenCalledWith('/api/payment/membership/order', { plan: 'monthly' })
     })
 
     it('should throw when userId is empty', async () => {
@@ -200,16 +198,19 @@ describe('membershipService', () => {
   })
 
   describe('confirmPayment', () => {
-    it('should activate membership via API', async () => {
+    it('should sync local order and refresh membership after payment', async () => {
       const mockInfo = makeMembershipInfo()
-      vi.mocked(api.post).mockResolvedValue(mockInfo)
+      mockStorage[`xhh_membership_orders_${userId}`] = JSON.stringify([makePaymentOrder()])
+      vi.mocked(api.get).mockResolvedValue(mockInfo)
 
       const info = await confirmPayment(userId, 'order_001')
 
       expect(info.tier).toBe('member')
       expect(info.status).toBe('active')
       expect(info.plan).toBe('monthly')
-      expect(api.post).toHaveBeenCalledWith('/membership/payment-callback', { orderId: 'order_001' })
+      expect(api.get).toHaveBeenCalledWith('/api/membership/status')
+      const saved = JSON.parse(mockStorage[`xhh_membership_orders_${userId}`])
+      expect(saved[0].status).toBe('paid')
     })
 
     it('should throw when userId is empty', async () => {
@@ -219,14 +220,15 @@ describe('membershipService', () => {
 
   describe('cancelMembership', () => {
     it('should cancel membership via API when available', async () => {
-      const mockInfo = makeMembershipInfo({ status: 'cancelled', cancelledAt: '2025-06-01T00:00:00.000Z' })
-      vi.mocked(api.post).mockResolvedValue(mockInfo)
+      const localInfo = makeMembershipInfo({ expiresAt: '2099-12-31T00:00:00.000Z' })
+      mockStorage[`xhh_membership_${userId}`] = JSON.stringify(localInfo)
+      vi.mocked(api.post).mockResolvedValue({ message: '会员已取消', expiresAt: '2099-12-31T00:00:00.000Z' })
 
       const info = await cancelMembership(userId)
 
       expect(info.status).toBe('cancelled')
       expect(info.cancelledAt).not.toBeNull()
-      expect(api.post).toHaveBeenCalledWith('/membership/cancel', {})
+      expect(api.post).toHaveBeenCalledWith('/api/membership/cancel', {})
     })
 
     it('should set status to cancelled locally when API fails', async () => {
@@ -253,19 +255,19 @@ describe('membershipService', () => {
   describe('restorePurchase', () => {
     it('should restore purchase via API when available', async () => {
       const mockInfo = makeMembershipInfo()
-      vi.mocked(api.post).mockResolvedValue(mockInfo)
+      vi.mocked(api.get).mockResolvedValue(mockInfo)
 
       const info = await restorePurchase(userId)
 
       expect(info.tier).toBe('member')
       expect(info.status).toBe('active')
-      expect(api.post).toHaveBeenCalledWith('/membership/restore', {})
+      expect(api.get).toHaveBeenCalledWith('/api/membership/status')
     })
 
     it('should fallback to local membership when API fails', async () => {
       const localInfo = makeMembershipInfo({ expiresAt: '2099-12-31T00:00:00.000Z' })
       mockStorage[`xhh_membership_${userId}`] = JSON.stringify(localInfo)
-      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
       const info = await restorePurchase(userId)
 
@@ -274,7 +276,7 @@ describe('membershipService', () => {
     })
 
     it('should return free status when no local record exists', async () => {
-      vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
       const info = await restorePurchase(userId)
 
@@ -288,32 +290,18 @@ describe('membershipService', () => {
   })
 
   describe('getOrders', () => {
-    it('should return orders from API when available', async () => {
-      const mockOrders = [makePaymentOrder(), makePaymentOrder({ id: 'order_002', plan: 'yearly', amount: 88 })]
-      vi.mocked(api.get).mockResolvedValue(mockOrders)
+    it('should return local orders', async () => {
+      const localOrders = [makePaymentOrder(), makePaymentOrder({ id: 'order_002', plan: 'yearly', amount: 88 })]
+      mockStorage[`xhh_membership_orders_${userId}`] = JSON.stringify(localOrders)
 
       const orders = await getOrders(userId)
 
       expect(orders).toHaveLength(2)
       expect(orders[0].id).toBe('order_001')
       expect(orders[1].id).toBe('order_002')
-      expect(api.get).toHaveBeenCalledWith('/membership/orders')
-    })
-
-    it('should fallback to local orders when API fails', async () => {
-      const localOrders = [makePaymentOrder({ id: 'order_local' })]
-      mockStorage[`xhh_membership_orders_${userId}`] = JSON.stringify(localOrders)
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-
-      const orders = await getOrders(userId)
-
-      expect(orders).toHaveLength(1)
-      expect(orders[0].id).toBe('order_local')
     })
 
     it('should return empty array when no orders exist', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-
       const orders = await getOrders(userId)
 
       expect(orders).toEqual([])
@@ -410,17 +398,6 @@ describe('membershipService', () => {
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(Infinity)
       expect(result.isMember).toBe(true)
-    })
-
-    it('should return API result when API succeeds', async () => {
-      vi.mocked(api.get).mockResolvedValue({ allowed: true, remaining: 10, isMember: false })
-
-      const result = await checkFeatureAccess(userId, 'food_query')
-
-      expect(result.allowed).toBe(true)
-      expect(result.remaining).toBe(10)
-      expect(result.isMember).toBe(false)
-      expect(api.get).toHaveBeenCalledWith('/quotas/check?featureKey=food_query')
     })
 
     it('should throw when userId is empty', async () => {

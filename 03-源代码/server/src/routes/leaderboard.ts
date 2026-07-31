@@ -4,7 +4,8 @@
  * 所有接口需登录认证，均做家庭归属校验防越权
  *
  * 路由清单：
- *   GET    /:id/leaderboard            获取家庭排行
+ *   GET    /:id/leaderboard            获取家庭排行（快照未过期则读快照，否则实时计算）
+ *   POST   /:id/leaderboard/refresh    手动刷新排行（强制实时聚合并更新快照）
  *   GET    /:id/roles                  获取角色分配
  *   POST   /:id/roles                  分配角色
  *   PUT    /:id/roles/:roleId          更新角色
@@ -16,6 +17,7 @@ import { validate } from '../middleware/validate.js';
 import { leaderboardQuerySchema, assignRoleSchema, updateRoleSchema } from '../schemas/index.js';
 import {
   getLeaderboard,
+  refreshLeaderboard,
   listRoles,
   assignRole,
   updateRole,
@@ -41,6 +43,7 @@ function handleServiceError(res: Response, err: unknown): void {
 
 /**
  * GET /:id/leaderboard - 获取家庭排行
+ * 快照未过期（1小时内）则读快照，否则实时聚合并 upsert
  */
 router.get(
   '/:id/leaderboard',
@@ -51,6 +54,26 @@ router.get(
       const familyId = req.params.id as string;
       const query = req.query as unknown as { period: 'weekly' | 'monthly' | 'all_time' };
       const result = await getLeaderboard(userId, familyId, query.period);
+      res.json({ success: true, data: result });
+    } catch (err) {
+      handleServiceError(res, err);
+    }
+  },
+);
+
+/**
+ * POST /:id/leaderboard/refresh - 手动刷新排行
+ * 强制实时聚合计算并更新快照，适用于用户主动点击"刷新排行"按钮
+ */
+router.post(
+  '/:id/leaderboard/refresh',
+  validate({ query: leaderboardQuerySchema }),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.userId!;
+      const familyId = req.params.id as string;
+      const query = req.query as unknown as { period: 'weekly' | 'monthly' | 'all_time' };
+      const result = await refreshLeaderboard(userId, familyId, query.period);
       res.json({ success: true, data: result });
     } catch (err) {
       handleServiceError(res, err);

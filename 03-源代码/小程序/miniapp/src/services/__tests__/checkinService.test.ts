@@ -105,7 +105,7 @@ describe('checkinService', () => {
       expect(result.createdAt).toBeDefined()
       expect(api.post).toHaveBeenCalledWith(
         '/api/pets/pet-001/checkins',
-        expect.objectContaining({ petId: 'pet-001' })
+        expect.objectContaining({ poop_level: 3, risk_level: 'medium' })
       )
     })
 
@@ -116,8 +116,8 @@ describe('checkinService', () => {
       await createCheckin({ ...mockEntry, poopLevel: 1 })
 
       const callArgs = vi.mocked(api.post).mock.calls[0][1] as Record<string, unknown>
-      expect(callArgs.riskLevel).toBe('emergency')
-      expect(callArgs.aiFeedback).toContain('紧急健康信号')
+      expect(callArgs.risk_level).toBe('emergency')
+      expect(callArgs.ai_feedback).toContain('紧急健康信号')
     })
 
     it('should trigger emergency when appetiteLevel is 1 and spiritLevel is 1', async () => {
@@ -131,8 +131,8 @@ describe('checkinService', () => {
       })
 
       const callArgs = vi.mocked(api.post).mock.calls[0][1] as Record<string, unknown>
-      expect(callArgs.riskLevel).toBe('emergency')
-      expect(callArgs.aiFeedback).toContain('紧急健康信号')
+      expect(callArgs.risk_level).toBe('emergency')
+      expect(callArgs.ai_feedback).toContain('紧急健康信号')
     })
 
     it('should trigger high when poopLevel is 2', async () => {
@@ -142,7 +142,7 @@ describe('checkinService', () => {
       await createCheckin({ ...mockEntry, poopLevel: 2 })
 
       const callArgs = vi.mocked(api.post).mock.calls[0][1] as Record<string, unknown>
-      expect(callArgs.riskLevel).toBe('high')
+      expect(callArgs.risk_level).toBe('high')
     })
 
     it('should trigger high when appetiteLevel is 1', async () => {
@@ -152,7 +152,7 @@ describe('checkinService', () => {
       await createCheckin({ ...mockEntry, appetiteLevel: 1 })
 
       const callArgs = vi.mocked(api.post).mock.calls[0][1] as Record<string, unknown>
-      expect(callArgs.riskLevel).toBe('high')
+      expect(callArgs.risk_level).toBe('high')
     })
 
     it('should trigger high when spiritLevel is 1', async () => {
@@ -162,7 +162,7 @@ describe('checkinService', () => {
       await createCheckin({ ...mockEntry, spiritLevel: 1 })
 
       const callArgs = vi.mocked(api.post).mock.calls[0][1] as Record<string, unknown>
-      expect(callArgs.riskLevel).toBe('high')
+      expect(callArgs.risk_level).toBe('high')
     })
 
     it('should trigger medium when hasAnomaly is true', async () => {
@@ -172,7 +172,7 @@ describe('checkinService', () => {
       await createCheckin({ ...mockEntry, hasAnomaly: true, anomalyItems: ['poop'] as AnomalyItem[] })
 
       const callArgs = vi.mocked(api.post).mock.calls[0][1] as Record<string, unknown>
-      expect(callArgs.riskLevel).toBe('medium')
+      expect(callArgs.risk_level).toBe('medium')
     })
 
     it('should fallback to local storage when API fails', async () => {
@@ -218,29 +218,22 @@ describe('checkinService', () => {
   })
 
   describe('getCheckinStats', () => {
-    it('should return checkin stats from API', async () => {
-      const mockStats = {
-        totalCheckins: 10,
-        streak: 3,
-        lastCheckinDate: today,
-        weeklyCount: 5,
-        monthlyCount: 8,
-      }
-      vi.mocked(api.get).mockResolvedValue(mockStats)
+    it('should calculate checkin stats from local records', async () => {
+      mockStorage['xhh_checkins_pet-001_user-001'] = JSON.stringify([
+        makeCheckinResponse({ id: 'c1', createdAt: new Date(), hasAnomaly: true }),
+        makeCheckinResponse({ id: 'c2', createdAt: new Date(Date.now() - 86400000) }),
+      ])
 
       const result = await getCheckinStats('pet-001', userId)
 
-      expect(result.totalCheckins).toBe(10)
-      expect(result.streak).toBe(3)
+      expect(result.totalCheckins).toBe(2)
       expect(result.lastCheckinDate).toBe(today)
-      expect(result.weeklyCount).toBe(5)
-      expect(result.monthlyCount).toBe(8)
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet-001/checkins/stats')
+      expect(result.weeklyCount).toBeGreaterThanOrEqual(1)
+      expect(result.monthlyCount).toBe(2)
+      expect(api.get).not.toHaveBeenCalled()
     })
 
-    it('should fallback to local calculation when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-
+    it('should return empty stats when no records exist', async () => {
       const result = await getCheckinStats('pet-001', userId)
 
       expect(result.totalCheckins).toBe(0)
@@ -292,20 +285,20 @@ describe('checkinService', () => {
   })
 
   describe('getLatestCheckin', () => {
-    it('should return latest checkin from API', async () => {
-      const mockResponse = makeCheckinResponse()
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+    it('should return latest checkin from local records', async () => {
+      mockStorage['xhh_checkins_pet-001_user-001'] = JSON.stringify([
+        makeCheckinResponse({ id: 'checkin_old', createdAt: new Date('2024-01-01T00:00:00.000Z') }),
+        makeCheckinResponse({ id: 'checkin_001', createdAt: new Date('2024-01-02T00:00:00.000Z') }),
+      ])
 
       const result = await getLatestCheckin('pet-001', userId)
 
       expect(result).not.toBeNull()
       expect(result!.id).toBe('checkin_001')
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet-001/checkins/latest')
+      expect(api.get).not.toHaveBeenCalled()
     })
 
     it('should return null when no checkins exist', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-
       const result = await getLatestCheckin('pet-001', userId)
 
       expect(result).toBeNull()

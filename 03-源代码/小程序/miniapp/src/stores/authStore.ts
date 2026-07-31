@@ -6,6 +6,7 @@ import Taro from '@tarojs/taro'
 import create from 'zustand'
 import { api } from '../services/api'
 import { storage } from '../utils/storage'
+import { wsClient } from '../services/wsClient'
 import type { User } from '../types'
 
 /** 认证状态定义 */
@@ -77,6 +78,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   /** 退出登录，清除本地存储和状态 */
   logout: async () => {
+    // 断开实时推送连接（避免登录态失效后继续接收推送）
+    wsClient.disconnect()
     storage.clear()
     set({ user: null, token: null, isAuthenticated: false })
   },

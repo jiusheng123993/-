@@ -103,7 +103,7 @@ describe('symptomService', () => {
 
       expect(result.riskLevel).toBe('caution')
       expect(result.symptoms).toEqual(['cough'])
-      expect(api.post).toHaveBeenCalledWith('/api/pets/pet_001/symptom-checks', expect.any(Object))
+      expect(api.post).toHaveBeenCalledWith('/api/pets/pet_001/symptom-check', expect.any(Object))
     })
 
     it('should fallback to local engine when API fails', async () => {
@@ -150,14 +150,14 @@ describe('symptomService', () => {
         makeSymptomCheckResult({ id: 'sym_001', symptoms: ['cough'] }),
         makeSymptomCheckResult({ id: 'sym_002', symptoms: ['sneeze'] }),
       ]
-      vi.mocked(api.get).mockResolvedValue(mockHistory)
+      vi.mocked(api.get).mockResolvedValue({ list: mockHistory, total: 2, page: 1, pageSize: 20 })
 
       const result = await getCheckHistory('pet_001')
 
       expect(result).toHaveLength(2)
       expect(result[0].id).toBe('sym_001')
       expect(result[1].id).toBe('sym_002')
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet_001/symptom-checks')
+      expect(api.get).toHaveBeenCalledWith('/api/pets/pet_001/symptom-check/history', { page: '1', page_size: '50' })
     })
 
     it('should fallback to local storage when API fails', async () => {

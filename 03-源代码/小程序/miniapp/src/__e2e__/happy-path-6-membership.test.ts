@@ -47,7 +47,6 @@ import {
 } from '../services/membershipService'
 import type {
   MembershipInfo,
-  CreateOrderResult,
   PaymentOrder,
 } from '../services/membershipService'
 
@@ -66,25 +65,6 @@ function makeMembershipInfo(overrides: Partial<MembershipInfo> = {}): Membership
     cancelledAt: null,
     paymentOrderId: 'order-001',
     price: 9.9,
-    ...overrides,
-  }
-}
-
-function makeCreateOrderResult(overrides: Partial<CreateOrderResult> = {}): CreateOrderResult {
-  return {
-    orderId: 'order-001',
-    amount: 9.9,
-    channel: 'wechat',
-    status: 'pending',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    paymentParams: {
-      appId: 'wx123',
-      timeStamp: '1234567890',
-      nonceStr: 'abc123',
-      package: 'prepay_id=xxx',
-      signType: 'RSA',
-      paySign: 'sign123',
-    },
     ...overrides,
   }
 }
@@ -173,18 +153,26 @@ describe('Happy Path 6: 会员订阅 → 权益验证', () => {
   })
 
   // ---- step 7: 创建月度会员支付订单 ----
-  it('step 7: 创建月度会员支付订单 → 验证订单价格为 9.9', async () => {
-    const orderResult = makeCreateOrderResult({ orderId: 'order-monthly', amount: 9.9 })
-    vi.mocked(api.post).mockResolvedValue(orderResult)
+  it('step 7: 创建月度会员支付订单 → 验证订单已创建', async () => {
+    vi.mocked(api.post).mockResolvedValue({
+      order_id: 'order-monthly',
+      amount: 990,
+      plan: 'monthly',
+      payment: {
+        appId: 'wx123',
+        timeStamp: '1234567890',
+        nonceStr: 'abc123',
+        package: 'prepay_id=xxx',
+        signType: 'RSA',
+        paySign: 'sign123',
+      },
+    })
 
     const result = await createPaymentOrder(userId, 'monthly')
 
-    expect(api.post).toHaveBeenCalledWith('/orders', {
-      productId: 'membership_monthly',
-      channel: 'wechat',
-    })
+    expect(api.post).toHaveBeenCalledWith('/api/payment/membership/order', { plan: 'monthly' })
     expect(result.orderId).toBe('order-monthly')
-    expect(result.amount).toBe(9.9)
+    expect(result.amount).toBe(990)
     expect(result.channel).toBe('wechat')
     expect(result.paymentParams).toBeDefined()
     expect(result.paymentParams!.appId).toBe('wx123')
@@ -199,13 +187,11 @@ describe('Happy Path 6: 会员订阅 → 权益验证', () => {
       price: 9.9,
       paymentOrderId: 'order-monthly',
     })
-    vi.mocked(api.post).mockResolvedValue(activeMembership)
+    vi.mocked(api.get).mockResolvedValue(activeMembership)
 
     const info = await confirmPayment(userId, 'order-monthly')
 
-    expect(api.post).toHaveBeenCalledWith('/membership/payment-callback', {
-      orderId: 'order-monthly',
-    })
+    expect(api.get).toHaveBeenCalledWith('/api/membership/status')
     expect(info.tier).toBe('member')
     expect(info.status).toBe('active')
     expect(info.plan).toBe('monthly')
@@ -296,30 +282,31 @@ describe('Happy Path 6: 会员订阅 → 权益验证', () => {
   })
 
   // ---- step 14: MEMBERSHIP_PLANS 常量 ----
-  it('step 14: MEMBERSHIP_PLANS 常量 → 验证 3 个方案及正确价格', () => {
+  it('step 14: MEMBERSHIP_PLANS 常量 → 验证 3 个方案及促销价格', () => {
     expect(MEMBERSHIP_PLANS).toHaveLength(3)
 
     const monthly = MEMBERSHIP_PLANS.find((p) => p.plan === 'monthly')!
     expect(monthly).toBeDefined()
     expect(monthly.label).toBe('月度会员')
     expect(monthly.price).toBe(9.9)
-    expect(monthly.originalPrice).toBe(9.9)
+    expect(monthly.originalPrice).toBe(29.9)
+    expect(monthly.discountLabel).toBe('限时3.3折')
     expect(monthly.durationDays).toBe(30)
 
     const quarterly = MEMBERSHIP_PLANS.find((p) => p.plan === 'quarterly')!
     expect(quarterly).toBeDefined()
     expect(quarterly.label).toBe('季度会员')
     expect(quarterly.price).toBe(25.9)
-    expect(quarterly.originalPrice).toBe(29.7)
-    expect(quarterly.discountLabel).toBe('省3.8元')
+    expect(quarterly.originalPrice).toBe(79.9)
+    expect(quarterly.discountLabel).toBe('限时3.3折')
     expect(quarterly.durationDays).toBe(90)
 
     const yearly = MEMBERSHIP_PLANS.find((p) => p.plan === 'yearly')!
     expect(yearly).toBeDefined()
     expect(yearly.label).toBe('年度会员')
     expect(yearly.price).toBe(88)
-    expect(yearly.originalPrice).toBe(118.8)
-    expect(yearly.discountLabel).toBe('省30.8元')
+    expect(yearly.originalPrice).toBe(269)
+    expect(yearly.discountLabel).toBe('限时3.3折')
     expect(yearly.durationDays).toBe(365)
   })
 

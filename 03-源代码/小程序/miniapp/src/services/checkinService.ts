@@ -190,7 +190,19 @@ export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry>
   };
 
   try {
-    const result = await api.post<PetHealthEntry>(`/api/pets/${data.petId}/checkins`, newEntry);
+    // 后端 createCheckinSchema 使用 snake_case（必填：4 个等级 + risk_level）
+    const result = await api.post<PetHealthEntry>(`/api/pets/${data.petId}/checkins`, {
+      poop_level: data.poopLevel,
+      appetite_level: data.appetiteLevel,
+      spirit_level: data.spiritLevel,
+      exercise_level: data.exerciseLevel,
+      weight: data.weight,
+      has_anomaly: data.hasAnomaly,
+      anomaly_items: data.anomalyItems,
+      ai_feedback: aiFeedback,
+      risk_level: riskLevel,
+      note: data.note,
+    });
     const local = getLocalCheckins(data.petId, data.userId);
     const todayStr = entryDateStr(newEntry);
     const existingIndex = local.findIndex((e) => entryDateStr(e) === todayStr);
@@ -237,30 +249,21 @@ export async function getTodayCheckin(petId: string, userId: string): Promise<Pe
 
 /**
  * 获取打卡统计数据
+ * 后端未提供 stats 专用接口，直接基于本地缓存计算（含云端同步回写的数据）
  * @param petId - 宠物 ID
  * @param userId - 用户 ID
  */
 export async function getCheckinStats(petId: string, userId: string): Promise<HealthCheckinStats> {
-  try {
-    const result = await api.get<HealthCheckinStats>(`/api/pets/${petId}/checkins/stats`);
-    return result;
-  } catch (error) {
-    const local = getLocalCheckins(petId, userId);
-    return calculateLocalStats(local);
-  }
+  const local = getLocalCheckins(petId, userId);
+  return calculateLocalStats(local);
 }
 
 export async function getLatestCheckin(petId: string, userId: string): Promise<PetHealthEntry | null> {
-  try {
-    const result = await api.get<PetHealthEntry | null>(`/api/pets/${petId}/checkins/latest`);
-    return result;
-  } catch (error) {
-    const local = getLocalCheckins(petId, userId);
-    if (local.length === 0) return null;
-    return local.reduce((latest, entry) =>
-      entryDateStr(entry) > entryDateStr(latest) ? entry : latest
-    );
-  }
+  const local = getLocalCheckins(petId, userId);
+  if (local.length === 0) return null;
+  return local.reduce((latest, entry) =>
+    entryDateStr(entry) > entryDateStr(latest) ? entry : latest
+  );
 }
 
 export function calculateConsecutiveAnomalyDays(

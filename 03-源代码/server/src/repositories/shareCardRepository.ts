@@ -141,7 +141,7 @@ export class ShareCardRepository extends BaseRepository<ShareCardRow> {
     user_id: string;
     card_type: string;
     card_data: Record<string, unknown>;
-    card_url: string;
+    card_url: string | null;
     share_channel: null;
     share_count: number;
   }): Promise<ShareCardRow> {

@@ -335,8 +335,8 @@ describe('vaccineService', () => {
       expect(result.category).toBe('DHPP')
       expect(result.status).toBe('pending')
       expect(api.post).toHaveBeenCalledWith('/api/pets/pet_001/vaccines', expect.objectContaining({
-        petId: 'pet_001',
         category: 'DHPP',
+        next_date: expect.any(String),
       }))
     })
 
@@ -355,15 +355,15 @@ describe('vaccineService', () => {
   })
 
   describe('updateVaccineRecord', () => {
-    it('should update vaccine record successfully via API', async () => {
-      const mockResponse = makeVaccineRecord({ id: 'vac_001', category: 'rabies', updatedAt: '2024-06-01T10:00:00.000Z' })
-      vi.mocked(api.put).mockResolvedValue(mockResponse)
+    it('should update vaccine record locally', async () => {
+      const localRecords = [makeVaccineRecord({ id: 'vac_001', category: 'DHPP' })]
+      mockStorage['xhh_vaccines_pet_001'] = JSON.stringify(localRecords)
 
       const result = await updateVaccineRecord('vac_001', { category: 'rabies' })
 
       expect(result.id).toBe('vac_001')
       expect(result.category).toBe('rabies')
-      expect(api.put).toHaveBeenCalledWith('/api/vaccines/vac_001', { category: 'rabies' })
+      expect(api.put).not.toHaveBeenCalled()
     })
 
     it('should fallback to local storage when API fails', async () => {
@@ -385,28 +385,25 @@ describe('vaccineService', () => {
   })
 
   describe('deleteVaccineRecord', () => {
-    it('should delete vaccine record successfully via API', async () => {
+    it('should delete vaccine record locally', async () => {
       const localRecords = [makeVaccineRecord({ id: 'vac_001' }), makeVaccineRecord({ id: 'vac_002' })]
       mockStorage['xhh_vaccines_pet_001'] = JSON.stringify(localRecords)
-      vi.mocked(api.delete).mockResolvedValue(undefined)
 
       await deleteVaccineRecord('vac_001')
 
-      expect(api.delete).toHaveBeenCalledWith('/api/vaccines/vac_001')
       const remaining = JSON.parse(mockStorage['xhh_vaccines_pet_001'])
       expect(remaining).toHaveLength(1)
       expect(remaining[0].id).toBe('vac_002')
     })
 
-    it('should remove from local storage when API fails', async () => {
+    it('should do nothing when record not found', async () => {
       const localRecords = [makeVaccineRecord({ id: 'vac_001' })]
       mockStorage['xhh_vaccines_pet_001'] = JSON.stringify(localRecords)
-      vi.mocked(api.delete).mockRejectedValue(new Error('Network error'))
 
-      await deleteVaccineRecord('vac_001')
+      await deleteVaccineRecord('vac_nonexistent')
 
       const remaining = JSON.parse(mockStorage['xhh_vaccines_pet_001'])
-      expect(remaining).toHaveLength(0)
+      expect(remaining).toHaveLength(1)
     })
   })
 
@@ -474,13 +471,16 @@ describe('vaccineService', () => {
 
   describe('markAsCompleted', () => {
     it('should mark vaccine record as completed', async () => {
-      const mockResponse = makeVaccineRecord({ id: 'vac_001', status: 'completed' })
-      vi.mocked(api.put).mockResolvedValue(mockResponse)
+      const localRecords = [makeVaccineRecord({ id: 'vac_001', status: 'pending' })]
+      mockStorage['xhh_vaccines_pet_001'] = JSON.stringify(localRecords)
+      vi.mocked(api.put).mockResolvedValue(undefined)
 
       const result = await markAsCompleted('vac_001')
 
       expect(result.status).toBe('completed')
-      expect(api.put).toHaveBeenCalledWith('/api/vaccines/vac_001', { status: 'completed' })
+      expect(api.put).toHaveBeenCalledWith('/api/pets/pet_001/vaccines/vac_001/complete')
+      const saved = JSON.parse(mockStorage['xhh_vaccines_pet_001'])
+      expect(saved[0].status).toBe('completed')
     })
   })
 
