@@ -116,17 +116,32 @@ export const generateNameSchema = z.object({
 
 // ===== 症状初筛模块 =====
 
-/** 症状初筛 */
+/**
+ * 症状初筛
+ * AI 建议类字段做限长/类型化校验，防止前端传入任意内容（XSS/注入面收敛）
+ */
 export const symptomCheckSchema = z.object({
-  symptoms: z.array(z.string(), { error: '请提供症状列表' }).min(1, '请提供症状列表'),
-  duration: z.string().optional(),
-  severity: z.string().optional(),
+  symptoms: z.array(z.string().max(50), { error: '请提供症状列表' }).min(1, '请提供症状列表').max(20, '症状过多'),
+  duration: z.string().max(100).optional(),
+  severity: z.string().max(20).optional(),
   additional_info: z.unknown().optional(),
-  risk_level: z.string().optional(),
-  possible_conditions: z.array(z.unknown()).optional(),
-  ai_advice: z.string().nullable().optional(),
-  recommended_actions: z.array(z.unknown()).optional(),
+  risk_level: z.enum(['normal', 'caution', 'warning', 'emergency']).optional(),
+  possible_conditions: z.array(z.string().max(100)).max(10).optional(),
+  ai_advice: z.string().max(2000).nullable().optional(),
+  recommended_actions: z.array(z.string().max(200)).max(20).optional(),
   knowledge_match: z.unknown().nullable().optional(),
+});
+
+// ===== 记忆模块 =====
+
+/** 记忆列表查询（可按宠物过滤） */
+export const memoryListQuerySchema = z.object({
+  petId: z.string().optional(),
+});
+
+/** 修正记忆内容 */
+export const memoryUpdateSchema = z.object({
+  content: z.string({ error: '请提供记忆内容' }).trim().min(1, '记忆内容不能为空').max(2000, '记忆内容过长'),
 });
 
 // ===== 疫苗模块 =====

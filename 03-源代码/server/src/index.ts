@@ -36,6 +36,7 @@ import familyTreeRoutes from './routes/familyTree.js';
 import yearlyReviewRoutes from './routes/yearlyReview.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import agentRoutes from './routes/agentRouter.js';
+import memoryRoutes from './routes/memory.js';
 import { cleanStaleTasks } from './services/taskQueue.js';
 import { runMemoryDecay } from './services/memoryService.js';
 import { initWebSocket } from './services/websocketService.js';
@@ -51,8 +52,10 @@ const app = express();
 // 安全头（HTTP 响应头安全加固）
 app.use(helmet());
 
-// CORS 跨域
-app.use(cors());
+// CORS 跨域（配置 ALLOWED_ORIGINS 时启用来源白名单；未配置默认允许所有来源）
+app.use(cors({
+  origin: config.allowedOrigins.length > 0 ? config.allowedOrigins : true,
+}));
 
 // 请求体解析
 // 微信回调接口需要 raw body 用于验签，通过 verify 钩子捕获原始请求体
@@ -111,6 +114,7 @@ app.use('/api/naming', namingRoutes);
 app.use('/api/pets', memoirRoutes);
 app.use('/api/pets', yearlyReviewRoutes);
 app.use('/api/agent', agentRoutes);
+app.use('/api/memory', memoryRoutes);
 
 // ===== 全局错误处理 =====
 app.use(errorHandler);

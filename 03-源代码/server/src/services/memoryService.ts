@@ -659,6 +659,67 @@ export async function loadConversationHistory(
   }
 }
 
+/**
+ * 列出用户的记忆（可按宠物过滤，用于用户查看/纠错）
+ * 状态排序：active 优先，其次 dormant/contradicted/expired
+ */
+export async function listUserMemories(
+  userId: string,
+  petId?: string | null,
+): Promise<MemoryEntry[]> {
+  try {
+    const params: string[] = [userId];
+    let petClause = '';
+    if (petId) {
+      params.push(petId);
+      petClause = ' AND pet_id = $2';
+    }
+    const { rows } = await pool.query(
+      `SELECT * FROM agent_memories
+       WHERE user_id = $1${petClause}
+       ORDER BY
+         CASE status WHEN 'active' THEN 0 WHEN 'contradicted' THEN 1 WHEN 'dormant' THEN 2 ELSE 3 END,
+         importance DESC,
+         updated_at DESC
+       LIMIT 200`,
+      params,
+    );
+    return rows.map(rowToMemoryEntry);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 修正记忆内容（用户手动纠错，source 标记为 manual 防止被自动提取覆盖）
+ * 归属校验：记忆必须属于当前用户
+ * @returns 是否更新成功（false = 记忆不存在或不属于当前用户）
+ */
+export async function updateUserMemory(
+  userId: string,
+  memoryId: number,
+  content: string,
+): Promise<boolean> {
+  try {
+    const trimmed = content.trim();
+    if (!trimmed) return false;
+    const { rowCount } = await pool.query(
+      `UPDATE agent_memories
+       SET content = $3,
+           source = 'manual',
+           status = 'active',
+           importance = GREATEST(importance, 6),
+           updated_at = now()
+       WHERE id = $1 AND user_id = $2
+       RETURNING id`,
+      [memoryId, userId, trimmed.slice(0, 2000)],
+    );
+    return (rowCount ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 // ============================================================================
 // 7. 记忆总结 — 生成"关于这只宠物我知道什么"
 // ============================================================================

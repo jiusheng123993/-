@@ -58,4 +58,9 @@ export const config = {
   uploadDir: process.env.UPLOAD_DIR || './uploads',
   /** 对外可访问的服务基础地址（用于生成视频/图片的完整 URL），未配置时返回相对路径 */
   publicBaseUrl: process.env.PUBLIC_BASE_URL || '',
+  /** CORS 允许来源（逗号分隔）；未配置时默认允许所有来源（小程序端不受 CORS 限制） */
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
 };

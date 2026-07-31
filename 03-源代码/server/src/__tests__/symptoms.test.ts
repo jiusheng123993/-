@@ -67,7 +67,8 @@ const mockSymptomCheck = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  // 必须用 mockReset（清空 once 队列），避免 validate 提前后 400 用例的 mock 泄漏到后续用例
+  mockPool.query.mockReset();
 });
 
 describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
@@ -92,8 +93,6 @@ describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
   });
 
   it('参数校验：缺少 symptoms，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
-
     const res = await request(createApp())
       .post('/api/pets/pet-001/symptom-check')
       .send({ duration: '2天', severity: 'medium' });
@@ -104,8 +103,6 @@ describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
   });
 
   it('参数校验：symptoms 为空数组，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
-
     const res = await request(createApp())
       .post('/api/pets/pet-001/symptom-check')
       .send({ symptoms: [], duration: '2天' });
@@ -116,8 +113,6 @@ describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
   });
 
   it('参数校验：symptoms 不是数组，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
-
     const res = await request(createApp())
       .post('/api/pets/pet-001/symptom-check')
       .send({ symptoms: '呕吐', duration: '2天' });
@@ -126,11 +121,7 @@ describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('risk_level 白名单校验：无效值回退为 normal', async () => {
-    mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ ...mockSymptomCheck, risk_level: 'normal' }], rowCount: 1 });
-
+  it('risk_level 白名单校验：无效值返回 400', async () => {
     const res = await request(createApp())
       .post('/api/pets/pet-001/symptom-check')
       .send({
@@ -138,8 +129,8 @@ describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
         risk_level: 'invalid_level',
       });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.risk_level).toBe('normal');
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 
   it('宠物不属于当前用户，返回 403', async () => {

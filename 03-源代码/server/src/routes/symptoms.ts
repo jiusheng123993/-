@@ -31,17 +31,12 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
   }
 }
 
-router.post('/api/pets/:petId/symptom-check', authMiddleware, checkPetOwnership, validate({ body: symptomCheckSchema }), async (req: Request, res: Response) => {
+router.post('/api/pets/:petId/symptom-check', authMiddleware, validate({ body: symptomCheckSchema }), checkPetOwnership, async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
 
-    const { symptoms, duration, severity, additional_info } = req.body;
-
-    const validRiskLevels = ['normal', 'caution', 'warning', 'emergency'];
-    const risk_level = validRiskLevels.includes(req.body.risk_level)
-      ? req.body.risk_level
-      : 'normal';
+    const { symptoms, duration, severity, additional_info, risk_level } = req.body;
 
     const id = crypto.randomUUID();
     const row = await symptomRepository.createSymptomCheck(id, petId, userId, {
@@ -49,7 +44,8 @@ router.post('/api/pets/:petId/symptom-check', authMiddleware, checkPetOwnership,
       duration: duration || null,
       severity: severity || null,
       additional_info: JSON.stringify(additional_info || {}),
-      risk_level,
+      // risk_level 已由 symptomCheckSchema 白名单校验（normal/caution/warning/emergency）
+      risk_level: risk_level || 'normal',
       possible_conditions: req.body.possible_conditions || [],
       ai_advice: req.body.ai_advice || null,
       recommended_actions: req.body.recommended_actions || [],
