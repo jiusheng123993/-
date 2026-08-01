@@ -919,6 +919,9 @@ describe('UAT 验收测试', () => {
   describe('PRD核心场景回归验证', () => {
     describe('用户从注册到首次打卡的完整流程', () => {
       it('新用户添加宠物后应能正确构建喂养档案', () => {
+        // 固定系统时间，与 monthsAgo 基准（2026-07-25）一致，避免跨月导致 ageMonths 漂移
+        vi.useFakeTimers()
+        vi.setSystemTime(new Date('2026-07-25T10:00:00'))
         const pet = makePet({
           name: '青橘',
           species: 'cat',
@@ -930,6 +933,7 @@ describe('UAT 验收测试', () => {
         expect(profile.pet.name).toBe('青橘')
         expect(profile.isPuppyKitten).toBe(true)
         expect(profile.ageMonths).toBe(6)
+        vi.useRealTimers()
       })
 
       it('新用户应能获取幼猫喂养建议', () => {

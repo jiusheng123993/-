@@ -31,6 +31,7 @@ const eventCenter = {
 
 vi.mock('@tarojs/taro', () => ({
   default: {
+    getEnv: vi.fn(() => 'WEAPP'),
     showToast: vi.fn(),
     showModal: vi.fn(),
     showLoading: vi.fn(),

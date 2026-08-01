@@ -9,7 +9,8 @@ import type { QueryResultRow } from 'pg';
 /** 用户数据行 */
 export interface UserRow extends QueryResultRow {
   id: string;
-  openid: string;
+  openid: string | null;
+  phone: string | null;
   nickname: string | null;
   avatar_url: string | null;
   created_at: string;
@@ -34,6 +35,13 @@ export class UserRepository extends BaseRepository<UserRow> {
   }
 
   /**
+   * 根据手机号查询用户（用于 App/H5 手机号登录）
+   */
+  async findByPhone(phone: string): Promise<UserRow | null> {
+    return this.findOneWhere('phone = $1', [phone]);
+  }
+
+  /**
    * 根据 ID 查询用户
    */
   async findById(userId: string): Promise<UserRow | null> {
@@ -45,6 +53,13 @@ export class UserRepository extends BaseRepository<UserRow> {
    */
   async createUser(id: string, openid: string): Promise<UserRow> {
     return this.insert({ id, openid });
+  }
+
+  /**
+   * 创建手机号用户（App/H5 首次登录）
+   */
+  async createPhoneUser(id: string, phone: string): Promise<UserRow> {
+    return this.insert({ id, phone });
   }
 
   /**

@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro'
 import { CONFIG } from '../config'
+import { isWeapp } from '../platform/detector'
 
 function obfuscate(data: string): string {
   const key = 'xhh-secure-storage-v2'
@@ -12,9 +13,11 @@ function obfuscate(data: string): string {
 
 function encodeForStorage(data: string): string {
   try {
-    return Taro.arrayBufferToBase64(new Uint8Array(
-      [...obfuscate(data)].map(c => c.charCodeAt(0))
-    ).buffer)
+    const bytes = [...obfuscate(data)].map(c => c.charCodeAt(0))
+    if (isWeapp()) {
+      return Taro.arrayBufferToBase64(new Uint8Array(bytes).buffer)
+    }
+    return btoa(String.fromCharCode(...bytes))
   } catch {
     return data
   }
@@ -22,8 +25,12 @@ function encodeForStorage(data: string): string {
 
 function decodeFromStorage(encoded: string): string {
   try {
-    const buffer = Taro.base64ToArrayBuffer(encoded)
-    const bytes = new Uint8Array(buffer)
+    let bytes: Uint8Array
+    if (isWeapp()) {
+      bytes = new Uint8Array(Taro.base64ToArrayBuffer(encoded))
+    } else {
+      bytes = new Uint8Array([...atob(encoded)].map(c => c.charCodeAt(0)))
+    }
     const encodedStr = String.fromCharCode(...bytes)
     return obfuscate(encodedStr)
   } catch {

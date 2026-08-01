@@ -1,0 +1,12 @@
+{
+  "appId": "com.xinghuanhai.app",
+  "appName": "星寰海",
+  "webDir": "dist-h5",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

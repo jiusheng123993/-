@@ -60,6 +60,7 @@ function makeMember(overrides: Partial<PetFamilyMember> = {}): PetFamilyMember {
 function makeLineage(overrides: Partial<PetLineage> = {}): PetLineage {
   return {
     id: 'lin-001',
+    familyId: null,
     parentId: 'pet-001',
     childId: 'pet-003',
     litterDate: '2026-01-01',
@@ -178,6 +179,7 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
 
   // ---- step 7: 获取家庭照片 ----
   it('step 7: 获取家庭照片 → 验证照片列表', async () => {
+    vi.mocked(api.get).mockRejectedValue(new Error('API unavailable'))
     mockStorage['family_photos_all'] = JSON.stringify([
       makePhoto({ id: 'photo-001', familyId: 'fam-mimi', memberNames: ['小咪', '旺财'] }),
       makePhoto({ id: 'photo-002', familyId: 'fam-mimi', photoType: 'uploaded', description: '散步合影' }),
@@ -185,37 +187,34 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
 
     const result = await familyService.getFamilyPhotos('fam-mimi')
 
-    expect(api.get).not.toHaveBeenCalled()
     expect(result).toHaveLength(2)
     expect(result[0].photoType).toBe('generated')
     expect(result[1].photoType).toBe('uploaded')
     familyId = 'fam-mimi'
   })
 
-  // ---- step 8: 保存家庭照片 ----
-  it('step 8: 保存家庭照片 → 验证照片字段正确', async () => {
-    const result = await familyService.saveFamilyPhoto(
-      'fam-mimi',
-      'https://example.com/new-photo.jpg',
-      2,
-      ['小咪', '旺财'],
-      'generated',
-      '全家福',
-    )
+  // ---- step 8: 生成 AI 全家福 ----
+  it('step 8: 生成 AI 全家福 → 验证照片字段正确', async () => {
+    vi.mocked(api.post).mockResolvedValue({ id: 'photo-new', photoUrl: 'https://example.com/ai-photo.jpg' })
 
-    expect(api.post).not.toHaveBeenCalled()
-    expect(result.memberCount).toBe(2)
-    expect(result.memberNames).toEqual(['小咪', '旺财'])
-    expect(result.photoType).toBe('generated')
+    const result = await familyService.generateFamilyPhoto('fam-mimi', 'pixar')
+
+    expect(api.post).toHaveBeenCalledWith('/api/families/fam-mimi/photos', { style: 'pixar' })
+    expect(result.id).toBe('photo-new')
+    expect(result.photoUrl).toBe('https://example.com/ai-photo.jpg')
     photoId = result.id
     familyId = 'fam-mimi'
   })
 
   // ---- step 9: 获取宠物血统 ----
   it('step 9: 获取宠物血统 → 验证血统结构', async () => {
+    // 后端返回 snake_case 字段（familyService 内部会转换为 camelCase）
     const lineageData = {
-      parents: [makeLineage({ id: 'lin-parent', parentId: 'pet-dad', childId: 'pet-mimi' })],
-      children: [makeLineage({ id: 'lin-child', parentId: 'pet-mimi', childId: 'pet-baby' })],
+      pet: { id: 'pet-mimi', name: '小咪', avatar_url: null, species: null },
+      parents: [{ id: 'lin-parent', parent_id: 'pet-dad', child_id: 'pet-mimi', litter_date: '2026-01-01' }],
+      children: [{ id: 'lin-child', parent_id: 'pet-mimi', child_id: 'pet-baby', litter_date: '2026-01-01' }],
+      siblings: [],
+      mates: [],
     }
     vi.mocked(api.get).mockResolvedValue(lineageData)
 
@@ -232,7 +231,7 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
   it('step 10: 添加血统关系 → 验证亲子关系已建立', async () => {
     vi.mocked(api.post).mockResolvedValue(undefined)
 
-    await familyService.addLineage('pet-dad', 'pet-baby', '2026-06-01', 'fam-mimi')
+    await familyService.addLineage('pet-dad', 'pet-baby', 'fam-mimi', '2026-06-01')
 
     expect(api.post).toHaveBeenCalledWith('/api/families/fam-mimi/lineage', {
       parent_id: 'pet-dad',
@@ -250,15 +249,14 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
 
   // ---- step 12: 删除家庭照片 ----
   it('step 12: 删除家庭照片 → 验证照片已删除', async () => {
+    vi.mocked(api.delete).mockResolvedValue(undefined)
     mockStorage['family_photos_all'] = JSON.stringify([
       makePhoto({ id: 'photo-new', familyId: 'fam-mimi' }),
       makePhoto({ id: 'photo-keep', familyId: 'fam-mimi' }),
     ])
 
-    await familyService.deleteFamilyPhoto('photo-new')
+    await familyService.deleteFamilyPhoto('fam-mimi', 'photo-new')
 
-    const remaining = await familyService.getFamilyPhotos('fam-mimi')
-    expect(remaining).toHaveLength(1)
-    expect(remaining[0].id).toBe('photo-keep')
+    expect(api.delete).toHaveBeenCalledWith('/api/families/fam-mimi/photos/photo-new')
   })
 })

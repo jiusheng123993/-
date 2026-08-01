@@ -8,12 +8,26 @@ import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { wxLoginSchema } from '../schemas/index.js';
+import { wxLoginSchema, sendSmsSchema, phoneLoginSchema } from '../schemas/index.js';
 import { UserRepository } from '../repositories/userRepository.js';
 
 const router = Router();
 
 const userRepository = new UserRepository();
+
+/**
+ * 短信验证码存储（内存实现，生产环境应替换为 Redis + 短信服务商）
+ * key: phone → { code, expiresAt }
+ */
+const smsCodeStore = new Map<string, { code: string; expiresAt: number }>();
+
+/** 验证码有效期（分钟） */
+const SMS_CODE_TTL_MINUTES = 5;
+
+/** 生成 6 位随机验证码 */
+function generateSmsCode(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
 function toCamelCase(obj: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -23,6 +37,91 @@ function toCamelCase(obj: Record<string, unknown>): Record<string, unknown> {
   }
   return result;
 }
+
+/**
+ * 发送短信验证码（App/H5 手机号登录）
+ * 开发环境直接返回验证码便于联调；生产环境需接入短信服务商（阿里云/腾讯云 SMS）
+ */
+router.post('/send-sms', validate({ body: sendSmsSchema }), async (req: Request, res: Response) => {
+  try {
+    const { phone } = req.body as { phone: string };
+
+    // 发送频率限制（简单内存限流：同一手机号 60 秒内只能发一次）
+    const existing = smsCodeStore.get(phone);
+    if (existing && existing.expiresAt - Date.now() > SMS_CODE_TTL_MINUTES * 60 * 1000 - 60 * 1000) {
+      res.status(429).json({ success: false, message: '发送过于频繁，请稍后再试' });
+      return;
+    }
+
+    const code = generateSmsCode();
+    smsCodeStore.set(phone, {
+      code,
+      expiresAt: Date.now() + SMS_CODE_TTL_MINUTES * 60 * 1000,
+    });
+
+    // 短信服务商接入 TODO：生产环境需接入阿里云/腾讯云 SMS 发送到用户手机
+    // 日志脱敏：仅记录手机号后 4 位；完整验证码只在非生产环境输出便于联调
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[SMS] 开发模式验证码 phone=${phone.slice(-4)} 完整验证码=${code}`);
+    } else {
+      console.log(`[SMS] 验证码已发送 phone=${phone.slice(-4)}`);
+    }
+
+    res.json({
+      success: true,
+      message: '验证码已发送',
+      // 非生产环境返回验证码便于联调，生产环境必须删除该字段
+      ...(process.env.NODE_ENV !== 'production' ? { devCode: code } : {}),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[Auth SendSms Error]', message);
+    res.status(500).json({ success: false, message: '服务器内部错误' });
+  }
+});
+
+/**
+ * 手机号验证码登录（App/H5）
+ */
+router.post('/login/phone', validate({ body: phoneLoginSchema }), async (req: Request, res: Response) => {
+  try {
+    const { phone, code } = req.body as { phone: string; code: string };
+
+    const record = smsCodeStore.get(phone);
+    if (!record || record.code !== code) {
+      res.status(400).json({ success: false, message: '验证码错误' });
+      return;
+    }
+    if (record.expiresAt < Date.now()) {
+      smsCodeStore.delete(phone);
+      res.status(400).json({ success: false, message: '验证码已过期，请重新获取' });
+      return;
+    }
+
+    // 验证通过后立即删除验证码（一次性使用）
+    smsCodeStore.delete(phone);
+
+    let user = await userRepository.findByPhone(phone);
+
+    if (!user) {
+      const newId = uuidv4();
+      user = await userRepository.createPhoneUser(newId, phone);
+    }
+
+    await userRepository.updateLastActive(user.id);
+
+    const token = jwt.sign({ userId: user.id, phone }, config.jwtSecret, { expiresIn: '7d' });
+
+    res.json({
+      success: true,
+      data: { token, user: toCamelCase(user as unknown as Record<string, unknown>) },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[Auth Phone Login Error]', message);
+    res.status(500).json({ success: false, message: `服务器内部错误: ${message}` });
+  }
+});
 
 router.post('/login', validate({ body: wxLoginSchema }), async (req: Request, res: Response) => {
   try {

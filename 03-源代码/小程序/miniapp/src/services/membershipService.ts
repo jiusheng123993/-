@@ -2,8 +2,10 @@
  * 会员配置服务
  *
  * 会员方案定义/权益配置/配额管理
+ * 支持小程序微信支付 + App 支付宝支付
  */
 import Taro from '@tarojs/taro'
+import { isWeapp, requestPayment } from '../platform'
 import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'
 
@@ -68,6 +70,8 @@ export interface CreateOrderResult {
   status: string
   createdAt: string
   paymentParams?: WechatPaymentParams
+  /** App/H5 端支付宝支付参数 */
+  alipayOrderInfo?: string
 }
 
 const MEMBERSHIP_KEY = 'membership'
@@ -198,6 +202,7 @@ export async function createPaymentOrder(userId: string, plan: MembershipPlan): 
       amount: number
       plan: MembershipPlan
       payment?: WechatPaymentParams
+      alipay_order_info?: string
     }>('/api/payment/membership/order', { plan })
 
     const orderId = result.order_id
@@ -205,10 +210,11 @@ export async function createPaymentOrder(userId: string, plan: MembershipPlan): 
     const mapped: CreateOrderResult = {
       orderId,
       amount: result.amount,
-      channel: 'wechat',
+      channel: isWeapp() ? 'wechat' : 'alipay',
       status: 'pending',
       createdAt,
       paymentParams: result.payment,
+      alipayOrderInfo: result.alipay_order_info,
     }
     // 保存订单到本地
     const orders = getLocalOrders(userId)
@@ -254,6 +260,9 @@ export async function createPaymentOrder(userId: string, plan: MembershipPlan): 
 }
 
 export async function requestWechatPayment(params: WechatPaymentParams): Promise<boolean> {
+  if (!isWeapp()) {
+    throw new Error('微信支付仅支持小程序环境')
+  }
   return new Promise((resolve) => {
     Taro.requestPayment({
       timeStamp: params.timeStamp,
@@ -277,7 +286,9 @@ export async function requestWechatPayment(params: WechatPaymentParams): Promise
 }
 
 /**
- * 完整的微信支付流程
+ * 完整的支付流程（双平台）
+ * 小程序：微信支付
+ * App/H5：支付宝支付（需后端返回 alipay orderInfo）
  * 1. 创建订单 → 2. 发起支付 → 3. 轮询结果 → 4. 确认支付
  */
 export async function completeWechatPayment(
@@ -292,8 +303,22 @@ export async function completeWechatPayment(
       return { success: false, error: '获取支付参数失败' }
     }
 
-    // 2. 发起微信支付
-    const paid = await requestWechatPayment(order.paymentParams)
+    // 2. 发起支付（自动根据平台选择微信/支付宝）
+    let paid = false
+    if (isWeapp()) {
+      paid = await requestWechatPayment(order.paymentParams)
+    } else {
+      // App/H5 端：后端返回的 alipayOrderInfo
+      const alipayOrderInfo = order.alipayOrderInfo
+      if (!alipayOrderInfo) {
+        return { success: false, error: 'App 端暂不支持该支付方式' }
+      }
+      try {
+        paid = await requestPayment(null, alipayOrderInfo)
+      } catch (err: any) {
+        return { success: false, error: err.message || '支付失败' }
+      }
+    }
 
     if (!paid) {
       return { success: false, error: '用户取消支付' }

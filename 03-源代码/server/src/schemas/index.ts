@@ -29,6 +29,17 @@ export const wxLoginSchema = z.object({
   code: z.string().min(1, 'code不能为空'),
 });
 
+/** 发送短信验证码（App/H5 手机号登录） */
+export const sendSmsSchema = z.object({
+  phone: z.string().regex(/^1[3-9]\d{9}$/, '手机号格式不正确'),
+});
+
+/** 手机号验证码登录（App/H5） */
+export const phoneLoginSchema = z.object({
+  phone: z.string().regex(/^1[3-9]\d{9}$/, '手机号格式不正确'),
+  code: z.string().regex(/^\d{4,6}$/, '验证码格式不正确'),
+});
+
 // ===== 宠物模块 =====
 
 /** 创建宠物 */
@@ -358,7 +369,7 @@ export const weeklyReportQuerySchema = z.object({
 /** 生成分享卡片请求 */
 export const generateShareCardSchema = z.object({
   card_type: z.enum(
-    ['health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir', 'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review'],
+    ['health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir', 'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review', 'wardrobe'],
     { error: 'card_type 无效' },
   ),
   source_data: z
@@ -598,6 +609,18 @@ export const familyMomentsQuerySchema = z.object({
 /** 家庭新动态查询参数（since 时间戳必填） */
 export const familyNewMomentsQuerySchema = z.object({
   since: z.string({ error: 'since 参数不能为空' }).min(1, 'since 参数不能为空'),
+});
+
+// ===== 全家福合成模块 =====
+
+/** 全家福生成请求 */
+export const generateFamilyPhotoSchema = z.object({
+  style: z
+    .string({ error: 'style 不能为空' })
+    .refine(
+      (val) => ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk'].includes(val),
+      { message: 'style 必须为 pixar / ghibli / oil / ink / nordic / cyberpunk 之一' },
+    ),
 });
 
 // ===== 回忆录模块 - Query 参数 =====

@@ -26,6 +26,7 @@ vi.mock('../services/api', () => ({
 
 vi.mock('@tarojs/taro', () => ({
   default: {
+    getEnv: vi.fn(() => 'WEAPP'),
     requestPayment: vi.fn(),
     getStorageSync: vi.fn(),
     setStorageSync: vi.fn(),

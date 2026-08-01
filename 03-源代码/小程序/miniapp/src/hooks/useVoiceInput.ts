@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
+import { isWeapp } from '../platform/detector'
 
 export interface UseVoiceInputOptions {
   /** 录音完成后回调，返回音频临时文件路径 */
@@ -33,7 +34,16 @@ export function useVoiceInput(options: UseVoiceInputOptions) {
 
   // 初始化录音管理器
   useEffect(() => {
-    const recorder = Taro.getRecorderManager()
+    // H5/App 端录音能力依赖浏览器 MediaRecorder，Taro H5 的 getRecorderManager 事件注册不完整，
+    // 做能力检测：无 onStart/onStop/onError 时禁用语音输入（不抛错）
+    const recorder: any = Taro.getRecorderManager?.()
+    const hasRecorderCapability = !!recorder && typeof recorder.onStart === 'function' && typeof recorder.onStop === 'function' && typeof recorder.onError === 'function'
+    if (!hasRecorderCapability) {
+      if (!isWeapp()) {
+        console.warn('[VoiceInput] 当前平台不支持录音，语音输入已禁用')
+      }
+      return
+    }
     recorderRef.current = recorder
 
     recorder.onStart(() => {
@@ -51,7 +61,7 @@ export function useVoiceInput(options: UseVoiceInputOptions) {
       }, 1000)
     })
 
-    recorder.onStop((res) => {
+    recorder.onStop((res: { tempFilePath?: string }) => {
       setIsRecording(false)
       if (durationTimerRef.current) {
         clearInterval(durationTimerRef.current)
@@ -62,7 +72,7 @@ export function useVoiceInput(options: UseVoiceInputOptions) {
       }
     })
 
-    recorder.onError((err) => {
+    recorder.onError((err: unknown) => {
       setIsRecording(false)
       if (durationTimerRef.current) {
         clearInterval(durationTimerRef.current)

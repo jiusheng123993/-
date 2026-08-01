@@ -44,6 +44,7 @@ vi.mock('../utils/storage', () => ({
 
 vi.mock('@tarojs/taro', () => ({
   default: {
+    getEnv: vi.fn(() => 'WEAPP'),
     login: vi.fn(() => ({ code: 'mock-code' })),
     getStorageSync: vi.fn(() => null),
     setStorageSync: vi.fn(),

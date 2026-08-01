@@ -30,6 +30,7 @@ vi.mock('../api', () => ({
 
 vi.mock('@tarojs/taro', () => ({
   default: {
+    getEnv: vi.fn(() => 'WEAPP'),
     requestPayment: vi.fn(),
   },
 }))

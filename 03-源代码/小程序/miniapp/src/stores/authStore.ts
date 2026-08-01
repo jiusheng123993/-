@@ -1,15 +1,23 @@
 /**
  * 认证状态管理
- * 管理微信登录、用户信息、Token 持久化和登录状态初始化
+ * 小程序：微信登录 → Taro.login() 获取 code → 后端换取 token
+ * App/H5：手机号+验证码登录 → 后端换取 token
  */
 import Taro from '@tarojs/taro'
 import create from 'zustand'
 import { api } from '../services/api'
 import { storage } from '../utils/storage'
 import { wsClient } from '../services/wsClient'
+import { getLoginCode, loginWithPhone, API_BASE_URL } from '../platform'
+import {
+  setStorageUserId,
+  getStorage,
+  setStorage,
+  removeStorage,
+  clearAllStorage,
+} from '../utils/storage'
 import type { User } from '../types'
 
-/** 认证状态定义 */
 interface AuthState {
   user: User | null
   token: string | null
@@ -17,6 +25,7 @@ interface AuthState {
   isLoading: boolean
   isInitialized: boolean
   login: () => Promise<void>
+  loginByPhone: (phone: string, code: string) => Promise<void>
   logout: () => Promise<void>
   initialize: () => Promise<void>
 }
@@ -30,7 +39,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   /**
    * 初始化认证状态，从本地存储恢复登录态
-   * 优先使用缓存用户信息，缓存缺失时从服务端获取
    */
   initialize: async () => {
     if (get().isInitialized) return
@@ -55,13 +63,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   /**
-   * 执行微信登录流程
-   * 获取微信 code → 服务端登录换取 token → 持久化存储
+   * 微信登录（仅小程序）
    */
   login: async () => {
     set({ isLoading: true })
     try {
-      const { code } = await Taro.login()
+      const code = await getLoginCode()
       if (!code) {
         throw new Error('获取微信登录凭证失败')
       }
@@ -76,9 +83,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  /** 退出登录，清除本地存储和状态 */
+  /**
+   * 手机号验证码登录（App/H5）
+   */
+  loginByPhone: async (phone: string, code: string) => {
+    set({ isLoading: true })
+    try {
+      const result = await loginWithPhone(phone, code, API_BASE_URL)
+      if (!result.success || !result.token) {
+        throw new Error(result.error || '登录失败')
+      }
+      storage.setToken(result.token)
+      storage.setRefreshToken(result.refreshToken || '')
+      storage.setUser(result.user)
+      set({
+        user: result.user,
+        token: result.token,
+        isAuthenticated: true,
+        isLoading: false,
+      })
+    } catch (err) {
+      set({ isLoading: false })
+      throw err
+    }
+  },
+
   logout: async () => {
-    // 断开实时推送连接（避免登录态失效后继续接收推送）
     wsClient.disconnect()
     storage.clear()
     set({ user: null, token: null, isAuthenticated: false })

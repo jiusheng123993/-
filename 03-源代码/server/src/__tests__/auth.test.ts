@@ -237,3 +237,80 @@ describe('PUT /auth/profile', () => {
     expect(res.body.success).toBe(false);
   });
 });
+
+describe('POST /auth/send-sms（App/H5 手机号登录）', () => {
+  it('发送验证码：手机号合法，返回成功', async () => {
+    const res = await request(createApp())
+      .post('/auth/send-sms')
+      .send({ phone: '13800138000' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('验证码已发送');
+  });
+
+  it('参数校验：手机号格式错误，返回 400', async () => {
+    const res = await request(createApp())
+      .post('/auth/send-sms')
+      .send({ phone: '12345' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('参数校验：缺少手机号，返回 400', async () => {
+    const res = await request(createApp())
+      .post('/auth/send-sms')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+});
+
+describe('POST /auth/login/phone（App/H5 手机号验证码登录）', () => {
+  it('验证码错误，返回 400', async () => {
+    const res = await request(createApp())
+      .post('/auth/login/phone')
+      .send({ phone: '13800138000', code: '000000' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toContain('验证码错误');
+  });
+
+  it('参数校验：验证码格式错误，返回 400', async () => {
+    const res = await request(createApp())
+      .post('/auth/login/phone')
+      .send({ phone: '13800138000', code: 'abc' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('正常流程：先发验证码再登录，用户已存在，返回 token', async () => {
+    // 1. 发送验证码（非生产环境返回 devCode；使用独立手机号避免限流耦合）
+    const smsRes = await request(createApp())
+      .post('/auth/send-sms')
+      .send({ phone: '13900139000' });
+
+    expect(smsRes.status).toBe(200);
+    expect(smsRes.body.devCode).toBeDefined();
+    const devCode = smsRes.body.devCode as string;
+
+    // 2. 登录（用户已存在：SELECT 返回用户）
+    mockPool.query
+      .mockReset()
+      .mockResolvedValueOnce({ rows: [{ ...mockUser, phone: '13900139000' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .post('/auth/login/phone')
+      .send({ phone: '13900139000', code: devCode });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.token).toBe('mock-jwt-token');
+    expect(res.body.data.user.phone).toBe('13900139000');
+  });
+});

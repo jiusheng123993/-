@@ -6,6 +6,7 @@ import { useThemeStore } from './stores/themeStore'
 import { usePetStore } from './stores/petStore'
 import { useThemeClass } from './hooks/useThemeClass'
 import { wsClient } from './services/wsClient'
+import { isWeapp } from './platform'
 import './app.scss'
 
 let ready = false
@@ -24,9 +25,8 @@ export default function App({ children }: any) {
   useLaunch(() => {
     if (ready) return
     try {
-      // 处理微信隐私授权事件（基础库 2.32.3+）
-      // 必须弹出隐私协议弹窗让用户确认，不能直接 auto-resolve
-      if (typeof (Taro as any).onNeedPrivacyAuthorization === 'function') {
+      // 处理微信隐私授权事件（仅小程序，基础库 2.32.3+）
+      if (isWeapp() && typeof (Taro as any).onNeedPrivacyAuthorization === 'function') {
         (Taro as any).onNeedPrivacyAuthorization((resolve: any) => {
           Taro.showModal({
             title: '隐私保护提示',

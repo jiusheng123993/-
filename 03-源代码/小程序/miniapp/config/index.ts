@@ -1,6 +1,8 @@
 import { defineConfig } from '@tarojs/cli'
 import path from 'path'
 
+const isH5 = process.env.TARO_ENV === 'h5'
+
 const config = {
   projectName: 'xinghuanhai-miniapp',
   date: '2024-07-22',
@@ -12,8 +14,8 @@ const config = {
     375: 2,
   },
   sourceRoot: 'src',
-  outputRoot: 'dist',
-  plugins: [
+  outputRoot: isH5 ? 'dist-h5' : 'dist',
+  plugins: isH5 ? [] : [
     path.join(__dirname, 'plugin-ensure-wxss.ts'),
   ],
   defineConstants: {},
@@ -55,6 +57,13 @@ const config = {
   h5: {
     publicPath: '/',
     staticDirectory: 'static',
+    router: {
+      mode: 'hash',
+    },
+    devServer: {
+      port: 10086,
+      host: '0.0.0.0',
+    },
     postcss: {
       autoprefixer: {
         enable: true,
@@ -67,6 +76,9 @@ const config = {
           generateScopedName: '[name]__[local]___[hash:base64:5]',
         },
       },
+    },
+    webpackChain(chain) {
+      chain.resolve.alias.set('@tarojs/runtime', '@tarojs/runtime')
     },
   },
   alias: {
