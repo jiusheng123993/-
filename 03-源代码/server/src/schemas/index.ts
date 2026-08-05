@@ -99,6 +99,20 @@ export const addFamilyMemberSchema = z.object({
   role: z.string().max(50).optional(),
 });
 
+/** 更新家庭成员角色 */
+export const updateFamilyMemberRoleSchema = z.object({
+  role: z.string({ error: '角色不能为空' }).trim().min(1, '角色不能为空').max(50, '角色最长 50 字符'),
+});
+
+/** 上传/保存全家福（用户上传或 Canvas 降级生成） */
+export const uploadFamilyPhotoSchema = z.object({
+  photoUrl: z.string({ error: 'photoUrl 不能为空' }).trim().min(1, 'photoUrl 不能为空').max(2048, 'photoUrl 过长'),
+  photoType: z.enum(['canvas_fallback', 'uploaded'], { error: 'photoType 必须为 canvas_fallback 或 uploaded' }).default('uploaded'),
+  memberCount: z.number({ error: 'memberCount 必须为数字' }).int('memberCount 必须为整数').min(0, 'memberCount 不能为负').max(50, 'memberCount 过大').default(0),
+  memberNames: z.array(z.string().max(50, '成员名称过长')).max(50, '成员名称最多 50 项').default([]),
+  description: z.string().max(500, 'description 最长 500 字符').nullable().optional(),
+});
+
 // ===== 食物查询模块 =====
 
 /** 食物查询 */
@@ -691,4 +705,57 @@ export const vaccineReminderSchema = z.object({
 /** 宠物离世标记请求 */
 export const petDeceasedSchema = z.object({
   deceased_date: z.string().min(1, 'deceased_date 不能为空').optional(),
+});
+
+// ===== 慢性病追踪模块 =====
+
+/** 创建慢性病记录 */
+export const createChronicRecordSchema = z.object({
+  condition: z.string({ error: 'condition 不能为空' }).trim().min(1, 'condition 不能为空').max(100, 'condition 最长 100 字符'),
+  diagnosed_date: z.string({ error: 'diagnosed_date 不能为空' }).regex(/^\d{4}-\d{2}-\d{2}$/, '诊断日期格式应为 YYYY-MM-DD'),
+  severity: z.enum(['mild', 'moderate', 'severe'], { error: 'severity 必须为 mild/moderate/severe' }).default('moderate'),
+  status: z.enum(['active', 'managed', 'resolved'], { error: 'status 必须为 active/managed/resolved' }).default('active'),
+  medications: z.array(z.string().max(100, '药品名称过长')).max(20, '药品最多 20 项').optional(),
+  vet_name: z.string().max(50, 'vet_name 最长 50 字符').nullable().optional(),
+  vet_contact: z.string().max(20, 'vet_contact 最长 20 字符').nullable().optional(),
+  next_checkup_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '复查日期格式应为 YYYY-MM-DD').nullable().optional(),
+  notes: z.string().max(500, 'notes 最长 500 字符').nullable().optional(),
+  symptoms: z.array(z.string().max(50, '症状名称过长')).max(20, '症状最多 20 项').optional(),
+});
+
+/** 更新慢性病记录（全部字段可选） */
+export const updateChronicRecordSchema = createChronicRecordSchema.partial();
+
+// ===== 喂养记录模块 =====
+
+/** 创建喂养记录 */
+export const createFeedingRecordSchema = z.object({
+  date: z.string({ error: 'date 不能为空' }).regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式应为 YYYY-MM-DD'),
+  food_type: z.string({ error: 'food_type 不能为空' }).trim().min(1, 'food_type 不能为空').max(50, 'food_type 最长 50 字符'),
+  brand: z.string().max(50, 'brand 最长 50 字符').nullable().optional(),
+  amount: z.number({ error: 'amount 必须为数字' }).min(0, 'amount 不能为负').max(9999, 'amount 过大').default(0),
+  unit: z.string().max(20, 'unit 最长 20 字符').nullable().optional(),
+  meal_time: z.string().max(20, 'meal_time 最长 20 字符').nullable().optional(),
+  appetite: z.enum(['good', 'normal', 'poor'], { error: 'appetite 必须为 good/normal/poor' }).nullable().optional(),
+  stool: z.enum(['normal', 'loose', 'hard'], { error: 'stool 必须为 normal/loose/hard' }).nullable().optional(),
+  energy: z.enum(['high', 'normal', 'low'], { error: 'energy 必须为 high/normal/low' }).nullable().optional(),
+  notes: z.string().max(500, 'notes 最长 500 字符').nullable().optional(),
+});
+
+/** 更新喂养记录（全部字段可选） */
+export const updateFeedingRecordSchema = createFeedingRecordSchema.partial();
+
+// ===== AI 建议记录模块（效果追踪） =====
+
+/** 创建建议记录 */
+export const createSuggestionRecordSchema = z.object({
+  type: z.enum(['feeding', 'symptom', 'trend', 'chat'], { error: 'type 必须为 feeding/symptom/trend/chat' }),
+  title: z.string({ error: 'title 不能为空' }).trim().min(1, 'title 不能为空').max(100, 'title 最长 100 字符'),
+  content: z.string({ error: 'content 不能为空' }).trim().min(1, 'content 不能为空').max(1000, 'content 最长 1000 字符'),
+  priority: z.enum(['high', 'medium', 'low'], { error: 'priority 必须为 high/medium/low' }).default('medium'),
+});
+
+/** 更新建议采纳状态 */
+export const updateSuggestionAdoptionSchema = z.object({
+  adopted: z.boolean({ error: 'adopted 必须为布尔值' }),
 });

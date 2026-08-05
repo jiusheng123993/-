@@ -184,6 +184,39 @@ export class FamilyMemberRepository extends BaseRepository<FamilyMemberRow> {
   }
 
   /**
+   * 按 member_id + family_id 删除成员（带归属校验）
+   * 前端仅持有 memberId 时使用此方法，避免 petId 映射问题
+   */
+  async deleteByMemberId(
+    memberId: string,
+    familyId: string,
+  ): Promise<boolean> {
+    const result = await this.rawQuery(
+      'DELETE FROM pet_family_members WHERE id = $1 AND family_id = $2 RETURNING *',
+      [memberId, familyId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /**
+   * 按 member_id + family_id 更新成员角色（带归属校验）
+   * 注意：pet_family_members 表无 updated_at 字段，仅更新 role
+   */
+  async updateMemberRole(
+    memberId: string,
+    familyId: string,
+    role: string,
+  ): Promise<FamilyMemberRow | null> {
+    const result = await this.rawQuery<FamilyMemberRow>(
+      `UPDATE ${this.tableName} SET role = $3
+       WHERE id = $1 AND family_id = $2
+       RETURNING *`,
+      [memberId, familyId, role],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /**
    * 查询家庭动态（聚合健康打卡数据）
    * 使用 ANY($1::text[]) 避免动态拼接 IN 列表
    */

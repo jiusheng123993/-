@@ -160,7 +160,7 @@ describe('GET /api/families - 获取家庭列表', () => {
     expect(res.body.data).toBeInstanceOf(Array);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].name).toBe('我的毛孩子');
-    expect(res.body.data[0].member_count).toBe('2');
+    expect(res.body.data[0].memberCount).toBe('2');
   });
 
   it('无家庭时返回空数组', async () => {
@@ -199,7 +199,7 @@ describe('GET /api/families/:id - 获取家庭详情', () => {
     expect(res.body.data.name).toBe('我的毛孩子');
     expect(res.body.data.members).toBeInstanceOf(Array);
     expect(res.body.data.members).toHaveLength(1);
-    expect(res.body.data.members[0].pet_name).toBe('小旺');
+    expect(res.body.data.members[0].petName).toBe('小旺');
   });
 
   it('家庭不存在，返回 404', async () => {
@@ -293,6 +293,99 @@ describe('DELETE /api/families/:id - 删除家庭', () => {
   });
 });
 
+describe('DELETE /api/families/:id/members/by-id/:memberId - 按成员ID移除', () => {
+  it('正常移除成员', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'family-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'member-001' }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .delete('/api/families/family-001/members/by-id/member-001');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('成员已移除');
+  });
+
+  it('成员不存在，返回 404', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'family-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .delete('/api/families/family-001/members/by-id/member-999');
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('成员不存在');
+  });
+
+  it('家庭不属于当前用户，返回 403', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .delete('/api/families/other-family/members/by-id/member-001');
+
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('无权操作此家庭');
+  });
+});
+
+describe('PATCH /api/families/:id/members/:memberId/role - 更新成员角色', () => {
+  it('正常更新角色', async () => {
+    const updatedMember = { ...mockMember, role: '铲屎官' };
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'family-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [updatedMember], rowCount: 1 });
+
+    const res = await request(createApp())
+      .patch('/api/families/family-001/members/member-001/role')
+      .send({ role: '铲屎官' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.role).toBe('铲屎官');
+  });
+
+  it('成员不存在，返回 404', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'family-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .patch('/api/families/family-001/members/member-999/role')
+      .send({ role: '铲屎官' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('成员不存在');
+  });
+
+  it('role 为空，返回 400', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'family-001' }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .patch('/api/families/family-001/members/member-001/role')
+      .send({ role: '' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('家庭不属于当前用户，返回 403', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .patch('/api/families/other-family/members/member-001/role')
+      .send({ role: '铲屎官' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('无权操作此家庭');
+  });
+});
+
 describe('POST /api/families/:id/members - 添加成员', () => {
   it('正常添加家庭成员', async () => {
     mockPool.query
@@ -307,7 +400,7 @@ describe('POST /api/families/:id/members - 添加成员', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.pet_id).toBe('pet-001');
+    expect(res.body.data.petId).toBe('pet-001');
   });
 
   it('参数校验：缺少 petId，返回 400', async () => {

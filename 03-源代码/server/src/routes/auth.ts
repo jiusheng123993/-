@@ -207,4 +207,75 @@ router.put('/profile', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+/** POST /api/auth/bind-phone - 微信小程序绑定手机号 */
+router.post('/bind-phone', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body as { code: string };
+
+    if (!code) {
+      res.status(400).json({ success: false, message: '缺少手机号授权码' });
+      return;
+    }
+
+    const isDev = !config.wechat.appId || !config.wechat.secret;
+
+    let phoneNumber: string;
+
+    if (isDev) {
+      // 开发模式：直接使用 code 作为手机号（仅用于开发测试）
+      phoneNumber = code;
+    } else {
+      // 生产环境：调用微信 getPhoneNumber 接口
+      const accessTokenRes = await fetch(
+        `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.wechat.appId}&secret=${config.wechat.secret}`
+      );
+      const tokenData = (await accessTokenRes.json()) as { access_token?: string; errcode?: number };
+
+      if (!tokenData.access_token) {
+        console.error('[Auth] 获取 access_token 失败:', tokenData.errcode);
+        res.status(500).json({ success: false, message: '绑定失败，请稍后重试' });
+        return;
+      }
+
+      const phoneRes = await fetch(
+        `https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${tokenData.access_token}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        }
+      );
+      const phoneData = (await phoneRes.json()) as {
+        errcode?: number;
+        phone_info?: { purePhoneNumber?: string };
+      };
+
+      if (phoneData.errcode !== 0 || !phoneData.phone_info?.purePhoneNumber) {
+        console.error('[Auth] 获取手机号失败:', phoneData.errcode);
+        res.status(400).json({ success: false, message: '手机号获取失败，请重新授权' });
+        return;
+      }
+
+      phoneNumber = phoneData.phone_info.purePhoneNumber;
+    }
+
+    // 更新用户手机号
+    const updatedUser = await userRepository.bindPhone(req.userId!, phoneNumber);
+
+    if (!updatedUser) {
+      res.status(404).json({ success: false, message: '用户不存在' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: { phone: phoneNumber.slice(-4) },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[Auth BindPhone Error]', message);
+    res.status(500).json({ success: false, message: '服务器内部错误' });
+  }
+});
+
 export default router;

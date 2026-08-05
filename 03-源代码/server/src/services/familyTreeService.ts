@@ -89,10 +89,17 @@ export interface LineageResponse {
     avatar_url: string | null;
     species: string | null;
   };
+  /** 按代分组：index 0=父母，1=祖辈，2=曾祖 */
+  ancestors_levels: LineageWithPetRow[][];
+  /** 按代分组：index 0=子女，1=孙辈，2=曾孙 */
+  descendants_levels: LineageWithPetRow[][];
+  /** 直接父母（兼容旧字段） */
   parents: LineageWithPetRow[];
+  /** 直接子女（兼容旧字段） */
   children: LineageWithPetRow[];
   siblings: LineageWithPetRow[];
-  mates: RelationshipRow[];
+  /** 配偶关系（含双方宠物名） */
+  mates: Array<RelationshipRow & { pet_a_name: string | null; pet_b_name: string | null }>;
 }
 
 /** 快照列表响应 */
@@ -326,7 +333,8 @@ export async function createLineage(
  * 获取某宠物的血亲树
  * - 校验家庭归属
  * - 校验宠物归属
- * - 并行查询 pet 信息、父母、子女、兄弟姐妹、配偶
+ * - 并行查询 pet 信息、多代祖先、多代后代、兄弟姐妹、配偶
+ * - ancestors_levels / descendants_levels 按代分组（index 0 为最近一代）
  */
 export async function getLineage(
   userId: string,
@@ -343,15 +351,25 @@ export async function getLineage(
     throw new FamilyTreeError(403, '只能查看自己的宠物');
   }
 
-  // 并行查询：宠物基础信息、父母、子女、兄弟姐妹、配偶
+  // 并行查询：宠物基础信息、多代祖先/后代、直接父母/子女（兼容）、兄弟姐妹、配偶
   const petSql = `
     SELECT id, name, species,
       COALESCE(avatar_photo_url, avatar_cartoon_url) AS avatar_url
     FROM pet_profiles
     WHERE id = $1
   `;
-  const [petResult, parents, children, siblings, mates] = await Promise.all([
+  const [
+    petResult,
+    ancestorsLevels,
+    descendantsLevels,
+    parents,
+    children,
+    siblings,
+    mates,
+  ] = await Promise.all([
     pool.query(petSql, [petId]),
+    lineageRepository.findAncestorsWithInfo(petId, 3),
+    lineageRepository.findDescendantsWithInfo(petId, 3),
     lineageRepository.findParents(petId),
     lineageRepository.findChildren(petId),
     lineageRepository.findSiblings(petId),
@@ -370,11 +388,36 @@ export async function getLineage(
       avatar_url: petRow.avatar_url,
       species: petRow.species,
     },
+    ancestors_levels: ancestorsLevels,
+    descendants_levels: descendantsLevels,
     parents,
     children,
     siblings,
     mates,
   };
+}
+
+/**
+ * 删除血缘关系
+ * - 校验家庭归属
+ * - 血缘关系必须存在且属于该家庭，否则 404
+ */
+export async function deleteLineage(
+  userId: string,
+  familyId: string,
+  lineageId: string,
+): Promise<void> {
+  const owns = await familyRepository.isOwner(familyId, userId);
+  if (!owns) {
+    throw new FamilyTreeError(403, '无权操作此家庭');
+  }
+
+  const existing = await lineageRepository.findByIdAndFamily(lineageId, familyId);
+  if (!existing) {
+    throw new FamilyTreeError(404, '血缘关系不存在');
+  }
+
+  await lineageRepository.deleteById(lineageId);
 }
 
 /**

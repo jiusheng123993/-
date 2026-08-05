@@ -30,6 +30,7 @@ import {
   deleteRelationship,
   createLineage,
   getLineage,
+  deleteLineage,
   createSnapshot,
   listSnapshots,
   FamilyTreeError,
@@ -164,6 +165,21 @@ router.get('/:id/lineage/:petId', async (req: Request, res: Response) => {
     const petId = req.params.petId as string;
     const lineage = await getLineage(userId, familyId, petId);
     res.json({ success: true, data: lineage });
+  } catch (err) {
+    handleServiceError(res, err);
+  }
+});
+
+/**
+ * DELETE /:id/lineage/:lineageId - 删除血缘关系
+ */
+router.delete('/:id/lineage/:lineageId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const familyId = req.params.id as string;
+    const lineageId = req.params.lineageId as string;
+    await deleteLineage(userId, familyId, lineageId);
+    res.json({ success: true, message: '血缘关系已删除' });
   } catch (err) {
     handleServiceError(res, err);
   }

@@ -3,13 +3,13 @@
  * 按 TECH_DESIGN 6.0 节定义的 10 类接口限流规则
  * 使用 express-rate-limit，按 IP + 用户ID 维度限流
  */
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import type { Request } from 'express';
 
-/** 限流 key 生成器：IP + 用户ID（已登录时） */
+/** 限流 key 生成器：IP + 用户ID（已登录时），使用 ipKeyGenerator 确保 IPv6 兼容 */
 function keyGenerator(req: Request): string {
   const userId = req.userId || 'anonymous';
-  return `${req.ip}:${userId}`;
+  return `${ipKeyGenerator(req)}:${userId}`;
 }
 
 /** 通用限流：60次/分钟 */

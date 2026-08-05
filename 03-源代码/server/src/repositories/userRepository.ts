@@ -97,4 +97,15 @@ export class UserRepository extends BaseRepository<UserRow> {
     );
     return result.rows[0] ?? null;
   }
+
+  /**
+   * 绑定手机号（微信小程序 getPhoneNumber）
+   */
+  async bindPhone(userId: string, phone: string): Promise<UserRow | null> {
+    const result = await this.rawQuery<UserRow>(
+      `UPDATE ${this.tableName} SET phone = $1, last_active = now() WHERE id = $2 RETURNING *`,
+      [phone, userId],
+    );
+    return result.rows[0] ?? null;
+  }
 }

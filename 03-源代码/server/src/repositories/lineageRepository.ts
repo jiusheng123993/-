@@ -104,6 +104,106 @@ export class LineageRepository extends BaseRepository<LineageRow> {
   }
 
   /**
+   * 按 ID 和 family_id 查找血缘关系（用于归属校验 + 删除）
+   */
+  async findByIdAndFamily(lineageId: string, familyId: string): Promise<LineageRow | null> {
+    return this.findOneWhere(
+      'id = $1 AND family_id = $2',
+      [lineageId, familyId],
+    );
+  }
+
+  /**
+   * 按代查询某宠物的祖先（含宠物信息），支持多代
+   * BFS 逐层遍历，返回按代分组的结果
+   * @param petId - 起始宠物
+   * @param maxDepth - 向上查询代数（1=父母，2=祖辈，3=曾祖）
+   * @returns 按代分组的祖先列表，第 0 层为直接父母，以此类推
+   */
+  async findAncestorsWithInfo(petId: string, maxDepth = 3): Promise<LineageWithPetRow[][]> {
+    const levels: LineageWithPetRow[][] = [];
+    let currentLevel: string[] = [petId];
+    const visited = new Set<string>([petId]);
+
+    for (let depth = 0; depth < maxDepth; depth++) {
+      if (currentLevel.length === 0) break;
+
+      const sql = `
+        SELECT DISTINCT l.id, l.family_id, l.parent_id, l.child_id, l.litter_date, l.created_at,
+          p.id AS pet_id, p.name AS pet_name,
+          COALESCE(p.avatar_photo_url, p.avatar_cartoon_url) AS pet_avatar_url,
+          p.species AS pet_species
+        FROM pet_lineage l
+        LEFT JOIN pet_profiles p ON p.id = l.parent_id
+        WHERE l.child_id = ANY($1::text[]) AND p.id IS NOT NULL
+      `;
+      const result = await this.rawQuery<LineageWithPetRow>(sql, [currentLevel]);
+
+      const levelRows: LineageWithPetRow[] = [];
+      const nextLevel: string[] = [];
+      const seenInLevel = new Set<string>();
+      for (const row of result.rows) {
+        const pid = row.parent_id as string;
+        if (visited.has(pid) || seenInLevel.has(pid)) continue;
+        seenInLevel.add(pid);
+        visited.add(pid);
+        levelRows.push(row);
+        nextLevel.push(pid);
+      }
+
+      levels.push(levelRows);
+      currentLevel = nextLevel;
+    }
+
+    return levels;
+  }
+
+  /**
+   * 按代查询某宠物的后代（含宠物信息），支持多代
+   * BFS 逐层遍历，返回按代分组的结果
+   * @param petId - 起始宠物
+   * @param maxDepth - 向下查询代数（1=子女，2=孙辈，3=曾孙）
+   * @returns 按代分组的后代列表，第 0 层为直接子女，以此类推
+   */
+  async findDescendantsWithInfo(petId: string, maxDepth = 3): Promise<LineageWithPetRow[][]> {
+    const levels: LineageWithPetRow[][] = [];
+    let currentLevel: string[] = [petId];
+    const visited = new Set<string>([petId]);
+
+    for (let depth = 0; depth < maxDepth; depth++) {
+      if (currentLevel.length === 0) break;
+
+      const sql = `
+        SELECT DISTINCT l.id, l.family_id, l.parent_id, l.child_id, l.litter_date, l.created_at,
+          p.id AS pet_id, p.name AS pet_name,
+          COALESCE(p.avatar_photo_url, p.avatar_cartoon_url) AS pet_avatar_url,
+          p.species AS pet_species
+        FROM pet_lineage l
+        LEFT JOIN pet_profiles p ON p.id = l.child_id
+        WHERE l.parent_id = ANY($1::text[]) AND p.id IS NOT NULL
+      `;
+      const result = await this.rawQuery<LineageWithPetRow>(sql, [currentLevel]);
+
+      const levelRows: LineageWithPetRow[] = [];
+      const nextLevel: string[] = [];
+      const seenInLevel = new Set<string>();
+      for (const row of result.rows) {
+        const pid = row.child_id as string;
+        if (visited.has(pid) || seenInLevel.has(pid)) continue;
+        seenInLevel.add(pid);
+        visited.add(pid);
+        levelRows.push(row);
+        nextLevel.push(pid);
+      }
+
+      levels.push(levelRows);
+      currentLevel = nextLevel;
+    }
+
+    return levels;
+  }
+
+  /**
    * 递归查询某宠物的所有祖先（用于防循环检测）
    * 简单实现：BFS 遍历，最多 5 层，避免无限循环（数据异常时兜底）
    * @returns 祖先 ID 集合

@@ -73,17 +73,22 @@ export class RelationshipRepository extends BaseRepository<RelationshipRow> {
 
   /**
    * 查询涉及某只宠物的所有配偶关系（用于血亲树的 mates 字段）
+   * 返回配偶宠物名（pet_a_name / pet_b_name），供前端直接渲染
    */
-  async findMatesByPetId(petId: string): Promise<RelationshipRow[]> {
+  async findMatesByPetId(petId: string): Promise<(RelationshipRow & { pet_a_name: string | null; pet_b_name: string | null })[]> {
     const sql = `
-      SELECT id, family_id, pet_id_a, pet_id_b, relation_type,
-             direction, label_a, label_b, created_at
-      FROM pet_relationships
-      WHERE relation_type = 'mate'
-        AND (pet_id_a = $1 OR pet_id_b = $1)
-      ORDER BY created_at DESC
+      SELECT r.id, r.family_id, r.pet_id_a, r.pet_id_b, r.relation_type,
+             r.direction, r.label_a, r.label_b, r.created_at,
+             pa.name AS pet_a_name,
+             pb.name AS pet_b_name
+      FROM pet_relationships r
+      LEFT JOIN pet_profiles pa ON pa.id = r.pet_id_a
+      LEFT JOIN pet_profiles pb ON pb.id = r.pet_id_b
+      WHERE r.relation_type = 'mate'
+        AND (r.pet_id_a = $1 OR r.pet_id_b = $1)
+      ORDER BY r.created_at DESC
     `;
-    const result = await this.rawQuery<RelationshipRow>(sql, [petId]);
+    const result = await this.rawQuery<RelationshipRow & { pet_a_name: string | null; pet_b_name: string | null }>(sql, [petId]);
     return result.rows;
   }
 }

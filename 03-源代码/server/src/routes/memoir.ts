@@ -16,7 +16,11 @@ import {
   MemoirError,
   MemoirBusinessError,
 } from '../services/memoirService.js';
+import { PetRepository } from '../repositories/petRepository.js';
+import { MembershipRepository } from '../repositories/membershipRepository.js';
 
+const petRepo = new PetRepository();
+const membershipRepo = new MembershipRepository();
 const router = Router();
 
 router.use(authMiddleware);
@@ -116,6 +120,65 @@ router.post('/:petId/memoir/preview', validate({ body: memoirPreviewSchema }), a
     res.json({ success: true, data: result });
   } catch (err) {
     handleServiceError(res, err);
+  }
+});
+
+/**
+ * GET /api/pets/:petId/membership
+ * 查询与宠物关联的用户的会员状态（用于回忆录页面展示会员价）
+ * 校验宠物归属，防止越权；返回会员层级、价格折扣信息
+ */
+router.get('/:petId/membership', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const petId = req.params.petId as string;
+
+    const owns = await petRepo.isOwner(petId, userId);
+    if (!owns) {
+      res.status(404).json({ success: false, message: '宠物不存在' });
+      return;
+    }
+
+    const membership = await membershipRepo.findStatusByUser(userId);
+
+    if (!membership) {
+      res.json({
+        success: true,
+        data: {
+          tier: 'free',
+          plan: null,
+          status: 'none',
+          expiresAt: null,
+          memoirPrice: 14900,
+          memberPrice: 9900,
+          isMember: false,
+        },
+      });
+      return;
+    }
+
+    const isExpired =
+      membership.status === 'active' &&
+      membership.expires_at &&
+      new Date(membership.expires_at) < new Date();
+
+    const isMember = membership.status === 'active' && !isExpired;
+
+    res.json({
+      success: true,
+      data: {
+        tier: isMember ? membership.tier : 'free',
+        plan: membership.plan,
+        status: isExpired ? 'expired' : membership.status,
+        expiresAt: membership.expires_at,
+        memoirPrice: isMember ? 9900 : 14900,
+        memberPrice: 9900,
+        isMember,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '查询会员状态异常';
+    res.status(500).json({ success: false, message });
   }
 });
 

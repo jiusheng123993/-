@@ -78,6 +78,13 @@ const DEFAULT_FLAGS: FeatureFlag[] = [
     expiresAt: '2026-10-31',
     description: '会员促销价（3.3折，上线前三个月获客，到期恢复原价）',
   },
+  {
+    key: 'family_photo',
+    enabled: true,
+    rolloutPercentage: 50,
+    expiresAt: '2026-11-01',
+    description: '全家福AI合成（Phase 2，灰度中）',
+  },
 ];
 
 /** 功能开关缓存（运行时可从数据库刷新） */

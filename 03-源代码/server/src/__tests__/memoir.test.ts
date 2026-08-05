@@ -499,3 +499,74 @@ describe('POST /api/pets/:petId/memoir/preview - 获取预览', () => {
     expect(res.body.message).toContain('memoir_id');
   });
 });
+
+// ===== GET /api/pets/:petId/membership - 查询会员状态（回忆录定价） =====
+describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
+  beforeEach(() => {
+    mockPool.query.mockReset();
+  });
+
+  it('会员用户返回会员价格', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{
+        id: 'mem-001', tier: 'monthly', plan: 'monthly', status: 'active',
+        price: 990, expires_at: '2026-09-01T00:00:00Z', started_at: '2026-08-01T00:00:00Z',
+      }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .get('/api/pets/pet-001/membership');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.isMember).toBe(true);
+    expect(res.body.data.memoirPrice).toBe(9900);
+    expect(res.body.data.memberPrice).toBe(9900);
+    expect(res.body.data.tier).toBe('monthly');
+  });
+
+  it('非会员用户返回非会员价格', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .get('/api/pets/pet-001/membership');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.isMember).toBe(false);
+    expect(res.body.data.memoirPrice).toBe(14900);
+    expect(res.body.data.tier).toBe('free');
+  });
+
+  it('宠物不属于当前用户，返回 404', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .get('/api/pets/other-pet/membership');
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('宠物不存在');
+  });
+
+  it('会员已过期，返回非会员价格', async () => {
+    const pastDate = '2024-01-01T00:00:00Z';
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{
+        id: 'mem-002', tier: 'monthly', plan: 'monthly', status: 'active',
+        price: 990, expires_at: pastDate, started_at: '2023-12-01T00:00:00Z',
+      }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .get('/api/pets/pet-001/membership');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.isMember).toBe(false);
+    expect(res.body.data.memoirPrice).toBe(14900);
+    expect(res.body.data.status).toBe('expired');
+  });
+});

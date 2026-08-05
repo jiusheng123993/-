@@ -538,6 +538,12 @@ describe('GET /api/families/:id/lineage/:petId - 获取血亲树', () => {
         }],
         rowCount: 1,
       })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findAncestorsWithInfo 第1层
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findAncestorsWithInfo 第2层
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findAncestorsWithInfo 第3层
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findDescendantsWithInfo 第1层
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findDescendantsWithInfo 第2层
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findDescendantsWithInfo 第3层
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findParents
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findChildren
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // findSiblings
@@ -554,6 +560,8 @@ describe('GET /api/families/:id/lineage/:petId - 获取血亲树', () => {
     expect(res.body.data.children).toBeInstanceOf(Array);
     expect(res.body.data.siblings).toBeInstanceOf(Array);
     expect(res.body.data.mates).toBeInstanceOf(Array);
+    expect(res.body.data.ancestors_levels).toBeInstanceOf(Array);
+    expect(res.body.data.descendants_levels).toBeInstanceOf(Array);
   });
 
   it('家庭不属于当前用户返回 403', async () => {
