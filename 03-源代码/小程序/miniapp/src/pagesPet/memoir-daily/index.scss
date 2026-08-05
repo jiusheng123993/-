@@ -2,438 +2,729 @@
 @import '../../styles/_animations';
 
 // ============================================
-// 日常回忆录 - 温馨暖色风格
+// 日常回忆录页 · 原型 1:1
 // ============================================
-
-.memoir-daily {
+.memoir {
   min-height: 100vh;
-  background: linear-gradient(180deg, #1A1410 0%, #1E1418 30%, #24181C 70%, #2A1E20 100%);
+  background: $gradient-page;
+  padding: $spacing-xl $spacing-lg $spacing-xxl;
   display: flex;
   flex-direction: column;
+  gap: $spacing-lg;
   animation: pageEnter 0.4s ease-out;
 }
 
-// ==================== 步骤头部指示器 ====================
-.memoir-daily__steps {
+.xhh-card {
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+}
+
+// —— 标题区 ——
+.memoir__head {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.memoir__title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.memoir__subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+// —— hero 横幅 ——
+.memoir__hero {
+  position: relative;
+  height: 300rpx;
+  border-radius: $radius-md;
+  overflow: hidden;
+  background-image: linear-gradient(135deg, $color-primary-bg, $color-gold-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 16rpx;
+  box-shadow: $shadow-card;
 }
 
-.memoir-daily__step-dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: $color-text-tertiary;
-  opacity: 0.3;
-  transition: all 0.3s ease;
+.memoir__hero-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.memoir__hero-emoji {
+  font-size: 160rpx;
+  line-height: 1;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.memoir__hero-badge {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  padding: 6rpx $spacing-md;
+  border-radius: $radius-round;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.memoir__hero-badge-text {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+// —— 双产品线卡 ——
+.memoir__product-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.memoir__product-card {
+  padding: $spacing-lg;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  box-shadow: $shadow-xs;
+  @include press-feedback;
+
+  &--coral {
+    background: linear-gradient(135deg, rgba($color-primary, 0.08), $color-bg-card);
+    border-color: rgba($color-primary, 0.25);
+  }
+
+  &--gold {
+    background: linear-gradient(135deg, $color-gold-bg, $color-bg-card);
+    border-color: rgba($color-gold-deep, 0.3);
+  }
+}
+
+.memoir__product-head {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.memoir__product-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  background: $color-bg-card;
+  box-shadow: $shadow-xs;
+  flex-shrink: 0;
+}
+
+.memoir__product-titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.memoir__product-name {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.memoir__product-price {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.memoir__product-arrow {
+  font-size: 40rpx;
+  color: $color-text-tertiary;
+  line-height: 1;
+}
+
+.memoir__badge-paid {
+  padding: 4rpx $spacing-md;
+  border-radius: $radius-round;
+  background: $color-gold-deep;
+}
+
+.memoir__badge-paid-text {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-text-inverse;
+}
+
+.memoir__product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.memoir__pill {
+  padding: 4rpx $spacing-md;
+  border-radius: $radius-round;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+// —— 步骤指示器 ——
+.memoir__steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: $spacing-sm 0;
+}
+
+.memoir__step-wrap {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.memoir__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.memoir__step-dot {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-full;
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
 
   &--active {
-    width: 28rpx;
-    height: 8rpx;
-    border-radius: 4rpx;
-    background: linear-gradient(90deg, $color-primary, $color-primary-light);
-    opacity: 1;
+    background-image: linear-gradient(135deg, $color-primary-light, $color-primary);
+    border-color: transparent;
+    box-shadow: $shadow-button;
   }
 
   &--done {
-    background: rgba($color-primary, 0.5);
-    opacity: 0.6;
+    background: $color-primary;
+    border-color: transparent;
   }
 }
 
-.memoir-daily__step-connector {
-  width: 24rpx;
+.memoir__step-num {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-text-tertiary;
+
+  .memoir__step-dot--active &,
+  .memoir__step-dot--done & {
+    color: $color-text-inverse;
+  }
+}
+
+.memoir__step-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+
+  &--active {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.memoir__step-line {
+  width: 120rpx;
   height: 2rpx;
-  background: $color-divider;
+  background: $color-border;
+  margin: 0 $spacing-md;
+  margin-bottom: 40rpx;
 }
 
-// ==================== 步骤容器 ====================
-.memoir-daily__content {
+// —— 内容区 ——
+.memoir__content {
   flex: 1;
-  padding: 0 24rpx 180rpx;
-  overflow-y: auto;
+  min-height: 0;
 }
 
-// ==================== 步骤过渡动画 ====================
-.memoir-daily__step-enter {
-  animation: fadeInUp 0.4s ease-out;
+// —— 面板卡 ——
+.memoir__panel {
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
 }
 
-.memoir-daily__step-exit {
-  animation: fadeInUp 0.3s ease-out reverse;
-}
-
-// ==================== 步骤一：选照片 ====================
-.memoir-daily__photo-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24rpx;
-  padding-top: 8rpx;
-}
-
-.memoir-daily__photo-title {
-  font-size: $font-size-xl;
+.memoir__section-title {
+  display: block;
+  font-size: $font-size-md;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
-  letter-spacing: 1rpx;
+  margin-bottom: $spacing-md;
 }
 
-.memoir-daily__photo-count {
-  font-size: $font-size-sm;
+.memoir__section-sub {
+  display: block;
+  font-size: $font-size-xs;
   color: $color-text-tertiary;
-  background: rgba($color-primary, 0.1);
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
+  margin-bottom: $spacing-md;
+  margin-top: -$spacing-sm;
 }
 
-.memoir-daily__photo-hint {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  margin-bottom: 24rpx;
-  line-height: 1.5;
-}
-
-.memoir-daily__photo-grid {
+// —— 上传素材：照片网格 ——
+.memoir__photo-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16rpx;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
 }
 
-.memoir-daily__photo-item {
+.memoir__photo-slot {
   position: relative;
   aspect-ratio: 1;
-  border-radius: $radius-xl;
+  border-radius: $radius-sm;
   overflow: hidden;
-  @include card-base;
-  animation: fadeInScale 0.3s ease-out;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+
+  &--add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8rpx;
+    border: 2rpx dashed $color-border;
+    @include press-feedback;
+  }
 }
 
-.memoir-daily__photo-image {
+.memoir__photo-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  display: block;
 }
 
-.memoir-daily__photo-delete {
+.memoir__photo-delete {
   position: absolute;
   top: 8rpx;
   right: 8rpx;
   width: 40rpx;
   height: 40rpx;
-  border-radius: 50%;
+  border-radius: $radius-full;
   background: rgba(0, 0, 0, 0.5);
-  @include flex-center;
-  font-size: 24rpx;
-  color: #FFFFFF;
-  z-index: 2;
-  @include press-feedback;
+  color: $color-text-inverse;
+  font-size: $font-size-xs;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.memoir-daily__photo-add {
-  aspect-ratio: 1;
-  border-radius: $radius-xl;
-  border: 2rpx dashed $color-border;
-  background: rgba($color-primary, 0.04);
-  @include flex-center;
-  flex-direction: column;
-  gap: 8rpx;
-  transition: all 0.25s ease;
+.memoir__photo-add-icon {
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+.memoir__photo-add-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.memoir__pick-btn {
+  padding: 20rpx 0;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-round;
+  text-align: center;
+  margin-bottom: $spacing-md;
   @include press-feedback;
 
-  &:active {
-    border-color: $color-primary;
-    background: rgba($color-primary, 0.08);
+  &--disabled {
+    border-color: $color-border;
   }
 }
 
-.memoir-daily__photo-add-icon {
-  font-size: 48rpx;
-  color: $color-text-tertiary;
-}
-
-.memoir-daily__photo-add-text {
-  font-size: 22rpx;
-  color: $color-text-tertiary;
-}
-
-// ==================== 步骤二：选风格 ====================
-.memoir-daily__style-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-  margin-bottom: 8rpx;
-  padding-top: 8rpx;
-}
-
-.memoir-daily__style-subtitle {
+.memoir__pick-btn-text {
   font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  margin-bottom: 32rpx;
-  line-height: 1.5;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+
+  .memoir__pick-btn--disabled & {
+    color: $color-text-placeholder;
+  }
 }
 
-.memoir-daily__style-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+.memoir__story {
+  width: 100%;
+  min-height: 140rpx;
+  padding: $spacing-md;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  box-sizing: border-box;
+  margin-bottom: $spacing-md;
 }
 
-.memoir-daily__style-card {
-  @include card-base;
-  padding: 28rpx 24rpx;
-  border-radius: $radius-xl;
+.memoir__placeholder {
+  color: $color-text-placeholder;
+}
+
+.memoir__lockbar {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  transition: all 0.25s ease;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary-bg;
+  border-radius: $radius-sm;
+}
+
+.memoir__lockbar-icon {
+  font-size: $font-size-sm;
+}
+
+.memoir__lockbar-text {
+  font-size: $font-size-xs;
+  color: $color-primary;
+}
+
+// —— AI 生成：风格列表 ——
+.memoir__style-list,
+.memoir__bgm-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.memoir__style-card,
+.memoir__bgm-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  transition: border-color $transition-fast, background-color $transition-fast;
   @include press-feedback;
 
   &--active {
     border-color: $color-primary;
-    background: rgba($color-primary, 0.08);
-    box-shadow: 0 4rpx 20rpx rgba($color-primary, 0.15);
-
-    .memoir-daily__style-card-emoji {
-      transform: scale(1.1);
-    }
+    background: $color-primary-bg;
   }
 }
 
-.memoir-daily__style-card-emoji {
-  font-size: 52rpx;
-  width: 72rpx;
-  height: 72rpx;
-  @include flex-center;
-  background: rgba($color-primary, 0.06);
-  border-radius: $radius-lg;
+.memoir__style-emoji,
+.memoir__bgm-emoji {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-full;
+  background: $color-bg-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
   flex-shrink: 0;
-  transition: transform 0.25s ease;
 }
 
-.memoir-daily__style-card-info {
+.memoir__style-info,
+.memoir__bgm-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 4rpx;
 }
 
-.memoir-daily__style-card-name {
-  font-size: $font-size-lg;
+.memoir__style-name,
+.memoir__bgm-name {
+  font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
 }
 
-.memoir-daily__style-card-desc {
-  font-size: $font-size-sm;
+.memoir__style-desc,
+.memoir__bgm-tag {
+  font-size: $font-size-xs;
   color: $color-text-tertiary;
-  line-height: 1.5;
 }
 
-.memoir-daily__style-card-check {
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
+.memoir__style-check {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: $radius-full;
   border: 2rpx solid $color-border;
-  @include flex-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  color: $color-text-inverse;
   flex-shrink: 0;
-  transition: all 0.25s ease;
-
-  .memoir-daily__style-card--active & {
-    background: linear-gradient(135deg, $color-primary, $color-primary-light);
-    border-color: $color-primary;
-  }
 
   &--checked {
-    color: $color-text-inverse;
-    font-size: 20rpx;
+    background: $color-primary;
+    border-color: $color-primary;
   }
 }
 
-// ==================== 步骤三：预览 ====================
-.memoir-daily__preview-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-  margin-bottom: 24rpx;
-  padding-top: 8rpx;
+.memoir__bgm-preview {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-full;
+  background: $color-gold-bg;
+  color: $color-gold-deep;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  flex-shrink: 0;
+  @include press-feedback;
+
+  &--playing {
+    background: $color-primary;
+    color: $color-text-inverse;
+  }
 }
 
-.memoir-daily__preview-canvas-wrap {
+// —— AI 生成进度卡 ——
+.memoir__progress {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.memoir__progress-track {
+  flex: 1;
+  height: 12rpx;
+  background: $color-border;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.memoir__progress-bar {
+  height: 100%;
+  width: 0;
+  border-radius: $radius-round;
+  background-image: linear-gradient(90deg, $color-primary-light, $color-primary);
+  animation: memoirProgress 3s ease-in-out infinite;
+}
+
+@keyframes memoirProgress {
+  0% { width: 8%; }
+  60% { width: 82%; }
+  100% { width: 92%; }
+}
+
+.memoir__progress-pct {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.memoir__gen-text {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.memoir__gen-hint {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.memoir__gen-hint-icon {
+  font-size: $font-size-xs;
+}
+
+.memoir__gen-hint-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.memoir__gen-status {
+  display: block;
+  margin-top: $spacing-md;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// —— 预览 / 封面 ——
+.memoir__cover {
   position: relative;
   width: 100%;
-  border-radius: $radius-xl;
+  aspect-ratio: 16 / 10;
+  border-radius: $radius-sm;
   overflow: hidden;
-  @include card-base;
-  margin-bottom: 24rpx;
+  background: #1A1410;
+  margin-bottom: $spacing-lg;
 }
 
-.memoir-daily__preview-canvas {
+.memoir__preview-canvas {
   width: 100%;
-  height: 480rpx;
+  height: 100%;
+}
+
+.memoir__cover-image {
+  width: 100%;
+  height: 100%;
   display: block;
 }
 
-.memoir-daily__preview-info {
-  @include card-base;
-  padding: 20rpx 24rpx;
-  border-radius: $radius-xl;
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
-}
-
-.memoir-daily__preview-info-icon {
-  font-size: 36rpx;
-}
-
-.memoir-daily__preview-info-text {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: 1.5;
-}
-
-.memoir-daily__preview-info-label {
-  font-size: 22rpx;
-  color: $color-text-tertiary;
-}
-
-// ==================== 步骤四：结果 ====================
-.memoir-daily__result-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-  margin-bottom: 8rpx;
-  padding-top: 8rpx;
-  text-align: center;
-}
-
-.memoir-daily__result-subtitle {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  text-align: center;
-  margin-bottom: 32rpx;
-}
-
-.memoir-daily__result-preview {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: $radius-xl;
-  overflow: hidden;
-  @include card-base;
-  margin-bottom: 32rpx;
-  @include flex-center;
-}
-
-.memoir-daily__result-image {
+.memoir__cover-placeholder {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-
-.memoir-daily__result-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
-  color: $color-text-tertiary;
+  justify-content: center;
+  gap: $spacing-sm;
 }
 
-.memoir-daily__result-placeholder-icon {
+.memoir__cover-placeholder-icon {
   font-size: 72rpx;
 }
 
-.memoir-daily__result-placeholder-text {
-  font-size: $font-size-sm;
+.memoir__cover-placeholder-text {
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.memoir-daily__result-actions {
+.memoir__cover-play {
+  position: absolute;
+  inset: 0;
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  align-items: center;
+  justify-content: center;
 }
 
-// ==================== 底部固定操作栏 ====================
-.memoir-daily__footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
-  background: linear-gradient(0deg, $color-bg-page 60%, transparent);
-  z-index: 10;
-}
-
-.memoir-daily__btn {
-  width: 100%;
+.memoir__cover-play-btn {
+  width: 96rpx;
   height: 96rpx;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.memoir__cover-play-icon {
+  font-size: 40rpx;
+  color: $color-text-inverse;
+  margin-left: 6rpx;
+}
+
+.memoir__cover-duration {
+  position: absolute;
+  right: $spacing-md;
+  bottom: $spacing-md;
+  padding: 4rpx $spacing-md;
   border-radius: $radius-round;
-  @include flex-center;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  transition: all 0.25s ease;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.memoir__cover-duration-text {
+  font-size: $font-size-xs;
+  color: $color-text-inverse;
+}
+
+.memoir__preview-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: $color-bg-secondary;
+  border-radius: $radius-sm;
+}
+
+.memoir__preview-icon {
+  font-size: 40rpx;
+}
+
+.memoir__preview-texts {
+  flex: 1;
+  min-width: 0;
+}
+
+.memoir__preview-text,
+.memoir__preview-label {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.memoir__preview-label {
+  margin-top: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+// —— 结果按钮 ——
+.memoir__result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.memoir__btn {
+  padding: 22rpx 0;
+  border-radius: $radius-round;
+  text-align: center;
+  flex: 1;
+  min-width: 200rpx;
   @include press-feedback;
 
   &--primary {
-    background: linear-gradient(135deg, #C8A078, #D8B898);
-    color: #1A1410;
-    box-shadow: 0 8rpx 32rpx rgba(200, 160, 120, 0.3);
+    background-image: linear-gradient(135deg, $color-primary-light, $color-primary);
+    box-shadow: $shadow-button;
+  }
+
+  &--ghost {
+    background: $color-bg-card;
+    border: 2rpx solid $color-border;
   }
 
   &--disabled {
-    opacity: 0.35;
+    background: $color-text-placeholder;
     box-shadow: none;
   }
+}
 
-  &--secondary {
-    background: rgba($color-primary, 0.08);
-    border: 2rpx solid $color-border;
+.memoir__btn-text {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-text-inverse;
+
+  &--ghost {
     color: $color-text-secondary;
   }
-
-  &--success {
-    background: linear-gradient(135deg, #C8A078, #D8B898);
-    color: #1A1410;
-    box-shadow: 0 8rpx 32rpx rgba(200, 160, 120, 0.3);
-  }
 }
 
-.memoir-daily__btn-text {
+// —— 底部操作栏 ——
+.memoir__footer {
+  padding: $spacing-md 0;
+}
+
+.memoir__loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(255, 246, 238, 0.92);
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  justify-content: center;
+  padding: $spacing-xl;
 }
 
-// ==================== Loading 覆盖层 ====================
-.memoir-daily__loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: $color-bg-overlay;
-  z-index: 100;
-  @include flex-center;
-  flex-direction: column;
-  gap: 24rpx;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.memoir-daily__loading-spinner {
-  width: 80rpx;
-  height: 80rpx;
-  border: 6rpx solid rgba($color-primary, 0.15);
-  border-top-color: $color-primary;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.memoir-daily__loading-text {
-  font-size: $font-size-md;
-  color: $color-text-primary;
-  letter-spacing: 1rpx;
+.memoir__loading-overlay .memoir__panel {
+  width: 100%;
 }

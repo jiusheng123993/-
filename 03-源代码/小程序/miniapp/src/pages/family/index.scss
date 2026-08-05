@@ -2,940 +2,706 @@
 @import '../../styles/_animations';
 
 // ============================================
-// 家庭页 — 温馨宠物卡片 + 暖色周报 + 丰富动效
+// 家庭页 — 原型 1:1：头部 + 成员横滑 + 今日摘要 + 图谱 + 日历 + 周报 + 动态
 // ============================================
 
 .family-page {
   min-height: 100vh;
   background: $gradient-page;
+  position: relative;
+  z-index: 1;
   animation: pageEnter 0.4s ease-out;
 }
 
-// ===== 头部 =====
-.family-header {
-  padding: 32rpx 32rpx 16rpx;
-}
-
-.family-header-title {
-  font-size: 40rpx;
-  font-weight: 700;
-  background: $gradient-gold;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: block;
-}
-
-.family-header-sub {
-  font-size: 26rpx;
-  color: $color-text-secondary;
-  margin-top: 8rpx;
-  display: block;
-}
-
-.family-header-count {
-  color: $color-primary;
-  font-weight: 600;
-}
-
-// ===== 周报卡片 =====
-.family-report {
-  margin: 0 32rpx 28rpx;
-}
-
-.family-report-card {
+.family-content {
   position: relative;
-  border-radius: $radius-lg;
-  background: $gradient-card;
-  overflow: hidden;
-  border: 1rpx solid $color-border;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3rpx;
-    background: linear-gradient(90deg, transparent, $color-primary, $color-primary-light, $color-primary, transparent);
-  }
-}
-
-.family-report-shimmer {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 80%;
-  height: 3rpx;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba($color-primary-light, 0.8),
-    transparent
-  );
-  animation: shimmerLine 2.5s ease-in-out infinite;
-  z-index: 1;
-}
-
-.family-report-inner {
-  padding: 28rpx;
-  position: relative;
-  z-index: 1;
-}
-
-.family-report-header {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-  margin-bottom: 20rpx;
-}
-
-.family-report-badge {
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  background: $color-primary-bg;
-  border: 1px solid $color-border;
-}
-
-.family-report-badge-text {
-  font-size: 22rpx;
-  color: $color-primary;
-  font-weight: 600;
-}
-
-.family-report-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: $color-text-primary;
-}
-
-.family-report-subtitle {
-  font-size: 22rpx;
-  color: $color-text-secondary;
-  margin-left: auto;
-}
-
-.family-report-mood {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-  padding: 6rpx 14rpx;
-  border-radius: 16rpx;
-
-  &--excellent {
-    background: rgba($color-sage, 0.12);
-  }
-
-  &--good {
-    background: $color-primary-bg;
-  }
-
-  &--fair {
-    background: rgba(#f59e0b, 0.1);
-  }
-
-  &--concerning {
-    background: $color-danger-light;
-  }
-}
-
-.family-report-mood-emoji {
-  font-size: 24rpx;
-}
-
-.family-report-mood-text {
-  font-size: 22rpx;
-  font-weight: 600;
-
-  .family-report-mood--excellent & { color: $color-sage; }
-  .family-report-mood--good & { color: $color-primary; }
-  .family-report-mood--fair & { color: #92400e; }
-  .family-report-mood--concerning & { color: $color-danger; }
-}
-
-.family-report-summary {
-  margin-bottom: 20rpx;
-  padding: 18rpx;
-  border-radius: $radius-sm;
-  background: rgba(#f0f7ff, 0.5);
-}
-
-.family-report-summary-text {
-  font-size: 26rpx;
-  color: $color-text-primary;
-  line-height: 1.7;
-  display: block;
-}
-
-.family-report-block {
-  margin-bottom: 16rpx;
-}
-
-.family-report-block-header {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  margin-bottom: 10rpx;
-}
-
-.family-report-block-icon {
-  font-size: 24rpx;
-}
-
-.family-report-block-title {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: $color-text-primary;
-}
-
-.family-report-bullet {
-  display: flex;
-  align-items: flex-start;
-  gap: 8rpx;
-  padding: 4rpx 0;
-}
-
-.family-report-bullet-dot {
-  font-size: 20rpx;
-  color: $color-sage;
-  flex-shrink: 0;
-
-  &--warn {
-    color: $color-danger;
-  }
-}
-
-.family-report-bullet-text {
-  font-size: 24rpx;
-  color: $color-text-secondary;
-  line-height: 1.6;
-}
-
-.family-report-divider {
-  height: 1rpx;
-  background: $color-border;
-  margin: 18rpx 0;
-}
-
-.family-report-items {
+  z-index: 2;
+  padding: 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
+  gap: 24rpx;
 }
 
-.family-report-item {
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-  padding: 16rpx 20rpx;
-  border-radius: $radius-sm;
-  background: $color-primary-bg;
-  transition: all 0.2s ease;
-  @include press-feedback;
-
-  &:active {
-    background: $color-primary-bg;
-  }
-}
-
-.family-report-icon {
-  width: 52rpx;
-  height: 52rpx;
-  border-radius: $radius-full;
-  @include flex-center;
-  font-size: 28rpx;
-  flex-shrink: 0;
-
-  &--excellent {
-    background: rgba($color-sage, 0.15);
-    box-shadow: 0 0 12rpx rgba($color-sage, 0.2);
-  }
-
-  &--good {
-    background: $color-primary-bg;
-    box-shadow: 0 0 12rpx rgba($color-primary, 0.2);
-  }
-
-  &--fair {
-    background: rgba($color-primary, 0.06);
-    box-shadow: 0 0 12rpx rgba(#f59e0b, 0.15);
-  }
-
-  &--concerning {
-    background: $color-danger-light;
-    box-shadow: 0 0 12rpx rgba($color-danger, 0.2);
-  }
-}
-
-.family-report-text {
-  flex: 1;
-}
-
-.family-report-item-title {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: $color-text-primary;
-  display: block;
-}
-
-.family-report-item-desc {
-  font-size: 22rpx;
-  color: $color-text-secondary;
-  margin-top: 4rpx;
-  display: block;
-}
-
-.family-report-warn {
-  padding: 4rpx 12rpx;
-  border-radius: 16rpx;
-  background: $color-danger-light;
-}
-
-.family-report-warn-text {
-  font-size: 20rpx;
-  color: $color-danger;
-  font-weight: 600;
-}
-
-.family-report-badge-sm {
-  padding: 6rpx 16rpx;
-  border-radius: 16rpx;
-  font-size: 22rpx;
-  font-weight: 700;
-  flex-shrink: 0;
-
-  &--excellent {
-    background: rgba($color-sage, 0.12);
-    color: $color-sage;
-  }
-
-  &--good {
-    background: $color-primary-bg;
-    color: $color-primary;
-  }
-
-  &--fair {
-    background: rgba($color-primary, 0.08);
-    color: #92400e;
-  }
-
-  &--concerning {
-    background: $color-danger-light;
-    color: $color-danger;
-    animation: breathingScore 2s ease-in-out infinite;
-  }
-}
-
-// ===== 宠物区域 =====
-.family-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32rpx 16rpx;
-}
-
-.family-section-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: $color-text-primary;
-}
-
-.family-section-edit {
-  font-size: 24rpx;
-  color: $color-primary;
-  @include press-feedback;
-}
-
-.family-pets-scroll {
-  padding-left: 32rpx;
-  white-space: nowrap;
-}
-
-.family-pets-list {
-  display: inline-flex;
-  gap: 20rpx;
-  padding-right: 32rpx;
-}
-
-// ===== 宠物卡片 =====
-.family-pet-card {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  width: 220rpx;
-  padding: 28rpx 20rpx;
-  border-radius: $radius-lg;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  white-space: normal;
-  scroll-snap-align: start;
-  transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
-
-  &:active {
-    transform: scale(0.95);
-    opacity: 0.85;
-  }
-}
-
-// 宠物卡片交错入场
-.family-pet-card:nth-child(1) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0s; }
-.family-pet-card:nth-child(2) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.08s; }
-.family-pet-card:nth-child(3) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.16s; }
-.family-pet-card:nth-child(4) { animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; animation-delay: 0.24s; }
-
-.family-pet-emoji-wrap {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: $radius-full;
-  @include flex-center;
-  margin-bottom: 14rpx;
-
-  &--dog {
-    background: linear-gradient(135deg, rgba($color-primary, 0.2), rgba($color-primary, 0.1));
-    border: 2rpx solid $color-border;
-    box-shadow: 0 0 16rpx rgba($color-primary, 0.2);
-  }
-
-  &--cat {
-    background: linear-gradient(135deg, rgba($color-teal, 0.2), rgba($color-teal, 0.1));
-    border: 2rpx solid rgba($color-teal, 0.3);
-    box-shadow: 0 0 16rpx rgba($color-teal, 0.2);
-  }
-}
-
-.family-pet-emoji {
-  font-size: 48rpx;
-  animation: pulse 3s ease-in-out infinite;
-}
-
-.family-pet-name {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: $color-text-primary;
-}
-
-.family-pet-breed {
-  font-size: 22rpx;
-  color: $color-text-secondary;
-  margin-top: 4rpx;
-}
-
-.family-pet-age {
-  font-size: 22rpx;
-  color: $color-text-secondary;
-  margin-top: 4rpx;
-}
-
-.family-pet-score {
-  margin-top: 14rpx;
-  padding: 6rpx 18rpx;
-  border-radius: 20rpx;
-  background: rgba($color-sage, 0.1);
-
-  &--high {
-    background: rgba($color-sage, 0.12);
-  }
-
-  &--mid {
-    background: $color-primary-bg;
-  }
-
-  &--low {
-    background: $color-danger-light;
-    animation: breathingScore 2s ease-in-out infinite;
-  }
-}
-
-.family-pet-score-text {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: $color-sage;
-
-  &--high {
-    color: $color-sage;
-  }
-
-  &--mid {
-    color: $color-primary;
-  }
-
-  &--low {
-    color: $color-danger;
-  }
-}
-
-// ===== 快捷入口 =====
-.family-quick-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16rpx;
-  padding: 0 32rpx 32rpx;
-}
-
-.family-quick-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  padding: 28rpx 16rpx;
-  border-radius: $radius-md;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
-  @include press-feedback;
-}
-
-.family-quick-icon {
-  font-size: 44rpx;
-  animation: pulse 3s ease-in-out infinite;
-}
-
-.family-quick-label {
-  font-size: 24rpx;
-  color: $color-text-secondary;
-}
-
-// ===== 加载状态 =====
+// ===== 加载中 =====
 .family-loading {
   @include flex-center;
   min-height: 100vh;
-  font-size: 28rpx;
-  color: $color-text-secondary;
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
 }
 
-// ===== 空状态 =====
-.family-empty {
+// ===== 空态（无家庭） =====
+.family-empty-state {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 80rpx 32rpx;
-  margin: 0 32rpx;
-  border-radius: $radius-lg;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  animation: fadeInScale 0.4s ease-out;
+  padding: 120rpx 48rpx 80rpx;
 }
 
 .family-empty-icon {
-  font-size: 80rpx;
-  margin-bottom: 20rpx;
-  animation: heartbeat 2s ease-in-out infinite;
+  font-size: 96rpx;
+  margin-bottom: 24rpx;
 }
 
-.family-empty-text {
-  font-size: 28rpx;
-  color: $color-text-secondary;
-  margin-bottom: 28rpx;
-}
-
-.family-empty-btn {
-  padding: 16rpx 48rpx;
-  border-radius: $radius-full;
-  background: $gradient-gold;
-  @include press-feedback;
-
-  Text {
-    font-size: 28rpx;
-    font-weight: 600;
-    color: $color-text-inverse;
-  }
-}
-
-.family-pet-card--add {
-  border-style: dashed;
-  border-color: $color-text-tertiary;
-  opacity: 0.7;
-
-  &:active {
-    opacity: 0.5;
-  }
-}
-
-.family-pet-emoji-wrap--add {
-  background: rgba(var(--primary-light-rgb, 232, 200, 216), 0.12);
-  border: 2rpx dashed $color-text-tertiary;
-}
-
-.family-bottom-safe {
-  height: 60rpx;
-}
-
-// ===== 健康排行 =====
-.family-ranking-section {
-  margin: 0 0 28rpx;
-}
-
-.family-ranking-list {
-  padding: 0 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-}
-
-.family-ranking-item {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  padding: 18rpx 20rpx;
-  border-radius: $radius-md;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  animation: fadeInUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.98);
-    opacity: 0.9;
-  }
-
-  &:nth-child(1) { animation-delay: 0s; }
-  &:nth-child(2) { animation-delay: 0.06s; }
-  &:nth-child(3) { animation-delay: 0.12s; }
-  &:nth-child(4) { animation-delay: 0.18s; }
-  &:nth-child(5) { animation-delay: 0.24s; }
-
-  &:first-child {
-    border-color: rgba($color-primary, 0.3);
-    background: linear-gradient(135deg, rgba($color-primary, 0.06), $color-bg-card);
-  }
-}
-
-.family-ranking-medal {
-  width: 48rpx;
-  height: 48rpx;
-  @include flex-center;
-  flex-shrink: 0;
-}
-
-.family-ranking-medal-text {
-  font-size: 32rpx;
-}
-
-.family-ranking-avatar {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: $radius-full;
-  background: $color-primary-bg;
-  @include flex-center;
-  font-size: 32rpx;
-  flex-shrink: 0;
-  border: 2rpx solid $color-border;
-}
-
-.family-ranking-info {
-  flex: 1;
-}
-
-.family-ranking-name-row {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.family-ranking-name {
-  font-size: 26rpx;
-  font-weight: 600;
+.family-empty-title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
   color: $color-text-primary;
-}
-
-.family-ranking-role-tag {
-  padding: 3rpx 10rpx;
-  border-radius: 10rpx;
-  background: linear-gradient(135deg, rgba($color-primary, 0.15), rgba($color-primary-light, 0.1));
-  border: 1px solid rgba($color-primary, 0.2);
-}
-
-.family-ranking-role-text {
-  font-size: 20rpx;
-  color: $color-primary;
-  font-weight: 500;
-}
-
-.family-ranking-breed {
-  font-size: 22rpx;
-  color: $color-text-secondary;
-  margin-top: 4rpx;
-  display: block;
-}
-
-.family-ranking-score {
-  padding: 6rpx 18rpx;
-  border-radius: 16rpx;
-  flex-shrink: 0;
-
-  &--high {
-    background: rgba($color-sage, 0.12);
-  }
-
-  &--mid {
-    background: $color-primary-bg;
-  }
-
-  &--low {
-    background: $color-danger-light;
-  }
-}
-
-.family-ranking-score-text {
-  font-size: 24rpx;
-  font-weight: 700;
-
-  .family-ranking-score--high & {
-    color: $color-sage;
-  }
-
-  .family-ranking-score--mid & {
-    color: $color-primary;
-  }
-
-  .family-ranking-score--low & {
-    color: $color-danger;
-  }
-}
-
-// ===== 宠物卡片角色标签 =====
-.family-pet-role-tag {
-  padding: 3rpx 12rpx;
-  border-radius: 10rpx;
-  background: linear-gradient(135deg, rgba($color-primary, 0.12), rgba($color-primary-light, 0.08));
-  border: 1px solid rgba($color-primary, 0.18);
-  margin-top: 6rpx;
-}
-
-.family-pet-role-text {
-  font-size: 20rpx;
-  color: $color-primary;
-  font-weight: 500;
-}
-
-// ===== 家庭动态墙 =====
-.family-moments-section {
-  margin: 0 0 28rpx;
-}
-
-// ===== 新动态提示条 =====
-.family-new-moments-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  margin: 0 32rpx 20rpx;
-  padding: 20rpx 28rpx;
-  border-radius: $radius-md;
-  background: linear-gradient(135deg, rgba($color-primary, 0.08), rgba($color-primary-light, 0.05));
-  border: 1px solid rgba($color-primary, 0.2);
-  animation: newMomentsSlideIn 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
-  @include press-feedback;
-}
-
-.family-new-moments-dot {
-  width: 14rpx;
-  height: 14rpx;
-  border-radius: 50%;
-  background: $color-primary;
-  animation: newMomentsPulse 1.5s ease-in-out infinite;
-}
-
-.family-new-moments-text {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: $color-primary;
-}
-
-.family-new-moments-arrow {
-  font-size: 22rpx;
-  color: $color-primary;
-  opacity: 0.7;
-}
-
-@keyframes newMomentsSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-16rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes newMomentsPulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(0.7);
-  }
-}
-
-.family-moments-list {
-  padding: 0 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.family-moment-card {
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  border-radius: $radius-md;
-  padding: 22rpx 24rpx;
-  animation: fadeInUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.98);
-    opacity: 0.9;
-  }
-}
-
-.family-moment-header {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
   margin-bottom: 16rpx;
 }
 
-.family-moment-emoji {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: $radius-full;
-  background: $color-primary-bg;
-  @include flex-center;
-  font-size: 32rpx;
-  flex-shrink: 0;
-  border: 2rpx solid $color-border;
+.family-empty-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.7;
+  margin-bottom: 40rpx;
 }
 
-.family-moment-meta {
-  flex: 1;
-}
-
-.family-moment-meta-row {
+.family-empty-features {
   display: flex;
+  gap: 24rpx;
+  margin-bottom: 48rpx;
+}
+
+.family-empty-feature {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12rpx;
 }
 
-.family-moment-name {
-  font-size: 26rpx;
-  font-weight: 600;
+.family-empty-feature-icon {
+  font-size: 48rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+  @include flex-center;
+}
+
+.family-empty-feature-label {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.family-create-btn {
+  width: 100%;
+  height: 96rpx;
+  border-radius: 48rpx;
+  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  box-shadow: $shadow-button;
+  @include flex-center;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+}
+
+// ===== 1. 家庭头部 =====
+.family-head {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 8rpx 8rpx;
+}
+
+.family-head__avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  @include flex-center;
+  flex-shrink: 0;
+  box-shadow: $shadow-sm;
+}
+
+.family-head__avatar-icon {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.family-head__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.family-head__name {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
   color: $color-text-primary;
+  @include text-ellipsis;
 }
 
-.family-moment-type-badge {
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
-  background: $color-primary-bg;
-  border: 1px solid rgba($color-primary, 0.2);
-}
-
-.family-moment-type-text {
-  font-size: 20rpx;
-  color: $color-primary;
-  font-weight: 500;
-}
-
-.family-moment-time {
+.family-head__sub {
+  display: block;
   font-size: 22rpx;
   color: $color-text-tertiary;
   margin-top: 4rpx;
+}
+
+.family-head__edit {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.family-head__edit-icon {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+// ===== 2. 成员横滑条 =====
+.family-member-strip {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.family-member-strip__inner {
+  display: flex;
+  gap: 24rpx;
+  padding: 8rpx 4rpx 16rpx;
+}
+
+.family-member-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 128rpx;
+  padding: 16rpx 8rpx;
+  background: $color-bg-card;
+  border-radius: 24rpx;
+  box-shadow: $shadow-card;
+  transition: transform $transition-fast;
+}
+
+.family-member-card:active {
+  transform: scale(0.95);
+}
+
+.family-member-card__avatar-wrap {
+  position: relative;
+}
+
+.family-member-card__avatar {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  border: 4rpx solid $color-primary;
+  overflow: hidden;
+  @include flex-center;
+  background: $color-primary-bg;
+}
+
+.family-member-card__avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.family-member-card__avatar-emoji {
+  font-size: 56rpx;
+  line-height: 1;
+}
+
+.family-member-card__avatar--add {
+  border-color: $color-border;
+  background: $color-bg-secondary;
+}
+
+.family-member-card__dot {
+  position: absolute;
+  right: -4rpx;
+  top: -4rpx;
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  background: $color-text-tertiary;
+  border: 4rpx solid $color-bg-card;
+
+  &--on {
+    background: $color-success;
+  }
+}
+
+.family-member-card__name {
   display: block;
-}
-
-.family-moment-body {
-  margin-left: 76rpx;
-}
-
-.family-moment-text {
-  font-size: 26rpx;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
   color: $color-text-primary;
-  line-height: 1.6;
-  display: block;
+  margin-top: 12rpx;
+  max-width: 128rpx;
+  @include text-ellipsis;
 }
 
-.family-moment-pet-name {
-  font-weight: 700;
+.family-member-card__status {
+  display: block;
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.family-member-card__role {
+  margin-top: 10rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: $color-primary-bg;
+}
+
+.family-member-card__role-text {
+  font-size: 20rpx;
+  font-weight: $font-weight-semibold;
   color: $color-primary;
 }
 
-.family-moment-title {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: $color-text-primary;
-  display: block;
-  margin-bottom: 6rpx;
+// ===== 通用卡片 =====
+.family-card {
+  @include card-base;
+  padding: 32rpx;
+  animation: fadeInUp 0.35s ease-out;
 }
 
-.family-moment-checkin-tags {
+.family-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.family-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.family-card__icon {
+  font-size: 28rpx;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.family-card__title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.family-card__meta {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+// ===== 3. 今日健康摘要 =====
+.family-summary__list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.family-summary__row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.family-summary__avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  @include flex-center;
+  background: $color-primary-bg;
+  flex-shrink: 0;
+}
+
+.family-summary__avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.family-summary__avatar-emoji {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.family-summary__name {
+  width: 72rpx;
+  flex-shrink: 0;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.family-summary__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 14rpx;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
 }
 
-.family-moment-tag {
+.family-summary__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
   padding: 6rpx 14rpx;
-  border-radius: 14rpx;
-  background: $color-primary-bg;
-  border: 1px solid rgba($color-primary, 0.15);
+  border-radius: 999rpx;
+  background: $color-bg-secondary;
+}
+
+.family-summary__chip--uncheck {
+  background: rgba($color-warning, 0.12);
+}
+
+.family-summary__chip-label {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.family-summary__chip-value {
+  font-size: 20rpx;
+  font-weight: $font-weight-bold;
 
   &--good {
-    background: rgba($color-sage, 0.12);
-    border-color: rgba($color-sage, 0.2);
-    .family-moment-tag-text {
-      color: $color-sage;
-    }
+    color: $color-success;
   }
 
-  &--mid {
-    background: $color-primary-bg;
-    border-color: rgba($color-primary, 0.2);
-    .family-moment-tag-text {
-      color: $color-primary;
-    }
-  }
-
-  &--low {
-    background: $color-danger-light;
-    border-color: rgba($color-danger, 0.2);
-    .family-moment-tag-text {
-      color: $color-danger;
-    }
+  &--warn {
+    color: $color-warning;
   }
 }
 
-.family-moment-tag-text {
-  font-size: 22rpx;
-  color: $color-text-secondary;
-  font-weight: 500;
+.family-summary__chip-text {
+  font-size: 20rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
 }
 
-.family-moment-photos {
+// ===== 4. 家族图谱 =====
+.family-graph__preview {
   display: flex;
-  gap: 10rpx;
-  margin-top: 14rpx;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 8rpx 0 8rpx;
 }
 
-.family-moment-photo {
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: $radius-sm;
+.family-graph__node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.family-graph__avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 4rpx solid $color-primary;
+  overflow: hidden;
+  @include flex-center;
   background: $color-primary-bg;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16rpx);
+.family-graph__avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.family-graph__avatar-emoji {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.family-graph__avatar--more {
+  border-style: dashed;
+  border-color: $color-border;
+  background: $color-bg-secondary;
+}
+
+.family-graph__name {
+  font-size: 22rpx;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+}
+
+.family-graph__line {
+  width: 32rpx;
+  height: 2rpx;
+  background: $color-border;
+  margin-top: 48rpx;
+  flex-shrink: 0;
+}
+
+.family-graph__btn {
+  margin-top: 24rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  border: 2rpx solid $color-primary;
+  @include flex-center;
+  background: $color-bg-card;
+}
+
+.family-graph__btn:active {
+  background: rgba($color-primary, 0.06);
+}
+
+.family-graph__btn-text {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+// ===== 5. 家庭日历 =====
+.family-calendar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.family-calendar__item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.family-calendar__dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: $color-primary;
+  flex-shrink: 0;
+}
+
+.family-calendar__icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  @include flex-center;
+  flex-shrink: 0;
+
+  &--coral {
+    background: $color-primary-bg;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  &--gold {
+    background: $color-gold-bg;
   }
+}
+
+.family-calendar__icon-text {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.family-calendar__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.family-calendar__title {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.family-calendar__sub {
+  display: block;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.family-calendar__date {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.family-calendar__empty {
+  padding: 24rpx;
+  background: $color-bg-secondary;
+  border-radius: 16rpx;
+}
+
+.family-calendar__empty-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.6;
+}
+
+// ===== 6. 家庭周报入口 =====
+.family-report-entry {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.family-report-entry:active {
+  background: rgba($color-primary, 0.04);
+}
+
+.family-report-entry__icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: $color-gold-bg;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.family-report-entry__icon-text {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.family-report-entry__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.family-report-entry__title {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.family-report-entry__sub {
+  display: block;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.family-report-entry__badge {
+  flex-shrink: 0;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: $color-primary-bg;
+}
+
+.family-report-entry__badge-text {
+  font-size: 22rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.family-report-entry__arrow {
+  font-size: 32rpx;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+// ===== 7. 家庭动态预览 =====
+.family-new-moments-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
+  background: rgba($color-primary, 0.08);
+  margin-bottom: 20rpx;
+}
+
+.family-new-moments-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: $color-primary;
+}
+
+.family-new-moments-text {
+  flex: 1;
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.family-new-moments-arrow {
+  font-size: $font-size-xs;
+  color: $color-primary;
+}
+
+.family-feed__list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.family-feed__item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.family-feed__avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $color-primary-bg;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.family-feed__avatar-emoji {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.family-feed__text {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.family-feed__text-bold {
+  font-weight: $font-weight-semibold;
+  margin-right: 4rpx;
+}
+
+.family-feed__time {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.family-feed__empty {
+  padding: 24rpx;
+  background: $color-bg-secondary;
+  border-radius: 16rpx;
+}
+
+.family-feed__empty-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.family-bottom-safe {
+  height: 40rpx;
 }

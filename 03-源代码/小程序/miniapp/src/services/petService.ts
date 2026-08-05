@@ -110,11 +110,12 @@ export async function createPet(
     queueSync('pet_profiles', newPet.id, 'insert', newPet, userId);
     return result;
   } catch (error) {
+    // 离线兜底：存入本地存储并加入同步队列，但重新抛出错误让用户知晓失败原因
     const localPets = getLocalPets(userId);
     localPets.push(newPet);
     saveLocalPets(userId, localPets);
     queueSync('pet_profiles', newPet.id, 'insert', newPet, userId);
-    return newPet;
+    throw error instanceof Error ? error : new Error('网络请求失败，请检查网络后重试')
   }
 }
 

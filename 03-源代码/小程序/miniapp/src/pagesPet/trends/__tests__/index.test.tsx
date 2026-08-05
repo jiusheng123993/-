@@ -1,4 +1,4 @@
-﻿/** 健康趋势页面单元测试 */
+/** 健康趋势页面单元测试 */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
@@ -559,9 +559,10 @@ describe('健康趋势页 - 食欲趋势展示', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '食欲')
 
-    const barItems = container.querySelectorAll('.trend-chart__bar-item')
+    const chartCards = container.querySelectorAll('.trends-chart-card')
+    const appetiteCard = chartCards[1]
+    const barItems = appetiteCard?.querySelectorAll('.trend-chart__bar-item') || []
     expect(barItems.length).toBe(3)
   })
 
@@ -584,9 +585,10 @@ describe('健康趋势页 - 食欲趋势展示', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '食欲')
 
-    const legendItems = container.querySelectorAll('.trend-chart__legend-item')
+    const chartCards = container.querySelectorAll('.trends-chart-card')
+    const appetiteCard = chartCards[1]
+    const legendItems = appetiteCard?.querySelectorAll('.trend-chart__legend-item') || []
     expect(legendItems.length).toBe(4)
   })
 })
@@ -649,9 +651,10 @@ describe('健康趋势页 - 便便趋势展示', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '便便')
 
-    const barItems = container.querySelectorAll('.trend-chart__bar-item')
+    const chartCards = container.querySelectorAll('.trends-chart-card')
+    const stoolCard = chartCards[2]
+    const barItems = stoolCard?.querySelectorAll('.trend-chart__bar-item') || []
     expect(barItems.length).toBe(3)
   })
 })
@@ -709,7 +712,7 @@ describe('健康趋势页 - 异常标记', () => {
     expect(container.querySelector('.trend-chart__container')).toBeTruthy()
   })
 
-  it('综合视图应显示异常标记列表', () => {
+  it('应显示异常标记说明', () => {
     const mockTrendData = [
       makeTrendPoint({ date: '2024-01-01', hasAbnormal: true, riskLevel: 'high', appetite: 'none', weight: undefined }),
       makeTrendPoint({ date: '2024-01-03', hasAbnormal: true, riskLevel: 'emergency', stool: 'bloody', weight: undefined }),
@@ -742,10 +745,10 @@ describe('健康趋势页 - 异常标记', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '综合')
 
-    const abnormalCard = container.querySelector('.trend-summary__abnormal-card')
-    expect(abnormalCard).toBeTruthy()
+    const note = container.querySelector('.trends-note')
+    expect(note).toBeTruthy()
+    expect(note?.textContent).toContain('异常')
   })
 })
 
@@ -841,7 +844,7 @@ describe('健康趋势页 - 月度AI健康报告', () => {
     })
   })
 
-  it('月度报告应显示亮点、关注和建议', () => {
+  it('月度小结应显示 AI 健康小结文本', () => {
     const mockMonthlyReport = {
       petId: 'pet-1',
       month: '2024-01',
@@ -888,17 +891,18 @@ describe('健康趋势页 - 月度AI健康报告', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '综合')
 
-    const reportCard = container.querySelector('.trend-summary__report-card')
-    expect(reportCard).toBeTruthy()
+    const aiText = container.querySelector('.trends-ai-card__text')
+    expect(aiText).toBeTruthy()
+    expect(aiText?.textContent).toContain('体重稳定')
   })
 
-  it('无月度报告时不显示报告卡片', () => {
+  it('无月度数据时 AI 小结卡显示默认引导文案', () => {
     const { container } = render(React.createElement(PetTrendsPage))
 
-    const reportCard = container.querySelector('.trend-summary__report-card')
-    expect(reportCard).toBeNull()
+    const aiText = container.querySelector('.trends-ai-card__text')
+    expect(aiText).toBeTruthy()
+    expect(aiText?.textContent).toContain('暂无月度小结')
   })
 })
 
@@ -1006,19 +1010,18 @@ describe('健康趋势页 - 切换标签页', () => {
     })
   })
 
-  it('应渲染四个标签按钮', () => {
+  it('应同时渲染体重/食欲/便便三张图表卡', () => {
     const { container } = render(React.createElement(PetTrendsPage))
 
-    const tabs = container.querySelectorAll('.pet-trends__tab')
-    expect(tabs.length).toBe(4)
+    const cards = container.querySelectorAll('.trends-chart-card')
+    expect(cards.length).toBe(3)
   })
 
-  it('体重标签应默认激活', () => {
+  it('应显示 AI 月度小结卡', () => {
     const { container } = render(React.createElement(PetTrendsPage))
 
-    const activeTab = container.querySelector('.pet-trends__tab--active')
-    expect(activeTab).toBeTruthy()
-    expect(activeTab?.querySelector('.pet-trends__tab-text')?.textContent).toBe('体重')
+    const aiCard = container.querySelector('.trends-ai-card')
+    expect(aiCard).toBeTruthy()
   })
 })
 
@@ -1050,7 +1053,7 @@ describe('健康趋势页 - AI 趋势分析', () => {
     })
   })
 
-  it('综合视图应显示 AI 分析卡片', () => {
+  it('应显示 AI 月度小结卡及小结文本', () => {
     const mockSummary = {
       petId: 'pet-1',
       period: 'week',
@@ -1079,13 +1082,14 @@ describe('健康趋势页 - AI 趋势分析', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '综合')
 
-    const aiCard = container.querySelector('.trend-summary__ai-card')
+    const aiCard = container.querySelector('.trends-ai-card')
     expect(aiCard).toBeTruthy()
+    expect(aiCard?.textContent).toContain('AI')
+    expect(aiCard?.textContent).toContain('健康小结')
   })
 
-  it('综合视图应显示打卡天数和异常天数统计', () => {
+  it('存在异常天数时 AI 小结卡应标记有异常', () => {
     const mockSummary = {
       petId: 'pet-1',
       period: 'month',
@@ -1114,10 +1118,10 @@ describe('健康趋势页 - AI 趋势分析', () => {
     })
 
     const { container } = render(React.createElement(PetTrendsPage))
-    clickTab(container, '综合')
 
-    const statItems = container.querySelectorAll('.trend-summary__stat-item')
-    expect(statItems.length).toBe(3)
+    const badge = container.querySelector('.trends-ai-card__badge')
+    expect(badge).toBeTruthy()
+    expect(badge?.textContent).toContain('有异常')
   })
 })
 

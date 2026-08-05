@@ -1,129 +1,428 @@
 /**
- * 宠物取名页面
- * AI宠物取名、名字命理解读、名字推荐
+ * 宠物取名页（按高保真原型 1:1 重构）
+ * 取名引擎：AI推荐 / 名字解读 / 灵感探索 / 配对取名
+ * 业务接回：recommendNames / interpretName（真实 AI 服务 + 本地降级）
  */
-import { useState } from 'react'
-import { View, Text, Input, Button } from '@tarojs/components'
+import { View, Text, Input } from '@tarojs/components'
+import { useState, useCallback } from 'react'
+import Taro from '@tarojs/taro'
+import { useThemeClass } from '../../hooks/useThemeClass'
+import { usePetStore } from '../../stores/petStore'
 import { interpretName, recommendNames } from '../../services/namingService'
+import { parseRecommendResult, generateFallbackNames } from '../../utils/namingFallback'
+import type { NamingResult } from '../../types/chatTypes'
+import './index.scss'
+
+type NamingMode = 'ai' | 'interpret' | 'inspire' | 'pair'
+
+const MODES: Array<{ key: NamingMode; icon: string; title: string; desc: string }> = [
+  { key: 'ai', icon: '✨', title: 'AI推荐', desc: '没想法？AI 按五行星宿推荐 5 个候选' },
+  { key: 'interpret', icon: '📖', title: '名字解读', desc: '已有名字，解析五行/星象/诗词内涵' },
+  { key: 'inspire', icon: '🧭', title: '灵感探索', desc: '按诗词/星象/山川/色彩选方向' },
+  { key: 'pair', icon: '🔗', title: '配对取名', desc: '与现有宠物名字成套搭配' },
+]
+
+const INSPIRE_STYLES = ['古风诗意', '可爱萌系', '食物系列', '自然元素']
+
+const SPECIES_OPTIONS: Array<{ value: 'cat' | 'dog'; label: string }> = [
+  { value: 'cat', label: '🐱 猫' },
+  { value: 'dog', label: '🐶 狗' },
+]
+
+const GENDER_OPTIONS = [
+  { value: 'male', label: '♂ 公' },
+  { value: 'female', label: '♀ 母' },
+]
+
+/** 评分 → 星级展示 */
+function renderStars(score: number): string {
+  const s = Math.max(1, Math.min(5, Math.round((score || 80) / 20)))
+  return '★'.repeat(s) + '☆'.repeat(5 - s)
+}
+
+/** 出处 chip 色调 */
+function sourceTone(source: string): 'gold' | 'coral' | 'info' {
+  if (!source) return 'gold'
+  if (source.includes('诗') || source.includes('经') || source.includes('词')) return 'gold'
+  if (source.includes('色彩') || source.includes('橘') || source.includes('食物') || source.includes('萌')) return 'coral'
+  return 'info'
+}
 
 export default function NamingPage() {
-  const [tab, setTab] = useState<'interpret' | 'recommend'>('interpret')
-  const [name, setName] = useState('')
-  const [breed, setBreed] = useState('')
-  const [birthDate, setBirthDate] = useState('')
-  const [gender, setGender] = useState('')
-  const [result, setResult] = useState('')
+  const themeClass = useThemeClass()
+  const { currentPet } = usePetStore()
+
+  const [mode, setMode] = useState<NamingMode>('ai')
+  const [species, setSpecies] = useState<'cat' | 'dog'>('cat')
+  const [breed, setBreed] = useState(currentPet?.breed || '')
+  const [birthDate, setBirthDate] = useState(currentPet?.birthDate || '')
+  const [gender, setGender] = useState<'male' | 'female'>('female')
+  const [coatColor, setCoatColor] = useState('')
+  const [keywords, setKeywords] = useState('')
+
+  // 解读模式
+  const [interpretInput, setInterpretInput] = useState('')
+  const [interpretText, setInterpretText] = useState('')
+
+  // 灵感探索 / 配对取名
+  const [inspireStyle, setInspireStyle] = useState('古风诗意')
+  const [pairName, setPairName] = useState('')
+
   const [loading, setLoading] = useState(false)
+  const [names, setNames] = useState<NamingResult[]>([])
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+  const [generated, setGenerated] = useState(false)
 
-  const handleInterpret = async () => {
-    if (!name || !breed || !birthDate) return
+  const isRecommendMode = mode !== 'interpret'
+
+  /** 开始取名 */
+  const handleGenerate = useCallback(async () => {
+    if (!breed.trim()) {
+      Taro.showToast({ title: '请先填写品种', icon: 'none' })
+      return
+    }
+    if (mode === 'interpret' && !interpretInput.trim()) {
+      Taro.showToast({ title: '请输入要解读的名字', icon: 'none' })
+      return
+    }
+
     setLoading(true)
+    setGenerated(true)
+    setInterpretText('')
+
     try {
-      const res = await interpretName(name, breed, birthDate)
-      setResult(res)
+      if (mode === 'interpret') {
+        const text = await interpretName(interpretInput.trim(), breed.trim(), birthDate)
+        setInterpretText(text || '解读服务暂时不可用，请稍后再试。')
+        setNames([])
+        return
+      }
+
+      // 推荐类模式：AI 推荐 / 灵感探索 / 配对取名
+      const style = mode === 'inspire' ? inspireStyle : keywords.trim() || undefined
+      const description = [
+        mode === 'pair' && pairName.trim() ? `与「${pairName.trim()}」成套搭配的名字` : '',
+        coatColor.trim() ? `毛色：${coatColor.trim()}` : '',
+      ].filter(Boolean).join('；') || undefined
+
+      let resultList: NamingResult[] = []
+      const res = await recommendNames({
+        breed: breed.trim(),
+        birthDate,
+        gender,
+        style,
+        description: description || undefined,
+      })
+      const parsed = parseRecommendResult(res)
+      if (parsed.length > 0) {
+        resultList = parsed
+      }
+
+      if (resultList.length === 0) {
+        resultList = generateFallbackNames(style || '不限风格')
+      }
+
+      setNames(resultList.slice(0, 5))
+      setExpandedIndex(0)
     } catch {
-      setResult('解读服务暂时不可用，请稍后再试。')
+      if (mode === 'interpret') {
+        setInterpretText('解读服务暂时不可用，请稍后再试。')
+      } else {
+        const style = mode === 'inspire' ? inspireStyle : keywords.trim() || '不限风格'
+        setNames(generateFallbackNames(style).slice(0, 5))
+        setExpandedIndex(0)
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [mode, breed, birthDate, gender, coatColor, keywords, interpretInput, inspireStyle, pairName])
 
-  const handleRecommend = async () => {
-    if (!breed || !birthDate || !gender) return
-    setLoading(true)
-    try {
-      const res = await recommendNames({ breed, birthDate, gender })
-      setResult(res)
-    } catch {
-      setResult('推荐服务暂时不可用，请稍后再试。')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const switchMode = useCallback((m: NamingMode) => {
+    setMode(m)
+    setNames([])
+    setInterpretText('')
+    setExpandedIndex(null)
+    setGenerated(false)
+  }, [])
 
   return (
-    <View style={{ minHeight: '100vh', background: '#0F1724', padding: '20px', paddingTop: '60px' }}>
-      <Text style={{ color: '#F5D78C', fontSize: '22px', fontFamily: 'serif', display: 'block', textAlign: 'center', marginBottom: '24px' }}>给宝贝取名 ✦</Text>
-
-      <View style={{ display: 'flex', marginBottom: '24px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(232,168,56,0.2)' }}>
-        <View onClick={() => { setTab('interpret'); setResult('') }} style={{
-          flex: 1, padding: '12px', textAlign: 'center', cursor: 'pointer',
-          background: tab === 'interpret' ? 'rgba(232,168,56,0.15)' : 'transparent',
-          color: tab === 'interpret' ? '#E8A838' : '#8899AA',
-          fontSize: '13px',
-        }}>
-          <Text>我取好了，想看看寓意</Text>
+    <View className={`naming ${themeClass}`}>
+      {/* 页面标题区 */}
+      <View className='naming__head'>
+        <View className='naming__title-row'>
+          <Text className='naming__title'>取名引擎</Text>
+          <View className='naming__badge'>
+            <Text className='naming__badge-text'>文化解码 · 故事讲述</Text>
+          </View>
         </View>
-        <View onClick={() => { setTab('recommend'); setResult('') }} style={{
-          flex: 1, padding: '12px', textAlign: 'center', cursor: 'pointer',
-          background: tab === 'recommend' ? 'rgba(232,168,56,0.15)' : 'transparent',
-          color: tab === 'recommend' ? '#E8A838' : '#8899AA',
-          fontSize: '13px',
-        }}>
-          <Text>帮我想想</Text>
+        <Text className='naming__subtitle'>输入宠物信息，让 AI 从诗词、星象与山川草木里，为毛孩子挑一个念念不忘的名字。</Text>
+      </View>
+
+      {/* 模式选择 2x2 */}
+      <View className='naming__section'>
+        <Text className='naming__section-title'>选择取名方式</Text>
+        <View className='naming__mode-grid'>
+          {MODES.map(m => (
+            <View
+              key={m.key}
+              className={`naming__mode-card ${mode === m.key ? 'naming__mode-card--active' : ''}`}
+              onClick={() => switchMode(m.key)}
+            >
+              <View className='naming__mode-icon'>{m.icon}</View>
+              <Text className='naming__mode-title'>{m.title}</Text>
+              <Text className='naming__mode-desc'>{m.desc}</Text>
+            </View>
+          ))}
         </View>
       </View>
 
-      {tab === 'interpret' ? (
-        <View>
-          <Input style={inputStyle} value={name} onInput={e => setName(e.detail.value)} placeholder='输入宠物名字' placeholderStyle='color:#556' />
-          <Input style={inputStyle} value={breed} onInput={e => setBreed(e.detail.value)} placeholder='品种（如英短、田园猫）' placeholderStyle='color:#556' />
-          <Input style={inputStyle} value={birthDate} onInput={e => setBirthDate(e.detail.value)} placeholder='出生日期（如2025-03-15）' placeholderStyle='color:#556' />
-          <View onClick={handleInterpret} style={btnStyle}>
-            <Text style={{ color: '#0F1724', fontWeight: 600 }}>{loading ? '解读中...' : '开始解读'}</Text>
-          </View>
+      {/* 宠物信息输入卡 */}
+      <View className='xhh-card naming__form'>
+        <View className='naming__form-title'>
+          <Text className='naming__form-title-icon'>🐾</Text>
+          <Text className='naming__form-title-text'>宠物信息</Text>
         </View>
-      ) : (
-        <View>
-          <Input style={inputStyle} value={breed} onInput={e => setBreed(e.detail.value)} placeholder='品种（如英短、田园猫）' placeholderStyle='color:#556' />
-          <Input style={inputStyle} value={birthDate} onInput={e => setBirthDate(e.detail.value)} placeholder='出生日期（如2025-03-15）' placeholderStyle='color:#556' />
-          <View style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-            <View onClick={() => setGender('公')} style={{ flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', background: gender === '公' ? 'rgba(91,154,155,0.2)' : 'rgba(255,255,255,0.04)', border: gender === '公' ? '1px solid #5B9A9B' : '1px solid rgba(255,255,255,0.06)', color: gender === '公' ? '#5B9A9B' : '#8899AA' }}>
-              <Text>♂ 公</Text>
+
+        {/* 解读模式：名字输入 */}
+        {mode === 'interpret' ? (
+          <View className='naming__field'>
+            <Text className='naming__label'>名字</Text>
+            <Input
+              className='naming__input'
+              value={interpretInput}
+              onInput={e => setInterpretInput(e.detail.value)}
+              placeholder='输入想解读的名字'
+              placeholderClass='naming__placeholder'
+              maxlength={12}
+            />
+          </View>
+        ) : (
+          <>
+            <View className='naming__field'>
+              <Text className='naming__label'>物种</Text>
+              <View className='naming__chips'>
+                {SPECIES_OPTIONS.map(opt => (
+                  <View
+                    key={opt.value}
+                    className={`naming__chip ${species === opt.value ? 'naming__chip--active' : ''}`}
+                    onClick={() => setSpecies(opt.value)}
+                  >
+                    <Text className='naming__chip-text'>{opt.label}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-            <View onClick={() => setGender('母')} style={{ flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', background: gender === '母' ? 'rgba(224,133,107,0.2)' : 'rgba(255,255,255,0.04)', border: gender === '母' ? '1px solid #E0856B' : '1px solid rgba(255,255,255,0.06)', color: gender === '母' ? '#E0856B' : '#8899AA' }}>
-              <Text>♀ 母</Text>
+
+            <View className='naming__field-row'>
+              <View className='naming__field naming__field--half'>
+                <Text className='naming__label'>品种</Text>
+                <Input
+                  className='naming__input'
+                  value={breed}
+                  onInput={e => setBreed(e.detail.value)}
+                  placeholder='如 布偶 / 柯基'
+                  placeholderClass='naming__placeholder'
+                  maxlength={20}
+                />
+              </View>
+              <View className='naming__field naming__field--half'>
+                <Text className='naming__label'>出生日期</Text>
+                <Input
+                  className='naming__input'
+                  value={birthDate}
+                  onInput={e => setBirthDate(e.detail.value)}
+                  placeholder='如 2026-03-12'
+                  placeholderClass='naming__placeholder'
+                  maxlength={10}
+                />
+              </View>
+            </View>
+
+            <View className='naming__field'>
+              <Text className='naming__label'>性别</Text>
+              <View className='naming__chips'>
+                {GENDER_OPTIONS.map(opt => (
+                  <View
+                    key={opt.value}
+                    className={`naming__chip ${gender === opt.value ? 'naming__chip--active' : ''}`}
+                    onClick={() => setGender(opt.value as 'male' | 'female')}
+                  >
+                    <Text className='naming__chip-text'>{opt.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View className='naming__field-row'>
+              <View className='naming__field naming__field--half'>
+                <Text className='naming__label'>毛色</Text>
+                <Input
+                  className='naming__input'
+                  value={coatColor}
+                  onInput={e => setCoatColor(e.detail.value)}
+                  placeholder='如 橘白 / 三花'
+                  placeholderClass='naming__placeholder'
+                  maxlength={10}
+                />
+              </View>
+              <View className='naming__field naming__field--half'>
+                <Text className='naming__label'>偏好关键词（选填）</Text>
+                <Input
+                  className='naming__input'
+                  value={keywords}
+                  onInput={e => setKeywords(e.detail.value)}
+                  placeholder='如 文雅 / 霸气 / 可爱'
+                  placeholderClass='naming__placeholder'
+                  maxlength={10}
+                />
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* 灵感探索：风格选择 */}
+        {mode === 'inspire' && (
+          <View className='naming__field'>
+            <Text className='naming__label'>取名方向</Text>
+            <View className='naming__chips'>
+              {INSPIRE_STYLES.map(style => (
+                <View
+                  key={style}
+                  className={`naming__chip naming__chip--wide ${inspireStyle === style ? 'naming__chip--active' : ''}`}
+                  onClick={() => setInspireStyle(style)}
+                >
+                  <Text className='naming__chip-text'>{style}</Text>
+                </View>
+              ))}
             </View>
           </View>
-          <View onClick={handleRecommend} style={btnStyle}>
-            <Text style={{ color: '#0F1724', fontWeight: 600 }}>{loading ? '推荐中...' : '帮我推荐'}</Text>
+        )}
+
+        {/* 配对取名：现有名字 */}
+        {mode === 'pair' && (
+          <View className='naming__field'>
+            <Text className='naming__label'>现有宠物名字</Text>
+            <Input
+              className='naming__input'
+              value={pairName}
+              onInput={e => setPairName(e.detail.value)}
+              placeholder='如 年糕 → 帮你搭配「麻薯」'
+              placeholderClass='naming__placeholder'
+              maxlength={12}
+            />
           </View>
+        )}
+      </View>
+
+      {/* 生成按钮 */}
+      <View
+        className={`naming__generate ${loading ? 'naming__generate--loading' : ''}`}
+        onClick={handleGenerate}
+      >
+        <Text className='naming__generate-icon'>🪄</Text>
+        <Text className='naming__generate-text'>{loading ? 'AI 正在推敲中...' : '开始取名'}</Text>
+      </View>
+
+      {/* 解读结果 */}
+      {mode === 'interpret' && interpretText && (
+        <View className='xhh-card naming__interpret-result'>
+          <View className='naming__interpret-head'>
+            <Text className='naming__interpret-title'>🔍 「{interpretInput}」名字解读</Text>
+          </View>
+          <Text className='naming__interpret-text'>{interpretText}</Text>
         </View>
       )}
 
-      {result && (
-        <View style={{
-          marginTop: '24px',
-          padding: '20px',
-          borderRadius: '16px',
-          background: '#1A2332',
-          border: '1px solid rgba(232,168,56,0.2)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-        }}>
-          <Text style={{ color: '#F5D78C', fontSize: '14px', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{result}</Text>
+      {/* 候选名字 */}
+      {generated && isRecommendMode && names.length > 0 && (
+        <View className='naming__results'>
+          <View className='naming__results-head'>
+            <View className='naming__results-title'>
+              <Text className='naming__results-title-icon'>✨</Text>
+              <Text className='naming__results-title-text'>候选名字</Text>
+            </View>
+            <Text className='naming__results-hint'>点击卡片查看完整文化解读</Text>
+          </View>
+
+          {names.map((item, index) => {
+            const expanded = expandedIndex === index
+            const tone = sourceTone(item.source)
+            return (
+              <View
+                key={`${item.name}-${index}`}
+                className={`xhh-card naming__name-card ${expanded ? 'naming__name-card--expanded' : ''}`}
+                onClick={() => setExpandedIndex(expanded ? null : index)}
+              >
+                <View className='naming__name-top'>
+                  <View className='naming__name-left'>
+                    <Text className='naming__name'>{item.name}</Text>
+                  </View>
+                  <View className='naming__name-right'>
+                    <Text className='naming__stars'>{renderStars(item.score)}</Text>
+                    <View className={`naming__source-chip naming__source-chip--${tone}`}>
+                      <Text className='naming__source-chip-text'>{item.source ? sourceLabel(item.source) : 'AI推荐'}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <Text className='naming__meaning'>{item.meaning}</Text>
+
+                <View className='naming__expand-btn'>
+                  <Text className='naming__expand-btn-text'>{expanded ? '收起解读' : '查看完整解读'}</Text>
+                  <Text className={`naming__expand-arrow ${expanded ? 'naming__expand-arrow--up' : ''}`}>▾</Text>
+                </View>
+
+                {expanded && (
+                  <View className='naming__insight'>
+                    <View className='naming__insight-item'>
+                      <View className='naming__insight-ic naming__insight-ic--success'>🌿</View>
+                      <View className='naming__insight-body'>
+                        <Text className='naming__insight-title'>五行分析</Text>
+                        <Text className='naming__insight-text'>{item.wuxing ? `「${item.name}」五行属${item.wuxing}。` : '暂无五行数据，以 AI 深度解读为准。'}</Text>
+                      </View>
+                    </View>
+                    <View className='naming__insight-item'>
+                      <View className='naming__insight-ic naming__insight-ic--gold'>⭐</View>
+                      <View className='naming__insight-body'>
+                        <Text className='naming__insight-title'>星象关联</Text>
+                        <Text className='naming__insight-text'>{item.starMansion ? `应${item.starMansion}守护。` : '暂无星象数据，以 AI 深度解读为准。'}</Text>
+                      </View>
+                    </View>
+                    {item.source && (
+                      <View className='naming__insight-item'>
+                        <View className='naming__insight-ic naming__insight-ic--info'>📜</View>
+                        <View className='naming__insight-body'>
+                          <Text className='naming__insight-title'>诗词出处</Text>
+                          <Text className='naming__insight-text'>{item.source}</Text>
+                        </View>
+                      </View>
+                    )}
+                    <View className='naming__insight-item'>
+                      <View className='naming__insight-ic naming__insight-ic--coral'>💬</View>
+                      <View className='naming__insight-body'>
+                        <Text className='naming__insight-title'>寓意详解</Text>
+                        <Text className='naming__insight-text'>{item.meaning}</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )
+          })}
         </View>
       )}
+
+      {/* 免责提示 */}
+      <Text className='naming__disclaimer'>AI 取名仅供娱乐参考，愿每个名字都藏着主人对宝贝的爱。</Text>
     </View>
   )
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '14px',
-  marginBottom: '12px',
-  borderRadius: '12px',
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8DFD5',
-  fontSize: '14px',
-  boxSizing: 'border-box' as const,
-}
-
-const btnStyle = {
-  width: '100%',
-  padding: '14px',
-  borderRadius: '16px',
-  background: 'linear-gradient(135deg, #E8A838, #C88520)',
-  textAlign: 'center' as const,
-  marginTop: '8px',
+/** 出处标签 */
+function sourceLabel(source: string): string {
+  if (!source) return 'AI推荐'
+  if (source.includes('《') || source.includes('诗')) return '诗词'
+  if (source.includes('色彩') || source.includes('食物') || source.includes('萌')) return '趣味'
+  if (source.includes('星')) return '星象'
+  return '典故'
 }

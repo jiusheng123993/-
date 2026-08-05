@@ -106,6 +106,23 @@ export async function refreshToken(refreshToken: string): Promise<{
 }
 
 /**
+ * 绑定手机号（微信 getPhoneNumber）
+ * @param code - 微信手机号授权码
+ * @returns 绑定结果，成功时返回脱敏手机号后4位
+ */
+export async function bindPhone(code: string): Promise<{ success: boolean; phone?: string }> {
+  try {
+    const result = await api.post<{ success: boolean; data?: { phone: string } }>(
+      '/api/auth/bind-phone',
+      { code },
+    );
+    return { success: result.success, phone: result.data?.phone };
+  } catch {
+    return { success: false };
+  }
+}
+
+/**
  * 退出登录
  */
 export async function logout(): Promise<void> {

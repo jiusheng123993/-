@@ -1,55 +1,112 @@
 /**
  * 家庭页面
- * 家庭宠物健康排行、AI周报、动态信息流、宠物列表、快捷入口
+ * 家庭头部 + 成员横滑 + 今日健康摘要 + 家族图谱 + 家庭日历 + 家庭周报 + 家庭动态预览
  */
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useFamilyStore } from '../../stores/familyStore'
-import { getCheckinStats } from '../../services/checkinService'
+import { getTodayCheckin, getCheckinStats } from '../../services/checkinService'
 import { getFamilyMoments, getNewMoments } from '../../services/momentService'
-import { generateWeeklyReport, generateFamilyWeeklySummary } from '../../services/weeklyReportService'
-import type { WeeklyReport } from '../../services/weeklyReportService'
+import { getUpcomingRecords } from '../../services/vaccineService'
+import { generateWeeklyReport, generateFamilyWeeklySummary, getLatestWeeklyReport } from '../../services/weeklyReportService'
+import type { WeeklyReport, BackendWeeklyReport } from '../../services/weeklyReportService'
 import type { PetMoment } from '../../types/familyTypes'
-import type { PetProfile } from '../../services/petService'
-import { useThemeClass } from '../../hooks/useThemeClass'
+import type { PetHealthEntry } from '../../services/checkinService'
 import { usePolling } from '../../hooks/usePolling'
-import { calculateHealthScore, buildRankedPets, type WeeklyReportWithPet, type QuickEntry } from './utils'
-import FamilyReport from './FamilyReport'
-import FamilyRanking from './FamilyRanking'
-import FamilyMoments from './FamilyMoments'
-import FamilyPetList from './FamilyPetList'
-import FamilyQuickGrid from './FamilyQuickGrid'
+import { calculateHealthScore } from './utils'
 import './index.scss'
 
-const QUICK_ENTRIES: QuickEntry[] = [
-  { icon: '🧬', label: '家族图谱', url: '/pagesPet/family/lineage/index' },
-  { icon: '📅', label: '家庭日历', url: '/pagesPet/family/calendar/index' },
-  { icon: '📷', label: '全家福', url: '/pagesPet/family/dashboard/index' },
-]
+/** 食欲等级文案（1-6） */
+const APPETITE_TEXT: Record<number, string> = {
+  1: '极差',
+  2: '下降',
+  3: '正常',
+  4: '一般',
+  5: '亢进',
+  6: '呕吐',
+}
+
+/** 精神等级文案（1-5） */
+const SPIRIT_TEXT: Record<number, string> = {
+  1: '萎靡',
+  2: '低落',
+  3: '良好',
+  4: '活跃',
+  5: '非常活跃',
+}
+
+interface CalendarEvent {
+  id: string
+  type: 'vaccine' | 'adoption'
+  title: string
+  sub: string
+  date: string
+  color: 'coral' | 'gold'
+}
+
+function formatMonthDay(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  return `${d.getMonth() + 1}月${d.getDate()}日`
+}
+
+function formatRelativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}小时前`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}天前`
+  return iso.slice(0, 10)
+}
+
+/** 从动态 content 提取宠物名（联合类型安全访问） */
+function getMomentPetName(moment: PetMoment): string {
+  const c = moment.content as Record<string, unknown>
+  return typeof c.petName === 'string' ? c.petName : '毛孩子'
+}
+
+/** 从动态 content 提取展示文本 */
+function getMomentText(moment: PetMoment): string {
+  if (moment.aiSummary) return moment.aiSummary
+  const c = moment.content as Record<string, unknown>
+  const title = typeof c.title === 'string' ? c.title : ''
+  const action = typeof c.action === 'string' ? c.action : ''
+  const desc = typeof c.description === 'string' ? c.description : ''
+  const summary = typeof c.summary === 'string' ? c.summary : ''
+  if (moment.type === 'checkin' && action) return ` 完成${action}`
+  if (title) return ` ${title}`
+  if (action) return ` ${action}`
+  if (desc) return ` ${desc}`
+  if (summary) return summary
+  return ' 更新了动态'
+}
 
 export default function FamilyPage() {
   const { pets, fetchPets, switchPet } = usePetStore()
-  const { currentFamily, fetchFamilies } = useFamilyStore()
+  const { currentFamily, members, fetchFamilies, createFamily, loading: familyLoading } = useFamilyStore()
   const user = useAuthStore(s => s.user)
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   const isInitialized = useAuthStore(s => s.isInitialized)
   const [pageReady, setPageReady] = useState(false)
-  const [petScores, setPetScores] = useState<Record<string, number>>({})
+  const [creating, setCreating] = useState(false)
+  const [todayCheckins, setTodayCheckins] = useState<Record<string, PetHealthEntry | null>>({})
   const [moments, setMoments] = useState<PetMoment[]>([])
   const [newMomentsCount, setNewMomentsCount] = useState(0)
   const [showNewMoments, setShowNewMoments] = useState(false)
   const lastMomentTimeRef = useRef<string>('')
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([])
   const [weeklyReport, setWeeklyReport] = useState<{
     summary: string
     overallMood: WeeklyReport['overallMood']
     highlights: string[]
     concerns: string[]
-    reports: WeeklyReportWithPet[]
+    reports: { petName: string; score: number; overallMood: WeeklyReport['overallMood']; summary: string }[]
   } | null>(null)
-  const themeClass = useThemeClass()
 
   useEffect(() => {
     if (!isInitialized) return
@@ -65,33 +122,101 @@ export default function FamilyPage() {
       await fetchFamilies()
       await fetchPets(user.id)
       const fetchedPets = usePetStore.getState().pets
-      const scores: Record<string, number> = {}
-      const petReports: WeeklyReportWithPet[] = []
 
+      // 今日打卡状态与健康摘要
+      const checkinMap: Record<string, PetHealthEntry | null> = {}
+      for (const pet of fetchedPets) {
+        try {
+          checkinMap[pet.id] = await getTodayCheckin(pet.id, user.id)
+        } catch {
+          checkinMap[pet.id] = null
+        }
+      }
+      setTodayCheckins(checkinMap)
+
+      // 家庭周报（后端优先，失败降级模板）
+      const petReports: { petName: string; score: number; overallMood: WeeklyReport['overallMood']; summary: string }[] = []
       for (const pet of fetchedPets) {
         try {
           const stats = await getCheckinStats(pet.id, user.id)
-          scores[pet.id] = calculateHealthScore(stats)
-
+          const score = calculateHealthScore(stats)
           const report = generateWeeklyReport({
             petName: pet.name,
             species: pet.species,
             breed: pet.breed,
-            score: scores[pet.id],
+            score,
             scoreTrend: 'stable',
             checkinDays: stats.weeklyCount,
             anomalyDays: stats.totalAnomalyDays,
             streak: stats.streak,
             recentMoments: [],
           })
-          petReports.push({ petName: pet.name, score: scores[pet.id], overallMood: report.overallMood, summary: report.summary })
+          petReports.push({ petName: pet.name, score, overallMood: report.overallMood, summary: report.summary })
         } catch {
-          scores[pet.id] = 50
+          // 跳过单宠统计失败
         }
       }
-      setPetScores(scores)
 
-      if (petReports.length > 0) {
+      const familyId = useFamilyStore.getState().currentFamily?.id
+      if (familyId) {
+        try {
+          const backendReport = await getLatestWeeklyReport(familyId)
+          if (backendReport) {
+            setWeeklyReport({
+              summary: backendReport.summary,
+              overallMood: backendReport.overallMood,
+              highlights: backendReport.highlights || [],
+              concerns: backendReport.concerns || [],
+              reports: (backendReport.petReports || []).map(r => ({
+                petName: r.petName,
+                score: r.score,
+                overallMood: r.mood as WeeklyReport['overallMood'],
+                summary: r.summary,
+              })),
+            })
+          } else if (petReports.length > 0) {
+            const familySummary = generateFamilyWeeklySummary(
+              petReports.map(r => ({
+                title: '',
+                summary: r.summary,
+                overallMood: r.overallMood,
+                highlights: [],
+                concerns: [],
+                suggestions: [],
+              })),
+              fetchedPets.length
+            )
+            setWeeklyReport({
+              summary: familySummary.summary,
+              overallMood: familySummary.overallMood,
+              highlights: familySummary.highlights,
+              concerns: familySummary.concerns,
+              reports: petReports,
+            })
+          }
+        } catch {
+          if (petReports.length > 0) {
+            const familySummary = generateFamilyWeeklySummary(
+              petReports.map(r => ({
+                title: '',
+                summary: r.summary,
+                overallMood: r.overallMood,
+                highlights: [],
+                concerns: [],
+                suggestions: [],
+              })),
+              fetchedPets.length
+            )
+            setWeeklyReport({
+              summary: familySummary.summary,
+              overallMood: familySummary.overallMood,
+              highlights: familySummary.highlights,
+              concerns: familySummary.concerns,
+              reports: petReports,
+            })
+          }
+        }
+      } else if (petReports.length > 0) {
         const familySummary = generateFamilyWeeklySummary(
           petReports.map(r => ({
             title: '',
@@ -112,9 +237,10 @@ export default function FamilyPage() {
         })
       }
 
+      // 家庭动态
       try {
-        const familyId = useFamilyStore.getState().currentFamily?.id || 'fam_001'
-        const familyMoments = await getFamilyMoments(familyId, 5)
+        const familyId2 = useFamilyStore.getState().currentFamily?.id || 'fam_001'
+        const familyMoments = await getFamilyMoments(familyId2, 5)
         setMoments(familyMoments)
         if (familyMoments.length > 0) {
           lastMomentTimeRef.current = familyMoments[0].createdAt
@@ -127,8 +253,40 @@ export default function FamilyPage() {
     }
     loadData()
   }, [isInitialized, isAuthenticated, user])
+  /** 家庭日历事件：本月疫苗到期 */
+  const loadCalendarEvents = useCallback(async () => {
+    const events: CalendarEvent[] = []
+    const now = new Date()
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+    for (const pet of pets) {
+      try {
+        const upcoming = await getUpcomingRecords(pet.id, 30)
+        for (const rec of upcoming) {
+          const dueStr = rec.nextDate || rec.date
+          const due = new Date(dueStr + 'T00:00:00')
+          if (due >= now && due <= monthEnd) {
+            events.push({
+              id: `${pet.id}-${rec.id}`,
+              type: 'vaccine',
+              title: `${pet.name} · ${rec.category}疫苗`,
+              sub: rec.status === 'overdue' ? '已到期' : '即将到期',
+              date: formatMonthDay(dueStr),
+              color: 'coral',
+            })
+          }
+        }
+      } catch {
+        // 跳过单宠疫苗加载失败
+      }
+    }
+    setCalendarEvents(events.slice(0, 3))
+  }, [pets])
 
-  const rankedPets = useMemo(() => buildRankedPets(pets, petScores), [pets, petScores])
+  useEffect(() => {
+    if (pageReady && pets.length > 0) {
+      loadCalendarEvents()
+    }
+  }, [pageReady, pets, loadCalendarEvents])
 
   const pollNewMoments = useCallback(async () => {
     const familyId = useFamilyStore.getState().currentFamily?.id || 'fam_001'
@@ -166,8 +324,8 @@ export default function FamilyPage() {
     }
   }, [])
 
-  const handlePetClick = async (pet: PetProfile) => {
-    await switchPet(pet.id)
+  const handlePetClick = async (petId: string) => {
+    await switchPet(petId)
     Taro.switchTab({ url: '/pages/pet-profile/index' })
   }
 
@@ -175,9 +333,64 @@ export default function FamilyPage() {
     Taro.navigateTo({ url: '/pagesPet/add/index' })
   }
 
+  const handleCreateFamily = async () => {
+    if (creating) return
+    setCreating(true)
+    try {
+      await createFamily('星澜小筑')
+      Taro.showToast({ title: '家庭创建成功', icon: 'success' })
+      await fetchFamilies()
+      if (user) {
+        await fetchPets(user.id)
+      }
+      setPageReady(true)
+    } catch (err: unknown) {
+      const error = err as { message?: string }
+      Taro.showToast({ title: error.message || '创建失败', icon: 'none' })
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  /** 成员角色映射（petId -> role） */
+  const memberRoleMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const m of members) {
+      if (m.petId && m.role) map[m.petId] = m.role
+    }
+    return map
+  }, [members])
+
+  const checkedCount = useMemo(
+    () => Object.values(todayCheckins).filter((c) => !!c).length,
+    [todayCheckins]
+  )
+
+  const familyName = currentFamily?.name || '我的家庭'
+  const today = new Date()
+  const todayLabel = `${today.getMonth() + 1}月${today.getDate()}日`
+
+  const appetiteClass = (lv: number | undefined): string => {
+    if (lv === undefined) return 'good'
+    if (lv <= 2 || lv >= 5) return 'warn'
+    return 'good'
+  }
+
+  const spiritClass = (lv: number | undefined): string => {
+    if (lv === undefined) return 'good'
+    if (lv <= 2) return 'warn'
+    return 'good'
+  }
+
+  const poopClass = (lv: number | undefined): string => {
+    if (lv === undefined) return 'good'
+    if (lv <= 2) return 'warn'
+    return 'good'
+  }
+
   if (!pageReady) {
     return (
-      <View className={`family-page ${themeClass}`}>
+      <View className='family-page'>
         <View className='family-loading'>
           <Text>加载中...</Text>
         </View>
@@ -185,42 +398,319 @@ export default function FamilyPage() {
     )
   }
 
+  // 无家庭：显示创建家庭引导
+  if (!currentFamily && !familyLoading) {
+    return (
+      <View className='family-page'>
+        <View className='xhh-bg-layer'>
+          <View className='xhh-blob xhh-blob-a' />
+          <View className='xhh-blob xhh-blob-b' />
+          <View className='xhh-blob xhh-blob-c' />
+          <View className='xhh-blob xhh-blob-d' />
+        </View>
+        <View className='family-empty-state'>
+          <Text className='family-empty-icon'>🏡</Text>
+          <Text className='family-empty-title'>欢迎来到星澜小筑</Text>
+          <Text className='family-empty-desc'>创建您的宠物家庭，管理毛孩子们的日常、健康与温馨回忆</Text>
+          <View className='family-empty-features'>
+            <View className='family-empty-feature'>
+              <Text className='family-empty-feature-icon'>🧬</Text>
+              <Text className='family-empty-feature-label'>家族图谱</Text>
+            </View>
+            <View className='family-empty-feature'>
+              <Text className='family-empty-feature-icon'>📸</Text>
+              <Text className='family-empty-feature-label'>全家福</Text>
+            </View>
+            <View className='family-empty-feature'>
+              <Text className='family-empty-feature-icon'>📅</Text>
+              <Text className='family-empty-feature-label'>家庭日历</Text>
+            </View>
+          </View>
+          <View
+            className='family-create-btn'
+            style={{ opacity: creating ? 0.6 : 1 }}
+            onClick={handleCreateFamily}
+          >
+            <Text>{creating ? '创建中...' : '✨ 创建我的家庭'}</Text>
+          </View>
+        </View>
+      </View>
+    )
+  }
+
   return (
-    <ScrollView className={`family-page ${themeClass}`} scrollY>
-      <View className='family-header'>
-        <Text className='family-header-title'>🏠 星澜小筑</Text>
-        <Text className='family-header-sub'>
-          <Text className='family-header-count'>{pets.length}位</Text>家人
-        </Text>
+    <ScrollView className='family-page' scrollY>
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+        <View className='xhh-bg-glow' />
       </View>
 
-      {pets.length > 0 && weeklyReport && (
-        <FamilyReport weeklyReport={weeklyReport} pets={pets} />
-      )}
-
-      <FamilyRanking rankedPets={rankedPets} />
-
-      {showNewMoments && newMomentsCount > 0 && (
-        <View className='family-new-moments-bar' onClick={handleLoadNewMoments}>
-          <Text className='family-new-moments-dot' />
-          <Text className='family-new-moments-text'>{newMomentsCount}条新动态</Text>
-          <Text className='family-new-moments-arrow'>查看 ▸</Text>
+      <View className='family-content'>
+        {/* ===== 1. 家庭头部 ===== */}
+        <View className='family-head'>
+          <View className='family-head__avatar'>
+            <Text className='family-head__avatar-icon'>🐾</Text>
+          </View>
+          <View className='family-head__info'>
+            <Text className='family-head__name'>{familyName}</Text>
+            <Text className='family-head__sub'>{pets.length} 位成员 · {checkedCount} 位已打卡</Text>
+          </View>
+          <View
+            className='family-head__edit'
+            onClick={() => Taro.navigateTo({ url: '/pagesPet/family/dashboard/index' })}
+          >
+            <Text className='family-head__edit-icon'>✏️</Text>
+          </View>
         </View>
-      )}
 
-      <FamilyMoments moments={moments} />
+        {/* ===== 2. 成员宠物横滑条 ===== */}
+        <ScrollView scrollX className='family-member-strip' enhanced showScrollbar={false}>
+          <View className='family-member-strip__inner'>
+            {pets.map((pet, index) => {
+              const checked = !!todayCheckins[pet.id]
+              const role = memberRoleMap[pet.id]
+              const borderColor = index % 3 === 0 ? '#FF6B3D' : index % 3 === 1 ? '#FFB020' : '#8B6E58'
+              return (
+                <View
+                  key={pet.id}
+                  className='family-member-card'
+                  onClick={() => handlePetClick(pet.id)}
+                >
+                  <View className='family-member-card__avatar-wrap'>
+                    <View className='family-member-card__avatar' style={{ borderColor }}>
+                      {pet.avatarPhotoUrl ? (
+                        <Image src={pet.avatarPhotoUrl} className='family-member-card__avatar-img' mode='aspectFill' />
+                      ) : (
+                        <Text className='family-member-card__avatar-emoji'>🐾</Text>
+                      )}
+                    </View>
+                    <View className={`family-member-card__dot${checked ? ' family-member-card__dot--on' : ''}`} />
+                  </View>
+                  <Text className='family-member-card__name'>{pet.name}</Text>
+                  <Text className='family-member-card__status'>{checked ? '已打卡' : '未打卡'}</Text>
+                  {role && (
+                    <View className='family-member-card__role'>
+                      <Text className='family-member-card__role-text'>{role}</Text>
+                    </View>
+                  )}
+                </View>
+              )
+            })}
+            <View className='family-member-card' onClick={handleAddPet}>
+              <View className='family-member-card__avatar family-member-card__avatar--add'>
+                <Text className='family-member-card__avatar-emoji'>＋</Text>
+              </View>
+              <Text className='family-member-card__name'>添加宠物</Text>
+            </View>
+          </View>
+        </ScrollView>
 
-      <FamilyPetList
-        pets={pets}
-        petScores={petScores}
-        rankedPets={rankedPets}
-        onPetClick={handlePetClick}
-        onAddPet={handleAddPet}
-      />
+        {/* ===== 3. 今日健康摘要卡 ===== */}
+        <View className='family-card'>
+          <View className='family-card__head'>
+            <View className='family-card__title-wrap'>
+              <Text className='family-card__icon'>❤️</Text>
+              <Text className='family-card__title'>今日健康摘要</Text>
+            </View>
+            <Text className='family-card__meta'>{todayLabel} · {checkedCount}/{pets.length}打卡</Text>
+          </View>
+          <View className='family-summary__list'>
+            {pets.map((pet) => {
+              const checkin = todayCheckins[pet.id]
+              if (!checkin) {
+                return (
+                  <View key={pet.id} className='family-summary__row'>
+                    <View className='family-summary__avatar'>
+                      {pet.avatarPhotoUrl ? (
+                        <Image src={pet.avatarPhotoUrl} className='family-summary__avatar-img' mode='aspectFill' />
+                      ) : (
+                        <Text className='family-summary__avatar-emoji'>🐾</Text>
+                      )}
+                    </View>
+                    <Text className='family-summary__name'>{pet.name}</Text>
+                    <View className='family-summary__chip family-summary__chip--uncheck'>
+                      <Text className='family-summary__chip-text'>🕐 今日未打卡</Text>
+                    </View>
+                  </View>
+                )
+              }
+              return (
+                <View key={pet.id} className='family-summary__row'>
+                  <View className='family-summary__avatar'>
+                    {pet.avatarPhotoUrl ? (
+                      <Image src={pet.avatarPhotoUrl} className='family-summary__avatar-img' mode='aspectFill' />
+                    ) : (
+                      <Text className='family-summary__avatar-emoji'>🐾</Text>
+                    )}
+                  </View>
+                  <Text className='family-summary__name'>{pet.name}</Text>
+                  <View className='family-summary__chips'>
+                    <View className='family-summary__chip'>
+                      <Text className='family-summary__chip-label'>便便</Text>
+                      <Text className={`family-summary__chip-value family-summary__chip-value--${poopClass(checkin.poopLevel)}`}>
+                        {checkin.poopLevel}/5
+                      </Text>
+                    </View>
+                    <View className='family-summary__chip'>
+                      <Text className='family-summary__chip-label'>食欲</Text>
+                      <Text className={`family-summary__chip-value family-summary__chip-value--${appetiteClass(checkin.appetiteLevel)}`}>
+                        {APPETITE_TEXT[checkin.appetiteLevel] || '正常'}
+                      </Text>
+                    </View>
+                    <View className='family-summary__chip'>
+                      <Text className='family-summary__chip-label'>精神</Text>
+                      <Text className={`family-summary__chip-value family-summary__chip-value--${spiritClass(checkin.spiritLevel)}`}>
+                        {SPIRIT_TEXT[checkin.spiritLevel] || '良好'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )
+            })}
+          </View>
+        </View>
 
-      <FamilyQuickGrid entries={QUICK_ENTRIES} />
+        {/* ===== 4. 家族图谱缩略入口卡 ===== */}
+        <View className='family-card'>
+          <View className='family-card__head'>
+            <View className='family-card__title-wrap'>
+              <Text className='family-card__icon'>🔗</Text>
+              <Text className='family-card__title'>家族图谱</Text>
+            </View>
+            <Text className='family-card__meta'>{pets.length} 位成员</Text>
+          </View>
+          <View className='family-graph__preview'>
+            {pets.slice(0, 3).map((pet, index) => (
+              <View key={pet.id} className='family-graph__node'>
+                <View
+                  className='family-graph__avatar'
+                  style={{ borderColor: index % 3 === 0 ? '#FF6B3D' : index % 3 === 1 ? '#FFB020' : '#8B6E58' }}
+                >
+                  {pet.avatarPhotoUrl ? (
+                    <Image src={pet.avatarPhotoUrl} className='family-graph__avatar-img' mode='aspectFill' />
+                  ) : (
+                    <Text className='family-graph__avatar-emoji'>🐾</Text>
+                  )}
+                </View>
+                <Text className='family-graph__name'>{pet.name}</Text>
+              </View>
+            ))}
+            {pets.length > 3 && (
+              <>
+                <View className='family-graph__line' />
+                <View className='family-graph__node'>
+                  <View className='family-graph__avatar family-graph__avatar--more'>
+                    <Text className='family-graph__avatar-emoji'>+{pets.length - 3}</Text>
+                  </View>
+                  <Text className='family-graph__name'>更多</Text>
+                </View>
+              </>
+            )}
+          </View>
+          <View
+            className='family-graph__btn'
+            onClick={() => Taro.navigateTo({ url: '/pagesPet/family/lineage/index' })}
+          >
+            <Text className='family-graph__btn-text'>查看家族图谱</Text>
+          </View>
+        </View>
 
-      <View className='family-bottom-safe' />
+        {/* ===== 5. 家庭日历要点卡 ===== */}
+        <View className='family-card'>
+          <View className='family-card__head'>
+            <View className='family-card__title-wrap'>
+              <Text className='family-card__icon'>📅</Text>
+              <Text className='family-card__title'>家庭日历</Text>
+            </View>
+            <Text className='family-card__meta'>本月 {calendarEvents.length} 件事</Text>
+          </View>
+          {calendarEvents.length > 0 ? (
+            <View className='family-calendar__list'>
+              {calendarEvents.map((event) => (
+                <View key={event.id} className='family-calendar__item'>
+                  <View className='family-calendar__dot' />
+                  <View className={`family-calendar__icon family-calendar__icon--${event.color}`}>
+                    <Text className='family-calendar__icon-text'>{event.type === 'vaccine' ? '💉' : '🎁'}</Text>
+                  </View>
+                  <View className='family-calendar__info'>
+                    <Text className='family-calendar__title'>{event.title}</Text>
+                    <Text className='family-calendar__sub'>{event.sub}</Text>
+                  </View>
+                  <Text className='family-calendar__date'>{event.date}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View className='family-calendar__empty'>
+              <Text className='family-calendar__empty-text'>本月暂无安排，去给毛孩子添加疫苗或纪念日吧</Text>
+            </View>
+          )}
+        </View>
+
+        {/* ===== 6. 家庭周报入口卡 ===== */}
+        <View
+          className='family-card family-report-entry'
+          onClick={() => Taro.navigateTo({ url: '/pagesPet/weekly-report/index' })}
+        >
+          <View className='family-report-entry__icon'>
+            <Text className='family-report-entry__icon-text'>📄</Text>
+          </View>
+          <View className='family-report-entry__info'>
+            <Text className='family-report-entry__title'>家庭周报</Text>
+            <Text className='family-report-entry__sub'>AI 总结本周全家动态</Text>
+          </View>
+          <View className='family-report-entry__badge'>
+            <Text className='family-report-entry__badge-text'>✨ AI 周报</Text>
+          </View>
+          <Text className='family-report-entry__arrow'>›</Text>
+        </View>
+
+        {/* ===== 7. 家庭动态墙预览 ===== */}
+        <View className='family-card'>
+          <View className='family-card__head'>
+            <View className='family-card__title-wrap'>
+              <Text className='family-card__icon'>✨</Text>
+              <Text className='family-card__title'>家庭动态</Text>
+            </View>
+            <Text className='family-card__meta'>共 {moments.length} 条</Text>
+          </View>
+
+          {showNewMoments && newMomentsCount > 0 && (
+            <View className='family-new-moments-bar' onClick={handleLoadNewMoments}>
+              <View className='family-new-moments-dot' />
+              <Text className='family-new-moments-text'>{newMomentsCount}条新动态</Text>
+              <Text className='family-new-moments-arrow'>查看 ▸</Text>
+            </View>
+          )}
+
+          {moments.length > 0 ? (
+            <View className='family-feed__list'>
+              {moments.slice(0, 2).map((moment) => (
+                <View key={moment.id} className='family-feed__item'>
+                  <View className='family-feed__avatar'>
+                    <Text className='family-feed__avatar-emoji'>🐾</Text>
+                  </View>
+                  <Text className='family-feed__text'>
+                    <Text className='family-feed__text-bold'>{getMomentPetName(moment)}</Text>
+                    {getMomentText(moment)}
+                  </Text>
+                  <Text className='family-feed__time'>{formatRelativeTime(moment.createdAt)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View className='family-feed__empty'>
+              <Text className='family-feed__empty-text'>还没有动态，快去记录毛孩子的日常吧</Text>
+            </View>
+          )}
+        </View>
+
+        <View className='family-bottom-safe' />
+      </View>
     </ScrollView>
   )
 }

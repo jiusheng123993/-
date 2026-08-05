@@ -10,6 +10,7 @@ import { useSettingsStore, type NotificationSettings } from '../../stores/settin
 import { useThemeStore, THEME_LIST, type ThemeKey } from '../../stores/themeStore'
 import { useMembership } from '../../hooks/useMembership'
 import { useAnalytics } from '../../hooks/useAnalytics'
+import { bindPhone } from '../../services/authService'
 import { APP_VERSION } from '../../constants'
 import {
   exportAllUserData,
@@ -23,6 +24,15 @@ import type { AccountDeletionReason, DataPrivacyStatus, AccountDeletionResult } 
 import { AccountDeletionConfirm } from '../../components/AccountDeletionConfirm'
 import { useThemeClass, useThemeKey } from '../../hooks/useThemeClass'
 import './index.scss'
+
+/** Taro 手机号授权 API 类型扩展（微信 Button open-type=getPhoneNumber 对应运行时能力） */
+interface TaroWithPhoneNumber {
+  getPhoneNumber: (options: {
+    success?: (res: unknown) => void
+    fail?: (res: unknown) => void
+    complete?: () => void
+  }) => void
+}
 
 export default function SettingsPage() {
   const user = useAuthStore(s => s.user)
@@ -43,6 +53,8 @@ export default function SettingsPage() {
   const [deletionConfirmCode, setDeletionConfirmCode] = useState('')
   const [deletionLoading, setDeletionLoading] = useState(false)
   const [exportingData, setExportingData] = useState(false)
+  const [phoneBound, setPhoneBound] = useState<string | null>(null)
+  const [bindingPhone, setBindingPhone] = useState(false)
 
   useEffect(() => {
     loadSettings()
@@ -221,6 +233,43 @@ export default function SettingsPage() {
     Taro.showToast({ title: '主题已切换', icon: 'success', duration: 1000 })
   }, [setTheme, trackEvent])
 
+  /** 微信手机号绑定 */
+  const handleBindPhone = useCallback(() => {
+    if (bindingPhone) return
+    setBindingPhone(true)
+    ;(Taro as unknown as TaroWithPhoneNumber).getPhoneNumber({
+      success: async (res) => {
+        const { code } = res as { code: string; errMsg: string }
+        if (!code) {
+          Taro.showToast({ title: '未获取到授权码', icon: 'none' })
+          return
+        }
+        try {
+          const result = await bindPhone(code)
+          if (result.success && result.phone) {
+            setPhoneBound(result.phone)
+            trackEvent('bind_phone_success')
+            Taro.showToast({ title: '绑定成功', icon: 'success' })
+          } else {
+            Taro.showToast({ title: '绑定失败，请重试', icon: 'none' })
+          }
+        } catch {
+          Taro.showToast({ title: '绑定失败，请重试', icon: 'none' })
+        }
+      },
+      fail: (err) => {
+        if ((err as { errMsg?: string }).errMsg?.includes('cancel')) {
+          // 用户取消，静默处理
+        } else {
+          Taro.showToast({ title: '获取手机号失败', icon: 'none' })
+        }
+      },
+      complete: () => {
+        setBindingPhone(false)
+      },
+    })
+  }, [bindingPhone, trackEvent])
+
   const handleLogout = useCallback(() => {
     Taro.showModal({
       title: '退出登录',
@@ -244,9 +293,11 @@ export default function SettingsPage() {
           <Text className='settings-page__item-label'>微信绑定</Text>
           <Text className='settings-page__item-value settings-page__item-value--bound'>已绑定</Text>
         </View>
-        <View className='settings-page__item' onClick={() => Taro.showToast({ title: '手机绑定功能开发中', icon: 'none' })}>
+        <View className='settings-page__item' onClick={handleBindPhone}>
           <Text className='settings-page__item-label'>手机号绑定</Text>
-          <Text className='settings-page__item-value'>未绑定</Text>
+          <Text className='settings-page__item-value'>
+            {bindingPhone ? '绑定中...' : phoneBound ? `已绑定 (尾号${phoneBound})` : '未绑定'}
+          </Text>
         </View>
       </View>
 
@@ -267,43 +318,14 @@ export default function SettingsPage() {
       </View>
 
       <View className='settings-page__section'>
-        <Text className='settings-page__section-title'>主题切换</Text>
-        {/* 日间模式 */}
-        <Text className='settings-page__theme-group-title'>☀️ 日间模式</Text>
+        <Text className='settings-page__section-title'>四季主题</Text>
         <View className='settings-page__theme-grid'>
-          {THEME_LIST.filter(t => t.mode === 'light').map((theme) => (
+          {THEME_LIST.map((theme) => (
             <View
               key={theme.key}
               className={`settings-page__theme-card ${currentTheme === theme.key ? 'settings-page__theme-card--active' : ''}`}
-              onClick={() => handleThemeChange(theme.key)}
-            >
-              <View
-                className='settings-page__theme-preview'
-                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}88)` }}
+                onClick={() => handleThemeChange(theme.key)}
               >
-                <Text className='settings-page__theme-preview-emoji'>{theme.emoji}</Text>
-              </View>
-              <View className='settings-page__theme-info'>
-                <Text className='settings-page__theme-name'>{theme.name}</Text>
-                <Text className='settings-page__theme-desc'>{theme.desc}</Text>
-              </View>
-              {currentTheme === theme.key && (
-                <View className='settings-page__theme-check'>
-                  <Text>✓</Text>
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
-        {/* 夜间模式 */}
-        <Text className='settings-page__theme-group-title'>🌙 夜间模式</Text>
-        <View className='settings-page__theme-grid'>
-          {THEME_LIST.filter(t => t.mode === 'dark').map((theme) => (
-            <View
-              key={theme.key}
-              className={`settings-page__theme-card ${currentTheme === theme.key ? 'settings-page__theme-card--active' : ''}`}
-              onClick={() => handleThemeChange(theme.key)}
-            >
               <View
                 className='settings-page__theme-preview'
                 style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}88)` }}
@@ -378,6 +400,10 @@ export default function SettingsPage() {
         </View>
         <View className='settings-page__item' onClick={() => handleAgreement('privacy')}>
           <Text className='settings-page__item-label'>隐私政策</Text>
+          <Text className='settings-page__item-arrow'>›</Text>
+        </View>
+        <View className='settings-page__item' onClick={() => Taro.navigateTo({ url: '/pagesUser/feedback/index' })}>
+          <Text className='settings-page__item-label'>意见反馈</Text>
           <Text className='settings-page__item-arrow'>›</Text>
         </View>
         <View className='settings-page__item'>

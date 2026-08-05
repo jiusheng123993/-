@@ -344,13 +344,13 @@ export function useChatCore(params: UseChatCoreParams) {
     [addMessage]
   )
 
-  /** 从相册/相机选择图片并发送 */
-  const handleImageSend = useCallback(async () => {
+  /** 从相册/相机选择图片并发送（sourceType 可指定图片来源，默认两者） */
+  const handleImageSend = useCallback(async (sourceType?: ('album' | 'camera')[]) => {
     try {
       const res = await chooseImageWithPrivacy({
         count: 1,
         sizeType: ['compressed'],
-        sourceType: ['album', 'camera'],
+        sourceType: sourceType ?? ['album', 'camera'],
       })
       if (!res.tempFilePaths.length) return
 

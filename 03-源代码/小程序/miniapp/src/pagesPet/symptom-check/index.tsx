@@ -2,10 +2,9 @@
  * 症状初筛页面
  * 宠物症状选择、AI分析、风险评级、就医建议
  */
-import { View, Text, Textarea, Input, ScrollView } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useSymptom } from '../../hooks/useSymptom'
 import { useMembership } from '../../hooks/useMembership'
@@ -16,50 +15,43 @@ import PetSwitcher from '../../components/PetSwitcher'
 import PaywallPopup from '../../components/PaywallPopup'
 import AnxietyIntervention from '../../components/AnxietyIntervention'
 import CrisisReferralCard from '../../components/CrisisReferralCard'
-import { PageLoading, PageError, PetAvatar, EmergencyAlert } from '../../components'
-import { incrementSymptomCheckCount, isNewUser, getRecentFoodQueryCount, getRecentSymptomCheckCount } from '../../utils/usageTracking'
+import { PageLoading, PageError, EmergencyAlert } from '../../components'
+import { incrementSymptomCheckCount } from '../../utils/usageTracking'
 import { useAnxietyDetection } from '../../hooks/useAnxietyDetection'
 import { useEmotionTracking } from '../../hooks/useEmotionTracking'
 import type { EmotionSeverity } from '../../services/emotionTrackingService'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
-import { EVENT } from '../../constants/analyticsEvents'
-import type { ExpressionContext } from '../../engines/petAvatar'
-import { getCrisisMessage } from '../../engines/emotion'
-import type { CrisisTriggerSource } from '../../engines/emotion'
-import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import type { UrgencyLevel } from '../../engines/petSafety/PetSafetyHandler'
+import { getCrisisMessage } from '../../engines/emotion'
+import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
+import type { SymptomItem } from '../../services/symptomService'
 import './index.scss'
 
-const DURATION_OPTIONS = [
-  { value: 'today', label: '今天刚发现' },
-  { value: '1-2天', label: '1-2天' },
-  { value: '2-3天', label: '2-3天' },
-  { value: '3天以上', label: '3天以上' },
-]
+/** 原型常见症状（从后端症状库中按名称匹配展示） */
+const COMMON_SYMPTOM_NAMES = ['呕吐', '腹泻', '食欲不振', '精神萎靡', '咳嗽', '打喷嚏', '体温升高', '便血', '抽搐', '呼吸困难']
 
-const FREQUENCY_OPTIONS = [
-  { value: 'occasional', label: '偶尔' },
-  { value: 'frequent', label: '频繁' },
-  { value: 'continuous', label: '持续' },
-]
+const SYMPTOM_ICONS: Record<string, string> = {
+  呕吐: '🤢',
+  腹泻: '💧',
+  食欲不振: '🍽️',
+  精神萎靡: '😴',
+  咳嗽: '💨',
+  打喷嚏: '🤧',
+  体温升高: '🌡️',
+  便血: '🩸',
+  抽搐: '⚡',
+  呼吸困难: '🫁',
+}
 
-const SEVERITY_OPTIONS = [
-  { value: 'mild', label: '轻微', emoji: '🟢' },
-  { value: 'moderate', label: '明显', emoji: '🟡' },
-  { value: 'severe', label: '严重', emoji: '🔴' },
-]
+/** 紧急症状（照原型分级规则：命中即红） */
+const URGENT_SYMPTOM_NAMES = new Set(['便血', '呼吸困难'])
 
-const APPETITE_OPTIONS = [
-  { value: 'normal', label: '正常' },
-  { value: 'decreased', label: '下降' },
-  { value: 'none', label: '不吃' },
-]
-
-const ENERGY_OPTIONS = [
-  { value: 'normal', label: '正常' },
-  { value: 'low', label: '偏低' },
-  { value: 'lethargic', label: '萎靡' },
+/** 本地初步分级（照原型 JS 逻辑：1 项=观察 / 2 项=建议 / 3 项及以上或含急症症状=紧急） */
+const LEVEL_CONFIG = [
+  { key: 'observe', emoji: '🟢', name: '绿 · 观察', desc: '单一轻微症状，精神食欲正常', action: '→ 继续观察，明天打卡关注', color: '#2FC98E', bg: '47, 201, 142' },
+  { key: 'watch', emoji: '🟡', name: '黄 · 建议', desc: '出现 2 项异常症状', action: '→ 建议关注，持续 2 天建议就医', color: '#FFB020', bg: '255, 176, 32' },
+  { key: 'urgent', emoji: '🔴', name: '红 · 紧急', desc: '3 项及以上 · 便血 · 呼吸困难', action: '→ 建议立即就医', color: '#FF5A5F', bg: '255, 90, 95' },
 ]
 
 const RISK_CONFIG: Record<string, { label: string; emoji: string; color: string }> = {
@@ -68,26 +60,6 @@ const RISK_CONFIG: Record<string, { label: string; emoji: string; color: string 
   warning: { label: '密切观察', emoji: '🔔', color: '#FF8C42' },
   emergency: { label: '立即就医', emoji: '🚨', color: '#FF4D4F' },
 }
-
-const STEP_LABELS = ['选择症状', '补充信息', 'AI分析', '结果建议']
-
-const CATEGORY_ICONS: Record<string, string> = {
-  digestive: '🍽️',
-  respiratory: '🫁',
-  skin: '🔬',
-  urinary: '💧',
-  nervous: '🧠',
-  behavior: '🐾',
-  eye_ear_mouth: '👁️',
-}
-
-/** 常见症状组合预设 */
-const QUICK_SYMPTOM_COMBOS = [
-  { label: '🤧 感冒症状', symptoms: ['打喷嚏', '流鼻涕', '精神萎靡', '食欲不振'] },
-  { label: '🤢 消化问题', symptoms: ['呕吐', '腹泻', '食欲不振', '腹痛'] },
-  { label: '🩹 皮肤问题', symptoms: ['瘙痒', '脱毛', '红疹', '皮屑'] },
-  { label: '👀 眼部异常', symptoms: ['眼屎增多', '流泪', '眼睛红肿', '畏光'] },
-]
 
 export default function PetSymptomCheck() {
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
@@ -108,19 +80,8 @@ export default function PetSymptomCheck() {
   const user = useAuthStore(s => s.user)
   const inviteCode = useShareStore(s => s.inviteCode)
 
-  const [step, setStep] = useState(0)
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
-  const [symptomSearchText, setSymptomSearchText] = useState('')
-  const [showSymptomSearchSuggestions, setShowSymptomSearchSuggestions] = useState(false)
-  const [additionalInfo, setAdditionalInfo] = useState({
-    duration: 'today',
-    frequency: 'occasional',
-    severity: 'mild',
-    appetite: 'normal',
-    energy: 'normal',
-    otherNotes: '',
-  })
   const [analyzing, setAnalyzing] = useState(false)
+  const [showResult, setShowResult] = useState(false)
   const [paywallVisible, setPaywallVisible] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [showSymptomCrisisReferral, setShowSymptomCrisisReferral] = useState(false)
@@ -129,6 +90,7 @@ export default function PetSymptomCheck() {
   const { trackPageView, trackEvent } = useAnalytics()
 
   usePageView('symptom_check')
+
   const RISK_TO_URGENCY: Record<string, UrgencyLevel> = {
     normal: 'green',
     caution: 'yellow',
@@ -184,9 +146,33 @@ export default function PetSymptomCheck() {
     }
   }, [currentPet, checkSickAnxiety])
 
-  const handleToggleCategory = (categoryId: string) => {
-    setExpandedCategory((prev) => (prev === categoryId ? null : categoryId))
-  }
+  /** 常见症状网格：从后端症状库按名称提取（匹配不到的自动跳过） */
+  const commonSymptoms = useMemo(() => {
+    const byName = new Map<string, SymptomItem>()
+    for (const cat of categories) {
+      for (const s of cat.symptoms) {
+        byName.set(s.name, s)
+      }
+    }
+    return COMMON_SYMPTOM_NAMES
+      .map((name) => byName.get(name))
+      .filter((s): s is SymptomItem => !!s)
+  }, [categories])
+
+  const allSymptoms = useMemo(() => categories.flatMap((c) => c.symptoms), [categories])
+
+  /** 本地初步分级（照原型规则实时计算） */
+  const localLevel = useMemo(() => {
+    const selectedNames = selectedSymptoms
+      .map((sid) => allSymptoms.find((s) => s.id === sid)?.name || '')
+      .filter(Boolean)
+    const count = selectedNames.length
+    if (count === 0) return null
+    const hasUrgent = selectedNames.some((n) => URGENT_SYMPTOM_NAMES.has(n))
+    if (count >= 3 || hasUrgent) return 'urgent'
+    if (count === 2) return 'watch'
+    return 'observe'
+  }, [selectedSymptoms, allSymptoms])
 
   const handleToggleSymptom = (symptomId: string) => {
     if (selectedSymptoms.includes(symptomId)) {
@@ -196,24 +182,12 @@ export default function PetSymptomCheck() {
     }
   }
 
-  const handleNextStep = () => {
-    if (step === 0 && selectedSymptoms.length === 0) {
+  const handleAnalyze = async () => {
+    if (!currentPet) return
+    if (selectedSymptoms.length === 0) {
       Taro.showToast({ title: '请至少选择一个症状', icon: 'none' })
       return
     }
-    if (step === 1) {
-      handleAnalyze()
-      return
-    }
-    setStep((prev) => prev + 1)
-  }
-
-  const handlePrevStep = () => {
-    setStep((prev) => Math.max(0, prev - 1))
-  }
-
-  const handleAnalyze = async () => {
-    if (!currentPet) return
     if (!isMember && user?.id) {
       const access = await checkAccess('symptom_check')
       if (!access.allowed) {
@@ -223,28 +197,27 @@ export default function PetSymptomCheck() {
           trackEvent('show_paywall', { feature: 'symptom_check' })
           setPaywallVisible(true)
         } else {
-          Taro.switchTab({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pages/member/index' })
         }
         return
       }
     }
-    setStep(2)
     setAnalyzing(true)
     try {
       const result = await analyzeSymptoms(
         currentPet.id,
         {
-          duration: additionalInfo.duration,
-          frequency: additionalInfo.frequency,
-          severity: additionalInfo.severity,
-          appetite: additionalInfo.appetite,
-          energy: additionalInfo.energy,
-          otherNotes: additionalInfo.otherNotes || undefined,
+          duration: 'today',
+          frequency: 'occasional',
+          severity: 'mild',
+          appetite: 'normal',
+          energy: 'normal',
+          otherNotes: undefined,
         },
         currentPet
       )
-      setStep(3)
       incrementSymptomCheckCount()
+      setShowResult(true)
       const riskToSeverity: Record<string, EmotionSeverity> = {
         normal: 'mild',
         caution: 'mild',
@@ -261,7 +234,7 @@ export default function PetSymptomCheck() {
         setShowSymptomCrisisReferral(true)
       }
     } catch {
-      setStep(1)
+      Taro.showToast({ title: '分析失败，请重试', icon: 'none' })
     } finally {
       setAnalyzing(false)
     }
@@ -269,110 +242,15 @@ export default function PetSymptomCheck() {
 
   const handleReset = () => {
     clearSelection()
-    setStep(0)
-    setExpandedCategory(null)
-    setAdditionalInfo({
-      duration: 'today',
-      frequency: 'occasional',
-      severity: 'mild',
-      appetite: 'normal',
-      energy: 'normal',
-      otherNotes: '',
-    })
-  }
-
-  // 搜索过滤：根据输入实时过滤症状
-  const filteredCategories = useMemo(() => {
-    const q = symptomSearchText.trim().toLowerCase()
-    if (!q) return categories // 无搜索词时返回全部
-
-    return categories
-      .map((cat) => ({
-        ...cat,
-        symptoms: cat.symptoms.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)),
-      }))
-      .filter((cat) => cat.symptoms.length > 0)
-  }, [categories, symptomSearchText])
-
-  // 搜索建议：从所有症状中匹配前 8 条
-  const symptomSearchSuggestions = useMemo(() => {
-    const q = symptomSearchText.trim().toLowerCase()
-    if (!q) return []
-    const all: { id: string; name: string; categoryName: string }[] = []
-    for (const cat of categories) {
-      for (const s of cat.symptoms) {
-        if (s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)) {
-          all.push({ id: s.id, name: s.name, categoryName: cat.name })
-        }
-      }
-    }
-    return all.slice(0, 8)
-  }, [categories, symptomSearchText])
-
-  // 根据搜索词自动展开匹配的分类
-  useEffect(() => {
-    if (!symptomSearchText.trim()) {
-      setExpandedCategory(null)
-      return
-    }
-    // 展开第一个有匹配的分类
-    if (filteredCategories.length > 0) {
-      setExpandedCategory(filteredCategories[0].id)
-    }
-  }, [symptomSearchText, filteredCategories])
-
-  const handleQuickCombo = (comboSymptoms: string[]) => {
-    // 在所有分类中查找匹配的症状 ID
-    const matchedIds: string[] = []
-    for (const cat of categories) {
-      for (const s of cat.symptoms) {
-        if (comboSymptoms.includes(s.name) && !selectedSymptoms.includes(s.id)) {
-          matchedIds.push(s.id)
-        }
-      }
-    }
-    // 批量选中
-    matchedIds.forEach((id) => selectSymptom(id))
-    // 不可合并的滚动到顶部提示
-    if (matchedIds.length === 0) {
-      Taro.showToast({ title: '当前没有匹配的症状', icon: 'none' })
-    }
-  }
-
-  const handleSymptomSearchInput = (value: string) => {
-    setSymptomSearchText(value)
-    setShowSymptomSearchSuggestions(value.trim().length > 0)
-  }
-
-  const handleSelectSearchSuggestion = (symptomId: string) => {
-    if (!selectedSymptoms.includes(symptomId)) {
-      selectSymptom(symptomId)
-    }
-    setSymptomSearchText('')
-    setShowSymptomSearchSuggestions(false)
+    setShowResult(false)
   }
 
   const isLoading = petLoading || symptomLoading
 
-  const expressionContext = useMemo((): ExpressionContext | null => {
-    if (!currentPet) return null
-    return {
-      todayEntry: null,
-      hasAnomaly: false,
-      anomalyCount: 0,
-      riskLevel: null,
-      streakDays: 0,
-      isBirthday: false,
-      isVaccineComplete: false,
-      isRecovery: false,
-      isDeceased: currentPet.isDeceased || false,
-    }
-  }, [currentPet])
-
   if (isLoading && pets.length === 0) {
     return (
       <View className='pet-symptom-check'>
-          <PageLoading />
+        <PageLoading />
       </View>
     )
   }
@@ -387,23 +265,20 @@ export default function PetSymptomCheck() {
 
   return (
     <View className='pet-symptom-check'>
+      {/* 全小程序统一动态背景层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+        <View className='xhh-bg-glow' />
+      </View>
+
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
         onSwitch={switchPet}
       />
-
-      {currentPet && expressionContext && (
-        <View className='pet-symptom-check__avatar'>
-          <PetAvatar
-            species={currentPet.species as 'dog' | 'cat'}
-            petName={currentPet.name}
-            expressionContext={expressionContext}
-            size={80}
-            showLabel
-          />
-        </View>
-      )}
 
       {!currentPet ? (
         <View className='pet-symptom-check__empty'>
@@ -412,471 +287,166 @@ export default function PetSymptomCheck() {
         </View>
       ) : (
         <View className='pet-symptom-check__content'>
-          <View className='pet-symptom-check__steps'>
-            {STEP_LABELS.map((label, index) => (
-              <View key={label} className='pet-symptom-check__step-item'>
-                <View
-                  className={`pet-symptom-check__step-dot${
-                    index < step ? ' pet-symptom-check__step-dot--done' : ''
-                  }${index === step ? ' pet-symptom-check__step-dot--current' : ''}`}
-                >
-                  {index < step ? (
-                    <Text className='pet-symptom-check__step-check'>✓</Text>
-                  ) : (
-                    <Text className='pet-symptom-check__step-num'>{index + 1}</Text>
-                  )}
-                </View>
-                <Text
-                  className={`pet-symptom-check__step-label${
-                    index === step ? ' pet-symptom-check__step-label--current' : ''
-                  }${index < step ? ' pet-symptom-check__step-label--done' : ''}`}
-                >
-                  {label}
-                </Text>
-                {index < STEP_LABELS.length - 1 && (
-                  <View
-                    className={`pet-symptom-check__step-line${
-                      index < step ? ' pet-symptom-check__step-line--done' : ''
-                    }`}
-                  />
-                )}
-              </View>
-            ))}
+          {/* ===== 宠物信息条 ===== */}
+          <View className='pet-symptom-check__pet-bar'>
+            <View className='pet-symptom-check__pet-bar-avatar'>
+              <Text className='pet-symptom-check__pet-bar-icon'>🐾</Text>
+            </View>
+            <View className='pet-symptom-check__pet-bar-info'>
+              <Text className='pet-symptom-check__pet-bar-name'>
+                {currentPet.name}{currentPet.breed ? ` · ${currentPet.breed}` : ''}
+              </Text>
+              <Text className='pet-symptom-check__pet-bar-desc'>在线症状初筛 · 健康分诊</Text>
+            </View>
+            <View className='pet-symptom-check__pet-bar-badge'>
+              <Text className='pet-symptom-check__pet-bar-badge-icon'>✨</Text>
+              <Text className='pet-symptom-check__pet-bar-badge-text'>AI 初筛</Text>
+            </View>
           </View>
 
-          {step === 0 && (
-            <View className='pet-symptom-check__step-content'>
-              {/* 搜索框 */}
-              <View className='pet-symptom-check__search-section'>
-                <View className='pet-symptom-check__search-wrapper'>
-                  <Text className='pet-symptom-check__search-icon'>🔍</Text>
-                  <Input
-                    className='pet-symptom-check__search-input'
-                    placeholder='搜索症状名称...'
-                    placeholderClass='pet-symptom-check__search-placeholder'
-                    value={symptomSearchText}
-                    onInput={(e) => handleSymptomSearchInput(e.detail.value)}
-                    onFocus={() => {
-                      if (symptomSearchText.trim()) {
-                        setShowSymptomSearchSuggestions(true)
-                      }
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => setShowSymptomSearchSuggestions(false), 200)
-                    }}
-                    onConfirm={() => {
-                      if (symptomSearchSuggestions.length > 0) {
-                        handleSelectSearchSuggestion(symptomSearchSuggestions[0].id)
-                      }
-                    }}
-                  />
-                  {symptomSearchText && (
-                    <View
-                      className='pet-symptom-check__search-clear'
-                      onClick={() => {
-                        setSymptomSearchText('')
-                        setShowSymptomSearchSuggestions(false)
-                      }}
-                    >
-                      <Text>✕</Text>
-                    </View>
-                  )}
-
-                  {/* 搜索建议下拉 */}
-                  {showSymptomSearchSuggestions && symptomSearchSuggestions.length > 0 && (
-                    <View className='pet-symptom-check__search-suggestions'>
-                      {symptomSearchSuggestions.map((s) => (
-                        <View
-                          key={s.id}
-                          className={`pet-symptom-check__search-suggestion${
-                            selectedSymptoms.includes(s.id) ? ' pet-symptom-check__search-suggestion--selected' : ''
-                          }`}
-                          onClick={() => handleSelectSearchSuggestion(s.id)}
-                        >
-                          <Text className='pet-symptom-check__search-suggestion-name'>{s.name}</Text>
-                          <Text className='pet-symptom-check__search-suggestion-cat'>{s.categoryName}</Text>
-                          {selectedSymptoms.includes(s.id) && (
-                            <Text className='pet-symptom-check__search-suggestion-check'>✓</Text>
-                          )}
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </View>
-
-                <View className='pet-symptom-check__search-meta'>
-                  <Text className='pet-symptom-check__search-meta-text'>
-                    已选 {selectedSymptoms.length} 个症状
+          {/* ===== 多选症状卡 ===== */}
+          <View className='pet-symptom-check__card'>
+            <View className='pet-symptom-check__card-head'>
+              <View className='pet-symptom-check__card-head-left'>
+                <View className='pet-symptom-check__card-title-row'>
+                  <View className='pet-symptom-check__card-title-bar' />
+                  <Text className='pet-symptom-check__card-title'>
+                    选择{currentPet.name}出现的症状
+                    <Text className='pet-symptom-check__card-title-sub'>（可多选）</Text>
                   </Text>
-                  {selectedSymptoms.length > 0 && (
-                    <View
-                      className='pet-symptom-check__search-clear-all'
-                      onClick={clearSelection}
-                    >
-                      <Text className='pet-symptom-check__search-clear-all-text'>清空</Text>
-                    </View>
-                  )}
                 </View>
+                <Text className='pet-symptom-check__card-hint'>按实际情况勾选，AI 将自动分级</Text>
+              </View>
+              <View className='pet-symptom-check__card-chip'>已选 {selectedSymptoms.length} 项</View>
+            </View>
+            <View className='pet-symptom-check__symptom-grid'>
+              {commonSymptoms.map((s) => {
+                const isSelected = selectedSymptoms.includes(s.id)
+                return (
+                  <View
+                    key={s.id}
+                    className={`pet-symptom-check__sym-btn${
+                      isSelected ? ' pet-symptom-check__sym-btn--selected' : ''
+                    }`}
+                    onClick={() => handleToggleSymptom(s.id)}
+                  >
+                    <Text className='pet-symptom-check__sym-btn-icon'>
+                      {SYMPTOM_ICONS[s.name] || '🐾'}
+                    </Text>
+                    <Text className='pet-symptom-check__sym-btn-label'>{s.name}</Text>
+                  </View>
+                )
+              })}
+            </View>
+          </View>
+
+          {/* ===== AI 初步评估卡（本地分级，照原型规则） ===== */}
+          <View className='pet-symptom-check__card'>
+            <View className='pet-symptom-check__subhead'>
+              <View className='pet-symptom-check__subhead-icon pet-symptom-check__subhead-icon--gold'>
+                <Text className='pet-symptom-check__subhead-icon-text'>🧠</Text>
+              </View>
+              <View className='pet-symptom-check__subhead-info'>
+                <Text className='pet-symptom-check__subhead-title'>AI 初步评估</Text>
+                <Text className='pet-symptom-check__subhead-desc'>根据所选症状数量自动分级</Text>
+              </View>
+            </View>
+            <View className='pet-symptom-check__levels'>
+              {LEVEL_CONFIG.map((lv) => {
+                const active = localLevel === lv.key
+                return (
+                  <View
+                    key={lv.key}
+                    className={`pet-symptom-check__level${active ? ' pet-symptom-check__level--active' : ''}`}
+                    style={{
+                      borderColor: active ? lv.color : 'transparent',
+                      background: active ? `rgba(${lv.bg}, 0.09)` : 'transparent',
+                    }}
+                  >
+                    <View
+                      className='pet-symptom-check__level-icon'
+                      style={{ backgroundColor: active ? lv.color : `rgba(${lv.bg}, 0.16)`, color: active ? '#FFFFFF' : lv.color }}
+                    >
+                      <Text className='pet-symptom-check__level-icon-text'>{lv.emoji}</Text>
+                    </View>
+                    <View className='pet-symptom-check__level-info'>
+                      <Text className='pet-symptom-check__level-name' style={{ color: active ? lv.color : undefined }}>
+                        {lv.name}
+                      </Text>
+                      <Text className='pet-symptom-check__level-desc'>{lv.desc}</Text>
+                      <Text className='pet-symptom-check__level-action' style={{ color: active ? lv.color : undefined }}>
+                        {lv.action}
+                      </Text>
+                    </View>
+                  </View>
+                )
+              })}
+            </View>
+          </View>
+
+          {/* ===== 开始 AI 深度分析按钮 ===== */}
+          {!showResult && (
+            <View
+              className={`pet-symptom-check__analyze-btn${
+                selectedSymptoms.length === 0 ? ' pet-symptom-check__analyze-btn--disabled' : ''
+              }`}
+              onClick={handleAnalyze}
+            >
+              <Text className='pet-symptom-check__analyze-btn-icon'>✨</Text>
+              <Text className='pet-symptom-check__analyze-btn-text'>开始 AI 深度分析</Text>
+            </View>
+          )}
+
+          {/* ===== AI 分析结果（真实后端数据） ===== */}
+          {showResult && currentResult && (
+            <View
+              className={`pet-symptom-check__result pet-symptom-check__result--${currentResult.riskLevel}`}
+            >
+              <View className='pet-symptom-check__result-header'>
+                <Text className='pet-symptom-check__result-emoji'>
+                  {RISK_CONFIG[currentResult.riskLevel]?.emoji || '✅'}
+                </Text>
+                <Text className='pet-symptom-check__result-level'>
+                  {RISK_CONFIG[currentResult.riskLevel]?.label || '未知'}
+                </Text>
+              </View>
+              <View className='pet-symptom-check__result-advice'>
+                <Text className='pet-symptom-check__result-advice-text'>
+                  {currentResult.aiAdvice}
+                </Text>
               </View>
 
-              {/* 快捷症状组合 */}
-              {!symptomSearchText && (
-                <View className='pet-symptom-check__quick-combos'>
-                  <Text className='pet-symptom-check__quick-combos-title'>🐾 快速选择</Text>
-                  <ScrollView scrollX className='pet-symptom-check__quick-combos-scroll'>
-                    {QUICK_SYMPTOM_COMBOS.map((combo) => (
-                      <View
-                        key={combo.label}
-                        className='pet-symptom-check__quick-combo'
-                        onClick={() => handleQuickCombo(combo.symptoms)}
-                      >
-                        <Text className='pet-symptom-check__quick-combo-label'>{combo.label}</Text>
-                      </View>
+              {currentResult.possibleConditions.length > 0 && (
+                <View className='pet-symptom-check__result-section'>
+                  <Text className='pet-symptom-check__result-section-title'>🔬 可能相关</Text>
+                  <View className='pet-symptom-check__result-tags'>
+                    {currentResult.possibleConditions.map((condition) => (
+                      <Text key={condition} className='pet-symptom-check__result-tag'>
+                        {condition}
+                      </Text>
                     ))}
-                  </ScrollView>
+                  </View>
                 </View>
               )}
 
-              {/* 症状分类列表 */}
-              <View className='pet-symptom-check__categories'>
-                {(symptomSearchText ? filteredCategories : categories).map((category) => (
-                  <View key={category.id} className='pet-symptom-check__category'>
-                    <View
-                      className={`pet-symptom-check__category-header${
-                        expandedCategory === category.id ? ' pet-symptom-check__category-header--expanded' : ''
-                      }`}
-                      onClick={() => handleToggleCategory(category.id)}
-                    >
-                      <View className='pet-symptom-check__category-title'>
-                        <Text className='pet-symptom-check__category-icon'>
-                          {CATEGORY_ICONS[category.id] || '📋'}
-                        </Text>
-                        <Text className='pet-symptom-check__category-name'>{category.name}</Text>
-                        {symptomSearchText && (
-                          <Text className='pet-symptom-check__category-count'>
-                            {category.symptoms.length}项
-                          </Text>
-                        )}
+              {currentResult.recommendedActions.length > 0 && (
+                <View className='pet-symptom-check__result-section'>
+                  <Text className='pet-symptom-check__result-section-title'>📋 建议行动</Text>
+                  <View className='pet-symptom-check__result-actions'>
+                    {currentResult.recommendedActions.map((action, index) => (
+                      <View key={index} className='pet-symptom-check__result-action'>
+                        <Text className='pet-symptom-check__result-action-num'>{index + 1}</Text>
+                        <Text className='pet-symptom-check__result-action-text'>{action}</Text>
                       </View>
-                      <Text className='pet-symptom-check__category-arrow'>
-                        {expandedCategory === category.id ? '▲' : '▼'}
-                      </Text>
-                    </View>
-
-                    {expandedCategory === category.id && (
-                      <View className='pet-symptom-check__symptoms'>
-                        {category.symptoms.map((symptom) => {
-                          const isSelected = selectedSymptoms.includes(symptom.id)
-                          return (
-                            <View
-                              key={symptom.id}
-                              className={`pet-symptom-check__symptom${
-                                isSelected ? ' pet-symptom-check__symptom--selected' : ''
-                              }`}
-                              onClick={() => handleToggleSymptom(symptom.id)}
-                            >
-                              <Text className='pet-symptom-check__symptom-name'>{symptom.name}</Text>
-                              <Text className='pet-symptom-check__symptom-desc'>{symptom.description}</Text>
-                              {isSelected && (
-                                <Text className='pet-symptom-check__symptom-check'>✓</Text>
-                              )}
-                            </View>
-                          )
-                        })}
-                      </View>
-                    )}
+                    ))}
                   </View>
-                ))}
+                </View>
+              )}
 
-                {/* 搜索结果为空 */}
-                {symptomSearchText && filteredCategories.length === 0 && (
-                  <View className='pet-symptom-check__no-results'>
-                    <Text className='pet-symptom-check__no-results-icon'>🔍</Text>
-                    <Text className='pet-symptom-check__no-results-text'>
-                      没有找到「{symptomSearchText}」相关的症状
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-
-          {step === 1 && (
-            <View className='pet-symptom-check__step-content'>
-              <View className='pet-symptom-check__section'>
-                <Text className='pet-symptom-check__section-title'>📋 补充信息</Text>
-                <Text className='pet-symptom-check__section-hint'>
-                  帮助AI更准确地评估毛孩子的状况
+              <View className='pet-symptom-check__result-disclaimer'>
+                <Text className='pet-symptom-check__result-disclaimer-text'>
+                  ⚠️ {disclaimerText}
                 </Text>
-              </View>
-
-              <View className='pet-symptom-check__form-section'>
-                <Text className='pet-symptom-check__form-label'>⏱️ 持续多久了？</Text>
-                <View className='pet-symptom-check__options'>
-                  {DURATION_OPTIONS.map((option) => (
-                    <View
-                      key={option.value}
-                      className={`pet-symptom-check__option${
-                        additionalInfo.duration === option.value ? ' pet-symptom-check__option--active' : ''
-                      }`}
-                      onClick={() =>
-                        setAdditionalInfo((prev) => ({ ...prev, duration: option.value }))
-                      }
-                    >
-                      <Text className='pet-symptom-check__option-label'>{option.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View className='pet-symptom-check__form-section'>
-                <Text className='pet-symptom-check__form-label'>🔄 发生频率</Text>
-                <View className='pet-symptom-check__options'>
-                  {FREQUENCY_OPTIONS.map((option) => (
-                    <View
-                      key={option.value}
-                      className={`pet-symptom-check__option${
-                        additionalInfo.frequency === option.value ? ' pet-symptom-check__option--active' : ''
-                      }`}
-                      onClick={() =>
-                        setAdditionalInfo((prev) => ({ ...prev, frequency: option.value }))
-                      }
-                    >
-                      <Text className='pet-symptom-check__option-label'>{option.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View className='pet-symptom-check__form-section'>
-                <Text className='pet-symptom-check__form-label'>📊 严重程度</Text>
-                <View className='pet-symptom-check__options'>
-                  {SEVERITY_OPTIONS.map((option) => (
-                    <View
-                      key={option.value}
-                      className={`pet-symptom-check__option${
-                        additionalInfo.severity === option.value ? ' pet-symptom-check__option--active' : ''
-                      }`}
-                      onClick={() =>
-                        setAdditionalInfo((prev) => ({ ...prev, severity: option.value }))
-                      }
-                    >
-                      <Text className='pet-symptom-check__option-label'>{option.emoji} {option.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View className='pet-symptom-check__form-section'>
-                <Text className='pet-symptom-check__form-label'>🍽️ 食欲状况</Text>
-                <View className='pet-symptom-check__options'>
-                  {APPETITE_OPTIONS.map((option) => (
-                    <View
-                      key={option.value}
-                      className={`pet-symptom-check__option${
-                        additionalInfo.appetite === option.value ? ' pet-symptom-check__option--active' : ''
-                      }`}
-                      onClick={() =>
-                        setAdditionalInfo((prev) => ({ ...prev, appetite: option.value }))
-                      }
-                    >
-                      <Text className='pet-symptom-check__option-label'>{option.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View className='pet-symptom-check__form-section'>
-                <Text className='pet-symptom-check__form-label'>⚡ 精力状态</Text>
-                <View className='pet-symptom-check__options'>
-                  {ENERGY_OPTIONS.map((option) => (
-                    <View
-                      key={option.value}
-                      className={`pet-symptom-check__option${
-                        additionalInfo.energy === option.value ? ' pet-symptom-check__option--active' : ''
-                      }`}
-                      onClick={() =>
-                        setAdditionalInfo((prev) => ({ ...prev, energy: option.value }))
-                      }
-                    >
-                      <Text className='pet-symptom-check__option-label'>{option.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View className='pet-symptom-check__form-section'>
-                <Text className='pet-symptom-check__form-label'>📝 其他补充（选填）</Text>
-                <Textarea
-                  className='pet-symptom-check__notes'
-                  placeholder='还有什么想告诉AI的...'
-                  placeholderClass='pet-symptom-check__notes-placeholder'
-                  maxlength={200}
-                  value={additionalInfo.otherNotes}
-                  onInput={(e) =>
-                    setAdditionalInfo((prev) => ({ ...prev, otherNotes: e.detail.value }))
-                  }
-                />
-                <Text className='pet-symptom-check__notes-count'>
-                  {additionalInfo.otherNotes.length}/200
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {step === 2 && (
-            <View className='pet-symptom-check__step-content'>
-              <View className='pet-symptom-check__analyzing'>
-                <View className='pet-symptom-check__analyzing-pulse'>
-                  <View className='pet-symptom-check__analyzing-ring' />
-                  <View className='pet-symptom-check__analyzing-ring pet-symptom-check__analyzing-ring--inner' />
-                  <Text className='pet-symptom-check__analyzing-icon'>🔍</Text>
-                </View>
-                <Text className='pet-symptom-check__analyzing-title'>AI正在分析中...</Text>
-                <Text className='pet-symptom-check__analyzing-desc'>
-                  正在综合评估{currentPet.name}的症状信息
-                </Text>
-                <View className='pet-symptom-check__analyzing-dots'>
-                  <View className='pet-symptom-check__analyzing-dot' />
-                  <View className='pet-symptom-check__analyzing-dot' />
-                  <View className='pet-symptom-check__analyzing-dot' />
-                </View>
-              </View>
-            </View>
-          )}
-
-          {step === 3 && currentResult && (
-            <View className='pet-symptom-check__step-content'>
-              {/* 风险等级可视化仪表 */}
-              <View className='pet-symptom-check__gauge'>
-                <View className='pet-symptom-check__gauge-bg'>
-                  <View className='pet-symptom-check__gauge-track'>
-                    <View
-                      className={`pet-symptom-check__gauge-fill pet-symptom-check__gauge-fill--${currentResult.riskLevel}`}
-                      style={{ width: currentResult.riskLevel === 'normal' ? '25%' : currentResult.riskLevel === 'caution' ? '50%' : currentResult.riskLevel === 'warning' ? '75%' : '100%' }}
-                    />
-                  </View>
-                  <View className='pet-symptom-check__gauge-marks'>
-                    <View className='pet-symptom-check__gauge-mark'>
-                      <Text className='pet-symptom-check__gauge-dot' />
-                      <Text className='pet-symptom-check__gauge-label'>良好</Text>
-                    </View>
-                    <View className='pet-symptom-check__gauge-mark'>
-                      <Text className='pet-symptom-check__gauge-dot' />
-                      <Text className='pet-symptom-check__gauge-label'>注意</Text>
-                    </View>
-                    <View className='pet-symptom-check__gauge-mark'>
-                      <Text className='pet-symptom-check__gauge-dot' />
-                      <Text className='pet-symptom-check__gauge-label'>密切</Text>
-                    </View>
-                    <View className='pet-symptom-check__gauge-mark'>
-                      <Text className='pet-symptom-check__gauge-dot' />
-                      <Text className='pet-symptom-check__gauge-label'>紧急</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* 当前结果指标卡片 */}
-                <View className='pet-symptom-check__gauge-card'>
-                  <View className='pet-symptom-check__gauge-card-icon' style={{ backgroundColor: RISK_CONFIG[currentResult.riskLevel]?.color || '#52C41A' }}>
-                    <Text className='pet-symptom-check__gauge-card-emoji'>
-                      {RISK_CONFIG[currentResult.riskLevel]?.emoji || '✅'}
-                    </Text>
-                  </View>
-                  <View className='pet-symptom-check__gauge-card-info'>
-                    <Text className='pet-symptom-check__gauge-card-level'>
-                      {RISK_CONFIG[currentResult.riskLevel]?.label || '未知'}
-                    </Text>
-                    <Text className='pet-symptom-check__gauge-card-desc'>
-                      基于 {selectedSymptoms.length} 个症状的综合评估
-                    </Text>
-                  </View>
-                </View>
-
-                {/* 症状摘要标签 */}
-                <View className='pet-symptom-check__gauge-symptoms'>
-                  {selectedSymptoms.map((sid) => {
-                    const s = categories.flatMap((c) => c.symptoms).find((s) => s.id === sid)
-                    if (!s) return null
-                    return (
-                      <Text key={sid} className='pet-symptom-check__gauge-symptom-tag'>
-                        {s.name}
-                      </Text>
-                    )
-                  })}
-                </View>
-              </View>
-
-              <View
-                className={`pet-symptom-check__result pet-symptom-check__result--${currentResult.riskLevel}`}
-              >
-                <View className='pet-symptom-check__result-advice'>
-                  <Text className='pet-symptom-check__result-advice-text'>
-                    {currentResult.aiAdvice}
-                  </Text>
-                </View>
-
-                {currentResult.possibleConditions.length > 0 && (
-                  <View className='pet-symptom-check__result-section'>
-                    <Text className='pet-symptom-check__result-section-title'>🔬 可能相关</Text>
-                    <View className='pet-symptom-check__result-tags'>
-                      {currentResult.possibleConditions.map((condition) => (
-                        <Text key={condition} className='pet-symptom-check__result-tag'>
-                          {condition}
-                        </Text>
-                      ))}
-                    </View>
-                  </View>
-                )}
-
-                {currentResult.recommendedActions.length > 0 && (
-                  <View className='pet-symptom-check__result-section'>
-                    <Text className='pet-symptom-check__result-section-title'>📋 建议行动</Text>
-                    <View className='pet-symptom-check__result-actions'>
-                      {currentResult.recommendedActions.map((action, index) => (
-                        <View key={index} className='pet-symptom-check__result-action'>
-                          <Text className='pet-symptom-check__result-action-num'>{index + 1}</Text>
-                          <Text className='pet-symptom-check__result-action-text'>{action}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-
-                {currentResult.personalizedInsights && currentResult.personalizedInsights.length > 0 && (
-                  <View className='pet-symptom-check__result-section'>
-                    <Text className='pet-symptom-check__result-section-title'>🧠 基于记忆的个性化判断</Text>
-                    <View className='pet-symptom-check__insights'>
-                      {currentResult.personalizedInsights.map((insight, index) => {
-                        const isHistorical = insight.type === 'similar_past_event' || insight.type === 'seasonal_pattern' || insight.type === 'recovery_reference'
-                        return (
-                          <View
-                            key={index}
-                            className={`pet-symptom-check__insight pet-symptom-check__insight--${insight.type}${isHistorical ? ' pet-symptom-check__insight--historical' : ''}`}
-                          >
-                            <Text className='pet-symptom-check__insight-icon'>{insight.icon}</Text>
-                            <View className='pet-symptom-check__insight-content'>
-                              {insight.title && <Text className='pet-symptom-check__insight-title'>{insight.title}</Text>}
-                              <Text className='pet-symptom-check__insight-message'>{insight.message}</Text>
-                              {insight.pastDate && (
-                                <Text className='pet-symptom-check__insight-date'>
-                                  📅 {insight.pastDate.replace(/-/g, '/')}
-                                  {insight.recoveryDays != null && insight.recoveryDays > 0 ? ` · 恢复用时${insight.recoveryDays}天` : ''}
-                                </Text>
-                              )}
-                            </View>
-                          </View>
-                        )
-                      })}
-                    </View>
-                  </View>
-                )}
-
-                <View className='pet-symptom-check__result-disclaimer'>
-                  <Text className='pet-symptom-check__result-disclaimer-text'>
-                    ⚠️ 以上建议仅供参考，不替代兽医诊断。如症状持续或加重，请及时就医。
-                  </Text>
-                </View>
               </View>
 
               <View className='pet-symptom-check__result-actions-bar'>
@@ -906,25 +476,65 @@ export default function PetSymptomCheck() {
             </View>
           )}
 
-          {step < 2 && (
-            <View className='pet-symptom-check__footer'>
-              {step > 0 && (
-                <View className='pet-symptom-check__btn pet-symptom-check__btn--outline' onClick={handlePrevStep}>
-                  <Text className='pet-symptom-check__btn-text'>上一步</Text>
-                </View>
-              )}
-              <View
-                className={`pet-symptom-check__btn pet-symptom-check__btn--primary${
-                  step === 0 && selectedSymptoms.length === 0 ? ' pet-symptom-check__btn--disabled' : ''
-                }`}
-                onClick={handleNextStep}
-              >
-                <Text className='pet-symptom-check__btn-text pet-symptom-check__btn-text--white'>
-                  {step === 0 ? '下一步' : '开始分析'}
-                </Text>
+          {/* ===== 就医建议卡 ===== */}
+          <View className='pet-symptom-check__card'>
+            <View className='pet-symptom-check__subhead'>
+              <View className='pet-symptom-check__subhead-icon pet-symptom-check__subhead-icon--coral'>
+                <Text className='pet-symptom-check__subhead-icon-text'>🩺</Text>
+              </View>
+              <View className='pet-symptom-check__subhead-info'>
+                <Text className='pet-symptom-check__subhead-title'>就医建议</Text>
+                <Text className='pet-symptom-check__subhead-desc'>就诊前的准备小贴士</Text>
               </View>
             </View>
-          )}
+            <View className='pet-symptom-check__tips-grid'>
+              <View
+                className='pet-symptom-check__tip-item'
+                onClick={() => {
+                  trackEvent(AnalyticsEventName.FindHospital, { petId: currentPet.id, source: 'symptom_tip' })
+                  Taro.navigateTo({ url: '/pagesPet/hospital/index' })
+                }}
+              >
+                <Text className='pet-symptom-check__tip-icon pet-symptom-check__tip-icon--coral'>📍</Text>
+                <Text className='pet-symptom-check__tip-label'>医院导航</Text>
+              </View>
+              <View className='pet-symptom-check__tip-item'>
+                <Text className='pet-symptom-check__tip-icon pet-symptom-check__tip-icon--gold'>📞</Text>
+                <Text className='pet-symptom-check__tip-label'>电话咨询</Text>
+              </View>
+              <View className='pet-symptom-check__tip-item'>
+                <Text className='pet-symptom-check__tip-icon pet-symptom-check__tip-icon--green'>📄</Text>
+                <Text className='pet-symptom-check__tip-label'>带记录见医生</Text>
+              </View>
+            </View>
+            <View className='pet-symptom-check__tip-note'>
+              <Text className='pet-symptom-check__tip-note-icon'>💡</Text>
+              <Text className='pet-symptom-check__tip-note-text'>就诊时带上近14天打卡记录与症状描述</Text>
+            </View>
+          </View>
+
+          {/* ===== 免责声明 ===== */}
+          <Text className='pet-symptom-check__disclaimer'>本工具为健康分诊参考，不能替代兽医诊断与处方</Text>
+        </View>
+      )}
+
+      {/* 分析中浮层 */}
+      {analyzing && (
+        <View className='pet-symptom-check__analyzing'>
+          <View className='pet-symptom-check__analyzing-pulse'>
+            <View className='pet-symptom-check__analyzing-ring' />
+            <View className='pet-symptom-check__analyzing-ring pet-symptom-check__analyzing-ring--inner' />
+            <Text className='pet-symptom-check__analyzing-icon'>🔍</Text>
+          </View>
+          <Text className='pet-symptom-check__analyzing-title'>AI正在分析中...</Text>
+          <Text className='pet-symptom-check__analyzing-desc'>
+            正在综合评估{currentPet?.name || ''}的症状信息
+          </Text>
+          <View className='pet-symptom-check__analyzing-dots'>
+            <View className='pet-symptom-check__analyzing-dot' />
+            <View className='pet-symptom-check__analyzing-dot' />
+            <View className='pet-symptom-check__analyzing-dot' />
+          </View>
         </View>
       )}
 
@@ -932,12 +542,12 @@ export default function PetSymptomCheck() {
         visible={paywallVisible}
         featureName="AI症状初筛"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.switchTab({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 
       <EmergencyAlert
-        visible={step === 3 && !!currentResult && currentResult.riskLevel === 'emergency'}
+        visible={showResult && !!currentResult && currentResult.riskLevel === 'emergency'}
         title='紧急症状预警'
         message={currentResult?.aiAdvice || '检测到紧急症状信号，建议立即联系宠物医院进行专业诊断。'}
         showSymptomButton={false}
@@ -978,7 +588,6 @@ export default function PetSymptomCheck() {
           onFollowUp={handleFollowUp}
         />
       )}
-
     </View>
   )
 }

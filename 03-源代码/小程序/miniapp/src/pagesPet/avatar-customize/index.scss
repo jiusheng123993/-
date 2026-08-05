@@ -1,208 +1,369 @@
-﻿@import '../../styles/_theme';
+@import '../../styles/_theme';
 @import '../../styles/_animations';
 
+// ============================================
+// 宠物形象定制页 · 原型 1:1 区块
+// ============================================
 .avatar-customize {
   min-height: 100vh;
   background: $gradient-page;
-  padding: $spacing-xl $spacing-lg;
+  padding: $spacing-xl $spacing-lg $spacing-xxl;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
   animation: pageEnter 0.4s ease-out;
+}
 
-  &__preview {
-    @include flex-center;
-    padding: 40rpx 0;
-    @include card-base;
-    border-radius: $radius-xl;
-    margin-bottom: $spacing-xl;
+// 通用圆角卡片（对齐原型 xhh-card-base）
+.xhh-card {
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+}
+
+// —— 1. 当前形象展示卡 ——
+.avatar-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-xl $spacing-lg;
+
+  &__head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-lg;
   }
 
-  &__generated-img {
-    width: 320rpx;
-    height: 320rpx;
+  &__badge {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    padding: 6rpx $spacing-md;
+    border-radius: $radius-round;
+    background: $color-primary-bg;
+    color: $color-primary;
+  }
+
+  &__style-tag {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+  }
+
+  &__img {
+    width: 460rpx;
+    height: 460rpx;
+    border-radius: $radius-md;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $color-bg-secondary;
+    box-shadow: $shadow-sm;
+    position: relative;
+  }
+
+  &__photo {
+    width: 100%;
+    height: 100%;
     display: block;
     animation: fadeInScale $transition-slow;
   }
 
-  &__generating {
-    @include flex-center;
+  &__loading {
+    display: flex;
     flex-direction: column;
+    align-items: center;
     gap: $spacing-md;
-    padding: 60rpx 0;
   }
 
-  &__generating-spinner {
-    width: 80rpx;
-    height: 80rpx;
+  &__spinner {
+    width: 72rpx;
+    height: 72rpx;
     border: 6rpx solid $color-border;
     border-top-color: $color-primary;
     border-radius: $radius-full;
     animation: spin 0.8s linear infinite;
   }
 
-  &__generating-text {
-    font-size: $font-size-md;
+  &__loading-text {
+    font-size: $font-size-sm;
     color: $color-text-secondary;
   }
 
-  &__generating-hint {
+  &__name {
+    margin-top: $spacing-lg;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+
+  &__desc {
+    margin-top: $spacing-xs;
     font-size: $font-size-sm;
     color: $color-text-tertiary;
   }
 
-  &__section {
-    margin-bottom: $spacing-xl;
+  // 画风预览框（纯展示装饰）
+  &__frame--watercolor {
+    border: 8rpx solid rgba($color-gold, 0.25);
+    border-radius: $radius-xl;
+    background: linear-gradient(160deg, $color-gold-bg, $color-bg-secondary);
   }
 
-  &__section-title {
-    font-size: $font-size-md;
-    font-weight: $font-weight-semibold;
-    color: $color-text-primary;
-    margin-bottom: $spacing-md;
-    display: block;
+  &__frame--pixel {
+    background-image:
+      linear-gradient(45deg, rgba($color-primary, 0.06) 25%, transparent 25%, transparent 75%, rgba($color-primary, 0.06) 75%),
+      linear-gradient(45deg, rgba($color-primary, 0.06) 25%, transparent 25%, transparent 75%, rgba($color-primary, 0.06) 75%);
+    background-size: 32rpx 32rpx;
+    background-position: 0 0, 16rpx 16rpx;
   }
 
-  &__style-options {
-    display: flex;
-    gap: $spacing-md;
-  }
-
-  &__style-item {
-    flex: 1;
-    padding: 20rpx $spacing-md;
+  &__frame--lineart {
+    border: 4rpx solid $color-text-tertiary;
     background: $color-bg-card;
-    border-radius: $radius-md;
-    border: 2rpx solid $color-border;
-    text-align: center;
-    transition: border-color $transition-fast, background-color $transition-fast;
-    @include press-feedback;
-
-    &--active {
-      border-color: $color-primary;
-      background: $color-primary-bg;
-    }
-  }
-
-  &__style-label {
-    font-size: $font-size-md;
-    font-weight: $font-weight-semibold;
-    color: $color-text-primary;
-    display: block;
-    margin-bottom: 4rpx;
-  }
-
-  &__style-desc {
-    font-size: $font-size-xs;
-    color: $color-text-tertiary;
-    display: block;
-  }
-
-  &__color-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-md;
-  }
-
-  &__color-item {
-    width: 72rpx;
-    height: 72rpx;
-    border-radius: $radius-full;
-    @include flex-center;
-    border: 4rpx solid transparent;
-    transition: border-color $transition-fast, transform $transition-fast;
-    @include press-feedback;
-
-    &--active {
-      border-color: $color-primary;
-      transform: scale(1.15);
-      box-shadow: 0 0 0 4rpx $color-primary-bg;
-    }
-  }
-
-  &__color-check {
-    font-size: $font-size-md;
-    color: $color-text-inverse;
-    font-weight: $font-weight-bold;
-    text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
-  }
-
-  &__quota {
-    text-align: center;
-    margin-bottom: $spacing-lg;
-  }
-
-  &__quota-text {
-    font-size: $font-size-sm;
-    color: $color-text-tertiary;
-  }
-
-  &__actions {
-    padding: 0 $spacing-md;
-  }
-
-  &__btn {
-    padding: 24rpx 0;
-    background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
-    border-radius: $radius-round;
-    text-align: center;
-    box-shadow: 0 4rpx 16rpx rgba(var(--primary-rgb), 0.3);
-    @include press-feedback;
-
-    &--disabled {
-      background: $color-text-placeholder;
-      box-shadow: none;
-    }
-
-    &--secondary {
-      background: $color-bg-card;
-      border: 2rpx solid $color-primary;
-      box-shadow: none;
-    }
-  }
-
-  &__btn-text {
-    font-size: 30rpx;
-    color: $color-text-inverse;
-    font-weight: $font-weight-semibold;
-
-    .avatar-customize__btn--secondary & {
-      color: $color-primary;
-    }
-  }
-
-  &__btn-group {
-    display: flex;
-    gap: $spacing-md;
-
-    .avatar-customize__btn {
-      flex: 1;
-    }
-  }
-
-  &__existing {
-    margin-top: $spacing-xl;
-    padding: $spacing-lg;
-    @include card-base;
-    text-align: center;
-  }
-
-  &__existing-label {
-    font-size: $font-size-sm;
-    color: $color-text-tertiary;
-    margin-bottom: $spacing-sm;
-    display: block;
-  }
-
-  &__existing-img {
-    width: 160rpx;
-    height: 160rpx;
-    display: block;
-    margin: 0 auto;
+    filter: grayscale(0.9) contrast(1.1);
   }
 }
 
-// Tab 切换
+// —— 2. 风格切换 ——
+.avatar-style {
+  padding: $spacing-lg;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+
+  &__hint {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $spacing-sm;
+  }
+
+  &__chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6rpx;
+    padding: $spacing-md 0;
+    border-radius: $radius-round;
+    background: $color-bg-card;
+    color: $color-primary;
+    border: 2rpx solid $color-primary;
+    @include press-feedback;
+
+    &--active {
+      background-image: linear-gradient(135deg, $color-primary-light, $color-primary);
+      color: $color-text-inverse;
+      border-color: transparent;
+      box-shadow: $shadow-button;
+    }
+  }
+
+  &__chip-icon {
+    font-size: $font-size-lg;
+    line-height: 1;
+  }
+
+  &__chip-label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// —— 3. 表情系统 2x2 ——
+.avatar-expr {
+  padding: $spacing-lg;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+
+  &__hint {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+  }
+
+  &__card {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md;
+    background: $color-bg-card;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    box-shadow: $shadow-xs;
+    transition: border-color $transition-fast, transform $transition-fast;
+
+    &--active {
+      border-color: $color-primary;
+      box-shadow: $shadow-sm;
+      transform: translateY(-4rpx);
+    }
+  }
+
+  &__icon {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: $radius-full;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40rpx;
+    background: $color-primary-bg;
+    flex-shrink: 0;
+
+    .avatar-expr__card:nth-child(2) & {
+      background: $color-primary-bg;
+    }
+
+    .avatar-expr__card:nth-child(3) & {
+      background: $color-danger-bg;
+    }
+
+    .avatar-expr__card:nth-child(4) & {
+      background: rgba($color-teal, 0.16);
+    }
+  }
+
+  &__info {
+    min-width: 0;
+  }
+
+  &__label {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+
+  &__desc {
+    display: block;
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+    margin-top: 4rpx;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// —— 4. 形象应用场景 ——
+.avatar-scenes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-sm;
+    padding: $spacing-lg $spacing-sm;
+    background: $color-bg-card;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    box-shadow: $shadow-xs;
+    @include press-feedback;
+  }
+
+  &__icon {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: $radius-full;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40rpx;
+
+    &--coral {
+      background: $color-primary-bg;
+    }
+
+    &--gold {
+      background: $color-gold-bg;
+    }
+
+    &--teal {
+      background: rgba($color-teal, 0.16);
+    }
+  }
+
+  &__label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+  }
+}
+
+// —— 5. 生成新形象按钮 ——
+.avatar-gen-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-lg 0;
+  border-radius: $radius-sm;
+  background-image: linear-gradient(135deg, $color-primary-light, $color-primary);
+  color: $color-text-inverse;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  box-shadow: $shadow-button;
+  @include press-feedback;
+
+  &__icon {
+    font-size: 36rpx;
+    line-height: 1;
+  }
+}
+
+// —— 6. 生成面板 ——
+.avatar-panel {
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  padding: $spacing-lg;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+// ============================================
+// 生成面板内组件样式（保留原业务）
+// ============================================
 .avatar-customize__tabs {
   display: flex;
-  background: $color-bg-card;
+  background: $color-bg-secondary;
   border-radius: $radius-lg;
   padding: 6rpx;
   margin-bottom: $spacing-xl;
@@ -216,8 +377,8 @@
   transition: all $transition-fast;
 
   &--active {
-    background: $color-bg-page;
-    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+    background: $color-bg-card;
+    box-shadow: $shadow-xs;
   }
 }
 
@@ -232,7 +393,195 @@
   }
 }
 
-// PhotoUploader
+.avatar-customize__preview {
+  @include flex-center;
+  padding: 40rpx 0;
+  @include card-base;
+  border-radius: $radius-xl;
+  margin-bottom: $spacing-xl;
+}
+
+.avatar-customize__generated-img {
+  width: 320rpx;
+  height: 320rpx;
+  display: block;
+  animation: fadeInScale $transition-slow;
+}
+
+.avatar-customize__generating {
+  @include flex-center;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: 60rpx 0;
+}
+
+.avatar-customize__generating-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid $color-border;
+  border-top-color: $color-primary;
+  border-radius: $radius-full;
+  animation: spin 0.8s linear infinite;
+}
+
+.avatar-customize__generating-text {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.avatar-customize__section {
+  margin-bottom: $spacing-xl;
+}
+
+.avatar-customize__section-title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: block;
+}
+
+.avatar-customize__style-options {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.avatar-customize__style-item {
+  flex: 1;
+  padding: 20rpx $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  text-align: center;
+  transition: border-color $transition-fast, background-color $transition-fast;
+  @include press-feedback;
+
+  &--active {
+    border-color: $color-primary;
+    background: $color-primary-bg;
+  }
+}
+
+.avatar-customize__style-label {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.avatar-customize__style-desc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+}
+
+.avatar-customize__color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.avatar-customize__color-item {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-full;
+  @include flex-center;
+  border: 4rpx solid transparent;
+  transition: border-color $transition-fast, transform $transition-fast;
+  @include press-feedback;
+
+  &--active {
+    border-color: $color-primary;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4rpx $color-primary-bg;
+  }
+}
+
+.avatar-customize__color-check {
+  font-size: $font-size-md;
+  color: $color-text-inverse;
+  font-weight: $font-weight-bold;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
+.avatar-customize__quota {
+  text-align: center;
+  margin-bottom: $spacing-lg;
+}
+
+.avatar-customize__quota-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.avatar-customize__actions {
+  padding: 0 $spacing-md;
+}
+
+.avatar-customize__btn {
+  padding: 24rpx 0;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  border-radius: $radius-round;
+  text-align: center;
+  box-shadow: 0 4rpx 16rpx rgba(var(--primary-rgb), 0.3);
+  @include press-feedback;
+
+  &--disabled {
+    background: $color-text-placeholder;
+    box-shadow: none;
+  }
+
+  &--secondary {
+    background: $color-bg-card;
+    border: 2rpx solid $color-primary;
+    box-shadow: none;
+  }
+}
+
+.avatar-customize__btn-text {
+  font-size: 30rpx;
+  color: $color-text-inverse;
+  font-weight: $font-weight-semibold;
+
+  .avatar-customize__btn--secondary & {
+    color: $color-primary;
+  }
+}
+
+.avatar-customize__btn-group {
+  display: flex;
+  gap: $spacing-md;
+
+  .avatar-customize__btn {
+    flex: 1;
+  }
+}
+
+.avatar-customize__existing {
+  margin-top: $spacing-xl;
+  padding: $spacing-lg;
+  @include card-base;
+  text-align: center;
+}
+
+.avatar-customize__existing-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.avatar-customize__existing-img {
+  width: 160rpx;
+  height: 160rpx;
+  display: block;
+  margin: 0 auto;
+}
+
+// ============================================
+// 子组件样式（PhotoUploader / GenerationProgress / ImageGallery / Model3DViewer）
+// ============================================
 .photo-uploader {
   margin: $spacing-sm 0;
 
@@ -305,7 +654,6 @@
   }
 }
 
-// GenerationProgress
 .generation-progress {
   padding: $spacing-lg;
   background: $color-primary-bg;
@@ -372,7 +720,6 @@
   }
 }
 
-// ImageGallery
 .image-gallery {
   margin-top: $spacing-lg;
 
@@ -512,7 +859,6 @@
   }
 }
 
-// Model3DViewer
 .model-3d-viewer {
   margin-top: $spacing-lg;
 

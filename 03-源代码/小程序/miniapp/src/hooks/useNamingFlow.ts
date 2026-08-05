@@ -323,7 +323,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
   /** 调用 AI 服务获取名字推荐，失败时返回 null */
   const fetchAiNames = useCallback(async (excludeNames?: string[]): Promise<NamingResult[] | null> => {
     if (CONFIG.USE_MOCK) {
-      console.log('[NamingFlow] USE_MOCK=true，跳过 AI 调用')
       return null
     }
 
@@ -332,8 +331,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
     const genderText = currentData.gender || ''
     const description = currentData.description || ''
 
-    console.log('[NamingFlow] 开始调用 AI，参数:', { style, genderText, hasDescription: !!description, hasPhoto: !!photoUrl })
-
     try {
       const pet = usePetStore.getState().currentPet
       const breed = pet?.breed || '未知品种'
@@ -341,7 +338,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
       const gender = genderText.includes('男') ? 'male' : genderText.includes('女') ? 'female' : 'unknown'
 
       setIsTyping(true)
-      console.log('[NamingFlow] 调用 recommendNames...')
       const result = await recommendNames({
         breed,
         birthDate,
@@ -353,10 +349,7 @@ export function useNamingFlow(params: UseNamingFlowParams) {
       })
       setIsTyping(false)
 
-      console.log('[NamingFlow] AI 返回结果长度:', result.length, '前200字符:', result.substring(0, 200))
-
       const parsed = parseRecommendResult(result)
-      console.log('[NamingFlow] 解析结果数量:', parsed.length)
       if (parsed.length > 0) {
         // 过滤掉已推荐过的（AI 可能不严格遵守排除指令）
         const filtered = excludeNames && excludeNames.length > 0

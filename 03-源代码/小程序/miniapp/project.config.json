@@ -1,11 +1,11 @@
 {
   "miniprogramRoot": "dist/",
-  "projectname": "galaxy-pet-diary",
+  "projectname": "星河宠记",
   "description": "星河宠记 - 记得它，就是最好的爱",
   "appid": "wxabdfebe007586e53",
   "setting": {
     "urlCheck": true,
-    "es6": false,
+    "es6": true,
     "enhance": false,
     "postcss": false,
     "minified": true,

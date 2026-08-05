@@ -1,6 +1,6 @@
 /**
  * 会员中心页面
- * 会员套餐选择、权益展示、订阅管理
+ * 会员状态卡 + 三档价格卡 + 权益清单 + 常见问题
  */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
@@ -8,51 +8,49 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useMembershipStore } from '../../stores/membershipStore'
 import PageLoading from '../../components/PageLoading'
-import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
+/** 套餐价格（PRD：会员 9.9 元/月） */
 const PLANS = [
-  {
-    key: 'monthly',
-    name: '月度会员',
-    price: '¥9.9',
-    period: '/月',
-    originalPrice: '¥29.9',
-    tag: '限时3.3折',
-    features: [
-      '无限次食物查询',
-      'AI症状初筛（每日5次）',
-      '疫苗驱虫提醒',
-      '健康趋势分析',
-      '宠物成长日记',
-    ],
-  },
-  {
-    key: 'yearly',
-    name: '年度会员',
-    price: '¥88',
-    period: '/年',
-    originalPrice: '¥269',
-    tag: '限时3.3折',
-    features: [
-      '月度会员全部权益',
-      'AI症状初筛（无限次）',
-      '专属宠物形象定制',
-      '健康报告导出',
-      '优先客服支持',
-      '家庭共享（最多3人）',
-    ],
-  },
+  { key: 'monthly', name: '月卡', price: '¥9.9', period: '/月', note: '按月续费', tag: '' },
+  { key: 'quarterly', name: '季卡', price: '¥26.9', period: '/季', note: '省 ¥2.8', tag: '' },
+  { key: 'yearly', name: '年卡', price: '¥99', period: '/年', note: '省 ¥19.8', tag: '推荐' },
 ]
 
 const BENEFITS = [
-  { icon: '🔍', title: '无限食物查询', desc: '随时查询食物安全性' },
-  { icon: '🤖', title: 'AI症状初筛', desc: '智能分析宠物健康状况' },
-  { icon: '📅', title: '疫苗提醒', desc: '自动提醒疫苗接种时间' },
-  { icon: '📊', title: '健康趋势', desc: '可视化健康数据变化' },
-  { icon: '📔', title: '成长日记', desc: '记录宠物成长点滴' },
-  { icon: '🎨', title: '形象定制', desc: '专属宠物虚拟形象' },
+  { icon: '✨', title: 'AI 取名', value: '20次/月', color: 'coral' },
+  { icon: '✅', title: '回忆录', value: '8折', color: 'gold' },
+  { icon: '♾️', title: '健康打卡报告', value: '无限', color: 'green' },
+  { icon: '💬', title: '专属客服', value: '在线服务', color: 'blue' },
+  { icon: '💕', title: '全家共享', value: '5人', color: 'deep' },
 ]
+
+const FAQS = [
+  {
+    q: '如何开通会员？',
+    a: '点击上方价格卡或"立即开通"按钮，选择套餐后通过微信支付完成支付，开通后权益立即生效。',
+  },
+  {
+    q: '自动续费如何管理？',
+    a: '开通时默认不开启自动续费。可在"我的 - 会员中心 - 续费管理"中随时开启或关闭，扣款前会提前通知。',
+  },
+  {
+    q: '会员可以退款吗？',
+    a: '购买后 7 天内未使用任何付费权益可申请全额退款；已使用的会员按剩余有效期比例退回。',
+  },
+]
+
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '—'
+  return dateStr.slice(0, 10)
+}
+
+function remainingDays(endDate: string): number {
+  if (!endDate) return 0
+  const end = new Date(endDate)
+  if (isNaN(end.getTime())) return 0
+  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000))
+}
 
 export default function Member() {
   const user = useAuthStore(state => state.user)
@@ -62,10 +60,14 @@ export default function Member() {
   const [pageReady, setPageReady] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('yearly')
   const [subscribing, setSubscribing] = useState(false)
-  const themeClass = useThemeClass()
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
 
   const handleSubscribe = async () => {
     if (subscribing || !user) return
+    if (selectedPlan === 'quarterly') {
+      Taro.showToast({ title: '季卡即将上线，请选择月卡或年卡', icon: 'none' })
+      return
+    }
     setSubscribing(true)
     try {
       const result = await subscribePlan(selectedPlan as 'monthly' | 'yearly')
@@ -75,7 +77,7 @@ export default function Member() {
       } else {
         Taro.showToast({ title: result.error || '开通失败', icon: 'none' })
       }
-    } catch (err) {
+    } catch {
       Taro.showToast({ title: '开通失败，请重试', icon: 'none' })
     } finally {
       setSubscribing(false)
@@ -91,8 +93,8 @@ export default function Member() {
     const loadData = async () => {
       try {
         await fetchMembership(user.id)
-      } catch (err) {
-        // 静默处理错误，页面有错误状态展示
+      } catch {
+        // 静默处理错误
       }
       setPageReady(true)
     }
@@ -104,108 +106,156 @@ export default function Member() {
   }
 
   const isVip = membership?.level !== 'free'
+  const vipLevel = isVip && membership?.level
+    ? `${membership.level.toUpperCase()}会员`
+    : '体验会员'
+  const days = remainingDays(membership?.endDate || '')
+  const endDateText = membership?.endDate ? formatDate(membership.endDate) : '—'
 
   return (
-    <ScrollView className={`member-page ${themeClass}`} scrollY>
-      <View className='member-header'>
-        <Text className='member-header-title'>会员中心</Text>
-        {isVip && (
-          <View className='member-badge'>
-            <Text>{membership?.level?.toUpperCase()}会员</Text>
-          </View>
-        )}
+    <View className='member-page'>
+      {/* 全屏动态背景层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+        <View className='xhh-bg-glow' />
       </View>
 
-      <View className='member-hero'>
-        <View className='member-hero-bg' />
-        <View className='member-hero-content'>
-          <Text className='member-hero-icon'>👑</Text>
-          <Text className='member-hero-title'>
-            {isVip ? '尊享会员特权' : '开通会员，解锁全部功能'}
-          </Text>
-          <Text className='member-hero-desc'>
-            {isVip
-              ? `您的${membership?.level}会员有效期至 ${membership?.endDate || '--'}`
-              : '享受无限次查询、AI分析、健康报告等专属权益'}
-          </Text>
-        </View>
-      </View>
-
-      <View className='member-section'>
-        <Text className='member-section-title'>会员权益对比</Text>
-        <View className='member-benefits'>
-          {BENEFITS.map(benefit => (
-            <View key={benefit.title} className='member-benefit-item'>
-              <Text className='member-benefit-icon'>{benefit.icon}</Text>
-              <Text className='member-benefit-title'>{benefit.title}</Text>
-              <Text className='member-benefit-desc'>{benefit.desc}</Text>
+      <ScrollView className='member-page__content' scrollY>
+        {/* ===== 会员状态卡 ===== */}
+        <View className='member-status'>
+          <View className='member-status__head'>
+            <View className='member-status__icon'>
+              <Text className='member-status__icon-text'>👑</Text>
             </View>
-          ))}
-        </View>
-      </View>
+            <View className='member-status__info'>
+              <Text className='member-status__label'>当前状态</Text>
+              <Text className='member-status__level'>{vipLevel}</Text>
+            </View>
+            {isVip && days > 0 ? (
+              <View className='member-status__badge'>
+                <Text className='member-status__badge-icon'>⭐</Text>
+                <Text className='member-status__badge-text'>剩余 {days} 天</Text>
+              </View>
+            ) : (
+              <View className='member-status__badge member-status__badge--muted'>
+                <Text className='member-status__badge-text'>未开通</Text>
+              </View>
+            )}
+          </View>
 
-      {!isVip && (
-        <View className='member-section'>
-          <Text className='member-section-title'>选择套餐</Text>
+          <View className='member-status__grid'>
+            <View className='member-status__cell'>
+              <Text className='member-status__cell-label'>到期时间</Text>
+              <Text className='member-status__cell-value'>{endDateText}</Text>
+            </View>
+            <View className='member-status__cell'>
+              <Text className='member-status__cell-label'>会员状态</Text>
+              <Text className='member-status__cell-value'>{isVip ? '已开通' : '未开通'}</Text>
+            </View>
+          </View>
+
+          <View className='member-status__btn' onClick={handleSubscribe}>
+            <Text className='member-status__btn-icon'>👑</Text>
+            <Text className='member-status__btn-text'>{subscribing ? '开通中...' : '立即开通'}</Text>
+          </View>
+        </View>
+
+        {/* ===== 三档价格卡 ===== */}
+        <View className='member-card'>
+          <View className='member-card__head'>
+            <View className='member-card__title-wrap'>
+              <Text className='member-card__icon'>🏅</Text>
+              <Text className='member-card__title'>开通会员</Text>
+            </View>
+            <Text className='member-card__meta'>一次开通 · 全家共享</Text>
+          </View>
+
           <View className='member-plans'>
-            {PLANS.map(plan => (
-              <View
-                key={plan.key}
-                className={`member-plan-card ${selectedPlan === plan.key ? 'member-plan-card-active' : ''}`}
-                onClick={() => setSelectedPlan(plan.key)}
-              >
-                {plan.tag && <View className='member-plan-tag'><Text>{plan.tag}</Text></View>}
-                <Text className='member-plan-name'>{plan.name}</Text>
-                <View className='member-plan-price-row'>
-                  <Text className='member-plan-price'>{plan.price}</Text>
-                  <Text className='member-plan-period'>{plan.period}</Text>
-                </View>
-                <Text className='member-plan-original'>原价 {plan.originalPrice}</Text>
-                <View className='member-plan-features'>
-                  {plan.features.map(f => (
-                    <View key={f} className='member-plan-feature'>
-                      <Text className='member-plan-check'>✓</Text>
-                      <Text className='member-plan-feature-text'>{f}</Text>
+            {PLANS.map(plan => {
+              const selected = selectedPlan === plan.key
+              return (
+                <View
+                  key={plan.key}
+                  className={`member-plan${selected ? ' member-plan--selected' : ''}`}
+                  onClick={() => setSelectedPlan(plan.key)}
+                >
+                  {plan.tag && (
+                    <View className='member-plan__tag'>
+                      <Text className='member-plan__tag-text'>⭐ {plan.tag}</Text>
                     </View>
-                  ))}
+                  )}
+                  <Text className='member-plan__name'>{plan.name}</Text>
+                  <View className='member-plan__price-row'>
+                    <Text className='member-plan__price'>{plan.price}</Text>
+                    <Text className='member-plan__period'>{plan.period}</Text>
+                  </View>
+                  <Text className='member-plan__note'>{plan.note}</Text>
                 </View>
+              )
+            })}
+          </View>
+
+          <View className='member-card__tip'>
+            <Text className='member-card__tip-icon'>ℹ️</Text>
+            <Text className='member-card__tip-text'>会员到期后自动恢复免费权益，历史打卡数据永久保留。</Text>
+          </View>
+        </View>
+
+        {/* ===== 权益清单卡 ===== */}
+        <View className='member-card'>
+          <View className='member-card__head'>
+            <View className='member-card__title-wrap'>
+              <Text className='member-card__icon'>✨</Text>
+              <Text className='member-card__title'>会员权益</Text>
+            </View>
+          </View>
+          <View className='member-benefits'>
+            {BENEFITS.map(b => (
+              <View key={b.title} className='member-benefit'>
+                <View className={`member-benefit__icon member-benefit__icon--${b.color}`}>
+                  <Text className='member-benefit__icon-text'>{b.icon}</Text>
+                </View>
+                <Text className='member-benefit__title'>{b.title}</Text>
+                <Text className={`member-benefit__value member-benefit__value--${b.color}`}>{b.value}</Text>
               </View>
             ))}
           </View>
         </View>
-      )}
 
-      {!isVip && (
-        <View className='member-section'>
-          <View className='member-subscribe-btn' onClick={handleSubscribe}>
-            <Text>{subscribing ? '开通中...' : '立即开通'}</Text>
-          </View>
-          <Text className='member-subscribe-hint'>
-            开通即表示同意《会员服务协议》和《自动续费协议》
-          </Text>
-        </View>
-      )}
-
-      {isVip && (
-        <View className='member-section'>
-          <View className='member-manage-card'>
-            <View className='member-manage-item'>
-              <Text className='member-manage-label'>当前套餐</Text>
-              <Text className='member-manage-value'>{membership?.level}会员</Text>
-            </View>
-            <View className='member-manage-item'>
-              <Text className='member-manage-label'>到期时间</Text>
-              <Text className='member-manage-value'>{membership?.endDate || '--'}</Text>
-            </View>
-            <View className='member-manage-item'>
-              <Text className='member-manage-label'>自动续费</Text>
-              <Text className='member-manage-value'>未开启</Text>
+        {/* ===== 常见问题卡 ===== */}
+        <View className='member-card'>
+          <View className='member-card__head'>
+            <View className='member-card__title-wrap'>
+              <Text className='member-card__icon'>❓</Text>
+              <Text className='member-card__title'>常见问题</Text>
             </View>
           </View>
+          <View className='member-faqs'>
+            {FAQS.map((faq, index) => {
+              const open = openFaq === index
+              return (
+                <View key={index} className='member-faq'>
+                  <View
+                    className='member-faq__q'
+                    onClick={() => setOpenFaq(open ? null : index)}
+                  >
+                    <Text className='member-faq__q-text'>{faq.q}</Text>
+                    <Text className='member-faq__arrow'>{open ? '▲' : '▼'}</Text>
+                  </View>
+                  {open && (
+                    <Text className='member-faq__a'>{faq.a}</Text>
+                  )}
+                </View>
+              )
+            })}
+          </View>
         </View>
-      )}
 
-      <View className='member-bottom-safe' />
-    </ScrollView>
+        <View style={{ height: '40rpx' }} />
+      </ScrollView>
+    </View>
   )
 }

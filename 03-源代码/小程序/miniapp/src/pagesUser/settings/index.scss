@@ -251,3 +251,68 @@
     }
   }
 }
+// ===== 账号卡（原型 1:1） =====
+.settings-account-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 32rpx;
+  margin: 24rpx;
+  background: \-bg-card;
+  border-radius: 24rpx;
+  box-shadow: \-card;
+}
+
+.settings-account-card__avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, \-primary-light, \-primary);
+  @include flex-center;
+  flex-shrink: 0;
+  box-shadow: \-button;
+}
+
+.settings-account-card__avatar-emoji {
+  font-size: 48rpx;
+  line-height: 1;
+}
+
+.settings-account-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-account-card__name {
+  display: block;
+  font-size: \-size-lg;
+  font-weight: \-weight-bold;
+  color: \-text-primary;
+  @include text-ellipsis;
+}
+
+.settings-account-card__phone {
+  display: block;
+  font-size: 22rpx;
+  color: \-text-secondary;
+  margin-top: 6rpx;
+  @include text-ellipsis;
+}
+
+.settings-account-card__edit {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: \-primary-bg;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.settings-account-card__edit:active {
+  opacity: 0.8;
+}
+
+.settings-account-card__edit-icon {
+  font-size: 28rpx;
+  line-height: 1;
+}

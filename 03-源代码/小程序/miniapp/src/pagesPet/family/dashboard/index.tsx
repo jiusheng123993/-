@@ -16,7 +16,10 @@ import {
   renderFamilyPhoto,
   saveFamilyPhoto,
   shareFamilyPhoto,
+  FAMILY_PHOTO_STYLE_LABELS,
+  FAMILY_PHOTO_STYLES,
 } from '../../../services/familyPhotoService'
+import type { FamilyPhotoStyle } from '../../../services/familyPhotoService'
 import type { PetProfile } from '../../../services/petService'
 import type { PetFamilyMember, FamilyPhoto } from '../../../types/familyTypes'
 import './index.scss'
@@ -37,7 +40,7 @@ function getTodayStr(): string {
 }
 
 export default function FamilyDashboard() {
-  const { currentFamily, members, photos, photosLoading, fetchFamilies, createFamily, removeMember, updateMemberRole, fetchPhotos, savePhoto, deletePhoto } = useFamilyStore()
+  const { currentFamily, members, photos, photosLoading, fetchFamilies, createFamily, removeMember, updateMemberRole, fetchPhotos, savePhoto, deletePhoto, generateAiPhoto } = useFamilyStore()
   const { pets, fetchPets } = usePetStore()
   const user = useAuthStore(s => s.user)
   const [creating, setCreating] = useState(false)
@@ -48,6 +51,9 @@ export default function FamilyDashboard() {
   const [canvasVisible, setCanvasVisible] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [albumHighlight, setAlbumHighlight] = useState(false)
+  const [selectedStyle, setSelectedStyle] = useState<FamilyPhotoStyle>('pixar')
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [aiProgressText, setAiProgressText] = useState('')
   const themeClass = useThemeClass()
 
   useEffect(() => {
@@ -72,6 +78,7 @@ export default function FamilyDashboard() {
         const today = getTodayStr()
         const status: Record<string, { checked: boolean; mood?: string }> = {}
         for (const member of members) {
+          if (!member.petId) continue
           try {
             const checkin = await getTodayCheckin(member.petId, user.id)
             status[member.petId] = {
@@ -141,6 +148,10 @@ export default function FamilyDashboard() {
     } catch (err: unknown) {
       const error = err as { message?: string }
       Taro.showToast({ title: error.message || '添加失败', icon: 'none' })
+      // 409 冲突时刷新成员列表，确保 UI 状态与后端一致
+      if (error.message === '该宠物已在家庭中') {
+        await fetchFamilies()
+      }
     }
   }
 
@@ -181,10 +192,66 @@ export default function FamilyDashboard() {
   }
 
   const handleGeneratePhoto = useCallback(async () => {
-    if (photoGenerating || !currentFamily || familyPets.length === 0) return
+    if (photoGenerating || aiGenerating || !currentFamily || familyPets.length === 0) return
+
+    // 步骤1：弹出风格选择器
+    Taro.showActionSheet({
+      itemList: FAMILY_PHOTO_STYLES.map(s => `${FAMILY_PHOTO_STYLE_LABELS[s].emoji} ${FAMILY_PHOTO_STYLE_LABELS[s].label}`),
+      success: (res) => {
+        const chosen = FAMILY_PHOTO_STYLES[res.tapIndex]
+        setSelectedStyle(chosen)
+        handleGenerateWithStyle(chosen)
+      },
+    })
+  }, [photoGenerating, aiGenerating, currentFamily, familyPets])
+
+  const handleGenerateWithStyle = useCallback(async (style: FamilyPhotoStyle) => {
+    if (!currentFamily) return
+
+    // 步骤2：尝试 AI 生成
+    setAiGenerating(true)
     setPhotoGenerating(true)
-    setCanvasVisible(true)
     setShowPhotoPreview(false)
+    setAiProgressText('正在分析家庭成员...')
+
+    const progressTimer = setInterval(() => {
+      setAiProgressText((prev) => {
+        const texts = [
+          '正在分析家庭成员...',
+          '正在构建家庭合影...',
+          'AI 正在绘制全家福...',
+          '正在润色细节...',
+          '即将完成...',
+        ]
+        const idx = texts.indexOf(prev)
+        return idx >= 0 && idx < texts.length - 1 ? texts[idx + 1] : texts[0]
+      })
+    }, 2000)
+
+    try {
+      const result = await generateAiPhoto(style)
+      clearInterval(progressTimer)
+
+      if (result.success && result.photoUrl) {
+        setPhotoUrl(result.photoUrl)
+        setShowPhotoPreview(true)
+        setAiGenerating(false)
+        setPhotoGenerating(false)
+        setCanvasVisible(false)
+        return
+      }
+
+      // AI 失败，提示用户并降级到 Canvas
+      Taro.showToast({ title: result.message || 'AI 生成失败，切换为手绘风格', icon: 'none', duration: 2000 })
+    } catch {
+      clearInterval(progressTimer)
+      Taro.showToast({ title: 'AI 服务暂不可用，切换为手绘风格', icon: 'none', duration: 2000 })
+    }
+
+    // 步骤3：降级到 Canvas 本地绘制
+    setAiGenerating(false)
+    setCanvasVisible(true)
+    setAiProgressText('')
 
     await new Promise(resolve => setTimeout(resolve, 300))
 
@@ -207,7 +274,7 @@ export default function FamilyDashboard() {
       setPhotoGenerating(false)
       setCanvasVisible(false)
     }
-  }, [photoGenerating, currentFamily, familyPets, members])
+  }, [currentFamily, familyPets, members, generateAiPhoto])
 
   const handleSavePhoto = useCallback(async () => {
     if (!photoUrl) return
@@ -375,6 +442,13 @@ export default function FamilyDashboard() {
                 <Text className='fd-photo-regenerate-text'>🔄 重新生成</Text>
               </View>
             </View>
+          ) : aiGenerating ? (
+            <View className='fd-photo-generating'>
+              <View className='fd-photo-generating-spinner' />
+              <Text className='fd-photo-generating-text'>{aiProgressText}</Text>
+              <Text className='fd-photo-generating-style'>风格：{FAMILY_PHOTO_STYLE_LABELS[selectedStyle].emoji} {FAMILY_PHOTO_STYLE_LABELS[selectedStyle].label}</Text>
+              <Text className='fd-photo-generating-hint'>AI 正在为您生成全家福，请耐心等待...</Text>
+            </View>
           ) : (
             <View className='fd-photo-generate'>
               <View className='fd-photo-generate-preview'>
@@ -405,7 +479,7 @@ export default function FamilyDashboard() {
                   {familyPets.length}位毛孩子
                 </Text>
                 <Text className='fd-photo-generate-desc'>
-                  将家庭成员的头像合成为一张精美的全家福
+                  选择风格，AI 为您合成一张精美的全家福
                 </Text>
               </View>
               <View

@@ -1,20 +1,25 @@
 /**
  * 登录页面
- * 小程序：微信一键登录
- * App/H5：手机号+验证码登录
+ * 品牌区 + 主视觉 + 功能预览 + 微信/手机号登录 + 协议
  */
 import { View, Text, Button, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuthStore } from '../../stores/authStore'
-import { useThemeClass } from '../../hooks/useThemeClass'
 import { isWeapp, sendSmsCode, isApp, API_BASE_URL } from '../../platform'
 import './index.scss'
+
+const FEATURES = [
+  { icon: '✅', label: '健康打卡' },
+  { icon: '💉', label: '疫苗日历' },
+  { icon: '🔍', label: '食物查询' },
+  { icon: '🕰️', label: '时光记录' },
+]
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const themeClass = useThemeClass()
+  const [agreed, setAgreed] = useState(false)
   const wechatLogin = useAuthStore(state => state.login)
   const phoneLogin = useAuthStore(state => state.loginByPhone)
   const isWechatOnly = isWeapp()
@@ -31,8 +36,17 @@ export default function Login() {
     return () => clearTimeout(timer)
   }, [smsCountdown])
 
+  const requireAgree = (): boolean => {
+    if (!agreed) {
+      setError('请先阅读并同意《用户协议》和《隐私政策》')
+      return false
+    }
+    return true
+  }
+
   const handleWechatLogin = useCallback(async () => {
     if (loading) return
+    if (!requireAgree()) return
     setLoading(true)
     setError('')
     try {
@@ -43,7 +57,7 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
-  }, [loading, wechatLogin])
+  }, [loading, wechatLogin, agreed])
 
   const handleSendSms = useCallback(async () => {
     if (smsSending || smsCountdown > 0) return
@@ -69,6 +83,7 @@ export default function Login() {
 
   const handlePhoneLogin = useCallback(async () => {
     if (loading) return
+    if (!requireAgree()) return
     if (!/^1\d{10}$/.test(phone)) {
       setError('请输入正确的手机号')
       return
@@ -87,7 +102,7 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
-  }, [loading, phone, smsCode, phoneLogin])
+  }, [loading, phone, smsCode, phoneLogin, agreed])
 
   const switchMode = useCallback(() => {
     setLoginMode(m => (m === 'wechat' ? 'phone' : 'wechat'))
@@ -95,91 +110,130 @@ export default function Login() {
   }, [])
 
   return (
-    <View className={`login-page ${themeClass}`}>
-      <View className='login-paw-particles'>
-        <Text className='login-paw login-paw--1'>🐾</Text>
-        <Text className='login-paw login-paw--2'>🐾</Text>
-        <Text className='login-paw login-paw--3'>🐾</Text>
-        <Text className='login-paw login-paw--4'>🐾</Text>
-        <Text className='login-paw login-paw--5'>🐾</Text>
-      </View>
-      <View className='login-stars'>
-        <Text className='login-star login-star--1'>✦</Text>
-        <Text className='login-star login-star--2'>✧</Text>
-        <Text className='login-star login-star--3'>✦</Text>
-        <Text className='login-star login-star--4'>✧</Text>
-        <Text className='login-star login-star--5'>✦</Text>
-      </View>
-      <View className='login-logo'>🐾</View>
-      <View className='login-title'>星寰海</View>
-      <View className='login-subtitle'>
-        记录宠物健康<br />
-        守护毛孩子每一天
+    <View className='login-page'>
+      {/* 全屏动态背景层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+        <View className='xhh-bg-glow' />
       </View>
 
-      {error && <View className='login-error'>{error}</View>}
+      <View className='login-page__content'>
+        {/* ===== 品牌区 ===== */}
+        <View className='auth-brand'>
+          <View className='auth-brand__badge'>
+            <Text className='auth-brand__badge-icon'>🐾</Text>
+          </View>
+          <Text className='auth-brand__logo'>星寰海</Text>
+          <Text className='auth-brand__slogan'>AI 宠物管家，懂 TA 的一生</Text>
+        </View>
 
-      {loginMode === 'wechat' ? (
-        <>
-          <Button
-            className={`login-btn ${loading ? 'login-btn-loading' : ''}`}
-            onClick={handleWechatLogin}
-            loading={loading}
-            disabled={loading}
-          >
-            {loading ? '登录中...' : '微信一键登录'}
-          </Button>
-          {!isWechatOnly && (
-            <View className='login-switch' onClick={switchMode}>
-              手机号登录
+        {/* ===== 主视觉卡：招爪橘猫 ===== */}
+        <View className='auth-hero'>
+          <View className='auth-hero__circle'>
+            <Text className='auth-hero__emoji'>🐱</Text>
+          </View>
+          <Text className='auth-hero__caption'>招爪橘猫</Text>
+        </View>
+
+        {/* ===== 功能预览 ===== */}
+        <View className='auth-features'>
+          {FEATURES.map(f => (
+            <View key={f.label} className='auth-feature'>
+              <View className='auth-feature__icon'>
+                <Text className='auth-feature__icon-text'>{f.icon}</Text>
+              </View>
+              <Text className='auth-feature__label'>{f.label}</Text>
             </View>
-          )}
-        </>
-      ) : (
-        <>
-          <View className='login-phone-form'>
-            <Input
-              className='login-input'
-              type='number'
-              placeholder='请输入手机号'
-              value={phone}
-              maxlength={11}
-              onInput={(e: any) => setPhone(e.detail.value)}
-            />
-            <View className='login-sms-row'>
+          ))}
+        </View>
+
+        {error && <View className='login-error'>{error}</View>}
+
+        {loginMode === 'wechat' ? (
+          <>
+            <Button
+              className={`auth-btn auth-btn--wechat ${loading ? 'auth-btn--loading' : ''}`}
+              onClick={handleWechatLogin}
+              loading={loading}
+              disabled={loading}
+            >
+              {loading ? '登录中...' : '微信一键登录'}
+            </Button>
+            {!isWechatOnly && (
+              <View className='auth-btn auth-btn--phone' onClick={switchMode}>
+                <Text className='auth-btn--phone__text'>手机号登录</Text>
+              </View>
+            )}
+          </>
+        ) : (
+          <>
+            <View className='login-phone-form'>
               <Input
-                className='login-input login-sms-input'
+                className='login-input'
                 type='number'
-                placeholder='验证码'
-                value={smsCode}
-                maxlength={6}
-                onInput={(e: any) => setSmsCode(e.detail.value)}
+                placeholder='请输入手机号'
+                value={phone}
+                maxlength={11}
+                onInput={(e: any) => setPhone(e.detail.value)}
               />
-              <View
-                className={`login-sms-btn ${smsCountdown > 0 || smsSending ? 'login-sms-btn--disabled' : ''}`}
-                onClick={handleSendSms}
-              >
-                {smsCountdown > 0 ? `${smsCountdown}s` : smsSending ? '发送中' : '获取验证码'}
+              <View className='login-sms-row'>
+                <Input
+                  className='login-input login-sms-input'
+                  type='number'
+                  placeholder='验证码'
+                  value={smsCode}
+                  maxlength={6}
+                  onInput={(e: any) => setSmsCode(e.detail.value)}
+                />
+                <View
+                  className={`login-sms-btn ${smsCountdown > 0 || smsSending ? 'login-sms-btn--disabled' : ''}`}
+                  onClick={handleSendSms}
+                >
+                  {smsCountdown > 0 ? `${smsCountdown}s` : smsSending ? '发送中' : '获取验证码'}
+                </View>
               </View>
             </View>
-          </View>
-          <Button
-            className={`login-btn ${loading ? 'login-btn-loading' : ''}`}
-            onClick={handlePhoneLogin}
-            disabled={loading}
-          >
-            {loading ? '登录中...' : '登录'}
-          </Button>
-          {!isWechatOnly && (
-            <View className='login-switch' onClick={switchMode}>
-              微信登录
-            </View>
-          )}
-        </>
-      )}
+            <Button
+              className={`auth-btn auth-btn--wechat ${loading ? 'auth-btn--loading' : ''}`}
+              onClick={handlePhoneLogin}
+              disabled={loading}
+            >
+              {loading ? '登录中...' : '登录'}
+            </Button>
+            {!isWechatOnly && (
+              <View className='auth-btn auth-btn--phone' onClick={switchMode}>
+                <Text className='auth-btn--phone__text'>微信登录</Text>
+              </View>
+            )}
+          </>
+        )}
 
-      <View className='login-agreement'>
-        登录即表示同意<Text className='login-agreement-link'>用户协议</Text>和<Text className='login-agreement-link'>隐私政策</Text>
+        {/* ===== 协议勾选 ===== */}
+        <View className='auth-agree'>
+          <View
+            className={`auth-agree__check${agreed ? ' auth-agree__check--on' : ''}`}
+            onClick={() => setAgreed(a => !a)}
+          >
+            {agreed && <Text className='auth-agree__check-mark'>✓</Text>}
+          </View>
+          <Text className='auth-agree__text'>我已阅读并同意</Text>
+          <Text
+            className='auth-agree__link'
+            onClick={() => Taro.navigateTo({ url: '/pagesUser/agreement/index?type=user' })}
+          >
+            《用户协议》
+          </Text>
+          <Text className='auth-agree__text'>和</Text>
+          <Text
+            className='auth-agree__link'
+            onClick={() => Taro.navigateTo({ url: '/pagesUser/agreement/index?type=privacy' })}
+          >
+            《隐私政策》
+          </Text>
+        </View>
       </View>
     </View>
   )

@@ -34,3 +34,43 @@ export { getWardrobeOverview, getAccessoriesBySlot, equipAccessory, unequipAcces
 export { getThemeSuiteOverview, generateThemeSuite, getThemeSuiteTaskStatus, pollThemeSuiteTask, saveThemeSuiteResult, getThemeQuota, canGenerateTheme, getActiveThemeTask } from './themeSuiteService'
 /** 穿搭预览 - 套装组合/槽位管理 */
 export { buildOutfitPreview, toggleSlotInOutfit, clearAllSlots, getEquippedCount, getEmptySlots, getSlotLabel, isOutfitEmpty, areOutfitsEqual, mergeOutfitSlots, type OutfitPreview } from './outfitComposition'
+/** 排行榜 - 家庭排行榜与角色分配 */
+export { leaderboardService, type LeaderboardPeriod, type RankingItem, type LeaderboardResponse, type RoleType, type RoleResponse, type FamilyRolesResponse } from './leaderboardService'
+/** 家族图谱 - 图谱数据/关系管理/快照/血亲树 */
+export {
+  familyTreeService,
+  type TreeNode,
+  type TreeEdge,
+  type TreeResponse,
+  type RelationshipRow,
+  type CreateRelationshipInput,
+  type UpdateRelationshipInput,
+  type CreateLineageInput,
+  type SnapshotRow,
+  type CreateSnapshotInput,
+  type SnapshotListResponse,
+  type LineageTreeResponse,
+} from './familyTreeService'
+/** 家庭动态墙 - 动态列表/发布/编辑/删除/精选 */
+export {
+  feedService,
+  type FeedType,
+  type Feed,
+  type FeedWithPet,
+  type PaginatedFeeds,
+  type GetFeedsParams,
+  type CreateFeedInput,
+  type UpdateFeedInput,
+} from './feedService'
+/** 分享卡片 - 卡片生成/列表/详情/删除/分享记录 */
+export {
+  shareCardService,
+  type ShareCardSourceData,
+  type ShareCardStyle,
+  type ShareChannel,
+  type ShareCardRow,
+  type GenerateShareCardInput,
+  type PaginatedShareCards,
+  type GetShareCardsParams,
+  type RecordShareInput,
+} from './shareCardService'

@@ -1,29 +1,26 @@
 /**
  * 健康趋势页面
- * 宠物体重、食欲、便便趋势图展示，AI分析，健康报告导出
+ * AI月度小结 + 体重/食欲/便便趋势图同屏展示，健康报告导出
  */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { View, Text, ScrollView, Button } from '@tarojs/components'
-import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro'
-import { useDidShow } from '@tarojs/taro'
-import { useThemeClass } from '../../hooks/useThemeClass'
+import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro'
 import { logger } from '../../logger'
 import PetSwitcher from '../../components/PetSwitcher'
 import PaywallPopup from '../../components/PaywallPopup'
 import AnomalyMarker from '../../components/AnomalyMarker'
 import PageLoading from '../../components/PageLoading'
 import PageError from '../../components/PageError'
-import { PetAvatar } from '../../components'
 import HealthReportPreview from '../../components/HealthReportPreview'
 import HealthTrendShareCard from '../../components/HealthTrendShareCard'
 import { usePetStore } from '../../stores/petStore'
+import { useTrendStore } from '../../stores/trendStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useShareStore } from '../../stores/shareStore'
 import { useTrend } from '../../hooks/useTrend'
 import { useMembership } from '../../hooks/useMembership'
 import { generateHealthReportData, downloadHealthReport, shareHealthReport, downloadHealthReportCsv, shareReportToVet } from '../services/healthReportPdfService'
 import { recordShare } from '../../services/shareService'
-import type { ExpressionContext } from '../../engines/petAvatar'
 import type { TrendDataPoint, TrendSummary, MonthlyReport } from '../../services/trendService'
 import type { HealthReportData } from '../../types/reportTypes'
 import type { HealthTrendShareData } from '../../types/shareTypes'
@@ -89,6 +86,15 @@ export const RISK_COLORS: Record<string, string> = {
   emergency: '#FF4D4F'
 }
 
+/** 便便评分映射（照原型「平均X.X分」展示） */
+const STOOL_SCORES: Record<string, number> = {
+  normal: 5,
+  soft: 4,
+  constipation: 3,
+  diarrhea: 2,
+  bloody: 1
+}
+
 function getAbnormalItems(point: TrendDataPoint): string[] {
   const items: string[] = []
   if (point.appetite && point.appetite !== 'normal') {
@@ -121,15 +127,6 @@ function getMonthStr(date: Date): string {
 }
 
 export default function PetTrendsPage() {
-  useShareAppMessage(() => ({
-    title: '星寰海 - 宠物健康趋势',
-    path: `/pagesPet/trends/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
-  }))
-  useShareTimeline(() => ({
-    title: '星寰海 - 宠物健康趋势',
-    query: inviteCode ? `inviteCode=${inviteCode}` : '',
-  }))
-
   const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const { isMember, checkAccess, shouldShowPaywall, markPaywallShown } = useMembership()
   const user = useAuthStore(s => s.user)
@@ -138,7 +135,7 @@ export default function PetTrendsPage() {
     trendData,
     summary,
     monthlyReport,
-    isLoading,
+    isLoading: storeLoading,
     error,
     fetchWeightTrend,
     fetchAppetiteTrend,
@@ -148,8 +145,7 @@ export default function PetTrendsPage() {
     clearError
   } = useTrend()
 
-  const [timeRange, setTimeRange] = useState<TimeRange>('week')
-  const [activeTab, setActiveTab] = useState<TrendTab>('weight')
+  const [timeRange, setTimeRange] = useState<TimeRange>('month')
   const [paywallVisible, setPaywallVisible] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -160,9 +156,23 @@ export default function PetTrendsPage() {
   const [npsTriggerEvent, setNpsTriggerEvent] = useState<NpsTriggerEvent>('manual')
   const { trackPageView, trackEvent } = useAnalytics()
 
+  /** 三张图表各自的独立数据源（同一接口共用 trendData 槽位，逐项快照） */
+  const [weightPoints, setWeightPoints] = useState<TrendDataPoint[]>(() => trendData)
+  const [appetitePoints, setAppetitePoints] = useState<TrendDataPoint[]>(() => trendData)
+  const [stoolPoints, setStoolPoints] = useState<TrendDataPoint[]>(() => trendData)
+
   const disclaimerText = new MedicalDisclaimer().getTrendDisclaimer()
 
   usePageView('trends')
+
+  useShareAppMessage(() => ({
+    title: '星寰海 - 宠物健康趋势',
+    path: `/pagesPet/trends/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
+  }))
+  useShareTimeline(() => ({
+    title: '星寰海 - 宠物健康趋势',
+    query: inviteCode ? `inviteCode=${inviteCode}` : '',
+  }))
 
   useDidShow(() => {
     if (user) fetchPets(user.id)
@@ -172,30 +182,29 @@ export default function PetTrendsPage() {
     if (currentPet?.id) {
       loadTrendData()
     }
-  }, [currentPet?.id, timeRange, activeTab])
+  }, [currentPet?.id, timeRange])
 
   const loadTrendData = useCallback(async () => {
     if (!currentPet?.id) return
     clearError()
-
-    const monthsMap: Record<TimeRange, number> = { week: 1, month: 1, quarter: 3 }
-
-    switch (activeTab) {
-      case 'weight':
-        await fetchWeightTrend(currentPet.id, monthsMap[timeRange])
-        break
-      case 'appetite':
-        await fetchAppetiteTrend(currentPet.id, monthsMap[timeRange])
-        break
-      case 'stool':
-        await fetchStoolTrend(currentPet.id, monthsMap[timeRange])
-        break
-      case 'summary':
-        await fetchSummary(currentPet.id, timeRange)
-        await fetchMonthlyReport(currentPet.id, getMonthStr(new Date()))
-        break
+    try {
+      const monthsMap: Record<TimeRange, number> = { week: 1, month: 1, quarter: 3 }
+      const months = monthsMap[timeRange]
+      await fetchWeightTrend(currentPet.id, months)
+      const weightStored = useTrendStore.getState().trendData
+      setWeightPoints(weightStored.length > 0 ? weightStored : trendData)
+      await fetchAppetiteTrend(currentPet.id, months)
+      const appetiteStored = useTrendStore.getState().trendData
+      setAppetitePoints(appetiteStored.length > 0 ? appetiteStored : trendData)
+      await fetchStoolTrend(currentPet.id, months)
+      const stoolStored = useTrendStore.getState().trendData
+      setStoolPoints(stoolStored.length > 0 ? stoolStored : trendData)
+      await fetchSummary(currentPet.id, timeRange)
+      await fetchMonthlyReport(currentPet.id, getMonthStr(new Date()))
+    } catch {
+      // 错误统一由 store error 呈现
     }
-  }, [currentPet?.id, timeRange, activeTab, clearError, fetchWeightTrend, fetchAppetiteTrend, fetchStoolTrend, fetchSummary, fetchMonthlyReport])
+  }, [currentPet?.id, timeRange, trendData, clearError, fetchWeightTrend, fetchAppetiteTrend, fetchStoolTrend, fetchSummary, fetchMonthlyReport])
 
   const handlePetSwitch = useCallback((petId: string) => {
     switchPet(petId)
@@ -210,10 +219,6 @@ export default function PetTrendsPage() {
     trackEvent('change_time_range', { range })
     setTimeRange(range)
   }, [isMember])
-
-  const handleTabChange = useCallback((tab: TrendTab) => {
-    setActiveTab(tab)
-  }, [])
 
   const handleExportReport = useCallback(async () => {
     if (!currentPet?.id || !user?.id) return
@@ -344,8 +349,7 @@ export default function PetTrendsPage() {
   }, [currentPet?.breedId])
 
   const weightChartData = useMemo(() => {
-    if (activeTab !== 'weight') return null
-    const withWeight = trendData.filter((d) => d.weight !== undefined && d.weight !== null)
+    const withWeight = weightPoints.filter((d) => d.weight !== undefined && d.weight !== null)
     if (withWeight.length === 0) return null
     const weights = withWeight.map((d) => d.weight!)
     const minWeight = Math.min(...weights)
@@ -357,7 +361,7 @@ export default function PetTrendsPage() {
       maxWeight,
       range
     }
-  }, [trendData, activeTab])
+  }, [weightPoints])
 
   const breedWeightAnalysis = useMemo(() => {
     if (!breedWeightRange || !weightChartData || weightChartData.points.length === 0) return null
@@ -413,40 +417,45 @@ export default function PetTrendsPage() {
     return { direction, change, changePercent, first, last }
   }, [breedWeightRange, weightChartData])
 
-  const appetiteChartData = useMemo(() => {
-    if (activeTab !== 'appetite') return null
-    if (trendData.length === 0) return null
-    return trendData
-  }, [trendData, activeTab])
-
-  const stoolChartData = useMemo(() => {
-    if (activeTab !== 'stool') return null
-    if (trendData.length === 0) return null
-    return trendData
-  }, [trendData, activeTab])
-
-  const abnormalDays = useMemo(() => {
-    return trendData.filter((d) => d.hasAbnormal)
-  }, [trendData])
-
-  const abnormalDateSet = useMemo(() => {
-    return new Set(abnormalDays.map((d) => d.date))
-  }, [abnormalDays])
-
-  const expressionContext = useMemo((): ExpressionContext | null => {
-    if (!currentPet) return null
-    return {
-      todayEntry: null,
-      hasAnomaly: abnormalDays.length > 0,
-      anomalyCount: abnormalDays.length,
-      riskLevel: abnormalDays.length >= 3 ? 'high' : abnormalDays.length > 0 ? 'medium' : null,
-      streakDays: summary?.totalDays || 0,
-      isBirthday: false,
-      isVaccineComplete: false,
-      isRecovery: false,
-      isDeceased: currentPet.isDeceased || false,
+  /** 体重卡右侧指标：近30天体重变化 */
+  const weightChangeText = useMemo(() => {
+    if (weightChartData && weightChartData.points.length >= 2) {
+      const first = weightChartData.points[0].weight
+      const last = weightChartData.points[weightChartData.points.length - 1].weight
+      if (first !== undefined && last !== undefined) {
+        const change = last - first
+        return `${change > 0 ? '+' : ''}${change.toFixed(1)}kg`
+      }
     }
-  }, [currentPet, abnormalDays, summary])
+    return null
+  }, [weightChartData])
+
+  /** 食欲卡右侧指标：末尾连续正常天数 */
+  const appetiteStreak = useMemo(() => {
+    let streak = 0
+    for (let i = appetitePoints.length - 1; i >= 0; i--) {
+      if (appetitePoints[i].appetite === 'normal') streak++
+      else break
+    }
+    return streak
+  }, [appetitePoints])
+
+  /** 便便卡右侧指标：平均评分 */
+  const stoolAvgScore = useMemo(() => {
+    const scored = stoolPoints.filter((p) => p.stool && STOOL_SCORES[p.stool] !== undefined)
+    if (scored.length === 0) return null
+    const avg = scored.reduce((sum, p) => sum + STOOL_SCORES[p.stool!], 0) / scored.length
+    return avg.toFixed(1)
+  }, [stoolPoints])
+
+  const weightAbnormalSet = useMemo(() => new Set(weightPoints.filter((d) => d.hasAbnormal).map((d) => d.date)), [weightPoints])
+  const appetiteAbnormalSet = useMemo(() => new Set(appetitePoints.filter((d) => d.hasAbnormal).map((d) => d.date)), [appetitePoints])
+  const stoolAbnormalSet = useMemo(() => new Set(stoolPoints.filter((d) => d.hasAbnormal).map((d) => d.date)), [stoolPoints])
+
+  /** AI 月度小结卡数据 */
+  const monthLabel = new Date().getMonth() + 1
+  const hasAbnormal = (summary?.abnormalDays || 0) > 0
+  const aiSummaryText = monthlyReport?.summary?.aiAnalysis || summary?.aiAnalysis || '暂无月度小结数据，持续打卡将自动生成 AI 健康小结'
 
   const renderWeightChart = () => {
     if (!weightChartData || weightChartData.points.length === 0) {
@@ -557,7 +566,7 @@ export default function PetTrendsPage() {
             {points.map((point, index) => {
               const x = (index / (points.length - 1 || 1)) * chartWidth
               const y = paddingTop + ((displayMax - point.weight!) / displayRange) * drawHeight
-              const isAbnormal = abnormalDateSet.has(point.date)
+              const isAbnormal = weightAbnormalSet.has(point.date)
               const pointOutOfRange = breedWeightRange
                 && (point.weight! > breedWeightRange.max || point.weight! < breedWeightRange.min)
               return (
@@ -620,7 +629,7 @@ export default function PetTrendsPage() {
   }
 
   const renderAppetiteChart = () => {
-    if (!appetiteChartData || appetiteChartData.length === 0) {
+    if (appetitePoints.length === 0) {
       return (
         <View className='trend-chart__empty'>
           <Text className='trend-chart__empty-text'>暂无食欲数据</Text>
@@ -632,8 +641,8 @@ export default function PetTrendsPage() {
     return (
       <View className='trend-chart__container'>
         <View className='trend-chart__bar-chart'>
-          {appetiteChartData.map((point) => (
-            <View key={point.date} className={`trend-chart__bar-item${abnormalDateSet.has(point.date) ? ' trend-chart__bar-item--abnormal' : ''}`}>
+          {appetitePoints.map((point) => (
+            <View key={point.date} className={`trend-chart__bar-item${appetiteAbnormalSet.has(point.date) ? ' trend-chart__bar-item--abnormal' : ''}`}>
               <View className='trend-chart__bar-wrap'>
                 <View
                   className='trend-chart__bar'
@@ -642,7 +651,7 @@ export default function PetTrendsPage() {
                     backgroundColor: APPETITE_COLORS[point.appetite || 'normal'] || '#52C41A'
                   }}
                 />
-                {abnormalDateSet.has(point.date) && <View className='trend-chart__bar-mark' />}
+                {appetiteAbnormalSet.has(point.date) && <View className='trend-chart__bar-mark' />}
               </View>
               <Text className='trend-chart__bar-label'>
                 {APPETITE_LABELS[point.appetite || 'normal'] || '未知'}
@@ -667,7 +676,7 @@ export default function PetTrendsPage() {
   }
 
   const renderStoolChart = () => {
-    if (!stoolChartData || stoolChartData.length === 0) {
+    if (stoolPoints.length === 0) {
       return (
         <View className='trend-chart__empty'>
           <Text className='trend-chart__empty-text'>暂无便便数据</Text>
@@ -679,8 +688,8 @@ export default function PetTrendsPage() {
     return (
       <View className='trend-chart__container'>
         <View className='trend-chart__bar-chart'>
-          {stoolChartData.map((point) => (
-            <View key={point.date} className={`trend-chart__bar-item${abnormalDateSet.has(point.date) ? ' trend-chart__bar-item--abnormal' : ''}`}>
+          {stoolPoints.map((point) => (
+            <View key={point.date} className={`trend-chart__bar-item${stoolAbnormalSet.has(point.date) ? ' trend-chart__bar-item--abnormal' : ''}`}>
               <View className='trend-chart__bar-wrap'>
                 <View
                   className='trend-chart__bar'
@@ -689,7 +698,7 @@ export default function PetTrendsPage() {
                     backgroundColor: STOOL_COLORS[point.stool || 'normal'] || '#52C41A'
                   }}
                 />
-                {abnormalDateSet.has(point.date) && <View className='trend-chart__bar-mark' />}
+                {stoolAbnormalSet.has(point.date) && <View className='trend-chart__bar-mark' />}
               </View>
               <Text className='trend-chart__bar-label'>
                 {STOOL_LABELS[point.stool || 'normal'] || '未知'}
@@ -713,214 +722,22 @@ export default function PetTrendsPage() {
     )
   }
 
-  const renderSummaryView = () => {
-    return (
-      <View className='trend-summary'>
-        {summary && (
-          <View className='trend-card trend-summary__ai-card'>
-            <View className='trend-card__header'>
-              <Text className='trend-card__title'>AI 趋势分析</Text>
-              <Text className='trend-card__period'>
-                {timeRange === 'week' ? '近7天' : timeRange === 'month' ? '近30天' : '近90天'}
-              </Text>
-            </View>
-            <View className='trend-summary__stats'>
-              <View className='trend-summary__stat-item'>
-                <Text className='trend-summary__stat-value'>{summary.totalDays}</Text>
-                <Text className='trend-summary__stat-label'>打卡天数</Text>
-              </View>
-              <View className='trend-summary__stat-item'>
-                <Text className='trend-summary__stat-value' style={{ color: summary.abnormalDays > 0 ? '#FF4D4F' : '#52C41A' }}>
-                  {summary.abnormalDays}
-                </Text>
-                <Text className='trend-summary__stat-label'>异常天数</Text>
-              </View>
-              <View className='trend-summary__stat-item'>
-                <Text className='trend-summary__stat-value'>
-                  {summary.weightChangePercent > 0 ? '+' : ''}{summary.weightChangePercent.toFixed(1)}%
-                </Text>
-                <Text className='trend-summary__stat-label'>体重变化</Text>
-              </View>
-            </View>
-            <View className='trend-summary__ai-text'>
-              <Text className='trend-summary__ai-label'>AI 分析</Text>
-              <Text className='trend-summary__ai-content'>{summary.aiAnalysis || '暂无分析数据'}</Text>
-            </View>
-          </View>
-        )}
-
-        {abnormalDays.length > 0 && (
-          <View className='trend-card trend-summary__abnormal-card'>
-            <View className='trend-card__header'>
-              <Text className='trend-card__title'>异常标记</Text>
-              <Text className='trend-card__badge'>{abnormalDays.length}天</Text>
-            </View>
-            <View className='trend-summary__abnormal-list'>
-              {abnormalDays.map((day) => (
-                <View key={day.date} className='trend-summary__abnormal-item'>
-                  <View
-                    className='trend-summary__abnormal-dot'
-                    style={{ backgroundColor: RISK_COLORS[day.riskLevel || 'caution'] }}
-                  />
-                  <Text className='trend-summary__abnormal-date'>{day.date}</Text>
-                  <Text className='trend-summary__abnormal-desc'>
-                    {[
-                      day.appetite && day.appetite !== 'normal' ? `食欲${APPETITE_LABELS[day.appetite]}` : '',
-                      day.stool && day.stool !== 'normal' ? `便便${STOOL_LABELS[day.stool]}` : '',
-                      day.vomiting ? '呕吐' : ''
-                    ].filter(Boolean).join('、') || '异常'}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {monthlyReport && (
-          <View className='trend-card trend-summary__report-card'>
-            <View className='trend-card__header'>
-              <Text className='trend-card__title'>月度健康报告</Text>
-              <Text className='trend-card__period'>{monthlyReport.month}</Text>
-            </View>
-            {monthlyReport.highlights.length > 0 && (
-              <View className='trend-summary__section'>
-                <Text className='trend-summary__section-title'>✨ 亮点</Text>
-                {monthlyReport.highlights.map((item, index) => (
-                  <View key={index} className='trend-summary__list-item'>
-                    <Text className='trend-summary__list-dot' style={{ color: '#52C41A' }}>●</Text>
-                    <Text className='trend-summary__list-text'>{item}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {monthlyReport.concerns.length > 0 && (
-              <View className='trend-summary__section'>
-                <Text className='trend-summary__section-title'>⚠️ 关注</Text>
-                {monthlyReport.concerns.map((item, index) => (
-                  <View key={index} className='trend-summary__list-item'>
-                    <Text className='trend-summary__list-dot' style={{ color: '#FAAD14' }}>●</Text>
-                    <Text className='trend-summary__list-text'>{item}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {monthlyReport.recommendations.length > 0 && (
-              <View className='trend-summary__section'>
-                <Text className='trend-summary__section-title'>💡 建议</Text>
-                {monthlyReport.recommendations.map((item, index) => (
-                  <View key={index} className='trend-summary__list-item'>
-                    <Text className='trend-summary__list-dot' style={{ color: '#FF8C42' }}>●</Text>
-                    <Text className='trend-summary__list-text'>{item}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-    )
-  }
-
-  /** 健康概览摘要（显示在图表上方） */
-  const renderHealthGlance = () => {
-    if (!summary || activeTab === 'summary') return null
-
-    // 计算健康评分（基于异常天数比例）
-    const healthScore = summary.totalDays > 0
-      ? Math.max(0, Math.min(100, Math.round((1 - (summary.abnormalDays || 0) / summary.totalDays) * 100)))
-      : 100
-    const scoreLevel = healthScore >= 80 ? 'good' : healthScore >= 60 ? 'fair' : 'poor'
-    const scoreEmoji = healthScore >= 80 ? '🌟' : healthScore >= 60 ? '💡' : '⚠️'
-
-    const totalDays = summary.totalDays || 0
-    const abnormalDays = summary.abnormalDays || 0
-    const weightChange = summary.weightChangePercent || 0
-
-    const glanceRows = [
-      {
-        icon: '📅',
-        label: '统计周期',
-        value: `${totalDays} 天 · ${abnormalDays} 天异常`,
-        highlight: abnormalDays > 0 ? 'warn' : 'good',
-      },
-      {
-        icon: '⚖️',
-        label: '体重变化',
-        value: weightChange === 0 ? '稳定' : `${weightChange > 0 ? '+' : ''}${weightChange.toFixed(1)}%`,
-        highlight: Math.abs(weightChange) > 5 ? 'bad' : Math.abs(weightChange) > 2 ? 'warn' : 'good',
-      },
-      {
-        icon: '📊',
-        label: activeTab === 'weight' ? '最新体重' : activeTab === 'appetite' ? '最新食欲' : '最新便便',
-        value: activeTab === 'weight'
-          ? (trendData.find(d => d.weight)?.weight ? `${trendData.find(d => d.weight)?.weight}kg` : '暂无')
-          : activeTab === 'appetite'
-          ? (APPETITE_LABELS[trendData[trendData.length - 1]?.appetite || 'normal'] || '正常')
-          : (STOOL_LABELS[trendData[trendData.length - 1]?.stool || 'normal'] || '正常'),
-        highlight: 'good',
-      },
-    ]
-
-    return (
-      <View className='trend-glance'>
-        <View className='trend-glance__header'>
-          <Text className='trend-glance__title'>📈 健康概览</Text>
-          <View className='trend-glance__score'>
-            <Text className='trend-glance__score-value trend-glance__score--{scoreLevel}'>{scoreEmoji} {healthScore}</Text>
-            <Text className='trend-glance__score-label'>分</Text>
-          </View>
-        </View>
-        <View className='trend-glance__rows'>
-          {glanceRows.map((row, idx) => (
-            <View key={idx} className='trend-glance__row'>
-              <Text className='trend-glance__row-icon'>{row.icon}</Text>
-              <View className='trend-glance__row-info'>
-                <Text className='trend-glance__row-label'>{row.label}</Text>
-                <Text className={`trend-glance__row-value trend-glance__row-value--${row.highlight}`}>
-                  {row.value}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
-    )
-  }
-
-  const renderChart = () => {
-    switch (activeTab) {
-      case 'weight':
-        return renderWeightChart()
-      case 'appetite':
-        return renderAppetiteChart()
-      case 'stool':
-        return renderStoolChart()
-      case 'summary':
-        return renderSummaryView()
-      default:
-        return null
-    }
-  }
-
   return (
     <View className='pet-trends-page'>
+      {/* 全小程序统一动态背景层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+        <View className='xhh-bg-glow' />
+      </View>
+
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
         onSwitch={handlePetSwitch}
       />
-
-      {currentPet && expressionContext && (
-        <View className='pet-trends__avatar'>
-          <PetAvatar
-            species={currentPet.species as 'dog' | 'cat'}
-            petName={currentPet.name}
-            expressionContext={expressionContext}
-            size={80}
-            showLabel
-          />
-        </View>
-      )}
 
       <View className='pet-trends__time-range'>
         {TIME_RANGE_OPTIONS.map((option) => {
@@ -938,27 +755,123 @@ export default function PetTrendsPage() {
         })}
       </View>
 
-      <View className='pet-trends__tabs'>
-        {TREND_TABS.map((tab) => (
-          <View
-            key={tab.key}
-            className={`pet-trends__tab ${activeTab === tab.key ? 'pet-trends__tab--active' : ''}`}
-            onClick={() => handleTabChange(tab.key)}
-          >
-            <Text className='pet-trends__tab-text'>{tab.label}</Text>
-          </View>
-        ))}
-      </View>
-
       <ScrollView scrollY className='pet-trends__content' enhanced showScrollbar={false}>
-        {isLoading ? (
+        {storeLoading ? (
           <PageLoading text='加载健康数据中...' />
         ) : error ? (
           <PageError message={error} onRetry={loadTrendData} />
         ) : (
           <View className='pet-trends__chart-area'>
-            {renderHealthGlance()}
-            {renderChart()}
+            {/* ===== AI 月度小结卡 ===== */}
+            <View className='trends-ai-card'>
+              <View className='trends-ai-card__head'>
+                <View className='trends-ai-card__icon'>
+                  <Text className='trends-ai-card__icon-text'>✨</Text>
+                </View>
+                <Text className='trends-ai-card__title'>AI {monthLabel}月健康小结</Text>
+                <View className={`trends-ai-card__badge${hasAbnormal ? ' trends-ai-card__badge--warn' : ''}`}>
+                  <View className={`trends-ai-card__badge-dot${hasAbnormal ? ' trends-ai-card__badge-dot--warn' : ''}`} />
+                  <Text className='trends-ai-card__badge-text'>{hasAbnormal ? '有异常' : '无异常'}</Text>
+                </View>
+              </View>
+              <Text className='trends-ai-card__text'>{aiSummaryText}</Text>
+            </View>
+
+            {/* ===== 体重曲线卡 ===== */}
+            <View className='trends-chart-card'>
+              <View className='trends-chart-card__head'>
+                <View className='trends-chart-card__title-wrap'>
+                  <Text className='trends-chart-card__icon'>⚖️</Text>
+                  <Text className='trends-chart-card__title'>体重曲线</Text>
+                </View>
+                <View className={`trends-chart-card__metric${weightChangeText && weightChangeText.startsWith('-') ? ' trends-chart-card__metric--down' : ''}`}>
+                  <Text className='trends-chart-card__metric-icon'>📈</Text>
+                  <Text className='trends-chart-card__metric-text'>
+                    近30天 {weightChangeText || '暂无变化'}
+                  </Text>
+                </View>
+              </View>
+              {renderWeightChart()}
+            </View>
+
+            {/* ===== 食欲趋势卡 ===== */}
+            <View className='trends-chart-card'>
+              <View className='trends-chart-card__head'>
+                <View className='trends-chart-card__title-wrap'>
+                  <Text className='trends-chart-card__icon'>🍽️</Text>
+                  <Text className='trends-chart-card__title'>食欲趋势</Text>
+                </View>
+                <View className='trends-chart-card__metric'>
+                  <Text className='trends-chart-card__metric-icon'>✅</Text>
+                  <Text className='trends-chart-card__metric-text'>
+                    {appetiteStreak > 0 ? `连续${appetiteStreak}天正常` : '近期有波动'}
+                  </Text>
+                </View>
+              </View>
+              {renderAppetiteChart()}
+            </View>
+
+            {/* ===== 便便评分卡 ===== */}
+            <View className='trends-chart-card'>
+              <View className='trends-chart-card__head'>
+                <View className='trends-chart-card__title-wrap'>
+                  <Text className='trends-chart-card__icon'>💧</Text>
+                  <Text className='trends-chart-card__title'>便便评分</Text>
+                </View>
+                <View className='trends-chart-card__metric'>
+                  <Text className='trends-chart-card__metric-icon'>⭐</Text>
+                  <Text className='trends-chart-card__metric-text'>
+                    {stoolAvgScore ? `平均${stoolAvgScore}分` : '暂无评分'}
+                  </Text>
+                </View>
+              </View>
+              {renderStoolChart()}
+            </View>
+
+            {/* ===== 异常标记说明 ===== */}
+            <View className='trends-note'>
+              <Text className='trends-note__icon'>ℹ️</Text>
+              <Text className='trends-note__text'>打卡异常天数已在图表中以橙色圆点标记</Text>
+            </View>
+
+            {/* ===== 健康报告导出（业务保留） ===== */}
+            <View className="export-section">
+              <Button
+                className="preview-btn"
+                onClick={handlePreviewReport}
+                disabled={generating || !currentPet}
+              >
+                {generating ? '生成中...' : '预览报告'}
+              </Button>
+              <Button
+                className="export-btn"
+                onClick={handleExportReport}
+                disabled={generating || !currentPet}
+              >
+                {generating ? '生成中...' : '保存图片'}
+              </Button>
+              <Button
+                className="csv-btn"
+                onClick={handleExportCsv}
+                disabled={generating || !currentPet}
+              >
+                {generating ? '生成中...' : '导出CSV'}
+              </Button>
+              <Button
+                className="vet-btn"
+                onClick={handleShareToVet}
+                disabled={generating || !currentPet}
+              >
+                分享给兽医
+              </Button>
+              <Button
+                className="share-btn"
+                onClick={handleShareTrend}
+                disabled={!currentPet || !summary}
+              >
+                分享趋势
+              </Button>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -967,47 +880,9 @@ export default function PetTrendsPage() {
         visible={paywallVisible}
         featureName="健康趋势"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.switchTab({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
-
-      <View className="export-section">
-        <Button
-          className="preview-btn"
-          onClick={handlePreviewReport}
-          disabled={generating || !currentPet}
-        >
-          {generating ? '生成中...' : '预览报告'}
-        </Button>
-        <Button
-          className="export-btn"
-          onClick={handleExportReport}
-          disabled={generating || !currentPet}
-        >
-          {generating ? '生成中...' : '保存图片'}
-        </Button>
-        <Button
-          className="csv-btn"
-          onClick={handleExportCsv}
-          disabled={generating || !currentPet}
-        >
-          {generating ? '生成中...' : '导出CSV'}
-        </Button>
-        <Button
-          className="vet-btn"
-          onClick={handleShareToVet}
-          disabled={generating || !currentPet}
-        >
-          分享给兽医
-        </Button>
-        <Button
-          className="share-btn"
-          onClick={handleShareTrend}
-          disabled={!currentPet || !summary}
-        >
-          分享趋势
-        </Button>
-      </View>
 
       {showReport && reportData && (
         <View className="report-modal">
@@ -1055,7 +930,6 @@ export default function PetTrendsPage() {
       <View className='pet-trends__disclaimer'>
         <Text className='pet-trends__disclaimer-text'>{disclaimerText}</Text>
       </View>
-
     </View>
   )
 }

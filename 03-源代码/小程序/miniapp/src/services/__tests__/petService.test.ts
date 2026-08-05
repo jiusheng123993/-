@@ -147,14 +147,17 @@ describe('petService', () => {
       expect(result.id).toBe('pet_002')
     })
 
-    it('should fallback to local storage when API fails', async () => {
+    it('should save to local storage and throw error when API fails', async () => {
       vi.mocked(api.post).mockRejectedValue(new Error('Network error'))
 
-      const result = await createPet('test_user', mockPetData)
+      await expect(createPet('test_user', mockPetData)).rejects.toThrow('Network error')
 
-      expect(result.name).toBe('旺财')
-      expect(result.id).toBeDefined()
-      expect(result.createdAt).toBeDefined()
+      // 验证离线兜底：本地存储中仍保存了数据（通过 mockStorage 验证）
+      const petStorageKey = Object.keys(mockStorage).find(k => k.includes('test_user') && k.includes('pets'))
+      expect(petStorageKey).toBeDefined()
+      const storedPets = JSON.parse(mockStorage[petStorageKey!])
+      expect(storedPets).toHaveLength(1)
+      expect(storedPets[0].name).toBe('旺财')
     })
   })
 

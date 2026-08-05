@@ -12,15 +12,6 @@ import { EXPRESSION_MAP } from './expressionEngine'
 import { CONFIG } from '../../config'
 import { storage } from '../../utils/storage'
 
-function buildPetPrompt(params: PetImageParams): string {
-  const speciesName = params.species === 'dog' ? '狗' : '猫'
-  const breedText = params.breed ? `${params.breed}` : ''
-  const colorText = params.color ? `${params.color}色` : ''
-  const styleText = params.style === 'realistic' ? '写实风格' : '可爱卡通风格'
-
-  return `一只${colorText}${breedText}${speciesName}，${params.expression.label}的表情，${styleText}，高质量，干净背景`
-}
-
 /**
  * Seedream AI 图像生成适配器
  *
@@ -61,19 +52,14 @@ export class SeedreamAdapter {
   }
 
   private async generateRealImage(params: PetImageParams): Promise<SeedreamGenerateResult> {
-    const prompt = buildPetPrompt(params)
-    const apiParams: SeedreamGenerateParams = {
-      prompt,
-      imageSize: 'square',
-      negativePrompt: '低质量, 模糊, 变形, 多余肢体, 文字, 水印',
-      style: params.style === 'realistic' ? 'realistic' : 'cartoon',
-    }
-
     const token = storage.getToken()
     const res = await Taro.request({
       url: `${CONFIG.API_BASE_URL}/api/avatar/generate`,
       method: 'POST',
-      data: apiParams,
+      data: {
+        petId: params.petId,
+        style: params.style === 'realistic' ? 'realistic' : 'cartoon',
+      },
       header: {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -81,11 +67,14 @@ export class SeedreamAdapter {
     })
 
     if (res.statusCode === 200) {
-      const data = res.data as { success: boolean; imageUrl?: string; error?: string }
-      if (data.success && data.imageUrl) {
-        return { success: true, imageUrl: data.imageUrl }
+      const data = res.data as { success: boolean; data?: { url?: string; isPlaceholder?: boolean }; message?: string }
+      if (data.success && data.data?.url && !data.data.isPlaceholder) {
+        return { success: true, imageUrl: data.data.url }
       }
-      return { success: false, error: data.error || '生成失败' }
+      if (data.success && data.data?.isPlaceholder) {
+        return { success: false, error: 'AI 形象生成服务暂不可用，请稍后重试' }
+      }
+      return { success: false, error: data.message || '生成失败' }
     }
 
     if (res.statusCode === 402) {

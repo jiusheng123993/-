@@ -8,6 +8,8 @@ import Taro from '@tarojs/taro'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { useWardrobe } from '../../hooks/useWardrobe'
 import { usePetStore } from '../../stores/petStore'
+import { useAuthStore } from '../../stores/authStore'
+import { shareCardService } from '../../services/shareCardService'
 import type { AccessorySlot, ThemeSuiteTask } from '../../types/wardrobeTypes'
 import OutfitPreview from '../../components/Wardrobe/OutfitPreview'
 import AccessoryPicker from '../../components/Wardrobe/AccessoryPicker'
@@ -29,12 +31,14 @@ const TAB_CONFIG: Array<{ key: WardrobeTab; label: string; icon: string }> = [
 export default function WardrobePage() {
   const themeClass = useThemeClass()
   const { currentPet } = usePetStore()
+  const authUserId = useAuthStore(s => s.user?.id || '')
   const wardrobe = useWardrobe()
 
   const [activeTab, setActiveTab] = useState<WardrobeTab>('outfit')
   const [activeSlot, setActiveSlot] = useState<AccessorySlot>('head')
   const [unlockTarget, setUnlockTarget] = useState<string | null>(null)
   const [unlockModalVisible, setUnlockModalVisible] = useState(false)
+  const [sharing, setSharing] = useState(false)
 
   const species = currentPet?.species || 'dog'
   const petName = currentPet?.name || '毛孩子'
@@ -72,9 +76,15 @@ export default function WardrobePage() {
     setUnlockTarget(null)
   }, [])
 
+  const handleUnlocked = useCallback((_accessoryId: string) => {
+    if (authUserId && currentPet?.id) {
+      wardrobe.initWardrobe(authUserId, currentPet.id)
+    }
+  }, [authUserId, currentPet?.id, wardrobe.initWardrobe])
+
   const handleUpgrade = useCallback(() => {
     setUnlockModalVisible(false)
-    Taro.switchTab({ url: '/pages/member/index' })
+    Taro.navigateTo({ url: '/pages/member/index' })
   }, [])
 
   const handleSave = useCallback(async () => {
@@ -86,9 +96,41 @@ export default function WardrobePage() {
     wardrobe.clearOutfit()
   }, [wardrobe.clearOutfit])
 
-  const handleShare = useCallback(() => {
-    Taro.showToast({ title: '分享功能开发中', icon: 'none' })
-  }, [])
+  const handleShare = useCallback(async () => {
+    if (sharing) return
+    setSharing(true)
+    try {
+      // 生成配饰描述文字
+      const pieces = Object.entries(outfitSlots)
+        .filter(([, v]) => v)
+        .map(([slot]) => {
+          const labels: Record<string, string> = { head: '头饰', neck: '项圈', back: '背包', body: '衣服', feet: '鞋袜' }
+          return labels[slot] || slot
+        })
+      const customText = pieces.length > 0
+        ? `${petName}的今日穿搭：${pieces.join('、')}`
+        : `${petName}的时尚造型`
+
+      const card = await shareCardService.generateShareCard({
+        card_type: 'wardrobe',
+        source_data: {
+          pet_id: currentPet?.id,
+          custom_text: customText,
+        },
+        style: { theme: 'cute' },
+      })
+
+      // 预览生成的分享卡片
+      Taro.previewImage({
+        urls: [card.card_url],
+        current: card.card_url,
+      })
+    } catch {
+      Taro.showToast({ title: '生成分享卡片失败', icon: 'none' })
+    } finally {
+      setSharing(false)
+    }
+  }, [sharing, outfitSlots, petName, currentPet?.id])
 
   const handleGenerate = useCallback(
     async (suiteId: string) => {
@@ -240,6 +282,7 @@ export default function WardrobePage() {
         accessoryId={unlockTarget}
         onClose={handleUnlockClose}
         onUpgrade={handleUpgrade}
+        onUnlocked={handleUnlocked}
       />
     </View>
   )

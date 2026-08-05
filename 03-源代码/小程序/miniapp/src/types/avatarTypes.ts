@@ -82,6 +82,7 @@ export interface SeedreamGenerateResult {
 }
 
 export interface PetImageParams {
+  petId: string
   species: PetSpecies
   expression: ExpressionConfig
   breed?: string

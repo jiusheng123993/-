@@ -4,9 +4,11 @@
  */
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import type { AccessoryDef, UnlockSource } from '../../types/wardrobeTypes'
 import { getAccessoryById } from '../../data/wardrobe/accessories'
+import { unlockAccessory } from '../../services/wardrobeService'
+import { useAuthStore } from '../../stores/authStore'
 import './AccessoryUnlockModal.scss'
 
 interface AccessoryUnlockModalProps {
@@ -14,6 +16,7 @@ interface AccessoryUnlockModalProps {
   accessoryId: string | null
   onClose: () => void
   onUpgrade: () => void
+  onUnlocked?: (accessoryId: string) => void
 }
 
 const SOURCE_CONFIG: Record<UnlockSource, { icon: string; title: string; description: string; actionText: string }> = {
@@ -48,7 +51,11 @@ export default function AccessoryUnlockModal({
   accessoryId,
   onClose,
   onUpgrade,
+  onUnlocked,
 }: AccessoryUnlockModalProps) {
+  const [unlocking, setUnlocking] = useState(false)
+  const userId = useAuthStore(s => s.user?.id)
+
   const accessory = useMemo(
     () => accessoryId ? getAccessoryById(accessoryId) : undefined,
     [accessoryId],
@@ -59,13 +66,62 @@ export default function AccessoryUnlockModal({
   const config = SOURCE_CONFIG[accessory.unlockSource]
   const price = accessory.unlockCondition.price as number | undefined
 
+  const handleUnlockFree = async () => {
+    if (!userId) {
+      Taro.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    setUnlocking(true)
+    try {
+      await unlockAccessory(userId, accessory.id, 'default')
+      Taro.showToast({ title: '已解锁', icon: 'success' })
+      onUnlocked?.(accessory.id)
+      onClose()
+    } catch {
+      Taro.showToast({ title: '解锁失败，请重试', icon: 'none' })
+    } finally {
+      setUnlocking(false)
+    }
+  }
+
+  const handleUnlockPaid = async () => {
+    if (!userId) {
+      Taro.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    const priceText = price != null ? `¥${price}` : '付费'
+    Taro.showModal({
+      title: '确认购买',
+      content: `确认购买「${accessory.name}」？\n价格：${priceText}`,
+      confirmText: '确认购买',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+        setUnlocking(true)
+        try {
+          await unlockAccessory(userId, accessory.id, 'paid')
+          Taro.showToast({ title: '购买成功，已解锁', icon: 'success' })
+          onUnlocked?.(accessory.id)
+          onClose()
+        } catch {
+          Taro.showToast({ title: '购买失败，请重试', icon: 'none' })
+        } finally {
+          setUnlocking(false)
+        }
+      },
+    })
+  }
+
   const handleAction = () => {
     switch (accessory.unlockSource) {
-      case 'achievement':
-        Taro.navigateTo({ url: '/pagesPet/achievement/index' })
+      case 'default':
+        handleUnlockFree()
         break
       case 'paid':
-        Taro.showToast({ title: '支付功能开发中', icon: 'none' })
+        handleUnlockPaid()
+        break
+      case 'achievement':
+        Taro.navigateTo({ url: '/pagesPet/achievement/index' })
         break
       case 'member':
         onUpgrade()

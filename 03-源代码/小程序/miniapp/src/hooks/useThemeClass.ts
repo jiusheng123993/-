@@ -7,7 +7,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { useThemeStore, type ThemeKey } from '../stores/themeStore'
 
 /**
- * 返回当前主题 key（如 "sakura-dream"）
+ * 返回当前主题 key（如 "autumn"）
  * 不依赖 Zustand 订阅（Taro 3 + Zustand v3 中 selector 不可靠触发重渲染）
  * 改用 local state + Taro.eventCenter 监听变更
  *
@@ -42,7 +42,7 @@ export function useThemeKey(): ThemeKey {
 }
 
 /**
- * 返回当前主题对应的 CSS 类名（如 "theme-sakura-dream"）
+ * 返回当前主题对应的 CSS 类名（如 "theme-autumn"）
  */
 export function useThemeClass(): string {
   const theme = useThemeKey()

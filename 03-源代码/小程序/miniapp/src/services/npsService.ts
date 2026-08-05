@@ -78,11 +78,10 @@ export async function submitNpsResponse(
   }
 
   try {
-    const response = await api.post<NpsResponse>('/api/nps/responses', {
-      user_id: userId,
+    const response = await api.post<NpsResponse>('/api/feedback/nps', {
       score,
-      trigger_event: triggerEvent,
       feedback,
+      trigger_event: triggerEvent,
     });
 
     const statusData = Taro.getStorageSync(NPS_STATUS_KEY) || {};

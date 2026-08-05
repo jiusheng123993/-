@@ -18,7 +18,15 @@ const config = {
   plugins: isH5 ? [] : [
     path.join(__dirname, 'plugin-ensure-wxss.ts'),
   ],
-  defineConstants: {},
+  defineConstants: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'process.env.TARO_ENV': JSON.stringify(process.env.TARO_ENV || 'weapp'),
+    ENABLE_INNER_HTML: JSON.stringify(false),
+    ENABLE_ADJACENT_HTML: JSON.stringify(false),
+    ENABLE_CLONE_NODE: JSON.stringify(false),
+    ENABLE_SIZE_APIS: JSON.stringify(false),
+    ENABLE_TEMPLATE_CONTENT: JSON.stringify(false),
+  },
   copy: {
     patterns: [],
     options: {},
@@ -52,6 +60,11 @@ const config = {
       chain.merge({
         ignoreWarnings: [/Conflicting order/],
       })
+      // 修复小程序运行时 "process is not defined" 错误
+      // ProvidePlugin 提供 process 全局变量，defineConstants 中的 process.env.* 和 ENABLE_* 由 Taro 内置 DefinePlugin 处理
+      chain.plugin('providePlugin').use(require('webpack').ProvidePlugin, [{
+        process: [path.join(__dirname, '..', 'node_modules', 'process', 'browser.js')],
+      }])
     },
   },
   h5: {

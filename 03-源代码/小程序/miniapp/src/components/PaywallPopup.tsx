@@ -41,7 +41,7 @@ export default function PaywallPopup({
   const handleUpgrade = () => {
     trackEvent('paywall_upgrade_click', { featureName, selectedPlan })
     onClose()
-    Taro.switchTab({ url: '/pages/member/index' })
+    Taro.navigateTo({ url: '/pages/member/index' })
   }
 
   const handleDismiss = () => {

@@ -15,48 +15,14 @@ import {
   type PersonalizedFeedingAdvice,
   type FeedingProfile,
 } from '../../services/feedingService'
-import { getChronicRecords } from '../../services/chronicService'
+import {
+  getFeedingRecords,
+  addFeedingRecord,
+  deleteFeedingRecord,
+  type FeedingRecord,
+} from '../../services/feedingRecordsService'
 import { DietMemoryAdapter } from '../../memory-body/adapters/dietMemoryAdapter'
 import './index.scss'
-
-interface FeedingRecord {
-  id: string
-  petId: string
-  date: string
-  foodType: string
-  brand: string
-  amount: number
-  unit: string
-  mealTime: string
-  appetite: 'good' | 'normal' | 'poor'
-  stool: 'normal' | 'loose' | 'hard'
-  energy: 'high' | 'normal' | 'low'
-  notes: string
-  createdAt: string
-}
-
-const STORAGE_KEY = 'feeding_records'
-
-function getStorage(key: string) {
-  try {
-    const data = Taro.getStorageSync(`xhh_${key}`)
-    return data ? JSON.parse(data) : null
-  } catch {
-    return null
-  }
-}
-
-function setStorage(key: string, value: unknown) {
-  try {
-    Taro.setStorageSync(`xhh_${key}`, JSON.stringify(value))
-  } catch {
-    // ignore
-  }
-}
-
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
-}
 
 const ADVICE_PRIORITY_CONFIG = {
   high: { bg: 'rgba(245, 34, 45, 0.08)', border: 'rgba(245, 34, 45, 0.2)' },
@@ -83,16 +49,12 @@ export default function FeedingAdvicePage() {
     }
   })
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     if (!pet || !user) return
-    const all = getStorage(STORAGE_KEY) || {}
-    const petRecords: FeedingRecord[] = (all[pet.id] || []).sort(
-      (a: FeedingRecord, b: FeedingRecord) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    )
+    const petRecords = await getFeedingRecords(pet.id)
     setRecords(petRecords)
 
-    const chronicRecords = getChronicRecords(pet.id, user.id)
-    const feedingProfile = buildFeedingProfile(pet, chronicRecords)
+    const feedingProfile = await buildFeedingProfile(pet)
     setProfile(feedingProfile)
     setMealPlan(getMealPlan(feedingProfile))
 
@@ -109,22 +71,12 @@ export default function FeedingAdvicePage() {
     loadData()
   }, [loadData])
 
-  const saveRecords = (newRecords: FeedingRecord[]) => {
-    if (!pet || !user) return
-    const all = getStorage(STORAGE_KEY) || {}
-    all[pet.id] = newRecords
-    setStorage(STORAGE_KEY, all)
-    setRecords(newRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()))
-  }
-
-  const handleAdd = (data: Omit<FeedingRecord, 'id' | 'petId' | 'createdAt'>) => {
-    const newRecord: FeedingRecord = {
-      ...data,
-      id: generateId(),
-      petId: pet!.id,
-      createdAt: new Date().toISOString(),
+  const handleAdd = async (data: Omit<FeedingRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => {
+    const newRecord = await addFeedingRecord(pet!.id, data)
+    if (!newRecord) {
+      Taro.showToast({ title: '记录失败，请重试', icon: 'none' })
+      return
     }
-    saveRecords([newRecord, ...records])
     setShowAdd(false)
     Taro.showToast({ title: '记录成功', icon: 'success' })
 
@@ -133,7 +85,7 @@ export default function FeedingAdvicePage() {
       try {
         const dietAdapter = new DietMemoryAdapter(user.id)
         dietAdapter.recordFeeding(pet.id, data.foodType, {
-          date: data.date || new Date().toISOString().split('T')[0],
+          date: data.recordDate || new Date().toISOString().split('T')[0],
           amount: data.amount,
           reaction: data.appetite === 'good' ? 'good' : data.appetite === 'poor' ? 'refused' : 'normal',
         })
@@ -145,14 +97,19 @@ export default function FeedingAdvicePage() {
     loadData()
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     Taro.showModal({
       title: '确认删除',
       content: '确定要删除这条饮食记录吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          saveRecords(records.filter(r => r.id !== id))
-          Taro.showToast({ title: '已删除', icon: 'success' })
+          const ok = await deleteFeedingRecord(pet!.id, id)
+          if (ok) {
+            Taro.showToast({ title: '已删除', icon: 'success' })
+            loadData()
+          } else {
+            Taro.showToast({ title: '删除失败', icon: 'none' })
+          }
         }
       },
     })
@@ -309,7 +266,7 @@ export default function FeedingAdvicePage() {
           {records.map(record => (
             <View key={record.id} className='feeding-record-card'>
               <View className='feeding-record-header'>
-                <Text className='feeding-record-date'>{record.date}</Text>
+                <Text className='feeding-record-date'>{record.recordDate}</Text>
                 <View className='feeding-record-header-right'>
                   <Text className={`feeding-record-appetite feeding-appetite-${record.appetite}`}>
                     {record.appetite === 'good' ? '食欲好' : record.appetite === 'normal' ? '食欲一般' : '食欲差'}
@@ -359,12 +316,12 @@ function AddFeedingModal({
   onSubmit,
   onClose,
 }: {
-  onSubmit: (data: Omit<FeedingRecord, 'id' | 'petId' | 'createdAt'>) => void
+  onSubmit: (data: Omit<FeedingRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => void
   onClose: () => void
 }) {
   const today = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({
-    date: today,
+    recordDate: today,
     foodType: '',
     brand: '',
     amount: '',
@@ -377,7 +334,7 @@ function AddFeedingModal({
   })
 
   const handleDateChange = (e: { detail: { value: string } }) => {
-    setForm({ ...form, date: e.detail.value })
+    setForm({ ...form, recordDate: e.detail.value })
   }
 
   const handleUnitChange = (e: { detail: { value: number } }) => {
@@ -415,9 +372,9 @@ function AddFeedingModal({
         <ScrollView className='feeding-modal-body' scrollY>
           <View className='feeding-form-group'>
             <Text className='feeding-form-label'>日期 *</Text>
-            <Picker mode='date' value={form.date} onChange={handleDateChange as (e: unknown) => void}>
+            <Picker mode='date' value={form.recordDate} onChange={handleDateChange as (e: unknown) => void}>
               <View className='feeding-form-picker'>
-                <Text>{form.date}</Text>
+                <Text>{form.recordDate}</Text>
               </View>
             </Picker>
           </View>

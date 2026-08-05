@@ -138,6 +138,14 @@ function measureTime(fn: () => void, iterations: number = 100): number {
   return (performance.now() - start) / iterations
 }
 
+async function measureTimeAsync(fn: () => Promise<void>, iterations: number = 100): Promise<number> {
+  const start = performance.now()
+  for (let i = 0; i < iterations; i++) {
+    await fn()
+  }
+  return (performance.now() - start) / iterations
+}
+
 function makePetProfile(overrides: Partial<PetProfile> = {}): PetProfile {
   return {
     id: 'pet-001',
@@ -219,21 +227,20 @@ describe('性能基准测试', () => {
   describe('纯函数性能', () => {
     const THRESHOLD_MS = 5
 
-    it('buildFeedingProfile 应在 5ms 内完成', () => {
+    it('buildFeedingProfile 应在 5ms 内完成', async () => {
       const pet = makePetProfile()
-      const chronicRecords = [makeChronicRecord()]
 
-      const avgTime = measureTime(() => {
-        buildFeedingProfile(pet, chronicRecords, ['鸡肉'], true)
+      const avgTime = await measureTimeAsync(async () => {
+        await buildFeedingProfile(pet, ['鸡肉'], true)
       })
 
       expect(avgTime).toBeLessThan(THRESHOLD_MS)
     })
 
-    it('generatePersonalizedAdvice 应在 5ms 内完成', () => {
+    it('generatePersonalizedAdvice 应在 5ms 内完成', async () => {
       const pet = makePetProfile()
       const chronicRecords = [makeChronicRecord()]
-      const profile = buildFeedingProfile(pet, chronicRecords, ['鸡肉'], true)
+      const profile = await buildFeedingProfile(pet, ['鸡肉'], true)
 
       const avgTime = measureTime(() => {
         generatePersonalizedAdvice(profile, 'poor', 'loose')

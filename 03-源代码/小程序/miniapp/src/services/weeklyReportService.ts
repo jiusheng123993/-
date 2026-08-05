@@ -2,7 +2,9 @@
  * 周报服务
  *
  * 生成宠物健康周报，汇总一周健康数据
+ * 优先从后端 API 获取真实数据，模板生成作为降级兜底
  */
+import { api } from './api'
 import type { PetProfile } from './petService'
 import type { PetMoment } from '../types/familyTypes'
 
@@ -261,3 +263,76 @@ export function generateFamilyWeeklySummary(
 
 export { getMoodEmoji, getMoodLabel, getOverallMood }
 export type { WeeklyReport, WeeklyReportData }
+
+// ==================== 后端 API 调用 ====================
+
+/** 后端返回的周报数据结构 */
+export interface BackendWeeklyReport {
+  id: string
+  familyId: string
+  weekStart: string
+  weekEnd: string
+  totalPets: number
+  healthyPets: number
+  overallMood: 'excellent' | 'good' | 'fair' | 'concerning'
+  summary: string
+  highlights: string[]
+  concerns: string[]
+  petReports: Array<{
+    petId: string
+    petName: string
+    species: string
+    breed: string | null
+    checkinDays: number
+    anomalyDays: number
+    streak: number
+    score: number
+    scoreTrend: 'up' | 'down' | 'stable'
+    mood: string
+    summary: string
+  }>
+  aiInsight: string | null
+  shareCardUrl: string | null
+  createdAt: string
+}
+
+/** 获取最新周报 */
+export async function getLatestWeeklyReport(familyId: string): Promise<BackendWeeklyReport | null> {
+  try {
+    const res = await api.get<{ success: boolean; data: BackendWeeklyReport }>(
+      `/api/families/${familyId}/weekly-reports/latest`
+    )
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+/** 手动生成周报 */
+export async function generateWeeklyReportRequest(familyId: string): Promise<BackendWeeklyReport | null> {
+  try {
+    const res = await api.post<{ success: boolean; data: BackendWeeklyReport }>(
+      `/api/families/${familyId}/weekly-reports/generate`
+    )
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+/** 获取周报列表 */
+export async function getWeeklyReportList(
+  familyId: string,
+  page: number = 1,
+  pageSize: number = 10,
+): Promise<{ items: BackendWeeklyReport[]; total: number }> {
+  try {
+    const res = await api.get<{ success: boolean; data: { items: BackendWeeklyReport[]; total: number; page: number; pageSize: number } }>(
+      `/api/families/${familyId}/weekly-reports`,
+      { page: String(page), page_size: String(pageSize) }
+    )
+    return { items: res.data.items || [], total: res.data.total || 0 }
+  } catch {
+    return { items: [], total: 0 }
+  }
+}

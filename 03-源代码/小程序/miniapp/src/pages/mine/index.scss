@@ -11,35 +11,42 @@
   animation: pageEnter 0.4s ease-out;
 }
 
-// ===== 头部用户卡片 =====
-.mine-header {
-  padding: 40rpx $spacing-xl 24rpx;
+// ===== 用户信息卡（原型对齐：渐变横幅 + 头像 + 昵称） =====
+.mine-user-card {
+  margin: 32rpx $spacing-xl 0;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  animation: fadeInUp 0.45s ease-out;
 }
 
-.mine-user-card {
+.mine-user-banner {
+  height: 192rpx;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+}
+
+.mine-user-main {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 24rpx;
-  padding: 28rpx;
-  background: $gradient-card;
-  border-radius: $radius-lg;
-  border: 1px solid $color-border;
-  animation: fadeInUp 0.45s ease-out;
-  @include breathe-glow;
+  padding: 0 40rpx 40rpx;
+  margin-top: -96rpx;
 }
 
 .mine-avatar {
   @include flex-center;
-  width: 120rpx;
-  height: 120rpx;
+  width: 192rpx;
+  height: 192rpx;
   border-radius: $radius-full;
   background: $gradient-warm;
-  box-shadow: 0 0 24rpx rgba($color-primary, 0.3);
+  border: 8rpx solid $color-bg-card;
+  box-shadow: $shadow-sm;
   flex-shrink: 0;
 }
 
 .mine-avatar-text {
-  font-size: 48rpx;
+  font-size: 72rpx;
   color: $color-text-inverse;
   font-weight: $font-weight-bold;
 }
@@ -47,34 +54,36 @@
 .mine-user-info {
   flex: 1;
   min-width: 0;
+  padding-bottom: 8rpx;
 }
 
 .mine-user-name-row {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  margin-bottom: 8rpx;
+  flex-wrap: wrap;
 }
 
 .mine-user-name {
-  font-size: 34rpx;
+  font-size: 40rpx;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
 }
 
 .mine-vip-badge {
-  padding: 4rpx 14rpx;
-  background: $gradient-gold;
-  border-radius: 16rpx;
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, $color-gold-soft, $color-gold);
+  border-radius: 999rpx;
   font-size: 20rpx;
   color: $color-text-inverse;
   font-weight: $font-weight-bold;
-  box-shadow: 0 2rpx 8rpx rgba($color-primary, 0.3);
+  box-shadow: 0 4rpx 16rpx -4rpx rgba($color-gold, 0.45);
 }
 
 .mine-user-desc {
   font-size: $font-size-sm;
-  color: $color-text-hint;
+  color: $color-text-tertiary;
+  margin-top: 16rpx;
 }
 
 .mine-edit-btn {
@@ -84,8 +93,57 @@
   border-radius: $radius-round;
   font-size: $font-size-sm;
   color: $color-primary-light;
-  align-self: flex-start;
+  flex-shrink: 0;
   @include press-feedback;
+}
+
+// ===== 数据概览行 3 列（原型对齐） =====
+.mine-stats {
+  display: flex;
+  margin: 24rpx $spacing-xl 0;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  padding: 40rpx 16rpx;
+  animation: fadeInUp 0.45s ease-out 0.06s both;
+}
+
+.mine-stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+
+  & + .mine-stat-item {
+    border-left: 1px solid $color-border;
+  }
+}
+
+.mine-stat-icon {
+  @include flex-center;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-full;
+  font-size: 32rpx;
+
+  &--coral { background: rgba($color-primary, 0.14); color: $color-primary; }
+  &--gold { background: rgba($color-gold, 0.2); color: $color-gold-deep; }
+  &--info { background: rgba($color-teal, 0.16); color: $color-teal; }
+}
+
+.mine-stat-num {
+  font-size: 36rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.mine-stat-label {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  line-height: 1;
 }
 
 // ===== 宠物切换条 =====
@@ -171,117 +229,37 @@
   color: $color-text-tertiary;
 }
 
-// ===== 数据统计 =====
-.mine-stats {
-  display: flex;
-  margin: 0 $spacing-xl $spacing-md;
-  padding: 28rpx;
-  background: $color-bg-card;
-  border-radius: $radius-lg;
-  border: 1px solid $color-border;
-  animation: fadeInUp 0.45s ease-out 0.05s both;
-}
-
-// ===== 金色分割线 =====
-.section-divider {
-  height: 1px;
-  margin: 8rpx $spacing-xl 16rpx;
-  background: linear-gradient(90deg, transparent, rgba($color-primary, 0.15), transparent);
-}
-
-.mine-stat-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
-  position: relative;
-
-  &:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 20%;
-    height: 60%;
-    width: 1px;
-    background: linear-gradient(180deg, transparent, rgba($color-primary, 0.15), transparent);
-  }
-}
-
-.mine-stat-num {
-  font-size: 40rpx;
-  font-weight: $font-weight-bold;
-  @include gold-gradient-text;
-}
-
-.mine-stat-label {
-  font-size: $font-size-xs;
-  color: $color-text-hint;
-}
-
-// ===== VIP 开通横幅 =====
-.mine-vip-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 $spacing-xl $spacing-md;
-  padding: 24rpx 28rpx;
-  background: $gradient-card;
-  border: 1px solid $color-border;
-  border-radius: $radius-lg;
-  @include breathe-glow;
-  @include press-feedback;
-}
-
-.mine-vip-banner-left {
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-}
-
-.mine-vip-banner-icon {
-  font-size: 44rpx;
-  animation: pulse 2.5s ease-in-out infinite;
-}
-
-.mine-vip-banner-title {
-  font-size: 28rpx;
-  font-weight: $font-weight-bold;
-  color: $color-primary-light;
-  display: block;
-}
-
-.mine-vip-banner-desc {
-  font-size: $font-size-xs;
-  color: $color-text-hint;
-  margin-top: 4rpx;
-  display: block;
-}
-
-.mine-vip-banner-arrow {
-  font-size: 36rpx;
-  color: $color-primary;
-  font-weight: $font-weight-bold;
-}
-
-// ===== 菜单组 =====
+// ===== 分组菜单（原型对齐：组标题 + 卡片 + 图标圆） =====
 .mine-menu-group {
-  margin: 0 $spacing-xl $spacing-md;
+  margin: 32rpx $spacing-xl 0;
+  animation: fadeInUp 0.45s ease-out 0.12s both;
+}
+
+.mine-menu-group-title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: $font-weight-medium;
+  color: $color-text-tertiary;
+  padding: 0 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.mine-menu-card {
   background: $color-bg-card;
-  border-radius: $radius-lg;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
   overflow: hidden;
-  border: 1px solid $color-border;
-  animation: fadeInUp 0.45s ease-out 0.1s both;
 }
 
 .mine-menu-item {
   display: flex;
   align-items: center;
-  padding: 28rpx $spacing-lg;
-  border-bottom: 1px solid $color-divider;
+  gap: 20rpx;
+  padding: 28rpx 32rpx;
+  border-bottom: 1px solid $color-border;
   transition: all 0.15s ease;
 
-  &:last-child {
+  &--last {
     border-bottom: none;
   }
 
@@ -290,27 +268,123 @@
   }
 }
 
+.mine-menu-icon-wrap {
+  @include flex-center;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+  background: rgba($color-primary, 0.14);
+
+  &--gradient {
+    background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  }
+}
+
 .mine-menu-icon {
-  font-size: 36rpx;
-  margin-right: $spacing-md;
-  width: 40rpx;
-  text-align: center;
+  font-size: 32rpx;
+}
+
+.mine-menu-label-wrap {
+  flex: 1;
+  min-width: 0;
 }
 
 .mine-menu-label {
-  flex: 1;
-  font-size: $font-size-md;
+  display: block;
+  font-size: 28rpx;
   color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.mine-menu-theme-desc {
+  display: block;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.mine-menu-theme-dots {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.mine-theme-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4rpx $color-bg-card, 0 0 0 7rpx $color-border;
 }
 
 .mine-menu-arrow {
   font-size: 32rpx;
   color: $color-text-tertiary;
+  flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
 .mine-menu-item:active .mine-menu-arrow {
   transform: translateX(4rpx);
+}
+
+// ===== 主题皮肤面板（原型对齐：四季色选择） =====
+.mine-theme-panel {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid $color-border;
+  background: $color-bg-secondary;
+}
+
+.mine-theme-panel-hint {
+  display: block;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 20rpx;
+}
+
+.mine-theme-grid {
+  display: flex;
+  gap: 20rpx;
+}
+
+.mine-theme-choice {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 0;
+  border-radius: $radius-sm;
+  transition: all 0.15s ease;
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  &--active {
+    opacity: 1;
+  }
+}
+
+.mine-theme-choice-dot {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4rpx $color-bg-card, 0 0 0 7rpx $color-border;
+
+  .mine-theme-choice--active & {
+    box-shadow: 0 0 0 4rpx $color-bg-card, 0 0 0 7rpx $color-primary;
+  }
+}
+
+.mine-theme-choice-label {
+  font-size: 22rpx;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+
+  .mine-theme-choice--active & {
+    color: $color-primary;
+  }
 }
 
 // ===== 退出登录 =====

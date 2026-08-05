@@ -24,6 +24,8 @@ interface BGMOption {
   emoji: string
   name: string
   tag: string
+  /** BGM 预览音频 URL */
+  previewUrl: string
 }
 
 /** API 响应类型 */
@@ -52,10 +54,10 @@ interface MemberCheckResponse {
 // ==================== 常量 ====================
 
 const BGM_OPTIONS: BGMOption[] = [
-  { key: 'piano', emoji: '🎵', name: '温柔时光', tag: '钢琴曲' },
-  { key: 'guitar', emoji: '🎵', name: '暖心回忆', tag: '吉他' },
-  { key: 'strings', emoji: '🎵', name: '深情告白', tag: '弦乐' },
-  { key: 'upbeat', emoji: '🎵', name: '欢快瞬间', tag: '轻快节奏' },
+  { key: 'piano', emoji: '🎵', name: '温柔时光', tag: '钢琴曲', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/piano-preview.mp3` },
+  { key: 'guitar', emoji: '🎵', name: '暖心回忆', tag: '吉他', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/guitar-preview.mp3` },
+  { key: 'strings', emoji: '🎵', name: '深情告白', tag: '弦乐', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/strings-preview.mp3` },
+  { key: 'upbeat', emoji: '🎵', name: '欢快瞬间', tag: '轻快节奏', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/upbeat-preview.mp3` },
 ]
 
 const STEP_LABELS = ['选照片', '写叙事', '选BGM', '确认', '完成']
@@ -95,6 +97,8 @@ export default function MemoirVlog() {
 
   // —— 步骤3：选BGM ——
   const [selectedBGM, setSelectedBGM] = useState('piano')
+  const [playingBGM, setPlayingBGM] = useState<string | null>(null)
+  const bgmAudioRef = useRef<Taro.InnerAudioContext | null>(null)
 
   // —— 步骤4：确认支付 ——
   const [isMember, setIsMember] = useState<boolean | null>(null)
@@ -155,6 +159,69 @@ export default function MemoirVlog() {
       urls,
     })
   }, [photos])
+
+  // ==================== BGM 预览 ====================
+
+  const handleBGMPreview = useCallback((bgmKey: string, previewUrl: string) => {
+    // 如果正在播放同一首 BGM，则停止
+    if (playingBGM === bgmKey) {
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.stop()
+        bgmAudioRef.current.destroy()
+        bgmAudioRef.current = null
+      }
+      setPlayingBGM(null)
+      return
+    }
+
+    // 停止当前播放的 BGM
+    if (bgmAudioRef.current) {
+      bgmAudioRef.current.stop()
+      bgmAudioRef.current.destroy()
+      bgmAudioRef.current = null
+    }
+
+    // 创建新的音频上下文
+    const audioCtx = Taro.createInnerAudioContext()
+    audioCtx.src = previewUrl
+    audioCtx.autoplay = true
+    audioCtx.loop = false
+
+    audioCtx.onPlay(() => {
+      setPlayingBGM(bgmKey)
+    })
+
+    audioCtx.onEnded(() => {
+      setPlayingBGM(null)
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.destroy()
+        bgmAudioRef.current = null
+      }
+    })
+
+    audioCtx.onError((err) => {
+      console.warn('[BGM Preview] 音频播放失败:', err.errMsg)
+      setPlayingBGM(null)
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.destroy()
+        bgmAudioRef.current = null
+      }
+      Taro.showToast({ title: '试听暂不可用', icon: 'none' })
+    })
+
+    bgmAudioRef.current = audioCtx
+  }, [playingBGM])
+
+  // 组件卸载时清理音频
+  useEffect(() => {
+    return () => {
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.stop()
+        bgmAudioRef.current.destroy()
+        bgmAudioRef.current = null
+      }
+    }
+  }, [])
 
   // ==================== 检查会员状态 ====================
 
@@ -410,7 +477,12 @@ export default function MemoirVlog() {
 
   const handlePlayVideo = useCallback(() => {
     if (outputUrl) {
-      Taro.showToast({ title: '视频播放（待接入）', icon: 'none' })
+      Taro.previewMedia({
+        sources: [{ url: outputUrl, type: 'video' }],
+        current: 0,
+      }).catch(() => {
+        Taro.showToast({ title: '视频播放失败', icon: 'none' })
+      })
     }
   }, [outputUrl])
 
@@ -531,13 +603,13 @@ export default function MemoirVlog() {
               <Text className='memoir-vlog__bgm-card-tag'>{bgm.tag}</Text>
             </View>
             <View
-              className='memoir-vlog__bgm-card-preview'
+              className={`memoir-vlog__bgm-card-preview${playingBGM === bgm.key ? ' memoir-vlog__bgm-card-preview--playing' : ''}`}
               onClick={(e) => {
                 e.stopPropagation()
-                Taro.showToast({ title: '试听功能即将上线', icon: 'none' })
+                handleBGMPreview(bgm.key, bgm.previewUrl)
               }}
             >
-              ▶
+              <Text>{playingBGM === bgm.key ? '⏸' : '▶'}</Text>
             </View>
             <View
               className={`memoir-vlog__bgm-card-check${

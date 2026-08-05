@@ -4,7 +4,7 @@
  * 提供开发/测试阶段的模拟数据，涵盖宠物、打卡、趋势、家庭、动态等场景
  */
 import type { User, Pet, Checkin, Membership } from '../types'
-import type { PetFamily, PetFamilyMember, PetLineage, PetMoment, FamilyPhoto } from '../types/familyTypes'
+import type { PetFamily, PetFamilyMember, PetLineage, PetMoment, FamilyPhoto, LineageResponse } from '../types/familyTypes'
 import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
 import type { MemoryEntry, MemoryUpdateResult } from '../types/memoryTypes'
 
@@ -303,16 +303,25 @@ export const mockApi = {
     const member = mockFamilyMembers.find(m => m.familyId === familyId && m.id === memberId)
     if (member) member.role = role
   },
-  getLineage: async (petId: string): Promise<{ parents: PetLineage[]; children: PetLineage[] }> => {
+  getLineage: async (petId: string): Promise<LineageResponse> => {
     await wait()
     const parents = mockLineages.filter(l => l.childId === petId)
     const children = mockLineages.filter(l => l.parentId === petId)
-    return { parents, children }
+    return {
+      pet: { id: petId, name: 'Mock Pet', avatarUrl: null, species: null },
+      ancestorsLevels: [],
+      descendantsLevels: [],
+      parents,
+      children,
+      siblings: [],
+      mates: [],
+    }
   },
   addLineage: async (parentId: string, childId: string, litterDate?: string): Promise<void> => {
     await wait()
     mockLineages.push({
       id: 'lin_' + Date.now(),
+      familyId: 'mock_family',
       parentId,
       childId,
       litterDate,
@@ -322,6 +331,12 @@ export const mockApi = {
     await wait()
     const idx = mockLineages.findIndex(l => l.id === lineageId)
     if (idx !== -1) mockLineages.splice(idx, 1)
+  },
+  createRelationship: async (): Promise<void> => {
+    await wait()
+  },
+  deleteRelationship: async (relationshipId: string): Promise<void> => {
+    await wait()
   },
 
   getFamilyPhotos: async (familyId: string): Promise<FamilyPhoto[]> => {

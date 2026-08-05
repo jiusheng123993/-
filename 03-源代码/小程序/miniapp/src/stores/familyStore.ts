@@ -24,6 +24,7 @@ interface FamilyState {
   fetchPhotos: () => Promise<void>
   savePhoto: (photoUrl: string, memberCount: number, memberNames: string[], photoType?: 'generated' | 'uploaded', description?: string) => Promise<void>
   deletePhoto: (photoId: string) => Promise<void>
+  generateAiPhoto: (style: string) => Promise<{ success: boolean; photoId?: string; photoUrl?: string; message?: string }>
 }
 
 export const useFamilyStore = create<FamilyState>((set, get) => ({
@@ -35,16 +36,23 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   loading: false,
   error: null,
 
-  /** 获取所有家庭列表，默认选中第一个家庭 */
+  /** 获取所有家庭列表，默认选中第一个家庭，始终刷新成员列表 */
   fetchFamilies: async () => {
     set({ loading: true, error: null })
     try {
       const families = await familyService.getFamilies()
       set({ families })
-      if (families.length > 0 && !get().currentFamily) {
-        set({ currentFamily: families[0] })
-        const members = await familyService.getMembers(families[0].id)
+      if (families.length > 0) {
+        // 优先保留已选中的家庭，否则默认选第一个
+        const existingFamily = get().currentFamily
+        const selectedFamily = existingFamily && families.find(f => f.id === existingFamily.id)
+          ? existingFamily
+          : families[0]
+        set({ currentFamily: selectedFamily })
+        const members = await familyService.getMembers(selectedFamily.id)
         set({ members })
+      } else {
+        set({ currentFamily: null, members: [] })
       }
     } catch (err) {
       set({ error: '加载家庭列表失败' })
@@ -97,7 +105,9 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       const members = await familyService.getMembers(family.id)
       set({ members })
     } catch (err) {
-      set({ error: '添加成员失败' })
+      const message = (err as { message?: string }).message || '添加成员失败'
+      set({ error: message })
+      throw err
     }
   },
 
@@ -156,19 +166,31 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   },
 
   /**
-   * 保存家庭合影
-   * @param photoUrl - 照片 URL
-   * @param memberCount - 成员数
-   * @param memberNames - 成员名称列表
-   * @param photoType - 照片类型（生成/上传）
-   * @param description - 照片描述
+   * 保存家庭合影（上传到后端，不再使用本地存储）
    */
   savePhoto: async (photoUrl, memberCount, memberNames, photoType = 'generated' as 'generated' | 'uploaded', description: string | undefined) => {
     const family = get().currentFamily
     if (!family) return
     set({ error: null })
     try {
-      const photo = await familyService.saveFamilyPhoto(family.id, photoUrl, memberCount, memberNames, photoType, description)
+      const result = await familyService.uploadFamilyPhoto(family.id, {
+        photoUrl,
+        photoType,
+        memberCount,
+        memberNames,
+        description,
+      })
+      const photo: FamilyPhoto = {
+        id: result.id,
+        familyId: family.id,
+        userId: '',
+        photoUrl,
+        photoType,
+        description,
+        memberCount,
+        memberNames,
+        createdAt: new Date().toISOString(),
+      }
       set((state) => ({
         photos: [photo, ...state.photos],
       }))
@@ -182,14 +204,51 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
    * @param photoId - 照片 ID
    */
   deletePhoto: async (photoId) => {
+    const family = get().currentFamily
+    if (!family) return
     set({ error: null })
     try {
-      await familyService.deleteFamilyPhoto(photoId)
+      await familyService.deleteFamilyPhoto(family.id, photoId)
       set((state) => ({
         photos: state.photos.filter((p) => p.id !== photoId),
       }))
     } catch (err) {
       set({ error: '删除照片失败' })
+    }
+  },
+
+  /**
+   * AI 全家福生成
+   * 调用后端 Seedream API 合成全家福，失败时返回 success:false
+   */
+  generateAiPhoto: async (style) => {
+    const family = get().currentFamily
+    if (!family) return { success: false, message: '未选择家庭' }
+    set({ error: null })
+    try {
+      const result = await familyService.generateFamilyPhoto(family.id, style)
+      if (result && result.photoUrl) {
+        const memberNames = get().members.map((m) => m.petName || '').filter(Boolean)
+        const photo: FamilyPhoto = {
+          id: result.id,
+          familyId: family.id,
+          userId: '',
+          photoUrl: result.photoUrl,
+          photoType: 'generated',
+          memberCount: get().members.length,
+          memberNames,
+          createdAt: new Date().toISOString(),
+        }
+        set((state) => ({
+          photos: [photo, ...state.photos],
+        }))
+        return { success: true, photoId: result.id, photoUrl: result.photoUrl }
+      }
+      return { success: false, message: '生成失败，请重试' }
+    } catch (err) {
+      const message = (err as { message?: string }).message || 'AI 生成失败'
+      set({ error: message })
+      return { success: false, message }
     }
   },
 }))

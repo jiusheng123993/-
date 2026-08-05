@@ -14,7 +14,10 @@ import { useFoodFlow } from '../../hooks/useFoodFlow'
 import { useMemoryFlow } from '../../hooks/useMemoryFlow'
 import { useVoiceInput } from '../../hooks/useVoiceInput'
 import { usePetStore } from '../../stores/petStore'
+import { useAuthStore } from '../../stores/authStore'
+import { getTodayCheckin } from '../../services/checkinService'
 import type { CardData, Message, NamingDetail, PetInfo } from '../../types/chatTypes'
+import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
 import HomeSkeleton from '../../components/HomeSkeleton'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
@@ -35,6 +38,21 @@ function calcAge(birthDate: string): string {
   return `${ageYears}岁${remainingMonths}月`
 }
 
+/** 食欲等级 → 文案（对齐打卡页） */
+const APPETITE_LABEL: Record<number, string> = { 1: '不吃', 2: '少吃', 3: '正常', 4: '多吃', 5: '亢进', 6: '呕吐' }
+
+/** 精神等级 → 文案（对齐打卡页） */
+const SPIRIT_LABEL: Record<number, string> = { 1: '萎靡', 2: '低落', 3: '正常', 4: '活跃', 5: '亢奋' }
+
+/** 格式化打卡时间 → "08:32" */
+function formatCheckinTime(value: Date | string): string {
+  const d = value instanceof Date ? value : new Date(value)
+  if (isNaN(d.getTime())) return ''
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
+}
+
 // 从真实宠物数据获取信息，而非硬编码
 function usePetInfo(): PetInfo {
   const pet = usePetStore(s => s.currentPet)
@@ -53,6 +71,8 @@ function usePetInfo(): PetInfo {
 }
 
 const PLUS_MENU_ITEMS = [
+  { icon: '📷', label: '拍摄照片', sub: '相机拍摄', bg: 'rgba(255,107,61,0.12)' },
+  { icon: '🖼️', label: '相册图片', sub: '从相册选择', bg: 'rgba(232,168,56,0.12)' },
   { icon: '📋', label: '健康打卡', sub: '5项日常检查，1分钟完成', bg: 'rgba(232,168,56,0.12)' },
   { icon: '✨', label: 'AI 取名', sub: '智能推荐 + 寓意解读', bg: 'rgba(91,154,155,0.12)' },
   { icon: '📸', label: '记录回忆', sub: '上传照片 + 写一段话', bg: 'rgba(140,173,126,0.12)' },
@@ -63,13 +83,15 @@ const PLUS_MENU_ITEMS = [
 export default function Index() {
   const themeClass = useThemeClass()
   const petInfo = usePetInfo()
+  const user = useAuthStore(s => s.user)
+  const [todayHealth, setTodayHealth] = useState<PetHealthEntry | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
   const [plusPanelOpen, setPlusPanelOpen] = useState(false)
   const [showGreetingQuickActions, setShowGreetingQuickActions] = useState(true)
   const [currentQuickActions, setCurrentQuickActions] = useState<QuickAction[]>([
-    { action: 'checkin', label: '打卡', emoji: '💩' },
-    { action: 'food', label: '查食物', emoji: '🔍' },
+    { action: 'checkin', label: '健康打卡', emoji: '💩' },
+    { action: 'food', label: '食物查询', emoji: '🔍' },
     { action: 'symptom', label: '症状初筛', emoji: '💊' },
   ])
 
@@ -82,6 +104,18 @@ export default function Index() {
   })
 
   const { agentToolStatus } = chat
+
+  // 加载今日健康打卡数据（用于健康摘要卡）
+  useEffect(() => {
+    const activePet = petInfo.activePet
+    if (!activePet || !user?.id) {
+      setTodayHealth(null)
+      return
+    }
+    getTodayCheckin(activePet.id, user.id)
+      .then(entry => setTodayHealth(entry))
+      .catch(() => setTodayHealth(null))
+  }, [petInfo.activePet?.id, user?.id])
 
   const checkin = useCheckinFlow({
     addAiMsg: chat.addAiMsg,
@@ -250,11 +284,13 @@ export default function Index() {
   const handlePlusMenuItem = (index: number) => {
     setPlusPanelOpen(false)
     switch (index) {
-      case 0: checkin.startCheckin(); break
-      case 1: naming.startNaming(); break
-      case 2: memory.startMemoryRecord(); break
-      case 3: Taro.navigateTo({ url: '/pagesPet/breed/index' }); break
-      case 4: Taro.switchTab({ url: '/pages/family/index' }); break
+      case 0: chat.handleImageSend(['camera']); break
+      case 1: chat.handleImageSend(['album']); break
+      case 2: checkin.startCheckin(); break
+      case 3: naming.startNaming(); break
+      case 4: memory.startMemoryRecord(); break
+      case 5: Taro.navigateTo({ url: '/pagesPet/breed/index' }); break
+      case 6: Taro.switchTab({ url: '/pages/family/index' }); break
     }
   }
 
@@ -548,6 +584,14 @@ export default function Index() {
   return (
     <View className={`chat-home-page ${themeClass}`}>
 
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+      </View>
+
       {/* 爪印粒子装饰 */}
       <View className='chat-paw-particles'>
         <Text className='chat-paw chat-paw--1'>🐾</Text>
@@ -585,12 +629,15 @@ export default function Index() {
         <>
       <View className='chat-top-bar'>
         <View className='chat-top-left'>
-          <View className='chat-pet-avatar'>
-            <Text>🐾</Text>
-          </View>
-          <View className='chat-top-info'>
+          <View className='chat-top-brand'>
             <Text className='chat-pet-name'>星寰海</Text>
             <Text className='chat-pet-detail'>AI 宠物管家</Text>
+          </View>
+        </View>
+        <View className='chat-top-right'>
+          <View className='chat-top-memory-btn' onClick={() => Taro.navigateTo({ url: '/pagesUser/memory/index' })}>
+            <Text className='chat-top-memory-icon'>🧠</Text>
+            <Text className='chat-top-memory-text'>记忆</Text>
           </View>
         </View>
       </View>
@@ -602,13 +649,63 @@ export default function Index() {
         ref={chat.scrollRef}
       >
 
+        {/* ===== 今日健康摘要卡（设计稿对齐） ===== */}
+        <View className='home-summary-card' onClick={() => checkin.startCheckin()}>
+          <View className='home-summary-main'>
+            <View className='home-summary-avatar'>
+              <Text>{petInfo.emoji || '🐾'}</Text>
+            </View>
+            <View className='home-summary-info'>
+              <Text className='home-summary-title'>今日健康摘要</Text>
+              <View className='home-summary-stats'>
+                <Text className='home-summary-stat'>
+                  便便 <Text className='home-summary-stat-val home-summary-stat-val--coral'>{todayHealth ? `${todayHealth.poopLevel}/5` : '--'}</Text>
+                </Text>
+                <Text className='home-summary-stat'>
+                  食欲 <Text className='home-summary-stat-val home-summary-stat-val--success'>{todayHealth ? APPETITE_LABEL[todayHealth.appetiteLevel] ?? '正常' : '--'}</Text>
+                </Text>
+                <Text className='home-summary-stat'>
+                  精神 <Text className='home-summary-stat-val home-summary-stat-val--success'>{todayHealth ? SPIRIT_LABEL[todayHealth.spiritLevel] ?? '正常' : '--'}</Text>
+                </Text>
+              </View>
+              <Text className='home-summary-hint'>
+                {todayHealth
+                  ? `上次打卡：今天 ${formatCheckinTime(todayHealth.createdAt)}`
+                  : '👆 今天还没打卡，点击开始'}
+              </Text>
+            </View>
+            <Text className='home-summary-go'>›</Text>
+          </View>
+        </View>
+
+        {/* ===== 宠物的话（设计稿对齐） ===== */}
+        <View className='home-pet-quote'>
+          <Text className='home-pet-quote-icon'>✨</Text>
+          <Text className='home-pet-quote-text'>{todayHealth ? '今天状态记录好啦，我很舒服～想出去玩！' : '今天也要元气满满哦！记得帮我打卡，我想出去玩～'}</Text>
+          <Text className='home-pet-quote-author'>— {petInfo.name || '小可爱'}</Text>
+        </View>
+
+        {/* ===== 3秒健康打卡主按钮（设计稿对齐） ===== */}
+        <View className='home-checkin-cta' onClick={() => checkin.startCheckin()} hoverClass='home-checkin-cta--hover'>
+          <View className='home-checkin-cta-left'>
+            <View className='home-checkin-cta-icon'>
+              <Text>🐾</Text>
+            </View>
+            <View className='home-checkin-cta-texts'>
+              <Text className='home-checkin-cta-title'>3秒健康打卡</Text>
+              <Text className='home-checkin-cta-sub'>便便 · 食欲 · 精神 · 运动 · 体重</Text>
+            </View>
+          </View>
+          <Text className='home-checkin-cta-arrow'>→</Text>
+        </View>
+
         <View className='msg-row ai'>
           <View className='msg-avatar'>
             <Text>🤖</Text>
           </View>
           <View className='msg-bubble-wrap'>
             <View className='msg-bubble'>
-              <Text>早安呀！我是星寰海的AI小助手 ✦{'\n\n'}今天有什么可以帮你的？来打个卡吧～ 或者告诉我你想了解什么？</Text>
+              <Text>你好呀～我是星寰海的AI宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
             </View>
             {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
@@ -749,6 +846,48 @@ export default function Index() {
         )}
 
         <View className='chat-bottom-spacer' />
+
+        {/* ===== 快捷功能网格 2x2（设计稿对齐） ===== */}
+        <View className='home-shortcuts'>
+          <Text className='home-shortcuts-title'>快捷功能</Text>
+          <View className='home-shortcuts-grid'>
+            <View className='home-shortcut' onClick={() => food.handleFoodQuery()} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--coral'>
+                <Text>🔍</Text>
+              </View>
+              <Text className='home-shortcut-label'>食物查询</Text>
+              <Text className='home-shortcut-desc'>查一查毛孩子能不能吃</Text>
+            </View>
+            <View className='home-shortcut' onClick={() => symptom.startSymptom()} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--gold'>
+                <Text>🩺</Text>
+              </View>
+              <Text className='home-shortcut-label'>症状初筛</Text>
+              <Text className='home-shortcut-desc'>不舒服先问问我</Text>
+            </View>
+            <View className='home-shortcut' onClick={() => Taro.navigateTo({ url: '/pagesPet/vaccine/index' })} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--sage'>
+                <Text>💉</Text>
+              </View>
+              <Text className='home-shortcut-label'>疫苗日历</Text>
+              <Text className='home-shortcut-desc'>接种提醒不遗漏</Text>
+            </View>
+            <View className='home-shortcut' onClick={() => Taro.navigateTo({ url: '/pagesPet/trends/index' })} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--teal'>
+                <Text>📈</Text>
+              </View>
+              <Text className='home-shortcut-label'>健康趋势</Text>
+              <Text className='home-shortcut-desc'>看看成长变化</Text>
+            </View>
+            <View className='home-shortcut' onClick={() => Taro.switchTab({ url: '/pages/family/index' })} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--coral'>
+                <Text>👨‍👩‍👧‍👦</Text>
+              </View>
+              <Text className='home-shortcut-label'>宠物家庭</Text>
+              <Text className='home-shortcut-desc'>一页看全家健康</Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       <View className='chat-input-area'>
@@ -805,7 +944,7 @@ export default function Index() {
               placeholder={naming.isTextInputActive && naming.currentStep?.placeholder
                 ? naming.currentStep.placeholder
                 : '说说宠物今天的情况...'}
-              placeholderStyle='color: #556'
+              placeholderStyle='color: #B69B83'
               confirmType='send'
             />
           )}
@@ -834,11 +973,6 @@ export default function Index() {
               )}
             </View>
           )}
-
-          {/* 照片按钮 */}
-          <View className='wx-icon-btn' onClick={chat.handleImageSend}>
-            <Text className='wx-icon-text'>📷</Text>
-          </View>
 
           {/* + 按钮 / 发送按钮 */}
           {inputValue.trim() ? (

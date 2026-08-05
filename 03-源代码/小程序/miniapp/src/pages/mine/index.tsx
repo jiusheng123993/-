@@ -1,6 +1,7 @@
 /**
  * 我的页面
- * 用户信息展示、宠物切换、数据统计、功能菜单入口
+ * 对齐高保真原型 mine.html：渐变横幅用户卡 + 数据概览 3 列 + 分组菜单（数据服务/管理/设置-主题皮肤）+ 退出登录
+ * 保留原有业务逻辑：登录校验、打卡/回忆统计、宠物切换、会员状态、退出登录
  */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
@@ -8,27 +9,58 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import { useMembershipStore } from '../../stores/membershipStore'
+import { useThemeStore, type ThemeKey } from '../../stores/themeStore'
 import { getCheckinStats } from '../../services/checkinService'
+import { timelineService } from '../../services/timelineService'
 import PageLoading from '../../components/PageLoading'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import './index.scss'
 
-const MENU_ITEMS = [
-  [
-    { icon: '📊', label: '健康报告', url: '/pagesPet/trends/index' },
-    { icon: '💉', label: '疫苗日历', url: '/pagesPet/vaccine/index' },
-    { icon: '👑', label: '会员中心', url: '/pages/member/index' },
-  ],
-  [
-    { icon: '📈', label: '效果追踪', url: '/pagesUser/effect-tracking/index' },
-  ],
-  [
-    { icon: '👥', label: '邀请好友', url: '/pagesUser/invite/index' },
-    { icon: '💬', label: '意见反馈', url: '' },
-  ],
-  [
-    { icon: '⚙️', label: '设置', url: '/pagesUser/settings/index' },
-  ],
+/** 主题配置（对齐原型四季色） */
+const THEME_OPTIONS: { key: ThemeKey; label: string; colors: [string, string] }[] = [
+  { key: 'spring', label: '春', colors: ['#8AD390', '#54B460'] },
+  { key: 'summer', label: '夏', colors: ['#7CC6F0', '#2FA8E8'] },
+  { key: 'autumn', label: '秋', colors: ['#FFA082', '#FF6B3D'] },
+  { key: 'winter', label: '冬', colors: ['#A5B1F7', '#6C7CF0'] },
+]
+
+/** 计算养宠时长（年/月） */
+function calcPetDuration(createdAt?: string): string {
+  if (!createdAt) return ''
+  const start = new Date(createdAt)
+  if (isNaN(start.getTime())) return ''
+  const now = new Date()
+  const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+  if (months < 1) return '刚刚开始'
+  if (months < 12) return `养宠 ${months} 个月`
+  return `养宠 ${Math.floor(months / 12)} 年`
+}
+
+/** 菜单分组（对齐原型：数据服务 / 管理 / 设置） */
+const MENU_GROUPS: { title: string; items: { icon: string; label: string; url: string }[] }[] = [
+  {
+    title: '数据服务',
+    items: [
+      { icon: '📄', label: '健康报告', url: '/pagesPet/trends/index' },
+      { icon: '💉', label: '疫苗日历', url: '/pagesPet/vaccine/index' },
+      { icon: '👑', label: '会员中心', url: '/pages/member/index' },
+      { icon: '🏆', label: '成就墙', url: '/pagesPet/achievement/index' },
+    ],
+  },
+  {
+    title: '管理',
+    items: [
+      { icon: '📈', label: '效果追踪', url: '/pagesUser/effect-tracking/index' },
+      { icon: '🎁', label: '邀请好友', url: '/pagesUser/invite/index' },
+      { icon: '💬', label: '意见反馈', url: '/pagesUser/feedback/index' },
+    ],
+  },
+  {
+    title: '设置',
+    items: [
+      { icon: '⚙️', label: '设置', url: '/pagesUser/settings/index' },
+    ],
+  },
 ]
 
 export default function Mine() {
@@ -40,7 +72,8 @@ export default function Mine() {
   const membership = useMembershipStore(state => state.membership)
   const [pageReady, setPageReady] = useState(false)
   const [totalCheckins, setTotalCheckins] = useState(0)
-  const [totalDiaries, setTotalDiaries] = useState(0)
+  const [totalMemories, setTotalMemories] = useState(0)
+  const [themePanelOpen, setThemePanelOpen] = useState(false)
   const themeClass = useThemeClass()
 
   useEffect(() => {
@@ -57,20 +90,23 @@ export default function Mine() {
       try {
         await fetchPets(user.id)
         const fetchedPets = usePetStore.getState().pets
+        let totalC = 0
         if (fetchedPets.length > 0 && user?.id) {
-          let totalC = 0
-          let totalD = 0
           for (const pet of fetchedPets) {
             try {
               const stats = await getCheckinStats(pet.id, user.id)
               totalC += stats.totalCheckins
-              totalD += stats.totalCheckins
             } catch {
               // 单个宠物统计失败不影响整体
             }
           }
-          setTotalCheckins(totalC)
-          setTotalDiaries(totalD)
+        }
+        setTotalCheckins(totalC)
+        try {
+          const moments = await timelineService.getMoments()
+          setTotalMemories(moments.length)
+        } catch {
+          setTotalMemories(0)
         }
       } catch (err) {
         // 静默处理错误
@@ -101,16 +137,32 @@ export default function Mine() {
     })
   }
 
+  const handleThemeSelect = (theme: ThemeKey) => {
+    useThemeStore.getState().setTheme(theme)
+  }
+
   if (!pageReady) {
     return <PageLoading />
   }
 
   const isVip = membership?.level !== 'free'
+  const currentTheme = useThemeStore.getState().current
+  const petDuration = calcPetDuration(pets[0]?.createdAt)
 
   return (
     <ScrollView className={`mine-page ${themeClass}`} scrollY>
-      <View className='mine-header'>
-        <View className='mine-user-card'>
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+      </View>
+
+      {/* ===== 用户信息卡：渐变横幅 + 头像 + 昵称 + 会员徽章（原型对齐） ===== */}
+      <View className='mine-user-card'>
+        <View className='mine-user-banner' />
+        <View className='mine-user-main'>
           <View className='mine-avatar'>
             <Text className='mine-avatar-text'>{user?.nickname?.charAt(0) || '👤'}</Text>
           </View>
@@ -119,12 +171,12 @@ export default function Mine() {
               <Text className='mine-user-name'>{user?.nickname || '用户'}</Text>
               {isVip && (
                 <View className='mine-vip-badge'>
-                  <Text>VIP</Text>
+                  <Text>👑 星钻会员</Text>
                 </View>
               )}
             </View>
             <Text className='mine-user-desc'>
-              {pets.length > 0 ? `${pets.length}只毛孩子` : '还没有添加宠物'}
+              {pets.length > 0 ? `铲屎官 · ${petDuration}` : '还没有添加宠物'}
             </Text>
           </View>
           <View className='mine-edit-btn' onClick={() => navigateTo('/pagesUser/profile/index')}>
@@ -133,6 +185,32 @@ export default function Mine() {
         </View>
       </View>
 
+      {/* ===== 数据概览行 3 列（原型对齐） ===== */}
+      <View className='mine-stats'>
+        <View className='mine-stat-item'>
+          <View className='mine-stat-icon mine-stat-icon--coral'>
+            <Text>🐾</Text>
+          </View>
+          <Text className='mine-stat-num'>{pets.length}只</Text>
+          <Text className='mine-stat-label'>宠物</Text>
+        </View>
+        <View className='mine-stat-item'>
+          <View className='mine-stat-icon mine-stat-icon--gold'>
+            <Text>📅</Text>
+          </View>
+          <Text className='mine-stat-num'>{totalCheckins}天</Text>
+          <Text className='mine-stat-label'>打卡</Text>
+        </View>
+        <View className='mine-stat-item'>
+          <View className='mine-stat-icon mine-stat-icon--info'>
+            <Text>📷</Text>
+          </View>
+          <Text className='mine-stat-num'>{totalMemories}条</Text>
+          <Text className='mine-stat-label'>回忆</Text>
+        </View>
+      </View>
+
+      {/* ===== 宠物切换 chips（保留） ===== */}
       {pets.length > 0 && (
         <View className='mine-pet-chips'>
           <ScrollView className='mine-pet-chips-scroll' scrollX showScrollbar={false}>
@@ -170,52 +248,73 @@ export default function Mine() {
         </View>
       )}
 
-      <View className='mine-stats'>
-        <View className='mine-stat-item'>
-          <Text className='mine-stat-num'>{pets.length}</Text>
-          <Text className='mine-stat-label'>宠物</Text>
-        </View>
-        <View className='mine-stat-item'>
-          <Text className='mine-stat-num'>{totalCheckins}</Text>
-          <Text className='mine-stat-label'>打卡</Text>
-        </View>
-        <View className='mine-stat-item'>
-          <Text className='mine-stat-num'>{totalDiaries}</Text>
-          <Text className='mine-stat-label'>日记</Text>
-        </View>
-        <View className='mine-stat-item'>
-          <Text className='mine-stat-num'>0</Text>
-          <Text className='mine-stat-label'>收藏</Text>
-        </View>
-      </View>
-
-      {!isVip && (
-        <View className='mine-vip-banner' onClick={() => Taro.switchTab({ url: '/pages/member/index' })}>
-          <View className='mine-vip-banner-left'>
-            <Text className='mine-vip-banner-icon'>👑</Text>
-            <View>
-              <Text className='mine-vip-banner-title'>开通会员</Text>
-              <Text className='mine-vip-banner-desc'>解锁全部功能，首月仅需¥9.9</Text>
-            </View>
+      {/* ===== 分组菜单（原型对齐：数据服务 / 管理 / 设置） ===== */}
+      {MENU_GROUPS.map((group, groupIndex) => (
+        <View key={group.title} className='mine-menu-group'>
+          <Text className='mine-menu-group-title'>{group.title}</Text>
+          <View className='mine-menu-card'>
+            {group.items.map((item, itemIndex) => (
+              <View
+                key={item.label}
+                className={`mine-menu-item ${itemIndex === group.items.length - 1 ? 'mine-menu-item--last' : ''}`}
+                onClick={() => navigateTo(item.url)}
+              >
+                <View className='mine-menu-icon-wrap'>
+                  <Text className='mine-menu-icon'>{item.icon}</Text>
+                </View>
+                <Text className='mine-menu-label'>{item.label}</Text>
+                <Text className='mine-menu-arrow'>›</Text>
+              </View>
+            ))}
+            {/* 设置组内追加主题皮肤入口 */}
+            {group.title === '设置' && (
+              <>
+                <View className='mine-menu-item mine-menu-item--last' onClick={() => setThemePanelOpen(!themePanelOpen)}>
+                  <View className='mine-menu-icon-wrap mine-menu-icon-wrap--gradient'>
+                    <Text className='mine-menu-icon'>🎨</Text>
+                  </View>
+                  <View className='mine-menu-label-wrap'>
+                    <Text className='mine-menu-label'>主题皮肤</Text>
+                    <Text className='mine-menu-theme-desc'>跟随季节</Text>
+                  </View>
+                  <View className='mine-menu-theme-dots'>
+                    {THEME_OPTIONS.map(opt => (
+                      <View
+                        key={opt.key}
+                        className='mine-theme-dot'
+                        style={{ background: `linear-gradient(135deg, ${opt.colors[0]}, ${opt.colors[1]})` }}
+                      />
+                    ))}
+                  </View>
+                  <Text className='mine-menu-arrow'>{themePanelOpen ? '˄' : '›'}</Text>
+                </View>
+                {themePanelOpen && (
+                  <View className='mine-theme-panel'>
+                    <Text className='mine-theme-panel-hint'>选一套喜欢的季节配色，整站同步生效</Text>
+                    <View className='mine-theme-grid'>
+                      {THEME_OPTIONS.map(opt => (
+                        <View
+                          key={opt.key}
+                          className={`mine-theme-choice ${currentTheme === opt.key ? 'mine-theme-choice--active' : ''}`}
+                          onClick={() => handleThemeSelect(opt.key)}
+                        >
+                          <View
+                            className='mine-theme-choice-dot'
+                            style={{ background: `linear-gradient(135deg, ${opt.colors[0]}, ${opt.colors[1]})` }}
+                          />
+                          <Text className='mine-theme-choice-label'>{opt.label}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </>
+            )}
           </View>
-          <Text className='mine-vip-banner-arrow'>›</Text>
-        </View>
-      )}
-
-      <View className='section-divider' />
-
-      {MENU_ITEMS.map((group, groupIndex) => (
-        <View key={groupIndex} className='mine-menu-group'>
-          {group.map(item => (
-            <View key={item.label} className='mine-menu-item' onClick={() => navigateTo(item.url)}>
-              <Text className='mine-menu-icon'>{item.icon}</Text>
-              <Text className='mine-menu-label'>{item.label}</Text>
-              <Text className='mine-menu-arrow'>›</Text>
-            </View>
-          ))}
         </View>
       ))}
 
+      {/* ===== 退出登录（原型对齐） ===== */}
       <View className='mine-section'>
         <View className='mine-logout-btn' onClick={handleLogout}>
           <Text>退出登录</Text>

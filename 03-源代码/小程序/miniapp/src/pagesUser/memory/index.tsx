@@ -30,11 +30,24 @@ import {
   getStatusLabel,
   getImportanceStars,
 } from '../../services/memoryService'
-import type { MemoryEntry } from '../../types/memoryTypes'
+import type { MemoryEntry, MemoryCategory } from '../../types/memoryTypes'
 import './index.scss'
 
 /** 单次加载上限提示阈值 */
 const LOAD_LIMIT_HINT = 200
+
+/** 可筛选的分类列表 */
+const CATEGORY_FILTERS: { key: MemoryCategory | ''; label: string; icon: string }[] = [
+  { key: '', label: '全部', icon: '📋' },
+  { key: 'health', label: '健康', icon: '❤️' },
+  { key: 'behavior', label: '行为', icon: '🐾' },
+  { key: 'habit', label: '习惯', icon: '⏰' },
+  { key: 'preference', label: '偏好', icon: '⭐' },
+  { key: 'event', label: '事件', icon: '🎉' },
+  { key: 'feeding', label: '喂养', icon: '🍽️' },
+  { key: 'medical', label: '医疗', icon: '💊' },
+  { key: 'general', label: '其他', icon: '📝' },
+]
 
 export default function MemoryPage() {
   const user = useAuthStore(s => s.user)
@@ -46,9 +59,11 @@ export default function MemoryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activePetId, setActivePetId] = useState<string>('') // '' = 全部宠物
+  const [activeCategory, setActiveCategory] = useState<MemoryCategory | ''>('') // '' = 全部分类
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingContent, setEditingContent] = useState('')
   const [saving, setSaving] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     trackPageView('memory_correction')
@@ -131,6 +146,33 @@ export default function MemoryPage() {
     loadMemories(activePetId || undefined)
   }, [activePetId, loadMemories])
 
+  /** 下拉刷新 */
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await listMemories(activePetId || undefined).then(setMemories)
+    } catch {
+      // 刷新失败不覆盖已有数据
+    } finally {
+      setRefreshing(false)
+    }
+  }, [activePetId])
+
+  /** 前端过滤：按分类筛选 */
+  const filteredMemories = useMemo(() => {
+    if (!activeCategory) return memories
+    return memories.filter(m => m.category === activeCategory)
+  }, [memories, activeCategory])
+
+  /** 分类统计 */
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const m of memories) {
+      counts[m.category] = (counts[m.category] || 0) + 1
+    }
+    return counts
+  }, [memories])
+
   /** 宠物名映射（petId → name） */
   const petNameMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -177,27 +219,53 @@ export default function MemoryPage() {
         </ScrollView>
       )}
 
+      {/* 分类筛选 */}
+      <ScrollView scrollX className='memory-page__filter memory-page__filter--category' enhanced showScrollbar={false}>
+        {CATEGORY_FILTERS.map(cat => (
+          <View
+            key={cat.key}
+            className={`memory-page__filter-tab ${activeCategory === cat.key ? 'memory-page__filter-tab--active' : ''}`}
+            onClick={() => setActiveCategory(cat.key)}
+          >
+            <Text>{cat.icon} {cat.label}{cat.key ? ` ${categoryCounts[cat.key] || 0}` : ` ${memories.length}`}</Text>
+          </View>
+        ))}
+      </ScrollView>
+
       {/* 内容区 */}
       {loading ? (
         <PageLoading text='加载记忆中...' />
       ) : error ? (
         <PageError message={error} onRetry={handleRetry} />
-      ) : memories.length === 0 ? (
+      ) : filteredMemories.length === 0 ? (
         <View className='memory-page__empty'>
-          <Text className='memory-page__empty-emoji'>💭</Text>
-          <Text className='memory-page__empty-title'>暂无 AI 记忆</Text>
+          <Text className='memory-page__empty-emoji'>{activeCategory ? '🔍' : '💭'}</Text>
+          <Text className='memory-page__empty-title'>
+            {activeCategory ? '该分类暂无记忆' : '暂无 AI 记忆'}
+          </Text>
           <Text className='memory-page__empty-desc'>
-            和 AI 多聊聊你的宠物，它会自动记住重要信息哦～
+            {activeCategory
+              ? '试试切换到其他分类，或者和 AI 多聊聊你的宠物吧～'
+              : '和 AI 多聊聊你的宠物，它会自动记住重要信息哦～'}
           </Text>
         </View>
       ) : (
+        <ScrollView
+          className='memory-page__list-scroll'
+          scrollY
+          refresherEnabled
+          refresherTriggered={refreshing}
+          onRefresherRefresh={handleRefresh}
+          enhanced
+          showScrollbar={false}
+        >
         <View className='memory-page__list'>
-          {memories.length >= LOAD_LIMIT_HINT && (
+          {filteredMemories.length >= LOAD_LIMIT_HINT && (
             <View className='memory-page__limit-hint'>
               <Text>仅显示最近 {LOAD_LIMIT_HINT} 条记忆</Text>
             </View>
           )}
-          {memories.map(memory => {
+          {filteredMemories.map(memory => {
             const catInfo = getCategoryInfo(memory.category)
             const isEditing = editingId === memory.id
             return (
@@ -262,6 +330,7 @@ export default function MemoryPage() {
             )
           })}
         </View>
+        </ScrollView>
       )}
     </View>
   )

@@ -21,7 +21,7 @@ vi.mock('../utils/storage', () => ({
 }))
 
 vi.mock('../services/api', () => ({
-  api: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
+  api: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }))
 
 vi.mock('../config', () => ({
@@ -153,8 +153,8 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
   // ---- step 5: 获取家庭成员 ----
   it('step 5: 获取家庭成员 → 验证所有成员已返回', async () => {
     const members = [
-      makeMember({ id: 'mem-mimi', familyId: 'fam-mimi', petId: 'pet-mimi', petName: '小咪', role: 'parent' }),
-      makeMember({ id: 'mem-wangcai', familyId: 'fam-mimi', petId: 'pet-wangcai', petName: '旺财', role: 'child' }),
+      makeMember({ id: 'mem-mimi', familyId: 'fam-mimi', petId: 'pet-mimi', role: 'parent' }),
+      makeMember({ id: 'mem-wangcai', familyId: 'fam-mimi', petId: 'pet-wangcai', role: 'child' }),
     ]
     vi.mocked(api.get).mockResolvedValue({ members })
 
@@ -162,18 +162,22 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
 
     expect(api.get).toHaveBeenCalledWith('/api/families/fam-mimi')
     expect(result).toHaveLength(2)
-    expect(result[0].petName).toBe('小咪')
-    expect(result[1].petName).toBe('旺财')
+    expect(result[0].petId).toBe('pet-mimi')
+    expect(result[1].petId).toBe('pet-wangcai')
     familyId = 'fam-mimi'
     memberId1 = 'mem-mimi'
     memberId2 = 'mem-wangcai'
   })
 
   // ---- step 6: 更新成员角色 ----
-  it('step 6: 更新成员角色 → 本地更新（后端无端点）', async () => {
+  it('step 6: 更新成员角色 → 调用后端 PATCH 接口', async () => {
+    vi.mocked(api.patch).mockResolvedValue(undefined)
+
     await familyService.updateMemberRole('fam-mimi', 'mem-mimi', 'admin')
 
-    expect(api.put).not.toHaveBeenCalled()
+    expect(api.patch).toHaveBeenCalledWith('/api/families/fam-mimi/members/mem-mimi/role', {
+      role: 'admin',
+    })
     familyId = 'fam-mimi'
   })
 
@@ -241,10 +245,12 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
   })
 
   // ---- step 11: 移除成员 ----
-  it('step 11: 移除成员 → 本地移除（后端无映射端点）', async () => {
+  it('step 11: 移除成员 → 调用后端 DELETE 接口', async () => {
+    vi.mocked(api.delete).mockResolvedValue(undefined)
+
     await familyService.removeMember('fam-mimi', 'mem-wangcai')
 
-    expect(api.delete).not.toHaveBeenCalled()
+    expect(api.delete).toHaveBeenCalledWith('/api/families/fam-mimi/members/by-id/mem-wangcai')
   })
 
   // ---- step 12: 删除家庭照片 ----

@@ -6,6 +6,26 @@
 import Taro from '@tarojs/taro'
 import type { PetProfile } from './petService'
 
+// ==================== AI 全家福生成 ====================
+
+/** 全家福风格类型 */
+export type FamilyPhotoStyle = 'pixar' | 'ghibli' | 'oil' | 'ink' | 'nordic' | 'cyberpunk'
+
+/** 风格标签映射 */
+export const FAMILY_PHOTO_STYLE_LABELS: Record<FamilyPhotoStyle, { label: string; emoji: string }> = {
+  pixar: { label: '皮克斯3D', emoji: '🎬' },
+  ghibli: { label: '吉卜力动漫', emoji: '🌿' },
+  oil: { label: '油画印象', emoji: '🎨' },
+  ink: { label: '水墨中国', emoji: '🏮' },
+  nordic: { label: '极简北欧', emoji: '🪵' },
+  cyberpunk: { label: '赛博朋克', emoji: '🤖' },
+}
+
+/** 所有风格列表 */
+export const FAMILY_PHOTO_STYLES: FamilyPhotoStyle[] = ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk']
+
+// ==================== Canvas 绘制 ====================
+
 const CANVAS_WIDTH = 750
 const CANVAS_HEIGHT = 1000
 const BRAND_COLORS = {

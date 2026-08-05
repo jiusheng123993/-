@@ -110,7 +110,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     wsClient.disconnect()
-    storage.clear()
+    // 清除所有本地数据（含认证 + 业务数据），防止数据残留和跨用户泄露
+    try {
+      Taro.clearStorageSync()
+    } catch {}
     set({ user: null, token: null, isAuthenticated: false })
   },
 }))

@@ -1,13 +1,17 @@
 /**
- * 日常回忆录页面
- * 将选中的1-3张宠物照片生成静图动效短片
+ * 日常回忆录页面（按高保真原型 1:1 重构）
+ * 标题区 + hero + 双产品线卡 + 三步流程（上传素材 → AI生成 → 预览保存）
+ * 保留完整业务：照片选择、风格/BGM、Ken Burns 预览、生成任务、WS+轮询、保存分享
  */
-import { View, Text, ScrollView, Canvas, Image } from '@tarojs/components'
+import { View, Text, ScrollView, Canvas, Image, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONFIG } from '../../config'
 import { storage } from '../../utils/storage'
 import { wsClient } from '../../services/wsClient'
+import { timelineService } from '../../services/timelineService'
+import { useThemeClass } from '../../hooks/useThemeClass'
+import { usePetStore } from '../../stores/petStore'
 import './index.scss'
 
 // ==================== 类型定义 ====================
@@ -18,6 +22,15 @@ interface MemoirStyle {
   emoji: string
   name: string
   desc: string
+}
+
+/** BGM 选项 */
+interface BGMOption {
+  key: string
+  emoji: string
+  name: string
+  tag: string
+  previewUrl: string
 }
 
 /** 已选照片项 */
@@ -54,11 +67,20 @@ const STYLE_OPTIONS: MemoirStyle[] = [
   { key: 'night', emoji: '🌙', name: '静谧之夜', desc: '暗色调 + 柔和光晕' },
 ]
 
-const STEP_LABELS = ['选照片', '选风格', '预览', '完成']
+const BGM_OPTIONS: BGMOption[] = [
+  { key: 'piano', emoji: '🎵', name: '温柔时光', tag: '钢琴曲', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/piano-preview.mp3` },
+  { key: 'guitar', emoji: '🎵', name: '暖心回忆', tag: '吉他', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/guitar-preview.mp3` },
+  { key: 'strings', emoji: '🎵', name: '深情告白', tag: '弦乐', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/strings-preview.mp3` },
+  { key: 'upbeat', emoji: '🎵', name: '欢快瞬间', tag: '轻快节奏', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/upbeat-preview.mp3` },
+]
+
+// 三步流程（原型：上传素材 / AI生成 / 预览保存）
+const STEP_LABELS = ['上传素材', 'AI生成', '预览保存']
 
 // ==================== 组件 ====================
 
 export default function MemoirDaily() {
+  const themeClass = useThemeClass()
   const routerParams = Taro.getCurrentInstance().router?.params as Record<string, string> | undefined
   const petId = routerParams?.petId || ''
 
@@ -68,9 +90,13 @@ export default function MemoirDaily() {
 
   // —— 步骤1：选照片 ——
   const [photos, setPhotos] = useState<PhotoItem[]>([])
+  const [story, setStory] = useState('')
 
   // —— 步骤2：选风格 ——
   const [selectedStyle, setSelectedStyle] = useState('warm')
+  const [selectedBGM, setSelectedBGM] = useState('piano')
+  const [playingBGM, setPlayingBGM] = useState<string | null>(null)
+  const bgmAudioRef = useRef<Taro.InnerAudioContext | null>(null)
 
   // —— 步骤3：预览加载 ——
   const [loading, setLoading] = useState(false)
@@ -112,14 +138,11 @@ export default function MemoirDaily() {
         const images: HTMLImageElement[] = []
         let loadedCount = 0
 
-        photos.forEach((photo, idx) => {
+        photos.forEach((photo) => {
           const img = canvas.createImage()
           img.src = photo.path
           img.onload = () => {
             loadedCount++
-            if (loadedCount === photos.length) {
-              // 所有图片加载完成，开始动画
-            }
           }
           img.onerror = () => {
             loadedCount++
@@ -199,6 +222,50 @@ export default function MemoirDaily() {
       })
   }, [photos])
 
+  // ==================== BGM 预览 ====================
+
+  const handleBGMPreview = useCallback((bgmKey: string, previewUrl: string) => {
+    if (playingBGM === bgmKey) {
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.stop()
+        bgmAudioRef.current.destroy()
+        bgmAudioRef.current = null
+      }
+      setPlayingBGM(null)
+      return
+    }
+    if (bgmAudioRef.current) {
+      bgmAudioRef.current.stop()
+      bgmAudioRef.current.destroy()
+      bgmAudioRef.current = null
+    }
+    const audioCtx = Taro.createInnerAudioContext()
+    audioCtx.src = previewUrl
+    audioCtx.autoplay = true
+    audioCtx.loop = false
+    audioCtx.onPlay(() => setPlayingBGM(bgmKey))
+    audioCtx.onEnded(() => {
+      setPlayingBGM(null)
+      if (bgmAudioRef.current) { bgmAudioRef.current.destroy(); bgmAudioRef.current = null }
+    })
+    audioCtx.onError(() => {
+      setPlayingBGM(null)
+      if (bgmAudioRef.current) { bgmAudioRef.current.destroy(); bgmAudioRef.current = null }
+      Taro.showToast({ title: '试听暂不可用', icon: 'none' })
+    })
+    bgmAudioRef.current = audioCtx
+  }, [playingBGM])
+
+  useEffect(() => {
+    return () => {
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.stop()
+        bgmAudioRef.current.destroy()
+        bgmAudioRef.current = null
+      }
+    }
+  }, [])
+
   // ==================== 步骤切换 ====================
 
   const goToStep = useCallback((next: number) => {
@@ -271,8 +338,9 @@ export default function MemoirDaily() {
         data: {
           memoir_type: 'daily',
           source_photos: photos.map(p => p.path),
-          music_style: 'warm',
+          music_style: selectedBGM,
           style_preset: selectedStyle,
+          story: story.trim() || undefined,
         },
       })
 
@@ -289,7 +357,7 @@ export default function MemoirDaily() {
       Taro.showToast({ title: '网络异常，请重试', icon: 'none' })
       setLoading(false)
     }
-  }, [petId, photos, selectedStyle])
+  }, [petId, photos, selectedStyle, selectedBGM, story])
 
   // ==================== 轮询任务状态 ====================
 
@@ -385,6 +453,7 @@ export default function MemoirDaily() {
       animFrameRef.current = null
     }
     setPhotos([])
+    setStory('')
     setSelectedStyle('warm')
     setTaskId('')
     setOutputUrl('')
@@ -399,53 +468,113 @@ export default function MemoirDaily() {
     })
   }, [])
 
-  const handleSaveToTimeline = useCallback(() => {
-    Taro.showToast({ title: '已保存到时光线', icon: 'success' })
-  }, [])
+  const handleSaveToTimeline = useCallback(async () => {
+    if (!petId || !outputUrl) {
+      Taro.showToast({ title: '保存失败', icon: 'none' })
+      return
+    }
+    try {
+      const userId = usePetStore.getState().userId || ''
+      await timelineService.addMoment({
+        userId,
+        petId,
+        type: 'memory',
+        content: {
+          petName: '毛孩子',
+          petEmoji: '🐾',
+          description: outputUrl,
+        },
+        photos: [outputUrl],
+      })
+      Taro.showToast({ title: '已保存到时光线', icon: 'success' })
+    } catch {
+      Taro.showToast({ title: '保存失败，请重试', icon: 'none' })
+    }
+  }, [petId, outputUrl])
 
-  // ==================== 渲染步骤指示器 ====================
+  /** 保存到相册 */
+  const handleSaveAlbum = useCallback(() => {
+    if (!outputUrl) {
+      Taro.showToast({ title: '保存失败', icon: 'none' })
+      return
+    }
+    Taro.downloadFile({
+      url: outputUrl,
+      success: (res) => {
+        if (res.statusCode !== 200) {
+          Taro.showToast({ title: '保存失败', icon: 'none' })
+          return
+        }
+        Taro.saveVideoToPhotosAlbum({
+          filePath: res.tempFilePath,
+          success: () => Taro.showToast({ title: '已保存到相册', icon: 'success' }),
+          fail: () => Taro.showModal({
+            title: '需要相册权限',
+            content: '请在设置中开启「保存到相册」权限后重试',
+            confirmText: '去设置',
+            success: (m) => {
+              if (m.confirm) Taro.openSetting()
+            },
+          }),
+        })
+      },
+      fail: () => Taro.showToast({ title: '保存失败', icon: 'none' }),
+    })
+  }, [outputUrl])
 
-  const renderStepIndicator = () => (
-    <View className='memoir-daily__steps'>
-      {STEP_LABELS.map((label, i) => (
-        <View key={label} style={{ display: 'flex', alignItems: 'center', gap: '16rpx' }}>
-          <View
-            className={`memoir-daily__step-dot${
-              i === step ? ' memoir-daily__step-dot--active' : ''
-            }${i < step ? ' memoir-daily__step-dot--done' : ''}`}
-          />
-          {i < STEP_LABELS.length - 1 && (
-            <View className='memoir-daily__step-connector' />
-          )}
-        </View>
-      ))}
-    </View>
-  )
+  /** 播放生成的视频 */
+  const handlePlayVideo = useCallback(() => {
+    if (!outputUrl) return
+    Taro.previewMedia({
+      sources: [{ url: outputUrl, type: 'video' }],
+    })
+  }, [outputUrl])
 
-  // ==================== 步骤一：选照片 ====================
+  /** 跳转纪念Vlog */
+  const handleGoVlog = useCallback(() => {
+    Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index${petId ? `?petId=${petId}` : ''}` })
+  }, [petId])
 
-  const renderStepPhoto = () => (
-    <View className='memoir-daily__step-enter'>
-      <View className='memoir-daily__photo-header'>
-        <Text className='memoir-daily__photo-title'>选择照片</Text>
-        <Text className='memoir-daily__photo-count'>{photos.length}/3 张</Text>
+  // ==================== 渲染：步骤指示器 ====================
+
+  const renderStepIndicator = () => {
+    // step 0 → 上传素材；step 1/2 → AI生成；step 3 → 预览保存
+    const activeIdx = step === 0 ? 0 : (step <= 2 ? 1 : 2)
+    return (
+      <View className='memoir__steps'>
+        {STEP_LABELS.map((label, i) => (
+          <View key={label} className='memoir__step-wrap'>
+            <View className='memoir__step'>
+              <View
+                className={`memoir__step-dot${i === activeIdx ? ' memoir__step-dot--active' : ''}${i < activeIdx ? ' memoir__step-dot--done' : ''}`}
+              >
+                <Text className='memoir__step-num'>{i < activeIdx ? '✓' : i + 1}</Text>
+              </View>
+              <Text className={`memoir__step-label${i === activeIdx ? ' memoir__step-label--active' : ''}`}>{label}</Text>
+            </View>
+            {i < STEP_LABELS.length - 1 && <View className='memoir__step-line' />}
+          </View>
+        ))}
       </View>
-      <Text className='memoir-daily__photo-hint'>选择 1-3 张宠物的精彩瞬间，我们将为你制作一段温馨的回忆短片</Text>
+    )
+  }
 
-      <View className='memoir-daily__photo-grid'>
+  // ==================== 渲染：上传素材卡（step 0） ====================
+
+  const renderStepUpload = () => (
+    <View className='xhh-card memoir__panel'>
+      <Text className='memoir__section-title'>上传素材</Text>
+
+      <View className='memoir__photo-grid'>
         {photos.map((photo, index) => (
           <View
             key={index}
-            className='memoir-daily__photo-item'
+            className='memoir__photo-slot'
             onClick={() => handlePreviewPhoto(index)}
           >
-            <Image
-              className='memoir-daily__photo-image'
-              src={photo.path}
-              mode='aspectFill'
-            />
+            <Image className='memoir__photo-image' src={photo.path} mode='aspectFill' />
             <View
-              className='memoir-daily__photo-delete'
+              className='memoir__photo-delete'
               onClick={(e) => {
                 e.stopPropagation()
                 handleDeletePhoto(index)
@@ -457,46 +586,90 @@ export default function MemoirDaily() {
         ))}
 
         {photos.length < 3 && (
-          <View className='memoir-daily__photo-add' onClick={handleAddPhoto}>
-            <Text className='memoir-daily__photo-add-icon'>+</Text>
-            <Text className='memoir-daily__photo-add-text'>
-              {photos.length === 0 ? '添加照片' : '继续添加'}
-            </Text>
+          <View className='memoir__photo-slot memoir__photo-slot--add' onClick={handleAddPhoto}>
+            <Text className='memoir__photo-add-icon'>📷</Text>
+            <Text className='memoir__photo-add-text'>添加</Text>
           </View>
         )}
+      </View>
+
+      <View
+        className={`memoir__pick-btn ${photos.length === 3 ? 'memoir__pick-btn--disabled' : ''}`}
+        onClick={handleAddPhoto}
+      >
+        <Text className='memoir__pick-btn-text'>🖼️ 选择照片（{photos.length}/3）</Text>
+      </View>
+
+      <Textarea
+        className='memoir__story'
+        value={story}
+        onInput={e => setStory(e.detail.value)}
+        placeholder='写点什么，让 AI 更懂 TA 的故事…'
+        placeholderClass='memoir__placeholder'
+        maxlength={200}
+        autoHeight
+      />
+
+      <View className='memoir__lockbar'>
+        <Text className='memoir__lockbar-icon'>🔒</Text>
+        <Text className='memoir__lockbar-text'>已锁定角色特征，全视频保持一致</Text>
       </View>
     </View>
   )
 
-  // ==================== 步骤二：选风格 ====================
+  // ==================== 渲染：AI 生成卡（step 1） ====================
 
-  const renderStepStyle = () => (
-    <View className='memoir-daily__step-enter'>
-      <Text className='memoir-daily__style-title'>选择动画风格</Text>
-      <Text className='memoir-daily__style-subtitle'>为你的回忆短片挑选一个喜欢的风格</Text>
+  const renderStepGenerate = () => (
+    <View className='xhh-card memoir__panel'>
+      <Text className='memoir__section-title'>选择动画风格</Text>
+      <Text className='memoir__section-sub'>为你的回忆短片挑选一个喜欢的风格</Text>
 
-      <View className='memoir-daily__style-list'>
+      <View className='memoir__style-list'>
         {STYLE_OPTIONS.map((style) => (
           <View
             key={style.key}
-            className={`memoir-daily__style-card${
-              selectedStyle === style.key ? ' memoir-daily__style-card--active' : ''
-            }`}
+            className={`memoir__style-card${selectedStyle === style.key ? ' memoir__style-card--active' : ''}`}
             onClick={() => setSelectedStyle(style.key)}
           >
-            <View className='memoir-daily__style-card-emoji'>
+            <View className='memoir__style-emoji'>
               <Text>{style.emoji}</Text>
             </View>
-            <View className='memoir-daily__style-card-info'>
-              <Text className='memoir-daily__style-card-name'>{style.name}</Text>
-              <Text className='memoir-daily__style-card-desc'>{style.desc}</Text>
+            <View className='memoir__style-info'>
+              <Text className='memoir__style-name'>{style.name}</Text>
+              <Text className='memoir__style-desc'>{style.desc}</Text>
+            </View>
+            <View className={`memoir__style-check${selectedStyle === style.key ? ' memoir__style-check--checked' : ''}`}>
+              {selectedStyle === style.key && <Text>✓</Text>}
+            </View>
+          </View>
+        ))}
+      </View>
+
+      <Text className='memoir__section-title' style={{ marginTop: '40rpx' }}>选择背景音乐</Text>
+      <Text className='memoir__section-sub'>选择一首你喜欢的背景音乐</Text>
+
+      <View className='memoir__bgm-list'>
+        {BGM_OPTIONS.map((bgm) => (
+          <View
+            key={bgm.key}
+            className={`memoir__bgm-card${selectedBGM === bgm.key ? ' memoir__bgm-card--active' : ''}`}
+            onClick={() => setSelectedBGM(bgm.key)}
+          >
+            <View className='memoir__bgm-emoji'>
+              <Text>{bgm.emoji}</Text>
+            </View>
+            <View className='memoir__bgm-info'>
+              <Text className='memoir__bgm-name'>{bgm.name}</Text>
+              <Text className='memoir__bgm-tag'>{bgm.tag}</Text>
             </View>
             <View
-              className={`memoir-daily__style-card-check${
-                selectedStyle === style.key ? ' memoir-daily__style-card-check--checked' : ''
-              }`}
+              className={`memoir__bgm-preview${playingBGM === bgm.key ? ' memoir__bgm-preview--playing' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleBGMPreview(bgm.key, bgm.previewUrl)
+              }}
             >
-              {selectedStyle === style.key && <Text>✓</Text>}
+              <Text>{playingBGM === bgm.key ? '⏸' : '▶'}</Text>
             </View>
           </View>
         ))}
@@ -504,28 +677,46 @@ export default function MemoirDaily() {
     </View>
   )
 
-  // ==================== 步骤三：预览 ====================
+  // ==================== 渲染：AI 生成进度卡（loading 时） ====================
 
-  const renderStepPreview = () => (
-    <View className='memoir-daily__step-enter'>
-      <Text className='memoir-daily__preview-title'>预览效果</Text>
+  const renderGenerating = () => (
+    <View className='xhh-card memoir__panel'>
+      <Text className='memoir__section-title'>AI 生成</Text>
+      <View className='memoir__progress'>
+        <View className='memoir__progress-track'>
+          <View className='memoir__progress-bar' />
+        </View>
+        <Text className='memoir__progress-pct'>进行中</Text>
+      </View>
+      <Text className='memoir__gen-text'>AI 正在编排你的回忆…</Text>
+      <View className='memoir__gen-hint'>
+        <Text className='memoir__gen-hint-icon'>⏱️</Text>
+        <Text className='memoir__gen-hint-text'>预计 5-15 分钟，生成后自动提醒</Text>
+      </View>
+      <Text className='memoir__gen-status'>{loadingText}</Text>
+    </View>
+  )
 
-      <View className='memoir-daily__preview-canvas-wrap'>
+  // ==================== 渲染：预览（step 2，Ken Burns） ====================
+
+  const renderPreview = () => (
+    <View className='xhh-card memoir__panel'>
+      <Text className='memoir__section-title'>预览效果</Text>
+      <View className='memoir__cover'>
         <Canvas
           id='memoirCanvas'
-          className='memoir-daily__preview-canvas'
+          className='memoir__preview-canvas'
           type='2d'
           ref={canvasRef}
         />
       </View>
-
-      <View className='memoir-daily__preview-info'>
-        <Text className='memoir-daily__preview-info-icon'>🎵</Text>
-        <View style={{ flex: 1 }}>
-          <Text className='memoir-daily__preview-info-text'>
-            BGM 功能即将上线
+      <View className='memoir__preview-info'>
+        <Text className='memoir__preview-icon'>🎵</Text>
+        <View className='memoir__preview-texts'>
+          <Text className='memoir__preview-text'>
+            BGM：{BGM_OPTIONS.find(b => b.key === selectedBGM)?.name || selectedBGM}
           </Text>
-          <Text className='memoir-daily__preview-info-label'>
+          <Text className='memoir__preview-label'>
             风格：{STYLE_OPTIONS.find(s => s.key === selectedStyle)?.name || selectedStyle}
           </Text>
         </View>
@@ -533,33 +724,42 @@ export default function MemoirDaily() {
     </View>
   )
 
-  // ==================== 步骤四：结果 ====================
+  // ==================== 渲染：预览保存卡（step 3，结果） ====================
 
-  const renderStepResult = () => (
-    <View className='memoir-daily__step-enter'>
-      <Text className='memoir-daily__result-title'>🎉 制作完成</Text>
-      <Text className='memoir-daily__result-subtitle'>日常回忆录已生成，快来分享吧</Text>
-
-      <View className='memoir-daily__result-preview'>
+  const renderResult = () => (
+    <View className='xhh-card memoir__panel'>
+      <Text className='memoir__section-title'>预览保存</Text>
+      <View className='memoir__cover' onClick={handlePlayVideo}>
         {outputUrl ? (
-          <Image className='memoir-daily__result-image' src={outputUrl} mode='aspectFill' />
+          <Image className='memoir__cover-image' src={outputUrl} mode='aspectFill' />
         ) : (
-          <View className='memoir-daily__result-placeholder'>
-            <Text className='memoir-daily__result-placeholder-icon'>📸</Text>
-            <Text className='memoir-daily__result-placeholder-text'>回忆录已生成</Text>
+          <View className='memoir__cover-placeholder'>
+            <Text className='memoir__cover-placeholder-icon'>📸</Text>
+            <Text className='memoir__cover-placeholder-text'>回忆录已生成</Text>
           </View>
         )}
+        <View className='memoir__cover-play'>
+          <View className='memoir__cover-play-btn'>
+            <Text className='memoir__cover-play-icon'>▶</Text>
+          </View>
+        </View>
+        <View className='memoir__cover-duration'>
+          <Text className='memoir__cover-duration-text'>15-30 秒</Text>
+        </View>
       </View>
 
-      <View className='memoir-daily__result-actions'>
-        <View className='memoir-daily__btn memoir-daily__btn--success' onClick={handleShare}>
-          <Text className='memoir-daily__btn-text'>📤 分享</Text>
+      <View className='memoir__result-actions'>
+        <View className='memoir__btn memoir__btn--primary' onClick={handleSaveAlbum}>
+          <Text className='memoir__btn-text'>⬇️ 保存到相册</Text>
         </View>
-        <View className='memoir-daily__btn memoir-daily__btn--success' onClick={handleSaveToTimeline}>
-          <Text className='memoir-daily__btn-text'>💾 保存到时光线</Text>
+        <View className='memoir__btn memoir__btn--ghost' onClick={handleSaveToTimeline}>
+          <Text className='memoir__btn-text--ghost'>💾 保存到时光线</Text>
         </View>
-        <View className='memoir-daily__btn memoir-daily__btn--secondary' onClick={handleReset}>
-          <Text className='memoir-daily__btn-text'>🔄 重新制作</Text>
+        <View className='memoir__btn memoir__btn--ghost' onClick={handleShare}>
+          <Text className='memoir__btn-text--ghost'>📤 分享</Text>
+        </View>
+        <View className='memoir__btn memoir__btn--ghost' onClick={handleReset}>
+          <Text className='memoir__btn-text--ghost'>🔄 重新生成</Text>
         </View>
       </View>
     </View>
@@ -571,34 +771,26 @@ export default function MemoirDaily() {
     if (step === 0) {
       return (
         <View
-          className={`memoir-daily__btn memoir-daily__btn--primary${
-            photos.length === 0 ? ' memoir-daily__btn--disabled' : ''
-          }`}
+          className={`memoir__btn memoir__btn--primary${photos.length === 0 ? ' memoir__btn--disabled' : ''}`}
           onClick={photos.length > 0 ? () => goToStep(1) : undefined}
         >
-          <Text className='memoir-daily__btn-text'>下一步</Text>
+          <Text className='memoir__btn-text'>下一步</Text>
         </View>
       )
     }
 
     if (step === 1) {
       return (
-        <View
-          className='memoir-daily__btn memoir-daily__btn--primary'
-          onClick={() => goToStep(2)}
-        >
-          <Text className='memoir-daily__btn-text'>下一步</Text>
+        <View className='memoir__btn memoir__btn--primary' onClick={() => goToStep(2)}>
+          <Text className='memoir__btn-text'>下一步：预览</Text>
         </View>
       )
     }
 
     if (step === 2) {
       return (
-        <View
-          className='memoir-daily__btn memoir-daily__btn--primary'
-          onClick={handleGenerate}
-        >
-          <Text className='memoir-daily__btn-text'>生成回忆录</Text>
+        <View className='memoir__btn memoir__btn--primary' onClick={handleGenerate}>
+          <Text className='memoir__btn-text'>生成回忆录</Text>
         </View>
       )
     }
@@ -609,32 +801,88 @@ export default function MemoirDaily() {
   // ==================== 主渲染 ====================
 
   return (
-    <View className='memoir-daily'>
+    <View className={`memoir ${themeClass}`}>
+      {/* 标题区 */}
+      <View className='memoir__head'>
+        <Text className='memoir__title'>宠物回忆录</Text>
+        <Text className='memoir__subtitle'>把 TA 的一生，讲成一个故事</Text>
+      </View>
+
+      {/* hero 横幅 */}
+      <View className='memoir__hero'>
+        <View className='memoir__hero-bg'>
+          <Text className='memoir__hero-emoji'>🐱</Text>
+        </View>
+        <View className='memoir__hero-badge'>
+          <Text className='memoir__hero-badge-text'>✨ AI 时光电影</Text>
+        </View>
+      </View>
+
+      {/* 双产品线卡 */}
+      <View className='memoir__product-list'>
+        <View
+          className='memoir__product-card memoir__product-card--coral'
+          onClick={() => goToStep(0)}
+        >
+          <View className='memoir__product-head'>
+            <View className='memoir__product-icon'>✨</View>
+            <View className='memoir__product-titles'>
+              <Text className='memoir__product-name'>日常回忆录</Text>
+              <Text className='memoir__product-price'>免费 · 月 3 次</Text>
+            </View>
+            <Text className='memoir__product-arrow'>›</Text>
+          </View>
+          <View className='memoir__product-tags'>
+            <Text className='memoir__pill'>15-30 秒静图动效</Text>
+            <Text className='memoir__pill'>1-3 张照片</Text>
+            <Text className='memoir__pill'>温暖治愈</Text>
+          </View>
+        </View>
+
+        <View className='memoir__product-card memoir__product-card--gold' onClick={handleGoVlog}>
+          <View className='memoir__product-head'>
+            <View className='memoir__product-icon'>🎬</View>
+            <View className='memoir__product-titles'>
+              <Text className='memoir__product-name'>纪念Vlog</Text>
+              <Text className='memoir__product-price'>会员 ¥99 / 非会员 ¥149</Text>
+            </View>
+            <View className='memoir__badge-paid'>
+              <Text className='memoir__badge-paid-text'>付费</Text>
+            </View>
+          </View>
+          <View className='memoir__product-tags'>
+            <Text className='memoir__pill'>45-60 秒 AI 视频</Text>
+            <Text className='memoir__pill'>5-15 张照片</Text>
+            <Text className='memoir__pill'>深刻催泪</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* 步骤指示器 */}
       {renderStepIndicator()}
 
       <ScrollView
-        className='memoir-daily__content'
+        className='memoir__content'
         scrollY
         enhanced
         showScrollbar={false}
         key={animKey}
       >
-        {step === 0 && renderStepPhoto()}
-        {step === 1 && renderStepStyle()}
-        {step === 2 && renderStepPreview()}
-        {step === 3 && renderStepResult()}
+        {step === 0 && renderStepUpload()}
+        {step === 1 && renderStepGenerate()}
+        {step === 2 && (loading ? renderGenerating() : renderPreview())}
+        {step === 3 && renderResult()}
       </ScrollView>
 
-      {step < 3 && (
-        <View className='memoir-daily__footer'>
+      {step < 3 && !loading && (
+        <View className='memoir__footer'>
           {renderFooter()}
         </View>
       )}
 
-      {loading && (
-        <View className='memoir-daily__loading-overlay'>
-          <View className='memoir-daily__loading-spinner' />
-          <Text className='memoir-daily__loading-text'>{loadingText}</Text>
+      {loading && step < 3 && (
+        <View className='memoir__loading-overlay'>
+          {renderGenerating()}
         </View>
       )}
     </View>

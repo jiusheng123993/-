@@ -11,22 +11,10 @@ import { getFollowupStats, getPendingFollowups } from '../../services/notificati
 import { getEmotionScore, getEmotionTrend, trackEmotionEvent } from '../../services/emotionTrackingService'
 import { getRecentFoodQueryCount, getRecentSymptomCheckCount } from '../../utils/usageTracking'
 import { getCheckinStats } from '../../services/checkinService'
-import { getStorage, setStorage } from '../../utils/storage'
+import { getSuggestionRecords, createSuggestionRecord, updateSuggestionAdoption, deleteSuggestionRecord } from '../../services/suggestionRecordsService'
+import type { SuggestionRecord } from '../../services/suggestionRecordsService'
 import type { PetProfile } from '../../services/petService'
 import './index.scss'
-
-interface SuggestionRecord {
-  id: string
-  petId: string
-  petName: string
-  type: 'feeding' | 'symptom' | 'trend' | 'chat'
-  title: string
-  content: string
-  priority: 'high' | 'medium' | 'low'
-  adopted: boolean
-  createdAt: string
-  adoptedAt?: string
-}
 
 interface EffectStats {
   feedingAdviceAdopted: number
@@ -39,12 +27,6 @@ interface EffectStats {
   emotionScore: number
   emotionTrend: 'improving' | 'stable' | 'worsening'
   petScores: { pet: PetProfile; score: number; trend: 'up' | 'down' | 'stable' }[]
-}
-
-const STORAGE_KEY = 'suggestion_records'
-
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
 function getTrendIcon(trend: string): string {
@@ -90,11 +72,16 @@ export default function EffectTrackingPage() {
     loadData()
   }, [pets])
 
-  const loadData = () => {
+  const loadData = async () => {
     setLoading(true)
 
-    const stored = getStorage<SuggestionRecord[]>(STORAGE_KEY) || []
-    setSuggestions(stored)
+    // 从后端加载所有宠物的建议记录
+    let allSuggestions: SuggestionRecord[] = []
+    if (pets.length > 0) {
+      const results = await Promise.all(pets.map(p => getSuggestionRecords(p.id)))
+      allSuggestions = results.flat()
+    }
+    setSuggestions(allSuggestions)
 
     const followupStats = getFollowupStats()
 
@@ -103,8 +90,8 @@ export default function EffectTrackingPage() {
     const foodQueryCount = getRecentFoodQueryCount()
     const symptomCheckCount = getRecentSymptomCheckCount()
 
-    const feedingAdviceTotal = stored.filter(s => s.type === 'feeding').length
-    const feedingAdviceAdopted = stored.filter(s => s.type === 'feeding' && s.adopted).length
+    const feedingAdviceTotal = allSuggestions.filter(s => s.type === 'feeding').length
+    const feedingAdviceAdopted = allSuggestions.filter(s => s.type === 'feeding' && s.adopted).length
 
     const petScores: EffectStats['petScores'] = []
     let scorePromises = pets.map(async (pet) => {
@@ -134,40 +121,42 @@ export default function EffectTrackingPage() {
     })
   }
 
-  const handleAdoptSuggestion = (id: string) => {
-    const updated = suggestions.map(s =>
-      s.id === id ? { ...s, adopted: true, adoptedAt: new Date().toISOString() } : s
-    )
-    setSuggestions(updated)
-    setStorage(STORAGE_KEY, updated)
+  const handleAdoptSuggestion = async (id: string) => {
+    const suggestion = suggestions.find(s => s.id === id)
+    if (!suggestion) return
+    const result = await updateSuggestionAdoption(suggestion.petId, id, true)
+    if (!result) {
+      Taro.showToast({ title: '操作失败，请重试', icon: 'none' })
+      return
+    }
     Taro.showToast({ title: '已采纳建议', icon: 'success' })
     loadData()
   }
 
-  const handleDismissSuggestion = (id: string) => {
-    const updated = suggestions.filter(s => s.id !== id)
-    setSuggestions(updated)
-    setStorage(STORAGE_KEY, updated)
+  const handleDismissSuggestion = async (id: string) => {
+    const suggestion = suggestions.find(s => s.id === id)
+    if (!suggestion) return
+    const ok = await deleteSuggestionRecord(suggestion.petId, id)
+    if (!ok) {
+      Taro.showToast({ title: '操作失败，请重试', icon: 'none' })
+      return
+    }
     loadData()
   }
 
-  const handleRecordFeedingAdvice = () => {
+  const handleRecordFeedingAdvice = async () => {
     if (pets.length === 0) return
     const pet = pets[0]
-    const record: SuggestionRecord = {
-      id: generateId(),
-      petId: pet.id,
-      petName: pet.name,
+    const result = await createSuggestionRecord(pet.id, {
       type: 'feeding',
       title: '个性化喂养建议',
       content: `基于${pet.name}的近期饮食记录，建议调整每日喂食量并增加饮水量。`,
       priority: 'medium',
-      adopted: false,
-      createdAt: new Date().toISOString(),
+    })
+    if (!result) {
+      Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
+      return
     }
-    const updated = [record, ...suggestions]
-    setSuggestions(updated)
-    setStorage(STORAGE_KEY, updated)
     Taro.showToast({ title: '建议已生成', icon: 'success' })
     loadData()
   }
@@ -358,7 +347,7 @@ export default function EffectTrackingPage() {
                   <Text className='effect-suggestion-title'>{s.title}</Text>
                   <Text className='effect-suggestion-content'>{s.content}</Text>
                   <View className='effect-suggestion-meta'>
-                    <Text className='effect-suggestion-pet'>🐾 {s.petName}</Text>
+                    <Text className='effect-suggestion-pet'>🐾 {pets.find(p => p.id === s.petId)?.name || '未知宠物'}</Text>
                     <Text className='effect-suggestion-time'>
                       {new Date(s.createdAt).toLocaleDateString('zh-CN')}
                     </Text>

@@ -169,7 +169,7 @@ describe('avatarService', () => {
         success: true,
         imageUrl: 'data:image/svg+xml,...',
       })
-      const result = await generateAvatarImage('dog', '旺财', 'cartoon')
+      const result = await generateAvatarImage('test-pet-001', 'dog', '旺财', 'cartoon')
       expect(result).not.toBeNull()
       expect(result!.success).toBe(true)
       expect(mockGeneratePetImage).toHaveBeenCalled()
@@ -180,7 +180,7 @@ describe('avatarService', () => {
         success: false,
         error: 'API error',
       })
-      const result = await generateAvatarImage('dog', '旺财', 'cartoon')
+      const result = await generateAvatarImage('test-pet-001', 'dog', '旺财', 'cartoon')
       expect(result).toBeNull()
     })
   })

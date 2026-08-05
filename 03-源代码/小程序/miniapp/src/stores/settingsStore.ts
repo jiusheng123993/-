@@ -95,12 +95,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ notification: updated });
   },
 
-  /** 清除所有本地缓存 */
+  /** 清除所有本地缓存并重启应用 */
   clearCache: () => {
     set({ isLoading: true });
     try {
       Taro.clearStorageSync();
       set({ notification: { ...DEFAULT_NOTIFICATION }, isLoading: false });
+      // 强制重启到首页，清除所有 Store 内存中的旧数据
+      Taro.reLaunch({ url: '/pages/index/index' });
     } catch {
       set({ isLoading: false, error: '清除缓存失败' });
     }

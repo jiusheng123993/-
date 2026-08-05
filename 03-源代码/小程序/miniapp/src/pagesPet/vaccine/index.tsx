@@ -36,6 +36,7 @@ import { checkAndSendVaccineReminders } from '../../services/reminderService'
 import './index.scss'
 
 export default function PetVaccine() {
+  const themeClass = useThemeClass()
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
   const user = useAuthStore((s) => s.user)
   const inviteCode = useShareStore(s => s.inviteCode)
@@ -93,7 +94,7 @@ export default function PetVaccine() {
     setLoadError('')
     setDisplayCount(20)
     try {
-      if (currentPet) {
+      if (currentPet?.id) {
         await fetchRecords(currentPet.id)
         fetchUpcomingReminders(currentPet.id, 7)
         fetchOverdueReminders(currentPet.id)
@@ -160,6 +161,13 @@ export default function PetVaccine() {
   const sortedRecords = useMemo(() => {
     return [...records].sort((a, b) => b.date.localeCompare(a.date))
   }, [records])
+
+  // 下一针提醒（优先近期即将到期，其次逾期，取最近一条）
+  const nextReminder = useMemo(() => {
+    if (upcomingReminders.length > 0) return upcomingReminders[0]
+    if (overdueReminders.length > 0) return overdueReminders[0]
+    return null
+  }, [upcomingReminders, overdueReminders])
 
   const handleAdd = () => {
     trackEvent('add_vaccine_record')
@@ -299,7 +307,7 @@ export default function PetVaccine() {
 
   if (isLoading && pets.length === 0) {
     return (
-      <View className='pet-vaccine'>
+      <View className={`pet-vaccine ${themeClass}`}>
           <PageLoading />
         </View>
     )
@@ -307,14 +315,22 @@ export default function PetVaccine() {
 
   if (loadError && pets.length === 0) {
     return (
-      <View className='pet-vaccine'>
+      <View className={`pet-vaccine ${themeClass}`}>
         <PageError message={loadError} onRetry={loadVaccineData} />
       </View>
     )
   }
 
   return (
-    <View className='pet-vaccine'>
+    <View className={`pet-vaccine ${themeClass}`}>
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+      </View>
+
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
@@ -334,7 +350,7 @@ export default function PetVaccine() {
       )}
 
       <View className='pet-vaccine__header'>
-        <Text className='pet-vaccine__title'>疫苗驱虫日历</Text>
+        <Text className='pet-vaccine__title'>疫苗日历</Text>
       </View>
 
       {!currentPet ? (
@@ -344,19 +360,53 @@ export default function PetVaccine() {
         </View>
       ) : (
         <>
-          {/* 完成进度条 */}
-          <View className='pet-vaccine__progress'>
-            <View className='pet-vaccine__progress-header'>
-              <Text className='pet-vaccine__progress-title'>疫苗完成进度</Text>
-              <Text className='pet-vaccine__progress-text'>{stats.completed}/{stats.total} 项</Text>
+          {/* ===== 疫苗进度概览卡（原型对齐：已完成 + 环形进度） ===== */}
+          <View className='pet-vaccine__progress-card'>
+            <View className='pet-vaccine__progress-info'>
+              <Text className='pet-vaccine__progress-label'>已完成接种</Text>
+              <Text className='pet-vaccine__progress-value'>
+                {stats.completed}<Text className='pet-vaccine__progress-total'>/{stats.total}</Text>
+              </Text>
+              <Text className='pet-vaccine__progress-sub'>共 {stats.total} 针计划</Text>
             </View>
-            <View className='pet-vaccine__progress-track'>
+            <View className='pet-vaccine__progress-ring-wrap'>
               <View
-                className='pet-vaccine__progress-fill'
-                style={{ width: stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : '0%' }}
-              />
+                className='pet-vaccine__progress-ring'
+                style={{
+                  background: stats.total > 0
+                    ? `conic-gradient(var(--primary, #FF6B3D) ${Math.round((stats.completed / stats.total) * 100)}%, rgba(255,107,61,0.14) 0%)`
+                    : 'rgba(255,107,61,0.14)',
+                }}
+              >
+                <View className='pet-vaccine__progress-ring-inner'>
+                  <Text className='pet-vaccine__progress-ring-text'>
+                    {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
+          <View className='pet-vaccine__progress-foot'>
+            <Text className='pet-vaccine__progress-foot-icon'>💉</Text>
+            <Text className='pet-vaccine__progress-foot-text'>疫苗覆盖完成度 {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%</Text>
+          </View>
+
+          {/* ===== 下一针提醒卡（原型对齐：高亮） ===== */}
+          {nextReminder && (
+            <View className='pet-vaccine__next-remind' onClick={() => handleEdit(nextReminder.record)}>
+              <View className='pet-vaccine__next-remind-bar' />
+              <View className='pet-vaccine__next-remind-body'>
+                <View className='pet-vaccine__next-remind-info'>
+                  <Text className='pet-vaccine__next-remind-label'>下一针提醒</Text>
+                  <Text className='pet-vaccine__next-remind-name'>{nextReminder.record.category}</Text>
+                  <Text className='pet-vaccine__next-remind-date'>
+                    🔔 {nextReminder.record.nextDate} · 提前7天提醒
+                  </Text>
+                </View>
+                <Text className='pet-vaccine__next-remind-arrow'>›</Text>
+              </View>
+            </View>
+          )}
 
           <View className='pet-vaccine__stats'>
             <View className='pet-vaccine__stats-item'>
@@ -526,7 +576,7 @@ export default function PetVaccine() {
 
           <View className='pet-vaccine__section'>
             <View className='pet-vaccine__section-header'>
-              <Text className='pet-vaccine__section-title'>📋 记录列表</Text>
+              <Text className='pet-vaccine__section-title'>📋 接种记录</Text>
               <Text className='pet-vaccine__section-count'>共 {stats.total} 条</Text>
             </View>
 
@@ -565,6 +615,24 @@ export default function PetVaccine() {
                 )}
               </View>
             )}
+          </View>
+
+          {/* ===== 疫苗小知识卡（原型对齐） ===== */}
+          <View className='pet-vaccine__tips'>
+            <View className='pet-vaccine__tips-icon'>
+              <Text>💡</Text>
+            </View>
+            <View className='pet-vaccine__tips-body'>
+              <Text className='pet-vaccine__tips-title'>疫苗小知识</Text>
+              <Text className='pet-vaccine__tips-text'>幼犬首次免疫建议 8 周龄开始，间隔 3-4 周接种一针，共 3 针基础免疫。</Text>
+              <Text className='pet-vaccine__tips-text pet-vaccine__tips-text--hint'>接种后 1 周内避免洗澡和剧烈运动，注意观察精神状态。</Text>
+            </View>
+          </View>
+
+          {/* ===== 添加疫苗记录按钮（原型对齐：全宽渐变） ===== */}
+          <View className='pet-vaccine__add-btn' onClick={handleAdd}>
+            <Text className='pet-vaccine__add-btn-icon'>+</Text>
+            <Text className='pet-vaccine__add-btn-text'>添加疫苗记录</Text>
           </View>
         </>
       )}

@@ -93,12 +93,11 @@ const CHRONIC_FEEDING_ADVICE: Record<string, { tips: string[]; avoid: string[] }
   },
 }
 
-export function buildFeedingProfile(
+export async function buildFeedingProfile(
   pet: PetProfile,
-  chronicRecords: ChronicRecord[],
   allergies?: string[],
   isNeutered?: boolean
-): FeedingProfile {
+): Promise<FeedingProfile> {
   const birthDate = new Date(pet.birthDate)
   const now = new Date()
   const ageMonths = Math.max(0, (now.getFullYear() - birthDate.getFullYear()) * 12 + now.getMonth() - birthDate.getMonth())
@@ -107,6 +106,8 @@ export function buildFeedingProfile(
   const isSenior = pet.species === 'dog' ? ageMonths >= 84 : ageMonths >= 120
 
   let bodyCondition: 'underweight' | 'normal' | 'overweight' = 'normal'
+
+  const chronicRecords = await getChronicRecords(pet.id)
 
   return {
     pet,

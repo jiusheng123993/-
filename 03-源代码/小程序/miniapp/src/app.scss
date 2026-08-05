@@ -1,4 +1,5 @@
 @import './styles/_theme';
+@import './styles/_animations';
 
 page {
   background: transparent;
@@ -21,6 +22,8 @@ cover-view {
 .app-root {
   min-height: 100vh;
   background: $gradient-page;
+  position: relative;
+  overflow: hidden;
 }
 
 .app-loading {
@@ -30,4 +33,172 @@ cover-view {
   color: $color-primary;
   font-size: $font-size-xl;
   font-weight: $font-weight-semibold;
+}
+
+// ============================================
+// 全屏动态背景层（blob 光斑漂移动画）
+// 注入在每个页面的最底层，通过主题变量驱动颜色
+// ============================================
+.xhh-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.xhh-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60rpx);
+  will-change: transform;
+  opacity: 0.85;
+}
+
+.xhh-blob-a {
+  width: 440rpx; height: 440rpx;
+  top: -100rpx; left: -140rpx;
+  background-color: rgba(var(--primary-rgb), 0.32);
+  animation: xhh-blob-a 24s ease-in-out infinite alternate;
+}
+
+.xhh-blob-b {
+  width: 360rpx; height: 360rpx;
+  top: 280rpx; right: -160rpx;
+  background-color: rgba(var(--warning-rgb, 255, 176, 32), 0.24);
+  animation: xhh-blob-b 28s ease-in-out infinite alternate;
+}
+
+.xhh-blob-c {
+  width: 280rpx; height: 280rpx;
+  bottom: 140rpx; left: -120rpx;
+  background-color: rgba(var(--primary-rgb), 0.16);
+  animation: xhh-blob-c 32s ease-in-out infinite alternate;
+}
+
+.xhh-blob-d {
+  width: 240rpx; height: 240rpx;
+  bottom: 360rpx; right: -80rpx;
+  background-color: rgba(var(--warning-rgb, 255, 176, 32), 0.15);
+  animation: xhh-blob-d 26s ease-in-out infinite alternate;
+}
+
+@keyframes xhh-blob-a {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(124rpx, 96rpx) scale(1.14); }
+  100% { transform: translate(40rpx, 168rpx) scale(0.95); }
+}
+
+@keyframes xhh-blob-b {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-116rpx, -76rpx) scale(1.1); }
+  100% { transform: translate(-64rpx, 68rpx) scale(0.93); }
+}
+
+@keyframes xhh-blob-c {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(96rpx, -88rpx) scale(1.16); }
+  100% { transform: translate(148rpx, 24rpx) scale(1); }
+}
+
+@keyframes xhh-blob-d {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-84rpx, 72rpx) scale(1.08); }
+  100% { transform: translate(-32rpx, -60rpx) scale(0.94); }
+}
+
+// 页面主体悬浮于背景之上
+.chat-home-page,
+.mine-page,
+.pet-profile-page,
+.timeline-page,
+.family-page {
+  position: relative;
+  z-index: 10;
+}
+
+// ============================================
+// TabBar 波纹反馈（全局生效）
+// ============================================
+.xhh-tab-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.xhh-tab-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 9999px;
+  background-color: currentColor;
+  opacity: 0;
+  transform: scale(0);
+  transition: none;
+  pointer-events: none;
+}
+
+.xhh-tab-ripple.xhh-rippling::after {
+  animation: xhh-ripple 0.55s ease-out forwards;
+}
+
+@keyframes xhh-ripple {
+  0% { opacity: 0.35; transform: scale(0); }
+  100% { opacity: 0; transform: scale(26); }
+}
+
+// TabBar 图标激活弹跳
+.xhh-tab-bounce[data-active='true'] {
+  animation: xhh-tab-pop 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes xhh-tab-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.28) translateY(-2rpx); }
+  100% { transform: scale(1); }
+}
+
+// =============================================
+// 通用按压反馈
+// =============================================
+.xhh-tap {
+  transition: transform 0.14s ease, opacity 0.14s ease;
+}
+
+.xhh-tap:active {
+  transform: scale(0.95);
+  opacity: 0.85;
+}
+
+// =============================================
+// 卡片滚动 reveal（用于列表项）
+// =============================================
+.xhh-reveal {
+  opacity: 0;
+  transform: translateY(20rpx);
+  transition: opacity 0.55s cubic-bezier(0.3, 0, 0, 1), transform 0.55s cubic-bezier(0.3, 0, 0, 1);
+}
+
+.xhh-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+// ============================================
+// 减少动态效果偏好
+// ============================================
+@media (prefers-reduced-motion: reduce) {
+  .xhh-blob,
+  .xhh-tab-ripple::after,
+  .xhh-tab-bounce[data-active='true'] {
+    animation: none !important;
+  }
+  .xhh-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none !important;
+  }
+  .xhh-tap { transition: none !important; }
 }

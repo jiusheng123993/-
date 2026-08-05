@@ -61,6 +61,7 @@ async function request<T>(path: string, options?: { method?: string; data?: any;
       url,
       method: (options?.method as any) || 'GET',
       data: options?.data,
+      timeout: 15000,
       header: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -96,6 +97,10 @@ export const api = {
   /** PUT 请求 */
   put: <T = any>(path: string, data?: any): Promise<T> => {
     return request<T>(path, { method: 'PUT', data })
+  },
+  /** PATCH 请求 */
+  patch: <T = any>(path: string, data?: any): Promise<T> => {
+    return request<T>(path, { method: 'PATCH', data })
   },
   /** DELETE 请求 */
   delete: <T = any>(path: string): Promise<T> => {

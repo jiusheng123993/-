@@ -39,13 +39,13 @@ export default function ChronicTrackingPage() {
 
   const pet = currentPet || pets[0]
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     if (!pet || !user) return
-    const petRecords = getChronicRecords(pet.id, user.id)
+    const petRecords = await getChronicRecords(pet.id)
     setRecords(petRecords)
-    setStats(getChronicStats(pet.id, user.id))
-    setUpcomingCheckups(getUpcomingCheckups(pet.id, user.id, 7))
-    setTrendData(getChronicTrendData(pet.id, user.id, 30))
+    setStats(await getChronicStats(pet.id))
+    setUpcomingCheckups(await getUpcomingCheckups(pet.id, 7))
+    setTrendData(await getChronicTrendData(pet.id, 30))
   }, [pet, user])
 
   useDidShow(() => {
@@ -76,17 +76,17 @@ export default function ChronicTrackingPage() {
     }
   }
 
-  const handleAdd = (data: Omit<ChronicRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => {
+  const handleAdd = async (data: Omit<ChronicRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => {
     if (!pet || !user) return
-    addChronicRecord(pet.id, user.id, data)
+    await addChronicRecord(pet.id, data)
     setShowAdd(false)
     loadData()
     Taro.showToast({ title: '添加成功', icon: 'success' })
   }
 
-  const handleUpdate = (id: string, updates: Partial<ChronicRecord>) => {
+  const handleUpdate = async (id: string, updates: Partial<ChronicRecord>) => {
     if (!pet || !user) return
-    updateChronicRecord(pet.id, user.id, id, updates)
+    await updateChronicRecord(pet.id, id, updates)
     setEditingRecord(null)
     loadData()
     Taro.showToast({ title: '更新成功', icon: 'success' })
@@ -96,9 +96,9 @@ export default function ChronicTrackingPage() {
     Taro.showModal({
       title: '确认删除',
       content: '确定要删除这条慢性病记录吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm && pet && user) {
-          deleteChronicRecord(pet.id, user.id, id)
+          await deleteChronicRecord(pet.id, id)
           loadData()
           Taro.showToast({ title: '已删除', icon: 'success' })
         }

@@ -175,7 +175,7 @@ describe('UAT 验收测试', () => {
     describe('喂养建议引擎应支持所有生命周期阶段', () => {
       it('幼犬（<12个月）应识别为 isPuppyKitten 并生成幼年喂养建议', () => {
         const pet = makePet({ birthDate: monthsAgo(6), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.isPuppyKitten).toBe(true)
         expect(profile.isSenior).toBe(false)
 
@@ -188,7 +188,7 @@ describe('UAT 验收测试', () => {
 
       it('幼猫（<12个月）应识别为 isPuppyKitten 并生成幼猫喂养建议', () => {
         const pet = makePet({ birthDate: monthsAgo(4), species: 'cat', breed: '英短' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.isPuppyKitten).toBe(true)
 
         const advice = generatePersonalizedAdvice(profile)
@@ -199,7 +199,7 @@ describe('UAT 验收测试', () => {
 
       it('老年犬（>=84个月/7岁）应识别为 isSenior 并生成老年喂养建议', () => {
         const pet = makePet({ birthDate: yearsAgo(8), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.isSenior).toBe(true)
         expect(profile.isPuppyKitten).toBe(false)
 
@@ -211,20 +211,20 @@ describe('UAT 验收测试', () => {
 
       it('老年猫（>=120个月/10岁）应识别为 isSenior', () => {
         const pet = makePet({ birthDate: yearsAgo(11), species: 'cat', breed: '英短' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.isSenior).toBe(true)
       })
 
       it('成年犬（1-7岁）不应识别为幼年或老年', () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.isPuppyKitten).toBe(false)
         expect(profile.isSenior).toBe(false)
       })
 
       it('绝育宠物应生成绝育后饮食建议', () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog', isNeutered: true })
-        const profile = buildFeedingProfile(pet, [], [], true)
+        const profile = await buildFeedingProfile(pet, [], true)
         expect(profile.isNeutered).toBe(true)
 
         const advice = generatePersonalizedAdvice(profile)
@@ -236,7 +236,7 @@ describe('UAT 验收测试', () => {
       it('有慢性病的宠物应生成慢性病饮食建议', () => {
         const pet = makePet({ birthDate: yearsAgo(5), species: 'dog' })
         const chronic = makeChronicRecord({ condition: '慢性肾病', status: 'active' })
-        const profile = buildFeedingProfile(pet, [chronic])
+        const profile = await buildFeedingProfile(pet)
 
         const advice = generatePersonalizedAdvice(profile)
         const chronicAdvice = advice.find(a => a.type === 'chronic' && a.title === '慢性肾病饮食管理')
@@ -246,7 +246,7 @@ describe('UAT 验收测试', () => {
 
       it('有过敏信息的宠物应生成过敏提醒', () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'cat', breed: '英短' })
-        const profile = buildFeedingProfile(pet, [], ['鸡肉', '谷物'])
+        const profile = await buildFeedingProfile(pet, ['鸡肉', '谷物'])
 
         const advice = generatePersonalizedAdvice(profile)
         const allergyAdvice = advice.find(a => a.type === 'allergy')
@@ -258,7 +258,7 @@ describe('UAT 验收测试', () => {
 
       it('getMealPlan 应为幼年宠物返回4餐计划', () => {
         const pet = makePet({ birthDate: monthsAgo(6), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         const plan = getMealPlan(profile)
         expect(plan).toHaveLength(4)
         expect(plan[0].label).toBe('早餐')
@@ -267,14 +267,14 @@ describe('UAT 验收测试', () => {
 
       it('getMealPlan 应为老年宠物返回2餐计划', () => {
         const pet = makePet({ birthDate: yearsAgo(8), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         const plan = getMealPlan(profile)
         expect(plan).toHaveLength(2)
       })
 
       it('getMealPlan 应为成年宠物返回2餐计划', () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         const plan = getMealPlan(profile)
         expect(plan).toHaveLength(2)
       })
@@ -710,14 +710,14 @@ describe('UAT 验收测试', () => {
     describe('空数据应返回合理的默认值', () => {
       it('buildFeedingProfile 空慢性病记录应返回空数组', () => {
         const pet = makePet()
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.chronicConditions).toEqual([])
         expect(profile.allergies).toEqual([])
       })
 
       it('buildFeedingProfile 体重为0时应使用默认值', () => {
         const pet = makePet({ weight: 0 })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.weight).toBe(0)
       })
 
@@ -814,28 +814,28 @@ describe('UAT 验收测试', () => {
     describe('喂养建议与年龄阶段应一致', () => {
       it('幼年宠物年龄应 < 12 个月', () => {
         const pet = makePet({ birthDate: monthsAgo(3), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.ageMonths).toBeLessThan(12)
         expect(profile.isPuppyKitten).toBe(true)
       })
 
       it('老年犬年龄应 >= 84 个月', () => {
         const pet = makePet({ birthDate: yearsAgo(8), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.ageMonths).toBeGreaterThanOrEqual(84)
         expect(profile.isSenior).toBe(true)
       })
 
       it('老年猫年龄应 >= 120 个月', () => {
         const pet = makePet({ birthDate: yearsAgo(10), species: 'cat', breed: '英短' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.ageMonths).toBeGreaterThanOrEqual(120)
         expect(profile.isSenior).toBe(true)
       })
 
       it('每日建议喂食量应包含在建议中', () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog' })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         const advice = generatePersonalizedAdvice(profile)
         const dailyAdvice = advice.find(a => a.type === 'daily_amount')
         expect(dailyAdvice).toBeDefined()
@@ -929,7 +929,7 @@ describe('UAT 验收测试', () => {
           birthDate: monthsAgo(6),
           weight: 2.5,
         })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         expect(profile.pet.name).toBe('青橘')
         expect(profile.isPuppyKitten).toBe(true)
         expect(profile.ageMonths).toBe(6)
@@ -944,7 +944,7 @@ describe('UAT 验收测试', () => {
           birthDate: monthsAgo(6),
           weight: 2.5,
         })
-        const profile = buildFeedingProfile(pet, [])
+        const profile = await buildFeedingProfile(pet)
         const advice = generatePersonalizedAdvice(profile)
         expect(advice.length).toBeGreaterThan(0)
         // 至少包含每日喂食量建议

@@ -1,16 +1,20 @@
 /**
  * 宠物档案页面
- * 展示宠物基本信息、喜好习惯、健康信息、操作入口
+ * 对齐高保真原型 pet-profile.html：宠物形象卡 + 健康指标 2x2 + 档案详情 + 品种特征 + 编辑按钮
+ * 保留原有业务逻辑：登录校验、多宠物切换、喜好习惯、健康管理入口、标记离世
  */
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
 import PageLoading from '../../components/PageLoading'
 import PetAvatar from '../../components/PetAvatar'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { getPetFacts, type PetFact } from '../../services/petService'
+import { getCheckinStats, getCheckinsByDateRange, getLatestCheckin } from '../../services/checkinService'
+import { getVaccineRecords } from '../../services/vaccineService'
+import { BREED_DATA } from '../../data/petKnowledge/breeds'
 import type { ExpressionContext } from '../../types/avatarTypes'
 import './index.scss'
 
@@ -34,6 +38,35 @@ const FACT_ICONS: Record<string, string> = {
   general: '📝',
 }
 
+/** 格式化出生日期 → YYYY-MM-DD */
+function formatDate(value: string): string {
+  if (!value) return '未设置'
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return value.slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/** 计算年龄（岁/月） */
+function calcAge(birthDate: string): string {
+  if (!birthDate) return ''
+  const birth = new Date(birthDate)
+  const now = new Date()
+  const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
+  if (months < 12) return `${months}个月`
+  return `${Math.floor(months / 12)}岁${months % 12}月`
+}
+
+/** 根据最近打卡计算健康评分（0-100） */
+function calcHealthScore(poop: number, appetite: number, spirit: number): number {
+  const poopScore = Math.max(0, Math.min(5, poop))
+  const spiritScore = Math.max(0, Math.min(5, spirit))
+  const appetiteScore = Math.max(0, Math.min(4, appetite))
+  return Math.round(((poopScore + spiritScore + appetiteScore) / 14) * 100)
+}
+
 export default function PetProfile() {
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
@@ -42,6 +75,12 @@ export default function PetProfile() {
   const [pageReady, setPageReady] = useState(false)
   const [facts, setFacts] = useState<PetFact[]>([])
   const themeClass = useThemeClass()
+
+  // 健康指标真实数据
+  const [healthScore, setHealthScore] = useState<number | null>(null)
+  const [streakDays, setStreakDays] = useState(0)
+  const [vaccineCoverage, setVaccineCoverage] = useState<number | null>(null)
+  const [weekTrend, setWeekTrend] = useState('暂无')
 
   const pet = currentPet || (pets.length > 0 ? pets[0] : undefined)
 
@@ -72,6 +111,62 @@ export default function PetProfile() {
       getPetFacts(pet.id).then(setFacts).catch(() => setFacts([]))
     }
   }, [pet?.id, pageReady])
+
+  // 加载健康指标（评分 / 连续打卡 / 疫苗覆盖 / 近7天趋势）
+  useEffect(() => {
+    if (!pet || !user?.id) return
+    let cancelled = false
+
+    const loadMetrics = async () => {
+      try {
+        const stats = await getCheckinStats(pet.id, user.id)
+        if (cancelled) return
+        setStreakDays(stats.streak)
+
+        const latest = await getLatestCheckin(pet.id, user.id)
+        if (cancelled) return
+        if (latest) {
+          setHealthScore(calcHealthScore(latest.poopLevel, latest.appetiteLevel, latest.spiritLevel))
+        } else {
+          setHealthScore(null)
+        }
+
+        const today = new Date()
+        const weekAgo = new Date(today.getTime() - 6 * 86400000)
+        const fmt = (d: Date) => d.toISOString().slice(0, 10)
+        const weekEntries = await getCheckinsByDateRange(pet.id, user.id, fmt(weekAgo), fmt(today))
+        if (cancelled) return
+        if (weekEntries.length >= 5) setWeekTrend('稳定')
+        else if (weekEntries.length > 0) setWeekTrend('观察')
+        else setWeekTrend('暂无')
+      } catch {
+        if (cancelled) return
+        setHealthScore(null)
+        setStreakDays(0)
+        setWeekTrend('暂无')
+      }
+    }
+
+    const loadVaccine = async () => {
+      try {
+        const records = await getVaccineRecords(pet.id)
+        if (cancelled || records.length === 0) {
+          if (!cancelled) setVaccineCoverage(null)
+          return
+        }
+        const completed = records.filter(r => r.status === 'completed').length
+        if (!cancelled) setVaccineCoverage(Math.round((completed / records.length) * 100))
+      } catch {
+        if (!cancelled) setVaccineCoverage(null)
+      }
+    }
+
+    loadMetrics()
+    loadVaccine()
+    return () => {
+      cancelled = true
+    }
+  }, [pet?.id, user?.id])
 
   const navigateTo = (url: string) => {
     Taro.navigateTo({ url })
@@ -116,6 +211,15 @@ export default function PetProfile() {
     })
   }
 
+  // 根据宠物品种匹配品种特征（遗传病 / 体重范围 / 饮食禁忌）
+  const breedInfo = useMemo(() => {
+    if (!pet?.breed) return null
+    const matched = BREED_DATA.find(
+      b => b.name === pet.breed || b.aliases.includes(pet.breed) || pet.breed.includes(b.name)
+    )
+    return matched ?? null
+  }, [pet?.breed])
+
   if (!pageReady) {
     return <PageLoading />
   }
@@ -139,8 +243,18 @@ export default function PetProfile() {
 
   return (
     <ScrollView className={`profile-page ${themeClass}`} scrollY>
-      <View className='profile-header'>
-        <View className='profile-avatar'>
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+      </View>
+
+      {/* ===================== 宠物形象卡（原型对齐） ===================== */}
+      <View className='profile-hero-card'>
+        <View className='profile-hero-glow' />
+        <View className='profile-hero-avatar'>
           <PetAvatar
             species={activePet.species}
             petName={activePet.name}
@@ -148,21 +262,31 @@ export default function PetProfile() {
             size={80}
           />
         </View>
-        <Text className='profile-name'>{activePet.name}</Text>
-        {activePet.isDeceased && (
-          <View className='profile-deceased-badge'>
-            <Text className='profile-deceased-icon'>🕊️</Text>
-            <Text className='profile-deceased-text'>已回喵星</Text>
-          </View>
-        )}
-        <Text className='profile-breed'>{activePet.breed || '未知品种'}</Text>
-        <View className='profile-tags'>
-          {activePet.gender && <Text className='profile-tag'>{activePet.gender === 'male' ? '♂ 公' : '♀ 母'}</Text>}
-          {activePet.birthDate && <Text className='profile-tag'>{calcAge(activePet.birthDate)}</Text>}
-          {activePet.weight && <Text className='profile-tag'>{activePet.weight}kg</Text>}
+        <View className='profile-hero-name-row'>
+          <Text className='profile-hero-name'>{activePet.name}</Text>
+          {activePet.isDeceased && (
+            <View className='profile-deceased-badge'>
+              <Text className='profile-deceased-icon'>🕊️</Text>
+              <Text className='profile-deceased-text'>已回喵星</Text>
+            </View>
+          )}
+        </View>
+        <View className='profile-hero-breed-pill'>{activePet.breed || '未知品种'}</View>
+        <View className='profile-hero-meta'>
+          <Text className='profile-hero-meta-item'>{activePet.gender === 'male' ? '♂ 公' : activePet.gender === 'female' ? '♀ 母' : '未知'}</Text>
+          <View className='profile-hero-meta-divider' />
+          <Text className='profile-hero-meta-item'>{activePet.birthDate ? calcAge(activePet.birthDate) : '年龄未知'}</Text>
+          <View className='profile-hero-meta-divider' />
+          <Text className='profile-hero-meta-item'>{activePet.weight ? `${activePet.weight}kg` : '--kg'}</Text>
+          <View className='profile-hero-meta-divider' />
+          <Text className='profile-hero-meta-item profile-hero-meta-item--success'>
+            <Text className='profile-hero-meta-dot' />
+            {activePet.isNeutered ? '已绝育' : '未绝育'}
+          </Text>
         </View>
       </View>
 
+      {/* 多宠物切换（保留） */}
       {pets.length > 1 && (
         <View className='profile-pet-switcher'>
           {pets.map(p => (
@@ -178,28 +302,129 @@ export default function PetProfile() {
         </View>
       )}
 
-      <View className='profile-section'>
-        <Text className='profile-section-title'>基本信息</Text>
-        <View className='profile-info-grid'>
-          <View className='profile-info-item'>
-            <Text className='profile-info-label'>品种</Text>
-            <Text className='profile-info-value'>{activePet.breed || '未设置'}</Text>
+      {/* ===================== 健康指标区 2x2（原型对齐） ===================== */}
+      <View className='profile-metrics'>
+        <View className='profile-metric'>
+          <View className='profile-metric-icon profile-metric-icon--coral'>
+            <Text>❤️</Text>
           </View>
-          <View className='profile-info-item'>
-            <Text className='profile-info-label'>性别</Text>
-            <Text className='profile-info-value'>{activePet.gender === 'male' ? '公' : activePet.gender === 'female' ? '母' : '未设置'}</Text>
+          <Text className='profile-metric-label'>健康评分</Text>
+          <Text className='profile-metric-value'>
+            {healthScore !== null ? `${healthScore}` : '--'}<Text className='profile-metric-unit'>分</Text>
+          </Text>
+        </View>
+        <View className='profile-metric'>
+          <View className='profile-metric-icon profile-metric-icon--gold'>
+            <Text>📅</Text>
           </View>
-          <View className='profile-info-item'>
-            <Text className='profile-info-label'>生日</Text>
-            <Text className='profile-info-value'>{activePet.birthDate || '未设置'}</Text>
+          <Text className='profile-metric-label'>连续打卡</Text>
+          <Text className='profile-metric-value'>
+            {streakDays}<Text className='profile-metric-unit'>天</Text>
+          </Text>
+        </View>
+        <View className='profile-metric'>
+          <View className='profile-metric-icon profile-metric-icon--success'>
+            <Text>💉</Text>
           </View>
-          <View className='profile-info-item'>
-            <Text className='profile-info-label'>体重</Text>
-            <Text className='profile-info-value'>{activePet.weight ? `${activePet.weight}kg` : '未设置'}</Text>
+          <Text className='profile-metric-label'>疫苗覆盖</Text>
+          <Text className='profile-metric-value'>
+            {vaccineCoverage !== null ? `${vaccineCoverage}` : '--'}<Text className='profile-metric-unit'>%</Text>
+          </Text>
+        </View>
+        <View className='profile-metric'>
+          <View className='profile-metric-icon profile-metric-icon--info'>
+            <Text>📈</Text>
+          </View>
+          <Text className='profile-metric-label'>近7天趋势</Text>
+          <Text className='profile-metric-value'>{weekTrend}</Text>
+        </View>
+      </View>
+
+      {/* ===================== 档案详情卡（原型对齐） ===================== */}
+      <View className='profile-detail-card'>
+        <View className='profile-section-head'>
+          <View className='profile-section-bar' />
+          <View className='profile-section-titles'>
+            <Text className='profile-section-title'>档案详情</Text>
+            <Text className='profile-section-sub'>基础信息与健康备注</Text>
+          </View>
+        </View>
+        <View className='profile-detail-row'>
+          <View className='profile-detail-label'>
+            <Text className='profile-detail-icon profile-detail-icon--coral'>📅</Text>
+            <Text>出生日期</Text>
+          </View>
+          <Text className='profile-detail-value'>{formatDate(activePet.birthDate)}</Text>
+        </View>
+        <View className='profile-detail-row'>
+          <View className='profile-detail-label'>
+            <Text className='profile-detail-icon profile-detail-icon--gold'>🎨</Text>
+            <Text>毛色</Text>
+          </View>
+          <Text className='profile-detail-value'>{activePet.coatColor || '未设置'}</Text>
+        </View>
+        <View className='profile-detail-row'>
+          <View className='profile-detail-label'>
+            <Text className='profile-detail-icon profile-detail-icon--coral'>🪪</Text>
+            <Text>芯片号</Text>
+          </View>
+          <Text className='profile-detail-value'>{activePet.microchipId || '无'}</Text>
+        </View>
+        <View className='profile-detail-row'>
+          <View className='profile-detail-label'>
+            <Text className='profile-detail-icon profile-detail-icon--warning'>⚠️</Text>
+            <Text>过敏史</Text>
+          </View>
+          <Text className='profile-detail-value'>{activePet.allergies?.length ? activePet.allergies.join('、') : '无'}</Text>
+        </View>
+        <View className='profile-detail-row'>
+          <View className='profile-detail-label'>
+            <Text className='profile-detail-icon profile-detail-icon--coral'>💊</Text>
+            <Text>当前用药</Text>
+          </View>
+          <Text className='profile-detail-value'>{activePet.medications?.length ? activePet.medications.join('、') : '无'}</Text>
+        </View>
+        <View className='profile-detail-row profile-detail-row--last'>
+          <View className='profile-detail-label'>
+            <Text className='profile-detail-icon profile-detail-icon--success'>➕</Text>
+            <Text>慢性病</Text>
+          </View>
+          <Text className='profile-detail-value'>{activePet.chronicConditions?.length ? activePet.chronicConditions.join('、') : '无'}</Text>
+        </View>
+      </View>
+
+      {/* ===================== 品种特征卡（原型对齐） ===================== */}
+      <View className='profile-detail-card'>
+        <View className='profile-section-head'>
+          <View className='profile-section-bar' />
+          <View className='profile-section-titles'>
+            <Text className='profile-section-title'>品种特征</Text>
+          </View>
+        </View>
+        <View className='profile-feature-row'>
+          <Text className='profile-feature-icon'>🛡️</Text>
+          <View className='profile-feature-info'>
+            <Text className='profile-feature-label'>遗传病易感</Text>
+            <Text className='profile-feature-value'>{breedInfo?.geneticDiseases?.[0] || activePet.notes || '暂无数据'}</Text>
+          </View>
+        </View>
+        <View className='profile-feature-row'>
+          <Text className='profile-feature-icon profile-feature-icon--gold'>⚖️</Text>
+          <View className='profile-feature-info'>
+            <Text className='profile-feature-label'>体重正常范围</Text>
+            <Text className='profile-feature-value'>{breedInfo?.weightRangeStr || '暂无数据'}</Text>
+          </View>
+        </View>
+        <View className='profile-feature-row profile-feature-row--last'>
+          <Text className='profile-feature-icon profile-feature-icon--warning'>🍽️</Text>
+          <View className='profile-feature-info'>
+            <Text className='profile-feature-label'>饮食禁忌</Text>
+            <Text className='profile-feature-value'>{breedInfo?.dietRestrictions?.[0] || '暂无数据'}</Text>
           </View>
         </View>
       </View>
 
+      {/* 喜好与习惯（保留） */}
       {facts.length > 0 && (
         <View className='profile-section'>
           <Text className='profile-section-title'>它的喜好与习惯</Text>
@@ -214,40 +439,13 @@ export default function PetProfile() {
         </View>
       )}
 
-      <View className='profile-section'>
-        <Text className='profile-section-title'>品种特征</Text>
-        <View className='profile-feature-card'>
-          <View className='profile-feature-item'>
-            <Text className='profile-feature-label'>毛色</Text>
-            <Text className='profile-feature-value'>{activePet.coatColor || '未设置'}</Text>
-          </View>
-        </View>
+      {/* ===================== 编辑档案按钮（原型对齐） ===================== */}
+      <View className='profile-edit-btn' onClick={() => navigateTo(`/pagesPet/edit/index?id=${activePet.id}`)}>
+        <Text className='profile-edit-btn-text'>✏️ 编辑档案</Text>
       </View>
 
+      {/* 健康管理入口（保留） */}
       <View className='profile-section'>
-        <Text className='profile-section-title'>健康信息</Text>
-        <View className='profile-health-card'>
-          <View className='profile-health-item'>
-            <Text className='profile-health-label'>过敏史</Text>
-            <Text className='profile-health-value'>{activePet.allergies || '无'}</Text>
-          </View>
-          <View className='profile-health-item'>
-            <Text className='profile-health-label'>用药史</Text>
-            <Text className='profile-health-value'>{activePet.medications || '无'}</Text>
-          </View>
-          <View className='profile-health-item'>
-            <Text className='profile-health-label'>绝育状态</Text>
-            <Text className='profile-health-value'>{activePet.isNeutered ? '已绝育' : '未绝育'}</Text>
-          </View>
-          <View className='profile-health-item'>
-            <Text className='profile-health-label'>芯片编号</Text>
-            <Text className='profile-health-value'>{activePet.microchipId || '无'}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View className='profile-section'>
-        <Text className='profile-section-title'>健康管理</Text>
         <View className='profile-actions'>
           <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/chronic-tracking/index')}>
             <Text className='profile-action-icon'>🩺</Text>
@@ -256,10 +454,6 @@ export default function PetProfile() {
           <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/feeding-advice/index')}>
             <Text className='profile-action-icon'>🍽️</Text>
             <Text className='profile-action-label'>喂养建议</Text>
-          </View>
-          <View className='profile-action-btn' onClick={() => navigateTo(`/pagesPet/edit/index?id=${activePet.id}`)}>
-            <Text className='profile-action-icon'>✏️</Text>
-            <Text className='profile-action-label'>编辑档案</Text>
           </View>
         </View>
       </View>
@@ -293,12 +487,4 @@ export default function PetProfile() {
       <View className='profile-bottom-safe' />
     </ScrollView>
   )
-}
-
-function calcAge(birthDate: string): string {
-  const birth = new Date(birthDate)
-  const now = new Date()
-  const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
-  if (months < 12) return `${months}个月`
-  return `${Math.floor(months / 12)}岁`
 }

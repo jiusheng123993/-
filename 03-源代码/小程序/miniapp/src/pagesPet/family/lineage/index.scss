@@ -191,6 +191,9 @@
 .lineage-layer--self { animation-delay: 0.2s; }
 .lineage-layer--children { animation-delay: 0.35s; }
 .lineage-layer--siblings { animation-delay: 0.15s; }
+.lineage-layer--mates { animation-delay: 0s; }
+.lineage-layer--ancestors { animation-delay: 0.02s; }
+.lineage-layer--descendants { animation-delay: 0.5s; }
 
 .lineage-layer-label {
   margin-bottom: 12rpx;
@@ -399,6 +402,40 @@
 }
 
 // ===== 选中宠物卡片 =====
+.lineage-layer--center {
+  margin: 12rpx 0;
+}
+
+.lineage-center-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+.lineage-siblings-side {
+  flex-shrink: 0;
+  max-width: 240rpx;
+}
+
+.lineage-siblings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.lineage-card-wrap--sibling {
+  max-width: 220rpx;
+}
+
+.lineage-self-wrap {
+  flex: 1;
+  max-width: 500rpx;
+  min-width: 320rpx;
+}
+
 .lineage-layer--self {
   margin: 16rpx 0;
 }

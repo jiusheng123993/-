@@ -2,11 +2,15 @@
 
 .pet-trends-page {
   min-height: 100vh;
-  background-color: $color-bg-page;
+  background: $gradient-page;
   padding-bottom: 160rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .pet-trends__time-range {
+  position: relative;
+  z-index: 2;
   display: flex;
   justify-content: center;
   gap: 16rpx;
@@ -29,11 +33,20 @@
       font-weight: $font-weight-semibold;
     }
   }
+
+  &--locked {
+    opacity: 0.6;
+  }
 }
 
 .pet-trends__time-btn-text {
   font-size: $font-size-sm;
   color: $color-text-secondary;
+}
+
+.pet-trends__time-btn-lock {
+  font-size: 20rpx;
+  margin-left: 4rpx;
 }
 
 .pet-trends__tabs {
@@ -66,6 +79,8 @@
 }
 
 .pet-trends__content {
+  position: relative;
+  z-index: 2;
   flex: 1;
   padding: 20rpx 32rpx;
 }
@@ -74,6 +89,181 @@
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+}
+
+// ==================== AI 月度小结卡 ====================
+.trends-ai-card {
+  background: $color-primary-bg;
+  border-radius: 56rpx;
+  padding: 40rpx;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.trends-ai-card__head {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.trends-ai-card__icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  @include flex-center;
+  flex-shrink: 0;
+  box-shadow: $shadow-button;
+}
+
+.trends-ai-card__icon-text {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.trends-ai-card__title {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.trends-ai-card__badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: $color-bg-card;
+  box-shadow: $shadow-xs;
+
+  &--warn {
+    background: rgba($color-warning, 0.12);
+  }
+}
+
+.trends-ai-card__badge-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: $color-success;
+
+  &--warn {
+    background: $color-warning;
+  }
+}
+
+.trends-ai-card__badge-text {
+  font-size: 22rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-success;
+
+  .trends-ai-card__badge--warn & {
+    color: $color-warning;
+  }
+}
+
+.trends-ai-card__text {
+  display: block;
+  margin-top: 24rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.7;
+}
+
+// ==================== 图表卡 ====================
+.trends-chart-card {
+  @include card-base;
+  padding: 32rpx;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.trends-chart-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.trends-chart-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.trends-chart-card__icon {
+  font-size: 32rpx;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.trends-chart-card__title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.trends-chart-card__metric {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+
+  &--down {
+    .trends-chart-card__metric-text {
+      color: $color-danger;
+    }
+  }
+}
+
+.trends-chart-card__metric-icon {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.trends-chart-card__metric-text {
+  font-size: 22rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-success;
+}
+
+// ==================== 异常标记说明 ====================
+.trends-note {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 0 8rpx;
+}
+
+.trends-note__icon {
+  font-size: 28rpx;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.trends-note__text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+// ==================== 图表内部容器（置于图表卡内，不再自带卡片样式） ====================
+.trend-chart__container {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.trend-chart__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
 }
 
 .trend-card {
@@ -106,11 +296,6 @@
   background-color: $color-danger;
   padding: 4rpx 16rpx;
   border-radius: 16rpx;
-}
-
-.trend-chart__container {
-  @include card-base;
-  padding: 32rpx;
 }
 
 .trend-chart__breed-range-header {
@@ -242,7 +427,6 @@
   align-items: center;
   justify-content: center;
   padding: 80rpx 0;
-  @include card-base;
 }
 
 .trend-chart__empty-text {

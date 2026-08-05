@@ -1,0 +1,386 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 年度回忆页 — 原型 1:1：珊瑚渐变头部 + 年度数据 + AI 总结 + 年度视频
+// ============================================
+
+.review-page {
+  min-height: 100vh;
+  background: $gradient-page;
+  position: relative;
+  z-index: 1;
+  animation: pageEnter 0.4s ease-out;
+}
+
+.review-page__content {
+  position: relative;
+  z-index: 2;
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+// ===== 加载 =====
+.review-page__loading {
+  @include flex-center;
+  flex-direction: column;
+  min-height: 100vh;
+  gap: 24rpx;
+}
+
+.review-page__spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  border: 6rpx solid $color-primary-bg;
+  border-top-color: $color-primary;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.review-page__loading-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+// ===== 珊瑚渐变头部 =====
+.annual-hero {
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  border-radius: 24rpx;
+  padding: 32rpx 32rpx 40rpx;
+  box-shadow: $shadow-button;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.annual-hero__pills,
+.annual-hero__pets {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.annual-hero__pills-inner {
+  display: flex;
+  gap: 16rpx;
+  padding: 4rpx 0;
+}
+
+.annual-hero__pill {
+  padding: 10rpx 28rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  transition: all $transition-fast;
+
+  &--active {
+    background: $color-bg-card;
+  }
+
+  &--pet {
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.annual-hero__pill-text {
+  font-size: 24rpx;
+  font-weight: $font-weight-semibold;
+  color: rgba(255, 255, 255, 0.9);
+
+  .annual-hero__pill--active & {
+    color: $color-primary;
+  }
+}
+
+.annual-hero__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 32rpx;
+}
+
+.annual-hero__title {
+  font-size: 40rpx;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+  flex: 1;
+  min-width: 0;
+  @include text-ellipsis;
+}
+
+.annual-hero__badge {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.annual-hero__badge-icon {
+  font-size: 22rpx;
+  line-height: 1;
+}
+
+.annual-hero__badge-text {
+  font-size: 22rpx;
+  font-weight: $font-weight-semibold;
+  color: #FFFFFF;
+}
+
+.annual-hero__sub {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+// ===== 空态 =====
+.review-empty {
+  @include card-base;
+  padding: 80rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.review-empty__icon {
+  font-size: 72rpx;
+}
+
+.review-empty__text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+// ===== 年度数据 =====
+.annual-section {
+  @include card-base;
+  padding: 32rpx;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.annual-section__title {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: 24rpx;
+}
+
+.annual-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.annual-stat {
+  padding: 28rpx 24rpx;
+  border-radius: 24rpx;
+  background: $color-bg-secondary;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.annual-stat__head {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.annual-stat__icon {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.annual-stat__label {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.annual-stat__num {
+  font-size: 48rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  line-height: 1;
+}
+
+.annual-stat__unit {
+  font-size: 24rpx;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  margin-left: 4rpx;
+}
+
+// ===== AI 年度总结 =====
+.annual-summary {
+  @include card-base;
+  padding: 32rpx;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.annual-summary__head {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.annual-summary__icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  @include flex-center;
+  flex-shrink: 0;
+  box-shadow: $shadow-button;
+}
+
+.annual-summary__icon-text {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.annual-summary__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.annual-summary__title {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.annual-summary__sub {
+  display: block;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.annual-summary__text {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: 1.8;
+}
+
+.annual-summary__sign {
+  display: block;
+  margin-top: 20rpx;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+// ===== 年度视频 =====
+.annual-video {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.annual-video__player {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  background: $color-text-primary;
+}
+
+.annual-video__status {
+  @include card-base;
+  padding: 24rpx 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+
+  &--completed {
+    display: none;
+  }
+
+  &--failed {
+    border-color: $color-danger;
+  }
+}
+
+.annual-video__status-text {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+}
+
+.annual-video__progress {
+  flex: 1;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: $color-primary-bg;
+  overflow: hidden;
+}
+
+.annual-video__progress-bar {
+  height: 100%;
+  width: 60%;
+  border-radius: 4rpx;
+  background: $color-primary;
+  animation: progressSlide 1.5s ease-in-out infinite;
+}
+
+@keyframes progressSlide {
+  0% { margin-left: 0; }
+  100% { margin-left: 40%; }
+}
+
+.annual-video__btn {
+  height: 104rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  box-shadow: $shadow-button;
+  @include flex-center;
+  gap: 12rpx;
+
+  &:active {
+    opacity: 0.85;
+  }
+
+  &--loading,
+  &--disabled {
+    opacity: 0.6;
+    box-shadow: none;
+  }
+}
+
+.annual-video__btn-icon {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.annual-video__btn-text {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+}
+
+.annual-video__btn-arrow {
+  font-size: 28rpx;
+  color: #FFFFFF;
+}
+
+.annual-video__price {
+  text-align: center;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}

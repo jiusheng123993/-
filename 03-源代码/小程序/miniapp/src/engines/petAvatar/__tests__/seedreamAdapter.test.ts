@@ -75,6 +75,8 @@ const sleepyExpression: ExpressionConfig = {
   animation: 'float',
 }
 
+const TEST_PET_ID = 'test-pet-001'
+
 describe('SeedreamAdapter', () => {
   beforeEach(() => {
     vi.mocked(getPetFaceDataUri).mockClear()
@@ -85,14 +87,14 @@ describe('SeedreamAdapter', () => {
   describe('constructor', () => {
     it('defaults useStub to true', async () => {
       const adapter = new SeedreamAdapter()
-      const result = adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       await expect(result).resolves.toEqual({ success: true, imageUrl: 'data:image/svg+xml;base64,stubdata' })
     })
 
     it('can set useStub to false', async () => {
-      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, imageUrl: 'https://cdn.example.com/avatar.png' } })
+      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, data: { url: 'https://cdn.example.com/avatar.png', isPlaceholder: false } } })
       const adapter = new SeedreamAdapter(false)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
     })
   })
@@ -100,47 +102,47 @@ describe('SeedreamAdapter', () => {
   describe('generatePetImage with stub', () => {
     it('returns success with dataUri for dog species', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
 
     it('returns success with dataUri for cat species', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'cat', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'cat', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
 
     it('calls getPetFaceDataUri with correct expression, species and size 256', async () => {
       const adapter = new SeedreamAdapter(true)
-      await adapter.generatePetImage({ species: 'dog', expression: excitedExpression })
+      await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: excitedExpression })
       expect(getPetFaceDataUri).toHaveBeenCalledWith(excitedExpression, 'dog', 256)
     })
 
     it('calls getPetFaceDataUri with cat species', async () => {
       const adapter = new SeedreamAdapter(true)
-      await adapter.generatePetImage({ species: 'cat', expression: worriedExpression })
+      await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'cat', expression: worriedExpression })
       expect(getPetFaceDataUri).toHaveBeenCalledWith(worriedExpression, 'cat', 256)
     })
 
     it('returns dataUri for cartoon style', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression, style: 'cartoon' })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression, style: 'cartoon' })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
 
     it('returns dataUri for realistic style', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'cat', expression: excitedExpression, style: 'realistic' })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'cat', expression: excitedExpression, style: 'realistic' })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
 
     it('passes breed and color through without error in stub mode', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression, breed: '金毛', color: '金' })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression, breed: '金毛', color: '金' })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
@@ -148,9 +150,9 @@ describe('SeedreamAdapter', () => {
 
   describe('generatePetImage without stub', () => {
     it('returns real image when API succeeds', async () => {
-      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, imageUrl: 'https://cdn.example.com/avatar.png' } })
+      mockRequest.mockResolvedValue({ statusCode: 200, data: { success: true, data: { url: 'https://cdn.example.com/avatar.png', isPlaceholder: false } } })
       const adapter = new SeedreamAdapter(false)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: 'pet-001', species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('https://cdn.example.com/avatar.png')
     })
@@ -158,7 +160,7 @@ describe('SeedreamAdapter', () => {
     it('falls back to stub when API fails', async () => {
       mockRequest.mockRejectedValue(new Error('Network error'))
       const adapter = new SeedreamAdapter(false)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
@@ -166,7 +168,7 @@ describe('SeedreamAdapter', () => {
     it('falls back to stub when API returns error', async () => {
       mockRequest.mockResolvedValue({ statusCode: 500, data: { error: 'Internal error' } })
       const adapter = new SeedreamAdapter(false)
-      const result = await adapter.generatePetImage({ species: 'cat', expression: excitedExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'cat', expression: excitedExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
@@ -174,7 +176,7 @@ describe('SeedreamAdapter', () => {
     it('handles 402 payment required', async () => {
       mockRequest.mockResolvedValue({ statusCode: 402, data: {} })
       const adapter = new SeedreamAdapter(false)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
@@ -182,7 +184,7 @@ describe('SeedreamAdapter', () => {
     it('handles 429 rate limit', async () => {
       mockRequest.mockResolvedValue({ statusCode: 429, data: {} })
       const adapter = new SeedreamAdapter(false)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
@@ -233,7 +235,7 @@ describe('SeedreamAdapter', () => {
     })
 
     it('behaves as useStub=true by default', async () => {
-      const result = await seedreamAdapter.generatePetImage({ species: 'dog', expression: happyExpression })
+      const result = await seedreamAdapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: happyExpression })
       expect(result.success).toBe(true)
       expect(result.imageUrl).toBe('data:image/svg+xml;base64,stubdata')
     })
@@ -242,14 +244,14 @@ describe('SeedreamAdapter', () => {
   describe('different expression configs', () => {
     it('handles worried expression', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'dog', expression: worriedExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'dog', expression: worriedExpression })
       expect(result.success).toBe(true)
       expect(getPetFaceDataUri).toHaveBeenCalledWith(worriedExpression, 'dog', 256)
     })
 
     it('handles sleepy expression', async () => {
       const adapter = new SeedreamAdapter(true)
-      const result = await adapter.generatePetImage({ species: 'cat', expression: sleepyExpression })
+      const result = await adapter.generatePetImage({ petId: TEST_PET_ID, species: 'cat', expression: sleepyExpression })
       expect(result.success).toBe(true)
       expect(getPetFaceDataUri).toHaveBeenCalledWith(sleepyExpression, 'cat', 256)
     })

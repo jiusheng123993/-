@@ -150,7 +150,7 @@ export default function PetFoodQuery() {
           trackEvent('show_paywall', { feature: 'food_query' })
           setPaywallVisible(true)
         } else {
-          Taro.switchTab({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pages/member/index' })
         }
         return
       }
@@ -208,7 +208,7 @@ export default function PetFoodQuery() {
           await markPaywallShown('food_query')
           setPaywallVisible(true)
         } else {
-          Taro.switchTab({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pages/member/index' })
         }
         return
       }
@@ -264,6 +264,14 @@ export default function PetFoodQuery() {
 
   return (
     <View className='pet-food-query'>
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+      </View>
+
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
@@ -290,53 +298,80 @@ export default function PetFoodQuery() {
       ) : (
         <>
           <View className='pet-food-query__search'>
-            <View className='pet-food-query__search-input-wrapper'>
-              <Text className='pet-food-query__search-icon'>🔍</Text>
-              <Input
-                className='pet-food-query__input'
-                placeholder='输入食物名称，如柠檬、巧克力...'
-                placeholderClass='pet-food-query__input-placeholder'
-                value={searchText}
-                onInput={(e) => {
-                  setSearchText(e.detail.value)
-                  setShowSuggestions(true)
-                }}
-                onFocus={() => searchText.trim() && setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                onConfirm={handleSearch}
-              />
-              {searchText && (
-                <Text
-                  className='pet-food-query__search-clear'
-                  onClick={() => {
-                    setSearchText('')
-                    setShowSuggestions(false)
+            <View className='pet-food-query__search-glow'>
+              <View className='pet-food-query__search-input-wrapper'>
+                <Text className='pet-food-query__search-icon'>🔍</Text>
+                <Input
+                  className='pet-food-query__input'
+                  placeholder='搜索食物，如：鸡胸肉、葡萄...'
+                  placeholderClass='pet-food-query__input-placeholder'
+                  value={searchText}
+                  onInput={(e) => {
+                    setSearchText(e.detail.value)
+                    setShowSuggestions(true)
                   }}
-                >
-                  ✕
-                </Text>
-              )}
-              {/* 搜索建议下拉 */}
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <View className='pet-food-query__suggestions'>
-                  {filteredSuggestions.map((food) => (
-                    <View
-                      key={food}
-                      className='pet-food-query__suggestion-item'
-                      onClick={() => handleSuggestionClick(food)}
-                    >
-                      <Text className='pet-food-query__suggestion-icon'>🍽️</Text>
-                      <Text className='pet-food-query__suggestion-text'>{food}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                  onFocus={() => searchText.trim() && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onConfirm={handleSearch}
+                />
+                {searchText && (
+                  <Text
+                    className='pet-food-query__search-clear'
+                    onClick={() => {
+                      setSearchText('')
+                      setShowSuggestions(false)
+                    }}
+                  >
+                    ✕
+                  </Text>
+                )}
+                {/* 搜索建议下拉 */}
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <View className='pet-food-query__suggestions'>
+                    {filteredSuggestions.map((food) => (
+                      <View
+                        key={food}
+                        className='pet-food-query__suggestion-item'
+                        onClick={() => handleSuggestionClick(food)}
+                      >
+                        <Text className='pet-food-query__suggestion-icon'>🍽️</Text>
+                        <Text className='pet-food-query__suggestion-text'>{food}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+              <View
+                className={`pet-food-query__search-btn${!isMember && stats && stats.remainingFree <= 0 ? ' pet-food-query__search-btn--disabled' : ''}`}
+                onClick={!isMember && stats && stats.remainingFree <= 0 ? undefined : handleSearch}
+              >
+                <Text>搜索</Text>
+              </View>
             </View>
-            <View
-              className={`pet-food-query__search-btn${!isMember && stats && stats.remainingFree <= 0 ? ' pet-food-query__search-btn--disabled' : ''}`}
-              onClick={!isMember && stats && stats.remainingFree <= 0 ? undefined : handleSearch}
-            >
-              <Text>搜索</Text>
+          </View>
+
+          {/* 状态说明条（原型对齐：安全/注意/有毒） */}
+          <View className='pet-food-query__legend'>
+            <View className='pet-food-query__legend-item pet-food-query__legend-item--safe'>
+              <View className='pet-food-query__legend-dot pet-food-query__legend-dot--safe'>
+                <Text>✓</Text>
+              </View>
+              <Text className='pet-food-query__legend-label pet-food-query__legend-label--safe'>安全</Text>
+              <Text className='pet-food-query__legend-desc'>放心吃</Text>
+            </View>
+            <View className='pet-food-query__legend-item pet-food-query__legend-item--warning'>
+              <View className='pet-food-query__legend-dot pet-food-query__legend-dot--warning'>
+                <Text>!</Text>
+              </View>
+              <Text className='pet-food-query__legend-label pet-food-query__legend-label--warning'>注意</Text>
+              <Text className='pet-food-query__legend-desc'>少量谨慎</Text>
+            </View>
+            <View className='pet-food-query__legend-item pet-food-query__legend-item--toxic'>
+              <View className='pet-food-query__legend-dot pet-food-query__legend-dot--toxic'>
+                <Text>✕</Text>
+              </View>
+              <Text className='pet-food-query__legend-label pet-food-query__legend-label--toxic'>有毒</Text>
+              <Text className='pet-food-query__legend-desc'>禁止喂食</Text>
             </View>
           </View>
 
@@ -553,6 +588,7 @@ export default function PetFoodQuery() {
       )}
 
       <View className='pet-food-query__disclaimer'>
+        <Text className='pet-food-query__disclaimer-icon'>🛡️</Text>
         <Text className='pet-food-query__disclaimer-text'>{disclaimerText}</Text>
       </View>
 
@@ -560,7 +596,7 @@ export default function PetFoodQuery() {
         visible={paywallVisible}
         featureName="食物查询"
         remainingFree={stats?.remainingFree ?? 0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.switchTab({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 

@@ -24,6 +24,7 @@ vi.mock('../api', () => ({
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
   },
 }))
@@ -55,10 +56,10 @@ import type { PetFamily, PetFamilyMember, PetLineage, FamilyPhoto } from '../../
 function makeFamily(overrides: Partial<PetFamily> = {}): PetFamily {
   return {
     id: 'family-001',
-    userId: 'user-001',
     name: '测试家庭',
+    avatarUrl: 'https://example.com/avatar.jpg',
+    memberCount: 2,
     createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
     ...overrides,
   }
 }
@@ -68,7 +69,6 @@ function makeMember(overrides: Partial<PetFamilyMember> = {}): PetFamilyMember {
     id: 'member-001',
     familyId: 'family-001',
     petId: 'pet-001',
-    petName: '小白',
     role: 'parent',
     joinedAt: '2024-01-01T00:00:00.000Z',
     ...overrides,
@@ -78,6 +78,7 @@ function makeMember(overrides: Partial<PetFamilyMember> = {}): PetFamilyMember {
 function makeLineage(overrides: Partial<PetLineage> = {}): PetLineage {
   return {
     id: 'lineage-001',
+    familyId: null,
     parentId: 'pet-001',
     childId: 'pet-002',
     litterDate: '2024-01-01',
@@ -144,7 +145,7 @@ describe('familyService', () => {
     })
 
     it('returns created family', async () => {
-      const newFamily = makeFamily({ id: 'family-new', name: '新家庭' })
+      const newFamily = makeFamily({ id: 'family-new', name: '新家庭', memberCount: 0 })
       vi.mocked(api.post).mockResolvedValue(newFamily)
 
       const result = await familyService.createFamily('新家庭')
@@ -172,7 +173,7 @@ describe('familyService', () => {
     })
 
     it('returns members array when API returns data', async () => {
-      const members = [makeMember(), makeMember({ id: 'member-002', petName: '小黑' })]
+      const members = [makeMember(), makeMember({ id: 'member-002' })]
       vi.mocked(api.get).mockResolvedValue({ members })
 
       const result = await familyService.getMembers('family-001')
@@ -207,26 +208,35 @@ describe('familyService', () => {
   })
 
   describe('removeMember', () => {
-    it('removes member locally without API call', async () => {
+    it('calls api.delete with /api/families/{familyId}/members/by-id/{memberId}', async () => {
+      vi.mocked(api.delete).mockResolvedValue(undefined)
+
       await familyService.removeMember('family-001', 'member-001')
 
-      expect(api.delete).not.toHaveBeenCalled()
+      expect(api.delete).toHaveBeenCalledWith('/api/families/family-001/members/by-id/member-001')
     })
   })
 
   describe('updateMemberRole', () => {
-    it('updates role locally without API call', async () => {
+    it('calls api.patch with role', async () => {
+      vi.mocked(api.patch).mockResolvedValue(undefined)
+
       await familyService.updateMemberRole('family-001', 'member-001', 'admin')
 
-      expect(api.put).not.toHaveBeenCalled()
+      expect(api.patch).toHaveBeenCalledWith('/api/families/family-001/members/member-001/role', {
+        role: 'admin',
+      })
     })
   })
 
   describe('getLineage', () => {
     it('calls api.get with /api/families/{familyId}/lineage/{petId}', async () => {
       vi.mocked(api.get).mockResolvedValue({
-        parents: [makeLineage()],
-        children: [makeLineage({ id: 'lineage-002' })],
+        pet: { id: 'pet-001', name: '小白', avatar_url: null, species: 'cat' },
+        parents: [],
+        children: [],
+        siblings: [],
+        mates: [],
       })
 
       await familyService.getLineage('pet-001', 'family-001')
@@ -234,33 +244,37 @@ describe('familyService', () => {
       expect(api.get).toHaveBeenCalledWith('/api/families/family-001/lineage/pet-001')
     })
 
-    it('returns empty structure when familyId is missing', async () => {
-      const result = await familyService.getLineage('pet-001')
-
-      expect(result).toEqual({ parents: [], children: [] })
-      expect(api.get).not.toHaveBeenCalled()
-    })
-
     it('returns default structure when API returns null', async () => {
       vi.mocked(api.get).mockResolvedValue(null)
 
       const result = await familyService.getLineage('pet-001', 'family-001')
 
-      expect(result).toEqual({ parents: [], children: [] })
+      expect(result.pet.id).toBe('pet-001')
+      expect(result.parents).toEqual([])
+      expect(result.children).toEqual([])
+      expect(result.siblings).toEqual([])
+      expect(result.mates).toEqual([])
     })
 
-    it('returns lineage when API returns data', async () => {
-      const lineageData = {
-        parents: [makeLineage()],
-        children: [makeLineage({ id: 'lineage-002', childId: 'pet-003' })],
+    it('returns lineage when API returns data (snake_case → camelCase)', async () => {
+      const rawData = {
+        pet: { id: 'pet-001', name: '小白', avatar_url: null, species: 'cat' },
+        parents: [{ id: 'l-001', family_id: null, parent_id: 'pet-p1', child_id: 'pet-001', litter_date: '2024-01-01', created_at: null, pet_id: 'pet-p1', pet_name: '大黑', pet_avatar_url: null, pet_species: 'dog' }],
+        children: [{ id: 'l-002', family_id: null, parent_id: 'pet-001', child_id: 'pet-c1', litter_date: null, created_at: null, pet_id: 'pet-c1', pet_name: '小花', pet_avatar_url: null, pet_species: 'cat' }],
+        siblings: [],
+        mates: [],
       }
-      vi.mocked(api.get).mockResolvedValue(lineageData)
+      vi.mocked(api.get).mockResolvedValue(rawData)
 
       const result = await familyService.getLineage('pet-001', 'family-001')
 
-      expect(result).toEqual(lineageData)
+      expect(result.pet.name).toBe('小白')
       expect(result.parents).toHaveLength(1)
+      expect(result.parents[0].parentId).toBe('pet-p1')
+      expect(result.parents[0].petName).toBe('大黑')
       expect(result.children).toHaveLength(1)
+      expect(result.children[0].childId).toBe('pet-c1')
+      expect(result.children[0].petName).toBe('小花')
     })
   })
 
@@ -268,7 +282,7 @@ describe('familyService', () => {
     it('calls api.post with correct params including litter_date', async () => {
       vi.mocked(api.post).mockResolvedValue(undefined)
 
-      await familyService.addLineage('pet-001', 'pet-002', '2024-01-01', 'family-001')
+      await familyService.addLineage('pet-001', 'pet-002', 'family-001', '2024-01-01')
 
       expect(api.post).toHaveBeenCalledWith('/api/families/family-001/lineage', {
         parent_id: 'pet-001',
@@ -280,7 +294,7 @@ describe('familyService', () => {
     it('sends litter_date as undefined when not provided', async () => {
       vi.mocked(api.post).mockResolvedValue(undefined)
 
-      await familyService.addLineage('pet-001', 'pet-002', undefined, 'family-001')
+      await familyService.addLineage('pet-001', 'pet-002', 'family-001')
 
       expect(api.post).toHaveBeenCalledWith('/api/families/family-001/lineage', {
         parent_id: 'pet-001',
@@ -288,19 +302,15 @@ describe('familyService', () => {
         litter_date: undefined,
       })
     })
-
-    it('does nothing when familyId is missing', async () => {
-      await familyService.addLineage('pet-001', 'pet-002')
-
-      expect(api.post).not.toHaveBeenCalled()
-    })
   })
 
   describe('removeLineage', () => {
-    it('removes lineage locally without API call', async () => {
-      await familyService.removeLineage('lineage-001')
+    it('calls api.delete with /api/families/{familyId}/lineage/{lineageId}', async () => {
+      vi.mocked(api.delete).mockResolvedValue(undefined)
 
-      expect(api.delete).not.toHaveBeenCalled()
+      await familyService.removeLineage('lineage-001', 'family-001')
+
+      expect(api.delete).toHaveBeenCalledWith('/api/families/family-001/lineage/lineage-001')
     })
   })
 
@@ -324,60 +334,49 @@ describe('familyService', () => {
     })
   })
 
-  describe('saveFamilyPhoto', () => {
-    it('saves photo to local storage and returns it', async () => {
-      const result = await familyService.saveFamilyPhoto(
-        'family-001',
-        'https://example.com/photo.jpg',
-        3,
-        ['小白', '小黑', '小花'],
-      )
+  describe('generateFamilyPhoto', () => {
+    it('calls api.post with /api/families/{familyId}/photos and style', async () => {
+      vi.mocked(api.post).mockResolvedValue({ id: 'photo-new', photoUrl: 'https://example.com/ai-photo.jpg' })
 
-      expect(result.familyId).toBe('family-001')
-      expect(result.photoType).toBe('generated')
-      expect(result.memberCount).toBe(3)
-      expect(result.memberNames).toEqual(['小白', '小黑', '小花'])
-      expect(result.id).toBeDefined()
-      expect(result.createdAt).toBeDefined()
-      expect(api.post).not.toHaveBeenCalled()
+      const result = await familyService.generateFamilyPhoto('family-001', 'pixar')
+
+      expect(api.post).toHaveBeenCalledWith('/api/families/family-001/photos', { style: 'pixar' })
+      expect(result.id).toBe('photo-new')
+      expect(result.photoUrl).toBe('https://example.com/ai-photo.jpg')
     })
 
-    it('passes custom photoType and description', async () => {
-      const result = await familyService.saveFamilyPhoto(
-        'family-001',
-        'https://example.com/photo.jpg',
-        3,
-        ['小白', '小黑', '小花'],
-        'uploaded',
-        '全家福合影',
-      )
+    it('falls back to local storage when API fails', async () => {
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 
-      expect(result.photoType).toBe('uploaded')
-      expect(result.description).toBe('全家福合影')
-    })
+      mockStorage['xhh_family_photos_all'] = JSON.stringify([
+        makePhoto({ id: 'photo-001', familyId: 'family-001' }),
+        makePhoto({ id: 'photo-002', familyId: 'family-002' }),
+      ])
 
-    it('persists photo and returns it in getFamilyPhotos', async () => {
-      await familyService.saveFamilyPhoto(
-        'family-001',
-        'https://example.com/photo.jpg',
-        3,
-        ['小白', '小黑', '小花'],
-      )
+      const result = await familyService.getFamilyPhotos('family-001')
 
-      const photos = await familyService.getFamilyPhotos('family-001')
-      expect(photos).toHaveLength(1)
-      expect(photos[0].photoUrl).toBe('https://example.com/photo.jpg')
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe('photo-001')
     })
   })
 
   describe('deleteFamilyPhoto', () => {
-    it('deletes photo from local storage', async () => {
+    it('calls api.delete with /api/families/{familyId}/photos/{photoId}', async () => {
+      vi.mocked(api.delete).mockResolvedValue(undefined)
+
+      await familyService.deleteFamilyPhoto('family-001', 'photo-001')
+
+      expect(api.delete).toHaveBeenCalledWith('/api/families/family-001/photos/photo-001')
+    })
+
+    it('falls back to local storage when API fails', async () => {
+      vi.mocked(api.delete).mockRejectedValue(new Error('Network error'))
       mockStorage['xhh_family_photos_all'] = JSON.stringify([
         makePhoto({ id: 'photo-001' }),
         makePhoto({ id: 'photo-002' }),
       ])
 
-      await familyService.deleteFamilyPhoto('photo-001')
+      await familyService.deleteFamilyPhoto('family-001', 'photo-001')
 
       const photos = await familyService.getFamilyPhotos('family-001')
       expect(photos).toHaveLength(1)

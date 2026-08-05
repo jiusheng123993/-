@@ -1,8 +1,15 @@
 /**
  * 家族图谱页面
- * 宠物家族关系图谱展示
+ * 展示宠物家族血缘关系树，支持添加/删除父母/子女关系
+ *
+ * 数据流：
+ *   1. 从 currentFamily(useFamilyStore) 获取 familyId
+ *   2. 从 familyPets(usePetStore + members) 获取家庭宠物列表
+ *   3. 调用 familyService.getLineage(petId, familyId) 获取选中宠物的血缘数据
+ *   4. 后端返回完整数据：{ pet, parents, children, siblings, mates }
+ *   5. 父母/子女/兄弟姐妹直接渲染为卡片，带连线可视化
  */
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { usePetStore } from '../../../stores/petStore'
@@ -11,27 +18,19 @@ import { useFamilyStore } from '../../../stores/familyStore'
 import { familyService } from '../../../services/familyService'
 import { useThemeClass } from '../../../hooks/useThemeClass'
 import type { PetProfile } from '../../../services/petService'
-import type { PetLineage } from '../../../types/familyTypes'
+import type { LineageResponse, LineageChild, LineageMate } from '../../../types/familyTypes'
 import './index.scss'
-
-interface TreeNode {
-  pet: PetProfile
-  depth: number
-  parentId?: string
-  children: TreeNode[]
-  relation: 'self' | 'parent' | 'child' | 'sibling'
-}
-
-interface LineageData {
-  parents: PetLineage[]
-  children: PetLineage[]
-}
 
 const RELATION_LABELS: Record<string, string> = {
   self: '我',
   parent: '父母',
+  grandparent: '祖辈',
+  greatGrandparent: '曾祖',
   child: '子女',
+  grandchild: '孙辈',
+  greatGrandchild: '曾孙',
   sibling: '兄弟姐妹',
+  mate: '配偶',
 }
 
 const SPECIES_EMOJI: Record<string, string> = {
@@ -84,31 +83,39 @@ export default function LineagePage() {
   const user = useAuthStore(s => s.user)
   const { currentFamily, members, fetchFamilies } = useFamilyStore()
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null)
-  const [lineageMap, setLineageMap] = useState<Record<string, LineageData>>({})
+  const [lineage, setLineage] = useState<LineageResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [dataReady, setDataReady] = useState(false)
   const [petSelectorOpen, setPetSelectorOpen] = useState(false)
   const [addingRelation, setAddingRelation] = useState<{
     childId: string
-    mode: 'parent' | 'child'
+    mode: 'parent' | 'child' | 'mate'
   } | null>(null)
   const themeClass = useThemeClass()
 
   useEffect(() => {
-    fetchFamilies()
-  }, [])
-
-  useEffect(() => {
-    if (user) {
-      fetchPets(user.id)
+    const loadData = async () => {
+      setDataReady(false)
+      try {
+        await fetchFamilies()
+        if (user) {
+          await fetchPets(user.id)
+        }
+      } finally {
+        setDataReady(true)
+      }
     }
+    loadData()
   }, [user])
 
+  // 家庭宠物列表（当前家庭中的宠物，未加载完成时返回空数组避免误判空状态）
   const familyPets = useMemo(() => {
-    if (!currentFamily || members.length === 0) return pets
+    if (!currentFamily) return []
     const memberPetIds = new Set(members.map(m => m.petId))
     return pets.filter(p => memberPetIds.has(p.id))
   }, [pets, members, currentFamily])
 
+  // 自动选中第一个宠物
   useEffect(() => {
     if (familyPets.length > 0) {
       if (!selectedPetId || !familyPets.find(p => p.id === selectedPetId)) {
@@ -117,78 +124,123 @@ export default function LineagePage() {
     }
   }, [familyPets])
 
+  // 加载选中宠物的血缘数据
   useEffect(() => {
-    if (!selectedPetId) return
+    if (!selectedPetId || !currentFamily) return
     const loadLineage = async () => {
       setLoading(true)
       try {
-        const data = await familyService.getLineage(selectedPetId)
-        setLineageMap(prev => ({ ...prev, [selectedPetId]: data }))
+        const data = await familyService.getLineage(selectedPetId, currentFamily.id)
+        setLineage(data)
       } catch {
-        setLineageMap(prev => ({
-          ...prev,
-          [selectedPetId]: { parents: [], children: [] },
-        }))
+        setLineage(null)
       } finally {
         setLoading(false)
       }
     }
     loadLineage()
-  }, [selectedPetId])
+  }, [selectedPetId, currentFamily?.id])
 
   const selectedPet = useMemo(() => {
     return familyPets.find(p => p.id === selectedPetId) || null
   }, [familyPets, selectedPetId])
 
-  const lineage = useMemo(() => {
-    return selectedPetId ? lineageMap[selectedPetId] || { parents: [], children: [] } : { parents: [], children: [] }
-  }, [selectedPetId, lineageMap])
-
+  // 从 lineage 数据中提取有对应 pet 的关系
   const parentPets = useMemo(() => {
+    if (!lineage) return []
     const parentIds = lineage.parents.map(l => l.parentId)
     return pets.filter(p => parentIds.includes(p.id)).map(p => {
       const l = lineage.parents.find(lp => lp.parentId === p.id)
-      return { pet: p, litterDate: l?.litterDate }
+      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
     })
-  }, [pets, lineage.parents])
+  }, [pets, lineage])
+
+  // 将某一代血亲行（LineageChild[]）转换为有对应 pet 的关系列表
+  const mapLevelToPets = useCallback((level: LineageChild[], useChildId: boolean) => {
+    const ids = level.map(l => (useChildId ? l.childId : l.parentId))
+    return pets
+      .filter(p => ids.includes(p.id))
+      .map(p => {
+        const l = level.find(lv => (useChildId ? lv.childId : lv.parentId) === p.id)
+        return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
+      })
+  }, [pets])
+
+  // 多代祖先：ancestorsLevels[0]=父母(用parentId)，[1]=祖辈，[2]=曾祖
+  const grandparentPets = useMemo(() => {
+    if (!lineage?.ancestorsLevels?.[1]) return []
+    return mapLevelToPets(lineage.ancestorsLevels[1], false)
+  }, [lineage, mapLevelToPets])
+
+  const greatGrandparentPets = useMemo(() => {
+    if (!lineage?.ancestorsLevels?.[2]) return []
+    return mapLevelToPets(lineage.ancestorsLevels[2], false)
+  }, [lineage, mapLevelToPets])
 
   const childPets = useMemo(() => {
+    if (!lineage) return []
     const childIds = lineage.children.map(l => l.childId)
     return pets.filter(p => childIds.includes(p.id)).map(p => {
       const l = lineage.children.find(lc => lc.childId === p.id)
-      return { pet: p, litterDate: l?.litterDate }
+      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
     })
-  }, [pets, lineage.children])
+  }, [pets, lineage])
 
-  const siblingPets = useMemo(() => {
-    if (parentPets.length === 0) return []
-    const parentIds = new Set(parentPets.map(p => p.pet.id))
-    const siblings: PetProfile[] = []
-    for (const parentId of parentIds) {
-      const parentLineage = lineageMap[parentId]
-      if (!parentLineage) continue
-      for (const child of parentLineage.children) {
-        if (child.childId === selectedPetId) continue
-        const pet = pets.find(p => p.id === child.childId)
-        if (pet && !siblings.find(s => s.id === pet.id)) {
-          siblings.push(pet)
-        }
+  // 多代后代：descendantsLevels[0]=子女(用childId)，[1]=孙辈，[2]=曾孙
+  const grandchildPets = useMemo(() => {
+    if (!lineage?.descendantsLevels?.[1]) return []
+    return mapLevelToPets(lineage.descendantsLevels[1], true)
+  }, [lineage, mapLevelToPets])
+
+  const greatGrandchildPets = useMemo(() => {
+    if (!lineage?.descendantsLevels?.[2]) return []
+    return mapLevelToPets(lineage.descendantsLevels[2], true)
+  }, [lineage, mapLevelToPets])
+
+  // 配偶：mates 中相对选中宠物的另一方
+  const matePets = useMemo(() => {
+    if (!lineage || !selectedPetId) return []
+    const result: Array<{
+      pet: PetProfile
+      mate: LineageMate
+      relationshipId: string
+    }> = []
+    for (const mate of lineage.mates || []) {
+      const otherId = mate.petIdA === selectedPetId ? mate.petIdB : mate.petIdA
+      const otherPet = pets.find(p => p.id === otherId)
+      if (otherPet) {
+        result.push({ pet: otherPet, mate, relationshipId: mate.id })
       }
     }
-    return siblings
-  }, [parentPets, lineageMap, selectedPetId, pets])
+    return result
+  }, [pets, lineage, selectedPetId])
 
+  // 直接使用后端返回的 siblings 数据
+  const siblingPets = useMemo(() => {
+    if (!lineage) return []
+    const siblingIds = lineage.siblings.map(l => l.petId || l.childId)
+    return pets.filter(p => siblingIds.includes(p.id)).map(p => {
+      const l = lineage.siblings.find(s => (s.petId || s.childId) === p.id)
+      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
+    })
+  }, [pets, lineage])
+
+  const hasAnyRelation = parentPets.length > 0 || childPets.length > 0 || siblingPets.length > 0 || matePets.length > 0
+
+  // 可添加关系的宠物（排除已有关系 + 自身）
   const availableForRelation = useMemo(() => {
     const relatedIds = new Set<string>()
-    relatedIds.add(selectedPetId!)
-    lineage.parents.forEach(l => relatedIds.add(l.parentId))
-    lineage.children.forEach(l => relatedIds.add(l.childId))
-    siblingPets.forEach(s => relatedIds.add(s.id))
-    parentPets.forEach(p => relatedIds.add(p.pet.id))
+    if (selectedPetId) relatedIds.add(selectedPetId)
+    lineage?.parents.forEach(l => relatedIds.add(l.parentId))
+    lineage?.children.forEach(l => relatedIds.add(l.childId))
+    lineage?.siblings.forEach(l => relatedIds.add(l.petId || l.childId))
+    ;(lineage?.ancestorsLevels || []).forEach(level => level.forEach(l => relatedIds.add(l.parentId)))
+    ;(lineage?.descendantsLevels || []).forEach(level => level.forEach(l => relatedIds.add(l.childId)))
+    ;(lineage?.mates || []).forEach(m => {
+      relatedIds.add(m.petIdA === selectedPetId ? m.petIdB : m.petIdA)
+    })
     return pets.filter(p => !relatedIds.has(p.id))
-  }, [pets, selectedPetId, lineage, siblingPets, parentPets])
-
-  const hasAnyRelation = parentPets.length > 0 || childPets.length > 0 || siblingPets.length > 0
+  }, [pets, selectedPetId, lineage])
 
   const handleSelectPet = (petId: string) => {
     setSelectedPetId(petId)
@@ -213,19 +265,33 @@ export default function LineagePage() {
     setAddingRelation({ childId: selectedPetId, mode: 'child' })
   }
 
-  const handleConfirmRelation = async (targetPetId: string) => {
-    if (!addingRelation) return
+  const handleAddMate = () => {
+    if (!selectedPetId) return
+    if (availableForRelation.length === 0) {
+      Taro.showToast({ title: '没有可选的宠物', icon: 'none' })
+      return
+    }
+    setAddingRelation({ childId: selectedPetId, mode: 'mate' })
+  }
+
+  const handleConfirmRelation = useCallback(async (targetPetId: string) => {
+    if (!addingRelation || !currentFamily) return
     try {
-      if (addingRelation.mode === 'parent') {
-        await familyService.addLineage(targetPetId, addingRelation.childId)
-        Taro.showToast({ title: '父母关系已添加', icon: 'success' })
+      if (addingRelation.mode === 'mate') {
+        // 添加配偶关系
+        await familyService.addMate(currentFamily.id, addingRelation.childId, targetPetId)
+      } else if (addingRelation.mode === 'parent') {
+        // targetPetId 是父母，addingRelation.childId 是子女
+        await familyService.addLineage(targetPetId, addingRelation.childId, currentFamily.id)
       } else {
-        await familyService.addLineage(addingRelation.childId, targetPetId)
-        Taro.showToast({ title: '子女关系已添加', icon: 'success' })
+        // addingRelation.childId 是父母，targetPetId 是子女
+        await familyService.addLineage(addingRelation.childId, targetPetId, currentFamily.id)
       }
+      Taro.showToast({ title: '关系已添加', icon: 'success' })
+      // 重新加载血缘数据
       if (selectedPetId) {
-        const data = await familyService.getLineage(selectedPetId)
-        setLineageMap(prev => ({ ...prev, [selectedPetId!]: data }))
+        const data = await familyService.getLineage(selectedPetId, currentFamily.id)
+        setLineage(data)
       }
     } catch (err: unknown) {
       const error = err as { message?: string }
@@ -233,9 +299,10 @@ export default function LineagePage() {
     } finally {
       setAddingRelation(null)
     }
-  }
+  }, [addingRelation, currentFamily, selectedPetId])
 
-  const handleRemoveRelation = (lineageId: string, relationType: 'parent' | 'child', targetName: string) => {
+  const handleRemoveRelation = useCallback((lineageId: string, relationType: 'parent' | 'child', targetName: string) => {
+    if (!currentFamily) return
     Taro.showModal({
       title: '解除关系',
       content: `确认解除与${targetName}的${relationType === 'parent' ? '父母' : '子女'}关系吗？`,
@@ -245,9 +312,9 @@ export default function LineagePage() {
       success: async (res) => {
         if (res.confirm) {
           try {
-            await familyService.removeLineage(lineageId)
-            const data = await familyService.getLineage(selectedPetId!)
-            setLineageMap(prev => ({ ...prev, [selectedPetId!]: data }))
+            await familyService.removeLineage(lineageId, currentFamily.id)
+            const data = await familyService.getLineage(selectedPetId!, currentFamily.id)
+            setLineage(data)
             Taro.showToast({ title: '关系已解除', icon: 'success' })
           } catch (err: unknown) {
             const error = err as { message?: string }
@@ -256,7 +323,31 @@ export default function LineagePage() {
         }
       },
     })
-  }
+  }, [currentFamily, selectedPetId])
+
+  const handleRemoveMate = useCallback((relationshipId: string, targetName: string) => {
+    if (!currentFamily) return
+    Taro.showModal({
+      title: '解除配偶',
+      content: `确认解除与${targetName}的配偶关系吗？`,
+      confirmText: '确认解除',
+      confirmColor: '#E0856B',
+      cancelText: '取消',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await familyService.removeMate(currentFamily.id, relationshipId)
+            const data = await familyService.getLineage(selectedPetId!, currentFamily.id)
+            setLineage(data)
+            Taro.showToast({ title: '关系已解除', icon: 'success' })
+          } catch (err: unknown) {
+            const error = err as { message?: string }
+            Taro.showToast({ title: error.message || '解除失败', icon: 'none' })
+          }
+        }
+      },
+    })
+  }, [currentFamily, selectedPetId])
 
   const handlePetCardClick = (petId: string) => {
     if (addingRelation) {
@@ -268,7 +359,7 @@ export default function LineagePage() {
 
   const renderPetCard = (
     pet: PetProfile,
-    relation: 'self' | 'parent' | 'child' | 'sibling',
+    relation: 'self' | 'parent' | 'grandparent' | 'greatGrandparent' | 'child' | 'grandchild' | 'greatGrandchild' | 'sibling' | 'mate',
     extra?: { litterDate?: string },
   ) => {
     const isSelected = pet.id === selectedPetId
@@ -301,40 +392,59 @@ export default function LineagePage() {
               {age ? ` · ${age}` : ''}
             </Text>
             {extra?.litterDate && (
-              <Text className='lineage-card-litter'>
-                📅 {extra.litterDate}
-              </Text>
+              <Text className='lineage-card-litter'>📅 {extra.litterDate}</Text>
             )}
           </View>
-          {isSelected && !addingRelation && (
-            <View className='lineage-card-indicator'>
-              <View className='lineage-card-dot' />
-            </View>
-          )}
         </View>
       </View>
     )
   }
 
-  const renderConnector = (fromTop: boolean) => (
+  // 树形连线（类名匹配 SCSS: lineage-connector / lineage-connector-line / lineage-connector-dot）
+  const renderTreeConnector = (direction: 'up' | 'down') => (
     <View className='lineage-connector'>
-      <View className={`lineage-connector-line ${fromTop ? 'lineage-connector-line--top' : 'lineage-connector-line--bottom'}`} />
+      <View className={`lineage-connector-line lineage-connector-line--${direction === 'up' ? 'top' : 'bottom'}`} />
       <View className='lineage-connector-dot' />
     </View>
   )
 
+  if (!dataReady) {
+    return (
+      <View className={`lineage-page ${themeClass}`}>
+        <View className='lineage-empty'>
+          <Text className='lineage-empty-icon'>⏳</Text>
+          <Text className='lineage-empty-text'>加载中...</Text>
+        </View>
+      </View>
+    )
+  }
+
+  // 无家庭：引导创建家庭
+  if (!currentFamily) {
+    return (
+      <View className={`lineage-page ${themeClass}`}>
+        <View className='lineage-empty'>
+          <Text className='lineage-empty-icon'>🏡</Text>
+          <Text className='lineage-empty-text'>还没有创建家庭</Text>
+          <Text className='lineage-empty-hint'>创建家庭后，可以添加毛孩子并建立家族血缘关系</Text>
+          <View className='lineage-empty-btn' onClick={() => Taro.navigateTo({ url: '/pagesPet/family/dashboard/index' })}>
+            <Text>前往创建家庭</Text>
+          </View>
+        </View>
+      </View>
+    )
+  }
+
+  // 有家庭但无成员：引导添加成员
   if (familyPets.length === 0) {
     return (
       <View className={`lineage-page ${themeClass}`}>
         <View className='lineage-empty'>
           <Text className='lineage-empty-icon'>🧬</Text>
           <Text className='lineage-empty-text'>还没有家庭成员</Text>
-          <Text className='lineage-empty-hint'>请先在家庭看板中添加宠物</Text>
-          <View
-            className='lineage-empty-btn'
-            onClick={() => Taro.navigateBack()}
-          >
-            <Text>返回家庭看板</Text>
+          <Text className='lineage-empty-hint'>请先在家庭看板中添加宠物成员</Text>
+          <View className='lineage-empty-btn' onClick={() => Taro.navigateTo({ url: '/pagesPet/family/dashboard/index' })}>
+            <Text>前往添加成员</Text>
           </View>
         </View>
       </View>
@@ -346,10 +456,7 @@ export default function LineagePage() {
       <View className='lineage-header'>
         <View className='lineage-header-top'>
           <Text className='lineage-header-title'>🧬 家族图谱</Text>
-          <View
-            className='lineage-header-switch'
-            onClick={() => setPetSelectorOpen(!petSelectorOpen)}
-          >
+          <View className='lineage-header-switch' onClick={() => setPetSelectorOpen(!petSelectorOpen)}>
             <Text className='lineage-header-switch-text'>
               {selectedPet?.name || '选择宠物'}
             </Text>
@@ -366,13 +473,9 @@ export default function LineagePage() {
                 className={`lineage-selector-item ${pet.id === selectedPetId ? 'lineage-selector-item--active' : ''}`}
                 onClick={() => handleSelectPet(pet.id)}
               >
-                <Text className='lineage-selector-emoji'>
-                  {getSpeciesEmoji(pet.species)}
-                </Text>
+                <Text className='lineage-selector-emoji'>{getSpeciesEmoji(pet.species)}</Text>
                 <Text className='lineage-selector-name'>{pet.name}</Text>
-                {pet.id === selectedPetId && (
-                  <Text className='lineage-selector-check'>✓</Text>
-                )}
+                {pet.id === selectedPetId && <Text className='lineage-selector-check'>✓</Text>}
               </View>
             ))}
           </View>
@@ -382,15 +485,12 @@ export default function LineagePage() {
       {addingRelation && (
         <View className='lineage-adding-banner'>
           <Text className='lineage-adding-banner-icon'>
-            {addingRelation.mode === 'parent' ? '👆' : '👇'}
+            {addingRelation.mode === 'parent' ? '👆' : addingRelation.mode === 'mate' ? '💞' : '👇'}
           </Text>
           <Text className='lineage-adding-banner-text'>
-            请选择{addingRelation.mode === 'parent' ? '父母' : '子女'}宠物
+            请选择{addingRelation.mode === 'parent' ? '父母' : addingRelation.mode === 'mate' ? '配偶' : '子女'}宠物
           </Text>
-          <View
-            className='lineage-adding-banner-cancel'
-            onClick={() => setAddingRelation(null)}
-          >
+          <View className='lineage-adding-banner-cancel' onClick={() => setAddingRelation(null)}>
             <Text>取消</Text>
           </View>
         </View>
@@ -398,6 +498,71 @@ export default function LineagePage() {
 
       <ScrollView className='lineage-scroll' scrollY>
         <View className='lineage-tree'>
+          {/* 配偶层（最上方） */}
+          {matePets.length > 0 && (
+            <View className='lineage-layer lineage-layer--mates'>
+              <View className='lineage-layer-label'>
+                <Text className='lineage-layer-label-text'>💞 配偶</Text>
+              </View>
+              <View className='lineage-layer-cards'>
+                {matePets.map(({ pet, relationshipId }) => (
+                  <View key={pet.id} className='lineage-card-wrap'>
+                    {renderPetCard(pet, 'mate')}
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveMate(relationshipId, pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* 曾祖层 */}
+          {greatGrandparentPets.length > 0 && (
+            <View className='lineage-layer lineage-layer--ancestors'>
+              <View className='lineage-layer-label'>
+                <Text className='lineage-layer-label-text'>👆 曾祖</Text>
+              </View>
+              <View className='lineage-layer-cards'>
+                {greatGrandparentPets.map(({ pet, lineageId, litterDate }) => (
+                  <View key={pet.id} className='lineage-card-wrap'>
+                    {renderPetCard(pet, 'greatGrandparent', { litterDate })}
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'parent', pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+              {renderTreeConnector('down')}
+            </View>
+          )}
+
+          {/* 祖辈层 */}
+          {grandparentPets.length > 0 && (
+            <View className='lineage-layer lineage-layer--ancestors'>
+              <View className='lineage-layer-label'>
+                <Text className='lineage-layer-label-text'>👆 祖辈</Text>
+              </View>
+              <View className='lineage-layer-cards'>
+                {grandparentPets.map(({ pet, lineageId, litterDate }) => (
+                  <View key={pet.id} className='lineage-card-wrap'>
+                    {renderPetCard(pet, 'grandparent', { litterDate })}
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'parent', pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+              {renderTreeConnector('down')}
+            </View>
+          )}
+
           {/* 父母层 */}
           {parentPets.length > 0 && (
             <View className='lineage-layer lineage-layer--parents'>
@@ -405,119 +570,146 @@ export default function LineagePage() {
                 <Text className='lineage-layer-label-text'>👆 父母</Text>
               </View>
               <View className='lineage-layer-cards'>
-                {parentPets.map(({ pet, litterDate }) => (
+                {parentPets.map(({ pet, lineageId, litterDate }) => (
                   <View key={pet.id} className='lineage-card-wrap'>
                     {renderPetCard(pet, 'parent', { litterDate })}
-                    <View
-                      className='lineage-remove-btn'
-                      onClick={() => handleRemoveRelation(
-                        lineage.parents.find(l => l.parentId === pet.id)?.id || '',
-                        'parent',
-                        pet.name,
-                      )}
-                    >
-                      <Text>✕</Text>
-                    </View>
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'parent', pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
                   </View>
                 ))}
               </View>
-              {renderConnector(true)}
+              {renderTreeConnector('down')}
             </View>
           )}
 
-          {/* 兄弟姐妹层 */}
-          {siblingPets.length > 0 && (
-            <View className='lineage-layer lineage-layer--siblings'>
-              <View className='lineage-layer-label'>
-                <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
-              </View>
-              <View className='lineage-layer-cards'>
-                {siblingPets.map(pet => (
-                  <View key={pet.id} className='lineage-card-wrap'>
-                    {renderPetCard(pet, 'sibling')}
+          {/* 中间层：兄弟姐妹 + 选中宠物 */}
+          <View className='lineage-layer lineage-layer--center'>
+            <View className='lineage-center-row'>
+              {/* 兄弟姐妹（左侧） */}
+              {siblingPets.length > 0 && (
+                <View className='lineage-siblings-side'>
+                  <View className='lineage-layer-label'>
+                    <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
                   </View>
-                ))}
-              </View>
-            </View>
-          )}
+                  <View className='lineage-siblings-list'>
+                    {siblingPets.map(({ pet }) => (
+                      <View key={pet.id} className='lineage-card-wrap lineage-card-wrap--sibling'>
+                        {renderPetCard(pet, 'sibling')}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
 
-          {/* 选中宠物自身 */}
-          {selectedPet && (
-            <View className='lineage-layer lineage-layer--self'>
-              <View className='lineage-self-card'>
-                <View className='lineage-self-glow' />
-                <View className='lineage-self-body'>
-                  <View className='lineage-self-avatar'>
-                    <Text className='lineage-self-emoji'>
-                      {getSpeciesEmoji(selectedPet.species)}
-                    </Text>
-                  </View>
-                  <View className='lineage-self-info'>
-                    <View className='lineage-self-name-row'>
-                      <Text className='lineage-self-name'>{selectedPet.name}</Text>
-                      {getGenderIcon(selectedPet.gender) && (
-                        <Text className={`lineage-card-gender ${getGenderClass(selectedPet.gender)}`}>
-                          {getGenderIcon(selectedPet.gender)}
+              {/* 选中宠物自身 */}
+              {selectedPet && (
+                <View className='lineage-self-wrap'>
+                  <View className='lineage-self-card'>
+                    <View className='lineage-self-glow' />
+                    <View className='lineage-self-body'>
+                      <View className='lineage-self-avatar'>
+                        <Text className='lineage-self-emoji'>{getSpeciesEmoji(selectedPet.species)}</Text>
+                      </View>
+                      <View className='lineage-self-info'>
+                        <View className='lineage-self-name-row'>
+                          <Text className='lineage-self-name'>{selectedPet.name}</Text>
+                          {getGenderIcon(selectedPet.gender) && (
+                            <Text className={`lineage-card-gender ${getGenderClass(selectedPet.gender)}`}>
+                              {getGenderIcon(selectedPet.gender)}
+                            </Text>
+                          )}
+                        </View>
+                        <Text className='lineage-self-breed'>
+                          {selectedPet.breed || '未知品种'}
+                          {calcAge(selectedPet.birthDate) ? ` · ${calcAge(selectedPet.birthDate)}` : ''}
                         </Text>
-                      )}
+                      </View>
                     </View>
-                    <Text className='lineage-self-breed'>
-                      {selectedPet.breed || '未知品种'}
-                      {calcAge(selectedPet.birthDate) ? ` · ${calcAge(selectedPet.birthDate)}` : ''}
-                    </Text>
+                    {!addingRelation && (
+                      <View className='lineage-self-actions'>
+                        <View className='lineage-self-action' onClick={handleAddParent}>
+                          <Text className='lineage-self-action-icon'>+👆</Text>
+                          <Text className='lineage-self-action-text'>添加父母</Text>
+                        </View>
+                        <View className='lineage-self-action' onClick={handleAddMate}>
+                          <Text className='lineage-self-action-icon'>+💞</Text>
+                          <Text className='lineage-self-action-text'>添加配偶</Text>
+                        </View>
+                        <View className='lineage-self-action' onClick={handleAddChild}>
+                          <Text className='lineage-self-action-icon'>+👇</Text>
+                          <Text className='lineage-self-action-text'>添加子女</Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </View>
-                <View className='lineage-self-actions'>
-                  <View className='lineage-self-action' onClick={handleAddParent}>
-                    <Text className='lineage-self-action-icon'>+👆</Text>
-                    <Text className='lineage-self-action-text'>添加父母</Text>
-                  </View>
-                  <View className='lineage-self-action' onClick={handleAddChild}>
-                    <Text className='lineage-self-action-icon'>+👇</Text>
-                    <Text className='lineage-self-action-text'>添加子女</Text>
-                  </View>
-                </View>
-              </View>
+              )}
             </View>
-          )}
-
-          {/* 兄弟姐妹层(下方) */}
-          {siblingPets.length > 0 && parentPets.length === 0 && (
-            <View className='lineage-layer lineage-layer--siblings'>
-              <View className='lineage-layer-label'>
-                <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
-              </View>
-              <View className='lineage-layer-cards'>
-                {siblingPets.map(pet => (
-                  <View key={pet.id} className='lineage-card-wrap'>
-                    {renderPetCard(pet, 'sibling')}
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+          </View>
 
           {/* 子女层 */}
           {childPets.length > 0 && (
             <View className='lineage-layer lineage-layer--children'>
-              {renderConnector(false)}
+              {renderTreeConnector('up')}
               <View className='lineage-layer-label'>
                 <Text className='lineage-layer-label-text'>👇 子女</Text>
               </View>
               <View className='lineage-layer-cards'>
-                {childPets.map(({ pet, litterDate }) => (
+                {childPets.map(({ pet, lineageId, litterDate }) => (
                   <View key={pet.id} className='lineage-card-wrap'>
                     {renderPetCard(pet, 'child', { litterDate })}
-                    <View
-                      className='lineage-remove-btn'
-                      onClick={() => handleRemoveRelation(
-                        lineage.children.find(l => l.childId === pet.id)?.id || '',
-                        'child',
-                        pet.name,
-                      )}
-                    >
-                      <Text>✕</Text>
-                    </View>
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'child', pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* 孙辈层 */}
+          {grandchildPets.length > 0 && (
+            <View className='lineage-layer lineage-layer--descendants'>
+              {renderTreeConnector('up')}
+              <View className='lineage-layer-label'>
+                <Text className='lineage-layer-label-text'>👇 孙辈</Text>
+              </View>
+              <View className='lineage-layer-cards'>
+                {grandchildPets.map(({ pet, lineageId, litterDate }) => (
+                  <View key={pet.id} className='lineage-card-wrap'>
+                    {renderPetCard(pet, 'grandchild', { litterDate })}
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'child', pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* 曾孙层 */}
+          {greatGrandchildPets.length > 0 && (
+            <View className='lineage-layer lineage-layer--descendants'>
+              {renderTreeConnector('up')}
+              <View className='lineage-layer-label'>
+                <Text className='lineage-layer-label-text'>👇 曾孙</Text>
+              </View>
+              <View className='lineage-layer-cards'>
+                {greatGrandchildPets.map(({ pet, lineageId, litterDate }) => (
+                  <View key={pet.id} className='lineage-card-wrap'>
+                    {renderPetCard(pet, 'greatGrandchild', { litterDate })}
+                    {!addingRelation && (
+                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'child', pet.name)}>
+                        <Text>✕</Text>
+                      </View>
+                    )}
                   </View>
                 ))}
               </View>
@@ -532,13 +724,13 @@ export default function LineagePage() {
                 {selectedPet?.name || '这只宠物'}还没有家族关系
               </Text>
               <Text className='lineage-empty-relation-hint'>
-                点击上方按钮添加父母或子女
+                点击上方按钮添加父母、配偶或子女
               </Text>
             </View>
           )}
         </View>
 
-        {/* 可选宠物列表(添加关系时) */}
+        {/* 可选宠物列表（添加关系时） */}
         {addingRelation && (
           <View className='lineage-available-section'>
             <View className='lineage-section-title'>
@@ -551,14 +743,10 @@ export default function LineagePage() {
                   className='lineage-available-item'
                   onClick={() => handleConfirmRelation(pet.id)}
                 >
-                  <Text className='lineage-available-emoji'>
-                    {getSpeciesEmoji(pet.species)}
-                  </Text>
+                  <Text className='lineage-available-emoji'>{getSpeciesEmoji(pet.species)}</Text>
                   <View className='lineage-available-info'>
                     <Text className='lineage-available-name'>{pet.name}</Text>
-                    <Text className='lineage-available-breed'>
-                      {pet.breed || '未知品种'}
-                    </Text>
+                    <Text className='lineage-available-breed'>{pet.breed || '未知品种'}</Text>
                   </View>
                   <Text className='lineage-available-add'>+</Text>
                 </View>

@@ -7,7 +7,7 @@ import type { ChronicRecord } from '../../types/chronicTypes'
 import type { FeedingProfile, PersonalizedFeedingAdvice } from '../feedingService'
 
 vi.mock('../chronicService', () => ({
-  getChronicRecords: vi.fn(() => []),
+  getChronicRecords: vi.fn(() => Promise.resolve([])),
 }))
 
 import { buildFeedingProfile, generatePersonalizedAdvice, getMealPlan } from '../feedingService'
@@ -73,87 +73,89 @@ function yearsAgo(years: number): string {
 
 describe('feedingService', () => {
   describe('buildFeedingProfile', () => {
-    it('should calculate ageMonths correctly for a 6-month-old puppy', () => {
+    it('should calculate ageMonths correctly for a 6-month-old puppy', async () => {
       const pet = makePet({ birthDate: monthsAgo(6), species: 'dog' })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.ageMonths).toBe(6)
     })
 
-    it('should calculate ageMonths correctly for a 2-year-old dog (24 months)', () => {
+    it('should calculate ageMonths correctly for a 2-year-old dog (24 months)', async () => {
       const pet = makePet({ birthDate: yearsAgo(2), species: 'dog' })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       const expected = 2 * 12
       expect(profile.ageMonths).toBe(expected)
     })
 
-    it('should set isPuppyKitten=true for dog < 12 months', () => {
+    it('should set isPuppyKitten=true for dog < 12 months', async () => {
       const pet = makePet({ birthDate: monthsAgo(6), species: 'dog' })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.isPuppyKitten).toBe(true)
     })
 
-    it('should set isPuppyKitten=true for cat < 12 months', () => {
+    it('should set isPuppyKitten=true for cat < 12 months', async () => {
       const pet = makePet({ birthDate: monthsAgo(6), species: 'cat' })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.isPuppyKitten).toBe(true)
     })
 
-    it('should set isSenior=true for dog >= 84 months (7 years)', () => {
+    it('should set isSenior=true for dog >= 84 months (7 years)', async () => {
       const pet = makePet({ birthDate: monthsAgo(84), species: 'dog' })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.isSenior).toBe(true)
     })
 
-    it('should set isSenior=true for cat >= 120 months (10 years)', () => {
+    it('should set isSenior=true for cat >= 120 months (10 years)', async () => {
       const pet = makePet({ birthDate: monthsAgo(120), species: 'cat' })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.isSenior).toBe(true)
     })
 
-    it('should filter chronic records to only active ones', () => {
+    it('should filter chronic records to only active ones', async () => {
       const active = makeChronicRecord({ id: 'cr_act', status: 'active' })
       const managed = makeChronicRecord({ id: 'cr_mgd', status: 'managed' })
       const resolved = makeChronicRecord({ id: 'cr_res', status: 'resolved' })
+      const { getChronicRecords } = await import('../chronicService')
+      vi.mocked(getChronicRecords).mockResolvedValueOnce([active, managed, resolved])
       const pet = makePet()
-      const profile = buildFeedingProfile(pet, [active, managed, resolved])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.chronicConditions).toHaveLength(1)
       expect(profile.chronicConditions[0].id).toBe('cr_act')
     })
 
-    it('should use provided allergies array', () => {
+    it('should use provided allergies array', async () => {
       const pet = makePet()
       const allergies = ['鸡肉', '谷物']
-      const profile = buildFeedingProfile(pet, [], allergies)
+      const profile = await buildFeedingProfile(pet, allergies)
       expect(profile.allergies).toEqual(['鸡肉', '谷物'])
     })
 
-    it('should use provided isNeutered flag', () => {
+    it('should use provided isNeutered flag', async () => {
       const pet = makePet()
-      const profile = buildFeedingProfile(pet, [], undefined, true)
+      const profile = await buildFeedingProfile(pet, undefined, true)
       expect(profile.isNeutered).toBe(true)
     })
 
-    it('should default isNeutered to false', () => {
+    it('should default isNeutered to false', async () => {
       const pet = makePet()
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.isNeutered).toBe(false)
     })
 
-    it('should set bodyCondition to normal by default', () => {
+    it('should set bodyCondition to normal by default', async () => {
       const pet = makePet()
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.bodyCondition).toBe('normal')
     })
 
-    it('should use pet.weight when provided', () => {
+    it('should use pet.weight when provided', async () => {
       const pet = makePet({ weight: 25 })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.weight).toBe(25)
     })
 
-    it('should default weight to 0 when pet.weight is undefined', () => {
+    it('should default weight to 0 when pet.weight is undefined', async () => {
       const pet = makePet({ weight: undefined as unknown as number })
-      const profile = buildFeedingProfile(pet, [])
+      const profile = await buildFeedingProfile(pet)
       expect(profile.weight).toBe(0)
     })
   })

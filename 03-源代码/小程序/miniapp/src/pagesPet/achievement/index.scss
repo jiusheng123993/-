@@ -1,0 +1,136 @@
+/**
+ * 成就页样式
+ */
+.achievement-page {
+  min-height: 100vh;
+  background: var(--page-bg, #FFF8F0);
+}
+
+.achievement-header {
+  padding: 40px 32px 24px;
+  text-align: center;
+
+  &__title {
+    display: block;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--text-primary, #4A3728);
+    margin-bottom: 12px;
+  }
+
+  &__desc {
+    display: block;
+    font-size: 28px;
+    color: var(--text-secondary, #8B7355);
+  }
+}
+
+.achievement-grid {
+  padding: 0 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__item {
+    width: 100%;
+  }
+}
+
+.achievement-mini-card {
+  display: flex;
+  align-items: center;
+  padding: 28px 24px;
+  background: var(--card-bg, #FFFFFF);
+  border-radius: 20px;
+  border: 2px solid #E8E0D8;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &__icon {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    border-radius: 50%;
+    background: var(--bg-secondary, #F5F0EB);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    font-size: 44px;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  &__subtitle {
+    display: block;
+    font-size: 26px;
+    color: var(--text-secondary, #8B7355);
+    margin-bottom: 4px;
+  }
+
+  &__pet {
+    display: block;
+    font-size: 24px;
+    color: var(--text-tertiary, #B8A898);
+    margin-bottom: 4px;
+  }
+
+  &__desc {
+    display: block;
+    font-size: 24px;
+    color: var(--text-tertiary, #B8A898);
+  }
+}
+
+.achievement-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px;
+  text-align: center;
+
+  &__icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+  }
+
+  &__title {
+    display: block;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--text-primary, #4A3728);
+    margin-bottom: 16px;
+  }
+
+  &__desc {
+    display: block;
+    font-size: 28px;
+    color: var(--text-secondary, #8B7355);
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  &__btn {
+    padding: 20px 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FF8C69, #FF6B35);
+    color: #FFFFFF;
+    font-size: 30px;
+    font-weight: 600;
+  }
+}

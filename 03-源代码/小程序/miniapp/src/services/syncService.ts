@@ -53,7 +53,7 @@ const SENSITIVE_TABLES: SyncTable[] = [
 
 const TABLE_ENDPOINTS: Record<SyncTable, { list: string; item: (id: string) => string } | null> = {
   pet_profiles: { list: '/api/pets', item: (id: string) => `/api/pets/${id}` },
-  pet_health_entries: { list: '/api/checkins', item: (id: string) => `/api/checkins/${id}` },
+  pet_health_entries: null, // 已迁移到 /api/pets/:petId/chronic（pet 级路由，不使用统一同步）
   pet_vaccinations: { list: '/api/vaccines', item: (id: string) => `/api/vaccines/${id}` },
   pet_symptom_checks: { list: '/api/symptom-checks', item: (id: string) => `/api/symptom-checks/${id}` },
   pet_food_queries: { list: '/api/food', item: (id: string) => `/api/food/${id}` },

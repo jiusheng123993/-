@@ -28,6 +28,7 @@ import { MilestoneAdapter } from '../../memory-body/adapters/milestoneAdapter'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { EVENT } from '../../constants/analyticsEvents'
+import { BREED_DATA } from '../../data/petKnowledge/breeds'
 import type { Checkin } from '../../types'
 import './index.scss'
 
@@ -443,6 +444,14 @@ export default function PetCheckin() {
 
   return (
     <View className={`pet-checkin ${themeClass}`}>
+      {/* 全屏动态背景光斑层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+      </View>
+
       <PetSwitcher
         pets={pets}
         currentPetId={currentPet?.id || null}
@@ -548,55 +557,20 @@ export default function PetCheckin() {
             </View>
           </View>
 
+          {/* ===== 1 便便评分（原型对齐） ===== */}
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>
-              🍽️ 食欲
-              {formData.appetiteLevel !== 3 && (
-                <Text className='pet-checkin__section-title-badge'>已选</Text>
-              )}
-            </Text>
-            <View className='pet-checkin__options'>
-              {APPETITE_OPTIONS.map((option) => (
-                <View
-                  key={option.value}
-                  className={`pet-checkin__option${formData.appetiteLevel === option.value ? ' pet-checkin__option--active' : ''}`}
-                  onClick={() => setFormData((prev) => ({ ...prev, appetiteLevel: option.value }))}
-                >
-                  <Text className='pet-checkin__option-emoji'>{option.emoji}</Text>
-                  <Text className='pet-checkin__option-label'>{option.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>
-              ⚡ 精力
-              {formData.spiritLevel !== 3 && (
-                <Text className='pet-checkin__section-title-badge'>已选</Text>
-              )}
-            </Text>
-            <View className='pet-checkin__options'>
-              {SPIRIT_OPTIONS.map((option) => (
-                <View
-                  key={option.value}
-                  className={`pet-checkin__option${formData.spiritLevel === option.value ? ' pet-checkin__option--active' : ''}`}
-                  onClick={() => setFormData((prev) => ({ ...prev, spiritLevel: option.value }))}
-                >
-                  <Text className='pet-checkin__option-emoji'>{option.emoji}</Text>
-                  <Text className='pet-checkin__option-label'>{option.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>
-              💩 便便
+            <View className='pet-checkin__section-head'>
+              <View className='pet-checkin__section-icon pet-checkin__section-icon--coral'>
+                <Text>💧</Text>
+              </View>
+              <View className='pet-checkin__section-titles'>
+                <Text className='pet-checkin__section-title'>便便评分</Text>
+                <Text className='pet-checkin__section-desc'>观察今日便便形态与软硬程度</Text>
+              </View>
               {formData.poopLevel !== 3 && (
-                <Text className='pet-checkin__section-title-badge'>已选</Text>
+                <View className='pet-checkin__section-title-badge'>已选</View>
               )}
-            </Text>
+            </View>
             <View className='pet-checkin__options'>
               {POOP_OPTIONS.map((option) => (
                 <View
@@ -604,20 +578,80 @@ export default function PetCheckin() {
                   className={`pet-checkin__option${formData.poopLevel === option.value ? ' pet-checkin__option--active' : ''}`}
                   onClick={() => setFormData((prev) => ({ ...prev, poopLevel: option.value }))}
                 >
-                  <Text className='pet-checkin__option-emoji'>{option.emoji}</Text>
                   <Text className='pet-checkin__option-label'>{option.label}</Text>
                 </View>
               ))}
             </View>
           </View>
 
+          {/* ===== 2 食欲状况（原型对齐） ===== */}
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>
-              🏃 运动
-              {formData.exerciseLevel !== 2 && (
-                <Text className='pet-checkin__section-title-badge'>已选</Text>
+            <View className='pet-checkin__section-head'>
+              <View className='pet-checkin__section-icon pet-checkin__section-icon--gold'>
+                <Text>🍽️</Text>
+              </View>
+              <View className='pet-checkin__section-titles'>
+                <Text className='pet-checkin__section-title'>食欲状况</Text>
+                <Text className='pet-checkin__section-desc'>记录今日进食情况</Text>
+              </View>
+              {formData.appetiteLevel !== 3 && (
+                <View className='pet-checkin__section-title-badge'>已选</View>
               )}
-            </Text>
+            </View>
+            <View className='pet-checkin__options'>
+              {APPETITE_OPTIONS.map((option) => (
+                <View
+                  key={option.value}
+                  className={`pet-checkin__option${formData.appetiteLevel === option.value ? ' pet-checkin__option--active' : ''}`}
+                  onClick={() => setFormData((prev) => ({ ...prev, appetiteLevel: option.value }))}
+                >
+                  <Text className='pet-checkin__option-label'>{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* ===== 3 精神状态（原型对齐） ===== */}
+          <View className='pet-checkin__section'>
+            <View className='pet-checkin__section-head'>
+              <View className='pet-checkin__section-icon pet-checkin__section-icon--info'>
+                <Text>😊</Text>
+              </View>
+              <View className='pet-checkin__section-titles'>
+                <Text className='pet-checkin__section-title'>精神状态</Text>
+                <Text className='pet-checkin__section-desc'>记录当前精神状态</Text>
+              </View>
+              {formData.spiritLevel !== 3 && (
+                <View className='pet-checkin__section-title-badge'>已选</View>
+              )}
+            </View>
+            <View className='pet-checkin__options'>
+              {SPIRIT_OPTIONS.map((option) => (
+                <View
+                  key={option.value}
+                  className={`pet-checkin__option${formData.spiritLevel === option.value ? ' pet-checkin__option--active' : ''}`}
+                  onClick={() => setFormData((prev) => ({ ...prev, spiritLevel: option.value }))}
+                >
+                  <Text className='pet-checkin__option-label'>{option.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* ===== 4 运动量（原型对齐） ===== */}
+          <View className='pet-checkin__section'>
+            <View className='pet-checkin__section-head'>
+              <View className='pet-checkin__section-icon pet-checkin__section-icon--success'>
+                <Text>👣</Text>
+              </View>
+              <View className='pet-checkin__section-titles'>
+                <Text className='pet-checkin__section-title'>运动量</Text>
+                <Text className='pet-checkin__section-desc'>记录今日运动量情况</Text>
+              </View>
+              {formData.exerciseLevel !== 2 && (
+                <View className='pet-checkin__section-title-badge'>已选</View>
+              )}
+            </View>
             <View className='pet-checkin__options'>
               {EXERCISE_OPTIONS.map((option) => (
                 <View
@@ -625,28 +659,45 @@ export default function PetCheckin() {
                   className={`pet-checkin__option${formData.exerciseLevel === option.value ? ' pet-checkin__option--active' : ''}`}
                   onClick={() => setFormData((prev) => ({ ...prev, exerciseLevel: option.value }))}
                 >
-                  <Text className='pet-checkin__option-emoji'>{option.emoji}</Text>
                   <Text className='pet-checkin__option-label'>{option.label}</Text>
                 </View>
               ))}
             </View>
           </View>
 
+          {/* ===== 5 体重（可选，原型对齐） ===== */}
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>
-              ⚖️ 体重（选填，kg）
+            <View className='pet-checkin__section-head'>
+              <View className='pet-checkin__section-icon pet-checkin__section-icon--coral'>
+                <Text>⚖️</Text>
+              </View>
+              <View className='pet-checkin__section-titles'>
+                <Text className='pet-checkin__section-title'>体重 <Text className='pet-checkin__section-optional'>（可选）</Text></Text>
+                <Text className='pet-checkin__section-desc'>今日体重，帮助跟踪健康趋势</Text>
+              </View>
               {formData.weight !== undefined && (
-                <Text className='pet-checkin__section-title-badge'>已填</Text>
+                <View className='pet-checkin__section-title-badge'>已填</View>
               )}
-            </Text>
-            <Input
-              className='pet-checkin__weight-input'
-              type='digit'
-              placeholder='请输入体重'
-              placeholderClass='pet-checkin__weight-placeholder'
-              value={weightText}
-              onInput={(e) => handleWeightChange(e.detail.value)}
-            />
+            </View>
+            <View className='pet-checkin__weight-row'>
+              <View className='pet-checkin__weight-input-wrap'>
+                <Input
+                  className='pet-checkin__weight-input'
+                  type='digit'
+                  placeholder='0.0'
+                  placeholderClass='pet-checkin__weight-placeholder'
+                  value={weightText}
+                  onInput={(e) => handleWeightChange(e.detail.value)}
+                />
+                <Text className='pet-checkin__weight-unit'>kg</Text>
+              </View>
+              <View
+                className='pet-checkin__weight-skip'
+                onClick={() => setFormData((prev) => ({ ...prev, weight: undefined }))}
+              >
+                <Text>跳过</Text>
+              </View>
+            </View>
             {/* 快捷体重预设 */}
             <View className='pet-checkin__weight-presets'>
               {WEIGHT_PRESETS.map((group) => (
@@ -661,10 +712,25 @@ export default function PetCheckin() {
                 ))
               ))}
             </View>
+            {/* 品种标准范围提示（原型对齐） */}
+            <Text className='pet-checkin__weight-range-hint'>
+              {(() => {
+                const breed = currentPet?.breed || ''
+                const matched = BREED_DATA.find(b => b.name === breed || b.aliases.includes(breed))
+                return matched ? `${matched.name}标准范围：${matched.weightRangeStr}` : '记录体重帮助跟踪健康趋势'
+              })()}
+            </Text>
           </View>
 
           <View className='pet-checkin__section'>
-            <Text className='pet-checkin__section-title'>📝 备注（选填）</Text>
+            <View className='pet-checkin__section-head'>
+              <View className='pet-checkin__section-icon pet-checkin__section-icon--coral'>
+                <Text>📝</Text>
+              </View>
+              <View className='pet-checkin__section-titles'>
+                <Text className='pet-checkin__section-title'>备注 <Text className='pet-checkin__section-optional'>（选填）</Text></Text>
+              </View>
+            </View>
             <Textarea
               className='pet-checkin__notes'
               placeholder='有什么想记录的吗...'
@@ -680,7 +746,7 @@ export default function PetCheckin() {
             className={`pet-checkin__submit${submitting ? ' pet-checkin__submit--disabled' : ''}`}
             onClick={submitting ? undefined : handleSubmit}
           >
-            <Text>{submitting ? '提交中...' : '提交打卡'}</Text>
+            <Text>{submitting ? '提交中...' : '✅ 完成打卡'}</Text>
           </View>
         </View>
       )}

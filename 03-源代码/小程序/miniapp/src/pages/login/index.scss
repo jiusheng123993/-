@@ -2,200 +2,202 @@
 @import '../../styles/_animations';
 
 // ============================================
-// 登录页 — 温馨家庭主题
+// 登录页 — 原型 1:1：品牌区 + 主视觉 + 功能预览 + 双登录入口 + 协议
 // ============================================
 
 .login-page {
+  min-height: 100vh;
+  background: $gradient-page;
+  position: relative;
+  z-index: 1;
+  animation: pageEnter 0.4s ease-out;
+}
+
+.login-page__content {
+  position: relative;
+  z-index: 2;
+  max-width: 640rpx;
+  margin: 0 auto;
+  padding: 64rpx 48rpx 80rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 40px 32px;
-  background: $gradient-page;
-  position: relative;
-  overflow: hidden;
-  animation: pageEnter 0.5s ease-out;
+  gap: 40rpx;
 }
 
-// —— 背景装饰光晕 ——
-.login-page::before {
-  content: '';
-  position: absolute;
-  top: -80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba($color-primary, 0.08) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: warmBreathe 4s ease-in-out infinite;
-}
-
-.login-page::after {
-  content: '';
-  position: absolute;
-  bottom: 100px;
-  right: -60px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba($color-primary-light, 0.06) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: warmBreathe 4s ease-in-out 1.5s infinite;
-}
-
-// —— 爪印装饰 ——
-.login-paw-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.login-paw {
-  position: absolute;
-  font-size: 28rpx;
-  opacity: 0;
-}
-
-.login-paw--1 { top: 15%; left: 10%; animation: pawFloat1 6s ease-in-out infinite; }
-.login-paw--2 { top: 25%; right: 12%; animation: pawFloat2 7s ease-in-out 1s infinite; }
-.login-paw--3 { bottom: 30%; left: 8%; animation: pawFloat3 5.5s ease-in-out 2s infinite; }
-.login-paw--4 { top: 40%; right: 8%; animation: pawFloat1 6.5s ease-in-out 0.5s infinite; }
-.login-paw--5 { bottom: 20%; right: 15%; animation: pawFloat2 7.5s ease-in-out 1.8s infinite; }
-
-// —— 星星装饰 ——
-.login-stars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.login-star {
-  position: absolute;
-  font-size: 24rpx;
-  color: rgba($color-primary-light, 0.5);
-}
-
-.login-star--1 { top: 10%; right: 20%; animation: starTwinkle1 3s ease-in-out infinite; }
-.login-star--2 { top: 30%; left: 15%; animation: starTwinkle2 3.5s ease-in-out 0.5s infinite; }
-.login-star--3 { bottom: 35%; right: 25%; animation: starTwinkle3 2.8s ease-in-out 1s infinite; }
-.login-star--4 { top: 50%; left: 10%; animation: starTwinkle1 3.2s ease-in-out 1.5s infinite; }
-.login-star--5 { bottom: 15%; left: 20%; animation: starTwinkle2 2.5s ease-in-out 0.8s infinite; }
-
-.login-logo {
-  position: relative;
-  z-index: 1;
-  width: 160px;
-  height: 160px;
-  margin-bottom: 24px;
-  border-radius: 32px;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  box-shadow: 0 0 32rpx rgba($color-primary, 0.15);
+// ===== 品牌区 =====
+.auth-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: 48px;
-  animation: popupBounceIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1), rootGlow 4s ease-in-out 0.6s infinite;
+  gap: 16rpx;
 }
 
-.login-title {
-  position: relative;
-  z-index: 1;
-  font-size: 36px;
+.auth-brand__badge {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  @include flex-center;
+  box-shadow: $shadow-button;
+}
+
+.auth-brand__badge-icon {
+  font-size: 56rpx;
+  line-height: 1;
+}
+
+.auth-brand__logo {
+  font-size: 56rpx;
   font-weight: $font-weight-bold;
-  @include gold-gradient-text;
-  margin-bottom: 12px;
-  animation: fadeInUp 0.5s ease-out 0.15s both;
+  background: $gradient-gold;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
 }
 
-.login-subtitle {
-  position: relative;
-  z-index: 1;
-  font-size: 28px;
-  color: $color-text-hint;
-  margin-bottom: 80px;
-  text-align: center;
-  line-height: 1.6;
-  animation: fadeInUp 0.5s ease-out 0.25s both;
+.auth-brand__slogan {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
 }
 
-.login-btn {
-  position: relative;
-  z-index: 1;
+// ===== 主视觉卡 =====
+.auth-hero {
   width: 100%;
-  height: 96px;
-  line-height: 96px;
-  text-align: center;
-  background: $gradient-warm;
-  color: $color-text-inverse;
-  font-size: 32px;
+  padding: 48rpx;
+  border-radius: 56rpx;
+  background: linear-gradient(135deg, $color-primary-bg, $color-bg-card);
+  border: 2rpx solid $color-border;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  animation: fadeInUp 0.35s ease-out;
+}
+
+.auth-hero__circle {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  @include flex-center;
+  box-shadow: $shadow-button;
+}
+
+.auth-hero__emoji {
+  font-size: 80rpx;
+  line-height: 1;
+}
+
+.auth-hero__caption {
+  font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
-  border-radius: 48px;
+  color: $color-text-secondary;
+}
+
+// ===== 功能预览 =====
+.auth-features {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 24rpx 8rpx;
+}
+
+.auth-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.auth-feature__icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 32rpx;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+  @include flex-center;
+}
+
+.auth-feature__icon-text {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.auth-feature__label {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+// ===== 错误提示 =====
+.login-error {
+  width: 100%;
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  background: rgba($color-danger, 0.1);
+  color: $color-danger;
+  font-size: 24rpx;
+  text-align: center;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+// ===== 登录按钮 =====
+.auth-btn {
+  width: 100%;
+  height: 104rpx;
+  border-radius: 999rpx;
+  @include flex-center;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
   border: none;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba($color-primary, 0.3);
-  transition: all 0.2s ease;
-  animation: fadeInUp 0.5s ease-out 0.35s both;
-  @include press-feedback;
+  margin: 0;
+  transition: all $transition-fast;
 
   &:active {
-    box-shadow: 0 4px 12px rgba($color-primary, 0.2);
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &--wechat {
+    background: linear-gradient(135deg, $color-primary-light, $color-primary);
+    color: #FFFFFF;
+    box-shadow: $shadow-button;
+  }
+
+  &--phone {
+    background: $color-bg-card;
+    border: 2rpx solid $color-border;
+  }
+
+  &--loading {
+    opacity: 0.6;
   }
 }
 
-.login-btn-loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.login-agreement {
-  position: relative;
-  z-index: 1;
-  font-size: 24px;
-  color: $color-text-hint;
-  text-align: center;
-  line-height: 1.6;
-  animation: fadeInUp 0.5s ease-out 0.45s both;
-}
-
-.login-agreement-link {
-  color: $color-primary-light;
-}
-
-.login-error {
-  position: relative;
-  z-index: 1;
-  color: $color-coral;
-  font-size: 26px;
-  margin-bottom: 24px;
-  text-align: center;
-  animation: fadeInUp 0.4s ease-out;
+.auth-btn--phone__text {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
 }
 
 // —— 手机号登录表单 ——
 .login-phone-form {
-  position: relative;
-  z-index: 1;
   width: 100%;
-  margin-bottom: 32px;
-  animation: fadeInUp 0.5s ease-out 0.3s both;
 }
 
 .login-input {
   width: 100%;
-  height: 96px;
-  padding: 0 32px;
-  font-size: 30px;
+  height: 96rpx;
+  padding: 0 32rpx;
+  font-size: $font-size-md;
   color: $color-text-primary;
   background: $color-bg-card;
-  border: 2px solid $color-border;
-  border-radius: 48px;
-  margin-bottom: 24px;
+  border: 2rpx solid $color-border;
+  border-radius: 48rpx;
+  margin-bottom: 24rpx;
   box-sizing: border-box;
   transition: all 0.2s ease;
 
@@ -208,8 +210,8 @@
 .login-sms-row {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 8px;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
 }
 
 .login-sms-input {
@@ -219,15 +221,15 @@
 
 .login-sms-btn {
   flex-shrink: 0;
-  min-width: 180px;
-  height: 96px;
-  line-height: 96px;
+  min-width: 200rpx;
+  height: 96rpx;
+  line-height: 96rpx;
   text-align: center;
-  font-size: 28px;
+  font-size: $font-size-sm;
   color: $color-primary;
   background: rgba($color-primary, 0.08);
-  border: 2px solid rgba($color-primary, 0.2);
-  border-radius: 48px;
+  border: 2rpx solid rgba($color-primary, 0.2);
+  border-radius: 48rpx;
   transition: all 0.2s ease;
 
   &:active {
@@ -242,17 +244,44 @@
   pointer-events: none;
 }
 
-.login-switch {
-  position: relative;
-  z-index: 1;
-  font-size: 28px;
-  color: $color-primary-light;
-  text-align: center;
-  padding: 16px 0;
-  margin-top: 8px;
-  animation: fadeInUp 0.5s ease-out 0.4s both;
+// ===== 协议勾选 =====
+.auth-agree {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
 
-  &:active {
-    opacity: 0.6;
+.auth-agree__check {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid $color-border;
+  background: $color-bg-card;
+  @include flex-center;
+  flex-shrink: 0;
+  transition: all $transition-fast;
+
+  &--on {
+    background: linear-gradient(135deg, $color-primary-light, $color-primary);
+    border-color: transparent;
   }
+}
+
+.auth-agree__check-mark {
+  font-size: 24rpx;
+  color: #FFFFFF;
+  font-weight: $font-weight-bold;
+}
+
+.auth-agree__text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.auth-agree__link {
+  font-size: 22rpx;
+  color: $color-primary;
 }

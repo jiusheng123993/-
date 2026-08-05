@@ -18,9 +18,63 @@ export interface PetFamilyMember {
 
 export interface PetLineage {
   id: string
+  familyId: string | null
   parentId: string
   childId: string
   litterDate?: string
+  createdAt?: string
+  /** 关联宠物的名称（后端 JOIN pet_profiles 返回） */
+  petId?: string
+  petName?: string | null
+  petAvatarUrl?: string | null
+  petSpecies?: string | null
+}
+
+/** 血亲树单层结构 */
+export interface LineageChild {
+  id: string
+  familyId: string | null
+  parentId: string
+  childId: string
+  litterDate?: string
+  createdAt?: string
+  petId?: string
+  petName?: string | null
+  petAvatarUrl?: string | null
+  petSpecies?: string | null
+}
+
+/** 配偶关系 */
+export interface LineageMate {
+  id: string
+  familyId: string
+  petIdA: string
+  petIdB: string
+  relationType: string
+  labelA?: string
+  labelB?: string
+  petAName?: string | null
+  petBName?: string | null
+}
+
+/** 后端 GET /api/families/:id/lineage/:petId 完整响应 */
+export interface LineageResponse {
+  pet: {
+    id: string
+    name: string | null
+    avatarUrl: string | null
+    species: string | null
+  }
+  /** 按代分组祖先：index 0=父母，1=祖辈，2=曾祖 */
+  ancestorsLevels: LineageChild[][]
+  /** 按代分组后代：index 0=子女，1=孙辈，2=曾孙 */
+  descendantsLevels: LineageChild[][]
+  /** 直接父母（兼容旧字段） */
+  parents: LineageChild[]
+  /** 直接子女（兼容旧字段） */
+  children: LineageChild[]
+  siblings: LineageChild[]
+  mates: LineageMate[]
 }
 
 /** 家庭动态类型 */

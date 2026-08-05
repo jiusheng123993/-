@@ -235,6 +235,10 @@ export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry>
  * @param userId - 用户 ID
  */
 export async function getTodayCheckin(petId: string, userId: string): Promise<PetHealthEntry | null> {
+  if (!petId) {
+    console.warn('getTodayCheckin: petId is required');
+    return null;
+  }
   const today = new Date().toISOString().slice(0, 10);
   try {
     const result = await api.get<PetHealthEntry | null>(

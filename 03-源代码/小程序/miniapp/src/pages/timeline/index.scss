@@ -24,134 +24,192 @@
 // ===== 头部 =====
 .timeline-header {
   display: flex;
-  align-items: center;
-  padding: 32rpx 32rpx 16rpx;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 56rpx 40rpx 16rpx;
+}
+
+.timeline-header-left {
+  min-width: 0;
 }
 
 .timeline-title {
-  font-size: 40rpx;
+  display: block;
+  font-size: 52rpx;
   font-weight: 700;
-  background: $gradient-gold;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  line-height: 1.2;
+  color: $color-text-primary;
 }
 
-.timeline-title-star {
-  font-size: 28rpx;
-  color: $color-primary;
-  margin-left: 8rpx;
-  margin-right: auto;
-  animation: pulse 2s ease-in-out infinite;
+.timeline-subtitle {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: $color-text-tertiary;
 }
 
-.timeline-add-btn {
+.timeline-add-round-btn {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 12rpx 24rpx;
-  border-radius: 40rpx;
-  border: 1px solid $color-primary;
-  transition: all 0.2s ease;
-  @include press-feedback;
+  justify-content: center;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  box-shadow: $shadow-button;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.9);
+  }
 }
 
-.timeline-add-icon {
-  font-size: 28rpx;
-  color: $color-primary;
-  font-weight: 600;
+.timeline-add-round-icon {
+  font-size: 48rpx;
+  color: $color-text-inverse;
+  font-weight: 400;
   line-height: 1;
 }
 
-.timeline-add-text {
-  font-size: 26rpx;
-  color: $color-primary;
+// ===== 回忆精选（横向滚动，原型对齐） =====
+.timeline-featured {
+  margin-top: 24rpx;
 }
 
-// ===== 功能卡片行（固定三个入口） =====
-.timeline-function-row {
-  display: flex;
-  gap: 16rpx;
-  padding: 0 32rpx;
-}
-
-.timeline-func-card {
-  flex: 1;
+.timeline-featured-head {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 20rpx 16rpx;
-  border-radius: $radius-lg;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
-  transition: all 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
-  min-width: 0;
-  @include press-feedback;
-
-  &:active {
-    transform: scale(0.96);
-  }
-
-  &--loading {
-    opacity: 0.7;
-    pointer-events: none;
-  }
+  justify-content: space-between;
+  padding: 0 40rpx;
+  margin-bottom: 24rpx;
 }
 
-.timeline-func-card-icon {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: $radius-full;
-  @include flex-center;
-  flex-shrink: 0;
-
-  &--yearly {
-    background: linear-gradient(135deg, #FFE8D6, #FFF0E5);
-  }
-
-  &--daily {
-    background: linear-gradient(135deg, #D4F0E0, #E8F8F0);
-  }
-
-  &--memorial {
-    background: linear-gradient(135deg, #F0E6FF, #F8F0FF);
-  }
-}
-
-.timeline-func-card-emoji {
-  font-size: 32rpx;
-}
-
-.timeline-func-card-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.timeline-func-card-title {
-  font-size: 24rpx;
+.timeline-featured-title {
+  font-size: 36rpx;
   font-weight: 700;
   color: $color-text-primary;
+}
+
+.timeline-featured-hint {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+}
+
+.timeline-featured-scroll {
+  white-space: nowrap;
+  padding: 0 40rpx;
+}
+
+.timeline-featured-card {
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  width: 512rpx;
+  height: 320rpx;
+  border-radius: 48rpx;
+  padding: 40rpx;
+  margin-right: 24rpx;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &--coral {
+    background: linear-gradient(135deg, $color-primary-light, $color-primary);
+    box-shadow: $shadow-sm;
+  }
+
+  &--gold {
+    background: linear-gradient(135deg, $color-gold-soft, $color-gold);
+    box-shadow: $shadow-sm;
+  }
+
+  &--sage {
+    background: linear-gradient(135deg, #8AD390, #54B460);
+    box-shadow: $shadow-sm;
+  }
+}
+
+.timeline-featured-card-glow {
+  position: absolute;
+  right: -56rpx;
+  top: -72rpx;
+  width: 224rpx;
+  height: 224rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+.timeline-featured-card-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.timeline-featured-card-text {
+  margin-top: auto;
+}
+
+.timeline-featured-card-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FFFFFF;
   line-height: 1.3;
 }
 
-.timeline-func-card-desc {
-  font-size: 20rpx;
-  color: $color-text-secondary;
-  line-height: 1.2;
+.timeline-featured-card-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.timeline-func-card-arrow {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: $radius-full;
-  background: $color-bg-secondary;
-  @include flex-center;
-  flex-shrink: 0;
-  font-size: 22rpx;
-  color: $color-text-tertiary;
+// ===== 加载中状态（回忆精选卡片复用） =====
+.timeline-func-card--loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+// ===== 添加时光记录主按钮（原型对齐：全宽圆角渐变） =====
+.timeline-add-main-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  height: 112rpx;
+  border-radius: 999rpx;
+  margin: 48rpx 40rpx 0;
+  background: linear-gradient(135deg, $color-primary-light, $color-primary);
+  box-shadow: $shadow-button;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.92;
+  }
+}
+
+.timeline-add-main-icon {
+  font-size: 40rpx;
+  color: $color-text-inverse;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.timeline-add-main-text {
+  font-size: 30rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-text-inverse;
 }
 
 // ===== 可滚动区域 =====
@@ -242,6 +300,14 @@
   padding: 0 32rpx;
 }
 
+.timeline-list-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: 32rpx;
+}
+
 .timeline-item {
   display: flex;
   gap: 20rpx;
@@ -275,13 +341,13 @@
   }
 
   &--memory {
-    background: linear-gradient(135deg, $color-coral, #C06050);
+    background: linear-gradient(135deg, $color-coral, $color-primary-dark);
     box-shadow: 0 0 14rpx rgba($color-coral, 0.4);
   }
 
   &--flashback {
-    background: linear-gradient(135deg, #A8D8EA, #82C4D8);
-    box-shadow: 0 0 14rpx rgba(#82C4D8, 0.4);
+    background: linear-gradient(135deg, $color-teal, $color-primary-dark);
+    box-shadow: 0 0 14rpx rgba($color-teal, 0.4);
   }
 
   &--ghost {
@@ -325,8 +391,8 @@
   }
 
   &--flashback {
-    border-color: #A8D8EA;
-    background: linear-gradient(135deg, rgba(#A8D8EA, 0.08), $color-bg-card);
+    border-color: rgba($color-teal, 0.4);
+    background: linear-gradient(135deg, rgba($color-teal, 0.08), $color-bg-card);
   }
 }
 
@@ -366,13 +432,27 @@
 .timeline-flashback-badge {
   padding: 4rpx 14rpx;
   border-radius: 20rpx;
-  background: rgba(#A8D8EA, 0.2);
-  border: 1px solid rgba(#A8D8EA, 0.4);
+  background: rgba($color-teal, 0.14);
+  border: 1px solid rgba($color-teal, 0.35);
 }
 
 .timeline-flashback-badge-text {
   font-size: 20rpx;
-  color: #5BA0B8;
+  color: $color-teal;
+  font-weight: 600;
+}
+
+// ===== 回忆标签（原型对齐：success 色） =====
+.timeline-memory-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  background: rgba($color-success, 0.14);
+  border: 1px solid rgba($color-success, 0.35);
+}
+
+.timeline-memory-badge-text {
+  font-size: 20rpx;
+  color: $color-success;
   font-weight: 600;
 }
 
@@ -674,4 +754,34 @@
 .timeline-review-btn--disabled {
   opacity: 0.5;
   pointer-events: none;
+}
+
+// ===== 空状态 =====
+.timeline-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 60rpx;
+  text-align: center;
+
+  &__icon {
+    font-size: 80rpx;
+    margin-bottom: 24rpx;
+  }
+
+  &__title {
+    display: block;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: $color-text-primary;
+    margin-bottom: 16rpx;
+  }
+
+  &__desc {
+    display: block;
+    font-size: 26rpx;
+    color: $color-text-secondary;
+    line-height: 1.6;
+  }
 }

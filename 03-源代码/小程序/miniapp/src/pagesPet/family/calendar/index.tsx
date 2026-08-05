@@ -20,6 +20,7 @@ const EVENT_TYPE_CONFIG: Record<CalendarEvent['type'], { emoji: string; color: s
 }
 
 export default function FamilyCalendar() {
+  const themeClass = useThemeClass()
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1)
@@ -101,7 +102,7 @@ export default function FamilyCalendar() {
 
   if (error) {
     return (
-      <View className="calendar-page">
+      <View className={`calendar-page ${themeClass}`}>
         <View className="calendar-error">
           <Text className="calendar-error__text">{error}</Text>
           <View className="calendar-error__btn" onClick={handleRetry}>
@@ -113,7 +114,7 @@ export default function FamilyCalendar() {
   }
 
   return (
-    <View className="calendar-page">
+    <View className={`calendar-page ${themeClass}`}>
       {/* 月份切换 */}
       <View className="calendar-header">
         <View className="calendar-header__nav" onClick={handlePrevMonth}>

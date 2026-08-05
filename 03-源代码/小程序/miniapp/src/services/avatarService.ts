@@ -29,6 +29,7 @@ function getAuthHeaders(extra?: Record<string, string>): Record<string, string> 
 }
 
 export async function generateAvatarImage(
+  petId: string,
   species: PetSpecies,
   petName: string,
   style: PetImageParams['style'],
@@ -48,6 +49,7 @@ export async function generateAvatarImage(
   })
 
   const result = await seedreamAdapter.generatePetImage({
+    petId,
     species,
     expression,
     breed: petName,
