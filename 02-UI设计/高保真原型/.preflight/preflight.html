@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preflight</title>
+    <style id="theme-vars">
+/* ============================================
+   星寰海小程序 · 暖阳珊瑚橙主题 (Warm Coral)
+   Q版奶萌 · 温馨 · 高饱和珊瑚橙 + 奶油暖白
+   参考官网星海梦境，配色更饱和、更Q、更温馨
+   ============================================ */
+
+:root {
+  /* ---- 基础语义色 ---- */
+  --xhh-background: #FFF6EE;
+  --xhh-foreground: #40281C;
+
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #40281C;
+
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #40281C;
+
+  --xhh-primary: #FF6B3D;
+  --xhh-primary-foreground: #FFFFFF;
+
+  --xhh-muted: #FFF0E4;
+  --xhh-muted-foreground: #967A62;
+
+  --xhh-border: #F3E2D2;
+  --xhh-input: #FFF6EE;
+  --xhh-ring: #FF6B3D;
+
+  /* ---- 圆角（Q版圆润） ---- */
+  --xhh-radius-sm: 12px;
+  --xhh-radius-md: 20px;
+  --xhh-radius-lg: 28px;
+  --xhh-radius-full: 9999px;
+
+  /* ---- 深度层次（暖色递进） ---- */
+  --xhh-surface-1: #FFFDF9;
+  --xhh-surface-2: #FFF6EE;
+  --xhh-surface-3: #FFEDE0;
+
+  /* ---- 文字层次 ---- */
+  --xhh-ink: #40281C;
+  --xhh-ink-2: #8B6E58;
+  --xhh-ink-3: #B69B83;
+
+  /* ---- 品牌珊瑚橙层次（高饱和） ---- */
+  --xhh-coral: #FF6B3D;
+  --xhh-coral-soft: #FFA082;
+  --xhh-coral-deep: #F04E1D;
+  --xhh-coral-bg: #FFF0E8;
+
+  /* ---- 暖金点缀（同族暖色，仅装饰/状态） ---- */
+  --xhh-gold: #FFB020;
+  --xhh-gold-soft: #FFD068;
+  --xhh-gold-deep: #E8920A;
+  --xhh-gold-bg: #FFF6DC;
+
+  /* ---- 状态色 ---- */
+  --state-success: #2FC98E;
+  --state-warning: #FFB020;
+  --state-error: #FF5A5F;
+  --state-info: #4FA3E3;
+
+  /* ---- 字体系统 ---- */
+  --xhh-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --xhh-font-display: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+  /* ---- 间距（8pt 栅格） ---- */
+  --xhh-space-1: 4px;
+  --xhh-space-2: 8px;
+  --xhh-space-3: 12px;
+  --xhh-space-4: 16px;
+  --xhh-space-5: 24px;
+  --xhh-space-6: 32px;
+  --xhh-space-7: 48px;
+  --xhh-space-8: 80px;
+
+  /* ---- 阴影（Q版软萌立体，克制使用） ---- */
+  --xhh-shadow-1: 0 1px 3px rgba(61, 33, 18, 0.05);
+  --xhh-shadow-2: 0 12px 32px -12px rgba(240, 78, 29, 0.18);
+  --xhh-shadow-card: 0 4px 20px -6px rgba(61, 33, 18, 0.08);
+  --xhh-shadow-button: 0 6px 18px -4px rgba(255, 107, 61, 0.35);
+}
+
+/* ---- 全局字体 ---- */
+body {
+  font-family: var(--xhh-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- 标题排版 ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--xhh-font-display);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+/* ---- 数字等宽 ---- */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--xhh-background);
+    --color-foreground: var(--xhh-foreground);
+    --color-card: var(--xhh-card);
+    --color-card-foreground: var(--xhh-card-foreground);
+    --color-popover: var(--xhh-popover);
+    --color-popover-foreground: var(--xhh-popover-foreground);
+    --color-primary: var(--xhh-primary);
+    --color-primary-foreground: var(--xhh-primary-foreground);
+    --color-muted: var(--xhh-muted);
+    --color-muted-foreground: var(--xhh-muted-foreground);
+    --color-border: var(--xhh-border);
+    --color-input: var(--xhh-input);
+    --color-ring: var(--xhh-ring);
+    --radius-sm: var(--xhh-radius-sm);
+    --radius-md: var(--xhh-radius-md);
+    --radius-lg: var(--xhh-radius-lg);
+  }
+  @layer base {
+    body { background: var(--xhh-background); color: var(--xhh-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--xhh-background); }
+      .text-background { color: var(--xhh-background); }
+      .border-background { border-color: var(--xhh-background); }
+      .ring-background { --tw-ring-color: var(--xhh-background); }
+      .bg-foreground { background-color: var(--xhh-foreground); }
+      .text-foreground { color: var(--xhh-foreground); }
+      .border-foreground { border-color: var(--xhh-foreground); }
+      .ring-foreground { --tw-ring-color: var(--xhh-foreground); }
+      .bg-card { background-color: var(--xhh-card); }
+      .text-card { color: var(--xhh-card); }
+      .border-card { border-color: var(--xhh-card); }
+      .ring-card { --tw-ring-color: var(--xhh-card); }
+      .bg-card-foreground { background-color: var(--xhh-card-foreground); }
+      .text-card-foreground { color: var(--xhh-card-foreground); }
+      .border-card-foreground { border-color: var(--xhh-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--xhh-card-foreground); }
+      .bg-popover { background-color: var(--xhh-popover); }
+      .text-popover { color: var(--xhh-popover); }
+      .border-popover { border-color: var(--xhh-popover); }
+      .ring-popover { --tw-ring-color: var(--xhh-popover); }
+      .bg-popover-foreground { background-color: var(--xhh-popover-foreground); }
+      .text-popover-foreground { color: var(--xhh-popover-foreground); }
+      .border-popover-foreground { border-color: var(--xhh-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--xhh-popover-foreground); }
+      .bg-primary { background-color: var(--xhh-primary); }
+      .text-primary { color: var(--xhh-primary); }
+      .border-primary { border-color: var(--xhh-primary); }
+      .ring-primary { --tw-ring-color: var(--xhh-primary); }
+      .bg-primary-foreground { background-color: var(--xhh-primary-foreground); }
+      .text-primary-foreground { color: var(--xhh-primary-foreground); }
+      .border-primary-foreground { border-color: var(--xhh-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--xhh-primary-foreground); }
+      .bg-muted { background-color: var(--xhh-muted); }
+      .text-muted { color: var(--xhh-muted); }
+      .border-muted { border-color: var(--xhh-muted); }
+      .ring-muted { --tw-ring-color: var(--xhh-muted); }
+      .bg-muted-foreground { background-color: var(--xhh-muted-foreground); }
+      .text-muted-foreground { color: var(--xhh-muted-foreground); }
+      .border-muted-foreground { border-color: var(--xhh-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--xhh-muted-foreground); }
+      .bg-border { background-color: var(--xhh-border); }
+      .text-border { color: var(--xhh-border); }
+      .border-border { border-color: var(--xhh-border); }
+      .ring-border { --tw-ring-color: var(--xhh-border); }
+      .bg-input { background-color: var(--xhh-input); }
+      .text-input { color: var(--xhh-input); }
+      .border-input { border-color: var(--xhh-input); }
+      .ring-input { --tw-ring-color: var(--xhh-input); }
+      .bg-ring { background-color: var(--xhh-ring); }
+      .text-ring { color: var(--xhh-ring); }
+      .border-ring { border-color: var(--xhh-ring); }
+      .ring-ring { --tw-ring-color: var(--xhh-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

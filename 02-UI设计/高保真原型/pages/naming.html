@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>取名引擎 · 星寰海</title>
+    <style id="theme-vars">
+/* ============================================
+   星寰海小程序 · 四季主题体系
+   Q版奶萌 · 温馨 · 高饱和
+   默认：秋 · 暖阳珊瑚橙 (Warm Coral)
+   另含：春 · 嫩芽绿 / 夏 · 海盐蓝 / 冬 · 冰晶紫
+   通过 html[data-theme] 切换
+   ============================================ */
+
+:root {
+  /* ---- 基础语义色（秋 · 暖阳珊瑚橙） ---- */
+  --xhh-background: #FFF6EE;
+  --xhh-foreground: #40281C;
+
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #40281C;
+
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #40281C;
+
+  --xhh-primary: #FF6B3D;
+  --xhh-primary-foreground: #FFFFFF;
+
+  --xhh-muted: #FFF0E4;
+  --xhh-muted-foreground: #967A62;
+
+  --xhh-border: #F3E2D2;
+  --xhh-input: #FFF6EE;
+  --xhh-ring: #FF6B3D;
+
+  /* ---- 圆角（Q版圆润） ---- */
+  --xhh-radius-sm: 12px;
+  --xhh-radius-md: 20px;
+  --xhh-radius-lg: 28px;
+  --xhh-radius-full: 9999px;
+
+  /* ---- 深度层次（暖色递进） ---- */
+  --xhh-surface-1: #FFFDF9;
+  --xhh-surface-2: #FFF6EE;
+  --xhh-surface-3: #FFEDE0;
+
+  /* ---- 文字层次 ---- */
+  --xhh-ink: #40281C;
+  --xhh-ink-2: #8B6E58;
+  --xhh-ink-3: #B69B83;
+
+  /* ---- 品牌珊瑚橙层次（高饱和） ---- */
+  --xhh-coral: #FF6B3D;
+  --xhh-coral-soft: #FFA082;
+  --xhh-coral-deep: #F04E1D;
+  --xhh-coral-bg: #FFF0E8;
+
+  /* ---- 暖金点缀（同族暖色，仅装饰/状态） ---- */
+  --xhh-gold: #FFB020;
+  --xhh-gold-soft: #FFD068;
+  --xhh-gold-deep: #E8920A;
+  --xhh-gold-bg: #FFF6DC;
+
+  /* ---- 状态色 ---- */
+  --state-success: #2FC98E;
+  --state-warning: #FFB020;
+  --state-error: #FF5A5F;
+  --state-info: #4FA3E3;
+
+  /* ---- 字体系统 ---- */
+  --xhh-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --xhh-font-display: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+  /* ---- 间距（8pt 栅格） ---- */
+  --xhh-space-1: 4px;
+  --xhh-space-2: 8px;
+  --xhh-space-3: 12px;
+  --xhh-space-4: 16px;
+  --xhh-space-5: 24px;
+  --xhh-space-6: 32px;
+  --xhh-space-7: 48px;
+  --xhh-space-8: 80px;
+
+  /* ---- 阴影（Q版软萌立体，克制使用） ---- */
+  --xhh-shadow-1: 0 1px 3px rgba(61, 33, 18, 0.05);
+  --xhh-shadow-2: 0 12px 32px -12px rgba(240, 78, 29, 0.18);
+  --xhh-shadow-card: 0 4px 20px -6px rgba(61, 33, 18, 0.08);
+  --xhh-shadow-button: 0 6px 18px -4px rgba(255, 107, 61, 0.35);
+
+  /* ---- 动态背景光斑色（跟随主题） ---- */
+  --xhh-blob-a-color: rgba(255, 107, 61, 0.32);
+  --xhh-blob-b-color: rgba(255, 176, 32, 0.24);
+  --xhh-blob-c-color: rgba(255, 107, 61, 0.16);
+  --xhh-blob-d-color: rgba(255, 176, 32, 0.15);
+  --xhh-glow-color: rgba(255, 176, 32, 0.13);
+}
+
+/* ============================================
+   春 · 嫩芽绿 Spring
+   主色：清新嫩芽绿 · 迎春花黄 · 奶油嫩白
+   ============================================ */
+html[data-theme="spring"] {
+  --xhh-background: #F3FAEF;
+  --xhh-foreground: #2E4A33;
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #2E4A33;
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #2E4A33;
+  --xhh-primary: #54B460;
+  --xhh-primary-foreground: #FFFFFF;
+  --xhh-muted: #E9F4E2;
+  --xhh-muted-foreground: #6E8B66;
+  --xhh-border: #DEEBD4;
+  --xhh-input: #F3FAEF;
+  --xhh-ring: #54B460;
+  --xhh-surface-1: #FBFEF8;
+  --xhh-surface-2: #F3FAEF;
+  --xhh-surface-3: #E7F4DE;
+  --xhh-ink: #2E4A33;
+  --xhh-ink-2: #6E8B66;
+  --xhh-ink-3: #9BB494;
+  --xhh-coral: #54B460;
+  --xhh-coral-soft: #8AD390;
+  --xhh-coral-deep: #3A9A4E;
+  --xhh-coral-bg: #E9F7E6;
+  --xhh-gold: #FFC94D;
+  --xhh-gold-soft: #FFE08F;
+  --xhh-gold-deep: #E8A81C;
+  --xhh-gold-bg: #FFF8DC;
+  --xhh-shadow-1: 0 1px 3px rgba(46, 74, 51, 0.05);
+  --xhh-shadow-2: 0 12px 32px -12px rgba(58, 154, 78, 0.18);
+  --xhh-shadow-card: 0 4px 20px -6px rgba(46, 74, 51, 0.08);
+  --xhh-shadow-button: 0 6px 18px -4px rgba(84, 180, 96, 0.35);
+  --xhh-blob-a-color: rgba(84, 180, 96, 0.30);
+  --xhh-blob-b-color: rgba(255, 201, 77, 0.24);
+  --xhh-blob-c-color: rgba(84, 180, 96, 0.16);
+  --xhh-blob-d-color: rgba(255, 201, 77, 0.14);
+  --xhh-glow-color: rgba(255, 201, 77, 0.13);
+}
+
+/* ============================================
+   夏 · 海盐蓝 Summer
+   主色：海盐天蓝 · 落日橙 · 清爽蓝白
+   ============================================ */
+html[data-theme="summer"] {
+  --xhh-background: #EFF7FC;
+  --xhh-foreground: #1F3A4E;
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #1F3A4E;
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #1F3A4E;
+  --xhh-primary: #2FA8E8;
+  --xhh-primary-foreground: #FFFFFF;
+  --xhh-muted: #E2F1F9;
+  --xhh-muted-foreground: #5E7C91;
+  --xhh-border: #D4E7F0;
+  --xhh-input: #EFF7FC;
+  --xhh-ring: #2FA8E8;
+  --xhh-surface-1: #FAFDFF;
+  --xhh-surface-2: #EFF7FC;
+  --xhh-surface-3: #DFEFF8;
+  --xhh-ink: #1F3A4E;
+  --xhh-ink-2: #5E7C91;
+  --xhh-ink-3: #8FA6B8;
+  --xhh-coral: #2FA8E8;
+  --xhh-coral-soft: #7CC6F0;
+  --xhh-coral-deep: #177FC4;
+  --xhh-coral-bg: #E2F4FC;
+  --xhh-gold: #FFB84D;
+  --xhh-gold-soft: #FFD98F;
+  --xhh-gold-deep: #E8931C;
+  --xhh-gold-bg: #FFF3DC;
+  --xhh-shadow-1: 0 1px 3px rgba(31, 58, 78, 0.05);
+  --xhh-shadow-2: 0 12px 32px -12px rgba(23, 127, 196, 0.18);
+  --xhh-shadow-card: 0 4px 20px -6px rgba(31, 58, 78, 0.08);
+  --xhh-shadow-button: 0 6px 18px -4px rgba(47, 168, 232, 0.35);
+  --xhh-blob-a-color: rgba(47, 168, 232, 0.30);
+  --xhh-blob-b-color: rgba(255, 184, 77, 0.24);
+  --xhh-blob-c-color: rgba(47, 168, 232, 0.15);
+  --xhh-blob-d-color: rgba(255, 184, 77, 0.14);
+  --xhh-glow-color: rgba(255, 184, 77, 0.13);
+}
+
+/* ============================================
+   秋 · 暖阳珊瑚橙 Autumn（默认）
+   主色：高饱和珊瑚橙 · 暖金 · 奶油暖白
+   ============================================ */
+html[data-theme="autumn"] {
+  --xhh-background: #FFF6EE;
+  --xhh-foreground: #40281C;
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #40281C;
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #40281C;
+  --xhh-primary: #FF6B3D;
+  --xhh-primary-foreground: #FFFFFF;
+  --xhh-muted: #FFF0E4;
+  --xhh-muted-foreground: #967A62;
+  --xhh-border: #F3E2D2;
+  --xhh-input: #FFF6EE;
+  --xhh-ring: #FF6B3D;
+  --xhh-surface-1: #FFFDF9;
+  --xhh-surface-2: #FFF6EE;
+  --xhh-surface-3: #FFEDE0;
+  --xhh-ink: #40281C;
+  --xhh-ink-2: #8B6E58;
+  --xhh-ink-3: #B69B83;
+  --xhh-coral: #FF6B3D;
+  --xhh-coral-soft: #FFA082;
+  --xhh-coral-deep: #F04E1D;
+  --xhh-coral-bg: #FFF0E8;
+  --xhh-gold: #FFB020;
+  --xhh-gold-soft: #FFD068;
+  --xhh-gold-deep: #E8920A;
+  --xhh-gold-bg: #FFF6DC;
+  --xhh-shadow-1: 0 1px 3px rgba(61, 33, 18, 0.05);
+  --xhh-shadow-2: 0 12px 32px -12px rgba(240, 78, 29, 0.18);
+  --xhh-shadow-card: 0 4px 20px -6px rgba(61, 33, 18, 0.08);
+  --xhh-shadow-button: 0 6px 18px -4px rgba(255, 107, 61, 0.35);
+  --xhh-blob-a-color: rgba(255, 107, 61, 0.32);
+  --xhh-blob-b-color: rgba(255, 176, 32, 0.24);
+  --xhh-blob-c-color: rgba(255, 107, 61, 0.16);
+  --xhh-blob-d-color: rgba(255, 176, 32, 0.15);
+  --xhh-glow-color: rgba(255, 176, 32, 0.13);
+}
+
+/* ============================================
+   冬 · 冰晶紫 Winter
+   主色：冰晶紫 · 雪青蓝 · 霜白
+   ============================================ */
+html[data-theme="winter"] {
+  --xhh-background: #F1F3FB;
+  --xhh-foreground: #26324E;
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #26324E;
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #26324E;
+  --xhh-primary: #6C7CF0;
+  --xhh-primary-foreground: #FFFFFF;
+  --xhh-muted: #E8EBF8;
+  --xhh-muted-foreground: #5F6B93;
+  --xhh-border: #DADDF0;
+  --xhh-input: #F1F3FB;
+  --xhh-ring: #6C7CF0;
+  --xhh-surface-1: #FAFAFE;
+  --xhh-surface-2: #F1F3FB;
+  --xhh-surface-3: #E5E9F8;
+  --xhh-ink: #26324E;
+  --xhh-ink-2: #5F6B93;
+  --xhh-ink-3: #929CBA;
+  --xhh-coral: #6C7CF0;
+  --xhh-coral-soft: #A5B1F7;
+  --xhh-coral-deep: #4557D8;
+  --xhh-coral-bg: #EAEDFC;
+  --xhh-gold: #8FA8E8;
+  --xhh-gold-soft: #B8C7F2;
+  --xhh-gold-deep: #6A82CE;
+  --xhh-gold-bg: #EDF1FA;
+  --xhh-shadow-1: 0 1px 3px rgba(38, 50, 78, 0.05);
+  --xhh-shadow-2: 0 12px 32px -12px rgba(69, 87, 216, 0.18);
+  --xhh-shadow-card: 0 4px 20px -6px rgba(38, 50, 78, 0.08);
+  --xhh-shadow-button: 0 6px 18px -4px rgba(108, 124, 240, 0.35);
+  --xhh-blob-a-color: rgba(108, 124, 240, 0.30);
+  --xhh-blob-b-color: rgba(143, 168, 232, 0.24);
+  --xhh-blob-c-color: rgba(108, 124, 240, 0.15);
+  --xhh-blob-d-color: rgba(143, 168, 232, 0.14);
+  --xhh-glow-color: rgba(143, 168, 232, 0.13);
+}
+
+/* ---- 全局字体 ---- */
+body {
+  font-family: var(--xhh-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- 标题排版 ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--xhh-font-display);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+/* ---- 数字等宽 ---- */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   全局动效系统（整个小程序共享）
+   背景光斑 / 页面入场 / TabBar波纹 / 按压反馈
+   ============================================ */
+
+/* ---- 全屏动态背景层 ---- */
+.xhh-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.xhh-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  will-change: transform;
+  opacity: 0.85;
+}
+.xhh-blob-a {
+  width: 220px; height: 220px;
+  top: -50px; left: -70px;
+  background-color: var(--xhh-blob-a-color, rgba(255, 107, 61, 0.32));
+  animation: xhh-blob-a 24s ease-in-out infinite alternate;
+}
+.xhh-blob-b {
+  width: 180px; height: 180px;
+  top: 140px; right: -80px;
+  background-color: var(--xhh-blob-b-color, rgba(255, 176, 32, 0.24));
+  animation: xhh-blob-b 28s ease-in-out infinite alternate;
+}
+.xhh-blob-c {
+  width: 140px; height: 140px;
+  bottom: 70px; left: -60px;
+  background-color: var(--xhh-blob-c-color, rgba(255, 107, 61, 0.16));
+  animation: xhh-blob-c 32s ease-in-out infinite alternate;
+}
+.xhh-blob-d {
+  width: 120px; height: 120px;
+  bottom: 180px; right: -40px;
+  background-color: var(--xhh-blob-d-color, rgba(255, 176, 32, 0.15));
+  animation: xhh-blob-d 26s ease-in-out infinite alternate;
+}
+@keyframes xhh-blob-a {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(62px, 48px) scale(1.14); }
+  100% { transform: translate(20px, 84px) scale(0.95); }
+}
+@keyframes xhh-blob-b {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-58px, -38px) scale(1.1); }
+  100% { transform: translate(-32px, 34px) scale(0.93); }
+}
+@keyframes xhh-blob-c {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(48px, -44px) scale(1.16); }
+  100% { transform: translate(74px, 12px) scale(1); }
+}
+@keyframes xhh-blob-d {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-42px, 36px) scale(1.08); }
+  100% { transform: translate(-16px, -30px) scale(0.94); }
+}
+.xhh-bg-glow {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 130%; height: 340px;
+  background: radial-gradient(ellipse at center, var(--xhh-glow-color, rgba(255, 176, 32, 0.13)) 0%, transparent 68%);
+  animation: xhh-glow-pulse 7s ease-in-out infinite;
+}
+@keyframes xhh-glow-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* ---- 页面主体悬浮于背景之上 ---- */
+.xhh-bg-layer + main,
+.xhh-bg-layer + header + main,
+body > main {
+  position: relative;
+  z-index: 10;
+}
+/* 顶部栏与底部条也要在背景之上 */
+.xhh-bg-layer + *:not(main) {
+  position: relative;
+  z-index: 20;
+}
+
+/* ---- 页面入场：主体区块 cascade 上浮 ---- */
+.xhh-page-enter > * {
+  animation: xhh-page-rise 0.55s cubic-bezier(0.3, 0, 0, 1) both;
+}
+.xhh-page-enter > *:nth-child(1) { animation-delay: 0.04s; }
+.xhh-page-enter > *:nth-child(2) { animation-delay: 0.1s; }
+.xhh-page-enter > *:nth-child(3) { animation-delay: 0.16s; }
+.xhh-page-enter > *:nth-child(4) { animation-delay: 0.22s; }
+.xhh-page-enter > *:nth-child(5) { animation-delay: 0.28s; }
+.xhh-page-enter > *:nth-child(6) { animation-delay: 0.34s; }
+.xhh-page-enter > *:nth-child(7) { animation-delay: 0.4s; }
+.xhh-page-enter > *:nth-child(8) { animation-delay: 0.46s; }
+@keyframes xhh-page-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- TabBar 波纹反馈 ---- */
+.xhh-tab-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.xhh-tab-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  opacity: 0;
+  transform: scale(0);
+  transition: none;
+  pointer-events: none;
+}
+.xhh-tab-ripple.xhh-rippling::after {
+  animation: xhh-ripple 0.55s ease-out forwards;
+}
+@keyframes xhh-ripple {
+  0% { opacity: 0.35; transform: scale(0); }
+  100% { opacity: 0; transform: scale(26); }
+}
+/* TabBar 图标激活弹跳 */
+.xhh-tab-bounce[data-active='true'] i {
+  animation: xhh-tab-pop 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes xhh-tab-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.28) translateY(-2px); }
+  100% { transform: scale(1); }
+}
+
+/* ---- 通用按压反馈 ---- */
+.xhh-tap {
+  transition: transform 0.14s ease, opacity 0.14s ease;
+}
+.xhh-tap:active {
+  transform: scale(0.95);
+  opacity: 0.85;
+}
+
+/* ---- 卡片滚动 reveal ---- */
+.xhh-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.55s cubic-bezier(0.3, 0, 0, 1), transform 0.55s cubic-bezier(0.3, 0, 0, 1);
+}
+.xhh-reveal.xhh-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- 减少动态效果偏好（全小程序生效） ---- */
+@media (prefers-reduced-motion: reduce) {
+  .xhh-blob, .xhh-bg-glow, .xhh-page-enter > *, .xhh-tab-ripple::after, .xhh-tab-bounce[data-active='true'] i {
+    animation: none !important;
+  }
+  .xhh-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none !important;
+  }
+  .xhh-tap { transition: none !important; }
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--xhh-background);
+    --color-foreground: var(--xhh-foreground);
+    --color-card: var(--xhh-card);
+    --color-card-foreground: var(--xhh-card-foreground);
+    --color-popover: var(--xhh-popover);
+    --color-popover-foreground: var(--xhh-popover-foreground);
+    --color-primary: var(--xhh-primary);
+    --color-primary-foreground: var(--xhh-primary-foreground);
+    --color-muted: var(--xhh-muted);
+    --color-muted-foreground: var(--xhh-muted-foreground);
+    --color-border: var(--xhh-border);
+    --color-input: var(--xhh-input);
+    --color-ring: var(--xhh-ring);
+    --radius-sm: var(--xhh-radius-sm);
+    --radius-md: var(--xhh-radius-md);
+    --radius-lg: var(--xhh-radius-lg);
+  }
+  @layer base {
+    body { background: var(--xhh-background); color: var(--xhh-foreground); }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--xhh-background); }
+      .text-background { color: var(--xhh-background); }
+      .border-background { border-color: var(--xhh-background); }
+      .ring-background { --tw-ring-color: var(--xhh-background); }
+      .bg-foreground { background-color: var(--xhh-foreground); }
+      .text-foreground { color: var(--xhh-foreground); }
+      .border-foreground { border-color: var(--xhh-foreground); }
+      .ring-foreground { --tw-ring-color: var(--xhh-foreground); }
+      .bg-card { background-color: var(--xhh-card); }
+      .text-card { color: var(--xhh-card); }
+      .border-card { border-color: var(--xhh-card); }
+      .ring-card { --tw-ring-color: var(--xhh-card); }
+      .bg-card-foreground { background-color: var(--xhh-card-foreground); }
+      .text-card-foreground { color: var(--xhh-card-foreground); }
+      .border-card-foreground { border-color: var(--xhh-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--xhh-card-foreground); }
+      .bg-popover { background-color: var(--xhh-popover); }
+      .text-popover { color: var(--xhh-popover); }
+      .border-popover { border-color: var(--xhh-popover); }
+      .ring-popover { --tw-ring-color: var(--xhh-popover); }
+      .bg-popover-foreground { background-color: var(--xhh-popover-foreground); }
+      .text-popover-foreground { color: var(--xhh-popover-foreground); }
+      .border-popover-foreground { border-color: var(--xhh-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--xhh-popover-foreground); }
+      .bg-primary { background-color: var(--xhh-primary); }
+      .text-primary { color: var(--xhh-primary); }
+      .border-primary { border-color: var(--xhh-primary); }
+      .ring-primary { --tw-ring-color: var(--xhh-primary); }
+      .bg-primary-foreground { background-color: var(--xhh-primary-foreground); }
+      .text-primary-foreground { color: var(--xhh-primary-foreground); }
+      .border-primary-foreground { border-color: var(--xhh-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--xhh-primary-foreground); }
+      .bg-muted { background-color: var(--xhh-muted); }
+      .text-muted { color: var(--xhh-muted); }
+      .border-muted { border-color: var(--xhh-muted); }
+      .ring-muted { --tw-ring-color: var(--xhh-muted); }
+      .bg-muted-foreground { background-color: var(--xhh-muted-foreground); }
+      .text-muted-foreground { color: var(--xhh-muted-foreground); }
+      .border-muted-foreground { border-color: var(--xhh-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--xhh-muted-foreground); }
+      .bg-border { background-color: var(--xhh-border); }
+      .text-border { color: var(--xhh-border); }
+      .border-border { border-color: var(--xhh-border); }
+      .ring-border { --tw-ring-color: var(--xhh-border); }
+      .bg-input { background-color: var(--xhh-input); }
+      .text-input { color: var(--xhh-input); }
+      .border-input { border-color: var(--xhh-input); }
+      .ring-input { --tw-ring-color: var(--xhh-input); }
+      .bg-ring { background-color: var(--xhh-ring); }
+      .text-ring { color: var(--xhh-ring); }
+      .border-ring { border-color: var(--xhh-ring); }
+      .ring-ring { --tw-ring-color: var(--xhh-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+    <style id="xhh-critical-layout">
+      /* ============================================
+         关键布局静态兜底（无 Tailwind 也能渲染框架）
+         星寰海 · 取名引擎
+         ============================================ */
+      .xhh-header { position: sticky; top: 0; z-index: 40; }
+      .xhh-header-inner { max-width: 28rem; margin: 0 auto; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
+      .xhh-main { max-width: 28rem; margin: 0 auto; padding: 0.75rem 1rem 8rem; display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10; }
+
+      .xhh-tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 3.5rem; background-color: color-mix(in srgb, var(--xhh-card) 95%, transparent); border-top: 1px solid var(--xhh-border); backdrop-filter: blur(12px); }
+      .xhh-tabbar-inner { max-width: 28rem; margin: 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 100%; }
+      .xhh-tab-item { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem; padding: 0 0.25rem; height: 100%; }
+
+      /* 通用卡片 */
+      .xhh-card { background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: 20px; box-shadow: var(--xhh-shadow-card); }
+
+      /* 两列网格（模式选择） */
+      .xhh-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+
+      /* 模式大卡片 */
+      .xhh-mode-card { background-color: var(--xhh-card); border: 1.5px solid var(--xhh-border); border-radius: 20px; padding: 1rem; text-align: left; box-shadow: var(--xhh-shadow-card); transition: transform 0.18s cubic-bezier(0.3, 0, 0, 1), border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease; cursor: pointer; }
+      .xhh-mode-card:hover { transform: translateY(-3px); }
+      .xhh-mode-card:active { transform: scale(0.97); }
+      .xhh-mode-card[data-selected="true"] { border-color: var(--xhh-coral); background-color: color-mix(in srgb, var(--xhh-coral-bg) 55%, var(--xhh-card)); box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--xhh-coral) 28%, transparent); }
+      .xhh-mode-card .xhh-mode-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 9999px; margin-bottom: 0.625rem; background-color: color-mix(in srgb, var(--xhh-ink-3) 12%, var(--xhh-card)); color: var(--xhh-ink-3); transition: background-color 0.18s ease, color 0.18s ease; }
+      .xhh-mode-card[data-selected="true"] .xhh-mode-icon { background-color: var(--xhh-coral-bg); color: var(--xhh-coral); }
+      .xhh-mode-card .xhh-mode-title { font-size: 14px; font-weight: 600; color: var(--xhh-ink); }
+      .xhh-mode-card[data-selected="true"] .xhh-mode-title { color: var(--xhh-coral-deep); }
+      .xhh-mode-card .xhh-mode-desc { font-size: 11px; line-height: 1.45; margin-top: 0.25rem; color: var(--xhh-ink-3); }
+
+      /* 表单 */
+      .xhh-label { display: block; font-size: 12px; font-weight: 500; color: var(--xhh-ink-2); margin-bottom: 0.5rem; }
+      .xhh-input { width: 100%; background-color: var(--xhh-input); border: 1px solid var(--xhh-border); border-radius: 12px; padding: 0.625rem 0.75rem; font-size: 13px; color: var(--xhh-ink); outline: none; transition: border-color 0.18s ease; }
+      .xhh-input:focus { border-color: var(--xhh-coral); }
+      .xhh-input::placeholder { color: var(--xhh-ink-3); }
+      .xhh-chip-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; border-radius: 9999px; padding: 0.5rem 1.125rem; font-size: 13px; color: var(--xhh-ink-2); background-color: var(--xhh-card); border: 1.5px solid var(--xhh-border); transition: transform 0.14s ease, border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease; cursor: pointer; }
+      .xhh-chip-btn:active { transform: scale(0.95); }
+      .xhh-chip-btn[data-selected="true"] { border-color: var(--xhh-coral); background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep); font-weight: 600; }
+
+      /* 主/次按钮 */
+      .xhh-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); border-radius: 9999px; box-shadow: var(--xhh-shadow-button); transition: transform 0.14s ease, opacity 0.14s ease; cursor: pointer; }
+      .xhh-btn-primary:active { transform: scale(0.95); opacity: 0.9; }
+      .xhh-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background-color: var(--xhh-card); color: var(--xhh-coral); border: 1.5px solid var(--xhh-coral); border-radius: 9999px; transition: transform 0.14s ease, background-color 0.18s ease; cursor: pointer; }
+      .xhh-btn-secondary:active { transform: scale(0.95); background-color: var(--xhh-coral-bg); }
+
+      /* 来源胶囊标签 */
+      .xhh-source-chip { display: inline-flex; align-items: center; gap: 0.25rem; border-radius: 9999px; padding: 0.25rem 0.625rem; font-size: 11px; font-weight: 500; white-space: nowrap; background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep); }
+      .xhh-source-chip[data-tone="gold"] { background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep); }
+      .xhh-source-chip[data-tone="coral"] { background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep); }
+      .xhh-source-chip[data-tone="info"] { background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info); }
+      .xhh-source-chip[data-tone="success"] { background-color: color-mix(in srgb, var(--state-success) 14%, var(--xhh-card)); color: var(--state-success); }
+
+      /* 名字候选卡 */
+      .xhh-name-card { background-color: var(--xhh-card); border: 1.5px solid var(--xhh-border); border-radius: 20px; padding: 1rem; box-shadow: var(--xhh-shadow-card); transition: transform 0.18s cubic-bezier(0.3, 0, 0, 1), border-color 0.18s ease, box-shadow 0.18s ease; cursor: pointer; }
+      .xhh-name-card:hover { transform: translateY(-3px); }
+      .xhh-name-card[data-selected="true"] { border-color: var(--xhh-coral); box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--xhh-coral) 30%, transparent); }
+      .xhh-name-card .xhh-name { font-size: 22px; font-weight: 800; color: var(--xhh-ink); letter-spacing: 0.04em; }
+      .xhh-name-card .xhh-pinyin { font-size: 11px; margin-top: 0.125rem; color: var(--xhh-ink-3); }
+      .xhh-name-card .xhh-meaning { font-size: 13px; line-height: 1.6; margin-top: 0.625rem; color: var(--xhh-ink-2); }
+
+      .xhh-stars { display: inline-flex; gap: 1px; font-size: 13px; letter-spacing: 1px; line-height: 1; }
+
+      /* 展开解读 */
+      .xhh-expand-btn { display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.625rem; font-size: 12px; font-weight: 500; color: var(--xhh-coral); cursor: pointer; }
+      .xhh-expand-btn i { transition: transform 0.2s ease; }
+      .xhh-expand-btn[aria-expanded="true"] i { transform: rotate(180deg); }
+      .xhh-insight { border-top: 1px dashed var(--xhh-border); margin-top: 0.75rem; padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.625rem; }
+      .xhh-insight-item { display: flex; gap: 0.5rem; min-width: 0; }
+      .xhh-insight-item .xhh-insight-ic { display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 9999px; flex-shrink: 0; }
+      .xhh-insight-item .xhh-insight-title { font-size: 11px; font-weight: 600; color: var(--xhh-ink-3); }
+      .xhh-insight-item .xhh-insight-body { font-size: 13px; line-height: 1.6; margin-top: 0.125rem; color: var(--xhh-ink); }
+
+      /* 纪念卡 */
+      .xhh-mem-pop { animation: xhh-mem-in 0.5s cubic-bezier(0.32, 0.72, 0, 1) both; }
+      @keyframes xhh-mem-in {
+        0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+        60% { opacity: 1; transform: translateY(-2px) scale(1.01); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .xhh-mode-card, .xhh-name-card, .xhh-btn-primary, .xhh-btn-secondary, .xhh-chip-btn, .xhh-expand-btn i, .xhh-mem-pop { transition: none !important; animation: none !important; }
+        .xhh-mode-card:hover, .xhh-name-card:hover { transform: none; }
+      }
+    </style>
+    <style id="xhh-motion-system">
+        .xhh-bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+        .xhh-blob{position:absolute;border-radius:9999px;filter:blur(60px);will-change:transform;opacity:.85}
+        .xhh-blob-a{width:220px;height:220px;top:-50px;left:-70px;background-color:var(--xhh-blob-a-color,rgba(255,107,61,.32));animation:xhh-blob-a 24s ease-in-out infinite alternate}
+        .xhh-blob-b{width:180px;height:180px;top:140px;right:-80px;background-color:var(--xhh-blob-b-color,rgba(255,176,32,.24));animation:xhh-blob-b 28s ease-in-out infinite alternate}
+        .xhh-blob-c{width:140px;height:140px;bottom:70px;left:-60px;background-color:var(--xhh-blob-c-color,rgba(255,107,61,.16));animation:xhh-blob-c 32s ease-in-out infinite alternate}
+        .xhh-blob-d{width:120px;height:120px;bottom:180px;right:-40px;background-color:var(--xhh-blob-d-color,rgba(255,176,32,.15));animation:xhh-blob-d 26s ease-in-out infinite alternate}
+        @keyframes xhh-blob-a{0%{transform:translate(0,0) scale(1)}50%{transform:translate(62px,48px) scale(1.14)}100%{transform:translate(20px,84px) scale(.95)}}
+        @keyframes xhh-blob-b{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-58px,-38px) scale(1.1)}100%{transform:translate(-32px,34px) scale(.93)}}
+        @keyframes xhh-blob-c{0%{transform:translate(0,0) scale(1)}50%{transform:translate(48px,-44px) scale(1.16)}100%{transform:translate(74px,12px) scale(1)}}
+        @keyframes xhh-blob-d{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-42px,36px) scale(1.08)}100%{transform:translate(-16px,-30px) scale(.94)}}
+        .xhh-bg-glow{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130%;height:340px;background:radial-gradient(ellipse at center,var(--xhh-glow-color,rgba(255,176,32,.13)) 0%,transparent 68%);animation:xhh-glow-pulse 7s ease-in-out infinite}
+        @keyframes xhh-glow-pulse{0%,100%{opacity:.7}50%{opacity:1}}
+        .xhh-bg-layer + main,body > main{position:relative;z-index:10}
+        .xhh-page-enter > *{animation:xhh-page-rise .55s cubic-bezier(.3,0,0,1) both}
+        .xhh-page-enter > *:nth-child(1){animation-delay:.04s}.xhh-page-enter > *:nth-child(2){animation-delay:.1s}
+        .xhh-page-enter > *:nth-child(3){animation-delay:.16s}.xhh-page-enter > *:nth-child(4){animation-delay:.22s}
+        .xhh-page-enter > *:nth-child(5){animation-delay:.28s}.xhh-page-enter > *:nth-child(6){animation-delay:.34s}
+        .xhh-page-enter > *:nth-child(7){animation-delay:.4s}.xhh-page-enter > *:nth-child(8){animation-delay:.46s}
+        @keyframes xhh-page-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+        .xhh-tab-ripple{position:relative;overflow:hidden}
+        .xhh-tab-ripple::after{content:'';position:absolute;inset:0;margin:auto;width:10px;height:10px;border-radius:9999px;background-color:currentColor;opacity:0;transform:scale(0);transition:none;pointer-events:none}
+        .xhh-tab-ripple.xhh-rippling::after{animation:xhh-ripple .55s ease-out forwards}
+        @keyframes xhh-ripple{0%{opacity:.35;transform:scale(0)}100%{opacity:0;transform:scale(26)}}
+        .xhh-tab-bounce[data-active='true'] i{animation:xhh-tab-pop .5s cubic-bezier(.32,.72,0,1)}
+        @keyframes xhh-tab-pop{0%{transform:scale(1)}40%{transform:scale(1.28) translateY(-2px)}100%{transform:scale(1)}}
+        .xhh-tap{transition:transform .14s ease,opacity .14s ease}
+        .xhh-tap:active{transform:scale(.95);opacity:.85}
+        @media (prefers-reduced-motion: reduce){
+            .xhh-blob,.xhh-bg-glow,.xhh-page-enter > *,.xhh-tab-ripple::after,.xhh-tab-bounce[data-active='true'] i{animation:none !important}
+            .xhh-tap{transition:none !important}
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <!-- 全小程序统一动态背景层 -->
+    <div class="xhh-bg-layer" aria-hidden="true">
+        <div class="xhh-blob xhh-blob-a"></div>
+        <div class="xhh-blob xhh-blob-b"></div>
+        <div class="xhh-blob xhh-blob-c"></div>
+        <div class="xhh-blob xhh-blob-d"></div>
+        <div class="xhh-bg-glow"></div>
+    </div>
+
+    <!-- 顶部栏 -->
+    <header class="xhh-header sticky top-0 z-40" style="background-color: color-mix(in srgb, var(--xhh-background) 92%, transparent); backdrop-filter: blur(16px);">
+        <div class="xhh-header-inner max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-baseline gap-2">
+                <span class="text-xl font-extrabold leading-none bg-clip-text text-transparent" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));">星寰海</span>
+                <span class="text-[11px] leading-none" style="color: var(--xhh-ink-3);">AI 宠物管家</span>
+            </div>
+            <div class="flex h-8 w-[88px] shrink-0 items-center justify-center rounded-full border" style="border-color: var(--xhh-border); background-color: var(--xhh-card);" aria-label="小程序菜单">
+                <button type="button" class="flex h-full flex-1 items-center justify-center" aria-label="更多">
+                    <i data-lucide="more-horizontal" class="h-4 w-4"></i>
+                </button>
+                <span class="h-4 w-px" style="background-color: var(--xhh-border);" aria-hidden="true"></span>
+                <button type="button" class="flex h-full flex-1 items-center justify-center" aria-label="关闭">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="xhh-main relative z-10 max-w-md mx-auto px-4 pb-32 pt-3 flex flex-col gap-4">
+        <!-- 页面标题区 -->
+        <section class="pt-1" data-dom-id="page-title">
+            <h2 class="text-lg font-bold flex items-center gap-2" style="color: var(--xhh-ink);">
+                取名引擎
+                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i>文化解码 · 故事讲述
+                </span>
+            </h2>
+            <p class="text-[13px] mt-1.5 leading-relaxed" style="color: var(--xhh-ink-2);">输入宠物信息，让 AI 从诗词、星象与山川草木里，为毛孩子挑一个念念不忘的名字。</p>
+        </section>
+
+        <!-- 模式选择 -->
+        <section data-dom-id="mode-select">
+            <h3 class="text-sm font-semibold mb-3" style="color: var(--xhh-ink);">选择取名方式</h3>
+            <div class="xhh-grid-2 grid grid-cols-2 gap-3">
+                <button type="button" class="xhh-mode-card" data-dom-id="mode-ai" data-mode="ai" data-selected="true">
+                    <span class="xhh-mode-icon"><i data-lucide="sparkles" class="w-5 h-5"></i></span>
+                    <p class="xhh-mode-title">AI推荐</p>
+                    <p class="xhh-mode-desc">没想法？AI 按五行星宿推荐 5 个候选</p>
+                </button>
+                <button type="button" class="xhh-mode-card" data-dom-id="mode-interpret" data-mode="interpret" data-selected="false">
+                    <span class="xhh-mode-icon"><i data-lucide="book-open" class="w-5 h-5"></i></span>
+                    <p class="xhh-mode-title">名字解读</p>
+                    <p class="xhh-mode-desc">已有名字，解析五行/星象/诗词内涵</p>
+                </button>
+                <button type="button" class="xhh-mode-card" data-dom-id="mode-inspire" data-mode="inspire" data-selected="false">
+                    <span class="xhh-mode-icon"><i data-lucide="compass" class="w-5 h-5"></i></span>
+                    <p class="xhh-mode-title">灵感探索</p>
+                    <p class="xhh-mode-desc">按诗词/山川/星象/色彩选方向</p>
+                </button>
+                <button type="button" class="xhh-mode-card" data-dom-id="mode-pair" data-mode="pair" data-selected="false">
+                    <span class="xhh-mode-icon"><i data-lucide="link-2" class="w-5 h-5"></i></span>
+                    <p class="xhh-mode-title">配对取名</p>
+                    <p class="xhh-mode-desc">与现有宠物名字成套搭配</p>
+                </button>
+            </div>
+        </section>
+
+        <!-- 宠物信息输入卡 -->
+        <section class="xhh-card p-4" data-dom-id="pet-info-form">
+            <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: var(--xhh-ink);">
+                <i data-lucide="paw-print" class="w-4 h-4" style="color: var(--xhh-coral);"></i>宠物信息
+            </h3>
+            <div class="mt-4 flex flex-col gap-4">
+                <div>
+                    <p class="xhh-label">物种</p>
+                    <div class="flex gap-2" data-chip-group="species">
+                        <button type="button" class="xhh-chip-btn" data-dom-id="species-cat" data-chip-opt="cat" data-selected="true">
+                            <i data-lucide="cat" class="w-3.5 h-3.5"></i>猫
+                        </button>
+                        <button type="button" class="xhh-chip-btn" data-dom-id="species-dog" data-chip-opt="dog" data-selected="false">
+                            <i data-lucide="dog" class="w-3.5 h-3.5"></i>狗
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="min-w-0">
+                        <p class="xhh-label">品种</p>
+                        <input type="text" class="xhh-input" data-dom-id="pet-breed" placeholder="如 布偶 / 柯基">
+                    </div>
+                    <div class="min-w-0">
+                        <p class="xhh-label">出生日期</p>
+                        <input type="text" class="xhh-input" data-dom-id="pet-birth" placeholder="如 2026-03-12">
+                    </div>
+                </div>
+                <div>
+                    <p class="xhh-label">性别</p>
+                    <div class="flex gap-2" data-chip-group="gender">
+                        <button type="button" class="xhh-chip-btn" data-dom-id="gender-male" data-chip-opt="male" data-selected="false">
+                            <i data-lucide="mars" class="w-3.5 h-3.5"></i>公
+                        </button>
+                        <button type="button" class="xhh-chip-btn" data-dom-id="gender-female" data-chip-opt="female" data-selected="true">
+                            <i data-lucide="venus" class="w-3.5 h-3.5"></i>母
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="min-w-0">
+                        <p class="xhh-label">毛色</p>
+                        <input type="text" class="xhh-input" data-dom-id="pet-coat" placeholder="如 橘白 / 三花">
+                    </div>
+                    <div class="min-w-0">
+                        <p class="xhh-label">偏好关键词 <span class="font-normal" style="color: var(--xhh-ink-3);">(选填)</span></p>
+                        <input type="text" class="xhh-input" data-dom-id="pet-keywords" placeholder="如 文雅 / 霸气 / 可爱">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 生成按钮 -->
+        <button type="button" class="xhh-btn-primary w-full py-4 text-base font-bold" data-dom-id="btn-generate">
+            <i data-lucide="wand-2" class="w-5 h-5"></i>开始取名
+        </button>
+
+        <!-- 生成结果：候选名字 -->
+        <section id="result-list" data-dom-id="result-list" class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold flex items-center gap-1.5" style="color: var(--xhh-ink);">
+                    <i data-lucide="sparkles" class="w-4 h-4" style="color: var(--xhh-coral);"></i>候选名字
+                </h3>
+                <span class="text-[11px]" style="color: var(--xhh-ink-3);">点击卡片查看完整文化解读</span>
+            </div>
+
+            <!-- 候选 1 · 呦呦 -->
+            <article class="xhh-name-card" data-dom-id="name-card-1" data-name-index="0" data-selected="true">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h4 class="xhh-name" data-f-name>呦呦</h4>
+                        <p class="xhh-pinyin" data-f-pinyin>yōu yōu</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <span class="xhh-stars" data-f-stars></span>
+                        <span class="xhh-source-chip" data-tone="gold" data-f-source-tone="gold"><i data-lucide="book-open" class="w-3 h-3" data-f-source-icon></i><span data-f-source-label>诗经</span></span>
+                    </div>
+                </div>
+                <p class="xhh-meaning" data-f-meaning>如小鹿般欢快灵动，天真烂漫自带诗意；声音软糯好唤，一开口就像山间清泉叮咚。</p>
+                <button type="button" class="xhh-expand-btn" data-expand-btn aria-expanded="true">收起解读<i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <div class="xhh-insight" data-insight>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-success) 14%, var(--xhh-card)); color: var(--state-success);"><i data-lucide="leaf" class="w-3.5 h-3.5" data-f-wuxing-icon></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">五行分析</p>
+                            <p class="xhh-insight-body" data-f-wuxing>木。呦呦出自《诗经·鹿鸣》，草木之气丰盈，主生机与活力，与春天出生的毛孩子尤为相合。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);"><i data-lucide="star" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">星象关联</p>
+                            <p class="xhh-insight-body" data-f-xingxiang>应二十八宿之心宿，主欢欣灵动；唤名如闻鹿鸣，声声入心，越唤越亲近。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info);"><i data-lucide="scroll-text" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">诗词出处</p>
+                            <p class="xhh-insight-body" data-f-poem>《诗经·小雅·鹿鸣》：「呦呦鹿鸣，食野之苹。我有嘉宾，鼓瑟吹笙。」</p>
+                            <p class="xhh-insight-body mt-0.5" data-f-poem-trans>译文：小鹿呦呦鸣叫，悠然吃着野地里的艾蒿；我有贵客来访，弹瑟吹笙相迎。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep);"><i data-lucide="quote" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">趣味对联</p>
+                            <p class="xhh-insight-body" data-f-duilian>呦呦鹿鸣声入耳，青青子衿意在心。</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 候选 2 · 青柠 -->
+            <article class="xhh-name-card" data-dom-id="name-card-2" data-name-index="1" data-selected="false">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h4 class="xhh-name" data-f-name>青柠</h4>
+                        <p class="xhh-pinyin" data-f-pinyin>qīng níng</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <span class="xhh-stars" data-f-stars></span>
+                        <span class="xhh-source-chip" data-tone="coral" data-f-source-tone="coral"><i data-lucide="palette" class="w-3 h-3" data-f-source-icon></i><span data-f-source-label>色彩</span></span>
+                    </div>
+                </div>
+                <p class="xhh-meaning" data-f-meaning>清新明快，酸酸甜甜的元气感，像一颗会跑的小柠檬；越相处越喜欢，越唤越甜。</p>
+                <button type="button" class="xhh-expand-btn" data-expand-btn aria-expanded="false">查看完整解读<i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <div class="xhh-insight hidden" data-insight>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-success) 14%, var(--xhh-card)); color: var(--state-success);"><i data-lucide="leaf" class="w-3.5 h-3.5" data-f-wuxing-icon></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">五行分析</p>
+                            <p class="xhh-insight-body" data-f-wuxing>木。青为东方之色，属春木；柠香清新醒神，主明快活泼之气，越叫越有精神。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);"><i data-lucide="star" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">星象关联</p>
+                            <p class="xhh-insight-body" data-f-xingxiang>应东方七宿之角宿，青意盎然，主朝气蓬勃；唤起来清脆利落，很有精神头。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info);"><i data-lucide="scroll-text" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">诗词出处</p>
+                            <p class="xhh-insight-body" data-f-poem>李白《长干行》：「郎骑竹马来，绕床弄青梅。」取「青」之清新，合「宁」之安宁。</p>
+                            <p class="xhh-insight-body mt-0.5" data-f-poem-trans>译文：你骑着竹马而来，绕着井栏追逐青梅——竹马青梅，是两小无猜的亲密。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep);"><i data-lucide="quote" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">趣味对联</p>
+                            <p class="xhh-insight-body" data-f-duilian>青柠微涩初尝味，暖阳渐甜久处心。</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 候选 3 · 星野 -->
+            <article class="xhh-name-card" data-dom-id="name-card-3" data-name-index="2" data-selected="false">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h4 class="xhh-name" data-f-name>星野</h4>
+                        <p class="xhh-pinyin" data-f-pinyin>xīng yě</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <span class="xhh-stars" data-f-stars></span>
+                        <span class="xhh-source-chip" data-tone="info" data-f-source-tone="info"><i data-lucide="star" class="w-3 h-3" data-f-source-icon></i><span data-f-source-label>星象</span></span>
+                    </div>
+                </div>
+                <p class="xhh-meaning" data-f-meaning>眼里有星光，心里有旷野，辽阔又浪漫；适合爱跑爱跳、好奇心爆棚的小家伙。</p>
+                <button type="button" class="xhh-expand-btn" data-expand-btn aria-expanded="false">查看完整解读<i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <div class="xhh-insight hidden" data-insight>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-warning) 18%, var(--xhh-card)); color: var(--state-warning);"><i data-lucide="flame" class="w-3.5 h-3.5" data-f-wuxing-icon></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">五行分析</p>
+                            <p class="xhh-insight-body" data-f-wuxing>火。星为火之精光，野为心之广阔；火主热烈明亮，与活泼外向的性格一拍即合。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);"><i data-lucide="star" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">星象关联</p>
+                            <p class="xhh-insight-body" data-f-xingxiang>暗合北斗七星之光，主明亮辽阔之性；唤名如喊星星，亮晶晶的眼睛里都是光。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info);"><i data-lucide="scroll-text" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">诗词出处</p>
+                            <p class="xhh-insight-body" data-f-poem>张若虚《春江花月夜》：「江流宛转绕芳甸，月照花林皆似霰；空里流霜不觉飞，汀上白沙看不见。」</p>
+                            <p class="xhh-insight-body mt-0.5" data-f-poem-trans>取星空旷野之意象：月色星光洒满江野，辽阔处自有诗意与浪漫。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep);"><i data-lucide="quote" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">趣味对联</p>
+                            <p class="xhh-insight-body" data-f-duilian>星河为被眠天地，野草作床枕月明。</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 候选 4 · 阿橘 -->
+            <article class="xhh-name-card" data-dom-id="name-card-4" data-name-index="3" data-selected="false">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h4 class="xhh-name" data-f-name>阿橘</h4>
+                        <p class="xhh-pinyin" data-f-pinyin>ā jú</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <span class="xhh-stars" data-f-stars></span>
+                        <span class="xhh-source-chip" data-tone="gold" data-f-source-tone="gold"><i data-lucide="palette" class="w-3 h-3" data-f-source-icon></i><span data-f-source-label>色彩</span></span>
+                    </div>
+                </div>
+                <p class="xhh-meaning" data-f-meaning>暖洋洋的橘调，像小太阳一样亲人黏人；简单顺口，谁叫都亲切，自带治愈光环。</p>
+                <button type="button" class="xhh-expand-btn" data-expand-btn aria-expanded="false">查看完整解读<i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <div class="xhh-insight hidden" data-insight>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-warning) 18%, var(--xhh-card)); color: var(--state-warning);"><i data-lucide="mountain" class="w-3.5 h-3.5" data-f-wuxing-icon></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">五行分析</p>
+                            <p class="xhh-insight-body" data-f-wuxing>土。橘为大地之色，温厚笃实；土主安稳与亲近，是居家暖男暖女的好命格。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);"><i data-lucide="star" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">星象关联</p>
+                            <p class="xhh-insight-body" data-f-xingxiang>属心宿橘光，主温厚亲近；落日余晖般的毛色，一唤就晃着尾巴奔过来。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info);"><i data-lucide="scroll-text" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">诗词出处</p>
+                            <p class="xhh-insight-body" data-f-poem>苏轼《赠刘景文》：「一年好景君须记，最是橙黄橘绿时。」</p>
+                            <p class="xhh-insight-body mt-0.5" data-f-poem-trans>译文：一年里最好的光景你要记得，正是橙黄橘绿、秋光正浓的时候。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep);"><i data-lucide="quote" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">趣味对联</p>
+                            <p class="xhh-insight-body" data-f-duilian>橘猫一卧窗台上，暖阳三分入梦来。</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 候选 5 · 芷兰 -->
+            <article class="xhh-name-card" data-dom-id="name-card-5" data-name-index="4" data-selected="false">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h4 class="xhh-name" data-f-name>芷兰</h4>
+                        <p class="xhh-pinyin" data-f-pinyin>zhǐ lán</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <span class="xhh-stars" data-f-stars></span>
+                        <span class="xhh-source-chip" data-tone="coral" data-f-source-tone="coral"><i data-lucide="book-open" class="w-3 h-3" data-f-source-icon></i><span data-f-source-label>诗经</span></span>
+                    </div>
+                </div>
+                <p class="xhh-meaning" data-f-meaning>如芷如兰，香远益清，气质温润端方；草木君子之格，暗合主人文雅的心意。</p>
+                <button type="button" class="xhh-expand-btn" data-expand-btn aria-expanded="false">查看完整解读<i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                <div class="xhh-insight hidden" data-insight>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info);"><i data-lucide="droplets" class="w-3.5 h-3.5" data-f-wuxing-icon></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">五行分析</p>
+                            <p class="xhh-insight-body" data-f-wuxing>水。芷兰生水滨，得水之滋养而清芬远扬；水主聪慧温润，是安静乖巧的小可爱。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);"><i data-lucide="star" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">星象关联</p>
+                            <p class="xhh-insight-body" data-f-xingxiang>应女宿之文雅，主清雅高洁；唤起来轻声细气，像被兰香轻轻笼住。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: color-mix(in srgb, var(--state-info) 14%, var(--xhh-card)); color: var(--state-info);"><i data-lucide="scroll-text" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">诗词出处</p>
+                            <p class="xhh-insight-body" data-f-poem>屈原《九歌·湘夫人》：「沅有芷兮澧有兰，思公子兮未敢言。」</p>
+                            <p class="xhh-insight-body mt-0.5" data-f-poem-trans>译文：沅水有白芷，澧水有幽兰，想你却不敢说出口——情意都藏在草木清香里。</p>
+                        </div>
+                    </div>
+                    <div class="xhh-insight-item">
+                        <span class="xhh-insight-ic" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep);"><i data-lucide="quote" class="w-3.5 h-3.5"></i></span>
+                        <div class="min-w-0">
+                            <p class="xhh-insight-title">趣味对联</p>
+                            <p class="xhh-insight-body" data-f-duilian>芷若含烟香自远，兰舟载月梦犹清。</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- 确认区 -->
+        <section class="flex gap-3 pt-1">
+            <button type="button" class="xhh-btn-primary flex-1 py-3.5 text-sm font-bold" data-dom-id="btn-confirm">
+                <i data-lucide="heart" class="w-4 h-4"></i>就这个了
+            </button>
+            <button type="button" class="xhh-btn-secondary flex-1 py-3.5 text-sm font-semibold" data-dom-id="btn-regenerate">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>换一批
+            </button>
+        </section>
+
+        <!-- 取名纪念卡（选择后出现） -->
+        <section class="xhh-card p-5 hidden" data-dom-id="memorial-card">
+            <div class="flex items-center gap-3">
+                <span class="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground);">
+                    <i data-lucide="crown" class="w-5 h-5"></i>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px]" style="color: var(--xhh-ink-3);">今日定名 · 取名纪念</p>
+                    <h3 class="text-lg font-extrabold leading-tight" style="color: var(--xhh-ink);" data-f-mem-name>呦呦</h3>
+                </div>
+                <span class="text-[11px] shrink-0" style="color: var(--xhh-ink-3);" data-f-mem-date>添加于 2026年8月5日</span>
+            </div>
+            <p class="text-[13px] mt-3 leading-relaxed" style="color: var(--xhh-ink-2);" data-f-mem-summary>如小鹿般欢快灵动，天真烂漫自带诗意；出自《诗经·鹿鸣》，唤名如闻鹿鸣，越唤越亲近。</p>
+            <div class="rounded-lg px-3 py-2.5 mt-3" style="background-color: var(--xhh-gold-bg);">
+                <p class="text-[11px] font-semibold flex items-center gap-1" style="color: var(--xhh-gold-deep);"><i data-lucide="quote" class="w-3 h-3"></i>趣味对联</p>
+                <p class="text-[13px] mt-1 leading-relaxed" style="color: var(--xhh-ink);" data-f-mem-duilian>呦呦鹿鸣声入耳，青青子衿意在心。</p>
+            </div>
+            <button type="button" class="xhh-btn-primary w-full mt-4 py-3 text-sm font-semibold">
+                <i data-lucide="share-2" class="w-4 h-4"></i>生成分享卡片
+            </button>
+        </section>
+    </main>
+
+    <!-- 底部 TabBar（首页激活态） -->
+    <nav data-mobile-nav="global" class="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 backdrop-blur-xl border-t" style="border-color: var(--xhh-border);"><div class="w-full max-w-md mx-auto grid grid-cols-4 h-full"><a data-nav-key="home" data-active="true" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-coral);"><i data-lucide="home" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate font-semibold">首页</span></a><a data-nav-key="pet" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="paw-print" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">宠物</span></a><a data-nav-key="timeline" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="history" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">时光</span></a><a data-nav-key="mine" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="user" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">我的</span></a></div></nav>
+
+    <script>
+        (function () {
+            // ===== 候选名字数据（3 组，供「换一批」轮换） =====
+            var NAME_SETS = [
+                [
+                    { name: '呦呦', pinyin: 'yōu yōu', meaning: '如小鹿般欢快灵动，天真烂漫自带诗意；声音软糯好唤，一开口就像山间清泉叮咚。', sourceIcon: 'book-open', sourceLabel: '诗经', tone: 'gold', stars: 5, wuxingIcon: 'leaf', wuxing: '木。呦呦出自《诗经·鹿鸣》，草木之气丰盈，主生机与活力，与春天出生的毛孩子尤为相合。', xingxiang: '应二十八宿之心宿，主欢欣灵动；唤名如闻鹿鸣，声声入心，越唤越亲近。', poem: '《诗经·小雅·鹿鸣》：「呦呦鹿鸣，食野之苹。我有嘉宾，鼓瑟吹笙。」', trans: '译文：小鹿呦呦鸣叫，悠然吃着野地里的艾蒿；我有贵客来访，弹瑟吹笙相迎。', duilian: '呦呦鹿鸣声入耳，青青子衿意在心。' },
+                    { name: '青柠', pinyin: 'qīng níng', meaning: '清新明快，酸酸甜甜的元气感，像一颗会跑的小柠檬；越相处越喜欢，越唤越甜。', sourceIcon: 'palette', sourceLabel: '色彩', tone: 'coral', stars: 4, wuxingIcon: 'leaf', wuxing: '木。青为东方之色，属春木；柠香清新醒神，主明快活泼之气，越叫越有精神。', xingxiang: '应东方七宿之角宿，青意盎然，主朝气蓬勃；唤起来清脆利落，很有精神头。', poem: '李白《长干行》：「郎骑竹马来，绕床弄青梅。」取「青」之清新，合「宁」之安宁。', trans: '译文：你骑着竹马而来，绕着井栏追逐青梅——竹马青梅，是两小无猜的亲密。', duilian: '青柠微涩初尝味，暖阳渐甜久处心。' },
+                    { name: '星野', pinyin: 'xīng yě', meaning: '眼里有星光，心里有旷野，辽阔又浪漫；适合爱跑爱跳、好奇心爆棚的小家伙。', sourceIcon: 'star', sourceLabel: '星象', tone: 'info', stars: 5, wuxingIcon: 'flame', wuxing: '火。星为火之精光，野为心之广阔；火主热烈明亮，与活泼外向的性格一拍即合。', xingxiang: '暗合北斗七星之光，主明亮辽阔之性；唤名如喊星星，亮晶晶的眼睛里都是光。', poem: '张若虚《春江花月夜》：「江流宛转绕芳甸，月照花林皆似霰；空里流霜不觉飞，汀上白沙看不见。」', trans: '取星空旷野之意象：月色星光洒满江野，辽阔处自有诗意与浪漫。', duilian: '星河为被眠天地，野草作床枕月明。' },
+                    { name: '阿橘', pinyin: 'ā jú', meaning: '暖洋洋的橘调，像小太阳一样亲人黏人；简单顺口，谁叫都亲切，自带治愈光环。', sourceIcon: 'palette', sourceLabel: '色彩', tone: 'gold', stars: 4, wuxingIcon: 'mountain', wuxing: '土。橘为大地之色，温厚笃实；土主安稳与亲近，是居家暖男暖女的好命格。', xingxiang: '属心宿橘光，主温厚亲近；落日余晖般的毛色，一唤就晃着尾巴奔过来。', poem: '苏轼《赠刘景文》：「一年好景君须记，最是橙黄橘绿时。」', trans: '译文：一年里最好的光景你要记得，正是橙黄橘绿、秋光正浓的时候。', duilian: '橘猫一卧窗台上，暖阳三分入梦来。' },
+                    { name: '芷兰', pinyin: 'zhǐ lán', meaning: '如芷如兰，香远益清，气质温润端方；草木君子之格，暗合主人文雅的心意。', sourceIcon: 'book-open', sourceLabel: '诗经', tone: 'coral', stars: 5, wuxingIcon: 'droplets', wuxing: '水。芷兰生水滨，得水之滋养而清芬远扬；水主聪慧温润，是安静乖巧的小可爱。', xingxiang: '应女宿之文雅，主清雅高洁；唤起来轻声细气，像被兰香轻轻笼住。', poem: '屈原《九歌·湘夫人》：「沅有芷兮澧有兰，思公子兮未敢言。」', trans: '译文：沅水有白芷，澧水有幽兰，想你却不敢说出口——情意都藏在草木清香里。', duilian: '芷若含烟香自远，兰舟载月梦犹清。' }
+                ],
+                [
+                    { name: '云舒', pinyin: 'yún shū', meaning: '性情舒展从容，如行云流水般自在；唤起来云淡风轻，自带一种松弛感。', sourceIcon: 'feather', sourceLabel: '唐诗', tone: 'gold', stars: 5, wuxingIcon: 'droplets', wuxing: '水。云为水气所凝，舒为心之从容；水主随和通透，是情绪稳定的小天使。', xingxiang: '应娄宿之舒展，主从容自在；唤名如云影轻移，心也跟着慢下来。', poem: '《菜根谭》：「宠辱不惊，看庭前花开花落；去留无意，漫随天外云卷云舒。」', trans: '无论去留得失，都如天上流云般舒展自若，宠辱不惊。', duilian: '云卷云舒常自在，花开花落总从容。' },
+                    { name: '柚柚', pinyin: 'yòu you', meaning: '甜香软糯，抱着就像抱着大柚子；圆滚滚的治愈系，一唤就咕噜咕噜撒娇。', sourceIcon: 'palette', sourceLabel: '色彩', tone: 'coral', stars: 4, wuxingIcon: 'leaf', wuxing: '木。柚为果木之实，主丰盈饱满；木气旺盛，越养越圆润可爱。', xingxiang: '应角宿之清新，主甜香软糯；像一颗会跑的大柚子，全是治愈的味道。', poem: '张九龄《感遇》：「江南有丹橘，经冬犹绿林。」取柚之圆润丰盈。', trans: '江南的丹橘，历经寒冬依然绿意葱茏——果香与生命力兼得。', duilian: '柚子黄时香满院，猫儿卧处暖一窝。' },
+                    { name: '洛洛', pinyin: 'luò luò', meaning: '如洛水悠悠，温柔绵长；名字端庄又好念，一眼看去就是文静的好孩子。', sourceIcon: 'mountain', sourceLabel: '山川', tone: 'success', stars: 4, wuxingIcon: 'droplets', wuxing: '水。洛为水名，主柔润绵长；水主聪慧，温温柔柔却很有主意。', xingxiang: '应氐宿之绵长，主温柔绵长；如洛水悠悠，名字端庄又好念。', poem: '曹植《洛神赋》：「翩若惊鸿，婉若游龙。」', trans: '身姿轻盈如惊鸿掠水，婉转如游龙蜿蜒——灵动之美尽在其中。', duilian: '洛水悠悠千古意，小猫软软一室春。' },
+                    { name: '团团', pinyin: 'tuán tuán', meaning: '团团圆圆，福气满堂；圆滚滚的小身子，是全家人的快乐源泉。', sourceIcon: 'award', sourceLabel: '瑞兽', tone: 'gold', stars: 5, wuxingIcon: 'mountain', wuxing: '土。团为圆满之象，主厚德载物；土主安稳，是家里的镇宅小福星。', xingxiang: '应房宿之圆满，主团圆福气；圆滚滚的小身子，是全家人的快乐源泉。', poem: '苏轼《水调歌头》：「人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。」', trans: '愿人长久、月长圆——团团圆圆，岁岁平安。', duilian: '团团一卧全家乐，岁岁相随万事安。' },
+                    { name: '霜降', pinyin: 'shuāng jiàng', meaning: '清冽如霜，明净似雪；节气入名，自带时间的诗意，冷调里藏着温柔。', sourceIcon: 'star', sourceLabel: '星象', tone: 'info', stars: 4, wuxingIcon: 'droplets', wuxing: '水。霜为秋露凝成，主清冽明净；水主聪慧，气质干净利落。', xingxiang: '应毕宿之清冽，主明净从容；节气入名，自带时间的诗意。', poem: '王维《山居秋暝》：「空山新雨后，天气晚来秋。明月松间照，清泉石上流。」', trans: '秋雨初霁，山色空明；明月照松林，清泉过石上——清冽如霜的秋意。', duilian: '霜降枝头秋正好，猫眠枕畔梦尤甜。' }
+                ],
+                [
+                    { name: '山月', pinyin: 'shān yuè', meaning: '如山间明月，清亮温柔，静好安然；喊它时，仿佛有一片月光落在院子里。', sourceIcon: 'mountain', sourceLabel: '山川', tone: 'success', stars: 5, wuxingIcon: 'gem', wuxing: '金。月为金精之光，山为金石之体；金主清朗明净，气质干净出尘。', xingxiang: '应昴宿之清朗，主静好安然；如山间明月，清亮温柔。', poem: '王维《竹里馆》：「深林人不知，明月来相照。」', trans: '幽深的竹林里无人知晓，唯有明月来静静相照——清寂而温柔。', duilian: '山高月小清光满，猫憨人怜暖意浓。' },
+                    { name: '知秋', pinyin: 'zhī qiū', meaning: '机敏通透，一点小事就心领神会；一叶落而知天下秋，聪明得让人会心一笑。', sourceIcon: 'feather', sourceLabel: '唐诗', tone: 'coral', stars: 4, wuxingIcon: 'gem', wuxing: '金。秋为金令当值，主肃敛明辨；金主聪慧机敏，一点就通。', xingxiang: '应觜宿之机敏，主通透聪慧；一点风吹草动，它比谁都先知道。', poem: '《淮南子·说山训》：「见一叶落而知岁之将暮。」', trans: '看见一片叶子落下，便知道一年将尽——见微知著的机敏。', duilian: '一叶知秋秋渐老，三声唤猫猫却慵。' },
+                    { name: '九九', pinyin: 'jiǔ jiǔ', meaning: '长长久久，平安顺遂；九为阳数之极，叠字好记，一声就应。', sourceIcon: 'award', sourceLabel: '瑞兽', tone: 'gold', stars: 4, wuxingIcon: 'mountain', wuxing: '土。九为土行中宫之数，主厚实长久；土主安稳，旺宅旺福。', xingxiang: '应亢宿之长久，主平安顺遂；九为阳数之极，叠字好记，一声就应。', poem: '屈原《楚辞·九歌》：「九嶷缤兮并迎，灵之来兮如云。」', trans: '九嶷山众神纷纷来迎——「九」为阳数之极，主长久圆满。', duilian: '九九归一春常在，岁岁相随福满门。' },
+                    { name: '糖糖', pinyin: 'táng tang', meaning: '甜到心里的小家伙，叫声都是糖做的；一唤它，心里的糖就化了。', sourceIcon: 'palette', sourceLabel: '色彩', tone: 'coral', stars: 5, wuxingIcon: 'flame', wuxing: '火。糖为火熬之甘，主热烈甜美；火主热情，黏人又暖心。', xingxiang: '应柳宿之甜蜜，主甜暖黏人；叫声都是糖做的，一唤心里就化。', poem: '罗隐《蜂》：「采得百花成蜜后，为谁辛苦为谁甜。」', trans: '采遍百花酿成蜜，都为了一口甜——像它黏着你撒娇的样子。', duilian: '糖心入梦甜一室，猫影撒娇暖三冬。' },
+                    { name: '星河', pinyin: 'xīng hé', meaning: '银河落人间，眼睛亮晶晶；名字大气又浪漫，适合夜里看星星的小家伙。', sourceIcon: 'star', sourceLabel: '星象', tone: 'info', stars: 5, wuxingIcon: 'droplets', wuxing: '水。河为水之大者，星为水之光华；水主浪漫深邃，气质辽阔。', xingxiang: '应天河之浩瀚，主大气浪漫；银河落人间，眼睛亮晶晶。', poem: '李贺《天上谣》：「天河夜转漂回星，银浦流云学水声。」', trans: '天河在夜里流转，群星漂移；银河上的流云，也学着流水的声音。', duilian: '星河欲转千帆舞，小猫初醒一声喵。' }
+                ]
+            ];
+
+            var cards = Array.prototype.slice.call(document.querySelectorAll('[data-name-index]'));
+            var currentSet = 0;
+            var selectedIdx = 0;
+
+            function renderStars(el, n) {
+                var s = '';
+                for (var i = 0; i < 5; i++) {
+                    s += '<span style="color:' + (i < n ? 'var(--xhh-coral)' : 'var(--xhh-border)') + ';">★</span>';
+                }
+                el.innerHTML = s;
+            }
+
+            function renderSet(idx) {
+                var set = NAME_SETS[idx];
+                cards.forEach(function (card, i) {
+                    var n = set[i];
+                    card.querySelector('[data-f-name]').textContent = n.name;
+                    card.querySelector('[data-f-pinyin]').textContent = n.pinyin;
+                    card.querySelector('[data-f-meaning]').textContent = n.meaning;
+                    renderStars(card.querySelector('[data-f-stars]'), n.stars);
+                    var chip = card.querySelector('[data-f-source-tone]');
+                    chip.setAttribute('data-tone', n.tone);
+                    chip.querySelector('[data-f-source-icon]').setAttribute('data-lucide', n.sourceIcon);
+                    chip.querySelector('[data-f-source-label]').textContent = n.sourceLabel;
+                    card.querySelector('[data-f-wuxing-icon]').setAttribute('data-lucide', n.wuxingIcon);
+                    card.querySelector('[data-f-wuxing]').textContent = n.wuxing;
+                    card.querySelector('[data-f-xingxiang]').textContent = n.xingxiang;
+                    card.querySelector('[data-f-poem]').textContent = n.poem;
+                    card.querySelector('[data-f-poem-trans]').textContent = n.trans;
+                    card.querySelector('[data-f-duilian]').textContent = n.duilian;
+                });
+                lucide.createIcons();
+            }
+
+            // —— 模式选择 ——
+            var modeBtns = document.querySelectorAll('[data-mode]');
+            modeBtns.forEach(function (b) {
+                b.addEventListener('click', function () {
+                    modeBtns.forEach(function (x) { x.setAttribute('data-selected', x === b ? 'true' : 'false'); });
+                });
+            });
+
+            // —— 胶囊选择（物种 / 性别） ——
+            document.querySelectorAll('[data-chip-group]').forEach(function (g) {
+                var opts = g.querySelectorAll('[data-chip-opt]');
+                opts.forEach(function (o) {
+                    o.addEventListener('click', function () {
+                        opts.forEach(function (x) { x.setAttribute('data-selected', x === o ? 'true' : 'false'); });
+                    });
+                });
+            });
+
+            // —— 名字卡选中 ——
+            cards.forEach(function (card) {
+                card.addEventListener('click', function (e) {
+                    if (e.target.closest('[data-expand-btn]')) return;
+                    cards.forEach(function (x) { x.setAttribute('data-selected', x === card ? 'true' : 'false'); });
+                    selectedIdx = parseInt(card.getAttribute('data-name-index'), 10);
+                });
+            });
+
+            // —— 展开/收起文化解读 ——
+            document.querySelectorAll('[data-expand-btn]').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var card = btn.closest('[data-name-index]');
+                    var panel = card.querySelector('[data-insight]');
+                    var open = panel.classList.toggle('hidden');
+                    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    btn.firstChild.textContent = open ? '收起解读' : '查看完整解读';
+                });
+            });
+
+            // —— 开始取名：滚动到结果区 ——
+            document.querySelector('[data-dom-id="btn-generate"]').addEventListener('click', function () {
+                document.getElementById('result-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            // —— 换一批：轮换名字组 ——
+            document.querySelector('[data-dom-id="btn-regenerate"]').addEventListener('click', function () {
+                currentSet = (currentSet + 1) % NAME_SETS.length;
+                renderSet(currentSet);
+                cards.forEach(function (x, i) { x.setAttribute('data-selected', i === 0 ? 'true' : 'false'); });
+                selectedIdx = 0;
+            });
+
+            // —— 就这个了：生成取名纪念卡 ——
+            document.querySelector('[data-dom-id="btn-confirm"]').addEventListener('click', function () {
+                var n = NAME_SETS[currentSet][selectedIdx];
+                var mem = document.querySelector('[data-dom-id="memorial-card"]');
+                mem.querySelector('[data-f-mem-name]').textContent = n.name;
+                mem.querySelector('[data-f-mem-summary]').textContent = '「' + n.name + '」' + n.meaning + ' 出自' + n.sourceLabel + '，' + n.xingxiang;
+                mem.querySelector('[data-f-mem-duilian]').textContent = n.duilian;
+                var now = new Date();
+                mem.querySelector('[data-f-mem-date]').textContent = '添加于 ' + now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日';
+                mem.classList.remove('hidden', 'xhh-mem-pop');
+                void mem.offsetWidth;
+                mem.classList.add('xhh-mem-pop');
+                mem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+
+            // 初始渲染（与静态内容一致）
+            renderSet(0);
+        })();
+    </script>
+
+    <script id="xhh-motion-init">
+        (function () {
+            // TabBar 点击波纹
+            var nav = document.querySelector('nav[data-mobile-nav="global"]');
+            if (nav) {
+                nav.classList.add('xhh-tab-ripple');
+                var items = nav.querySelectorAll('a');
+                items.forEach(function (a) {
+                    a.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        nav.classList.remove('xhh-rippling');
+                        void nav.offsetWidth;
+                        nav.classList.add('xhh-rippling');
+                        items.forEach(function (x) {
+                            var active = x === a;
+                            x.setAttribute('data-active', active ? 'true' : 'false');
+                            x.style.color = active ? 'var(--xhh-coral)' : 'var(--xhh-ink-3)';
+                            var label = x.querySelector('span');
+                            if (label) label.classList.toggle('font-semibold', active);
+                        });
+                        setTimeout(function () { nav.classList.remove('xhh-rippling'); }, 600);
+                    });
+                });
+                nav.classList.add('xhh-tab-bounce');
+            }
+            // 主体入场
+            var main = document.querySelector('main');
+            if (main && !main.classList.contains('xhh-page-enter')) {
+                main.classList.add('xhh-page-enter');
+            }
+        })();
+    </script>
+
+    <script id="xhh-theme-apply">
+        (function () {
+            var THEMES = ['spring', 'summer', 'autumn', 'winter'];
+            var KEY = 'xhh-theme';
+            var html = document.documentElement;
+            var saved = null;
+            try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
+            html.setAttribute('data-theme', (saved && THEMES.indexOf(saved) !== -1) ? saved : 'autumn');
+        })();
+    </script>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
+

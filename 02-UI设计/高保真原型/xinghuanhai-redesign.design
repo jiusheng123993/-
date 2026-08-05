@@ -1,0 +1,1501 @@
+{
+  "data": [
+    {
+      "id": "page-checkin",
+      "title": "健康打卡",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 225,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1162,
+          "viewportWidth": 744,
+          "sourceHash": "fnv1a-6238dff2",
+          "measuredAt": 1785955610769
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 744,
+          "height": 926
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/checkin.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-pet-profile",
+      "title": "宠物档案",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 0,
+        "y": 488,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1682,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-67f1af8d",
+          "measuredAt": 1785951731059
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 1752
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/pet-profile.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          },
+          {
+            "domId": "profile-diary-entry",
+            "targetPageId": "page-pet-diary",
+            "hideEdge": true,
+            "transitionLabel": "宠物日记"
+          },
+          {
+            "domId": "profile-image-entry",
+            "targetPageId": "page-pet-image",
+            "hideEdge": true,
+            "transitionLabel": "宠物形象"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-vaccine",
+      "title": "疫苗日历",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 309,
+        "y": 488,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1081,
+          "viewportWidth": 415,
+          "sourceHash": "fnv1a-8195f66f",
+          "measuredAt": 1785932279602
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 415,
+          "height": 963
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/vaccine.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-food-query",
+      "title": "食物查询",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 480,
+        "y": -9,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1204,
+          "viewportWidth": 744,
+          "sourceHash": "fnv1a-fa3b3145",
+          "measuredAt": 1785955610769
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 744,
+          "height": 912
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/food-query.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-symptom-check",
+      "title": "症状初筛",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 588,
+        "y": 511,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1435,
+          "viewportWidth": 415,
+          "sourceHash": "fnv1a-c629bb04",
+          "measuredAt": 1785954617845
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 415,
+          "height": 1241
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/symptom-check.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          },
+          {
+            "domId": "symptom-care-entry",
+            "targetPageId": "page-illness-care",
+            "hideEdge": true,
+            "transitionLabel": "护理计划"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-health-trends",
+      "title": "健康趋势",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 792,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1165,
+          "viewportWidth": 744,
+          "sourceHash": "fnv1a-66314679",
+          "measuredAt": 1785955610769
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 744,
+          "height": 981
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/health-trends.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-health-trends-appetite-line",
+      "title": "健康趋势 · 食欲折线图",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786032000000,
+      "canvasData": {
+        "x": 1092,
+        "y": -9,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1165,
+          "viewportWidth": 867,
+          "sourceHash": "fnv1a-b1608300",
+          "measuredAt": 1785955610769
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 867,
+          "height": 898
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/health-trends-appetite-line.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-timeline",
+      "title": "时光线",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 1452,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1260,
+          "viewportWidth": 806,
+          "sourceHash": "fnv1a-e8f018f6",
+          "measuredAt": 1785955610769
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 806,
+          "height": 987
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/timeline.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          },
+          {
+            "domId": "timeline-annual-entry",
+            "targetPageId": "page-annual-review",
+            "hideEdge": true,
+            "transitionLabel": "年度回忆"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-mine",
+      "title": "我的",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785920000000,
+      "canvasData": {
+        "x": 927,
+        "y": 511,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1357,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-3956b659",
+          "measuredAt": 1785948532694
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 1392
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/mine.html",
+        "interactions": [
+          {
+            "domId": "mine-membership-entry",
+            "targetPageId": "page-membership",
+            "hideEdge": true,
+            "transitionLabel": "会员中心"
+          },
+          {
+            "domId": "mine-settings-entry",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          },
+          {
+            "domId": "mine-logout",
+            "targetPageId": "page-auth",
+            "hideEdge": true,
+            "transitionLabel": "退出登录"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-family",
+      "title": "宠物家庭",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785941167201,
+      "canvasData": {
+        "x": 1272,
+        "y": 532,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1358,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-92fb315d",
+          "measuredAt": 1785951731059
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/family.html",
+        "interactions": [
+          {
+            "domId": "member-qingju",
+            "targetPageId": "page-pet-profile",
+            "hideEdge": true,
+            "transitionLabel": "青橘档案"
+          },
+          {
+            "domId": "member-tuanzi",
+            "targetPageId": "page-pet-profile",
+            "hideEdge": true,
+            "transitionLabel": "团子档案"
+          },
+          {
+            "domId": "member-naitang",
+            "targetPageId": "page-pet-profile",
+            "hideEdge": true,
+            "transitionLabel": "奶糖档案"
+          },
+          {
+            "domId": "btn-family-tree",
+            "targetPageId": "page-family",
+            "hideEdge": true,
+            "transitionLabel": "家族图谱"
+          },
+          {
+            "domId": "family-head",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回首页"
+          },
+          {
+            "domId": "family-report-entry",
+            "targetPageId": "page-family-report",
+            "hideEdge": true,
+            "transitionLabel": "家庭周报"
+          },
+          {
+            "domId": "family-calendar",
+            "targetPageId": "page-family-calendar",
+            "hideEdge": true,
+            "transitionLabel": "家庭日历"
+          },
+          {
+            "domId": "family-feed",
+            "targetPageId": "page-family-feed",
+            "hideEdge": true,
+            "transitionLabel": "家庭动态"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-naming",
+      "title": "取名引擎",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785941167201,
+      "canvasData": {
+        "x": 1488,
+        "y": 532,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 867,
+          "height": 895
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 3698,
+          "viewportWidth": 867,
+          "sourceHash": "fnv1a-aa806eb9",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/naming.html",
+        "interactions": [
+          {
+            "domId": "btn-generate",
+            "targetPageId": "page-naming",
+            "hideEdge": true,
+            "transitionLabel": "生成名字"
+          },
+          {
+            "domId": "btn-confirm",
+            "targetPageId": "page-naming",
+            "hideEdge": true,
+            "transitionLabel": "确认取名"
+          },
+          {
+            "domId": "memorial-card",
+            "targetPageId": "page-share-card",
+            "hideEdge": true,
+            "transitionLabel": "生成分享卡片"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-memoir",
+      "title": "宠物回忆录",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785941167201,
+      "canvasData": {
+        "x": 1812,
+        "y": 68.49999999999997,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 662,
+          "height": 771
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 2236,
+          "viewportWidth": 662,
+          "sourceHash": "fnv1a-329e458e",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memoir.html",
+        "interactions": [
+          {
+            "domId": "product-vlog",
+            "targetPageId": "page-memoir",
+            "hideEdge": true,
+            "transitionLabel": "纪念Vlog"
+          },
+          {
+            "domId": "product-daily",
+            "targetPageId": "page-memoir",
+            "hideEdge": true,
+            "transitionLabel": "日常回忆录"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-share-card",
+      "title": "分享卡片",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785941167201,
+      "canvasData": {
+        "x": 1788,
+        "y": 511,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 744,
+          "height": 854
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1221,
+          "viewportWidth": 744,
+          "sourceHash": "fnv1a-aa72259b",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/share-card.html",
+        "interactions": [
+          {
+            "domId": "btn-share-friend",
+            "targetPageId": "page-share-card",
+            "hideEdge": true,
+            "transitionLabel": "分享"
+          }
+        ]
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "橘猫头像 · Q版暖阳风格",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785943329792,
+      "canvasData": {
+        "x": 0,
+        "y": 1113,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 374
+        },
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/pet-orange-cat.png"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "回忆录主视觉 · 窗边阳光橘猫",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785943329792,
+      "canvasData": {
+        "x": 309,
+        "y": 1113,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 374
+        },
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/memoir-hero.png"
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "家庭狗狗 · 奶油色小犬头像",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785943329792,
+      "canvasData": {
+        "x": 618,
+        "y": 1113,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 374
+        },
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/family-dog.png"
+      }
+    },
+    {
+      "id": "image-004",
+      "title": "白猫头像 · 蓝眼睛猫咪",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785943329792,
+      "canvasData": {
+        "x": 927,
+        "y": 1113,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 374
+        },
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/pet-cat2.png"
+      }
+    },
+    {
+      "id": "page-auth",
+      "title": "登录",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785946590648,
+      "canvasData": {
+        "x": 2160,
+        "y": 97,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 826,
+          "height": 771
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 849,
+          "viewportWidth": 826,
+          "sourceHash": "fnv1a-b53c0855",
+          "measuredAt": 1785955786133
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/auth.html",
+        "interactions": [
+          {
+            "domId": "auth-btn-wechat",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "登录后进入首页"
+          },
+          {
+            "domId": "auth-btn-phone",
+            "targetPageId": "page-auth",
+            "hideEdge": true,
+            "transitionLabel": "手机号登录"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-membership",
+      "title": "会员中心",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785946590648,
+      "canvasData": {
+        "x": 2484,
+        "y": 129,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 703,
+          "height": 813
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1259,
+          "viewportWidth": 703,
+          "sourceHash": "fnv1a-7a2d4593",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/membership.html",
+        "interactions": [
+          {
+            "domId": "open-membership",
+            "targetPageId": "page-membership",
+            "hideEdge": true,
+            "transitionLabel": "立即开通"
+          },
+          {
+            "domId": "member-faq",
+            "targetPageId": "page-membership",
+            "hideEdge": true,
+            "transitionLabel": "常见问题"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-health-report",
+      "title": "健康报告",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785946590648,
+      "canvasData": {
+        "x": 2142.5,
+        "y": 506.5,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 621,
+          "height": 902
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1938,
+          "viewportWidth": 621,
+          "sourceHash": "fnv1a-a47b4e91",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/health-report.html",
+        "interactions": [
+          {
+            "domId": "report-actions",
+            "targetPageId": "page-health-report",
+            "hideEdge": true,
+            "transitionLabel": "导出/分享报告"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-grief",
+      "title": "情绪陪伴",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785946590648,
+      "canvasData": {
+        "x": 2796,
+        "y": 97,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 703,
+          "height": 1018
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1400,
+          "viewportWidth": 703,
+          "sourceHash": "fnv1a-f6aeff59",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/grief.html",
+        "interactions": [
+          {
+            "domId": "memorial-memoir",
+            "targetPageId": "page-memoir",
+            "hideEdge": true,
+            "transitionLabel": "回忆录"
+          },
+          {
+            "domId": "memorial-timeline",
+            "targetPageId": "page-timeline",
+            "hideEdge": true,
+            "transitionLabel": "时光线"
+          },
+          {
+            "domId": "memorial-family",
+            "targetPageId": "page-family",
+            "hideEdge": true,
+            "transitionLabel": "家族图谱"
+          },
+          {
+            "domId": "memorial-share",
+            "targetPageId": "page-share-card",
+            "hideEdge": true,
+            "transitionLabel": "分享卡片"
+          },
+          {
+            "domId": "memory-anniversary",
+            "targetPageId": "page-timeline",
+            "hideEdge": true,
+            "transitionLabel": "旧时光"
+          },
+          {
+            "domId": "hotline-button",
+            "targetPageId": "page-grief",
+            "hideEdge": true,
+            "transitionLabel": "援助热线"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-settings",
+      "title": "设置",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785946590648,
+      "canvasData": {
+        "x": 2388,
+        "y": 552,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 991,
+          "height": 771
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1401,
+          "viewportWidth": 991,
+          "sourceHash": "fnv1a-460c4320",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/settings.html",
+        "interactions": [
+          {
+            "domId": "logout-btn",
+            "targetPageId": "page-auth",
+            "hideEdge": true,
+            "transitionLabel": "退出登录"
+          }
+        ]
+      }
+    },
+    {
+      "id": "image-005",
+      "title": "登录页主视觉 · 招爪橘猫",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785946671310,
+      "canvasData": {
+        "x": 1236,
+        "y": 1113,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 374
+        },
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/auth-hero.png"
+      }
+    },
+    {
+      "id": "image-006",
+      "title": "情绪陪伴主视觉 · 窗边暖阳橘猫",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785946671310,
+      "canvasData": {
+        "x": 1545,
+        "y": 1113,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 374
+        },
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/grief-comfort.png"
+      }
+    },
+    {
+      "id": "page-pet-diary",
+      "title": "宠物日记",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785948591786,
+      "canvasData": {
+        "x": 3060,
+        "y": 97,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 782,
+          "height": 977
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 2001,
+          "viewportWidth": 782,
+          "sourceHash": "fnv1a-23606edb",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/pet-diary.html",
+        "interactions": [
+          {
+            "domId": "fab-write-diary",
+            "targetPageId": "page-pet-diary",
+            "hideEdge": true,
+            "transitionLabel": "写日记"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-pet-image",
+      "title": "宠物形象",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785948591786,
+      "canvasData": {
+        "x": 2796,
+        "y": 573.5,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 785,
+          "height": 771
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1166,
+          "viewportWidth": 785,
+          "sourceHash": "fnv1a-277337a0",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/pet-image.html",
+        "interactions": [
+          {
+            "domId": "btn-generate-image",
+            "targetPageId": "page-pet-image",
+            "hideEdge": true,
+            "transitionLabel": "生成形象"
+          },
+          {
+            "domId": "scene-avatar",
+            "targetPageId": "page-pet-profile",
+            "hideEdge": true,
+            "transitionLabel": "设为头像"
+          },
+          {
+            "domId": "scene-share",
+            "targetPageId": "page-share-card",
+            "hideEdge": true,
+            "transitionLabel": "分享卡片"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-family-tree",
+      "title": "家族图谱",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785948591786,
+      "canvasData": {
+        "x": 3060,
+        "y": 474.5,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 785,
+          "height": 922
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1159,
+          "viewportWidth": 785,
+          "sourceHash": "fnv1a-1f0887be",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/family-tree.html",
+        "interactions": [
+          {
+            "domId": "family-edit-btn",
+            "targetPageId": "page-family",
+            "hideEdge": true,
+            "transitionLabel": "编辑家族"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-family-report",
+      "title": "家庭周报",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785948591786,
+      "canvasData": {
+        "x": 927,
+        "y": 1952,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1157,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-0f2e7ada",
+          "measuredAt": 1785951731059
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/family-report.html",
+        "interactions": [
+          {
+            "domId": "btn-share-report",
+            "targetPageId": "page-share-card",
+            "hideEdge": true,
+            "transitionLabel": "分享周报"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-annual-review",
+      "title": "年度回忆",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785948591786,
+      "canvasData": {
+        "x": 3444,
+        "y": 109,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 826,
+          "height": 936
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1251,
+          "viewportWidth": 826,
+          "sourceHash": "fnv1a-f8dded1b",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/annual-review.html",
+        "interactions": [
+          {
+            "domId": "cta-video",
+            "targetPageId": "page-memoir",
+            "hideEdge": true,
+            "transitionLabel": "生成年度视频"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-ai-chat",
+      "title": "AI 对话",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785951818051,
+      "canvasData": {
+        "x": 0,
+        "y": 2440,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1071,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-1862fedb",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/ai-chat.html",
+        "interactions": [
+          {
+            "domId": "guard-hospital-btn",
+            "targetPageId": "page-ai-chat",
+            "hideEdge": true,
+            "transitionLabel": "附近医院"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-family-calendar",
+      "title": "家庭日历",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785951818051,
+      "canvasData": {
+        "x": 309,
+        "y": 2440,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1311,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-e7ee20db",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/family-calendar.html",
+        "interactions": [
+          {
+            "domId": "calendar-reminder-settings",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "提醒设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-family-feed",
+      "title": "家庭动态",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785951818051,
+      "canvasData": {
+        "x": 618,
+        "y": 2440,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1420,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-3094fc2e",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/family-feed.html",
+        "interactions": [
+          {
+            "domId": "feed-publish",
+            "targetPageId": "page-family-feed",
+            "hideEdge": true,
+            "transitionLabel": "发布动态"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-illness-care",
+      "title": "生病护理",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785951818051,
+      "canvasData": {
+        "x": 927,
+        "y": 2440,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1320,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-7a27f6fc",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/illness-care.html",
+        "interactions": [
+          {
+            "domId": "care-log-add",
+            "targetPageId": "page-illness-care",
+            "hideEdge": true,
+            "transitionLabel": "记一笔"
+          },
+          {
+            "domId": "care-vet-btn",
+            "targetPageId": "page-illness-care",
+            "hideEdge": true,
+            "transitionLabel": "附近医院"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-newbie-guide",
+      "title": "新手引导",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785951818051,
+      "canvasData": {
+        "x": 1236,
+        "y": 2440,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1180,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-de6b0b52",
+          "measuredAt": 1785954617845
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/newbie-guide.html",
+        "interactions": [
+          {
+            "domId": "guide-ask-btn",
+            "targetPageId": "page-ai-chat",
+            "hideEdge": true,
+            "transitionLabel": "去提问"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-home",
+      "title": "首页",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785952082853,
+      "canvasData": {
+        "x": -72,
+        "y": 21,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 744,
+          "height": 854
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1069,
+          "viewportWidth": 744,
+          "sourceHash": "fnv1a-2442c12b",
+          "measuredAt": 1785955610769
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home.html",
+        "interactions": [
+          {
+            "domId": "home-summary-card",
+            "targetPageId": "page-checkin",
+            "hideEdge": true,
+            "transitionLabel": "今日健康摘要·去打卡"
+          },
+          {
+            "domId": "home-checkin-cta",
+            "targetPageId": "page-checkin",
+            "hideEdge": true,
+            "transitionLabel": "3秒健康打卡"
+          },
+          {
+            "domId": "home-ai-intro",
+            "targetPageId": "page-ai-chat",
+            "hideEdge": true,
+            "transitionLabel": "AI 对话"
+          },
+          {
+            "domId": "qa-checkin",
+            "targetPageId": "page-checkin",
+            "hideEdge": true,
+            "transitionLabel": "健康打卡"
+          },
+          {
+            "domId": "qa-food",
+            "targetPageId": "page-food-query",
+            "hideEdge": true,
+            "transitionLabel": "食物查询"
+          },
+          {
+            "domId": "qa-symptom",
+            "targetPageId": "page-symptom-check",
+            "hideEdge": true,
+            "transitionLabel": "症状初筛"
+          },
+          {
+            "domId": "shortcut-food",
+            "targetPageId": "page-food-query",
+            "hideEdge": true,
+            "transitionLabel": "食物查询"
+          },
+          {
+            "domId": "shortcut-symptom",
+            "targetPageId": "page-symptom-check",
+            "hideEdge": true,
+            "transitionLabel": "症状初筛"
+          },
+          {
+            "domId": "shortcut-vaccine",
+            "targetPageId": "page-vaccine",
+            "hideEdge": true,
+            "transitionLabel": "疫苗日历"
+          },
+          {
+            "domId": "shortcut-health-trends",
+            "targetPageId": "page-health-trends",
+            "hideEdge": true,
+            "transitionLabel": "健康趋势"
+          },
+          {
+            "domId": "nav-family-entry",
+            "targetPageId": "page-family",
+            "hideEdge": true,
+            "transitionLabel": "宠物家庭"
+          },
+          {
+            "domId": "home-memory-btn",
+            "targetPageId": "page-timeline",
+            "hideEdge": true,
+            "transitionLabel": "记忆·时光线"
+          },
+          {
+            "domId": "cta-ai-chat",
+            "targetPageId": "page-ai-chat",
+            "hideEdge": true,
+            "transitionLabel": "AI 对话"
+          },
+          {
+            "domId": "shortcut-checkin",
+            "targetPageId": "page-checkin",
+            "hideEdge": true,
+            "transitionLabel": "健康打卡"
+          },
+          {
+            "domId": "shortcut-memoir",
+            "targetPageId": "page-memoir",
+            "hideEdge": true,
+            "transitionLabel": "宠物回忆录"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-breed",
+      "title": "品种百科",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785956750415,
+      "canvasData": {
+        "x": 0,
+        "y": 2928,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/breed.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-add-pet",
+      "title": "添加宠物",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785956750415,
+      "canvasData": {
+        "x": 309,
+        "y": 2928,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/add-pet.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-hospital",
+      "title": "附近医院",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785956750415,
+      "canvasData": {
+        "x": 618,
+        "y": 2928,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/hospital.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-memoir-daily",
+      "title": "日常回忆录",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785956750415,
+      "canvasData": {
+        "x": 927,
+        "y": 2928,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memoir-daily.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-memoir-vlog",
+      "title": "纪念Vlog",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785956750415,
+      "canvasData": {
+        "x": 1236,
+        "y": 2928,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 374,
+          "height": 812
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memoir-vlog.html",
+        "interactions": []
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": false,
+    "deviceType": "mobile",
+    "projectName": "星寰海小程序重设计",
+    "showEdge": true
+  }
+}

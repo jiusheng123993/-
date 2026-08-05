@@ -1,0 +1,75 @@
+{
+  "success": true,
+  "repairedPages": [
+    {
+      "htmlSrc": "pages/home.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/checkin.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/pet-profile.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "pet"
+    },
+    {
+      "htmlSrc": "pages/vaccine.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/food-query.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/symptom-check.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/health-trends.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/timeline.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "timeline"
+    },
+    {
+      "htmlSrc": "pages/mine.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/family.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/naming.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/memoir.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/share-card.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    }
+  ],
+  "skippedPages": [],
+  "failedPages": [],
+  "repairCount": 13,
+  "previousFailedReportDetected": false,
+  "checkedAt": "2026-08-05T15:34:39.869Z"
+}

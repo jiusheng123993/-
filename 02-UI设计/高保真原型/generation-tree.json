@@ -1,0 +1,222 @@
+{
+  "root": {
+    "nodeId": "gen-project-shell",
+    "kind": "project-shell",
+    "pageIds": [],
+    "output": "partials/project-shell.html",
+    "sharedRegions": [
+      "bottom tab bar (via canonicalHtmlByKey)",
+      "brand CSS head contract",
+      "page background",
+      "safe-area bottom padding"
+    ],
+    "privateRegions": [],
+    "mutableSlots": [
+      "activeNavItem"
+    ],
+    "status": "generated",
+    "children": [
+      {
+        "nodeId": "gen-page-home",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-home"
+        ],
+        "output": "pages/home.html",
+        "sharedRegions": [
+          "bottom tab bar home-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "AI chat conversation",
+          "pet avatar + health summary",
+          "3-second checkin CTA",
+          "quick feature grid"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-checkin",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-checkin"
+        ],
+        "output": "pages/checkin.html",
+        "sharedRegions": [
+          "bottom tab bar home-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "5-item checkin form (stool/appetite/energy/exercise/weight)",
+          "pet status strip",
+          "submit CTA"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-pet-profile",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-pet-profile"
+        ],
+        "output": "pages/pet-profile.html",
+        "sharedRegions": [
+          "bottom tab bar pet-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "pet avatar card",
+          "profile fields",
+          "breed traits",
+          "health metrics"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-vaccine",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-vaccine"
+        ],
+        "output": "pages/vaccine.html",
+        "sharedRegions": [
+          "bottom tab bar home-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "vaccine progress",
+          "next reminder card",
+          "vaccination records list"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-food-query",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-food-query"
+        ],
+        "output": "pages/food-query.html",
+        "sharedRegions": [
+          "bottom tab bar home-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "food search bar",
+          "safe/unsafe food list",
+          "category chips"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-symptom-check",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-symptom-check"
+        ],
+        "output": "pages/symptom-check.html",
+        "sharedRegions": [
+          "bottom tab bar home-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "symptom multi-select",
+          "emergency level result",
+          "see-vet guidance"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-health-trends",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-health-trends"
+        ],
+        "output": "pages/health-trends.html",
+        "sharedRegions": [
+          "bottom tab bar home-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "weight curve chart",
+          "appetite trend",
+          "stool trend",
+          "abnormal markers"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-timeline",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-timeline"
+        ],
+        "output": "pages/timeline.html",
+        "sharedRegions": [
+          "bottom tab bar timeline-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "memory highlights",
+          "timeline events",
+          "add memory button"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      },
+      {
+        "nodeId": "gen-page-mine",
+        "kind": "page-leaf",
+        "pageIds": [
+          "page-mine"
+        ],
+        "output": "pages/mine.html",
+        "sharedRegions": [
+          "bottom tab bar mine-active",
+          "brand head contract"
+        ],
+        "privateRegions": [
+          "user profile card",
+          "menu groups",
+          "settings"
+        ],
+        "mutableSlots": [
+          "activeNavItem"
+        ],
+        "status": "generated",
+        "children": []
+      }
+    ]
+  }
+}
