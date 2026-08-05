@@ -1,0 +1,82 @@
+diff --git a/.board/index.html b/.board/index.html
+index 538f1cc..4ba31fd 100644
+--- a/.board/index.html
++++ b/.board/index.html
+@@ -771,7 +771,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ <div class="card">
+ <div class="card-title">📜 历史时间线</div>
+ <div class="timeline">
+-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="tl-item done" data-diff="2026-07-31T06-33-03-AI记忆纠错前端页面.diff">
++                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  <div class="tl-item done" data-diff="2026-07-31T07-27-54-创建家庭动态墙页面.diff">
++            <div class="tl-time">2026-07-31 15:27</div>
++            <div class="tl-title">创建家庭动态墙页面</div>
++            <div class="tl-desc">新增 pagesPet/family/feed 页面，包含 index.config.ts、index.tsx、index.scss 三个文件，实现家庭动态墙功能：精选动态横向滚动、类型筛选标签、动态列表下拉刷新/触底加载、动态卡片展示、浮动发布按钮/底部弹窗发布、长按删除</div>
++            <div class="tl-file">pagesPet/family/feed/index.config.ts, pagesPet/family/feed/index.tsx, pagesPet/family/feed/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-27-54-创建家庭动态墙页面.diff', '创建家庭动态墙页面')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-27-33-创建家庭周报页面.diff">
++            <div class="tl-time">2026-07-31 15:27</div>
++            <div class="tl-title">创建家庭周报页面</div>
++            <div class="tl-desc">新增 pagesPet/weekly-report 页面模块，包含配置/组件/样式三文件，实现AI周报展示、历史列表、周报生成功能</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/weekly-report/index.config.ts, 03-源代码/小程序/miniapp/src/pagesPet/weekly-report/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/weekly-report/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-27-33-创建家庭周报页面.diff', '创建家庭周报页面')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T06-51-23-项目状态汇总.diff">
++            <div class="tl-time">2026-07-31 14:51</div>
++            <div class="tl-title">项目状态汇总</div>
++            <div class="tl-desc">所有改动已提交。后端648测试+前端2638测试全通过，tsc零错误。下一步需要确定优先推进方向：Phase 1.5剩余模块、基础设施配置、或提测准备</div>
++            <div class="tl-file">next-steps</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T06-51-23-项目状态汇总.diff', '项目状态汇总')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T06-33-03-AI记忆纠错前端页面.diff">
+             <div class="tl-time">2026-07-31 14:33</div>
+             <div class="tl-title">AI记忆纠错前端页面</div>
+             <div class="tl-desc">新增记忆纠错页面(pagesUser/memory)，对接后端GET/PUT /api/memory，支持按宠物筛选、inline编辑修正、分类/来源/重要性展示；settings页添加入口；补齐38个单元测试</div>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts"
+index 9c4cecc..ff3802a 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts"
+@@ -34,3 +34,43 @@ export { getWardrobeOverview, getAccessoriesBySlot, equipAccessory, unequipAcces
+ export { getThemeSuiteOverview, generateThemeSuite, getThemeSuiteTaskStatus, pollThemeSuiteTask, saveThemeSuiteResult, getThemeQuota, canGenerateTheme, getActiveThemeTask } from './themeSuiteService'
+ /** 穿搭预览 - 套装组合/槽位管理 */
+ export { buildOutfitPreview, toggleSlotInOutfit, clearAllSlots, getEquippedCount, getEmptySlots, getSlotLabel, isOutfitEmpty, areOutfitsEqual, mergeOutfitSlots, type OutfitPreview } from './outfitComposition'
++/** 排行榜 - 家庭排行榜与角色分配 */
++export { leaderboardService, type LeaderboardPeriod, type RankingItem, type LeaderboardResponse, type RoleType, type RoleResponse, type FamilyRolesResponse } from './leaderboardService'
++/** 家族图谱 - 图谱数据/关系管理/快照/血亲树 */
++export {
++  familyTreeService,
++  type TreeNode,
++  type TreeEdge,
++  type TreeResponse,
++  type RelationshipRow,
++  type CreateRelationshipInput,
++  type UpdateRelationshipInput,
++  type CreateLineageInput,
++  type SnapshotRow,
++  type CreateSnapshotInput,
++  type SnapshotListResponse,
++  type LineageTreeResponse,
++} from './familyTreeService'
++/** 家庭动态墙 - 动态列表/发布/编辑/删除/精选 */
++export {
++  feedService,
++  type FeedType,
++  type Feed,
++  type FeedWithPet,
++  type PaginatedFeeds,
++  type GetFeedsParams,
++  type CreateFeedInput,
++  type UpdateFeedInput,
++} from './feedService'
++/** 分享卡片 - 卡片生成/列表/详情/删除/分享记录 */
++export {
++  shareCardService,
++  type ShareCardSourceData,
++  type ShareCardStyle,
++  type ShareChannel,
++  type ShareCardRow,
++  type GenerateShareCardInput,
++  type PaginatedShareCards,
++  type GetShareCardsParams,
++  type RecordShareInput,
++} from './shareCardService'

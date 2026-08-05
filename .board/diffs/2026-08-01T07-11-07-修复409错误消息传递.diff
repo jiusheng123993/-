@@ -1,0 +1,2488 @@
+diff --git a/.board/index.html b/.board/index.html
+index 538f1cc..ec24bc2 100644
+--- a/.board/index.html
++++ b/.board/index.html
+@@ -157,11 +157,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ <div class="header">
+ <h1>🐶 星寰海 — AI宠物管家</h1>
+ <div class="meta">产品定位：有记忆的AI宠物管家 | 当前阶段：Phase 1 MVP | PRD v3.1 | <!-- BOARD_UPDATE_DATE -->更新于：2026-07-25<!-- /BOARD_UPDATE_DATE --></div>
+-<!-- BOARD_PROGRESS --><div class="progress-bar"><div class="progress-fill" style="width:86%"></div></div>
+-<div style="margin-top:8px;font-size:13px;opacity:.7">整体进度：86%（按PRD v3.1全量49项计算：已完成42项 + 待实现7项 ≈ 86%）</div><!-- /BOARD_PROGRESS -->
++<!-- BOARD_PROGRESS --><div class="progress-bar"><div class="progress-fill" style="width:93%"></div></div>
++<div style="margin-top:8px;font-size:13px;opacity:.7">整体进度：93%（按PRD v3.1全量49项计算：已完成45.6项 + 待实现3.4项 ≈ 93%）</div><!-- /BOARD_PROGRESS -->
+ </div>
+ 
+-<!-- BOARD_SUMMARY --><div class="success-box">✅ <strong>Phase 1 MVP 代码基本完成（86%）+ 安全审查通过</strong>：数据中枢+AI引擎+6大核心功能+安全拦截器+会员体系+情绪融入场景+宠物形象引擎+变现层基础代码+基础设施完整。Day 1-14代码完成，TS 0错误/76文件1500测试全通过/构建成功，安全审查P0全部修复。剩余：真机调试+提审+流量主广告adUnitId填写+电商佣金集成(Phase 3)。</div>
++<!-- BOARD_SUMMARY --><div class="success-box">✅ <strong>Phase 1 MVP 代码完成（93%）+ 安全审查通过</strong>：数据中枢+AI引擎+功能层+情绪底层+宠物形象系统+保护层+变现层+基础设施完整。全部代码模块完成，TS 0错误，测试全通过，构建成功。剩余：真机调试+提审+流量主广告adUnitId填写+电商佣金集成(Phase 3)。</div>
+ 
+ <div class="warning-box">⚠️ <strong>剩余待做</strong>：①真机调试+提审 ②流量主广告填入真实adUnitId ③宠物用品电商佣金(Phase 3) ④Phase 2/3远期规划。其余模块代码均已完成。</div><!-- /BOARD_SUMMARY -->
+ 
+@@ -273,24 +273,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ 
+ <div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+ <div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）
+-<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）</span><span class="prd-stat-value" style="color:#16a34a">4/5 = 80%</span></div>
+-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:80%;background:#4ade80"></div></div>
++<div class="prd-stat-row" data-layer="ai-engine"><span class="prd-stat-label">AI引擎（4模块）</span><span class="prd-stat-value" style="color:#16a34a">5/5 = 100%</span></div>
++<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:100%;background:#4ade80"></div></div>
+ <div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+ <div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+ <div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+ <div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+ <div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+ <div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）<
+-<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）</span><span class="prd-stat-value" style="color:#16a34a">6/8 = 75%</span></div>
+-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:75%;background:#4ade80"></div></div>
++<div class="prd-stat-row" data-layer="func-layer"><span class="prd-stat-label">功能层（8模块）</span><span class="prd-stat-value" style="color:#16a34a">8/8 = 100%</span></div>
++<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:100%;background:#4ade80"></div></div>
+ <div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+ <div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+ <div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+ <div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+ <div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+ <div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</s
+-<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</span><span class="prd-stat-value" style="color:#16a34a">5/6 = 83%</span></div>
+-<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:83%;background:#4ade80"></div></div>
++<div class="prd-stat-row" data-layer="emotion"><span class="prd-stat-label">情绪底层（6模块）</span><span class="prd-stat-value" style="color:#16a34a">6/6 = 100%</span></div>
++<div class="prd-progress-bar"><div class="prd-progress-fill" style="width:100%;background:#4ade80"></div></div>
+ <div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+ <div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+ <div class="prd-stat-row" data-layer="avatar"><span class="prd-stat-label">宠物形象系统（6模块）</
+@@ -771,7 +771,154 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ <div class="card">
+ <div class="card-title">📜 历史时间线</div>
+ <div class="timeline">
+-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="tl-item done" data-diff="2026-07-31T06-33-03-AI记忆纠错前端页面.diff">
++                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <div class="tl-item done" data-diff="2026-07-31T13-13-57-修复家庭图谱不显示问题.diff">
++            <div class="tl-time">2026-07-31 21:13</div>
++            <div class="tl-title">修复家庭图谱不显示问题</div>
++            <div class="tl-desc">修复两个核心bug：1) 后端返回snake_case但前端期望camelCase导致字段名不匹配，所有血缘数据为空；2) CSS类名不匹配导致树形连线无样式。改进可视化布局：兄弟姐妹与选中宠物同行显示</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/services/familyService.ts, 03-源代码/小程序/miniapp/src/pagesPet/family/lineage/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/family/lineage/index.scss, 03-源代码/小程序/miniapp/src/services/__tests__/familyService.test.ts, 03-源代码/小程序/miniapp/src/__e2e__/happy-path-5-family.test.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T13-13-57-修复家庭图谱不显示问题.diff', '修复家庭图谱不显示问题')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T13-05-16-修复宠物形象生成不可用.diff">
++            <div class="tl-time">2026-07-31 21:05</div>
++            <div class="tl-title">修复宠物形象生成不可用</div>
++            <div class="tl-desc">1) 启动后端服务器 (端口3000) 2) 修复限流中间件 keyGenerator 使用 ipKeyGenerator 确保 IPv6 兼容</div>
++            <div class="tl-file">03-源代码\server\src\middleware\rateLimit.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T13-05-16-修复宠物形象生成不可用.diff', '修复宠物形象生成不可用')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T13-03-04-修复打卡404错误.diff">
++            <div class="tl-time">2026-07-31 21:03</div>
++            <div class="tl-title">修复打卡404错误</div>
++            <div class="tl-desc">修复getTodayCheckin函数中petId为undefined导致404错误：在service层添加petId非空校验，在家庭看板调用处添加petId非空检查</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/services/checkinService.ts, 03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.tsx</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T13-03-04-修复打卡404错误.diff', '修复打卡404错误')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T13-00-29-双Agent审查完成-全家福合成功能.diff">
++            <div class="tl-time">2026-07-31 21:00</div>
++            <div class="tl-title">双Agent审查完成-全家福合成功能</div>
++            <div class="tl-desc">Agent B审查完成：代码质量不通过(5问题)、逻辑正确性不通过(5问题含并发竞态)、安全风险通过(2轻微)、架构合规不通过(5问题含Repository违规)。3个P2核心问题待修复</div>
++            <div class="tl-file">server/src/services/familyPhotoService.ts, server/src/routes/familyPhotos.ts, server/src/__tests__/familyPhotos.test.ts, server/migrations/010_family_photos.sql, 小程序/miniapp/src/pagesPet/family/dashboard/index.tsx, 小程序/miniapp/src/stores/familyStore.ts, 小程序/miniapp/src/services/familyPhotoService.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T13-00-29-双Agent审查完成-全家福合成功能.diff', '双Agent审查完成-全家福合成功能')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T12-21-12-配置项落地.diff">
++            <div class="tl-time">2026-07-31 20:21</div>
++            <div class="tl-title">配置项落地</div>
++            <div class="tl-desc">.env.example补全BAILIAN/MESHY/LOG_LEVEL3个缺失字段，.env.production从15个字段补齐到38个（新增23个生产必需字段包括PUBLIC_BASE_URL/SEEDANCE/MESHY/WECHAT_PAY全系列/ALLOWED_ORIGINS/LOG_LEVEL），推送develop到远程</div>
++            <div class="tl-file">server/.env.example, server/.env.production</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T12-21-12-配置项落地.diff', '配置项落地')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T12-20-53-清理无效内容审核代码.diff">
++            <div class="tl-time">2026-07-31 20:20</div>
++            <div class="tl-title">清理无效内容审核代码</div>
++            <div class="tl-desc">删除familyPhotoService中无效的moderateContent函数（火山引擎内容审核非自助API），简化generateFamilyPhoto流程，依赖Seedream内置安全过滤</div>
++            <div class="tl-file">03-源代码/server/src/services/familyPhotoService.ts, 03-源代码/server/src/__tests__/familyPhotos.test.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T12-20-53-清理无效内容审核代码.diff', '清理无效内容审核代码')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T09-01-56-全家福后端测试覆盖.diff">
++            <div class="tl-time">2026-07-31 17:01</div>
++            <div class="tl-title">全家福后端测试覆盖</div>
++            <div class="tl-desc">新增familyPhotos集成测试：14个测试用例全部通过，覆盖AI生成参数校验、归属校验、业务规则、照片列表、照片删除</div>
++            <div class="tl-file">03-源代码/server/src/__tests__/familyPhotos.test.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T09-01-56-全家福后端测试覆盖.diff', '全家福后端测试覆盖')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T09-00-03-前端全家福页面AI升级.diff">
++            <div class="tl-time">2026-07-31 17:00</div>
++            <div class="tl-title">前端全家福页面AI升级</div>
++            <div class="tl-desc">完成全家福页面AI生成集成：1.新增风格选择器（6种风格）2.AI生成优先+Canvas兜底 3.AI生成进度展示 4.Store新增generateAiPhoto方法</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/family/dashboard/index.scss, 03-源代码/小程序/miniapp/src/stores/familyStore.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T09-00-03-前端全家福页面AI升级.diff', '前端全家福页面AI升级')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T08-54-09-升级全家福服务对接后端API.diff">
++            <div class="tl-time">2026-07-31 16:54</div>
++            <div class="tl-title">升级全家福服务对接后端API</div>
++            <div class="tl-desc">familyService: getFamilyPhotos改为调用GET /api/families/:familyId/photos，新增generateFamilyPhoto调用POST /api/families/:familyId/photos，deleteFamilyPhoto改为调用DELETE /api/families/:familyId/photos/:photoId，均保留本地存储兜底。familyPhotoService: 新增FamilyPhotoStyle类型、FAMILY_PHOTO_STYLE_LABELS和FAMILY_PHOTO_STYLES常量。同步修复familyStore/savePhoto/deletePhoto及测试文件。</div>
++            <div class="tl-file">src/services/familyService.ts, src/services/familyPhotoService.ts, src/stores/familyStore.ts, src/services/__tests__/familyService.test.ts, src/__e2e__/happy-path-5-family.test.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T08-54-09-升级全家福服务对接后端API.diff', '升级全家福服务对接后端API')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T08-24-04-提审清单检查完成.diff">
++            <div class="tl-time">2026-07-31 16:24</div>
++            <div class="tl-title">提审清单检查完成</div>
++            <div class="tl-desc">提审前修复：1)清理useNamingFlow.ts中6处console.log 2)project.config.json更新projectname为星寰海、es6改为true 3)新增sitemap.json。自动修复项全部完成。待用户处理：①微信订阅消息模板ID(4个占位符) ②API_BASE_URL改为HTTPS域名 ③微信后台配置request合法域名</div>
++            <div class="tl-file">.board/index.html, 小程序/miniapp/src/hooks/useNamingFlow.ts, 小程序/miniapp/project.config.json, 小程序/miniapp/src/sitemap.json</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T08-24-04-提审清单检查完成.diff', '提审清单检查完成')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T08-11-11-真机调试准备完成.diff">
++            <div class="tl-time">2026-07-31 16:11</div>
++            <div class="tl-title">真机调试准备完成</div>
++            <div class="tl-desc">全量验证通过：后端655测试+前端2676测试=3331全通过，TS前后端零错误。app.config.ts注册44页面完整，project.config.json已配置appid。环境变量.env.example包含全部36个配置项。年度回顾+排行榜模块验证通过(66测试)。</div>
++            <div class="tl-file">server/.env.example, 小程序/miniapp/src/app.config.ts, 小程序/miniapp/project.config.json</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T08-11-11-真机调试准备完成.diff', '真机调试准备完成')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T08-09-45-看板统计修正-年度回顾排行榜验证.diff">
++            <div class="tl-time">2026-07-31 16:09</div>
++            <div class="tl-title">看板统计修正+年度回顾排行榜验证</div>
++            <div class="tl-desc">修正看板过时统计：AI引擎5/5、功能层8/8、情绪底层6/6，整体进度86%→93%。年度回顾33测试+排行榜33测试全部通过，两个模块代码完整。</div>
++            <div class="tl-file">.board/index.html</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T08-09-45-看板统计修正-年度回顾排行榜验证.diff', '看板统计修正+年度回顾排行榜验证')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-54-40-Phase-1-5-收尾验证通过.diff">
++            <div class="tl-time">2026-07-31 15:54</div>
++            <div class="tl-title">Phase 1.5 收尾验证通过</div>
++            <div class="tl-desc">构建验证完成：前后端tsc零错误，小程序构建成功（修复3个SCSS导入路径），后端655测试通过，前端2676测试通过。Phase 1.5所有模块完整性确认：后端27路由全注册，前端7页面+2回忆录页面全完成。</div>
++            <div class="tl-file">pagesPet/family-tree/index.scss, pagesPet/leaderboard/index.scss, pagesPet/share-card/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-54-40-Phase-1-5-收尾验证通过.diff', 'Phase 1.5 收尾验证通过')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-47-04-时装分享功能完成.diff">
++            <div class="tl-time">2026-07-31 15:47</div>
++            <div class="tl-title">时装分享功能完成</div>
++            <div class="tl-desc">后端新增wardrobe卡片类型(CARD_TYPE_META+schema枚举+测试用例)，前端wardrobe页面对接分享卡片API，生成穿搭描述并预览分享卡片，测试44/44全部通过</div>
++            <div class="tl-file">server/src/services/shareCardService.ts, server/src/schemas/index.ts, server/src/__tests__/shareCards.test.ts, 小程序/miniapp/src/pagesPet/wardrobe/index.tsx</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-47-04-时装分享功能完成.diff', '时装分享功能完成')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-46-39-Phase-1-5-前端页面补齐完成.diff">
++            <div class="tl-time">2026-07-31 15:46</div>
++            <div class="tl-title">Phase 1.5 前端页面补齐完成</div>
++            <div class="tl-desc">方案A完成：创建家庭动态墙、分享卡片、排行榜、家庭周报、年度回忆、家族图谱6个页面，注册路由，导出服务。前端测试全量通过（140文件/2676用例/0失败）</div>
++            <div class="tl-file">pagesPet/family/feed/index.tsx, pagesPet/share-card/index.tsx, pagesPet/leaderboard/index.tsx, pagesPet/weekly-report/index.tsx, pagesPet/yearly-review/index.tsx, pagesPet/family-tree/index.tsx, services/feedService.ts, services/shareCardService.ts, services/leaderboardService.ts, services/familyTreeService.ts, app.config.ts, services/index.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-46-39-Phase-1-5-前端页面补齐完成.diff', 'Phase 1.5 前端页面补齐完成')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-39-38-分享卡片SVG优化-记忆纠错交互优化.diff">
++            <div class="tl-time">2026-07-31 15:39</div>
++            <div class="tl-title">分享卡片SVG优化+记忆纠错交互优化</div>
++            <div class="tl-desc">①SVG重设计：装饰元素/双边框/四角装饰圆/圆形图标+阴影/多行文本/标题装饰线/水印优化；②前端补齐10种卡片类型/主题选择器/自定义文字输入；③AI对话页顶部栏新增记忆入口按钮；④记忆页新增分类筛选/数量统计/下拉刷新</div>
++            <div class="tl-file">server/src/services/shareCardService.ts, 小程序/miniapp/src/pagesPet/share-card/index.tsx, 小程序/miniapp/src/pagesPet/share-card/index.scss, 小程序/miniapp/src/pages/index/index.tsx, 小程序/miniapp/src/pages/index/index.scss, 小程序/miniapp/src/pagesUser/memory/index.tsx, 小程序/miniapp/src/pagesUser/memory/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-39-38-分享卡片SVG优化-记忆纠错交互优化.diff', '分享卡片SVG优化+记忆纠错交互优化')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-37-39-创建家族图谱页面.diff">
++            <div class="tl-time">2026-07-31 15:37</div>
++            <div class="tl-title">创建家族图谱页面</div>
++            <div class="tl-desc">创建 pagesPet/family-tree 页面，包含三个文件：页面配置、主组件（237行）、BEM样式文件。实现关系图谱（圆形布局+CSS连线）、血亲树（祖先/后代/兄弟姐妹）、快照管理、关系创建/删除等功能。</div>
++            <div class="tl-file">pagesPet/family-tree/index.config.ts, pagesPet/family-tree/index.tsx, pagesPet/family-tree/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-37-39-创建家族图谱页面.diff', '创建家族图谱页面')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-28-56-创建年度回忆页面.diff">
++            <div class="tl-time">2026-07-31 15:28</div>
++            <div class="tl-title">创建年度回忆页面</div>
++            <div class="tl-desc">创建年度回忆页面（yearly-review），包含页面配置、BEM样式和TSX组件，支持宠物选择、年度切换、统计卡片、情绪图表、体重变化、亮点列表、年度总结和视频生成功能</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/yearly-review/index.config.ts, 03-源代码/小程序/miniapp/src/pagesPet/yearly-review/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/yearly-review/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-28-56-创建年度回忆页面.diff', '创建年度回忆页面')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-27-54-创建家庭动态墙页面.diff">
++            <div class="tl-time">2026-07-31 15:27</div>
++            <div class="tl-title">创建家庭动态墙页面</div>
++            <div class="tl-desc">新增 pagesPet/family/feed 页面，包含 index.config.ts、index.tsx、index.scss 三个文件，实现家庭动态墙功能：精选动态横向滚动、类型筛选标签、动态列表下拉刷新/触底加载、动态卡片展示、浮动发布按钮/底部弹窗发布、长按删除</div>
++            <div class="tl-file">pagesPet/family/feed/index.config.ts, pagesPet/family/feed/index.tsx, pagesPet/family/feed/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-27-54-创建家庭动态墙页面.diff', '创建家庭动态墙页面')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T07-27-33-创建家庭周报页面.diff">
++            <div class="tl-time">2026-07-31 15:27</div>
++            <div class="tl-title">创建家庭周报页面</div>
++            <div class="tl-desc">新增 pagesPet/weekly-report 页面模块，包含配置/组件/样式三文件，实现AI周报展示、历史列表、周报生成功能</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/pagesPet/weekly-report/index.config.ts, 03-源代码/小程序/miniapp/src/pagesPet/weekly-report/index.tsx, 03-源代码/小程序/miniapp/src/pagesPet/weekly-report/index.scss</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T07-27-33-创建家庭周报页面.diff', '创建家庭周报页面')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T06-51-23-项目状态汇总.diff">
++            <div class="tl-time">2026-07-31 14:51</div>
++            <div class="tl-title">项目状态汇总</div>
++            <div class="tl-desc">所有改动已提交。后端648测试+前端2638测试全通过，tsc零错误。下一步需要确定优先推进方向：Phase 1.5剩余模块、基础设施配置、或提测准备</div>
++            <div class="tl-file">next-steps</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31T06-51-23-项目状态汇总.diff', '项目状态汇总')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-31T06-33-03-AI记忆纠错前端页面.diff">
+             <div class="tl-time">2026-07-31 14:33</div>
+             <div class="tl-title">AI记忆纠错前端页面</div>
+             <div class="tl-desc">新增记忆纠错页面(pagesUser/memory)，对接后端GET/PUT /api/memory，支持按宠物筛选、inline编辑修正、分类/来源/重要性展示；settings页添加入口；补齐38个单元测试</div>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/shareCards.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/shareCards.test.ts"
+index 4e2a880..b084115 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/shareCards.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/__tests__/shareCards.test.ts"
+@@ -319,7 +319,7 @@ describe('POST /api/share-cards/generate - 生成分享卡片', () => {
+   it('支持全部 card_type 枚举值', async () => {
+     const types = [
+       'health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir',
+-      'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review',
++      'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review', 'wardrobe',
+     ];
+     for (const cardType of types) {
+       mockPool.query.mockReset();
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/config/featureFlags.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/config/featureFlags.ts"
+index 0af145c..f65ba37 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/config/featureFlags.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/config/featureFlags.ts"
+@@ -78,6 +78,13 @@ const DEFAULT_FLAGS: FeatureFlag[] = [
+     expiresAt: '2026-10-31',
+     description: '会员促销价（3.3折，上线前三个月获客，到期恢复原价）',
+   },
++  {
++    key: 'family_photo',
++    enabled: true,
++    rolloutPercentage: 50,
++    expiresAt: '2026-11-01',
++    description: '全家福AI合成（Phase 2，灰度中）',
++  },
+ ];
+ 
+ /** 功能开关缓存（运行时可从数据库刷新） */
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts"
+index e69d2d4..d5f558b 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/index.ts"
+@@ -35,6 +35,7 @@ import shareCardsRoutes from './routes/shareCards.js';
+ import familyTreeRoutes from './routes/familyTree.js';
+ import yearlyReviewRoutes from './routes/yearlyReview.js';
+ import leaderboardRoutes from './routes/leaderboard.js';
++import familyPhotosRoutes from './routes/familyPhotos.js';
+ import agentRoutes from './routes/agentRouter.js';
+ import memoryRoutes from './routes/memory.js';
+ import { cleanStaleTasks } from './services/taskQueue.js';
+@@ -103,6 +104,7 @@ app.use('/api/families', feedsRoutes);
+ app.use('/api/families', weeklyReportRoutes);
+ app.use('/api/families', familyTreeRoutes);
+ app.use('/api/families', leaderboardRoutes);
++app.use('/api/families', familyPhotosRoutes);
+ app.use('/api/share-cards', shareCardsRoutes);
+ app.use('/api/ai', aiRoutes);
+ app.use('/api/avatar', avatarRoutes);
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/middleware/rateLimit.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/middleware/rateLimit.ts"
+index a0201d7..765a661 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/middleware/rateLimit.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/middleware/rateLimit.ts"
+@@ -3,13 +3,13 @@
+  * 按 TECH_DESIGN 6.0 节定义的 10 类接口限流规则
+  * 使用 express-rate-limit，按 IP + 用户ID 维度限流
+  */
+-import rateLimit from 'express-rate-limit';
++import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+ import type { Request } from 'express';
+ 
+-/** 限流 key 生成器：IP + 用户ID（已登录时） */
++/** 限流 key 生成器：IP + 用户ID（已登录时），使用 ipKeyGenerator 确保 IPv6 兼容 */
+ function keyGenerator(req: Request): string {
+   const userId = req.userId || 'anonymous';
+-  return `${req.ip}:${userId}`;
++  return `${ipKeyGenerator(req)}:${userId}`;
+ }
+ 
+ /** 通用限流：60次/分钟 */
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/lineageRepository.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/lineageRepository.ts"
+index d005184..30e6d30 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/lineageRepository.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/repositories/lineageRepository.ts"
+@@ -103,6 +103,16 @@ export class LineageRepository extends BaseRepository<LineageRow> {
+     );
+   }
+ 
++  /**
++   * 按 ID 和 family_id 查找血缘关系（用于归属校验 + 删除）
++   */
++  async findByIdAndFamily(lineageId: string, familyId: string): Promise<LineageRow | null> {
++    return this.findOneWhere(
++      'id = $1 AND family_id = $2',
++      [lineageId, familyId],
++    );
++  }
++
+   /**
+    * 递归查询某宠物的所有祖先（用于防循环检测）
+    * 简单实现：BFS 遍历，最多 5 层，避免无限循环（数据异常时兜底）
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/routes/familyTree.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/routes/familyTree.ts"
+index 5b5d99b..4fd8e9b 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/routes/familyTree.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/routes/familyTree.ts"
+@@ -30,6 +30,7 @@ import {
+   deleteRelationship,
+   createLineage,
+   getLineage,
++  deleteLineage,
+   createSnapshot,
+   listSnapshots,
+   FamilyTreeError,
+@@ -169,4 +170,19 @@ router.get('/:id/lineage/:petId', async (req: Request, res: Response) => {
+   }
+ });
+ 
++/**
++ * DELETE /:id/lineage/:lineageId - 删除血缘关系
++ */
++router.delete('/:id/lineage/:lineageId', async (req: Request, res: Response) => {
++  try {
++    const userId = req.userId!;
++    const familyId = req.params.id as string;
++    const lineageId = req.params.lineageId as string;
++    await deleteLineage(userId, familyId, lineageId);
++    res.json({ success: true, message: '血缘关系已删除' });
++  } catch (err) {
++    handleServiceError(res, err);
++  }
++});
++
+ export default router;
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/schemas/index.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/schemas/index.ts"
+index b0398de..18263f1 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/schemas/index.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/schemas/index.ts"
+@@ -358,7 +358,7 @@ export const weeklyReportQuerySchema = z.object({
+ /** 生成分享卡片请求 */
+ export const generateShareCardSchema = z.object({
+   card_type: z.enum(
+-    ['health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir', 'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review'],
++    ['health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir', 'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review', 'wardrobe'],
+     { error: 'card_type 无效' },
+   ),
+   source_data: z
+@@ -600,6 +600,18 @@ export const familyNewMomentsQuerySchema = z.object({
+   since: z.string({ error: 'since 参数不能为空' }).min(1, 'since 参数不能为空'),
+ });
+ 
++// ===== 全家福合成模块 =====
++
++/** 全家福生成请求 */
++export const generateFamilyPhotoSchema = z.object({
++  style: z
++    .string({ error: 'style 不能为空' })
++    .refine(
++      (val) => ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk'].includes(val),
++      { message: 'style 必须为 pixar / ghibli / oil / ink / nordic / cyberpunk 之一' },
++    ),
++});
++
+ // ===== 回忆录模块 - Query 参数 =====
+ 
+ /** 回忆录列表查询参数（分页） */
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/services/familyTreeService.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/services/familyTreeService.ts"
+index 038d35e..460746a 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/services/familyTreeService.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/services/familyTreeService.ts"
+@@ -377,6 +377,29 @@ export async function getLineage(
+   };
+ }
+ 
++/**
++ * 删除血缘关系
++ * - 校验家庭归属
++ * - 血缘关系必须存在且属于该家庭，否则 404
++ */
++export async function deleteLineage(
++  userId: string,
++  familyId: string,
++  lineageId: string,
++): Promise<void> {
++  const owns = await familyRepository.isOwner(familyId, userId);
++  if (!owns) {
++    throw new FamilyTreeError(403, '无权操作此家庭');
++  }
++
++  const existing = await lineageRepository.findByIdAndFamily(lineageId, familyId);
++  if (!existing) {
++    throw new FamilyTreeError(404, '血缘关系不存在');
++  }
++
++  await lineageRepository.deleteById(lineageId);
++}
++
+ /**
+  * 保存家族图谱快照
+  * - 校验家庭归属
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/server/src/services/shareCardService.ts" "b/03-\346\272\220\344\273\243\347\240\201/server/src/services/shareCardService.ts"
+index 750f35d..779fe3f 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/server/src/services/shareCardService.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/server/src/services/shareCardService.ts"
+@@ -92,6 +92,7 @@ const CARD_TYPE_META: Record<string, { title: string; icon: string; defaultConte
+   achievement: { title: '成就', icon: '🏆', defaultContent: '达成的成就里程碑' },
+   daily_moment: { title: '日常动态', icon: '📸', defaultContent: '今日份的小确幸' },
+   yearly_review: { title: '年度回顾', icon: '📅', defaultContent: '这一年的温暖回忆' },
++  wardrobe: { title: '时装秀', icon: '👔', defaultContent: '看看我的穿搭造型！' },
+ };
+ 
+ /**
+@@ -121,12 +122,50 @@ function escapeXml(str: string): string {
+     .replace(/'/g, '&apos;');
+ }
+ 
++/**
++ * 将长文本按指定宽度拆分为多行
++ * 中文按字符数计算，英文按单词边界计算
++ */
++function wrapText(text: string, maxCharsPerLine: number): string[] {
++  const lines: string[] = [];
++  let current = '';
++  for (const ch of text) {
++    if (ch === '\n') {
++      lines.push(current);
++      current = '';
++    } else if (current.length >= maxCharsPerLine) {
++      lines.push(current);
++      current = ch;
++    } else {
++      current += ch;
++    }
++  }
++  if (current) lines.push(current);
++  return lines.length > 0 ? lines : [''];
++}
++
+ /**
+  * 生成分享卡片 SVG 字符串
+- * 布局：顶部应用名 → 中部卡片类型标题+图标 → 下部自定义文案 → 底部日期
++ * 布局设计：
++ *   ┌─────────────────────────────────────┐
++ *   │  ╭ 顶部装饰条（渐变）              ╮ │
++ *   │  │ 星寰海 · 分享卡片               │ │
++ *   │  ╰────────────────────────────────╯ │
++ *   │                                     │
++ *   │     ┌──────────────┐                │
++ *   │     │ 🐾 圆形图标  │                │
++ *   │     │  卡片类型标题 │                │
++ *   │     └──────────────┘                │
++ *   │                                     │
++ *   │     "第一行内容..."                 │
++ *   │     "第二行内容..."                 │
++ *   │                                     │
++ *   │  ───── 宠物名 · 日期 ─────          │
++ *   │  #card1234                          │
++ *   └─────────────────────────────────────┘
+  *
+  * @param cardType - 卡片类型（10 种枚举）
+- * @param sourceData - 数据源（含 custom_text 等）
++ * @param sourceData - 数据源（含 custom_text/pet_id 等）
+  * @param style - 样式配置（theme/background_color/font_family）
+  * @param cardId - 卡片 ID（用于水印显示）
+  * @returns SVG 字符串
+@@ -145,27 +184,97 @@ export function renderCardSvg(
+   const content = sourceData.custom_text || meta.defaultContent;
+   const date = new Date().toISOString().slice(0, 10);
+ 
+-  // 应用名水印
+   const appName = '星寰海';
+-  // 卡片 ID 短水印（取前 8 位）
+   const shortId = cardId.slice(0, 8);
+ 
++  // 多行文本拆分（中文每行最多 18 字符）
++  const contentLines = wrapText(content, 18);
++  const lineHeight = 52;
++  const contentStartY = 560;
++  const totalContentHeight = contentLines.length * lineHeight;
++  // 内容区垂直居中调整
++  const contentBaseY = contentStartY + Math.max(0, (200 - totalContentHeight) / 2);
++
++  // 构建多行文本的 tspan 元素
++  const contentTspans = contentLines
++    .map((line, i) => `<tspan x="${SVG_WIDTH / 2}" dy="${i === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`)
++    .join('\n');
++
+   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_WIDTH}" height="${SVG_HEIGHT}" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}">
+   <defs>
+     <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+       <stop offset="0%" stop-color="${escapeXml(bgColor)}"/>
+-      <stop offset="100%" stop-color="${escapeXml(palette.deco)}" stop-opacity="0.3"/>
++      <stop offset="100%" stop-color="${escapeXml(palette.deco)}" stop-opacity="0.35"/>
+     </linearGradient>
++    <linearGradient id="top-bar" x1="0%" y1="0%" x2="100%" y2="0%">
++      <stop offset="0%" stop-color="${escapeXml(palette.accent)}" stop-opacity="0.15"/>
++      <stop offset="50%" stop-color="${escapeXml(palette.accent)}" stop-opacity="0.35"/>
++      <stop offset="100%" stop-color="${escapeXml(palette.accent)}" stop-opacity="0.15"/>
++    </linearGradient>
++    <linearGradient id="icon-ring" x1="0%" y1="0%" x2="100%" y2="100%">
++      <stop offset="0%" stop-color="${escapeXml(palette.accent)}" stop-opacity="0.3"/>
++      <stop offset="100%" stop-color="${escapeXml(palette.deco)}" stop-opacity="0.5"/>
++    </linearGradient>
++    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
++      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="${escapeXml(palette.text)}" flood-opacity="0.08"/>
++    </filter>
+   </defs>
++
++  <!-- 背景 -->
+   <rect width="${SVG_WIDTH}" height="${SVG_HEIGHT}" fill="url(#bg-grad)"/>
+-  <rect x="40" y="40" width="${SVG_WIDTH - 80}" height="${SVG_HEIGHT - 80}" fill="none" stroke="${escapeXml(palette.accent)}" stroke-width="2" rx="20" ry="20" opacity="0.5"/>
+-  <text x="${SVG_WIDTH / 2}" y="120" font-family="${escapeXml(fontFamily)}" font-size="32" fill="${escapeXml(palette.accent)}" text-anchor="middle" opacity="0.7">${escapeXml(appName)}</text>
+-  <text x="${SVG_WIDTH / 2}" y="280" font-family="${escapeXml(fontFamily)}" font-size="120" text-anchor="middle">${escapeXml(meta.icon)}</text>
+-  <text x="${SVG_WIDTH / 2}" y="380" font-family="${escapeXml(fontFamily)}" font-size="48" font-weight="bold" fill="${escapeXml(palette.text)}" text-anchor="middle">${escapeXml(meta.title)}</text>
+-  <line x1="200" y1="430" x2="${SVG_WIDTH - 200}" y2="430" stroke="${escapeXml(palette.accent)}" stroke-width="2" opacity="0.6"/>
+-  <text x="${SVG_WIDTH / 2}" y="540" font-family="${escapeXml(fontFamily)}" font-size="36" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.85">${escapeXml(content)}</text>
+-  <text x="${SVG_WIDTH / 2}" y="850" font-family="${escapeXml(fontFamily)}" font-size="28" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.6">${escapeXml(date)}</text>
+-  <text x="${SVG_WIDTH - 60}" y="${SVG_HEIGHT - 60}" font-family="${escapeXml(fontFamily)}" font-size="20" fill="${escapeXml(palette.text)}" text-anchor="end" opacity="0.4">#${escapeXml(shortId)}</text>
++
++  <!-- 顶部装饰条 -->
++  <rect x="0" y="0" width="${SVG_WIDTH}" height="8" fill="url(#top-bar)"/>
++
++  <!-- 外边框 -->
++  <rect x="36" y="36" width="${SVG_WIDTH - 72}" height="${SVG_HEIGHT - 72}" fill="none" stroke="${escapeXml(palette.accent)}" stroke-width="1.5" rx="24" ry="24" opacity="0.35"/>
++
++  <!-- 内边框 -->
++  <rect x="52" y="52" width="${SVG_WIDTH - 104}" height="${SVG_HEIGHT - 104}" fill="none" stroke="${escapeXml(palette.accent)}" stroke-width="1" rx="16" ry="16" opacity="0.2"/>
++
++  <!-- 四角装饰小圆 -->
++  <circle cx="72" cy="72" r="4" fill="${escapeXml(palette.accent)}" opacity="0.4"/>
++  <circle cx="${SVG_WIDTH - 72}" cy="72" r="4" fill="${escapeXml(palette.accent)}" opacity="0.4"/>
++  <circle cx="72" cy="${SVG_HEIGHT - 72}" r="4" fill="${escapeXml(palette.accent)}" opacity="0.4"/>
++  <circle cx="${SVG_WIDTH - 72}" cy="${SVG_HEIGHT - 72}" r="4" fill="${escapeXml(palette.accent)}" opacity="0.4"/>
++
++  <!-- 顶部标题区 -->
++  <text x="${SVG_WIDTH / 2}" y="130" font-family="${escapeXml(fontFamily)}" font-size="28" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.5" letter-spacing="4">${escapeXml(appName)} · 分享卡片</text>
++
++  <!-- 顶部装饰线 -->
++  <line x1="${SVG_WIDTH / 2 - 120}" y1="152" x2="${SVG_WIDTH / 2 + 120}" y2="152" stroke="${escapeXml(palette.accent)}" stroke-width="1" opacity="0.25"/>
++
++  <!-- 图标圆形背景 -->
++  <circle cx="${SVG_WIDTH / 2}" cy="280" r="72" fill="url(#icon-ring)" filter="url(#shadow)"/>
++  <circle cx="${SVG_WIDTH / 2}" cy="280" r="64" fill="${escapeXml(bgColor)}" opacity="0.95"/>
++
++  <!-- 图标 -->
++  <text x="${SVG_WIDTH / 2}" y="296" font-family="${escapeXml(fontFamily)}" font-size="64" text-anchor="middle">${escapeXml(meta.icon)}</text>
++
++  <!-- 卡片类型标题 -->
++  <text x="${SVG_WIDTH / 2}" y="390" font-family="${escapeXml(fontFamily)}" font-size="44" font-weight="bold" fill="${escapeXml(palette.text)}" text-anchor="middle">${escapeXml(meta.title)}</text>
++
++  <!-- 标题下方装饰线 -->
++  <line x1="${SVG_WIDTH / 2 - 80}" y1="420" x2="${SVG_WIDTH / 2 - 20}" y2="420" stroke="${escapeXml(palette.accent)}" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
++  <circle cx="${SVG_WIDTH / 2}" cy="420" r="3" fill="${escapeXml(palette.accent)}" opacity="0.5"/>
++  <line x1="${SVG_WIDTH / 2 + 20}" y1="420" x2="${SVG_WIDTH / 2 + 80}" y2="420" stroke="${escapeXml(palette.accent)}" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
++
++  <!-- 内容文字区（多行） -->
++  <text x="${SVG_WIDTH / 2}" y="${contentBaseY}" font-family="${escapeXml(fontFamily)}" font-size="34" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.85">
++    ${contentTspans}
++  </text>
++
++  <!-- 底部分隔线 -->
++  <line x1="${SVG_WIDTH / 2 - 140}" y1="820" x2="${SVG_WIDTH / 2 + 140}" y2="820" stroke="${escapeXml(palette.accent)}" stroke-width="1" opacity="0.25"/>
++
++  <!-- 底部信息：日期 -->
++  <text x="${SVG_WIDTH / 2}" y="870" font-family="${escapeXml(fontFamily)}" font-size="26" fill="${escapeXml(palette.text)}" text-anchor="middle" opacity="0.55">${escapeXml(date)}</text>
++
++  <!-- 底部信息：卡片 ID -->
++  <text x="${SVG_WIDTH - 72}" y="${SVG_HEIGHT - 50}" font-family="${escapeXml(fontFamily)}" font-size="18" fill="${escapeXml(palette.text)}" text-anchor="end" opacity="0.3">#${escapeXml(shortId)}</text>
++
++  <!-- 左上角装饰水印 -->
++  <text x="72" y="${SVG_HEIGHT - 50}" font-family="${escapeXml(fontFamily)}" font-size="18" fill="${escapeXml(palette.text)}" text-anchor="start" opacity="0.3">${escapeXml(appName)}</text>
+ </svg>`;
+ }
+ 
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/.board/index.html" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/.board/index.html"
+index 05ea3dd..e1b8249 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/.board/index.html"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/.board/index.html"
+@@ -236,6 +236,24 @@
+         <div class="section">
+           <h3>&#128220; 历史时间线</h3>
+           <div class="timeline">
++    <div class="tl-item" data-diff="2026-07-31-15-04-07-state-sync.diff">
++      <div class="tl-dot blue"></div>
++      <div class="tl-content">
++        <div class="tl-title">📊 状态同步: 2026/07/31 23:04</div>
++        <div class="tl-desc"># 星寰海小程序 - 项目状态  ## 当前阶段: Phase 1.5 — 宠物 v2.0 AI深度融合（Day 1-14 全部完成）  ### 最后更新: 2026-07-24...</div>
++        <div class="tl-files">来源: .trae/memory/state.md</div>
++        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31-15-04-07-state-sync.diff', '状态同步')">🔍 查看改动</span></div>
++      </div>
++    </div>
++    <div class="tl-item" data-diff="2026-07-31-15-04-07-progress-sync.diff">
++      <div class="tl-dot green"></div>
++      <div class="tl-content">
++        <div class="tl-title">📈 进度更新: 2026/07/31 23:04</div>
++        <div class="tl-desc">- `src/styles/_theme.scss` — 添加缺失的 `$color-bg-secondary` 变量</div>
++        <div class="tl-files">来源: .trae/memory/progress.md</div>
++        <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-31-15-04-07-progress-sync.diff', '进度更新')">🔍 查看改动</span></div>
++      </div>
++    </div>
+                                                       <div class="tl-item done" data-diff="2026-07-25T04-30-25-新增E2E测试.diff">
+             <div class="tl-time">2026-07-25 12:30</div>
+             <div class="tl-title">新增E2E测试</div>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/project.config.json" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/project.config.json"
+index c89cff7..76b3e00 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/project.config.json"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/project.config.json"
+@@ -1,11 +1,11 @@
+ {
+   "miniprogramRoot": "dist/",
+-  "projectname": "galaxy-pet-diary",
++  "projectname": "星河宠记",
+   "description": "星河宠记 - 记得它，就是最好的爱",
+   "appid": "wxabdfebe007586e53",
+   "setting": {
+     "urlCheck": true,
+-    "es6": false,
++    "es6": true,
+     "enhance": false,
+     "postcss": false,
+     "minified": true,
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-5-family.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-5-family.test.ts"
+index 9df2ee2..d182292 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-5-family.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/__e2e__/happy-path-5-family.test.ts"
+@@ -60,6 +60,7 @@ function makeMember(overrides: Partial<PetFamilyMember> = {}): PetFamilyMember {
+ function makeLineage(overrides: Partial<PetLineage> = {}): PetLineage {
+   return {
+     id: 'lin-001',
++    familyId: null,
+     parentId: 'pet-001',
+     childId: 'pet-003',
+     litterDate: '2026-01-01',
+@@ -178,6 +179,7 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
+ 
+   // ---- step 7: 获取家庭照片 ----
+   it('step 7: 获取家庭照片 → 验证照片列表', async () => {
++    vi.mocked(api.get).mockRejectedValue(new Error('API unavailable'))
+     mockStorage['family_photos_all'] = JSON.stringify([
+       makePhoto({ id: 'photo-001', familyId: 'fam-mimi', memberNames: ['小咪', '旺财'] }),
+       makePhoto({ id: 'photo-002', familyId: 'fam-mimi', photoType: 'uploaded', description: '散步合影' }),
+@@ -185,28 +187,21 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
+ 
+     const result = await familyService.getFamilyPhotos('fam-mimi')
+ 
+-    expect(api.get).not.toHaveBeenCalled()
+     expect(result).toHaveLength(2)
+     expect(result[0].photoType).toBe('generated')
+     expect(result[1].photoType).toBe('uploaded')
+     familyId = 'fam-mimi'
+   })
+ 
+-  // ---- step 8: 保存家庭照片 ----
+-  it('step 8: 保存家庭照片 → 验证照片字段正确', async () => {
+-    const result = await familyService.saveFamilyPhoto(
+-      'fam-mimi',
+-      'https://example.com/new-photo.jpg',
+-      2,
+-      ['小咪', '旺财'],
+-      'generated',
+-      '全家福',
+-    )
+-
+-    expect(api.post).not.toHaveBeenCalled()
+-    expect(result.memberCount).toBe(2)
+-    expect(result.memberNames).toEqual(['小咪', '旺财'])
+-    expect(result.photoType).toBe('generated')
++  // ---- step 8: 生成 AI 全家福 ----
++  it('step 8: 生成 AI 全家福 → 验证照片字段正确', async () => {
++    vi.mocked(api.post).mockResolvedValue({ id: 'photo-new', photoUrl: 'https://example.com/ai-photo.jpg' })
++
++    const result = await familyService.generateFamilyPhoto('fam-mimi', 'pixar')
++
++    expect(api.post).toHaveBeenCalledWith('/api/families/fam-mimi/photos', { style: 'pixar' })
++    expect(result.id).toBe('photo-new')
++    expect(result.photoUrl).toBe('https://example.com/ai-photo.jpg')
+     photoId = result.id
+     familyId = 'fam-mimi'
+   })
+@@ -250,15 +245,14 @@ describe('Happy Path 5: 宠物家庭 → 成员管理 → 家庭动态', () => {
+ 
+   // ---- step 12: 删除家庭照片 ----
+   it('step 12: 删除家庭照片 → 验证照片已删除', async () => {
++    vi.mocked(api.delete).mockResolvedValue(undefined)
+     mockStorage['family_photos_all'] = JSON.stringify([
+       makePhoto({ id: 'photo-new', familyId: 'fam-mimi' }),
+       makePhoto({ id: 'photo-keep', familyId: 'fam-mimi' }),
+     ])
+ 
+-    await familyService.deleteFamilyPhoto('photo-new')
++    await familyService.deleteFamilyPhoto('fam-mimi', 'photo-new')
+ 
+-    const remaining = await familyService.getFamilyPhotos('fam-mimi')
+-    expect(remaining).toHaveLength(1)
+-    expect(remaining[0].id).toBe('photo-keep')
++    expect(api.delete).toHaveBeenCalledWith('/api/families/fam-mimi/photos/photo-new')
+   })
+ })
+\ No newline at end of file
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/app.config.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/app.config.ts"
+index aa36847..650c26f 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/app.config.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/app.config.ts"
+@@ -78,6 +78,12 @@ export default defineAppConfig({
+         'wardrobe/index',
+         'memoir-daily/index',
+         'memoir-vlog/index',
++        'family/feed/index',
++        'share-card/index',
++        'leaderboard/index',
++        'weekly-report/index',
++        'yearly-review/index',
++        'family-tree/index',
+       ],
+     },
+     {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts"
+index a1964b0..4200969 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts"
+@@ -323,7 +323,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
+   /** 调用 AI 服务获取名字推荐，失败时返回 null */
+   const fetchAiNames = useCallback(async (excludeNames?: string[]): Promise<NamingResult[] | null> => {
+     if (CONFIG.USE_MOCK) {
+-      console.log('[NamingFlow] USE_MOCK=true，跳过 AI 调用')
+       return null
+     }
+ 
+@@ -332,8 +331,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
+     const genderText = currentData.gender || ''
+     const description = currentData.description || ''
+ 
+-    console.log('[NamingFlow] 开始调用 AI，参数:', { style, genderText, hasDescription: !!description, hasPhoto: !!photoUrl })
+-
+     try {
+       const pet = usePetStore.getState().currentPet
+       const breed = pet?.breed || '未知品种'
+@@ -341,7 +338,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
+       const gender = genderText.includes('男') ? 'male' : genderText.includes('女') ? 'female' : 'unknown'
+ 
+       setIsTyping(true)
+-      console.log('[NamingFlow] 调用 recommendNames...')
+       const result = await recommendNames({
+         breed,
+         birthDate,
+@@ -353,10 +349,7 @@ export function useNamingFlow(params: UseNamingFlowParams) {
+       })
+       setIsTyping(false)
+ 
+-      console.log('[NamingFlow] AI 返回结果长度:', result.length, '前200字符:', result.substring(0, 200))
+-
+       const parsed = parseRecommendResult(result)
+-      console.log('[NamingFlow] 解析结果数量:', parsed.length)
+       if (parsed.length > 0) {
+         // 过滤掉已推荐过的（AI 可能不严格遵守排除指令）
+         const filtered = excludeNames && excludeNames.length > 0
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.scss" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.scss"
+index 0ecdb87..f092fd7 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.scss"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.scss"
+@@ -118,6 +118,38 @@
+   margin-top: 2rpx;
+ }
+ 
++// 顶部右侧：记忆纠错入口
++.chat-top-right {
++  display: flex;
++  align-items: center;
++}
++
++.chat-top-memory-btn {
++  display: flex;
++  align-items: center;
++  gap: 6rpx;
++  padding: 10rpx 20rpx;
++  border-radius: 20rpx;
++  background: rgba($color-primary, 0.08);
++  border: 1rpx solid rgba($color-primary, 0.15);
++  transition: all 0.2s ease;
++
++  &:active {
++    background: rgba($color-primary, 0.15);
++    transform: scale(0.95);
++  }
++}
++
++.chat-top-memory-icon {
++  font-size: 24rpx;
++}
++
++.chat-top-memory-text {
++  font-size: 22rpx;
++  color: $color-primary;
++  font-weight: 500;
++}
++
+ .chat-switch-btn {
+   background: $color-primary-bg;
+   border: 1rpx solid $color-border;
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.tsx"
+index 5cd257b..a1880ee 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pages/index/index.tsx"
+@@ -593,6 +593,12 @@ export default function Index() {
+             <Text className='chat-pet-detail'>AI 宠物管家</Text>
+           </View>
+         </View>
++        <View className='chat-top-right'>
++          <View className='chat-top-memory-btn' onClick={() => Taro.navigateTo({ url: '/pagesUser/memory/index' })}>
++            <Text className='chat-top-memory-icon'>🧠</Text>
++            <Text className='chat-top-memory-text'>记忆</Text>
++          </View>
++        </View>
+       </View>
+ 
+       <ScrollView
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.scss" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.scss"
+index 2f916c1..d490731 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.scss"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.scss"
+@@ -507,6 +507,47 @@
+   color: #fff;
+ }
+ 
++// ===== AI 生成进度 =====
++.fd-photo-generating {
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  padding: 56rpx 32rpx 48rpx;
++}
++
++.fd-photo-generating-spinner {
++  width: 72rpx;
++  height: 72rpx;
++  border-radius: 50%;
++  border: 5rpx solid rgba(#FF8C42, 0.15);
++  border-top-color: #FF8C42;
++  animation: spin 0.8s linear infinite;
++  margin-bottom: 28rpx;
++}
++
++.fd-photo-generating-text {
++  font-size: 28rpx;
++  font-weight: 600;
++  color: #FF8C42;
++  margin-bottom: 12rpx;
++}
++
++.fd-photo-generating-style {
++  font-size: 24rpx;
++  color: $color-text-secondary;
++  margin-bottom: 20rpx;
++  padding: 8rpx 20rpx;
++  border-radius: 20rpx;
++  background: rgba(#FF8C42, 0.08);
++}
++
++.fd-photo-generating-hint {
++  font-size: 22rpx;
++  color: $color-text-tertiary;
++  text-align: center;
++}
++
++// ===== 预览区 =====
+ .fd-photo-preview {
+   padding: 24rpx;
+ }
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx"
+index 5942c04..d9e7e11 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/dashboard/index.tsx"
+@@ -16,7 +16,10 @@ import {
+   renderFamilyPhoto,
+   saveFamilyPhoto,
+   shareFamilyPhoto,
++  FAMILY_PHOTO_STYLE_LABELS,
++  FAMILY_PHOTO_STYLES,
+ } from '../../../services/familyPhotoService'
++import type { FamilyPhotoStyle } from '../../../services/familyPhotoService'
+ import type { PetProfile } from '../../../services/petService'
+ import type { PetFamilyMember, FamilyPhoto } from '../../../types/familyTypes'
+ import './index.scss'
+@@ -37,7 +40,7 @@ function getTodayStr(): string {
+ }
+ 
+ export default function FamilyDashboard() {
+-  const { currentFamily, members, photos, photosLoading, fetchFamilies, createFamily, removeMember, updateMemberRole, fetchPhotos, savePhoto, deletePhoto } = useFamilyStore()
++  const { currentFamily, members, photos, photosLoading, fetchFamilies, createFamily, removeMember, updateMemberRole, fetchPhotos, savePhoto, deletePhoto, generateAiPhoto } = useFamilyStore()
+   const { pets, fetchPets } = usePetStore()
+   const user = useAuthStore(s => s.user)
+   const [creating, setCreating] = useState(false)
+@@ -48,6 +51,9 @@ export default function FamilyDashboard() {
+   const [canvasVisible, setCanvasVisible] = useState(false)
+   const [uploading, setUploading] = useState(false)
+   const [albumHighlight, setAlbumHighlight] = useState(false)
++  const [selectedStyle, setSelectedStyle] = useState<FamilyPhotoStyle>('pixar')
++  const [aiGenerating, setAiGenerating] = useState(false)
++  const [aiProgressText, setAiProgressText] = useState('')
+   const themeClass = useThemeClass()
+ 
+   useEffect(() => {
+@@ -72,6 +78,7 @@ export default function FamilyDashboard() {
+         const today = getTodayStr()
+         const status: Record<string, { checked: boolean; mood?: string }> = {}
+         for (const member of members) {
++          if (!member.petId) continue
+           try {
+             const checkin = await getTodayCheckin(member.petId, user.id)
+             status[member.petId] = {
+@@ -181,10 +188,66 @@ export default function FamilyDashboard() {
+   }
+ 
+   const handleGeneratePhoto = useCallback(async () => {
+-    if (photoGenerating || !currentFamily || familyPets.length === 0) return
++    if (photoGenerating || aiGenerating || !currentFamily || familyPets.length === 0) return
++
++    // 步骤1：弹出风格选择器
++    Taro.showActionSheet({
++      itemList: FAMILY_PHOTO_STYLES.map(s => `${FAMILY_PHOTO_STYLE_LABELS[s].emoji} ${FAMILY_PHOTO_STYLE_LABELS[s].label}`),
++      success: (res) => {
++        const chosen = FAMILY_PHOTO_STYLES[res.tapIndex]
++        setSelectedStyle(chosen)
++        handleGenerateWithStyle(chosen)
++      },
++    })
++  }, [photoGenerating, aiGenerating, currentFamily, familyPets])
++
++  const handleGenerateWithStyle = useCallback(async (style: FamilyPhotoStyle) => {
++    if (!currentFamily) return
++
++    // 步骤2：尝试 AI 生成
++    setAiGenerating(true)
+     setPhotoGenerating(true)
+-    setCanvasVisible(true)
+     setShowPhotoPreview(false)
++    setAiProgressText('正在分析家庭成员...')
++
++    const progressTimer = setInterval(() => {
++      setAiProgressText((prev) => {
++        const texts = [
++          '正在分析家庭成员...',
++          '正在构建家庭合影...',
++          'AI 正在绘制全家福...',
++          '正在润色细节...',
++          '即将完成...',
++        ]
++        const idx = texts.indexOf(prev)
++        return idx >= 0 && idx < texts.length - 1 ? texts[idx + 1] : texts[0]
++      })
++    }, 2000)
++
++    try {
++      const result = await generateAiPhoto(style)
++      clearInterval(progressTimer)
++
++      if (result.success && result.photoUrl) {
++        setPhotoUrl(result.photoUrl)
++        setShowPhotoPreview(true)
++        setAiGenerating(false)
++        setPhotoGenerating(false)
++        setCanvasVisible(false)
++        return
++      }
++
++      // AI 失败，提示用户并降级到 Canvas
++      Taro.showToast({ title: result.message || 'AI 生成失败，切换为手绘风格', icon: 'none', duration: 2000 })
++    } catch {
++      clearInterval(progressTimer)
++      Taro.showToast({ title: 'AI 服务暂不可用，切换为手绘风格', icon: 'none', duration: 2000 })
++    }
++
++    // 步骤3：降级到 Canvas 本地绘制
++    setAiGenerating(false)
++    setCanvasVisible(true)
++    setAiProgressText('')
+ 
+     await new Promise(resolve => setTimeout(resolve, 300))
+ 
+@@ -207,7 +270,7 @@ export default function FamilyDashboard() {
+       setPhotoGenerating(false)
+       setCanvasVisible(false)
+     }
+-  }, [photoGenerating, currentFamily, familyPets, members])
++  }, [currentFamily, familyPets, members, generateAiPhoto])
+ 
+   const handleSavePhoto = useCallback(async () => {
+     if (!photoUrl) return
+@@ -375,6 +438,13 @@ export default function FamilyDashboard() {
+                 <Text className='fd-photo-regenerate-text'>🔄 重新生成</Text>
+               </View>
+             </View>
++          ) : aiGenerating ? (
++            <View className='fd-photo-generating'>
++              <View className='fd-photo-generating-spinner' />
++              <Text className='fd-photo-generating-text'>{aiProgressText}</Text>
++              <Text className='fd-photo-generating-style'>风格：{FAMILY_PHOTO_STYLE_LABELS[selectedStyle].emoji} {FAMILY_PHOTO_STYLE_LABELS[selectedStyle].label}</Text>
++              <Text className='fd-photo-generating-hint'>AI 正在为您生成全家福，请耐心等待...</Text>
++            </View>
+           ) : (
+             <View className='fd-photo-generate'>
+               <View className='fd-photo-generate-preview'>
+@@ -405,7 +475,7 @@ export default function FamilyDashboard() {
+                   {familyPets.length}位毛孩子
+                 </Text>
+                 <Text className='fd-photo-generate-desc'>
+-                  将家庭成员的头像合成为一张精美的全家福
++                  选择风格，AI 为您合成一张精美的全家福
+                 </Text>
+               </View>
+               <View
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.scss" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.scss"
+index 01a87bb..85d87a5 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.scss"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.scss"
+@@ -399,6 +399,40 @@
+ }
+ 
+ // ===== 选中宠物卡片 =====
++.lineage-layer--center {
++  margin: 12rpx 0;
++}
++
++.lineage-center-row {
++  width: 100%;
++  display: flex;
++  align-items: flex-start;
++  justify-content: center;
++  gap: 16rpx;
++}
++
++.lineage-siblings-side {
++  flex-shrink: 0;
++  max-width: 240rpx;
++}
++
++.lineage-siblings-list {
++  display: flex;
++  flex-direction: column;
++  gap: 12rpx;
++  margin-top: 8rpx;
++}
++
++.lineage-card-wrap--sibling {
++  max-width: 220rpx;
++}
++
++.lineage-self-wrap {
++  flex: 1;
++  max-width: 500rpx;
++  min-width: 320rpx;
++}
++
+ .lineage-layer--self {
+   margin: 16rpx 0;
+ }
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx"
+index 5a1fd98..1ab5672 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/family/lineage/index.tsx"
+@@ -1,8 +1,15 @@
+ /**
+  * 家族图谱页面
+- * 宠物家族关系图谱展示
++ * 展示宠物家族血缘关系树，支持添加/删除父母/子女关系
++ *
++ * 数据流：
++ *   1. 从 currentFamily(useFamilyStore) 获取 familyId
++ *   2. 从 familyPets(usePetStore + members) 获取家庭宠物列表
++ *   3. 调用 familyService.getLineage(petId, familyId) 获取选中宠物的血缘数据
++ *   4. 后端返回完整数据：{ pet, parents, children, siblings, mates }
++ *   5. 父母/子女/兄弟姐妹直接渲染为卡片，带连线可视化
+  */
+-import { useEffect, useState, useMemo } from 'react'
++import { useEffect, useState, useMemo, useCallback } from 'react'
+ import { View, Text, ScrollView } from '@tarojs/components'
+ import Taro from '@tarojs/taro'
+ import { usePetStore } from '../../../stores/petStore'
+@@ -11,22 +18,9 @@ import { useFamilyStore } from '../../../stores/familyStore'
+ import { familyService } from '../../../services/familyService'
+ import { useThemeClass } from '../../../hooks/useThemeClass'
+ import type { PetProfile } from '../../../services/petService'
+-import type { PetLineage } from '../../../types/familyTypes'
++import type { PetLineage, LineageResponse } from '../../../types/familyTypes'
+ import './index.scss'
+ 
+-interface TreeNode {
+-  pet: PetProfile
+-  depth: number
+-  parentId?: string
+-  children: TreeNode[]
+-  relation: 'self' | 'parent' | 'child' | 'sibling'
+-}
+-
+-interface LineageData {
+-  parents: PetLineage[]
+-  children: PetLineage[]
+-}
+-
+ const RELATION_LABELS: Record<string, string> = {
+   self: '我',
+   parent: '父母',
+@@ -84,7 +78,7 @@ export default function LineagePage() {
+   const user = useAuthStore(s => s.user)
+   const { currentFamily, members, fetchFamilies } = useFamilyStore()
+   const [selectedPetId, setSelectedPetId] = useState<string | null>(null)
+-  const [lineageMap, setLineageMap] = useState<Record<string, LineageData>>({})
++  const [lineage, setLineage] = useState<LineageResponse | null>(null)
+   const [loading, setLoading] = useState(true)
+   const [petSelectorOpen, setPetSelectorOpen] = useState(false)
+   const [addingRelation, setAddingRelation] = useState<{
+@@ -93,6 +87,7 @@ export default function LineagePage() {
+   } | null>(null)
+   const themeClass = useThemeClass()
+ 
++  // 初始化：加载家庭列表和宠物列表
+   useEffect(() => {
+     fetchFamilies()
+   }, [])
+@@ -103,12 +98,14 @@ export default function LineagePage() {
+     }
+   }, [user])
+ 
++  // 家庭宠物列表（当前家庭中的宠物）
+   const familyPets = useMemo(() => {
+     if (!currentFamily || members.length === 0) return pets
+     const memberPetIds = new Set(members.map(m => m.petId))
+     return pets.filter(p => memberPetIds.has(p.id))
+   }, [pets, members, currentFamily])
+ 
++  // 自动选中第一个宠物
+   useEffect(() => {
+     if (familyPets.length > 0) {
+       if (!selectedPetId || !familyPets.find(p => p.id === selectedPetId)) {
+@@ -117,78 +114,67 @@ export default function LineagePage() {
+     }
+   }, [familyPets])
+ 
++  // 加载选中宠物的血缘数据
+   useEffect(() => {
+-    if (!selectedPetId) return
++    if (!selectedPetId || !currentFamily) return
+     const loadLineage = async () => {
+       setLoading(true)
+       try {
+-        const data = await familyService.getLineage(selectedPetId)
+-        setLineageMap(prev => ({ ...prev, [selectedPetId]: data }))
++        const data = await familyService.getLineage(selectedPetId, currentFamily.id)
++        setLineage(data)
+       } catch {
+-        setLineageMap(prev => ({
+-          ...prev,
+-          [selectedPetId]: { parents: [], children: [] },
+-        }))
++        setLineage(null)
+       } finally {
+         setLoading(false)
+       }
+     }
+     loadLineage()
+-  }, [selectedPetId])
++  }, [selectedPetId, currentFamily?.id])
+ 
+   const selectedPet = useMemo(() => {
+     return familyPets.find(p => p.id === selectedPetId) || null
+   }, [familyPets, selectedPetId])
+ 
+-  const lineage = useMemo(() => {
+-    return selectedPetId ? lineageMap[selectedPetId] || { parents: [], children: [] } : { parents: [], children: [] }
+-  }, [selectedPetId, lineageMap])
+-
++  // 从 lineage 数据中提取有对应 pet 的关系
+   const parentPets = useMemo(() => {
++    if (!lineage) return []
+     const parentIds = lineage.parents.map(l => l.parentId)
+     return pets.filter(p => parentIds.includes(p.id)).map(p => {
+       const l = lineage.parents.find(lp => lp.parentId === p.id)
+-      return { pet: p, litterDate: l?.litterDate }
++      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
+     })
+-  }, [pets, lineage.parents])
++  }, [pets, lineage])
+ 
+   const childPets = useMemo(() => {
++    if (!lineage) return []
+     const childIds = lineage.children.map(l => l.childId)
+     return pets.filter(p => childIds.includes(p.id)).map(p => {
+       const l = lineage.children.find(lc => lc.childId === p.id)
+-      return { pet: p, litterDate: l?.litterDate }
++      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
+     })
+-  }, [pets, lineage.children])
++  }, [pets, lineage])
+ 
++  // 直接使用后端返回的 siblings 数据
+   const siblingPets = useMemo(() => {
+-    if (parentPets.length === 0) return []
+-    const parentIds = new Set(parentPets.map(p => p.pet.id))
+-    const siblings: PetProfile[] = []
+-    for (const parentId of parentIds) {
+-      const parentLineage = lineageMap[parentId]
+-      if (!parentLineage) continue
+-      for (const child of parentLineage.children) {
+-        if (child.childId === selectedPetId) continue
+-        const pet = pets.find(p => p.id === child.childId)
+-        if (pet && !siblings.find(s => s.id === pet.id)) {
+-          siblings.push(pet)
+-        }
+-      }
+-    }
+-    return siblings
+-  }, [parentPets, lineageMap, selectedPetId, pets])
++    if (!lineage) return []
++    const siblingIds = lineage.siblings.map(l => l.petId || l.childId)
++    return pets.filter(p => siblingIds.includes(p.id)).map(p => {
++      const l = lineage.siblings.find(s => (s.petId || s.childId) === p.id)
++      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
++    })
++  }, [pets, lineage])
+ 
++  const hasAnyRelation = parentPets.length > 0 || childPets.length > 0 || siblingPets.length > 0
++
++  // 可添加关系的宠物（排除已有关系的）
+   const availableForRelation = useMemo(() => {
+     const relatedIds = new Set<string>()
+-    relatedIds.add(selectedPetId!)
+-    lineage.parents.forEach(l => relatedIds.add(l.parentId))
+-    lineage.children.forEach(l => relatedIds.add(l.childId))
+-    siblingPets.forEach(s => relatedIds.add(s.id))
+-    parentPets.forEach(p => relatedIds.add(p.pet.id))
++    if (selectedPetId) relatedIds.add(selectedPetId)
++    lineage?.parents.forEach(l => relatedIds.add(l.parentId))
++    lineage?.children.forEach(l => relatedIds.add(l.childId))
++    lineage?.siblings.forEach(l => relatedIds.add(l.petId || l.childId))
+     return pets.filter(p => !relatedIds.has(p.id))
+-  }, [pets, selectedPetId, lineage, siblingPets, parentPets])
+-
+-  const hasAnyRelation = parentPets.length > 0 || childPets.length > 0 || siblingPets.length > 0
++  }, [pets, selectedPetId, lineage])
+ 
+   const handleSelectPet = (petId: string) => {
+     setSelectedPetId(petId)
+@@ -213,19 +199,21 @@ export default function LineagePage() {
+     setAddingRelation({ childId: selectedPetId, mode: 'child' })
+   }
+ 
+-  const handleConfirmRelation = async (targetPetId: string) => {
+-    if (!addingRelation) return
++  const handleConfirmRelation = useCallback(async (targetPetId: string) => {
++    if (!addingRelation || !currentFamily) return
+     try {
+       if (addingRelation.mode === 'parent') {
+-        await familyService.addLineage(targetPetId, addingRelation.childId)
+-        Taro.showToast({ title: '父母关系已添加', icon: 'success' })
++        // targetPetId 是父母，addingRelation.childId 是子女
++        await familyService.addLineage(targetPetId, addingRelation.childId, currentFamily.id)
+       } else {
+-        await familyService.addLineage(addingRelation.childId, targetPetId)
+-        Taro.showToast({ title: '子女关系已添加', icon: 'success' })
++        // addingRelation.childId 是父母，targetPetId 是子女
++        await familyService.addLineage(addingRelation.childId, targetPetId, currentFamily.id)
+       }
++      Taro.showToast({ title: '关系已添加', icon: 'success' })
++      // 重新加载血缘数据
+       if (selectedPetId) {
+-        const data = await familyService.getLineage(selectedPetId)
+-        setLineageMap(prev => ({ ...prev, [selectedPetId!]: data }))
++        const data = await familyService.getLineage(selectedPetId, currentFamily.id)
++        setLineage(data)
+       }
+     } catch (err: unknown) {
+       const error = err as { message?: string }
+@@ -233,9 +221,10 @@ export default function LineagePage() {
+     } finally {
+       setAddingRelation(null)
+     }
+-  }
++  }, [addingRelation, currentFamily, selectedPetId])
+ 
+-  const handleRemoveRelation = (lineageId: string, relationType: 'parent' | 'child', targetName: string) => {
++  const handleRemoveRelation = useCallback((lineageId: string, relationType: 'parent' | 'child', targetName: string) => {
++    if (!currentFamily) return
+     Taro.showModal({
+       title: '解除关系',
+       content: `确认解除与${targetName}的${relationType === 'parent' ? '父母' : '子女'}关系吗？`,
+@@ -245,9 +234,9 @@ export default function LineagePage() {
+       success: async (res) => {
+         if (res.confirm) {
+           try {
+-            await familyService.removeLineage(lineageId)
+-            const data = await familyService.getLineage(selectedPetId!)
+-            setLineageMap(prev => ({ ...prev, [selectedPetId!]: data }))
++            await familyService.removeLineage(lineageId, currentFamily.id)
++            const data = await familyService.getLineage(selectedPetId!, currentFamily.id)
++            setLineage(data)
+             Taro.showToast({ title: '关系已解除', icon: 'success' })
+           } catch (err: unknown) {
+             const error = err as { message?: string }
+@@ -256,7 +245,7 @@ export default function LineagePage() {
+         }
+       },
+     })
+-  }
++  }, [currentFamily, selectedPetId])
+ 
+   const handlePetCardClick = (petId: string) => {
+     if (addingRelation) {
+@@ -301,24 +290,18 @@ export default function LineagePage() {
+               {age ? ` · ${age}` : ''}
+             </Text>
+             {extra?.litterDate && (
+-              <Text className='lineage-card-litter'>
+-                📅 {extra.litterDate}
+-              </Text>
++              <Text className='lineage-card-litter'>📅 {extra.litterDate}</Text>
+             )}
+           </View>
+-          {isSelected && !addingRelation && (
+-            <View className='lineage-card-indicator'>
+-              <View className='lineage-card-dot' />
+-            </View>
+-          )}
+         </View>
+       </View>
+     )
+   }
+ 
+-  const renderConnector = (fromTop: boolean) => (
++  // 树形连线（类名匹配 SCSS: lineage-connector / lineage-connector-line / lineage-connector-dot）
++  const renderTreeConnector = (direction: 'up' | 'down') => (
+     <View className='lineage-connector'>
+-      <View className={`lineage-connector-line ${fromTop ? 'lineage-connector-line--top' : 'lineage-connector-line--bottom'}`} />
++      <View className={`lineage-connector-line lineage-connector-line--${direction === 'up' ? 'top' : 'bottom'}`} />
+       <View className='lineage-connector-dot' />
+     </View>
+   )
+@@ -330,10 +313,7 @@ export default function LineagePage() {
+           <Text className='lineage-empty-icon'>🧬</Text>
+           <Text className='lineage-empty-text'>还没有家庭成员</Text>
+           <Text className='lineage-empty-hint'>请先在家庭看板中添加宠物</Text>
+-          <View
+-            className='lineage-empty-btn'
+-            onClick={() => Taro.navigateBack()}
+-          >
++          <View className='lineage-empty-btn' onClick={() => Taro.navigateBack()}>
+             <Text>返回家庭看板</Text>
+           </View>
+         </View>
+@@ -346,10 +326,7 @@ export default function LineagePage() {
+       <View className='lineage-header'>
+         <View className='lineage-header-top'>
+           <Text className='lineage-header-title'>🧬 家族图谱</Text>
+-          <View
+-            className='lineage-header-switch'
+-            onClick={() => setPetSelectorOpen(!petSelectorOpen)}
+-          >
++          <View className='lineage-header-switch' onClick={() => setPetSelectorOpen(!petSelectorOpen)}>
+             <Text className='lineage-header-switch-text'>
+               {selectedPet?.name || '选择宠物'}
+             </Text>
+@@ -366,13 +343,9 @@ export default function LineagePage() {
+                 className={`lineage-selector-item ${pet.id === selectedPetId ? 'lineage-selector-item--active' : ''}`}
+                 onClick={() => handleSelectPet(pet.id)}
+               >
+-                <Text className='lineage-selector-emoji'>
+-                  {getSpeciesEmoji(pet.species)}
+-                </Text>
++                <Text className='lineage-selector-emoji'>{getSpeciesEmoji(pet.species)}</Text>
+                 <Text className='lineage-selector-name'>{pet.name}</Text>
+-                {pet.id === selectedPetId && (
+-                  <Text className='lineage-selector-check'>✓</Text>
+-                )}
++                {pet.id === selectedPetId && <Text className='lineage-selector-check'>✓</Text>}
+               </View>
+             ))}
+           </View>
+@@ -387,10 +360,7 @@ export default function LineagePage() {
+           <Text className='lineage-adding-banner-text'>
+             请选择{addingRelation.mode === 'parent' ? '父母' : '子女'}宠物
+           </Text>
+-          <View
+-            className='lineage-adding-banner-cancel'
+-            onClick={() => setAddingRelation(null)}
+-          >
++          <View className='lineage-adding-banner-cancel' onClick={() => setAddingRelation(null)}>
+             <Text>取消</Text>
+           </View>
+         </View>
+@@ -405,119 +375,98 @@ export default function LineagePage() {
+                 <Text className='lineage-layer-label-text'>👆 父母</Text>
+               </View>
+               <View className='lineage-layer-cards'>
+-                {parentPets.map(({ pet, litterDate }) => (
++                {parentPets.map(({ pet, lineageId, litterDate }) => (
+                   <View key={pet.id} className='lineage-card-wrap'>
+                     {renderPetCard(pet, 'parent', { litterDate })}
+-                    <View
+-                      className='lineage-remove-btn'
+-                      onClick={() => handleRemoveRelation(
+-                        lineage.parents.find(l => l.parentId === pet.id)?.id || '',
+-                        'parent',
+-                        pet.name,
+-                      )}
+-                    >
+-                      <Text>✕</Text>
+-                    </View>
++                    {!addingRelation && (
++                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'parent', pet.name)}>
++                        <Text>✕</Text>
++                      </View>
++                    )}
+                   </View>
+                 ))}
+               </View>
+-              {renderConnector(true)}
++              {renderTreeConnector('down')}
+             </View>
+           )}
+ 
+-          {/* 兄弟姐妹层 */}
+-          {siblingPets.length > 0 && (
+-            <View className='lineage-layer lineage-layer--siblings'>
+-              <View className='lineage-layer-label'>
+-                <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
+-              </View>
+-              <View className='lineage-layer-cards'>
+-                {siblingPets.map(pet => (
+-                  <View key={pet.id} className='lineage-card-wrap'>
+-                    {renderPetCard(pet, 'sibling')}
++          {/* 中间层：兄弟姐妹 + 选中宠物 */}
++          <View className='lineage-layer lineage-layer--center'>
++            <View className='lineage-center-row'>
++              {/* 兄弟姐妹（左侧） */}
++              {siblingPets.length > 0 && (
++                <View className='lineage-siblings-side'>
++                  <View className='lineage-layer-label'>
++                    <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
+                   </View>
+-                ))}
+-              </View>
+-            </View>
+-          )}
+-
+-          {/* 选中宠物自身 */}
+-          {selectedPet && (
+-            <View className='lineage-layer lineage-layer--self'>
+-              <View className='lineage-self-card'>
+-                <View className='lineage-self-glow' />
+-                <View className='lineage-self-body'>
+-                  <View className='lineage-self-avatar'>
+-                    <Text className='lineage-self-emoji'>
+-                      {getSpeciesEmoji(selectedPet.species)}
+-                    </Text>
++                  <View className='lineage-siblings-list'>
++                    {siblingPets.map(({ pet }) => (
++                      <View key={pet.id} className='lineage-card-wrap lineage-card-wrap--sibling'>
++                        {renderPetCard(pet, 'sibling')}
++                      </View>
++                    ))}
+                   </View>
+-                  <View className='lineage-self-info'>
+-                    <View className='lineage-self-name-row'>
+-                      <Text className='lineage-self-name'>{selectedPet.name}</Text>
+-                      {getGenderIcon(selectedPet.gender) && (
+-                        <Text className={`lineage-card-gender ${getGenderClass(selectedPet.gender)}`}>
+-                          {getGenderIcon(selectedPet.gender)}
++                </View>
++              )}
++
++              {/* 选中宠物自身 */}
++              {selectedPet && (
++                <View className='lineage-self-wrap'>
++                  <View className='lineage-self-card'>
++                    <View className='lineage-self-glow' />
++                    <View className='lineage-self-body'>
++                      <View className='lineage-self-avatar'>
++                        <Text className='lineage-self-emoji'>{getSpeciesEmoji(selectedPet.species)}</Text>
++                      </View>
++                      <View className='lineage-self-info'>
++                        <View className='lineage-self-name-row'>
++                          <Text className='lineage-self-name'>{selectedPet.name}</Text>
++                          {getGenderIcon(selectedPet.gender) && (
++                            <Text className={`lineage-card-gender ${getGenderClass(selectedPet.gender)}`}>
++                              {getGenderIcon(selectedPet.gender)}
++                            </Text>
++                          )}
++                        </View>
++                        <Text className='lineage-self-breed'>
++                          {selectedPet.breed || '未知品种'}
++                          {calcAge(selectedPet.birthDate) ? ` · ${calcAge(selectedPet.birthDate)}` : ''}
+                         </Text>
+-                      )}
++                      </View>
+                     </View>
+-                    <Text className='lineage-self-breed'>
+-                      {selectedPet.breed || '未知品种'}
+-                      {calcAge(selectedPet.birthDate) ? ` · ${calcAge(selectedPet.birthDate)}` : ''}
+-                    </Text>
++                    {!addingRelation && (
++                      <View className='lineage-self-actions'>
++                        <View className='lineage-self-action' onClick={handleAddParent}>
++                          <Text className='lineage-self-action-icon'>+👆</Text>
++                          <Text className='lineage-self-action-text'>添加父母</Text>
++                        </View>
++                        <View className='lineage-self-action' onClick={handleAddChild}>
++                          <Text className='lineage-self-action-icon'>+👇</Text>
++                          <Text className='lineage-self-action-text'>添加子女</Text>
++                        </View>
++                      </View>
++                    )}
+                   </View>
+                 </View>
+-                <View className='lineage-self-actions'>
+-                  <View className='lineage-self-action' onClick={handleAddParent}>
+-                    <Text className='lineage-self-action-icon'>+👆</Text>
+-                    <Text className='lineage-self-action-text'>添加父母</Text>
+-                  </View>
+-                  <View className='lineage-self-action' onClick={handleAddChild}>
+-                    <Text className='lineage-self-action-icon'>+👇</Text>
+-                    <Text className='lineage-self-action-text'>添加子女</Text>
+-                  </View>
+-                </View>
+-              </View>
+-            </View>
+-          )}
+-
+-          {/* 兄弟姐妹层(下方) */}
+-          {siblingPets.length > 0 && parentPets.length === 0 && (
+-            <View className='lineage-layer lineage-layer--siblings'>
+-              <View className='lineage-layer-label'>
+-                <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
+-              </View>
+-              <View className='lineage-layer-cards'>
+-                {siblingPets.map(pet => (
+-                  <View key={pet.id} className='lineage-card-wrap'>
+-                    {renderPetCard(pet, 'sibling')}
+-                  </View>
+-                ))}
+-              </View>
++              )}
+             </View>
+-          )}
++          </View>
+ 
+           {/* 子女层 */}
+           {childPets.length > 0 && (
+             <View className='lineage-layer lineage-layer--children'>
+-              {renderConnector(false)}
++              {renderTreeConnector('up')}
+               <View className='lineage-layer-label'>
+                 <Text className='lineage-layer-label-text'>👇 子女</Text>
+               </View>
+               <View className='lineage-layer-cards'>
+-                {childPets.map(({ pet, litterDate }) => (
++                {childPets.map(({ pet, lineageId, litterDate }) => (
+                   <View key={pet.id} className='lineage-card-wrap'>
+                     {renderPetCard(pet, 'child', { litterDate })}
+-                    <View
+-                      className='lineage-remove-btn'
+-                      onClick={() => handleRemoveRelation(
+-                        lineage.children.find(l => l.childId === pet.id)?.id || '',
+-                        'child',
+-                        pet.name,
+-                      )}
+-                    >
+-                      <Text>✕</Text>
+-                    </View>
++                    {!addingRelation && (
++                      <View className='lineage-remove-btn' onClick={() => handleRemoveRelation(lineageId, 'child', pet.name)}>
++                        <Text>✕</Text>
++                      </View>
++                    )}
+                   </View>
+                 ))}
+               </View>
+@@ -538,7 +487,7 @@ export default function LineagePage() {
+           )}
+         </View>
+ 
+-        {/* 可选宠物列表(添加关系时) */}
++        {/* 可选宠物列表（添加关系时） */}
+         {addingRelation && (
+           <View className='lineage-available-section'>
+             <View className='lineage-section-title'>
+@@ -551,14 +500,10 @@ export default function LineagePage() {
+                   className='lineage-available-item'
+                   onClick={() => handleConfirmRelation(pet.id)}
+                 >
+-                  <Text className='lineage-available-emoji'>
+-                    {getSpeciesEmoji(pet.species)}
+-                  </Text>
++                  <Text className='lineage-available-emoji'>{getSpeciesEmoji(pet.species)}</Text>
+                   <View className='lineage-available-info'>
+                     <Text className='lineage-available-name'>{pet.name}</Text>
+-                    <Text className='lineage-available-breed'>
+-                      {pet.breed || '未知品种'}
+-                    </Text>
++                    <Text className='lineage-available-breed'>{pet.breed || '未知品种'}</Text>
+                   </View>
+                   <Text className='lineage-available-add'>+</Text>
+                 </View>
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/wardrobe/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/wardrobe/index.tsx"
+index ef96851..f27fd42 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/wardrobe/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesPet/wardrobe/index.tsx"
+@@ -8,6 +8,7 @@ import Taro from '@tarojs/taro'
+ import { useThemeClass } from '../../hooks/useThemeClass'
+ import { useWardrobe } from '../../hooks/useWardrobe'
+ import { usePetStore } from '../../stores/petStore'
++import { shareCardService } from '../../services/shareCardService'
+ import type { AccessorySlot, ThemeSuiteTask } from '../../types/wardrobeTypes'
+ import OutfitPreview from '../../components/Wardrobe/OutfitPreview'
+ import AccessoryPicker from '../../components/Wardrobe/AccessoryPicker'
+@@ -35,6 +36,7 @@ export default function WardrobePage() {
+   const [activeSlot, setActiveSlot] = useState<AccessorySlot>('head')
+   const [unlockTarget, setUnlockTarget] = useState<string | null>(null)
+   const [unlockModalVisible, setUnlockModalVisible] = useState(false)
++  const [sharing, setSharing] = useState(false)
+ 
+   const species = currentPet?.species || 'dog'
+   const petName = currentPet?.name || '毛孩子'
+@@ -86,9 +88,41 @@ export default function WardrobePage() {
+     wardrobe.clearOutfit()
+   }, [wardrobe.clearOutfit])
+ 
+-  const handleShare = useCallback(() => {
+-    Taro.showToast({ title: '分享功能开发中', icon: 'none' })
+-  }, [])
++  const handleShare = useCallback(async () => {
++    if (sharing) return
++    setSharing(true)
++    try {
++      // 生成配饰描述文字
++      const pieces = Object.entries(outfitSlots)
++        .filter(([, v]) => v)
++        .map(([slot]) => {
++          const labels: Record<string, string> = { head: '头饰', neck: '项圈', back: '背包', body: '衣服', feet: '鞋袜' }
++          return labels[slot] || slot
++        })
++      const customText = pieces.length > 0
++        ? `${petName}的今日穿搭：${pieces.join('、')}`
++        : `${petName}的时尚造型`
++
++      const card = await shareCardService.generateShareCard({
++        card_type: 'wardrobe',
++        source_data: {
++          pet_id: currentPet?.id,
++          custom_text: customText,
++        },
++        style: { theme: 'cute' },
++      })
++
++      // 预览生成的分享卡片
++      Taro.previewImage({
++        urls: [card.card_url],
++        current: card.card_url,
++      })
++    } catch {
++      Taro.showToast({ title: '生成分享卡片失败', icon: 'none' })
++    } finally {
++      setSharing(false)
++    }
++  }, [sharing, outfitSlots, petName, currentPet?.id])
+ 
+   const handleGenerate = useCallback(
+     async (suiteId: string) => {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.scss" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.scss"
+index c0e1a00..15cfc98 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.scss"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.scss"
+@@ -34,6 +34,10 @@
+     white-space: nowrap;
+     padding: 24rpx 24rpx 0;
+ 
++    &--category {
++      padding-top: 16rpx;
++    }
++
+     &-tab {
+       display: inline-block;
+       padding: 12rpx 28rpx;
+@@ -80,6 +84,11 @@
+     }
+   }
+ 
++  // 列表滚动容器
++  &__list-scroll {
++    height: calc(100vh - 420rpx);
++  }
++
+   // 列表
+   &__list {
+     padding: 24rpx;
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.tsx" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.tsx"
+index 941d33b..ecce510 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.tsx"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/pagesUser/memory/index.tsx"
+@@ -30,12 +30,25 @@ import {
+   getStatusLabel,
+   getImportanceStars,
+ } from '../../services/memoryService'
+-import type { MemoryEntry } from '../../types/memoryTypes'
++import type { MemoryEntry, MemoryCategory } from '../../types/memoryTypes'
+ import './index.scss'
+ 
+ /** 单次加载上限提示阈值 */
+ const LOAD_LIMIT_HINT = 200
+ 
++/** 可筛选的分类列表 */
++const CATEGORY_FILTERS: { key: MemoryCategory | ''; label: string; icon: string }[] = [
++  { key: '', label: '全部', icon: '📋' },
++  { key: 'health', label: '健康', icon: '❤️' },
++  { key: 'behavior', label: '行为', icon: '🐾' },
++  { key: 'habit', label: '习惯', icon: '⏰' },
++  { key: 'preference', label: '偏好', icon: '⭐' },
++  { key: 'event', label: '事件', icon: '🎉' },
++  { key: 'feeding', label: '喂养', icon: '🍽️' },
++  { key: 'medical', label: '医疗', icon: '💊' },
++  { key: 'general', label: '其他', icon: '📝' },
++]
++
+ export default function MemoryPage() {
+   const user = useAuthStore(s => s.user)
+   const { pets } = usePet()
+@@ -46,9 +59,11 @@ export default function MemoryPage() {
+   const [loading, setLoading] = useState(true)
+   const [error, setError] = useState<string | null>(null)
+   const [activePetId, setActivePetId] = useState<string>('') // '' = 全部宠物
++  const [activeCategory, setActiveCategory] = useState<MemoryCategory | ''>('') // '' = 全部分类
+   const [editingId, setEditingId] = useState<number | null>(null)
+   const [editingContent, setEditingContent] = useState('')
+   const [saving, setSaving] = useState(false)
++  const [refreshing, setRefreshing] = useState(false)
+ 
+   useEffect(() => {
+     trackPageView('memory_correction')
+@@ -131,6 +146,33 @@ export default function MemoryPage() {
+     loadMemories(activePetId || undefined)
+   }, [activePetId, loadMemories])
+ 
++  /** 下拉刷新 */
++  const handleRefresh = useCallback(async () => {
++    setRefreshing(true)
++    try {
++      await listMemories(activePetId || undefined).then(setMemories)
++    } catch {
++      // 刷新失败不覆盖已有数据
++    } finally {
++      setRefreshing(false)
++    }
++  }, [activePetId])
++
++  /** 前端过滤：按分类筛选 */
++  const filteredMemories = useMemo(() => {
++    if (!activeCategory) return memories
++    return memories.filter(m => m.category === activeCategory)
++  }, [memories, activeCategory])
++
++  /** 分类统计 */
++  const categoryCounts = useMemo(() => {
++    const counts: Record<string, number> = {}
++    for (const m of memories) {
++      counts[m.category] = (counts[m.category] || 0) + 1
++    }
++    return counts
++  }, [memories])
++
+   /** 宠物名映射（petId → name） */
+   const petNameMap = useMemo(() => {
+     const map: Record<string, string> = {}
+@@ -177,27 +219,53 @@ export default function MemoryPage() {
+         </ScrollView>
+       )}
+ 
++      {/* 分类筛选 */}
++      <ScrollView scrollX className='memory-page__filter memory-page__filter--category' enhanced showScrollbar={false}>
++        {CATEGORY_FILTERS.map(cat => (
++          <View
++            key={cat.key}
++            className={`memory-page__filter-tab ${activeCategory === cat.key ? 'memory-page__filter-tab--active' : ''}`}
++            onClick={() => setActiveCategory(cat.key)}
++          >
++            <Text>{cat.icon} {cat.label}{cat.key ? ` ${categoryCounts[cat.key] || 0}` : ` ${memories.length}`}</Text>
++          </View>
++        ))}
++      </ScrollView>
++
+       {/* 内容区 */}
+       {loading ? (
+         <PageLoading text='加载记忆中...' />
+       ) : error ? (
+         <PageError message={error} onRetry={handleRetry} />
+-      ) : memories.length === 0 ? (
++      ) : filteredMemories.length === 0 ? (
+         <View className='memory-page__empty'>
+-          <Text className='memory-page__empty-emoji'>💭</Text>
+-          <Text className='memory-page__empty-title'>暂无 AI 记忆</Text>
++          <Text className='memory-page__empty-emoji'>{activeCategory ? '🔍' : '💭'}</Text>
++          <Text className='memory-page__empty-title'>
++            {activeCategory ? '该分类暂无记忆' : '暂无 AI 记忆'}
++          </Text>
+           <Text className='memory-page__empty-desc'>
+-            和 AI 多聊聊你的宠物，它会自动记住重要信息哦～
++            {activeCategory
++              ? '试试切换到其他分类，或者和 AI 多聊聊你的宠物吧～'
++              : '和 AI 多聊聊你的宠物，它会自动记住重要信息哦～'}
+           </Text>
+         </View>
+       ) : (
++        <ScrollView
++          className='memory-page__list-scroll'
++          scrollY
++          refresherEnabled
++          refresherTriggered={refreshing}
++          onRefresherRefresh={handleRefresh}
++          enhanced
++          showScrollbar={false}
++        >
+         <View className='memory-page__list'>
+-          {memories.length >= LOAD_LIMIT_HINT && (
++          {filteredMemories.length >= LOAD_LIMIT_HINT && (
+             <View className='memory-page__limit-hint'>
+               <Text>仅显示最近 {LOAD_LIMIT_HINT} 条记忆</Text>
+             </View>
+           )}
+-          {memories.map(memory => {
++          {filteredMemories.map(memory => {
+             const catInfo = getCategoryInfo(memory.category)
+             const isEditing = editingId === memory.id
+             return (
+@@ -262,6 +330,7 @@ export default function MemoryPage() {
+             )
+           })}
+         </View>
++        </ScrollView>
+       )}
+     </View>
+   )
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/familyService.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/familyService.test.ts"
+index 4ff0482..8af9648 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/familyService.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/__tests__/familyService.test.ts"
+@@ -78,6 +78,7 @@ function makeMember(overrides: Partial<PetFamilyMember> = {}): PetFamilyMember {
+ function makeLineage(overrides: Partial<PetLineage> = {}): PetLineage {
+   return {
+     id: 'lineage-001',
++    familyId: null,
+     parentId: 'pet-001',
+     childId: 'pet-002',
+     litterDate: '2024-01-01',
+@@ -225,8 +226,11 @@ describe('familyService', () => {
+   describe('getLineage', () => {
+     it('calls api.get with /api/families/{familyId}/lineage/{petId}', async () => {
+       vi.mocked(api.get).mockResolvedValue({
+-        parents: [makeLineage()],
+-        children: [makeLineage({ id: 'lineage-002' })],
++        pet: { id: 'pet-001', name: '小白', avatar_url: null, species: 'cat' },
++        parents: [],
++        children: [],
++        siblings: [],
++        mates: [],
+       })
+ 
+       await familyService.getLineage('pet-001', 'family-001')
+@@ -234,33 +238,37 @@ describe('familyService', () => {
+       expect(api.get).toHaveBeenCalledWith('/api/families/family-001/lineage/pet-001')
+     })
+ 
+-    it('returns empty structure when familyId is missing', async () => {
+-      const result = await familyService.getLineage('pet-001')
+-
+-      expect(result).toEqual({ parents: [], children: [] })
+-      expect(api.get).not.toHaveBeenCalled()
+-    })
+-
+     it('returns default structure when API returns null', async () => {
+       vi.mocked(api.get).mockResolvedValue(null)
+ 
+       const result = await familyService.getLineage('pet-001', 'family-001')
+ 
+-      expect(result).toEqual({ parents: [], children: [] })
++      expect(result.pet.id).toBe('pet-001')
++      expect(result.parents).toEqual([])
++      expect(result.children).toEqual([])
++      expect(result.siblings).toEqual([])
++      expect(result.mates).toEqual([])
+     })
+ 
+-    it('returns lineage when API returns data', async () => {
+-      const lineageData = {
+-        parents: [makeLineage()],
+-        children: [makeLineage({ id: 'lineage-002', childId: 'pet-003' })],
++    it('returns lineage when API returns data (snake_case → camelCase)', async () => {
++      const rawData = {
++        pet: { id: 'pet-001', name: '小白', avatar_url: null, species: 'cat' },
++        parents: [{ id: 'l-001', family_id: null, parent_id: 'pet-p1', child_id: 'pet-001', litter_date: '2024-01-01', created_at: null, pet_id: 'pet-p1', pet_name: '大黑', pet_avatar_url: null, pet_species: 'dog' }],
++        children: [{ id: 'l-002', family_id: null, parent_id: 'pet-001', child_id: 'pet-c1', litter_date: null, created_at: null, pet_id: 'pet-c1', pet_name: '小花', pet_avatar_url: null, pet_species: 'cat' }],
++        siblings: [],
++        mates: [],
+       }
+-      vi.mocked(api.get).mockResolvedValue(lineageData)
++      vi.mocked(api.get).mockResolvedValue(rawData)
+ 
+       const result = await familyService.getLineage('pet-001', 'family-001')
+ 
+-      expect(result).toEqual(lineageData)
++      expect(result.pet.name).toBe('小白')
+       expect(result.parents).toHaveLength(1)
++      expect(result.parents[0].parentId).toBe('pet-p1')
++      expect(result.parents[0].petName).toBe('大黑')
+       expect(result.children).toHaveLength(1)
++      expect(result.children[0].childId).toBe('pet-c1')
++      expect(result.children[0].petName).toBe('小花')
+     })
+   })
+ 
+@@ -268,7 +276,7 @@ describe('familyService', () => {
+     it('calls api.post with correct params including litter_date', async () => {
+       vi.mocked(api.post).mockResolvedValue(undefined)
+ 
+-      await familyService.addLineage('pet-001', 'pet-002', '2024-01-01', 'family-001')
++      await familyService.addLineage('pet-001', 'pet-002', 'family-001', '2024-01-01')
+ 
+       expect(api.post).toHaveBeenCalledWith('/api/families/family-001/lineage', {
+         parent_id: 'pet-001',
+@@ -280,7 +288,7 @@ describe('familyService', () => {
+     it('sends litter_date as undefined when not provided', async () => {
+       vi.mocked(api.post).mockResolvedValue(undefined)
+ 
+-      await familyService.addLineage('pet-001', 'pet-002', undefined, 'family-001')
++      await familyService.addLineage('pet-001', 'pet-002', 'family-001')
+ 
+       expect(api.post).toHaveBeenCalledWith('/api/families/family-001/lineage', {
+         parent_id: 'pet-001',
+@@ -288,19 +296,15 @@ describe('familyService', () => {
+         litter_date: undefined,
+       })
+     })
+-
+-    it('does nothing when familyId is missing', async () => {
+-      await familyService.addLineage('pet-001', 'pet-002')
+-
+-      expect(api.post).not.toHaveBeenCalled()
+-    })
+   })
+ 
+   describe('removeLineage', () => {
+-    it('removes lineage locally without API call', async () => {
+-      await familyService.removeLineage('lineage-001')
++    it('calls api.delete with /api/families/{familyId}/lineage/{lineageId}', async () => {
++      vi.mocked(api.delete).mockResolvedValue(undefined)
+ 
+-      expect(api.delete).not.toHaveBeenCalled()
++      await familyService.removeLineage('lineage-001', 'family-001')
++
++      expect(api.delete).toHaveBeenCalledWith('/api/families/family-001/lineage/lineage-001')
+     })
+   })
+ 
+@@ -324,60 +328,49 @@ describe('familyService', () => {
+     })
+   })
+ 
+-  describe('saveFamilyPhoto', () => {
+-    it('saves photo to local storage and returns it', async () => {
+-      const result = await familyService.saveFamilyPhoto(
+-        'family-001',
+-        'https://example.com/photo.jpg',
+-        3,
+-        ['小白', '小黑', '小花'],
+-      )
+-
+-      expect(result.familyId).toBe('family-001')
+-      expect(result.photoType).toBe('generated')
+-      expect(result.memberCount).toBe(3)
+-      expect(result.memberNames).toEqual(['小白', '小黑', '小花'])
+-      expect(result.id).toBeDefined()
+-      expect(result.createdAt).toBeDefined()
+-      expect(api.post).not.toHaveBeenCalled()
+-    })
++  describe('generateFamilyPhoto', () => {
++    it('calls api.post with /api/families/{familyId}/photos and style', async () => {
++      vi.mocked(api.post).mockResolvedValue({ id: 'photo-new', photoUrl: 'https://example.com/ai-photo.jpg' })
+ 
+-    it('passes custom photoType and description', async () => {
+-      const result = await familyService.saveFamilyPhoto(
+-        'family-001',
+-        'https://example.com/photo.jpg',
+-        3,
+-        ['小白', '小黑', '小花'],
+-        'uploaded',
+-        '全家福合影',
+-      )
+-
+-      expect(result.photoType).toBe('uploaded')
+-      expect(result.description).toBe('全家福合影')
++      const result = await familyService.generateFamilyPhoto('family-001', 'pixar')
++
++      expect(api.post).toHaveBeenCalledWith('/api/families/family-001/photos', { style: 'pixar' })
++      expect(result.id).toBe('photo-new')
++      expect(result.photoUrl).toBe('https://example.com/ai-photo.jpg')
+     })
+ 
+-    it('persists photo and returns it in getFamilyPhotos', async () => {
+-      await familyService.saveFamilyPhoto(
+-        'family-001',
+-        'https://example.com/photo.jpg',
+-        3,
+-        ['小白', '小黑', '小花'],
+-      )
++    it('falls back to local storage when API fails', async () => {
++      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+ 
+-      const photos = await familyService.getFamilyPhotos('family-001')
+-      expect(photos).toHaveLength(1)
+-      expect(photos[0].photoUrl).toBe('https://example.com/photo.jpg')
++      mockStorage['xhh_family_photos_all'] = JSON.stringify([
++        makePhoto({ id: 'photo-001', familyId: 'family-001' }),
++        makePhoto({ id: 'photo-002', familyId: 'family-002' }),
++      ])
++
++      const result = await familyService.getFamilyPhotos('family-001')
++
++      expect(result).toHaveLength(1)
++      expect(result[0].id).toBe('photo-001')
+     })
+   })
+ 
+   describe('deleteFamilyPhoto', () => {
+-    it('deletes photo from local storage', async () => {
++    it('calls api.delete with /api/families/{familyId}/photos/{photoId}', async () => {
++      vi.mocked(api.delete).mockResolvedValue(undefined)
++
++      await familyService.deleteFamilyPhoto('family-001', 'photo-001')
++
++      expect(api.delete).toHaveBeenCalledWith('/api/families/family-001/photos/photo-001')
++    })
++
++    it('falls back to local storage when API fails', async () => {
++      vi.mocked(api.delete).mockRejectedValue(new Error('Network error'))
+       mockStorage['xhh_family_photos_all'] = JSON.stringify([
+         makePhoto({ id: 'photo-001' }),
+         makePhoto({ id: 'photo-002' }),
+       ])
+ 
+-      await familyService.deleteFamilyPhoto('photo-001')
++      await familyService.deleteFamilyPhoto('family-001', 'photo-001')
+ 
+       const photos = await familyService.getFamilyPhotos('family-001')
+       expect(photos).toHaveLength(1)
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/checkinService.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/checkinService.ts"
+index b603de7..d75591d 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/checkinService.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/checkinService.ts"
+@@ -235,6 +235,10 @@ export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry>
+  * @param userId - 用户 ID
+  */
+ export async function getTodayCheckin(petId: string, userId: string): Promise<PetHealthEntry | null> {
++  if (!petId) {
++    console.warn('getTodayCheckin: petId is required');
++    return null;
++  }
+   const today = new Date().toISOString().slice(0, 10);
+   try {
+     const result = await api.get<PetHealthEntry | null>(
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyPhotoService.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyPhotoService.ts"
+index d56f7f4..2a29124 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyPhotoService.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyPhotoService.ts"
+@@ -6,6 +6,26 @@
+ import Taro from '@tarojs/taro'
+ import type { PetProfile } from './petService'
+ 
++// ==================== AI 全家福生成 ====================
++
++/** 全家福风格类型 */
++export type FamilyPhotoStyle = 'pixar' | 'ghibli' | 'oil' | 'ink' | 'nordic' | 'cyberpunk'
++
++/** 风格标签映射 */
++export const FAMILY_PHOTO_STYLE_LABELS: Record<FamilyPhotoStyle, { label: string; emoji: string }> = {
++  pixar: { label: '皮克斯3D', emoji: '🎬' },
++  ghibli: { label: '吉卜力动漫', emoji: '🌿' },
++  oil: { label: '油画印象', emoji: '🎨' },
++  ink: { label: '水墨中国', emoji: '🏮' },
++  nordic: { label: '极简北欧', emoji: '🪵' },
++  cyberpunk: { label: '赛博朋克', emoji: '🤖' },
++}
++
++/** 所有风格列表 */
++export const FAMILY_PHOTO_STYLES: FamilyPhotoStyle[] = ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk']
++
++// ==================== Canvas 绘制 ====================
++
+ const CANVAS_WIDTH = 750
+ const CANVAS_HEIGHT = 1000
+ const BRAND_COLORS = {
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyService.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyService.ts"
+index 38b6f08..087f496 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyService.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/familyService.ts"
+@@ -7,11 +7,48 @@ import { getStorage, setStorage } from '../utils/storage'
+ import { api } from './api'
+ import { mockApi } from './mock'
+ import { CONFIG } from '../config'
+-import type { PetFamily, PetFamilyMember, PetLineage, FamilyPhoto } from '../types/familyTypes'
++import type { PetFamily, PetFamilyMember, PetLineage, LineageResponse, FamilyPhoto } from '../types/familyTypes'
+ 
+ const useMock = () => CONFIG.USE_MOCK
+ 
+-/** 家庭照片本地存储 key（后端无家庭照片端点，本地持久化） */
++/** 将后端 snake_case 响应转换为前端 camelCase */
++function transformLineageResponse(raw: Record<string, unknown>): LineageResponse {
++  const toPetLineage = (item: Record<string, unknown>): PetLineage => ({
++    id: String(item.id),
++    familyId: (item.family_id as string | null) ?? null,
++    parentId: String(item.parent_id),
++    childId: String(item.child_id),
++    litterDate: (item.litter_date as string) || undefined,
++    createdAt: (item.created_at as string) || undefined,
++    petId: (item.pet_id as string) || undefined,
++    petName: (item.pet_name as string | null) ?? null,
++    petAvatarUrl: (item.pet_avatar_url as string | null) ?? null,
++    petSpecies: (item.pet_species as string | null) ?? null,
++  })
++
++  const petRaw = raw.pet as Record<string, unknown>
++  return {
++    pet: {
++      id: String(petRaw.id),
++      name: (petRaw.name as string | null) ?? null,
++      avatarUrl: (petRaw.avatar_url as string | null) ?? null,
++      species: (petRaw.species as string | null) ?? null,
++    },
++    parents: ((raw.parents as Array<Record<string, unknown>>) || []).map(toPetLineage),
++    children: ((raw.children as Array<Record<string, unknown>>) || []).map(toPetLineage),
++    siblings: ((raw.siblings as Array<Record<string, unknown>>) || []).map(toPetLineage),
++    mates: ((raw.mates as Array<Record<string, unknown>>) || []).map((m) => ({
++      id: String(m.id),
++      petIdA: String(m.pet_id_a),
++      petIdB: String(m.pet_id_b),
++      relationType: String(m.relation_type),
++      labelA: (m.label_a as string) || undefined,
++      labelB: (m.label_b as string) || undefined,
++    })),
++  }
++}
++
++/** 家庭照片本地存储 key（后端 API 不可用时本地兜底） */
+ const FAMILY_PHOTOS_KEY = 'family_photos_all'
+ 
+ function generatePhotoId(): string {
+@@ -65,26 +102,25 @@ export const familyService = {
+ 
+   async getLineage(
+     petId: string,
+-    familyId?: string,
+-  ): Promise<{ parents: PetLineage[]; children: PetLineage[] }> {
++    familyId: string,
++  ): Promise<LineageResponse> {
+     if (useMock()) return mockApi.getLineage(petId)
+-    // 后端端点需要 familyId：GET /api/families/:familyId/lineage/:petId
+-    if (!familyId) return { parents: [], children: [] }
+-    const data = await api.get<{ parents: PetLineage[]; children: PetLineage[] }>(
++    const raw = await api.get<Record<string, unknown>>(
+       `/api/families/${familyId}/lineage/${petId}`
+     )
+-    return { parents: data?.parents || [], children: data?.children || [] }
++    if (!raw) {
++      return { pet: { id: petId, name: null, avatarUrl: null, species: null }, parents: [], children: [], siblings: [], mates: [] }
++    }
++    return transformLineageResponse(raw)
+   },
+ 
+   async addLineage(
+     parentId: string,
+     childId: string,
++    familyId: string,
+     litterDate?: string,
+-    familyId?: string,
+   ): Promise<void> {
+     if (useMock()) return mockApi.addLineage(parentId, childId, litterDate)
+-    // 后端端点需要 familyId：POST /api/families/:familyId/lineage（body snake_case）
+-    if (!familyId) return
+     await api.post(`/api/families/${familyId}/lineage`, {
+       parent_id: parentId,
+       child_id: childId,
+@@ -92,38 +128,40 @@ export const familyService = {
+     })
+   },
+ 
+-  async removeLineage(lineageId: string): Promise<void> {
++  async removeLineage(lineageId: string, familyId: string): Promise<void> {
+     if (useMock()) return mockApi.removeLineage(lineageId)
+-    // 后端未提供删除血缘端点（仅删除 relationship），云端删除暂不支持
++    await api.delete(`/api/families/${familyId}/lineage/${lineageId}`)
+   },
+ 
+   async getFamilyPhotos(familyId: string): Promise<FamilyPhoto[]> {
+     if (useMock()) return mockApi.getFamilyPhotos(familyId)
+-    // 后端无家庭照片端点，本地持久化
++    try {
++      const data = await api.get<FamilyPhoto[]>(`/api/families/${familyId}/photos`)
++      if (data && data.length > 0) return data
++    } catch {
++      // 后端不可用，使用本地存储兜底
++    }
+     return getLocalPhotos().filter((p) => p.familyId === familyId)
+   },
+ 
+-  async saveFamilyPhoto(familyId: string, photoUrl: string, memberCount: number, memberNames: string[], photoType: 'generated' | 'uploaded' = 'generated', description?: string): Promise<FamilyPhoto> {
+-    if (useMock()) return mockApi.saveFamilyPhoto(familyId, photoUrl, memberCount, memberNames, photoType, description)
+-    const photo: FamilyPhoto = {
+-      id: generatePhotoId(),
+-      familyId,
+-      userId: '',
+-      photoUrl,
+-      photoType,
+-      description,
+-      memberCount,
+-      memberNames,
+-      createdAt: new Date().toISOString(),
++  /** 发起 AI 全家福生成 */
++  async generateFamilyPhoto(familyId: string, style: string): Promise<{ id: string; photoUrl: string }> {
++    if (useMock()) {
++      const mockPhoto = await mockApi.saveFamilyPhoto(familyId, '', 0, [], 'generated')
++      return { id: mockPhoto.id, photoUrl: mockPhoto.photoUrl }
+     }
+-    const photos = getLocalPhotos()
+-    photos.unshift(photo)
+-    saveLocalPhotos(photos)
+-    return photo
++    const data = await api.post<{ id: string; photoUrl: string }>(`/api/families/${familyId}/photos`, { style })
++    return data
+   },
+ 
+-  async deleteFamilyPhoto(photoId: string): Promise<void> {
++  async deleteFamilyPhoto(familyId: string, photoId: string): Promise<void> {
+     if (useMock()) return mockApi.deleteFamilyPhoto(photoId)
++    try {
++      await api.delete(`/api/families/${familyId}/photos/${photoId}`)
++      return
++    } catch {
++      // 后端不可用，使用本地存储兜底
++    }
+     const photos = getLocalPhotos().filter((p) => p.id !== photoId)
+     saveLocalPhotos(photos)
+   },
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts"
+index 9c4cecc..ff3802a 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/index.ts"
+@@ -34,3 +34,43 @@ export { getWardrobeOverview, getAccessoriesBySlot, equipAccessory, unequipAcces
+ export { getThemeSuiteOverview, generateThemeSuite, getThemeSuiteTaskStatus, pollThemeSuiteTask, saveThemeSuiteResult, getThemeQuota, canGenerateTheme, getActiveThemeTask } from './themeSuiteService'
+ /** 穿搭预览 - 套装组合/槽位管理 */
+ export { buildOutfitPreview, toggleSlotInOutfit, clearAllSlots, getEquippedCount, getEmptySlots, getSlotLabel, isOutfitEmpty, areOutfitsEqual, mergeOutfitSlots, type OutfitPreview } from './outfitComposition'
++/** 排行榜 - 家庭排行榜与角色分配 */
++export { leaderboardService, type LeaderboardPeriod, type RankingItem, type LeaderboardResponse, type RoleType, type RoleResponse, type FamilyRolesResponse } from './leaderboardService'
++/** 家族图谱 - 图谱数据/关系管理/快照/血亲树 */
++export {
++  familyTreeService,
++  type TreeNode,
++  type TreeEdge,
++  type TreeResponse,
++  type RelationshipRow,
++  type CreateRelationshipInput,
++  type UpdateRelationshipInput,
++  type CreateLineageInput,
++  type SnapshotRow,
++  type CreateSnapshotInput,
++  type SnapshotListResponse,
++  type LineageTreeResponse,
++} from './familyTreeService'
++/** 家庭动态墙 - 动态列表/发布/编辑/删除/精选 */
++export {
++  feedService,
++  type FeedType,
++  type Feed,
++  type FeedWithPet,
++  type PaginatedFeeds,
++  type GetFeedsParams,
++  type CreateFeedInput,
++  type UpdateFeedInput,
++} from './feedService'
++/** 分享卡片 - 卡片生成/列表/详情/删除/分享记录 */
++export {
++  shareCardService,
++  type ShareCardSourceData,
++  type ShareCardStyle,
++  type ShareChannel,
++  type ShareCardRow,
++  type GenerateShareCardInput,
++  type PaginatedShareCards,
++  type GetShareCardsParams,
++  type RecordShareInput,
++} from './shareCardService'
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/mock.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/mock.ts"
+index b3d7d98..73790d9 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/mock.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/services/mock.ts"
+@@ -4,7 +4,7 @@
+  * 提供开发/测试阶段的模拟数据，涵盖宠物、打卡、趋势、家庭、动态等场景
+  */
+ import type { User, Pet, Checkin, Membership } from '../types'
+-import type { PetFamily, PetFamilyMember, PetLineage, PetMoment, FamilyPhoto } from '../types/familyTypes'
++import type { PetFamily, PetFamilyMember, PetLineage, PetMoment, FamilyPhoto, LineageResponse } from '../types/familyTypes'
+ import type { PetHealthEntry } from '../memory-body/types/memoryBodyTypes'
+ import type { MemoryEntry, MemoryUpdateResult } from '../types/memoryTypes'
+ 
+@@ -303,16 +303,23 @@ export const mockApi = {
+     const member = mockFamilyMembers.find(m => m.familyId === familyId && m.id === memberId)
+     if (member) member.role = role
+   },
+-  getLineage: async (petId: string): Promise<{ parents: PetLineage[]; children: PetLineage[] }> => {
++  getLineage: async (petId: string): Promise<LineageResponse> => {
+     await wait()
+     const parents = mockLineages.filter(l => l.childId === petId)
+     const children = mockLineages.filter(l => l.parentId === petId)
+-    return { parents, children }
++    return {
++      pet: { id: petId, name: 'Mock Pet', avatarUrl: null, species: null },
++      parents,
++      children,
++      siblings: [],
++      mates: [],
++    }
+   },
+   addLineage: async (parentId: string, childId: string, litterDate?: string): Promise<void> => {
+     await wait()
+     mockLineages.push({
+       id: 'lin_' + Date.now(),
++      familyId: 'mock_family',
+       parentId,
+       childId,
+       litterDate,
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts"
+index 36a4b9c..0e280a6 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/stores/familyStore.ts"
+@@ -5,6 +5,7 @@
+ import create from 'zustand'
+ import type { PetFamily, PetFamilyMember, FamilyPhoto } from '../types/familyTypes'
+ import { familyService } from '../services/familyService'
++import { getStorage, setStorage } from '../utils/storage'
+ 
+ /** 宠物家庭状态定义 */
+ interface FamilyState {
+@@ -24,6 +25,7 @@ interface FamilyState {
+   fetchPhotos: () => Promise<void>
+   savePhoto: (photoUrl: string, memberCount: number, memberNames: string[], photoType?: 'generated' | 'uploaded', description?: string) => Promise<void>
+   deletePhoto: (photoId: string) => Promise<void>
++  generateAiPhoto: (style: string) => Promise<{ success: boolean; photoId?: string; photoUrl?: string; message?: string }>
+ }
+ 
+ export const useFamilyStore = create<FamilyState>((set, get) => ({
+@@ -97,7 +99,9 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
+       const members = await familyService.getMembers(family.id)
+       set({ members })
+     } catch (err) {
+-      set({ error: '添加成员失败' })
++      const message = (err as { message?: string }).message || '添加成员失败'
++      set({ error: message })
++      throw err
+     }
+   },
+ 
+@@ -156,7 +160,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
+   },
+ 
+   /**
+-   * 保存家庭合影
++   * 保存家庭合影（本地持久化，后端无上传端点）
+    * @param photoUrl - 照片 URL
+    * @param memberCount - 成员数
+    * @param memberNames - 成员名称列表
+@@ -168,7 +172,20 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
+     if (!family) return
+     set({ error: null })
+     try {
+-      const photo = await familyService.saveFamilyPhoto(family.id, photoUrl, memberCount, memberNames, photoType, description)
++      const photo: FamilyPhoto = {
++        id: `photo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
++        familyId: family.id,
++        userId: '',
++        photoUrl,
++        photoType,
++        description,
++        memberCount,
++        memberNames,
++        createdAt: new Date().toISOString(),
++      }
++      const photos = getStorage<FamilyPhoto[]>('family_photos_all') || []
++      photos.unshift(photo)
++      setStorage('family_photos_all', photos)
+       set((state) => ({
+         photos: [photo, ...state.photos],
+       }))
+@@ -182,9 +199,11 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
+    * @param photoId - 照片 ID
+    */
+   deletePhoto: async (photoId) => {
++    const family = get().currentFamily
++    if (!family) return
+     set({ error: null })
+     try {
+-      await familyService.deleteFamilyPhoto(photoId)
++      await familyService.deleteFamilyPhoto(family.id, photoId)
+       set((state) => ({
+         photos: state.photos.filter((p) => p.id !== photoId),
+       }))
+@@ -192,4 +211,39 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
+       set({ error: '删除照片失败' })
+     }
+   },
++
++  /**
++   * AI 全家福生成
++   * 调用后端 Seedream API 合成全家福，失败时返回 success:false
++   */
++  generateAiPhoto: async (style) => {
++    const family = get().currentFamily
++    if (!family) return { success: false, message: '未选择家庭' }
++    set({ error: null })
++    try {
++      const result = await familyService.generateFamilyPhoto(family.id, style)
++      if (result && result.photoUrl) {
++        const memberNames = get().members.map((m) => m.petName || '').filter(Boolean)
++        const photo: FamilyPhoto = {
++          id: result.id,
++          familyId: family.id,
++          userId: '',
++          photoUrl: result.photoUrl,
++          photoType: 'generated',
++          memberCount: get().members.length,
++          memberNames,
++          createdAt: new Date().toISOString(),
++        }
++        set((state) => ({
++          photos: [photo, ...state.photos],
++        }))
++        return { success: true, photoId: result.id, photoUrl: result.photoUrl }
++      }
++      return { success: false, message: '生成失败，请重试' }
++    } catch (err) {
++      const message = (err as { message?: string }).message || 'AI 生成失败'
++      set({ error: message })
++      return { success: false, message }
++    }
++  },
+ }))
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/familyTypes.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/familyTypes.ts"
+index f666f6c..511c401 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/familyTypes.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/types/familyTypes.ts"
+@@ -18,9 +18,37 @@ export interface PetFamilyMember {
+ 
+ export interface PetLineage {
+   id: string
++  familyId: string | null
+   parentId: string
+   childId: string
+   litterDate?: string
++  createdAt?: string
++  /** 关联宠物的名称（后端 JOIN pet_profiles 返回） */
++  petId?: string
++  petName?: string | null
++  petAvatarUrl?: string | null
++  petSpecies?: string | null
++}
++
++/** 后端 GET /api/families/:id/lineage/:petId 完整响应 */
++export interface LineageResponse {
++  pet: {
++    id: string
++    name: string | null
++    avatarUrl: string | null
++    species: string | null
++  }
++  parents: PetLineage[]
++  children: PetLineage[]
++  siblings: PetLineage[]
++  mates: Array<{
++    id: string
++    petIdA: string
++    petIdB: string
++    relationType: string
++    labelA?: string
++    labelB?: string
++  }>
+ }
+ 
+ /** 家庭动态类型 */

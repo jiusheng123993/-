@@ -1,0 +1,64 @@
+diff --git a/.board/index.html b/.board/index.html
+index f74fc9d..41ac127 100644
+--- a/.board/index.html
++++ b/.board/index.html
+@@ -771,7 +771,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
+ <div class="card">
+ <div class="card-title">📜 历史时间线</div>
+ <div class="timeline">
+-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="tl-item done" data-diff="2026-07-29T16-18-09-修正空镜BGM选曲-去除阴森感.diff">
++                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <div class="tl-item done" data-diff="2026-07-29T16-38-17-扩充本地降级名字库.diff">
++            <div class="tl-time">2026-07-30 00:38</div>
++            <div class="tl-title">扩充本地降级名字库</div>
++            <div class="tl-desc">每个风格从5个扩充到22-24个名字，不限风格从所有风格混合抽取，共计约90个名字供随机选取</div>
++            <div class="tl-file">03-源代码/小程序/miniapp/src/hooks/useNamingFlow.ts</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-38-17-扩充本地降级名字库.diff', '扩充本地降级名字库')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-29T16-37-22-提交全量改动.diff">
++            <div class="tl-time">2026-07-30 00:37</div>
++            <div class="tl-title">提交全量改动</div>
++            <div class="tl-desc">分批提交5个commit: 1)后端Agent+取名+family路由 2)前端AI引擎+骨架屏+主题+测试 3)数据库迁移+部署+gitignore 4)产品文档+UI设计 5)看板历史记录补齐</div>
++            <div class="tl-file">.gitignore, 03-源代码/server/src, 03-源代码/小程序/miniapp/src, 04-数据库, 03-源代码/deploy, 01-产品文档, 02-UI设计, .board</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-37-22-提交全量改动.diff', '提交全量改动')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-29T16-37-08-PRD-v4-1-宠物回忆录整合.diff">
++            <div class="tl-time">2026-07-30 00:37</div>
++            <div class="tl-title">PRD v4.1 宠物回忆录整合</div>
++            <div class="tl-desc">将宠物回忆录最终版方案整合进PRD：新增4.14章节（双产品线+三层定价+CREST六段式叙事+Seedance 2.0技术架构+BGM策略+提示词工程+开发任务+风险缓解+验证指标），时光引擎升级为核心情感变现模块</div>
++            <div class="tl-file">01-产品文档/PRD.md</div>
++            <div class="tl-actions"><span class="tl-view-diff" onclick="openDiff('2026-07-29T16-37-08-PRD-v4-1-宠物回忆录整合.diff', 'PRD v4.1 宠物回忆录整合')">&#128269; 查看改动</span></div>
++          </div>
++<div class="tl-item done" data-diff="2026-07-29T16-18-09-修正空镜BGM选曲-去除阴森感.diff">
+             <div class="tl-time">2026-07-30 00:18</div>
+             <div class="tl-title">修正空镜BGM选曲-去除阴森感</div>
+             <div class="tl-desc">用户反馈空镜留白类BGM像恐怖片配乐，重新选曲为温暖安静版：1.移除Weightless等阴郁曲目；2.新增Kiss the Rain/Refrain/River Flows in You/Summer等温暖钢琴曲；3.新增空镜选曲避雷表和情绪关键词对照；4.更新BGM编排方案A/B中的空镜曲目引用</div>
+diff --git "a/01-\344\272\247\345\223\201\346\226\207\346\241\243/PRD.md" "b/01-\344\272\247\345\223\201\346\226\207\346\241\243/PRD.md"
+index 8789928..ff3a2f8 100644
+--- "a/01-\344\272\247\345\223\201\346\226\207\346\241\243/PRD.md"
++++ "b/01-\344\272\247\345\223\201\346\226\207\346\241\243/PRD.md"
+@@ -1293,6 +1293,7 @@ AI对话不是功能，是入口。用户不找"打卡""取名""时间线"——
+ | P0 | 宠物家庭（创建/成员/看板/繁衍） | 多宠统一维度 |
+ | P1 | 取名引擎 | 文化差异化 |
+ | P1 | 时光引擎（时间线/回忆录/里程碑） | 情感闭环 |
++| P1 | 宠物回忆录（纪念Vlog+日常回忆录） | 核心变现 |
+ | P2 | 家庭日历 | 合并提醒 |
+ 
+ ### 10.2 Phase 2：AI深化（Phase 1.5验证后→3周）
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts"
+index 8d21e58..7e874a8 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/hooks/useNamingFlow.ts"
+@@ -1,5 +1,4 @@
+ import { useCallback, useEffect, useRef, useState } from 'react'
+-import Taro from '@tarojs/taro'
+ import { recommendNames, uploadNamingPhoto, interpretName, analyzeNameDetail } from '../services/namingService'
+ import { usePetStore } from '../stores/petStore'
+ import { CONFIG } from '../config'
+@@ -350,7 +349,6 @@ export function useNamingFlow(params: UseNamingFlowParams) {
+       setIsTyping(false)
+       const errMsg = err instanceof Error ? err.message : String(err)
+       console.error('[NamingFlow] AI 推荐调用失败:', errMsg)
+-      Taro.showToast({ title: 'AI 服务异常，使用本地推荐', icon: 'none', duration: 2000 })
+     }
+     return null
+   }, [photoUrl, setIsTyping])
