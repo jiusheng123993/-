@@ -22,6 +22,8 @@ import {
   type FeedingRecord,
 } from '../../services/feedingRecordsService'
 import { DietMemoryAdapter } from '../../memory-body/adapters/dietMemoryAdapter'
+import MemberGate from '../../components/MemberGate'
+import { useMemberGate } from '../../hooks/useMemberGate'
 import './index.scss'
 
 const ADVICE_PRIORITY_CONFIG = {
@@ -42,6 +44,12 @@ export default function FeedingAdvicePage() {
   const [activeTab, setActiveTab] = useState<'advice' | 'records' | 'plan'>('advice')
 
   const pet = currentPet || pets[0]
+
+  // 会员门槛：个性化喂养建议 为会员权益，非会员展示开通引导（PRD 7.3）
+  const { allowed: memberAllowed } = useMemberGate('feeding_advice')
+  if (memberAllowed === false) {
+    return <MemberGate featureName='个性化喂养建议' />
+  }
 
   useDidShow(() => {
     if (user && !pets.length) {

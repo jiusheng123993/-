@@ -624,6 +624,43 @@ export default function LineagePage() {
             // 是否有铲屎官根节点（决定图谱整体是否下移一层）
             const hasOwnerRoot = childToParents.size === 0 && !!user
 
+            // ===== 横向布局：经典“整齐树”列分配 =====
+            // 记录每个节点在画布上的中心 x（rpx）
+            const nodeX = new Map<string, number>()
+            // 列游标：每个叶子节点占一列，同一父节点的孩子连续占列
+            let colCursor = 0
+
+            // 自上而下分配列号：先给孩子依次占列，父节点居中于首尾孩子之间。
+            // 这样同一父节点的孩子一定排列在父节点下方两侧，
+            // 不会出现“孩子按序排列而错位到其他长辈正下方”的问题；
+            // 不同分支的孩子从左到右连续占列，天然不会重叠。
+            // 有环数据时用 nodeX.has 兜底，避免递归死循环。
+            const assignSubtree = (id: string): void => {
+              const children = (parentToChildren.get(id) || []).filter(cid => !nodeX.has(cid))
+              if (children.length === 0) {
+                // 叶子节点：占用当前列，中心 x = 列号 * 列宽 + 半列偏移
+                nodeX.set(id, colCursor * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2)
+                colCursor += 1
+                return
+              }
+              // 先给孩子分配列，父节点取首尾孩子中心的平均值
+              children.forEach(cid => assignSubtree(cid))
+              const firstX = nodeX.get(children[0]) ?? 0
+              const lastX = nodeX.get(children[children.length - 1]) ?? firstX
+              nodeX.set(id, (firstX + lastX) / 2)
+            }
+
+            // 根节点（无父节点的成员）依次展开整棵子树；未覆盖到的成员（异常数据）补位到最右
+            members.filter(m => !childToParents.has(m.petId)).forEach(m => assignSubtree(m.petId))
+            members.forEach(m => {
+              if (!nodeX.has(m.petId)) {
+                nodeX.set(m.petId, colCursor * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2)
+                colCursor += 1
+              }
+            })
+            // 铲屎官根节点居中于整个图谱（总列数 = 已分配的列游标）
+            const ownerCenter = ((colCursor - 1) / 2) * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2
+
             // 计算某宠物在层级网格中的连线端点坐标；找不到该宠物所在层级时返回 null。
             // 说明：原实现在 forEach 闭包内给变量赋值，TypeScript 无法对闭包赋值做类型收窄
             // （报 TS2339: Property x/y does not exist on type 'never'），
@@ -636,16 +673,14 @@ export default function LineagePage() {
               yOffset: number,
               xOffset: number,
             ): { x: number; y: number } | null => {
-              for (let levelIdx = 0; levelIdx < levels.length; levelIdx++) {
-                const idx = levels[levelIdx].indexOf(petId)
-                if (idx >= 0) {
-                  return {
-                    x: idx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + xOffset,
-                    y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + yOffset,
-                  }
-                }
+              const levelIdx = levels.findIndex(level => level.includes(petId))
+              const center = nodeX.get(petId)
+              if (levelIdx < 0 || center === undefined) return null
+              return {
+                // 节点中心 - 半宽 = 节点左边缘，再叠加端点偏移（与原 idx 公式等价）
+                x: center - NODE_W / 2 + xOffset,
+                y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + yOffset,
               }
-              return null
             }
 
             return (
@@ -678,7 +713,9 @@ export default function LineagePage() {
                   <View
                     className='graph-canvas'
                     style={{
-                      width: `${Math.max(...levels.map(l => l.length)) * (NODE_W + NODE_GAP) + NODE_GAP}rpx`,
+                      // 画布宽度按实际布局的最大横向坐标计算
+                      // （锚定父节点后跨度可能超过“层内最大节点数”对应的宽度）
+                      width: `${Math.max(...nodeX.values(), 0) + NODE_W / 2 + NODE_GAP}rpx`,
                       minHeight: `${levels.length * LAYER_GAP + 60}rpx`,
                     }}
                   >
@@ -687,7 +724,8 @@ export default function LineagePage() {
                       <View
                         className='graph-node graph-node--owner'
                         style={{
-                          left: `${(levels[0].length * (NODE_W + NODE_GAP)) / 2 - NODE_W / 2 + NODE_GAP / 2}rpx`,
+                          // 居中于整个图谱（基于列布局的总宽度）
+                          left: `${ownerCenter - NODE_W / 2}rpx`,
                           top: '0rpx',
                           width: `${NODE_W}rpx`,
                         }}
@@ -708,7 +746,9 @@ export default function LineagePage() {
                         const emoji = m.species === 'cat' ? '🐱' : m.species === 'dog' ? '🐕' : '🐾'
                         const genderIcon = m.gender === 'male' ? '♂' : m.gender === 'female' ? '♀' : ''
                         const genderClass = m.gender === 'male' ? 'male' : m.gender === 'female' ? 'female' : ''
-                        const left = idx * (NODE_W + NODE_GAP) + NODE_GAP / 2
+                        // 横向位置取布局计算出的节点中心（回退到按序排列，避免 undefined 导致布局崩坏）
+                        const centerX = nodeX.get(petId) ?? idx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2
+                        const left = centerX - NODE_W / 2
                         const hasOwnerRoot = childToParents.size === 0 && !!user
                         const top = hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20
 

@@ -42,6 +42,7 @@ import { api as _api } from '../api'
 const api = _api as any
 import {
   createCheckin,
+  batchCreateCheckins,
   getTodayCheckin,
   getCheckinStats,
   getCheckinsByDateRange,
@@ -302,6 +303,38 @@ describe('checkinService', () => {
       const result = await getLatestCheckin('pet-001', userId)
 
       expect(result).toBeNull()
+    })
+  })
+
+  describe('batchCreateCheckins', () => {
+    it('应为每只宠物逐条创建打卡', async () => {
+      vi.mocked(api.post).mockResolvedValue(makeCheckinResponse())
+      const items = [
+        { ...mockEntry, petId: 'pet-001' },
+        { ...mockEntry, petId: 'pet-002' },
+      ]
+
+      const results = await batchCreateCheckins(items)
+
+      expect(results).toHaveLength(2)
+      expect(api.post).toHaveBeenCalledTimes(2)
+      expect(api.post).toHaveBeenCalledWith('/api/pets/pet-002/checkins', expect.anything())
+    })
+
+    it('首只接口失败时仍会本地兜底并继续后续宠物', async () => {
+      vi.mocked(api.post)
+        .mockRejectedValueOnce(new Error('network error'))
+        .mockResolvedValue(makeCheckinResponse())
+      const items = [
+        { ...mockEntry, petId: 'pet-001' },
+        { ...mockEntry, petId: 'pet-002' },
+      ]
+
+      const results = await batchCreateCheckins(items)
+
+      // createCheckin 内部有“云端失败写本地”兜底，因此不会中断整批
+      expect(results).toHaveLength(2)
+      expect(api.post).toHaveBeenCalledTimes(2)
     })
   })
 })

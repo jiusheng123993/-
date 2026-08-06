@@ -21,6 +21,8 @@ import {
 import { getSyncService } from '../../services/syncService'
 import type { ChronicRecord, ChronicStats, ChronicTrendPoint, CheckupReminder } from '../../types/chronicTypes'
 import { CHRONIC_COMMON_CONDITIONS, CHRONIC_SEVERITY_MAP, CHRONIC_STATUS_MAP } from '../../types/chronicTypes'
+import MemberGate from '../../components/MemberGate'
+import { useMemberGate } from '../../hooks/useMemberGate'
 import './index.scss'
 
 export default function ChronicTrackingPage() {
@@ -38,6 +40,12 @@ export default function ChronicTrackingPage() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle')
 
   const pet = currentPet || pets[0]
+
+  // 会员门槛：慢性病追踪 为会员权益，非会员展示开通引导（PRD 7.3）
+  const { allowed: memberAllowed } = useMemberGate('chronic_tracking')
+  if (memberAllowed === false) {
+    return <MemberGate featureName='慢性病追踪' />
+  }
 
   const loadData = useCallback(async () => {
     if (!pet || !user) return

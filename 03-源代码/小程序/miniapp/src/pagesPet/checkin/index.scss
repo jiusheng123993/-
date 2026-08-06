@@ -726,3 +726,87 @@
   color: $color-primary;
   letter-spacing: 1rpx;
 }
+
+// ==================== 多宠快捷打卡 ====================
+.pet-checkin__batch {
+  @include card-base;
+  border-radius: $radius-xl;
+  padding: $spacing-lg $spacing-xl;
+  margin-bottom: $spacing-lg;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+}
+
+.pet-checkin__batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.pet-checkin__batch-title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.pet-checkin__batch-sub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.pet-checkin__batch-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin: $spacing-md 0;
+}
+
+.pet-checkin__batch-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 20rpx;
+  border-radius: $radius-lg;
+  background: rgba($color-primary, 0.08);
+  @include press-feedback;
+}
+
+.pet-checkin__batch-item-emoji {
+  font-size: 28rpx;
+}
+
+.pet-checkin__batch-item-name {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.pet-checkin__batch-item-arrow {
+  font-size: 26rpx;
+  color: $color-text-tertiary;
+}
+
+.pet-checkin__batch-btn {
+  @include flex-center;
+  height: 80rpx;
+  border-radius: $radius-xl;
+  background: $color-primary;
+  @include press-feedback;
+}
+
+.pet-checkin__batch-btn--disabled {
+  opacity: 0.6;
+}
+
+.pet-checkin__batch-btn-text {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: #fff;
+}
+
+.pet-checkin__batch-hint {
+  margin-top: $spacing-sm;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+}

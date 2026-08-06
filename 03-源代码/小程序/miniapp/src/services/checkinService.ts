@@ -9,6 +9,7 @@ import { queueSync } from './syncHelper';
 import { requirePetOwnership } from '../utils/petOwnership';
 import type { PetHealthEntry, HealthRiskLevel, AnomalyItem } from '../memory-body/types/memoryBodyTypes';
 export type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes';
+import { HealthIndexAdapter } from '../memory-body/adapters/healthIndexAdapter';
 
 /** 健康打卡统计 */
 export interface HealthCheckinStats {
@@ -189,6 +190,15 @@ export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry>
     createdAt: now,
   };
 
+  // 同步写入记忆引擎健康存储（memory-body），让 AI 对话/趋势能引用最近的健康数据
+  // （PRD 4.3.2：打卡数据写入 memory-body）
+  try {
+    new HealthIndexAdapter(data.userId).indexHealthEntry(newEntry)
+  } catch (error) {
+    // 记忆写入失败不影响打卡主流程
+    console.warn('[Checkin] 写入记忆引擎失败:', error)
+  }
+
   try {
     // 后端 createCheckinSchema 使用 snake_case（必填：4 个等级 + risk_level）
     const result = await api.post<PetHealthEntry>(`/api/pets/${data.petId}/checkins`, {
@@ -227,6 +237,27 @@ export async function createCheckin(data: CheckinInput): Promise<PetHealthEntry>
     queueSync('pet_health_entries', newEntry.id, 'insert', newEntry, data.userId);
     return newEntry;
   }
+}
+
+/**
+ * 批量创建打卡记录（多宠快捷打卡）
+ *
+ * 按顺序逐只调用 createCheckin，单只失败不阻断其他宠物；
+ * createCheckin 内部已有“云端失败写本地”兜底，因此这里只需要汇总结果。
+ * @param items - 每只宠物的打卡输入
+ * @returns 成功创建的打卡记录数组（失败项被跳过）
+ */
+export async function batchCreateCheckins(items: CheckinInput[]): Promise<PetHealthEntry[]> {
+  const results: PetHealthEntry[] = []
+  for (const item of items) {
+    try {
+      results.push(await createCheckin(item))
+    } catch (error) {
+      // 单只失败时继续后续宠物，保证“一键打卡”不因个别失败而中断
+      console.warn(`[Checkin] 批量打卡失败 petId=${item.petId}:`, error)
+    }
+  }
+  return results
 }
 
 /**

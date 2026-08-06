@@ -3,7 +3,7 @@ export { loginWithCode, getUserProfile, refreshToken, logout, type LoginResult }
 /** 宠物管理 - 宠物资料的 CRUD 操作 */
 export { getPets, getPetById, createPet, updatePet, deletePet, markDeceased, getCurrentPet, setCurrentPet, type PetProfile } from './petService'
 /** 健康打卡 - 打卡记录查询与创建 */
-export { getCheckins, getCheckinsByDateRange, createCheckin, getTodayCheckin, getCheckinStats, getLatestCheckin, type HealthCheckinStats, type CheckinInput } from './checkinService'
+export { getCheckins, getCheckinsByDateRange, createCheckin, batchCreateCheckins, getTodayCheckin, getCheckinStats, getLatestCheckin, type HealthCheckinStats, type CheckinInput } from './checkinService'
 /** 食物安全查询 - 食物百科/查询统计 */
 export { queryFood, getQueryHistory, getQueryStats, getTodayQueryCount, type FoodQueryStats } from './foodService'
 /** 症状查询 - 症状分类/搜索 */

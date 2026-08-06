@@ -43,6 +43,7 @@ import agentRoutes from './routes/agentRouter.js';
 import memoryRoutes from './routes/memory.js';
 import feedbackRoutes from './routes/feedback.js';
 import analyticsRoutes from './routes/analytics.js';
+import inviteRoutes from './routes/invites.js';
 import { cleanStaleTasks } from './services/taskQueue.js';
 import { runMemoryDecay } from './services/memoryService.js';
 import { initWebSocket } from './services/websocketService.js';
@@ -127,6 +128,7 @@ app.use('/api/agent', agentRoutes);
 app.use('/api/memory', memoryRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api', inviteRoutes);
 
 // ===== 全局错误处理 =====
 app.use(errorHandler);

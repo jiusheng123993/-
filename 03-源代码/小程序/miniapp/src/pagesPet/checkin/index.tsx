@@ -15,6 +15,7 @@ import { PageLoading, PageError, PetAvatar, AchievementCard, AchievementShareCar
 import CrisisReferralCard from '../../components/CrisisReferralCard'
 import { useSubscribeStore } from '../../stores/subscribeStore'
 import { useCheckinStore } from '../../stores/checkinStore'
+import { getTodayCheckin, batchCreateCheckins, type CheckinInput } from '../../services/checkinService'
 import { checkAllAchievements } from '../../services/achievementService'
 import { useEmotionTracking } from '../../hooks/useEmotionTracking'
 import type { EmotionSeverity } from '../../services/emotionTrackingService'
@@ -184,6 +185,15 @@ export default function PetCheckin() {
   const { trackPageView, trackEvent } = useAnalytics()
   const { showCrisisReferral, crisisSeverity, trackEvent: trackEmotion, dismissCrisisReferral, handleFollowUp } = useEmotionTracking(currentPet?.id || null)
 
+  // 多宠快捷打卡：记录今天已打卡的宠物 ID，用于一键给未打卡宠物批量打卡
+  const [checkedTodayIds, setCheckedTodayIds] = useState<string[]>([])
+  const [batchSubmitting, setBatchSubmitting] = useState(false)
+  // 尚未打卡的宠物列表（多宠场景展示用）
+  const uncheckedPets = useMemo(
+    () => pets.filter(p => !checkedTodayIds.includes(p.id)),
+    [pets, checkedTodayIds],
+  )
+
   const isAccepted = useSubscribeStore((s) => s.isAccepted)
   const requestAll = useSubscribeStore((s) => s.requestAll)
 
@@ -208,6 +218,23 @@ export default function PetCheckin() {
   useEffect(() => {
     loadCheckinData()
   }, [loadCheckinData])
+
+  // 进入页面时并行查询所有宠物今日是否已打卡，供多宠快捷打卡使用
+  useEffect(() => {
+    if (!userId || pets.length === 0) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const ids = await Promise.all(
+          pets.map(async p => ((await getTodayCheckin(p.id, userId)) ? p.id : null)),
+        )
+        if (!cancelled) setCheckedTodayIds(ids.filter((id): id is string => id !== null))
+      } catch {
+        // 查询失败不阻塞主流程，快捷打卡区会按“未打卡”展示
+      }
+    })()
+    return () => { cancelled = true }
+  }, [userId, pets])
 
   const calculateConsecutiveAnomalyDays = useCallback((): number => {
     if (!checkins || checkins.length === 0) return 0
@@ -349,6 +376,35 @@ export default function PetCheckin() {
     }
   }
 
+  // 多宠一键打卡：为所有未打卡宠物提交“全部正常”的默认指标
+  const handleBatchCheckin = async () => {
+    if (batchSubmitting || uncheckedPets.length === 0 || !userId) return
+    setBatchSubmitting(true)
+    try {
+      // 默认值对齐“正常”档位：便便3/食欲3/精神3/运动2，不填体重
+      const items: CheckinInput[] = uncheckedPets.map(p => ({
+        petId: p.id,
+        userId,
+        poopLevel: 3,
+        appetiteLevel: 3,
+        spiritLevel: 3,
+        exerciseLevel: 2,
+        hasAnomaly: false,
+        anomalyItems: [],
+      }))
+      await batchCreateCheckins(items)
+      // 合并已打卡集合，并刷新当前宠物视图（今天状态会变为“已打卡”）
+      setCheckedTodayIds(prev => [...prev, ...uncheckedPets.map(p => p.id)])
+      if (currentPet) await fetchCheckins(currentPet.id)
+      Taro.showToast({ title: `已为 ${uncheckedPets.length} 只宠物完成打卡`, icon: 'success' })
+      trackEvent(AnalyticsEventName.CheckinSubmit, { batch: true, count: uncheckedPets.length })
+    } catch (err) {
+      Taro.showToast({ title: '批量打卡失败，请重试', icon: 'none' })
+    } finally {
+      setBatchSubmitting(false)
+    }
+  }
+
   const handleWeightChange = (value: string) => {
     setWeightText(value)
     const num = parseFloat(value)
@@ -457,6 +513,40 @@ export default function PetCheckin() {
         currentPetId={currentPet?.id || null}
         onSwitch={switchPet}
       />
+
+      {/* 多宠快捷打卡：一次为所有未打卡宠物提交“全部正常” */}
+      {pets.length > 1 && uncheckedPets.length > 0 && (
+        <View className='pet-checkin__batch'>
+          <View className='pet-checkin__batch-header'>
+            <Text className='pet-checkin__batch-title'>🐾 多宠快捷打卡</Text>
+            <Text className='pet-checkin__batch-sub'>还有 {uncheckedPets.length} 只毛孩子今天没打卡</Text>
+          </View>
+          <View className='pet-checkin__batch-list'>
+            {uncheckedPets.map(p => (
+              <View
+                key={p.id}
+                className='pet-checkin__batch-item'
+                onClick={() => switchPet(p.id)}
+              >
+                <Text className='pet-checkin__batch-item-emoji'>
+                  {p.species === 'cat' ? '🐱' : p.species === 'dog' ? '🐶' : '🐾'}
+                </Text>
+                <Text className='pet-checkin__batch-item-name'>{p.name}</Text>
+                <Text className='pet-checkin__batch-item-arrow'>›</Text>
+              </View>
+            ))}
+          </View>
+          <View
+            className={`pet-checkin__batch-btn${batchSubmitting ? ' pet-checkin__batch-btn--disabled' : ''}`}
+            onClick={handleBatchCheckin}
+          >
+            <Text className='pet-checkin__batch-btn-text'>
+              {batchSubmitting ? '打卡中...' : '全部正常，一键打卡'}
+            </Text>
+          </View>
+          <Text className='pet-checkin__batch-hint'>个别有异常的宠物，点名字单独记录</Text>
+        </View>
+      )}
 
       {currentPet && expressionContext && (
         <View className='pet-checkin__avatar'>

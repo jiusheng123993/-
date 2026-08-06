@@ -15,6 +15,8 @@ import {
   shareReportToVet,
 } from '../services/healthReportPdfService'
 import type { HealthReportData } from '../../types/reportTypes'
+import MemberGate from '../../components/MemberGate'
+import { useMemberGate } from '../../hooks/useMemberGate'
 import './index.scss'
 
 /** 食欲值 → 5 级 */
@@ -60,6 +62,12 @@ export default function HealthReportPage() {
   const [loading, setLoading] = useState(true)
 
   const petId = currentPet?.id || ''
+
+  // 会员门槛：健康报告导出 为会员权益，非会员展示开通引导（PRD 7.3）
+  const { allowed: memberAllowed } = useMemberGate('health_report')
+  if (memberAllowed === false) {
+    return <MemberGate featureName='健康报告导出' />
+  }
 
   useEffect(() => {
     if (!user?.id || !petId) {

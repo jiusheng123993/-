@@ -1,0 +1,52 @@
+/* 会员门槛卡片：居中引导开通会员 */
+.member-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 80rpx 48rpx;
+  text-align: center;
+}
+
+.member-gate-icon {
+  font-size: 96rpx;
+  margin-bottom: 24rpx;
+}
+
+.member-gate-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #40281C;
+  margin-bottom: 16rpx;
+}
+
+.member-gate-desc {
+  font-size: 26rpx;
+  color: #8B6E58;
+  line-height: 1.6;
+  margin-bottom: 40rpx;
+}
+
+.member-gate-btn {
+  width: 320rpx;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #FFA082, #FF6B3D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 61, 0.35);
+}
+
+.member-gate-btn-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.member-gate-hint {
+  margin-top: 28rpx;
+  font-size: 24rpx;
+  color: #B69B83;
+}

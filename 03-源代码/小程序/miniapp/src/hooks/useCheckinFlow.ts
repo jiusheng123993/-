@@ -4,7 +4,12 @@
  */
 import { useCallback, useState } from 'react'
 import type { CardData, CheckinItem, PetInfo } from '../types/chatTypes'
-import { usePetStore } from '../stores/petStore'
+import { usePetStore, type PetProfile } from '../stores/petStore'
+import { useAuthStore } from '../stores/authStore'
+import { batchCreateCheckins, getTodayCheckin, type CheckinInput } from '../services/checkinService'
+
+/** 多宠一键打卡的选项文案（用于多宠选择步骤） */
+const BATCH_CHECKIN_LABEL = '🐾 全部正常，一键打卡'
 
 const CHECKIN_ITEMS: CheckinItem[] = [
   {
@@ -138,7 +143,7 @@ export function useCheckinFlow(params: UseCheckinFlowParams) {
       setCheckinStep(-2)
       addAiMsg(
         '好的！要为哪只毛孩子打卡呢？',
-        pets.map(p => `${p.species === 'cat' ? '🐱' : '🐕'} ${p.name}`)
+        [...pets.map(p => `${p.species === 'cat' ? '🐱' : '🐕'} ${p.name}`), BATCH_CHECKIN_LABEL]
       )
       return
     }
@@ -149,11 +154,56 @@ export function useCheckinFlow(params: UseCheckinFlowParams) {
     setTimeout(() => askCheckinItem(0), 600)
   }, [addAiMsg, askCheckinItem, pets, getPetName])
 
+  /** 多宠一键打卡：为所有今天还没打卡的宠物批量提交“全部正常”默认指标 */
+  const runBatchCheckin = useCallback(async () => {
+    const userId = useAuthStore.getState().user?.id
+    if (!userId || pets.length === 0) {
+      addAiMsg('还没有可打卡的宠物，先添加毛孩子再来吧～')
+      return
+    }
+    try {
+      // 只批量处理今天尚未打卡的宠物，避免同一天重复记录
+      const unchecked: PetProfile[] = []
+      for (const p of pets) {
+        const today = await getTodayCheckin(p.id, userId)
+        if (!today) unchecked.push(p)
+      }
+      if (unchecked.length === 0) {
+        addAiMsg('今天大家都已经打过卡啦，都是健康小标兵 🎉')
+        return
+      }
+      const items: CheckinInput[] = unchecked.map(p => ({
+        petId: p.id,
+        userId,
+        poopLevel: 3,
+        appetiteLevel: 3,
+        spiritLevel: 3,
+        exerciseLevel: 2,
+        hasAnomaly: false,
+        anomalyItems: [],
+      }))
+      await batchCreateCheckins(items)
+      addAiMsg(
+        `搞定！已为 ${unchecked.length} 只毛孩子完成打卡 ✦\n\n` +
+        `${unchecked.map(p => p.name).join('、')} 今天都是满分状态！`,
+      )
+    } catch {
+      addAiMsg('批量打卡出了点小问题，稍后再试一次吧～')
+    }
+  }, [addAiMsg, pets])
+
   /** 处理用户对某一项打卡的选择 */
   const handleCheckinAnswer = useCallback(
     (label: string): boolean => {
       // 宠物选择步骤
       if (checkinStep === -2) {
+        // 多宠一键打卡：跳过逐只询问，直接批量提交
+        if (label === BATCH_CHECKIN_LABEL) {
+          addUserMsg(label)
+          setCheckinStep(-1)
+          void runBatchCheckin()
+          return true
+        }
         const pet = pets.find(p => `${p.species === 'cat' ? '🐱' : '🐕'} ${p.name}` === label)
         if (pet) {
           setSelectedPetName(pet.name)
@@ -199,7 +249,7 @@ export function useCheckinFlow(params: UseCheckinFlowParams) {
       }
       return false
     },
-    [addUserMsg, askCheckinItem, checkinStep, pets]
+    [addUserMsg, askCheckinItem, checkinStep, pets, runBatchCheckin]
   )
 
   return {
