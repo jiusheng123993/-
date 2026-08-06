@@ -127,6 +127,117 @@ const snapshotRepository = new SnapshotRepository();
 const familyRepository = new FamilyRepository();
 const petRepository = new PetRepository();
 
+/** 家庭关系总览响应 */
+export interface FamilyOverviewResponse {
+  /** 家庭所有成员（含性别） */
+  members: Array<{
+    pet_id: string;
+    name: string | null;
+    avatar_url: string | null;
+    species: string | null;
+    gender: string | null;
+    role: string | null;
+  }>;
+  /** 所有亲子血缘关系 */
+  lineages: Array<{
+    id: string;
+    parent_id: string;
+    parent_name: string | null;
+    parent_avatar_url: string | null;
+    parent_gender: string | null;
+    child_id: string;
+    child_name: string | null;
+    child_avatar_url: string | null;
+    child_gender: string | null;
+    litter_date: string | null;
+  }>;
+  /** 所有自定义关系（兄弟姐妹、配偶等） */
+  relationships: Array<{
+    id: string;
+    pet_id_a: string;
+    pet_a_name: string | null;
+    pet_a_avatar_url: string | null;
+    pet_a_gender: string | null;
+    pet_id_b: string;
+    pet_b_name: string | null;
+    pet_b_avatar_url: string | null;
+    pet_b_gender: string | null;
+    relation_type: string;
+    label_a: string | null;
+    label_b: string | null;
+  }>;
+}
+
+/**
+ * 获取家庭关系总览
+ * - 校验家庭归属
+ * - 并行查询：成员列表、所有血缘关系、所有自定义关系
+ * - 返回家庭成员和所有关系的聚合数据
+ */
+export async function getOverview(
+  userId: string,
+  familyId: string,
+): Promise<FamilyOverviewResponse> {
+  const owns = await familyRepository.isOwner(familyId, userId);
+  if (!owns) {
+    throw new FamilyTreeError(403, '无权查看此家庭');
+  }
+
+  const membersSql = `
+    SELECT
+      p.id AS pet_id, p.name, p.species, p.gender,
+      COALESCE(p.avatar_photo_url, p.avatar_cartoon_url) AS avatar_url,
+      r.assignment AS role
+    FROM pet_family_members m
+    LEFT JOIN pet_profiles p ON p.id = m.pet_id
+    LEFT JOIN pet_roles r ON r.pet_id = m.pet_id AND r.family_id = m.family_id
+    WHERE m.family_id = $1
+    ORDER BY m.joined_at ASC
+  `;
+  const [membersResult, lineages, relationships] = await Promise.all([
+    pool.query(membersSql, [familyId]),
+    lineageRepository.findAllByFamilyId(familyId),
+    relationshipRepository.findByFamilyId(familyId),
+  ]);
+
+  return {
+    members: membersResult.rows.map((row) => ({
+      pet_id: row.pet_id,
+      name: row.name,
+      avatar_url: row.avatar_url,
+      species: row.species,
+      gender: row.gender,
+      role: row.assignment ?? null,
+    })),
+    lineages: lineages.map((l) => ({
+      id: l.id,
+      parent_id: l.parent_id,
+      parent_name: l.parent_name,
+      parent_avatar_url: l.parent_avatar_url,
+      parent_gender: l.parent_gender,
+      child_id: l.child_id,
+      child_name: l.child_name,
+      child_avatar_url: l.child_avatar_url,
+      child_gender: l.child_gender,
+      litter_date: l.litter_date,
+    })),
+    relationships: relationships.map((r) => ({
+      id: r.id,
+      pet_id_a: r.pet_id_a,
+      pet_a_name: r.pet_a_name,
+      pet_a_avatar_url: r.pet_a_avatar_url,
+      pet_a_gender: r.pet_a_gender,
+      pet_id_b: r.pet_id_b,
+      pet_b_name: r.pet_b_name,
+      pet_b_avatar_url: r.pet_b_avatar_url,
+      pet_b_gender: r.pet_b_gender,
+      relation_type: r.relation_type,
+      label_a: r.label_a,
+      label_b: r.label_b,
+    })),
+  };
+}
+
 /**
  * 获取家族图谱数据
  * - 校验家庭归属
@@ -352,6 +463,7 @@ export async function getLineage(
   }
 
   // 并行查询：宠物基础信息、多代祖先/后代、直接父母/子女（兼容）、兄弟姐妹、配偶
+  // siblings 合并两个来源：血缘兄弟姐妹（共同父母）+ 手动添加的兄弟姐妹关系
   const petSql = `
     SELECT id, name, species,
       COALESCE(avatar_photo_url, avatar_cartoon_url) AS avatar_url
@@ -364,7 +476,8 @@ export async function getLineage(
     descendantsLevels,
     parents,
     children,
-    siblings,
+    bloodSiblings,
+    siblingRelationships,
     mates,
   ] = await Promise.all([
     pool.query(petSql, [petId]),
@@ -373,6 +486,7 @@ export async function getLineage(
     lineageRepository.findParents(petId),
     lineageRepository.findChildren(petId),
     lineageRepository.findSiblings(petId),
+    relationshipRepository.findSiblingsByPetId(petId),
     relationshipRepository.findMatesByPetId(petId),
   ]);
 
@@ -380,6 +494,25 @@ export async function getLineage(
   if (!petRow) {
     throw new FamilyTreeError(404, '宠物不存在');
   }
+
+  // 合并血缘兄弟姐妹和手动添加的兄弟姐妹，标记来源以便前端区分删除方式
+  const bloodSiblingIds = new Set(bloodSiblings.map(s => s.pet_id));
+  const manualSiblings: LineageWithPetRow[] = siblingRelationships
+    .filter(r => r.sibling_pet_id && !bloodSiblingIds.has(r.sibling_pet_id))
+    .map(r => ({
+      id: r.id,
+      family_id: r.family_id,
+      parent_id: '',
+      child_id: r.sibling_pet_id as string,
+      litter_date: null,
+      created_at: r.created_at,
+      pet_id: r.sibling_pet_id as string,
+      pet_name: r.sibling_pet_name,
+      pet_avatar_url: r.sibling_pet_avatar_url,
+      pet_species: r.sibling_pet_species,
+      source: 'sibling_rel' as const,
+    }));
+  const siblings = [...bloodSiblings, ...manualSiblings];
 
   return {
     pet: {

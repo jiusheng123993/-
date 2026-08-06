@@ -25,6 +25,7 @@ import {
 } from '../schemas/index.js';
 import {
   getTree,
+  getOverview,
   createRelationship,
   updateRelationship,
   deleteRelationship,
@@ -52,6 +53,20 @@ function handleServiceError(res: Response, err: unknown): void {
   console.error('[FamilyTree Service Error]', err);
   res.status(500).json({ success: false, message: '服务器内部错误' });
 }
+
+/**
+ * GET /:id/overview - 获取家庭关系总览（所有成员 + 所有关系）
+ */
+router.get('/:id/overview', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const familyId = req.params.id as string;
+    const overview = await getOverview(userId, familyId);
+    res.json({ success: true, data: overview });
+  } catch (err) {
+    handleServiceError(res, err);
+  }
+});
 
 /**
  * GET /:id/tree - 获取家族图谱（nodes + edges）

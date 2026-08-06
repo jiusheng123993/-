@@ -25,6 +25,8 @@ export interface LineageWithPetRow extends LineageRow {
   pet_name: string | null;
   pet_avatar_url: string | null;
   pet_species: string | null;
+  /** 来源：blood=血缘关系，sibling_rel=手动添加的兄弟姐妹关系 */
+  source?: 'blood' | 'sibling_rel';
 }
 
 export class LineageRepository extends BaseRepository<LineageRow> {
@@ -201,6 +203,50 @@ export class LineageRepository extends BaseRepository<LineageRow> {
     }
 
     return levels;
+  }
+
+  /**
+   * 查询家庭中所有血缘关系（含父母和子女的宠物信息）
+   * 用于关系总览面板
+   */
+  async findAllByFamilyId(familyId: string): Promise<Array<LineageRow & {
+    parent_name: string | null;
+    parent_avatar_url: string | null;
+    parent_species: string | null;
+    parent_gender: string | null;
+    child_name: string | null;
+    child_avatar_url: string | null;
+    child_species: string | null;
+    child_gender: string | null;
+  }>> {
+    const sql = `
+      SELECT
+        l.id, l.family_id, l.parent_id, l.child_id, l.litter_date, l.created_at,
+        pa.name AS parent_name,
+        COALESCE(pa.avatar_photo_url, pa.avatar_cartoon_url) AS parent_avatar_url,
+        pa.species AS parent_species,
+        pa.gender AS parent_gender,
+        ch.name AS child_name,
+        COALESCE(ch.avatar_photo_url, ch.avatar_cartoon_url) AS child_avatar_url,
+        ch.species AS child_species,
+        ch.gender AS child_gender
+      FROM pet_lineage l
+      LEFT JOIN pet_profiles pa ON pa.id = l.parent_id
+      LEFT JOIN pet_profiles ch ON ch.id = l.child_id
+      WHERE l.family_id = $1
+      ORDER BY l.created_at DESC
+    `;
+    const result = await this.rawQuery<LineageRow & {
+      parent_name: string | null;
+      parent_avatar_url: string | null;
+      parent_species: string | null;
+      parent_gender: string | null;
+      child_name: string | null;
+      child_avatar_url: string | null;
+      child_species: string | null;
+      child_gender: string | null;
+    }>(sql, [familyId]);
+    return result.rows;
   }
 
   /**

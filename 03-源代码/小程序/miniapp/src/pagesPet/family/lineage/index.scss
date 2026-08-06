@@ -187,6 +187,7 @@
   animation: fadeInUp 0.5s ease-out both;
 }
 
+.lineage-layer--owner { animation-delay: 0s; }
 .lineage-layer--parents { animation-delay: 0.05s; }
 .lineage-layer--self { animation-delay: 0.2s; }
 .lineage-layer--children { animation-delay: 0.35s; }
@@ -401,6 +402,73 @@
   animation: lineageDotPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
 }
 
+// ===== 铲屎官卡片 =====
+.lineage-owner-card {
+  position: relative;
+  padding: 16rpx 20rpx;
+  border-radius: $radius-md;
+  background: linear-gradient(135deg, rgba($color-primary, 0.08), rgba($color-primary-light, 0.12));
+  border: 1px solid rgba($color-primary, 0.3);
+  min-width: 220rpx;
+  animation: fadeInUp 0.35s ease-out both;
+}
+
+.lineage-owner-badge {
+  position: absolute;
+  top: -10rpx;
+  left: 16rpx;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-sm;
+  background: $color-primary;
+  animation: lineageBadgeSlide 0.3s ease-out 0.2s both;
+}
+
+.lineage-owner-badge-text {
+  font-size: 18rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.lineage-owner-body {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 4rpx;
+}
+
+.lineage-owner-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: rgba($color-primary, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid rgba($color-primary, 0.3);
+}
+
+.lineage-owner-emoji {
+  font-size: 40rpx;
+}
+
+.lineage-owner-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lineage-owner-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.lineage-owner-role {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+}
+
 // ===== 选中宠物卡片 =====
 .lineage-layer--center {
   margin: 12rpx 0;
@@ -517,19 +585,21 @@
 
 .lineage-self-actions {
   display: flex;
-  gap: 16rpx;
+  flex-wrap: wrap;
+  gap: 12rpx;
   margin-top: 20rpx;
   position: relative;
   z-index: 1;
 }
 
 .lineage-self-action {
-  flex: 1;
+  flex: 1 1 calc(50% - 6rpx);
+  min-width: 140rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  padding: 14rpx;
+  padding: 12rpx;
   border-radius: $radius-md;
   background: rgba($color-primary, 0.1);
   border: 1px dashed $color-primary-light;
@@ -691,4 +761,177 @@
 // ===== 底部安全区 =====
 .lineage-bottom-safe {
   height: 80rpx;
+}
+
+// ===== 视图切换按钮 =====
+.lineage-view-toggle {
+  display: flex;
+  gap: 4rpx;
+  padding: 4rpx;
+  border-radius: $radius-full;
+  background: rgba($color-primary, 0.1);
+}
+
+.lineage-view-toggle-btn {
+  padding: 8rpx 20rpx;
+  border-radius: $radius-full;
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  transition: all 0.25s ease;
+
+  &--active {
+    background: $color-primary;
+    color: #fff;
+    font-weight: 500;
+  }
+}
+
+// ===== 关系总览 =====
+.lineage-overview {
+  padding: 20rpx 24rpx;
+}
+
+.lineage-overview-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80rpx 0;
+  color: $color-text-secondary;
+  font-size: 28rpx;
+}
+
+.lineage-overview-section {
+  margin-bottom: 32rpx;
+  animation: fadeInUp 0.35s ease-out both;
+
+  &:nth-child(2) { animation-delay: 0.05s; }
+  &:nth-child(3) { animation-delay: 0.1s; }
+  &:nth-child(4) { animation-delay: 0.15s; }
+}
+
+.lineage-overview-section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.lineage-overview-empty {
+  font-size: 26rpx;
+  color: $color-text-tertiary;
+  padding: 24rpx 0;
+  text-align: center;
+}
+
+// 成员网格
+.lineage-overview-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.lineage-overview-member {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  border-radius: $radius-md;
+  background: rgba($color-primary, 0.06);
+  border: 1px solid rgba($color-primary, 0.15);
+}
+
+.lineage-overview-member-emoji {
+  font-size: 32rpx;
+}
+
+.lineage-overview-member-name {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+.lineage-overview-member-gender {
+  font-size: 24rpx;
+  font-weight: 700;
+
+  &--male { color: #4A90D9; }
+  &--female { color: #E0856B; }
+}
+
+// 关系列表
+.lineage-overview-rel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.lineage-overview-rel-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 20rpx;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba($color-primary, 0.1);
+  animation: fadeInUp 0.3s ease-out both;
+}
+
+.lineage-overview-rel-pet {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.lineage-overview-rel-emoji {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.lineage-overview-rel-name {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineage-overview-rel-arrow {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.lineage-overview-rel-label {
+  font-size: 24rpx;
+  color: $color-primary;
+  background: rgba($color-primary, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.lineage-overview-rel-del {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba($color-danger, 0.1);
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  &:active {
+    background: rgba($color-danger, 0.2);
+    transform: scale(0.9);
+  }
+
+  Text {
+    font-size: 24rpx;
+    color: $color-danger;
+  }
 }

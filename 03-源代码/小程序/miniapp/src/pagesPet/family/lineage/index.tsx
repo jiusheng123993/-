@@ -18,11 +18,12 @@ import { useFamilyStore } from '../../../stores/familyStore'
 import { familyService } from '../../../services/familyService'
 import { useThemeClass } from '../../../hooks/useThemeClass'
 import type { PetProfile } from '../../../services/petService'
-import type { LineageResponse, LineageChild, LineageMate } from '../../../types/familyTypes'
+import type { LineageResponse, LineageChild, LineageMate, FamilyOverviewResponse, OverviewMember, OverviewLineage, OverviewRelationship } from '../../../types/familyTypes'
 import './index.scss'
 
 const RELATION_LABELS: Record<string, string> = {
   self: '我',
+  owner: '铲屎官',
   parent: '父母',
   grandparent: '祖辈',
   greatGrandparent: '曾祖',
@@ -31,6 +32,15 @@ const RELATION_LABELS: Record<string, string> = {
   greatGrandchild: '曾孙',
   sibling: '兄弟姐妹',
   mate: '配偶',
+}
+
+/** 根据选中宠物和兄弟姐妹的性别，返回对应的称谓 */
+function getSiblingLabel(selfGender: string | undefined, siblingGender: string | undefined): string {
+  if (selfGender === 'male' && siblingGender === 'male') return '兄弟'
+  if (selfGender === 'female' && siblingGender === 'female') return '姐妹'
+  if (selfGender === 'male' && siblingGender === 'female') return '兄妹'
+  if (selfGender === 'female' && siblingGender === 'male') return '姐弟'
+  return '兄弟姐妹'
 }
 
 const SPECIES_EMOJI: Record<string, string> = {
@@ -89,8 +99,11 @@ export default function LineagePage() {
   const [petSelectorOpen, setPetSelectorOpen] = useState(false)
   const [addingRelation, setAddingRelation] = useState<{
     childId: string
-    mode: 'parent' | 'child' | 'mate'
+    mode: 'parent' | 'child' | 'mate' | 'sibling'
   } | null>(null)
+  const [viewMode, setViewMode] = useState<'single' | 'overview'>('single')
+  const [overviewData, setOverviewData] = useState<FamilyOverviewResponse | null>(null)
+  const [overviewLoading, setOverviewLoading] = useState(false)
   const themeClass = useThemeClass()
 
   useEffect(() => {
@@ -215,17 +228,20 @@ export default function LineagePage() {
     return result
   }, [pets, lineage, selectedPetId])
 
-  // 直接使用后端返回的 siblings 数据
+  // 直接使用后端返回的 siblings 数据（含血缘和手动添加的兄弟姐妹）
   const siblingPets = useMemo(() => {
     if (!lineage) return []
     const siblingIds = lineage.siblings.map(l => l.petId || l.childId)
     return pets.filter(p => siblingIds.includes(p.id)).map(p => {
       const l = lineage.siblings.find(s => (s.petId || s.childId) === p.id)
-      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate }
+      return { pet: p, lineageId: l?.id || '', litterDate: l?.litterDate, source: l?.source }
     })
   }, [pets, lineage])
 
   const hasAnyRelation = parentPets.length > 0 || childPets.length > 0 || siblingPets.length > 0 || matePets.length > 0
+
+  // 当宠物没有任何祖先（父母/祖辈/曾祖）时，显示铲屎官作为家族树的根节点
+  const hasNoAncestors = !!lineage && parentPets.length === 0 && grandparentPets.length === 0 && greatGrandparentPets.length === 0
 
   // 可添加关系的宠物（排除已有关系 + 自身）
   const availableForRelation = useMemo(() => {
@@ -274,12 +290,45 @@ export default function LineagePage() {
     setAddingRelation({ childId: selectedPetId, mode: 'mate' })
   }
 
+  const handleAddSibling = () => {
+    if (!selectedPetId) return
+    if (availableForRelation.length === 0) {
+      Taro.showToast({ title: '没有可选的宠物', icon: 'none' })
+      return
+    }
+    setAddingRelation({ childId: selectedPetId, mode: 'sibling' })
+  }
+
+  const loadOverview = useCallback(async () => {
+    if (!currentFamily) return
+    setOverviewLoading(true)
+    try {
+      const data = await familyService.getOverview(currentFamily.id)
+      setOverviewData(data)
+    } catch (err: unknown) {
+      const error = err as { message?: string }
+      Taro.showToast({ title: error.message || '加载失败', icon: 'none' })
+    } finally {
+      setOverviewLoading(false)
+    }
+  }, [currentFamily])
+
+  const handleSwitchMode = useCallback((mode: 'single' | 'overview') => {
+    setViewMode(mode)
+    if (mode === 'overview' && !overviewData) {
+      loadOverview()
+    }
+  }, [overviewData, loadOverview])
+
   const handleConfirmRelation = useCallback(async (targetPetId: string) => {
     if (!addingRelation || !currentFamily) return
     try {
       if (addingRelation.mode === 'mate') {
         // 添加配偶关系
         await familyService.addMate(currentFamily.id, addingRelation.childId, targetPetId)
+      } else if (addingRelation.mode === 'sibling') {
+        // 添加兄弟姐妹关系
+        await familyService.addSibling(currentFamily.id, addingRelation.childId, targetPetId)
       } else if (addingRelation.mode === 'parent') {
         // targetPetId 是父母，addingRelation.childId 是子女
         await familyService.addLineage(targetPetId, addingRelation.childId, currentFamily.id)
@@ -292,6 +341,7 @@ export default function LineagePage() {
       if (selectedPetId) {
         const data = await familyService.getLineage(selectedPetId, currentFamily.id)
         setLineage(data)
+        if (viewMode === 'overview') loadOverview()
       }
     } catch (err: unknown) {
       const error = err as { message?: string }
@@ -299,7 +349,7 @@ export default function LineagePage() {
     } finally {
       setAddingRelation(null)
     }
-  }, [addingRelation, currentFamily, selectedPetId])
+  }, [addingRelation, currentFamily, selectedPetId, viewMode, loadOverview])
 
   const handleRemoveRelation = useCallback((lineageId: string, relationType: 'parent' | 'child', targetName: string) => {
     if (!currentFamily) return
@@ -315,6 +365,7 @@ export default function LineagePage() {
             await familyService.removeLineage(lineageId, currentFamily.id)
             const data = await familyService.getLineage(selectedPetId!, currentFamily.id)
             setLineage(data)
+            if (viewMode === 'overview') loadOverview()
             Taro.showToast({ title: '关系已解除', icon: 'success' })
           } catch (err: unknown) {
             const error = err as { message?: string }
@@ -323,7 +374,7 @@ export default function LineagePage() {
         }
       },
     })
-  }, [currentFamily, selectedPetId])
+  }, [currentFamily, selectedPetId, viewMode, loadOverview])
 
   const handleRemoveMate = useCallback((relationshipId: string, targetName: string) => {
     if (!currentFamily) return
@@ -339,6 +390,7 @@ export default function LineagePage() {
             await familyService.removeMate(currentFamily.id, relationshipId)
             const data = await familyService.getLineage(selectedPetId!, currentFamily.id)
             setLineage(data)
+            if (viewMode === 'overview') loadOverview()
             Taro.showToast({ title: '关系已解除', icon: 'success' })
           } catch (err: unknown) {
             const error = err as { message?: string }
@@ -347,7 +399,32 @@ export default function LineagePage() {
         }
       },
     })
-  }, [currentFamily, selectedPetId])
+  }, [currentFamily, selectedPetId, viewMode, loadOverview])
+
+  const handleRemoveSibling = useCallback((relationshipId: string, targetName: string, siblingLabel: string) => {
+    if (!currentFamily) return
+    Taro.showModal({
+      title: '解除关系',
+      content: `确认解除与${targetName}的${siblingLabel}关系吗？`,
+      confirmText: '确认解除',
+      confirmColor: '#E0856B',
+      cancelText: '取消',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await familyService.removeSibling(currentFamily.id, relationshipId)
+            const data = await familyService.getLineage(selectedPetId!, currentFamily.id)
+            setLineage(data)
+            if (viewMode === 'overview') loadOverview()
+            Taro.showToast({ title: '关系已解除', icon: 'success' })
+          } catch (err: unknown) {
+            const error = err as { message?: string }
+            Taro.showToast({ title: error.message || '解除失败', icon: 'none' })
+          }
+        }
+      },
+    })
+  }, [currentFamily, selectedPetId, viewMode, loadOverview])
 
   const handlePetCardClick = (petId: string) => {
     if (addingRelation) {
@@ -360,7 +437,7 @@ export default function LineagePage() {
   const renderPetCard = (
     pet: PetProfile,
     relation: 'self' | 'parent' | 'grandparent' | 'greatGrandparent' | 'child' | 'grandchild' | 'greatGrandchild' | 'sibling' | 'mate',
-    extra?: { litterDate?: string },
+    extra?: { litterDate?: string; labelOverride?: string },
   ) => {
     const isSelected = pet.id === selectedPetId
     const genderIcon = getGenderIcon(pet.gender)
@@ -374,7 +451,7 @@ export default function LineagePage() {
         onClick={() => handlePetCardClick(pet.id)}
       >
         <View className='lineage-card-badge'>
-          <Text className='lineage-card-badge-text'>{RELATION_LABELS[relation]}</Text>
+          <Text className='lineage-card-badge-text'>{extra?.labelOverride || RELATION_LABELS[relation]}</Text>
         </View>
         <View className='lineage-card-body'>
           <View className='lineage-card-avatar'>
@@ -456,16 +533,28 @@ export default function LineagePage() {
       <View className='lineage-header'>
         <View className='lineage-header-top'>
           <Text className='lineage-header-title'>🧬 家族图谱</Text>
-          <View className='lineage-header-switch' onClick={() => setPetSelectorOpen(!petSelectorOpen)}>
-            <Text className='lineage-header-switch-text'>
-              {selectedPet?.name || '选择宠物'}
-            </Text>
-            <Text className='lineage-header-switch-arrow'>
-              {petSelectorOpen ? '▲' : '▼'}
-            </Text>
+          <View className='lineage-view-toggle'>
+            <Text
+              className={`lineage-view-toggle-btn ${viewMode === 'single' ? 'lineage-view-toggle-btn--active' : ''}`}
+              onClick={() => handleSwitchMode('single')}
+            >单宠视图</Text>
+            <Text
+              className={`lineage-view-toggle-btn ${viewMode === 'overview' ? 'lineage-view-toggle-btn--active' : ''}`}
+              onClick={() => handleSwitchMode('overview')}
+            >关系总览</Text>
           </View>
+          {viewMode === 'single' && (
+            <View className='lineage-header-switch' onClick={() => setPetSelectorOpen(!petSelectorOpen)}>
+              <Text className='lineage-header-switch-text'>
+                {selectedPet?.name || '选择宠物'}
+              </Text>
+              <Text className='lineage-header-switch-arrow'>
+                {petSelectorOpen ? '▲' : '▼'}
+              </Text>
+            </View>
+          )}
         </View>
-        {petSelectorOpen && (
+        {viewMode === 'single' && petSelectorOpen && (
           <View className='lineage-selector'>
             {familyPets.map(pet => (
               <View
@@ -482,13 +571,199 @@ export default function LineagePage() {
         )}
       </View>
 
-      {addingRelation && (
+      {viewMode === 'overview' && (
+        <View className='lineage-overview'>
+          {overviewLoading ? (
+            <View className='lineage-overview-loading'>
+              <Text>加载中...</Text>
+            </View>
+          ) : overviewData && overviewData.members.length > 0 ? (
+            <>
+              {/* 成员总览 */}
+              <View className='lineage-overview-section'>
+                <Text className='lineage-overview-section-title'>👥 家庭成员（{overviewData.members.length}）</Text>
+                <View className='lineage-overview-members'>
+                  {overviewData.members.map(m => {
+                    const emoji = m.species === 'cat' ? '🐱' : m.species === 'dog' ? '🐕' : '🐾'
+                    const genderIcon = m.gender === 'male' ? '♂' : m.gender === 'female' ? '♀' : ''
+                    const genderClass = m.gender === 'male' ? 'male' : m.gender === 'female' ? 'female' : ''
+                    return (
+                      <View key={m.petId} className='lineage-overview-member'>
+                        <Text className='lineage-overview-member-emoji'>{emoji}</Text>
+                        <Text className='lineage-overview-member-name'>{m.name || '未命名'}</Text>
+                        {genderIcon && <Text className={`lineage-overview-member-gender lineage-overview-member-gender--${genderClass}`}>{genderIcon}</Text>}
+                      </View>
+                    )
+                  })}
+                </View>
+              </View>
+
+              {/* 亲子关系 */}
+              <View className='lineage-overview-section'>
+                <Text className='lineage-overview-section-title'>👆 亲子关系（{overviewData.lineages.length}）</Text>
+                {overviewData.lineages.length === 0 ? (
+                  <Text className='lineage-overview-empty'>暂无亲子关系</Text>
+                ) : (
+                  <View className='lineage-overview-rel-list'>
+                    {overviewData.lineages.map(l => {
+                      const parentEmoji = l.parentSpecies === 'cat' ? '🐱' : l.parentSpecies === 'dog' ? '🐕' : '🐾'
+                      const childEmoji = l.childSpecies === 'cat' ? '🐱' : l.childSpecies === 'dog' ? '🐕' : '🐾'
+                      return (
+                        <View key={l.id} className='lineage-overview-rel-item'>
+                          <View className='lineage-overview-rel-pet'>
+                            <Text className='lineage-overview-rel-emoji'>{parentEmoji}</Text>
+                            <Text className='lineage-overview-rel-name'>{l.parentName || '未知'}</Text>
+                          </View>
+                          <Text className='lineage-overview-rel-arrow'>→</Text>
+                          <View className='lineage-overview-rel-pet'>
+                            <Text className='lineage-overview-rel-emoji'>{childEmoji}</Text>
+                            <Text className='lineage-overview-rel-name'>{l.childName || '未知'}</Text>
+                          </View>
+                          <View className='lineage-overview-rel-del' onClick={() => {
+                            if (!currentFamily) return
+                            Taro.showModal({
+                              title: '删除亲子关系',
+                              content: `确认删除 ${l.parentName} → ${l.childName} 的亲子关系吗？`,
+                              confirmText: '确认删除',
+                              confirmColor: '#E0856B',
+                              cancelText: '取消',
+                              success: async (res) => {
+                                if (res.confirm) {
+                                  try {
+                                    await familyService.removeLineage(l.id, currentFamily.id)
+                                    loadOverview()
+                                    Taro.showToast({ title: '关系已删除', icon: 'success' })
+                                  } catch (err: unknown) {
+                                    const error = err as { message?: string }
+                                    Taro.showToast({ title: error.message || '删除失败', icon: 'none' })
+                                  }
+                                }
+                              },
+                            })
+                          }}>
+                            <Text>✕</Text>
+                          </View>
+                        </View>
+                      )
+                    })}
+                  </View>
+                )}
+              </View>
+
+              {/* 手足关系 */}
+              <View className='lineage-overview-section'>
+                <Text className='lineage-overview-section-title'>🤝 手足关系（{overviewData.relationships.filter(r => r.relationType === 'sibling').length}）</Text>
+                {overviewData.relationships.filter(r => r.relationType === 'sibling').length === 0 ? (
+                  <Text className='lineage-overview-empty'>暂无手足关系</Text>
+                ) : (
+                  <View className='lineage-overview-rel-list'>
+                    {overviewData.relationships.filter(r => r.relationType === 'sibling').map(r => {
+                      const emojiA = r.petAAvatarUrl ? '' : '🐾'
+                      const emojiB = r.petBAvatarUrl ? '' : '🐾'
+                      const siblingLabel = getSiblingLabel(r.petAGender || undefined, r.petBGender || undefined)
+                      return (
+                        <View key={r.id} className='lineage-overview-rel-item'>
+                          <View className='lineage-overview-rel-pet'>
+                            <Text className='lineage-overview-rel-emoji'>{emojiA}</Text>
+                            <Text className='lineage-overview-rel-name'>{r.petAName || '未知'}</Text>
+                          </View>
+                          <Text className='lineage-overview-rel-label'>{siblingLabel}</Text>
+                          <View className='lineage-overview-rel-pet'>
+                            <Text className='lineage-overview-rel-emoji'>{emojiB}</Text>
+                            <Text className='lineage-overview-rel-name'>{r.petBName || '未知'}</Text>
+                          </View>
+                          <View className='lineage-overview-rel-del' onClick={() => {
+                            if (!currentFamily) return
+                            Taro.showModal({
+                              title: '删除手足关系',
+                              content: `确认删除 ${r.petAName} 和 ${r.petBName} 的${siblingLabel}关系吗？`,
+                              confirmText: '确认删除',
+                              confirmColor: '#E0856B',
+                              cancelText: '取消',
+                              success: async (res) => {
+                                if (res.confirm) {
+                                  try {
+                                    await familyService.removeSibling(currentFamily.id, r.id)
+                                    loadOverview()
+                                    Taro.showToast({ title: '关系已删除', icon: 'success' })
+                                  } catch (err: unknown) {
+                                    const error = err as { message?: string }
+                                    Taro.showToast({ title: error.message || '删除失败', icon: 'none' })
+                                  }
+                                }
+                              },
+                            })
+                          }}>
+                            <Text>✕</Text>
+                          </View>
+                        </View>
+                      )
+                    })}
+                  </View>
+                )}
+              </View>
+
+              {/* 配偶关系 */}
+              <View className='lineage-overview-section'>
+                <Text className='lineage-overview-section-title'>💞 配偶关系（{overviewData.relationships.filter(r => r.relationType === 'mate').length}）</Text>
+                {overviewData.relationships.filter(r => r.relationType === 'mate').length === 0 ? (
+                  <Text className='lineage-overview-empty'>暂无配偶关系</Text>
+                ) : (
+                  <View className='lineage-overview-rel-list'>
+                    {overviewData.relationships.filter(r => r.relationType === 'mate').map(r => (
+                      <View key={r.id} className='lineage-overview-rel-item'>
+                        <View className='lineage-overview-rel-pet'>
+                          <Text className='lineage-overview-rel-name'>{r.petAName || '未知'}</Text>
+                        </View>
+                        <Text className='lineage-overview-rel-label'>💞</Text>
+                        <View className='lineage-overview-rel-pet'>
+                          <Text className='lineage-overview-rel-name'>{r.petBName || '未知'}</Text>
+                        </View>
+                        <View className='lineage-overview-rel-del' onClick={() => {
+                          if (!currentFamily) return
+                          Taro.showModal({
+                            title: '删除配偶关系',
+                            content: `确认删除 ${r.petAName} 和 ${r.petBName} 的配偶关系吗？`,
+                            confirmText: '确认删除',
+                            confirmColor: '#E0856B',
+                            cancelText: '取消',
+                            success: async (res) => {
+                              if (res.confirm) {
+                                try {
+                                  await familyService.removeMate(currentFamily.id, r.id)
+                                  loadOverview()
+                                  Taro.showToast({ title: '关系已删除', icon: 'success' })
+                                } catch (err: unknown) {
+                                  const error = err as { message?: string }
+                                  Taro.showToast({ title: error.message || '删除失败', icon: 'none' })
+                                }
+                              }
+                            },
+                          })
+                        }}>
+                          <Text>✕</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </>
+          ) : (
+            <View className='lineage-overview-empty'>
+              <Text>暂无家庭成员</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {viewMode === 'single' && addingRelation && (
         <View className='lineage-adding-banner'>
           <Text className='lineage-adding-banner-icon'>
-            {addingRelation.mode === 'parent' ? '👆' : addingRelation.mode === 'mate' ? '💞' : '👇'}
+            {addingRelation.mode === 'parent' ? '👆' : addingRelation.mode === 'mate' ? '💞' : addingRelation.mode === 'sibling' ? '🤝' : '👇'}
           </Text>
           <Text className='lineage-adding-banner-text'>
-            请选择{addingRelation.mode === 'parent' ? '父母' : addingRelation.mode === 'mate' ? '配偶' : '子女'}宠物
+            请选择{addingRelation.mode === 'parent' ? '父母' : addingRelation.mode === 'mate' ? '配偶' : addingRelation.mode === 'sibling' ? '兄弟姐妹' : '子女'}宠物
           </Text>
           <View className='lineage-adding-banner-cancel' onClick={() => setAddingRelation(null)}>
             <Text>取消</Text>
@@ -496,6 +771,7 @@ export default function LineagePage() {
         </View>
       )}
 
+      {viewMode === 'single' && (
       <ScrollView className='lineage-scroll' scrollY>
         <View className='lineage-tree'>
           {/* 配偶层（最上方） */}
@@ -516,6 +792,30 @@ export default function LineagePage() {
                   </View>
                 ))}
               </View>
+            </View>
+          )}
+
+          {/* 铲屎官节点（当宠物没有父母/祖辈时显示，作为家族树的根） */}
+          {hasNoAncestors && !loading && !addingRelation && user && (
+            <View className='lineage-layer lineage-layer--owner'>
+              <View className='lineage-layer-label'>
+                <Text className='lineage-layer-label-text'>🏠 铲屎官</Text>
+              </View>
+              <View className='lineage-owner-card'>
+                <View className='lineage-owner-badge'>
+                  <Text className='lineage-owner-badge-text'>铲屎官</Text>
+                </View>
+                <View className='lineage-owner-body'>
+                  <View className='lineage-owner-avatar'>
+                    <Text className='lineage-owner-emoji'>🧑</Text>
+                  </View>
+                  <View className='lineage-owner-info'>
+                    <Text className='lineage-owner-name'>{user.nickname || '主人'}</Text>
+                    <Text className='lineage-owner-role'>毛孩子的家长</Text>
+                  </View>
+                </View>
+              </View>
+              {renderTreeConnector('down')}
             </View>
           )}
 
@@ -592,14 +892,22 @@ export default function LineagePage() {
               {siblingPets.length > 0 && (
                 <View className='lineage-siblings-side'>
                   <View className='lineage-layer-label'>
-                    <Text className='lineage-layer-label-text'>🤝 兄弟姐妹</Text>
+                    <Text className='lineage-layer-label-text'>🤝 手足</Text>
                   </View>
                   <View className='lineage-siblings-list'>
-                    {siblingPets.map(({ pet }) => (
-                      <View key={pet.id} className='lineage-card-wrap lineage-card-wrap--sibling'>
-                        {renderPetCard(pet, 'sibling')}
-                      </View>
-                    ))}
+                    {siblingPets.map(({ pet, lineageId, source }) => {
+                      const siblingLabel = getSiblingLabel(selectedPet?.gender, pet.gender)
+                      return (
+                        <View key={pet.id} className='lineage-card-wrap lineage-card-wrap--sibling'>
+                          {renderPetCard(pet, 'sibling', { labelOverride: siblingLabel })}
+                          {!addingRelation && source === 'sibling_rel' && (
+                            <View className='lineage-remove-btn' onClick={() => handleRemoveSibling(lineageId, pet.name, siblingLabel)}>
+                              <Text>✕</Text>
+                            </View>
+                          )}
+                        </View>
+                      )
+                    })}
                   </View>
                 </View>
               )}
@@ -637,6 +945,10 @@ export default function LineagePage() {
                         <View className='lineage-self-action' onClick={handleAddMate}>
                           <Text className='lineage-self-action-icon'>+💞</Text>
                           <Text className='lineage-self-action-text'>添加配偶</Text>
+                        </View>
+                        <View className='lineage-self-action' onClick={handleAddSibling}>
+                          <Text className='lineage-self-action-icon'>+🤝</Text>
+                          <Text className='lineage-self-action-text'>添加手足</Text>
                         </View>
                         <View className='lineage-self-action' onClick={handleAddChild}>
                           <Text className='lineage-self-action-icon'>+👇</Text>
@@ -757,6 +1069,7 @@ export default function LineagePage() {
 
         <View className='lineage-bottom-safe' />
       </ScrollView>
+      )}
     </View>
   )
 }

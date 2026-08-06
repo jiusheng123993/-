@@ -23,6 +23,12 @@ export interface RelationshipRow extends QueryResultRow {
 export interface RelationshipWithPetsRow extends RelationshipRow {
   pet_a_name: string | null;
   pet_b_name: string | null;
+  pet_a_avatar_url: string | null;
+  pet_a_gender: string | null;
+  pet_a_species: string | null;
+  pet_b_avatar_url: string | null;
+  pet_b_gender: string | null;
+  pet_b_species: string | null;
 }
 
 export class RelationshipRepository extends BaseRepository<RelationshipRow> {
@@ -38,7 +44,13 @@ export class RelationshipRepository extends BaseRepository<RelationshipRow> {
         r.id, r.family_id, r.pet_id_a, r.pet_id_b, r.relation_type,
         r.direction, r.label_a, r.label_b, r.created_at,
         pa.name AS pet_a_name,
-        pb.name AS pet_b_name
+        COALESCE(pa.avatar_photo_url, pa.avatar_cartoon_url) AS pet_a_avatar_url,
+        pa.gender AS pet_a_gender,
+        pa.species AS pet_a_species,
+        pb.name AS pet_b_name,
+        COALESCE(pb.avatar_photo_url, pb.avatar_cartoon_url) AS pet_b_avatar_url,
+        pb.gender AS pet_b_gender,
+        pb.species AS pet_b_species
       FROM pet_relationships r
       LEFT JOIN pet_profiles pa ON pa.id = r.pet_id_a
       LEFT JOIN pet_profiles pb ON pb.id = r.pet_id_b
@@ -89,6 +101,40 @@ export class RelationshipRepository extends BaseRepository<RelationshipRow> {
       ORDER BY r.created_at DESC
     `;
     const result = await this.rawQuery<RelationshipRow & { pet_a_name: string | null; pet_b_name: string | null }>(sql, [petId]);
+    return result.rows;
+  }
+
+  /**
+   * 查询涉及某只宠物的所有手动添加的兄弟姐妹关系
+   * 返回对方宠物的信息（pet_id, pet_name, pet_avatar_url, pet_species）
+   * 用于合并到血亲树的 siblings 字段
+   */
+  async findSiblingsByPetId(petId: string): Promise<Array<RelationshipRow & {
+    sibling_pet_id: string | null;
+    sibling_pet_name: string | null;
+    sibling_pet_avatar_url: string | null;
+    sibling_pet_species: string | null;
+  }>> {
+    const sql = `
+      SELECT
+        r.id, r.family_id, r.pet_id_a, r.pet_id_b, r.relation_type,
+        r.direction, r.label_a, r.label_b, r.created_at,
+        CASE WHEN r.pet_id_a = $1 THEN r.pet_id_b ELSE r.pet_id_a END AS sibling_pet_id,
+        p.name AS sibling_pet_name,
+        COALESCE(p.avatar_photo_url, p.avatar_cartoon_url) AS sibling_pet_avatar_url,
+        p.species AS sibling_pet_species
+      FROM pet_relationships r
+      LEFT JOIN pet_profiles p ON p.id = CASE WHEN r.pet_id_a = $1 THEN r.pet_id_b ELSE r.pet_id_a END
+      WHERE r.relation_type = 'sibling'
+        AND (r.pet_id_a = $1 OR r.pet_id_b = $1)
+      ORDER BY r.created_at DESC
+    `;
+    const result = await this.rawQuery<RelationshipRow & {
+      sibling_pet_id: string | null;
+      sibling_pet_name: string | null;
+      sibling_pet_avatar_url: string | null;
+      sibling_pet_species: string | null;
+    }>(sql, [petId]);
     return result.rows;
   }
 }
