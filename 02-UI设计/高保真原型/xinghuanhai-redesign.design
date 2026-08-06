@@ -7,7 +7,7 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 225,
+        "x": 0,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -42,8 +42,8 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 0,
-        "y": 488,
+        "x": -96,
+        "y": -672,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -89,8 +89,8 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 309,
-        "y": 488,
+        "x": 870,
+        "y": 0,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -124,8 +124,8 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 480,
-        "y": -9,
+        "x": 1323,
+        "y": 0,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -159,8 +159,8 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 588,
-        "y": 511,
+        "x": 1740,
+        "y": 0,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -200,7 +200,7 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 792,
+        "x": 2169,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -228,8 +228,8 @@
       "version": 1,
       "createdAt": 1786032000000,
       "canvasData": {
-        "x": 1092,
-        "y": -9,
+        "x": 2586,
+        "y": 0,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
@@ -263,7 +263,7 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 1452,
+        "x": 3039,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -304,15 +304,15 @@
       "version": 1,
       "createdAt": 1785920000000,
       "canvasData": {
-        "x": 927,
-        "y": 511,
+        "x": 3474,
+        "y": 0,
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
           "contentHeight": 1357,
           "viewportWidth": 826,
-          "sourceHash": "fnv1a-3956b659",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-d794dc42",
+          "measuredAt": 1786002640523
         },
         "deviceType": "freeSize",
         "windowSize": {
@@ -351,8 +351,8 @@
       "version": 1,
       "createdAt": 1785941167201,
       "canvasData": {
-        "x": 1188,
-        "y": 532,
+        "x": 3915,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -363,8 +363,8 @@
           "version": 1,
           "contentHeight": 1358,
           "viewportWidth": 662,
-          "sourceHash": "fnv1a-92fb315d",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-5b4a0b43",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -428,8 +428,8 @@
       "version": 1,
       "createdAt": 1785941167201,
       "canvasData": {
-        "x": 1488,
-        "y": 532,
+        "x": 4308,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -440,8 +440,8 @@
           "version": 1,
           "contentHeight": 3698,
           "viewportWidth": 867,
-          "sourceHash": "fnv1a-aa806eb9",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-b9411efd",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -475,8 +475,8 @@
       "version": 1,
       "createdAt": 1785941167201,
       "canvasData": {
-        "x": 1812,
-        "y": 68.49999999999997,
+        "x": 4761,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -487,8 +487,8 @@
           "version": 1,
           "contentHeight": 2236,
           "viewportWidth": 662,
-          "sourceHash": "fnv1a-329e458e",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-f95c4920",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -516,8 +516,8 @@
       "version": 1,
       "createdAt": 1785941167201,
       "canvasData": {
-        "x": 1788,
-        "y": 511,
+        "x": 5154,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -528,8 +528,8 @@
           "version": 1,
           "contentHeight": 1221,
           "viewportWidth": 744,
-          "sourceHash": "fnv1a-aa72259b",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-f401f815",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -552,7 +552,7 @@
       "createdAt": 1785943329792,
       "canvasData": {
         "x": 0,
-        "y": 1113,
+        "y": 517,
         "deviceType": "freeSize",
         "windowSize": {
           "width": 374,
@@ -575,7 +575,7 @@
       "createdAt": 1785943329792,
       "canvasData": {
         "x": 309,
-        "y": 1113,
+        "y": 517,
         "deviceType": "freeSize",
         "windowSize": {
           "width": 374,
@@ -598,7 +598,7 @@
       "createdAt": 1785943329792,
       "canvasData": {
         "x": 618,
-        "y": 1113,
+        "y": 517,
         "deviceType": "freeSize",
         "windowSize": {
           "width": 374,
@@ -621,7 +621,7 @@
       "createdAt": 1785943329792,
       "canvasData": {
         "x": 927,
-        "y": 1113,
+        "y": 517,
         "deviceType": "freeSize",
         "windowSize": {
           "width": 374,
@@ -643,8 +643,8 @@
       "version": 1,
       "createdAt": 1785946590648,
       "canvasData": {
-        "x": 2160,
-        "y": 97,
+        "x": 5571,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -655,8 +655,8 @@
           "version": 1,
           "contentHeight": 849,
           "viewportWidth": 826,
-          "sourceHash": "fnv1a-b53c0855",
-          "measuredAt": 1785955786133
+          "sourceHash": "fnv1a-727effbc",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -684,8 +684,8 @@
       "version": 1,
       "createdAt": 1785946590648,
       "canvasData": {
-        "x": 2484,
-        "y": 129,
+        "x": 6012,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -725,8 +725,8 @@
       "version": 1,
       "createdAt": 1785946590648,
       "canvasData": {
-        "x": 2142.5,
-        "y": 506.5,
+        "x": 6417,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -737,8 +737,8 @@
           "version": 1,
           "contentHeight": 1938,
           "viewportWidth": 621,
-          "sourceHash": "fnv1a-a47b4e91",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-d04de53b",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -760,8 +760,8 @@
       "version": 1,
       "createdAt": 1785946590648,
       "canvasData": {
-        "x": 2796,
-        "y": 97,
+        "x": 6798,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -772,8 +772,8 @@
           "version": 1,
           "contentHeight": 1400,
           "viewportWidth": 703,
-          "sourceHash": "fnv1a-f6aeff59",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-adb0911b",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -825,8 +825,8 @@
       "version": 1,
       "createdAt": 1785946590648,
       "canvasData": {
-        "x": 2388,
-        "y": 552,
+        "x": 7203,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -837,8 +837,8 @@
           "version": 1,
           "contentHeight": 1401,
           "viewportWidth": 991,
-          "sourceHash": "fnv1a-460c4320",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-b606c7a1",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -861,7 +861,7 @@
       "createdAt": 1785946671310,
       "canvasData": {
         "x": 1236,
-        "y": 1113,
+        "y": 517,
         "deviceType": "freeSize",
         "windowSize": {
           "width": 374,
@@ -884,7 +884,7 @@
       "createdAt": 1785946671310,
       "canvasData": {
         "x": 1545,
-        "y": 1113,
+        "y": 517,
         "deviceType": "freeSize",
         "windowSize": {
           "width": 374,
@@ -906,8 +906,8 @@
       "version": 1,
       "createdAt": 1785948591786,
       "canvasData": {
-        "x": 3060,
-        "y": 97,
+        "x": 7692,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -941,8 +941,8 @@
       "version": 1,
       "createdAt": 1785948591786,
       "canvasData": {
-        "x": 2796,
-        "y": 573.5,
+        "x": 8120,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -951,10 +951,10 @@
         },
         "layoutSnapshot": {
           "version": 1,
-          "contentHeight": 1166,
+          "contentHeight": 1627,
           "viewportWidth": 785,
-          "sourceHash": "fnv1a-277337a0",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-41a8cdc7",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -988,8 +988,8 @@
       "version": 1,
       "createdAt": 1785948591786,
       "canvasData": {
-        "x": 3060,
-        "y": 474.5,
+        "x": 8549,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1000,8 +1000,8 @@
           "version": 1,
           "contentHeight": 1159,
           "viewportWidth": 785,
-          "sourceHash": "fnv1a-1f0887be",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-40bc21e6",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1023,8 +1023,8 @@
       "version": 1,
       "createdAt": 1785948591786,
       "canvasData": {
-        "x": 927,
-        "y": 1952,
+        "x": 8978,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1035,8 +1035,8 @@
           "version": 1,
           "contentHeight": 1157,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-0f2e7ada",
-          "measuredAt": 1785951731059
+          "sourceHash": "fnv1a-3fa5531a",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1058,8 +1058,8 @@
       "version": 1,
       "createdAt": 1785948591786,
       "canvasData": {
-        "x": 3444,
-        "y": 109,
+        "x": 9287,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1070,8 +1070,8 @@
           "version": 1,
           "contentHeight": 1251,
           "viewportWidth": 826,
-          "sourceHash": "fnv1a-f8dded1b",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-16440236",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1093,8 +1093,8 @@
       "version": 1,
       "createdAt": 1785951818051,
       "canvasData": {
-        "x": 0,
-        "y": 2440,
+        "x": 9728,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1103,10 +1103,10 @@
         },
         "layoutSnapshot": {
           "version": 1,
-          "contentHeight": 1136,
+          "contentHeight": 1135,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-c1d3411f",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-b5a93f7d",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1134,8 +1134,8 @@
       "version": 1,
       "createdAt": 1785951818051,
       "canvasData": {
-        "x": 309,
-        "y": 2440,
+        "x": 10037,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1146,8 +1146,8 @@
           "version": 1,
           "contentHeight": 1311,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-e7ee20db",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-c484e10b",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1169,8 +1169,8 @@
       "version": 1,
       "createdAt": 1785951818051,
       "canvasData": {
-        "x": 618,
-        "y": 2440,
+        "x": 10346,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1181,8 +1181,8 @@
           "version": 1,
           "contentHeight": 1420,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-3094fc2e",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-9e12b0f0",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1204,8 +1204,8 @@
       "version": 1,
       "createdAt": 1785951818051,
       "canvasData": {
-        "x": 927,
-        "y": 2440,
+        "x": 10655,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1216,8 +1216,8 @@
           "version": 1,
           "contentHeight": 1320,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-7a27f6fc",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-9e297e0e",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1245,8 +1245,8 @@
       "version": 1,
       "createdAt": 1785951818051,
       "canvasData": {
-        "x": 1236,
-        "y": 2440,
+        "x": 2675,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1257,8 +1257,8 @@
           "version": 1,
           "contentHeight": 1180,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-de6b0b52",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-27951686",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1280,8 +1280,8 @@
       "version": 1,
       "createdAt": 1785952082853,
       "canvasData": {
-        "x": -72,
-        "y": 21,
+        "x": 2984,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1290,10 +1290,10 @@
         },
         "layoutSnapshot": {
           "version": 1,
-          "contentHeight": 1069,
+          "contentHeight": 1013,
           "viewportWidth": 744,
-          "sourceHash": "fnv1a-2442c12b",
-          "measuredAt": 1785955610769
+          "sourceHash": "fnv1a-8ce9a605",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1381,8 +1381,8 @@
       "version": 1,
       "createdAt": 1785956750415,
       "canvasData": {
-        "x": 0,
-        "y": 2928,
+        "x": 3401,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1393,8 +1393,8 @@
           "version": 1,
           "contentHeight": 1379,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-f723085b",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-42fe3f2f",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1422,8 +1422,8 @@
       "version": 1,
       "createdAt": 1785956750415,
       "canvasData": {
-        "x": 309,
-        "y": 2928,
+        "x": 3710,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1434,8 +1434,8 @@
           "version": 1,
           "contentHeight": 1086,
           "viewportWidth": 703,
-          "sourceHash": "fnv1a-98e14a71",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-23f5fb45",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1457,8 +1457,8 @@
       "version": 1,
       "createdAt": 1785956750415,
       "canvasData": {
-        "x": 618,
-        "y": 2928,
+        "x": 4115,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1469,8 +1469,8 @@
           "version": 1,
           "contentHeight": 1333,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-981cda47",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-3056f86a",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1504,8 +1504,8 @@
       "version": 1,
       "createdAt": 1785956750415,
       "canvasData": {
-        "x": 927,
-        "y": 2928,
+        "x": 4424,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1516,8 +1516,8 @@
           "version": 1,
           "contentHeight": 1529,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-e5c46c32",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-439d0814",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1539,8 +1539,8 @@
       "version": 1,
       "createdAt": 1785956750415,
       "canvasData": {
-        "x": 1236,
-        "y": 2928,
+        "x": 4733,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
@@ -1551,8 +1551,8 @@
           "version": 1,
           "contentHeight": 2313,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-428b4a4a",
-          "measuredAt": 1785987466761
+          "sourceHash": "fnv1a-144adbba",
+          "measuredAt": 1786002640523
         }
       },
       "devMetadata": {
@@ -1574,16 +1574,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 0,
-        "y": 3600,
+        "x": 5042,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1400, "viewportWidth": 374, "sourceHash": "fnv1a-edit-page", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1032,
+          "height": 1101
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1584,
+          "viewportWidth": 1032,
+          "sourceHash": "fnv1a-498e96c3",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/edit.html",
-        "interactions": [{ "domId": "edit-save", "targetPageId": "page-edit", "hideEdge": true, "transitionLabel": "保存修改" }]
+        "interactions": [
+          {
+            "domId": "edit-save",
+            "targetPageId": "page-edit",
+            "hideEdge": true,
+            "transitionLabel": "保存修改"
+          }
+        ]
       }
     },
     {
@@ -1593,16 +1609,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 430,
-        "y": 3600,
+        "x": 5543,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-breed-detail", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1114,
+          "height": 1059
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1737,
+          "viewportWidth": 1114,
+          "sourceHash": "fnv1a-595a07fb",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/breed-detail.html",
-        "interactions": [{ "domId": "breed-detail-set-pet", "targetPageId": "page-edit", "hideEdge": true, "transitionLabel": "设为我的宠物品种" }]
+        "interactions": [
+          {
+            "domId": "breed-detail-set-pet",
+            "targetPageId": "page-edit",
+            "hideEdge": true,
+            "transitionLabel": "设为我的宠物品种"
+          }
+        ]
       }
     },
     {
@@ -1612,16 +1644,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 860,
-        "y": 3600,
+        "x": 6068,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1600, "viewportWidth": 374, "sourceHash": "fnv1a-chronic", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1056,
+          "height": 977
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1067,
+          "viewportWidth": 1056,
+          "sourceHash": "fnv1a-a1ca71f1",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/chronic-tracking.html",
-        "interactions": [{ "domId": "chronic-add", "targetPageId": "page-chronic-tracking", "hideEdge": true, "transitionLabel": "添加记录" }]
+        "interactions": [
+          {
+            "domId": "chronic-add",
+            "targetPageId": "page-chronic-tracking",
+            "hideEdge": true,
+            "transitionLabel": "添加记录"
+          }
+        ]
       }
     },
     {
@@ -1631,16 +1679,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 1290,
-        "y": 3600,
+        "x": 6576,
+        "y": 828,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1650, "viewportWidth": 374, "sourceHash": "fnv1a-feeding", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 960,
+          "height": 1018
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 948,
+          "viewportWidth": 960,
+          "sourceHash": "fnv1a-a93a3d49",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/feeding-advice.html",
-        "interactions": [{ "domId": "feeding-log-save", "targetPageId": "page-feeding-advice", "hideEdge": true, "transitionLabel": "保存记录" }]
+        "interactions": [
+          {
+            "domId": "feeding-log-save",
+            "targetPageId": "page-feeding-advice",
+            "hideEdge": true,
+            "transitionLabel": "保存记录"
+          }
+        ]
       }
     },
     {
@@ -1650,16 +1714,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 0,
-        "y": 3980,
+        "x": 15345,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1900, "viewportWidth": 374, "sourceHash": "fnv1a-wardrobe", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 991,
+          "height": 936
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 937,
+          "viewportWidth": 991,
+          "sourceHash": "fnv1a-3de1146a",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/wardrobe.html",
-        "interactions": [{ "domId": "wardrobe-save", "targetPageId": "page-wardrobe", "hideEdge": true, "transitionLabel": "保存形象" }]
+        "interactions": [
+          {
+            "domId": "wardrobe-save",
+            "targetPageId": "page-wardrobe",
+            "hideEdge": true,
+            "transitionLabel": "保存形象"
+          }
+        ]
       }
     },
     {
@@ -1669,16 +1749,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 430,
-        "y": 3980,
+        "x": 15834,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-leaderboard", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1073,
+          "height": 1018
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1120,
+          "viewportWidth": 1073,
+          "sourceHash": "fnv1a-cfff090b",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/leaderboard.html",
-        "interactions": [{ "domId": "leaderboard-refresh", "targetPageId": "page-leaderboard", "hideEdge": true, "transitionLabel": "刷新" }]
+        "interactions": [
+          {
+            "domId": "leaderboard-refresh",
+            "targetPageId": "page-leaderboard",
+            "hideEdge": true,
+            "transitionLabel": "刷新"
+          }
+        ]
       }
     },
     {
@@ -1688,16 +1784,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 860,
-        "y": 3980,
+        "x": 16347,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-achievement", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1155,
+          "height": 1018
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1389,
+          "viewportWidth": 1155,
+          "sourceHash": "fnv1a-9a753149",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/achievement.html",
-        "interactions": [{ "domId": "achievement-list", "targetPageId": "page-achievement", "hideEdge": true, "transitionLabel": "分享成就卡" }]
+        "interactions": [
+          {
+            "domId": "achievement-list",
+            "targetPageId": "page-achievement",
+            "hideEdge": true,
+            "transitionLabel": "分享成就卡"
+          }
+        ]
       }
     },
     {
@@ -1707,16 +1819,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 1290,
-        "y": 3980,
+        "x": 16884,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-profile", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1063,
+          "height": 895
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1437,
+          "viewportWidth": 1063,
+          "sourceHash": "fnv1a-335102c1",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/profile.html",
-        "interactions": [{ "domId": "profile-report-gen", "targetPageId": "page-profile", "hideEdge": true, "transitionLabel": "生成健康报告" }]
+        "interactions": [
+          {
+            "domId": "profile-report-gen",
+            "targetPageId": "page-profile",
+            "hideEdge": true,
+            "transitionLabel": "生成健康报告"
+          }
+        ]
       }
     },
     {
@@ -1726,16 +1854,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 0,
-        "y": 4360,
+        "x": 17394,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1900, "viewportWidth": 374, "sourceHash": "fnv1a-agreement", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 826,
+          "height": 854
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1215,
+          "viewportWidth": 826,
+          "sourceHash": "fnv1a-5278c797",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/agreement.html",
-        "interactions": [{ "domId": "agreement-accept", "targetPageId": "page-auth", "hideEdge": true, "transitionLabel": "同意并继续" }]
+        "interactions": [
+          {
+            "domId": "agreement-accept",
+            "targetPageId": "page-auth",
+            "hideEdge": true,
+            "transitionLabel": "同意并继续"
+          }
+        ]
       }
     },
     {
@@ -1745,16 +1889,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 430,
-        "y": 4360,
+        "x": 17835,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-invite", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1018,
+          "height": 854
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 987,
+          "viewportWidth": 1018,
+          "sourceHash": "fnv1a-98141fd8",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/invite.html",
-        "interactions": [{ "domId": "invite-copy", "targetPageId": "page-invite", "hideEdge": true, "transitionLabel": "复制邀请码" }]
+        "interactions": [
+          {
+            "domId": "invite-copy",
+            "targetPageId": "page-invite",
+            "hideEdge": true,
+            "transitionLabel": "复制邀请码"
+          }
+        ]
       }
     },
     {
@@ -1764,16 +1924,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 860,
-        "y": 4360,
+        "x": 18332,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1600, "viewportWidth": 374, "sourceHash": "fnv1a-effect", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 1125,
+          "height": 895
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 826,
+          "viewportWidth": 1125,
+          "sourceHash": "fnv1a-a852d0f8",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/effect-tracking.html",
-        "interactions": [{ "domId": "effect-tabs", "targetPageId": "page-effect-tracking", "hideEdge": true, "transitionLabel": "切换分类" }]
+        "interactions": [
+          {
+            "domId": "effect-tabs",
+            "targetPageId": "page-effect-tracking",
+            "hideEdge": true,
+            "transitionLabel": "切换分类"
+          }
+        ]
       }
     },
     {
@@ -1783,16 +1959,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 1290,
-        "y": 4360,
+        "x": 18860,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1600, "viewportWidth": 374, "sourceHash": "fnv1a-memory", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 960,
+          "height": 936
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1416,
+          "viewportWidth": 960,
+          "sourceHash": "fnv1a-a856e761",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/memory.html",
-        "interactions": [{ "domId": "memory-edit-1", "targetPageId": "page-memory", "hideEdge": true, "transitionLabel": "修正记忆" }]
+        "interactions": [
+          {
+            "domId": "memory-edit-1",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "修正记忆"
+          }
+        ]
       }
     },
     {
@@ -1802,16 +1994,32 @@
       "version": 1,
       "createdAt": 1786000000000,
       "canvasData": {
-        "x": 0,
-        "y": 4740,
+        "x": 19340,
+        "y": 0,
         "group": 0,
         "deviceType": "freeSize",
-        "windowSize": { "width": 374, "height": 812 },
-        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-feedback", "measuredAt": 1786000000000 }
+        "windowSize": {
+          "width": 771,
+          "height": 854
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 922,
+          "viewportWidth": 771,
+          "sourceHash": "fnv1a-6ebbecc2",
+          "measuredAt": 1786002640523
+        }
       },
       "devMetadata": {
         "htmlSrc": "pages/feedback.html",
-        "interactions": [{ "domId": "feedback-submit", "targetPageId": "page-feedback", "hideEdge": true, "transitionLabel": "提交反馈" }]
+        "interactions": [
+          {
+            "domId": "feedback-submit",
+            "targetPageId": "page-feedback",
+            "hideEdge": true,
+            "transitionLabel": "提交反馈"
+          }
+        ]
       }
     }
   ],

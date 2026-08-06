@@ -49,7 +49,7 @@
     {
       "htmlSrc": "pages/family.html",
       "action": "replace-data-mobile-nav-global",
-      "activeKey": "home"
+      "activeKey": "family"
     },
     {
       "htmlSrc": "pages/naming.html",
@@ -65,11 +65,181 @@
       "htmlSrc": "pages/share-card.html",
       "action": "replace-data-mobile-nav-global",
       "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/auth.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/membership.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/health-report.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/grief.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/settings.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/health-trends-appetite-line.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/pet-diary.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "pet"
+    },
+    {
+      "htmlSrc": "pages/pet-image.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "pet"
+    },
+    {
+      "htmlSrc": "pages/family-tree.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/family-report.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/annual-review.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "timeline"
+    },
+    {
+      "htmlSrc": "pages/ai-chat.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/family-calendar.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/family-feed.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/illness-care.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/newbie-guide.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/breed.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/add-pet.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/hospital.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/memoir-daily.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "timeline"
+    },
+    {
+      "htmlSrc": "pages/memoir-vlog.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "timeline"
+    },
+    {
+      "htmlSrc": "pages/edit.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "pet"
+    },
+    {
+      "htmlSrc": "pages/breed-detail.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/chronic-tracking.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/feeding-advice.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/wardrobe.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "pet"
+    },
+    {
+      "htmlSrc": "pages/leaderboard.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/achievement.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "home"
+    },
+    {
+      "htmlSrc": "pages/profile.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/agreement.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/invite.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/effect-tracking.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/memory.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
+    },
+    {
+      "htmlSrc": "pages/feedback.html",
+      "action": "replace-data-mobile-nav-global",
+      "activeKey": "mine"
     }
   ],
   "skippedPages": [],
   "failedPages": [],
-  "repairCount": 13,
+  "repairCount": 47,
   "previousFailedReportDetected": false,
-  "checkedAt": "2026-08-05T15:34:39.869Z"
+  "checkedAt": "2026-08-06T07:58:57.205Z"
 }
