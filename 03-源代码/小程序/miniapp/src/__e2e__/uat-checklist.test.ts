@@ -159,7 +159,7 @@ function yearsAgo(years: number): string {
 // ============================================================
 // UAT 验收测试套件
 // ============================================================
-describe('UAT 验收测试', () => {
+describe('UAT 验收测试', async () => {
   beforeEach(() => {
     vi.clearAllMocks()
     Object.keys(mockStorage).forEach((k) => delete mockStorage[k])
@@ -168,12 +168,12 @@ describe('UAT 验收测试', () => {
   // ==========================================================
   // 第一部分：PRD 功能完整性验证
   // ==========================================================
-  describe('PRD功能完整性验证', () => {
+  describe('PRD功能完整性验证', async () => {
     // ----------------------------------------------------------
     // 喂养建议引擎
     // ----------------------------------------------------------
-    describe('喂养建议引擎应支持所有生命周期阶段', () => {
-      it('幼犬（<12个月）应识别为 isPuppyKitten 并生成幼年喂养建议', () => {
+    describe('喂养建议引擎应支持所有生命周期阶段', async () => {
+      it('幼犬（<12个月）应识别为 isPuppyKitten 并生成幼年喂养建议', async () => {
         const pet = makePet({ birthDate: monthsAgo(6), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.isPuppyKitten).toBe(true)
@@ -186,7 +186,7 @@ describe('UAT 验收测试', () => {
         expect(foodTypeAdvice!.priority).toBe('high')
       })
 
-      it('幼猫（<12个月）应识别为 isPuppyKitten 并生成幼猫喂养建议', () => {
+      it('幼猫（<12个月）应识别为 isPuppyKitten 并生成幼猫喂养建议', async () => {
         const pet = makePet({ birthDate: monthsAgo(4), species: 'cat', breed: '英短' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.isPuppyKitten).toBe(true)
@@ -197,7 +197,7 @@ describe('UAT 验收测试', () => {
         expect(foodTypeAdvice!.content).toContain('幼猫')
       })
 
-      it('老年犬（>=84个月/7岁）应识别为 isSenior 并生成老年喂养建议', () => {
+      it('老年犬（>=84个月/7岁）应识别为 isSenior 并生成老年喂养建议', async () => {
         const pet = makePet({ birthDate: yearsAgo(8), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.isSenior).toBe(true)
@@ -209,22 +209,23 @@ describe('UAT 验收测试', () => {
         expect(seniorAdvice!.content).toContain('老年')
       })
 
-      it('老年猫（>=120个月/10岁）应识别为 isSenior', () => {
+      it('老年猫（>=120个月/10岁）应识别为 isSenior', async () => {
         const pet = makePet({ birthDate: yearsAgo(11), species: 'cat', breed: '英短' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.isSenior).toBe(true)
       })
 
-      it('成年犬（1-7岁）不应识别为幼年或老年', () => {
+      it('成年犬（1-7岁）不应识别为幼年或老年', async () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.isPuppyKitten).toBe(false)
         expect(profile.isSenior).toBe(false)
       })
 
-      it('绝育宠物应生成绝育后饮食建议', () => {
+      it('绝育宠物应生成绝育后饮食建议', async () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog', isNeutered: true })
-        const profile = await buildFeedingProfile(pet, [], true)
+        // buildFeedingProfile 签名：(pet, userId, allergies?, isNeutered?)
+        const profile = await buildFeedingProfile(pet, 'user_001', [], true)
         expect(profile.isNeutered).toBe(true)
 
         const advice = generatePersonalizedAdvice(profile)
@@ -233,10 +234,13 @@ describe('UAT 验收测试', () => {
         expect(neuteredAdvice!.content).toContain('绝育')
       })
 
-      it('有慢性病的宠物应生成慢性病饮食建议', () => {
+      it('有慢性病的宠物应生成慢性病饮食建议', async () => {
         const pet = makePet({ birthDate: yearsAgo(5), species: 'dog' })
         const chronic = makeChronicRecord({ condition: '慢性肾病', status: 'active' })
-        const profile = await buildFeedingProfile(pet)
+        // 先把慢性病记录写入 mock 存储（与 chronicService 的存取约定一致），
+        // buildFeedingProfile 内部通过 getChronicRecords(petId, userId) 读取
+        mockStorage['chronic_records'] = JSON.stringify({ [pet.id]: [chronic] })
+        const profile = await buildFeedingProfile(pet, 'user_001')
 
         const advice = generatePersonalizedAdvice(profile)
         const chronicAdvice = advice.find(a => a.type === 'chronic' && a.title === '慢性肾病饮食管理')
@@ -244,9 +248,10 @@ describe('UAT 验收测试', () => {
         expect(chronicAdvice!.priority).toBe('high')
       })
 
-      it('有过敏信息的宠物应生成过敏提醒', () => {
+      it('有过敏信息的宠物应生成过敏提醒', async () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'cat', breed: '英短' })
-        const profile = await buildFeedingProfile(pet, ['鸡肉', '谷物'])
+        // 过敏信息是第 3 个参数，第 2 个参数为 userId
+        const profile = await buildFeedingProfile(pet, 'user_001', ['鸡肉', '谷物'])
 
         const advice = generatePersonalizedAdvice(profile)
         const allergyAdvice = advice.find(a => a.type === 'allergy')
@@ -256,7 +261,7 @@ describe('UAT 验收测试', () => {
         expect(allergyAdvice!.priority).toBe('high')
       })
 
-      it('getMealPlan 应为幼年宠物返回4餐计划', () => {
+      it('getMealPlan 应为幼年宠物返回4餐计划', async () => {
         const pet = makePet({ birthDate: monthsAgo(6), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         const plan = getMealPlan(profile)
@@ -265,14 +270,14 @@ describe('UAT 验收测试', () => {
         expect(plan[3].label).toBe('夜宵')
       })
 
-      it('getMealPlan 应为老年宠物返回2餐计划', () => {
+      it('getMealPlan 应为老年宠物返回2餐计划', async () => {
         const pet = makePet({ birthDate: yearsAgo(8), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         const plan = getMealPlan(profile)
         expect(plan).toHaveLength(2)
       })
 
-      it('getMealPlan 应为成年宠物返回2餐计划', () => {
+      it('getMealPlan 应为成年宠物返回2餐计划', async () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         const plan = getMealPlan(profile)
@@ -283,43 +288,43 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 周报服务
     // ----------------------------------------------------------
-    describe('周报应覆盖所有评级状态', () => {
-      it('分数 >= 90 且无异常天数应评定为 excellent', () => {
+    describe('周报应覆盖所有评级状态', async () => {
+      it('分数 >= 90 且无异常天数应评定为 excellent', async () => {
         expect(getOverallMood(90, 0)).toBe('excellent')
         expect(getOverallMood(95, 0)).toBe('excellent')
       })
 
-      it('分数 >= 80 且异常天数 <= 1 应评定为 good', () => {
+      it('分数 >= 80 且异常天数 <= 1 应评定为 good', async () => {
         expect(getOverallMood(80, 0)).toBe('good')
         expect(getOverallMood(85, 1)).toBe('good')
       })
 
-      it('分数 >= 65 且异常天数 <= 3 应评定为 fair', () => {
+      it('分数 >= 65 且异常天数 <= 3 应评定为 fair', async () => {
         expect(getOverallMood(65, 0)).toBe('fair')
         expect(getOverallMood(70, 3)).toBe('fair')
       })
 
-      it('不满足上述条件应评定为 concerning', () => {
+      it('不满足上述条件应评定为 concerning', async () => {
         expect(getOverallMood(64, 0)).toBe('concerning')
         expect(getOverallMood(80, 4)).toBe('concerning')
         expect(getOverallMood(50, 5)).toBe('concerning')
       })
 
-      it('getMoodEmoji 应为所有评级返回正确的 emoji', () => {
+      it('getMoodEmoji 应为所有评级返回正确的 emoji', async () => {
         expect(getMoodEmoji('excellent')).toBe('🌟')
         expect(getMoodEmoji('good')).toBe('😊')
         expect(getMoodEmoji('fair')).toBe('🤔')
         expect(getMoodEmoji('concerning')).toBe('💊')
       })
 
-      it('getMoodLabel 应为所有评级返回正确的中文标签', () => {
+      it('getMoodLabel 应为所有评级返回正确的中文标签', async () => {
         expect(getMoodLabel('excellent')).toBe('状态出色')
         expect(getMoodLabel('good')).toBe('状态良好')
         expect(getMoodLabel('fair')).toBe('需要关注')
         expect(getMoodLabel('concerning')).toBe('建议调整')
       })
 
-      it('generateWeeklyReport 应生成包含所有必要字段的完整报告', () => {
+      it('generateWeeklyReport 应生成包含所有必要字段的完整报告', async () => {
         const report = generateWeeklyReport({
           petName: '小咪',
           species: 'cat',
@@ -338,7 +343,7 @@ describe('UAT 验收测试', () => {
         expect(report.suggestions.length).toBeGreaterThan(0)
       })
 
-      it('generateFamilyWeeklySummary 应正确汇总多宠物家庭状态', () => {
+      it('generateFamilyWeeklySummary 应正确汇总多宠物家庭状态', async () => {
         const reports = [
           {
             title: '小咪的周健康报告',
@@ -367,7 +372,7 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 成就系统
     // ----------------------------------------------------------
-    describe('成就系统应支持所有成就类型', () => {
+    describe('成就系统应支持所有成就类型', async () => {
       const PET_ID = 'pet_001'
 
       beforeEach(() => {
@@ -379,7 +384,7 @@ describe('UAT 验收测试', () => {
         vi.useRealTimers()
       })
 
-      it('checkBirthdayAchievement 在生日当天应返回成就', () => {
+      it('checkBirthdayAchievement 在生日当天应返回成就', async () => {
         vi.setSystemTime(new Date('2026-03-15T10:00:00'))
         const result = checkBirthdayAchievement('2024-03-15', PET_ID)
         expect(result).not.toBeNull()
@@ -387,41 +392,41 @@ describe('UAT 验收测试', () => {
         expect(result!.title).toBe('生日快乐')
       })
 
-      it('checkBirthdayAchievement 在非生日应返回 null', () => {
+      it('checkBirthdayAchievement 在非生日应返回 null', async () => {
         const result = checkBirthdayAchievement('2024-06-15', PET_ID)
         expect(result).toBeNull()
       })
 
-      it('checkBirthdayAchievement 传入 undefined 应返回 null', () => {
+      it('checkBirthdayAchievement 传入 undefined 应返回 null', async () => {
         const result = checkBirthdayAchievement(undefined, PET_ID)
         expect(result).toBeNull()
       })
 
-      it('checkStreakAchievement 连续7天应返回 streak_7', () => {
+      it('checkStreakAchievement 连续7天应返回 streak_7', async () => {
         const result = checkStreakAchievement(7, PET_ID)
         expect(result).not.toBeNull()
         expect(result!.type).toBe('streak_7')
       })
 
-      it('checkStreakAchievement 连续30天应返回 streak_30', () => {
+      it('checkStreakAchievement 连续30天应返回 streak_30', async () => {
         const result = checkStreakAchievement(30, PET_ID)
         expect(result).not.toBeNull()
         expect(result!.type).toBe('streak_30')
       })
 
-      it('checkStreakAchievement 连续100天应返回 streak_100', () => {
+      it('checkStreakAchievement 连续100天应返回 streak_100', async () => {
         const result = checkStreakAchievement(100, PET_ID)
         expect(result).not.toBeNull()
         expect(result!.type).toBe('streak_100')
       })
 
-      it('checkStreakAchievement 非里程碑天数应返回 null', () => {
+      it('checkStreakAchievement 非里程碑天数应返回 null', async () => {
         expect(checkStreakAchievement(5, PET_ID)).toBeNull()
         expect(checkStreakAchievement(15, PET_ID)).toBeNull()
         expect(checkStreakAchievement(50, PET_ID)).toBeNull()
       })
 
-      it('checkAllAchievements 应优先返回生日成就（优先级最高）', () => {
+      it('checkAllAchievements 应优先返回生日成就（优先级最高）', async () => {
         vi.setSystemTime(new Date('2026-03-15T10:00:00'))
         const result = checkAllAchievements({
           petId: PET_ID,
@@ -434,7 +439,7 @@ describe('UAT 验收测试', () => {
         expect(result!.type).toBe('birthday')
       })
 
-      it('checkAllAchievements 在无成就时应返回 null', () => {
+      it('checkAllAchievements 在无成就时应返回 null', async () => {
         const result = checkAllAchievements({
           petId: PET_ID,
           birthDate: '2024-06-15',
@@ -448,35 +453,35 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 时光引擎 - 时间格式化
     // ----------------------------------------------------------
-    describe('时间格式化应覆盖所有时间范围', () => {
-      it('1分钟以内应返回"刚刚"', () => {
+    describe('时间格式化应覆盖所有时间范围', async () => {
+      it('1分钟以内应返回"刚刚"', async () => {
         const now = new Date()
         const result = formatMomentTime(now.toISOString())
         expect(result).toBe('刚刚')
       })
 
-      it('1-59分钟应返回"X分钟前"', () => {
+      it('1-59分钟应返回"X分钟前"', async () => {
         const now = new Date()
         const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
         const result = formatMomentTime(thirtyMinAgo.toISOString())
         expect(result).toContain('分钟前')
       })
 
-      it('1-23小时应返回"X小时前"', () => {
+      it('1-23小时应返回"X小时前"', async () => {
         const now = new Date()
         const fiveHoursAgo = new Date(now.getTime() - 5 * 60 * 60 * 1000)
         const result = formatMomentTime(fiveHoursAgo.toISOString())
         expect(result).toContain('小时前')
       })
 
-      it('1-6天应返回"X天前"', () => {
+      it('1-6天应返回"X天前"', async () => {
         const now = new Date()
         const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
         const result = formatMomentTime(threeDaysAgo.toISOString())
         expect(result).toContain('天前')
       })
 
-      it('7天以上应返回"X月X日"格式', () => {
+      it('7天以上应返回"X月X日"格式', async () => {
         const result = formatMomentTime('2026-06-15T10:00:00')
         expect(result).toBe('6月15日')
       })
@@ -485,38 +490,38 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 时光引擎 - 动态类型
     // ----------------------------------------------------------
-    describe('动态类型应覆盖所有事件类型', () => {
-      it('checkin 类型应返回正确的图标和标签', () => {
+    describe('动态类型应覆盖所有事件类型', async () => {
+      it('checkin 类型应返回正确的图标和标签', async () => {
         const info = getMomentTypeInfo('checkin')
         expect(info.icon).toBe('✅')
         expect(info.label).toBe('健康打卡')
       })
 
-      it('milestone 类型应返回正确的图标和标签', () => {
+      it('milestone 类型应返回正确的图标和标签', async () => {
         const info = getMomentTypeInfo('milestone')
         expect(info.icon).toBe('🎉')
         expect(info.label).toBe('里程碑')
       })
 
-      it('photo 类型应返回正确的图标和标签', () => {
+      it('photo 类型应返回正确的图标和标签', async () => {
         const info = getMomentTypeInfo('photo')
         expect(info.icon).toBe('📷')
         expect(info.label).toBe('分享照片')
       })
 
-      it('memory 类型应返回正确的图标和标签', () => {
+      it('memory 类型应返回正确的图标和标签', async () => {
         const info = getMomentTypeInfo('memory')
         expect(info.icon).toBe('💭')
         expect(info.label).toBe('回忆')
       })
 
-      it('ai_summary 类型应返回正确的图标和标签', () => {
+      it('ai_summary 类型应返回正确的图标和标签', async () => {
         const info = getMomentTypeInfo('ai_summary')
         expect(info.icon).toBe('🤖')
         expect(info.label).toBe('AI周报')
       })
 
-      it('未知类型应返回默认图标和标签', () => {
+      it('未知类型应返回默认图标和标签', async () => {
         const info = getMomentTypeInfo('unknown_type')
         expect(info.icon).toBe('📝')
         expect(info.label).toBe('动态')
@@ -526,34 +531,34 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 慢性病提醒
     // ----------------------------------------------------------
-    describe('慢性病提醒应覆盖所有时间场景', () => {
+    describe('慢性病提醒应覆盖所有时间场景', async () => {
       const record = makeChronicRecord({
         condition: '糖尿病',
         nextCheckupDate: '2026-07-28',
       })
 
-      it('复查已逾期（daysUntil < 0）应标记为紧急并提示逾期天数', () => {
+      it('复查已逾期（daysUntil < 0）应标记为紧急并提示逾期天数', async () => {
         const payload = generateChronicReminderPayload(record, '小黄', -3)
         expect(payload.isUrgent).toBe(true)
         expect(payload.title).toContain('逾期')
         expect(payload.content).toContain('3')
       })
 
-      it('复查就在今天（daysUntil === 0）应标记为紧急', () => {
+      it('复查就在今天（daysUntil === 0）应标记为紧急', async () => {
         const payload = generateChronicReminderPayload(record, '小黄', 0)
         expect(payload.isUrgent).toBe(true)
         expect(payload.title).toContain('今天')
         expect(payload.content).toContain('今天')
       })
 
-      it('复查剩余1-3天（daysUntil <= 3）应生成提醒但不标记紧急', () => {
+      it('复查剩余1-3天（daysUntil <= 3）应生成提醒但不标记紧急', async () => {
         const payload = generateChronicReminderPayload(record, '小黄', 2)
         expect(payload.isUrgent).toBe(false)
         expect(payload.title).toContain('复查提醒')
         expect(payload.content).toContain('2')
       })
 
-      it('复查剩余超过3天（daysUntil > 3）应生成普通提醒', () => {
+      it('复查剩余超过3天（daysUntil > 3）应生成普通提醒', async () => {
         const payload = generateChronicReminderPayload(record, '小黄', 5)
         expect(payload.isUrgent).toBe(false)
         expect(payload.content).toContain('5')
@@ -564,21 +569,21 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 安全检测（ruleGuard）
     // ----------------------------------------------------------
-    describe('安全检测应覆盖所有有害内容类型', () => {
-      it('应检测自伤关键词（自杀）', () => {
+    describe('安全检测应覆盖所有有害内容类型', async () => {
+      it('应检测自伤关键词（自杀）', async () => {
         const result = checkInput('我想自杀')
         expect(result.blocked).toBe(true)
         expect(result.isCrisis).toBe(true)
         expect(result.action).toBe('crisis_intervention')
       })
 
-      it('应检测自伤关键词（不想活了）', () => {
+      it('应检测自伤关键词（不想活了）', async () => {
         const result = checkInput('我觉得不想活了')
         expect(result.blocked).toBe(true)
         expect(result.isCrisis).toBe(true)
       })
 
-      it('应检测虐待动物关键词', () => {
+      it('应检测虐待动物关键词', async () => {
         const result = checkInput('如何虐待宠物')
         expect(result.blocked).toBe(true)
         expect(result.isCrisis).toBe(false)
@@ -586,23 +591,23 @@ describe('UAT 验收测试', () => {
         expect(result.reason).toBe('检测到虐待动物倾向')
       })
 
-      it('应检测隐私信息 — 手机号', () => {
+      it('应检测隐私信息 — 手机号', async () => {
         const result = checkInput('我的手机是13812345678')
         expect(result.blocked).toBe(true)
         expect(result.reason).toBe('检测到疑似隐私信息')
       })
 
-      it('应检测隐私信息 — 身份证号', () => {
+      it('应检测隐私信息 — 身份证号', async () => {
         const result = checkInput('110101199001011234')
         expect(result.blocked).toBe(true)
       })
 
-      it('应检测隐私信息 — 邮箱', () => {
+      it('应检测隐私信息 — 邮箱', async () => {
         const result = checkInput('test@example.com')
         expect(result.blocked).toBe(true)
       })
 
-      it('正常宠物喂养内容应放行', () => {
+      it('正常宠物喂养内容应放行', async () => {
         const result = checkInput('小黄今天食欲很好，吃了两碗狗粮')
         expect(result.blocked).toBe(false)
         expect(result.action).toBe('pass')
@@ -612,8 +617,8 @@ describe('UAT 验收测试', () => {
     // ----------------------------------------------------------
     // 会员系统
     // ----------------------------------------------------------
-    describe('会员计划应包含正确的价格和方案', () => {
-      it('应包含月度、季度、年度三种方案', () => {
+    describe('会员计划应包含正确的价格和方案', async () => {
+      it('应包含月度、季度、年度三种方案', async () => {
         expect(MEMBERSHIP_PLANS).toHaveLength(3)
         const plans = MEMBERSHIP_PLANS.map(p => p.plan)
         expect(plans).toContain('monthly')
@@ -621,7 +626,7 @@ describe('UAT 验收测试', () => {
         expect(plans).toContain('yearly')
       })
 
-      it('月度会员价格应为 9.9 元（促销原价 29.9）', () => {
+      it('月度会员价格应为 9.9 元（促销原价 29.9）', async () => {
         const monthly = MEMBERSHIP_PLANS.find(p => p.plan === 'monthly')
         expect(monthly).toBeDefined()
         expect(monthly!.price).toBe(9.9)
@@ -629,7 +634,7 @@ describe('UAT 验收测试', () => {
         expect(monthly!.durationDays).toBe(30)
       })
 
-      it('季度会员价格应为 25.9 元（促销原价 79.9）', () => {
+      it('季度会员价格应为 25.9 元（促销原价 79.9）', async () => {
         const quarterly = MEMBERSHIP_PLANS.find(p => p.plan === 'quarterly')
         expect(quarterly).toBeDefined()
         expect(quarterly!.price).toBe(25.9)
@@ -637,7 +642,7 @@ describe('UAT 验收测试', () => {
         expect(quarterly!.durationDays).toBe(90)
       })
 
-      it('年度会员价格应为 88 元（促销原价 269）', () => {
+      it('年度会员价格应为 88 元（促销原价 269）', async () => {
         const yearly = MEMBERSHIP_PLANS.find(p => p.plan === 'yearly')
         expect(yearly).toBeDefined()
         expect(yearly!.price).toBe(88)
@@ -646,12 +651,12 @@ describe('UAT 验收测试', () => {
       })
     })
 
-    describe('会员权益应覆盖所有功能点', () => {
-      it('应包含 9 项权益', () => {
+    describe('会员权益应覆盖所有功能点', async () => {
+      it('应包含 9 项权益', async () => {
         expect(MEMBERSHIP_BENEFITS.length).toBeGreaterThanOrEqual(9)
       })
 
-      it('食物安全查询应为免费每日5次、会员不限', () => {
+      it('食物安全查询应为免费每日5次、会员不限', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'food_query')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('每日5次')
@@ -659,42 +664,42 @@ describe('UAT 验收测试', () => {
         expect(benefit!.isHighlight).toBe(true)
       })
 
-      it('AI症状初筛应为免费每日2次、会员不限', () => {
+      it('AI症状初筛应为免费每日2次、会员不限', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'symptom_check')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('每日2次')
         expect(benefit!.memberValue).toBe('不限')
       })
 
-      it('健康趋势图应为免费7天、会员不限', () => {
+      it('健康趋势图应为免费7天、会员不限', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'health_trend')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('7天')
         expect(benefit!.memberValue).toBe('不限')
       })
 
-      it('宠物档案应为免费最多2只、会员最多5只', () => {
+      it('宠物档案应为免费最多2只、会员最多5只', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'pet_count')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('最多2只')
         expect(benefit!.memberValue).toBe('最多5只')
       })
 
-      it('健康报告导出应为免费不可用、会员可用', () => {
+      it('健康报告导出应为免费不可用、会员可用', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'health_report')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('❌')
         expect(benefit!.memberValue).toBe('✅')
       })
 
-      it('慢性病追踪应为免费不可用、会员可用', () => {
+      it('慢性病追踪应为免费不可用、会员可用', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'chronic_tracking')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('❌')
         expect(benefit!.memberValue).toBe('✅')
       })
 
-      it('个性化喂养建议应为免费不可用、会员可用', () => {
+      it('个性化喂养建议应为免费不可用、会员可用', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'feeding_advice')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('❌')
@@ -706,22 +711,22 @@ describe('UAT 验收测试', () => {
   // ==========================================================
   // 第二部分：错误处理验证
   // ==========================================================
-  describe('错误处理验证', () => {
-    describe('空数据应返回合理的默认值', () => {
-      it('buildFeedingProfile 空慢性病记录应返回空数组', () => {
+  describe('错误处理验证', async () => {
+    describe('空数据应返回合理的默认值', async () => {
+      it('buildFeedingProfile 空慢性病记录应返回空数组', async () => {
         const pet = makePet()
         const profile = await buildFeedingProfile(pet)
         expect(profile.chronicConditions).toEqual([])
         expect(profile.allergies).toEqual([])
       })
 
-      it('buildFeedingProfile 体重为0时应使用默认值', () => {
+      it('buildFeedingProfile 体重为0时应使用默认值', async () => {
         const pet = makePet({ weight: 0 })
         const profile = await buildFeedingProfile(pet)
         expect(profile.weight).toBe(0)
       })
 
-      it('generateWeeklyReport 空近期动态应不影响报告生成', () => {
+      it('generateWeeklyReport 空近期动态应不影响报告生成', async () => {
         const report = generateWeeklyReport({
           petName: '测试',
           species: 'cat',
@@ -737,70 +742,70 @@ describe('UAT 验收测试', () => {
         expect(report.overallMood).toBe('concerning')
       })
 
-      it('sanitizeOutput 空字符串应原样返回', () => {
+      it('sanitizeOutput 空字符串应原样返回', async () => {
         expect(sanitizeOutput('')).toBe('')
       })
 
-      it('checkInput 空字符串应放行', () => {
+      it('checkInput 空字符串应放行', async () => {
         const result = checkInput('')
         expect(result.blocked).toBe(false)
         expect(result.action).toBe('pass')
       })
     })
 
-    describe('无效输入不应导致崩溃', () => {
-      it('checkInput 应正常处理 null/undefined-like 输入', () => {
+    describe('无效输入不应导致崩溃', async () => {
+      it('checkInput 应正常处理 null/undefined-like 输入', async () => {
         // 空字符串是安全的
         const result = checkInput('')
         expect(result.blocked).toBe(false)
       })
 
-      it('sanitizeOutput 应正常处理 maxLength=0', () => {
+      it('sanitizeOutput 应正常处理 maxLength=0', async () => {
         const result = sanitizeOutput('hello', 0)
         expect(result).toBe('...')
       })
 
-      it('sanitizeOutput 应正常处理 maxLength=1', () => {
+      it('sanitizeOutput 应正常处理 maxLength=1', async () => {
         const result = sanitizeOutput('hello', 1)
         expect(result).toBe('h...')
       })
 
-      it('getMomentTypeInfo 应处理 undefined-like 类型', () => {
+      it('getMomentTypeInfo 应处理 undefined-like 类型', async () => {
         const info = getMomentTypeInfo('')
         expect(info.icon).toBe('📝')
         expect(info.label).toBe('动态')
       })
     })
 
-    describe('边界值应返回合理结果', () => {
-      it('sanitizeOutput 应处理恰好等于 maxLength 的文本', () => {
+    describe('边界值应返回合理结果', async () => {
+      it('sanitizeOutput 应处理恰好等于 maxLength 的文本', async () => {
         const text = 'x'.repeat(150)
         const result = sanitizeOutput(text, 150)
         expect(result).toBe(text)
         expect(result.endsWith('...')).toBe(false)
       })
 
-      it('sanitizeOutput 应处理超长文本并截断', () => {
+      it('sanitizeOutput 应处理超长文本并截断', async () => {
         const text = 'x'.repeat(300)
         const result = sanitizeOutput(text, 150)
         expect(result.length).toBe(153) // 150 + '...'
         expect(result.endsWith('...')).toBe(true)
       })
 
-      it('checkInput 应处理超长文本（10000+ 字符）而不崩溃', () => {
+      it('checkInput 应处理超长文本（10000+ 字符）而不崩溃', async () => {
         const longText = '正常宠物喂养内容'.repeat(1000)
         const result = checkInput(longText)
         expect(result.blocked).toBe(true)
         expect(result.action).toBe('block')
       })
 
-      it('checkInput 应在超长文本中检测到关键词', () => {
+      it('checkInput 应在超长文本中检测到关键词', async () => {
         const prefix = '正常内容'.repeat(500)
         const result = checkInput(prefix + '自杀')
         expect(result.blocked).toBe(true)
       })
 
-      it('checkInput 应正常处理特殊字符（换行、制表、emoji）', () => {
+      it('checkInput 应正常处理特殊字符（换行、制表、emoji）', async () => {
         const result = checkInput('🐱🐶\n今天\t很开心 😊')
         expect(result.blocked).toBe(false)
       })
@@ -810,30 +815,30 @@ describe('UAT 验收测试', () => {
   // ==========================================================
   // 第三部分：数据一致性验证
   // ==========================================================
-  describe('数据一致性验证', () => {
-    describe('喂养建议与年龄阶段应一致', () => {
-      it('幼年宠物年龄应 < 12 个月', () => {
+  describe('数据一致性验证', async () => {
+    describe('喂养建议与年龄阶段应一致', async () => {
+      it('幼年宠物年龄应 < 12 个月', async () => {
         const pet = makePet({ birthDate: monthsAgo(3), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.ageMonths).toBeLessThan(12)
         expect(profile.isPuppyKitten).toBe(true)
       })
 
-      it('老年犬年龄应 >= 84 个月', () => {
+      it('老年犬年龄应 >= 84 个月', async () => {
         const pet = makePet({ birthDate: yearsAgo(8), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.ageMonths).toBeGreaterThanOrEqual(84)
         expect(profile.isSenior).toBe(true)
       })
 
-      it('老年猫年龄应 >= 120 个月', () => {
+      it('老年猫年龄应 >= 120 个月', async () => {
         const pet = makePet({ birthDate: yearsAgo(10), species: 'cat', breed: '英短' })
         const profile = await buildFeedingProfile(pet)
         expect(profile.ageMonths).toBeGreaterThanOrEqual(120)
         expect(profile.isSenior).toBe(true)
       })
 
-      it('每日建议喂食量应包含在建议中', () => {
+      it('每日建议喂食量应包含在建议中', async () => {
         const pet = makePet({ birthDate: yearsAgo(3), species: 'dog' })
         const profile = await buildFeedingProfile(pet)
         const advice = generatePersonalizedAdvice(profile)
@@ -845,21 +850,21 @@ describe('UAT 验收测试', () => {
       })
     })
 
-    describe('风险等级与分值应一致', () => {
-      it('excellent 必须 score >= 90 且 anomalyDays === 0', () => {
+    describe('风险等级与分值应一致', async () => {
+      it('excellent 必须 score >= 90 且 anomalyDays === 0', async () => {
         expect(getOverallMood(90, 0)).toBe('excellent')
         expect(getOverallMood(89, 0)).not.toBe('excellent')
         expect(getOverallMood(90, 1)).not.toBe('excellent')
       })
 
-      it('good 必须 score >= 80 且 anomalyDays <= 1', () => {
+      it('good 必须 score >= 80 且 anomalyDays <= 1', async () => {
         expect(getOverallMood(80, 0)).toBe('good')
         expect(getOverallMood(85, 1)).toBe('good')
         expect(getOverallMood(79, 0)).not.toBe('good')
         expect(getOverallMood(85, 2)).not.toBe('good')
       })
 
-      it('fair 必须 score >= 65 且 anomalyDays <= 3', () => {
+      it('fair 必须 score >= 65 且 anomalyDays <= 3', async () => {
         expect(getOverallMood(65, 0)).toBe('fair')
         expect(getOverallMood(70, 3)).toBe('fair')
         expect(getOverallMood(64, 0)).not.toBe('fair')
@@ -867,7 +872,7 @@ describe('UAT 验收测试', () => {
       })
     })
 
-    describe('成就互斥逻辑应正确', () => {
+    describe('成就互斥逻辑应正确', async () => {
       const PET_ID = 'pet_001'
 
       beforeEach(() => {
@@ -879,7 +884,7 @@ describe('UAT 验收测试', () => {
         vi.useRealTimers()
       })
 
-      it('同一天不应重复触发同一成就', () => {
+      it('同一天不应重复触发同一成就', async () => {
         // 第一次触发
         const first = checkStreakAchievement(7, PET_ID)
         expect(first).not.toBeNull()
@@ -889,7 +894,7 @@ describe('UAT 验收测试', () => {
         expect(second).toBeNull()
       })
 
-      it('checkAllAchievements 生日优先级高于 streak', () => {
+      it('checkAllAchievements 生日优先级高于 streak', async () => {
         vi.setSystemTime(new Date('2026-03-15T10:00:00'))
         const result = checkAllAchievements({
           petId: PET_ID,
@@ -901,7 +906,7 @@ describe('UAT 验收测试', () => {
         expect(result!.type).toBe('birthday')
       })
 
-      it('checkAllAchievements 在无任何成就时应返回 null', () => {
+      it('checkAllAchievements 在无任何成就时应返回 null', async () => {
         const result = checkAllAchievements({
           petId: PET_ID,
           birthDate: '2024-06-15',
@@ -916,9 +921,9 @@ describe('UAT 验收测试', () => {
   // ==========================================================
   // 第四部分：PRD 核心场景回归验证
   // ==========================================================
-  describe('PRD核心场景回归验证', () => {
-    describe('用户从注册到首次打卡的完整流程', () => {
-      it('新用户添加宠物后应能正确构建喂养档案', () => {
+  describe('PRD核心场景回归验证', async () => {
+    describe('用户从注册到首次打卡的完整流程', async () => {
+      it('新用户添加宠物后应能正确构建喂养档案', async () => {
         // 固定系统时间，与 monthsAgo 基准（2026-07-25）一致，避免跨月导致 ageMonths 漂移
         vi.useFakeTimers()
         vi.setSystemTime(new Date('2026-07-25T10:00:00'))
@@ -936,7 +941,7 @@ describe('UAT 验收测试', () => {
         vi.useRealTimers()
       })
 
-      it('新用户应能获取幼猫喂养建议', () => {
+      it('新用户应能获取幼猫喂养建议', async () => {
         const pet = makePet({
           name: '青橘',
           species: 'cat',
@@ -952,7 +957,7 @@ describe('UAT 验收测试', () => {
         expect(dailyAdvice).toBeDefined()
       })
 
-      it('打卡7天后应触发连续7天成就', () => {
+      it('打卡7天后应触发连续7天成就', async () => {
         const result = checkStreakAchievement(7, 'pet_001')
         expect(result).not.toBeNull()
         expect(result!.type).toBe('streak_7')
@@ -960,8 +965,8 @@ describe('UAT 验收测试', () => {
       })
     })
 
-    describe('用户查询食物到查看历史的完整流程', () => {
-      it('安全检测应正确识别有毒食物名称', () => {
+    describe('用户查询食物到查看历史的完整流程', async () => {
+      it('安全检测应正确识别有毒食物名称', async () => {
         // 巧克力 是有毒食物关键词
         const result = checkInput('巧克力')
         // 注意：巧克力不在 ruleGuard 的自伤/虐待/隐私 关键词中，但它在 TOXIC_FOOD_NAMES 中
@@ -970,26 +975,26 @@ describe('UAT 验收测试', () => {
         expect(result.blocked).toBe(false)
       })
 
-      it('正常食物查询应被放行', () => {
+      it('正常食物查询应被放行', async () => {
         const result = checkInput('狗狗可以吃苹果吗')
         expect(result.blocked).toBe(false)
         expect(result.action).toBe('pass')
       })
     })
 
-    describe('用户订阅会员到使用权益的完整流程', () => {
-      it('免费用户应受食物查询次数限制（每日5次）', () => {
+    describe('用户订阅会员到使用权益的完整流程', async () => {
+      it('免费用户应受食物查询次数限制（每日5次）', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'food_query')
         expect(benefit).toBeDefined()
         expect(benefit!.freeValue).toBe('每日5次')
       })
 
-      it('会员用户食物查询应不限次数', () => {
+      it('会员用户食物查询应不限次数', async () => {
         const benefit = MEMBERSHIP_BENEFITS.find(b => b.featureKey === 'food_query')
         expect(benefit!.memberValue).toBe('不限')
       })
 
-      it('会员应享有免费用户没有的权益（健康报告导出、慢性病追踪、喂养建议）', () => {
+      it('会员应享有免费用户没有的权益（健康报告导出、慢性病追踪、喂养建议）', async () => {
         const exclusiveBenefits = MEMBERSHIP_BENEFITS.filter(
           b => b.freeValue === '❌' && b.memberValue === '✅'
         )
@@ -999,7 +1004,7 @@ describe('UAT 验收测试', () => {
         expect(exclusiveKeys).toContain('feeding_advice')
       })
 
-      it('年度会员日均价格应低于月度会员', () => {
+      it('年度会员日均价格应低于月度会员', async () => {
         const monthly = MEMBERSHIP_PLANS.find(p => p.plan === 'monthly')!
         const yearly = MEMBERSHIP_PLANS.find(p => p.plan === 'yearly')!
         const monthlyDaily = monthly.price / monthly.durationDays

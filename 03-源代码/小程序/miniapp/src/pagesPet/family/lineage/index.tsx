@@ -621,6 +621,33 @@ export default function LineagePage() {
             const NODE_GAP = 24
             const LAYER_GAP = 100
 
+            // 是否有铲屎官根节点（决定图谱整体是否下移一层）
+            const hasOwnerRoot = childToParents.size === 0 && !!user
+
+            // 计算某宠物在层级网格中的连线端点坐标；找不到该宠物所在层级时返回 null。
+            // 说明：原实现在 forEach 闭包内给变量赋值，TypeScript 无法对闭包赋值做类型收窄
+            // （报 TS2339: Property x/y does not exist on type 'never'），
+            // 因此改为同步遍历查找并直接返回坐标，类型可正常收窄。
+            // @param petId   宠物 ID
+            // @param yOffset 纵向偏移（亲子/配偶/手足连线使用不同偏移）
+            // @param xOffset 横向偏移（区分连线起点/终点，用于对齐端点）
+            const findPos = (
+              petId: string,
+              yOffset: number,
+              xOffset: number,
+            ): { x: number; y: number } | null => {
+              for (let levelIdx = 0; levelIdx < levels.length; levelIdx++) {
+                const idx = levels[levelIdx].indexOf(petId)
+                if (idx >= 0) {
+                  return {
+                    x: idx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + xOffset,
+                    y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + yOffset,
+                  }
+                }
+              }
+              return null
+            }
+
             return (
               <>
                 {/* 图谱统计栏 */}
@@ -712,25 +739,9 @@ export default function LineagePage() {
 
                     {/* 亲子连线 */}
                     {lineages.map(l => {
-                      let parentPos: { x: number; y: number } | null = null
-                      let childPos: { x: number; y: number } | null = null
-                      const hasOwnerRoot = childToParents.size === 0 && !!user
-                      levels.forEach((level, levelIdx) => {
-                        const pIdx = level.indexOf(l.parentId)
-                        if (pIdx >= 0) {
-                          parentPos = {
-                            x: pIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2,
-                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + 60,
-                          }
-                        }
-                        const cIdx = level.indexOf(l.childId)
-                        if (cIdx >= 0) {
-                          childPos = {
-                            x: cIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2,
-                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20),
-                          }
-                        }
-                      })
+                      // 计算父/子节点的连线端点坐标；任一节点不在层级中则跳过该连线
+                      const parentPos = findPos(l.parentId, 60, NODE_W / 2)
+                      const childPos = findPos(l.childId, 0, NODE_W / 2)
                       if (!parentPos || !childPos) return null
 
                       return (
@@ -771,25 +782,9 @@ export default function LineagePage() {
 
                     {/* 配偶/手足连线 */}
                     {relationships.map(r => {
-                      let posA: { x: number; y: number } | null = null
-                      let posB: { x: number; y: number } | null = null
-                      const hasOwnerRoot = childToParents.size === 0 && !!user
-                      levels.forEach((level, levelIdx) => {
-                        const aIdx = level.indexOf(r.petIdA)
-                        if (aIdx >= 0) {
-                          posA = {
-                            x: aIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W,
-                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + 30,
-                          }
-                        }
-                        const bIdx = level.indexOf(r.petIdB)
-                        if (bIdx >= 0) {
-                          posB = {
-                            x: bIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2,
-                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + 30,
-                          }
-                        }
-                      })
+                      // 计算两个关联宠物节点的端点坐标；xOffset 区分起点/终点以对齐水平连线两端
+                      const posA = findPos(r.petIdA, 30, NODE_W)
+                      const posB = findPos(r.petIdB, 30, 0)
                       if (!posA || !posB) return null
                       if (Math.abs(posA.y - posB.y) > 10) return null
 

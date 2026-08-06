@@ -119,7 +119,9 @@ export async function buildFeedingProfile(
     allergies: allergies || [],
     isPuppyKitten,
     isSenior,
-    isNeutered: isNeutered ?? false,
+    // 绝育状态优先取调用方显式传入的值；未传时回退到宠物档案字段，
+    // 避免页面仅传 (pet, userId) 时绝育宠物被误判为未绝育
+    isNeutered: isNeutered ?? pet.isNeutered ?? false,
   }
 }
 
