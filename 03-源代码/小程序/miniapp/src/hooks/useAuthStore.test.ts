@@ -13,6 +13,7 @@ const {
   mockStorageSetRefreshToken,
   mockStorageSetUser,
   mockStorageClear,
+  mockTaroClearStorageSync,
 } = vi.hoisted(() => ({
   mockApiLogin: vi.fn(),
   mockApiGetUser: vi.fn(),
@@ -22,6 +23,7 @@ const {
   mockStorageSetRefreshToken: vi.fn(),
   mockStorageSetUser: vi.fn(),
   mockStorageClear: vi.fn(),
+  mockTaroClearStorageSync: vi.fn(),
 }))
 
 vi.mock('../services/api', () => ({
@@ -49,6 +51,7 @@ vi.mock('@tarojs/taro', () => ({
     getStorageSync: vi.fn(() => null),
     setStorageSync: vi.fn(),
     removeStorageSync: vi.fn(),
+    clearStorageSync: mockTaroClearStorageSync,
   },
 }))
 
@@ -124,7 +127,7 @@ describe('useAuthStore', () => {
     expect(state.user).toBeNull()
     expect(state.isAuthenticated).toBe(false)
     expect(state.isLoading).toBe(false)
-    expect(mockStorageClear).toHaveBeenCalled()
+    expect(mockTaroClearStorageSync).toHaveBeenCalled()
   })
 
   it('getUserInfo 返回用户信息', async () => {

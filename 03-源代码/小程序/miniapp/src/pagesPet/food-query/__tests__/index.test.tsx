@@ -444,7 +444,7 @@ describe('FoodQueryPage', () => {
 
       render(<PetFoodQuery />)
 
-      expect(screen.getByPlaceholderText('输入食物名称，如柠檬、巧克力...')).toBeDefined()
+      expect(screen.getByPlaceholderText('搜索食物，如：鸡胸肉、葡萄...')).toBeDefined()
       expect(screen.getByText('搜索')).toBeDefined()
       expect(screen.getByText('输入食物名称，查询对宠物是否安全')).toBeDefined()
     })
@@ -593,7 +593,7 @@ describe('FoodQueryPage', () => {
 
       // 巧克力同时出现在快捷分类区域与结果卡片，使用 getAllByText
       expect(screen.getAllByText('巧克力').length).toBeGreaterThan(0)
-      expect(screen.getByText('有毒')).toBeDefined()
+      expect(screen.getAllByText('有毒').length).toBeGreaterThan(0)
       expect(screen.getByText('可可碱')).toBeDefined()
       expect(screen.getByText('咖啡因')).toBeDefined()
       expect(screen.getByText('呕吐')).toBeDefined()
@@ -640,7 +640,7 @@ describe('FoodQueryPage', () => {
 
       // 苹果同时出现在快捷分类区域与结果卡片，使用 getAllByText
       expect(screen.getAllByText('苹果').length).toBeGreaterThan(0)
-      expect(screen.getByText('安全')).toBeDefined()
+      expect(screen.getAllByText('安全').length).toBeGreaterThan(0)
       expect(screen.getByText('苹果对宠物是安全的，但要去掉果核。')).toBeDefined()
     })
 
@@ -682,7 +682,7 @@ describe('FoodQueryPage', () => {
       render(<PetFoodQuery />)
 
       expect(screen.getByText('牛奶')).toBeDefined()
-      expect(screen.getByText('注意')).toBeDefined()
+      expect(screen.getAllByText('注意').length).toBeGreaterThan(0)
     })
 
     it('renders PetAvatar when currentPet exists', () => {

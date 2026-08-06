@@ -95,6 +95,7 @@ const CHRONIC_FEEDING_ADVICE: Record<string, { tips: string[]; avoid: string[] }
 
 export async function buildFeedingProfile(
   pet: PetProfile,
+  userId: string,
   allergies?: string[],
   isNeutered?: boolean
 ): Promise<FeedingProfile> {
@@ -107,7 +108,7 @@ export async function buildFeedingProfile(
 
   let bodyCondition: 'underweight' | 'normal' | 'overweight' = 'normal'
 
-  const chronicRecords = await getChronicRecords(pet.id)
+  const chronicRecords = await getChronicRecords(pet.id, userId)
 
   return {
     pet,

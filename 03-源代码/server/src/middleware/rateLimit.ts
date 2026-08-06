@@ -9,7 +9,7 @@ import type { Request } from 'express';
 /** 限流 key 生成器：IP + 用户ID（已登录时），使用 ipKeyGenerator 确保 IPv6 兼容 */
 function keyGenerator(req: Request): string {
   const userId = req.userId || 'anonymous';
-  return `${ipKeyGenerator(req)}:${userId}`;
+  return `${ipKeyGenerator(req.ip || '')}:${userId}`;
 }
 
 /** 通用限流：60次/分钟 */

@@ -28,6 +28,21 @@ vi.mock('../../utils/storage', () => ({
   storage: mockStorage,
 }))
 
+const { mockTaroClearStorageSync } = vi.hoisted(() => ({
+  mockTaroClearStorageSync: vi.fn(),
+}))
+
+vi.mock('@tarojs/taro', () => ({
+  default: {
+    getEnv: vi.fn(() => 'WEAPP'),
+    login: vi.fn(() => ({ code: 'mock-code' })),
+    getStorageSync: vi.fn(() => null),
+    setStorageSync: vi.fn(),
+    removeStorageSync: vi.fn(),
+    clearStorageSync: mockTaroClearStorageSync,
+  },
+}))
+
 import { useAuthStore } from '../authStore'
 import type { User } from '../../types'
 
@@ -207,7 +222,7 @@ describe('authStore', () => {
     it('should clear storage on logout', async () => {
       await useAuthStore.getState().logout()
 
-      expect(mockStorage.clear).toHaveBeenCalled()
+      expect(mockTaroClearStorageSync).toHaveBeenCalled()
     })
   })
 })

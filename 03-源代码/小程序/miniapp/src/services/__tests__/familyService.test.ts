@@ -56,10 +56,12 @@ import type { PetFamily, PetFamilyMember, PetLineage, FamilyPhoto } from '../../
 function makeFamily(overrides: Partial<PetFamily> = {}): PetFamily {
   return {
     id: 'family-001',
+    userId: 'user-001',
     name: '测试家庭',
     avatarUrl: 'https://example.com/avatar.jpg',
     memberCount: 2,
     createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z',
     ...overrides,
   }
 }

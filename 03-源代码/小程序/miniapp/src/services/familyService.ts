@@ -7,7 +7,7 @@ import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'
 import { mockApi } from './mock'
 import { CONFIG } from '../config'
-import type { PetFamily, PetFamilyMember, PetLineage, LineageResponse, LineageChild, LineageMate, FamilyPhoto } from '../types/familyTypes'
+import type { PetFamily, PetFamilyMember, PetLineage, LineageResponse, LineageChild, LineageMate, FamilyPhoto, FamilyOverviewResponse } from '../types/familyTypes'
 
 const useMock = () => CONFIG.USE_MOCK
 
@@ -38,7 +38,7 @@ function toLineageChild(item: Record<string, unknown>): LineageChild {
   return {
     id: String(item.id),
     familyId: (item.family_id as string | null) ?? null,
-    parentId: String(item.parent_id),
+    parentId: item.parent_id ? String(item.parent_id) : '',
     childId: String(item.child_id),
     litterDate: (item.litter_date as string) || undefined,
     createdAt: (item.created_at as string) || undefined,
@@ -46,6 +46,7 @@ function toLineageChild(item: Record<string, unknown>): LineageChild {
     petName: (item.pet_name as string | null) ?? null,
     petAvatarUrl: (item.pet_avatar_url as string | null) ?? null,
     petSpecies: (item.pet_species as string | null) ?? null,
+    source: (item.source as 'blood' | 'sibling_rel') || undefined,
   }
 }
 
@@ -100,7 +101,7 @@ function transformLineageResponse(raw: Record<string, unknown>): LineageResponse
     descendantsLevels: mapLevels(raw.descendants_levels),
     parents: ((raw.parents as Array<Record<string, unknown>>) || []).map(toPetLineage),
     children: ((raw.children as Array<Record<string, unknown>>) || []).map(toPetLineage),
-    siblings: ((raw.siblings as Array<Record<string, unknown>>) || []).map(toPetLineage),
+    siblings: ((raw.siblings as Array<Record<string, unknown>>) || []).map(toLineageChild),
     mates: ((raw.mates as Array<Record<string, unknown>>) || []).map(toLineageMate),
   }
 }
@@ -128,10 +129,12 @@ export const familyService = {
       const f = snakeToCamel(raw)
       return {
         id: String(f.id || ''),
+        userId: String(f.userId || f.user_id || ''),
         name: String(f.name || ''),
         avatarUrl: (f.avatarUrl as string) || undefined,
         memberCount: (f.memberCount as number) || 0,
         createdAt: String(f.createdAt || ''),
+        updatedAt: String(f.updatedAt || f.updated_at || f.createdAt || ''),
       } as PetFamily
     })
   },
@@ -142,10 +145,12 @@ export const familyService = {
     const f = snakeToCamel(raw)
     return {
       id: String(f.id || ''),
+      userId: String(f.userId || f.user_id || ''),
       name: String(f.name || ''),
       avatarUrl: (f.avatarUrl as string) || undefined,
       memberCount: 0,
       createdAt: String(f.createdAt || ''),
+      updatedAt: String(f.updatedAt || f.updated_at || f.createdAt || ''),
     } as PetFamily
   },
 
@@ -173,6 +178,56 @@ export const familyService = {
     await api.patch(`/api/families/${familyId}/members/${memberId}/role`, { role })
   },
 
+  /** 获取家庭关系总览（所有成员 + 所有关系） */
+  async getOverview(familyId: string): Promise<FamilyOverviewResponse> {
+    if (useMock()) {
+      return { members: [], lineages: [], relationships: [] }
+    }
+    const raw = await api.get<Record<string, unknown>>(`/api/families/${familyId}/overview`)
+    if (!raw) return { members: [], lineages: [], relationships: [] }
+
+    const members = ((raw.members as Array<Record<string, unknown>>) || []).map((m) => ({
+      petId: String(m.pet_id || ''),
+      name: (m.name as string | null) ?? null,
+      avatarUrl: (m.avatar_url as string | null) ?? null,
+      species: (m.species as string | null) ?? null,
+      gender: (m.gender as string | null) ?? null,
+      role: (m.role as string | null) ?? null,
+    }))
+
+    const lineages = ((raw.lineages as Array<Record<string, unknown>>) || []).map((l) => ({
+      id: String(l.id || ''),
+      parentId: String(l.parent_id || ''),
+      parentName: (l.parent_name as string | null) ?? null,
+      parentAvatarUrl: (l.parent_avatar_url as string | null) ?? null,
+      parentGender: (l.parent_gender as string | null) ?? null,
+      parentSpecies: (l.parent_species as string | null) ?? null,
+      childId: String(l.child_id || ''),
+      childName: (l.child_name as string | null) ?? null,
+      childAvatarUrl: (l.child_avatar_url as string | null) ?? null,
+      childGender: (l.child_gender as string | null) ?? null,
+      childSpecies: (l.child_species as string | null) ?? null,
+      litterDate: (l.litter_date as string | null) ?? null,
+    }))
+
+    const relationships = ((raw.relationships as Array<Record<string, unknown>>) || []).map((r) => ({
+      id: String(r.id || ''),
+      petIdA: String(r.pet_id_a || ''),
+      petAName: (r.pet_a_name as string | null) ?? null,
+      petAAvatarUrl: (r.pet_a_avatar_url as string | null) ?? null,
+      petAGender: (r.pet_a_gender as string | null) ?? null,
+      petIdB: String(r.pet_id_b || ''),
+      petBName: (r.pet_b_name as string | null) ?? null,
+      petBAvatarUrl: (r.pet_b_avatar_url as string | null) ?? null,
+      petBGender: (r.pet_b_gender as string | null) ?? null,
+      relationType: String(r.relation_type || ''),
+      labelA: (r.label_a as string | null) ?? null,
+      labelB: (r.label_b as string | null) ?? null,
+    }))
+
+    return { members, lineages, relationships }
+  },
+
   async getLineage(
     petId: string,
     familyId: string,
@@ -182,7 +237,15 @@ export const familyService = {
       `/api/families/${familyId}/lineage/${petId}`
     )
     if (!raw) {
-      return { pet: { id: petId, name: null, avatarUrl: null, species: null }, parents: [], children: [], siblings: [], mates: [] }
+      return {
+        pet: { id: petId, name: null, avatarUrl: null, species: null },
+        ancestorsLevels: [],
+        descendantsLevels: [],
+        parents: [],
+        children: [],
+        siblings: [],
+        mates: [],
+      }
     }
     return transformLineageResponse(raw)
   },
@@ -220,6 +283,22 @@ export const familyService = {
 
   /** 删除配偶关系 */
   async removeMate(familyId: string, relationshipId: string): Promise<void> {
+    if (useMock()) return mockApi.deleteRelationship(relationshipId)
+    await api.delete(`/api/families/${familyId}/relationships/${relationshipId}`)
+  },
+
+  /** 添加兄弟姐妹关系（relation_type=sibling） */
+  async addSibling(familyId: string, petIdA: string, petIdB: string): Promise<void> {
+    if (useMock()) return mockApi.createRelationship()
+    await api.post(`/api/families/${familyId}/relationships`, {
+      pet_id_a: petIdA,
+      pet_id_b: petIdB,
+      relation_type: 'sibling',
+    })
+  },
+
+  /** 删除兄弟姐妹关系 */
+  async removeSibling(familyId: string, relationshipId: string): Promise<void> {
     if (useMock()) return mockApi.deleteRelationship(relationshipId)
     await api.delete(`/api/families/${familyId}/relationships/${relationshipId}`)
   },

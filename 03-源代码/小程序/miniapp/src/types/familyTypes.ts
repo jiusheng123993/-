@@ -3,6 +3,7 @@ export interface PetFamily {
   userId: string
   name: string
   avatarUrl?: string
+  memberCount?: number
   createdAt: string
   updatedAt: string
 }
@@ -42,6 +43,8 @@ export interface LineageChild {
   petName?: string | null
   petAvatarUrl?: string | null
   petSpecies?: string | null
+  /** 来源：blood=血缘关系（共同父母），sibling_rel=手动添加的兄弟姐妹关系 */
+  source?: 'blood' | 'sibling_rel'
 }
 
 /** 配偶关系 */
@@ -75,6 +78,55 @@ export interface LineageResponse {
   children: LineageChild[]
   siblings: LineageChild[]
   mates: LineageMate[]
+}
+
+/** 家庭关系总览中的成员 */
+export interface OverviewMember {
+  petId: string
+  name: string | null
+  avatarUrl: string | null
+  species: string | null
+  gender: string | null
+  role: string | null
+}
+
+/** 家庭关系总览中的亲子关系 */
+export interface OverviewLineage {
+  id: string
+  parentId: string
+  parentName: string | null
+  parentAvatarUrl: string | null
+  parentGender: string | null
+  parentSpecies: string | null
+  childId: string
+  childName: string | null
+  childAvatarUrl: string | null
+  childGender: string | null
+  childSpecies: string | null
+  litterDate: string | null
+}
+
+/** 家庭关系总览中的自定义关系 */
+export interface OverviewRelationship {
+  id: string
+  petIdA: string
+  petAName: string | null
+  petAAvatarUrl: string | null
+  petAGender: string | null
+  petIdB: string
+  petBName: string | null
+  petBAvatarUrl: string | null
+  petBGender: string | null
+  relationType: string
+  labelA: string | null
+  labelB: string | null
+}
+
+/** 后端 GET /api/families/:id/overview 完整响应 */
+export interface FamilyOverviewResponse {
+  members: OverviewMember[]
+  lineages: OverviewLineage[]
+  relationships: OverviewRelationship[]
 }
 
 /** 家庭动态类型 */

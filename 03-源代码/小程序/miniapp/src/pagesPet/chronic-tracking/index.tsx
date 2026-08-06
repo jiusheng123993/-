@@ -41,11 +41,11 @@ export default function ChronicTrackingPage() {
 
   const loadData = useCallback(async () => {
     if (!pet || !user) return
-    const petRecords = await getChronicRecords(pet.id)
+    const petRecords = await getChronicRecords(pet.id, user.id)
     setRecords(petRecords)
-    setStats(await getChronicStats(pet.id))
-    setUpcomingCheckups(await getUpcomingCheckups(pet.id, 7))
-    setTrendData(await getChronicTrendData(pet.id, 30))
+    setStats(await getChronicStats(pet.id, user.id))
+    setUpcomingCheckups(await getUpcomingCheckups(pet.id, user.id, 7))
+    setTrendData(await getChronicTrendData(pet.id, user.id, 30))
   }, [pet, user])
 
   useDidShow(() => {
@@ -78,7 +78,7 @@ export default function ChronicTrackingPage() {
 
   const handleAdd = async (data: Omit<ChronicRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => {
     if (!pet || !user) return
-    await addChronicRecord(pet.id, data)
+    await addChronicRecord(pet.id, user.id, data)
     setShowAdd(false)
     loadData()
     Taro.showToast({ title: '添加成功', icon: 'success' })
@@ -86,7 +86,7 @@ export default function ChronicTrackingPage() {
 
   const handleUpdate = async (id: string, updates: Partial<ChronicRecord>) => {
     if (!pet || !user) return
-    await updateChronicRecord(pet.id, id, updates)
+    await updateChronicRecord(pet.id, user.id, id, updates)
     setEditingRecord(null)
     loadData()
     Taro.showToast({ title: '更新成功', icon: 'success' })
@@ -98,7 +98,7 @@ export default function ChronicTrackingPage() {
       content: '确定要删除这条慢性病记录吗？',
       success: async (res) => {
         if (res.confirm && pet && user) {
-          await deleteChronicRecord(pet.id, id)
+          await deleteChronicRecord(pet.id, user.id, id)
           loadData()
           Taro.showToast({ title: '已删除', icon: 'success' })
         }

@@ -172,11 +172,10 @@ describe('npsService', () => {
       expect(result).not.toBeNull()
       expect(result!.score).toBe(8)
       expect(result!.triggerEvent).toBe('day_7')
-      expect(mockApiPost).toHaveBeenCalledWith('/api/nps/responses', {
-        user_id: 'user-123',
+      expect(mockApiPost).toHaveBeenCalledWith('/api/feedback/nps', {
         score: 8,
-        trigger_event: 'day_7',
         feedback: 'Great app',
+        trigger_event: 'day_7',
       })
     })
 

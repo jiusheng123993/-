@@ -41,6 +41,7 @@ vi.mock('@tarojs/taro', () => ({
     setStorageSync: mockSetStorageSync,
     clearStorageSync: mockClearStorageSync,
     removeStorageSync: mockRemoveStorageSync,
+    reLaunch: vi.fn(),
   },
 }))
 

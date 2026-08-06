@@ -117,6 +117,10 @@ router.post('/subscribe', authMiddleware, validate({ body: createOrderSchema }),
       res.status(404).json({ success: false, message: '用户不存在' });
       return;
     }
+    if (!user.openid) {
+      res.status(400).json({ success: false, message: '用户未绑定微信 openid，无法发起支付' });
+      return;
+    }
 
     // 创建支付订单
     const orderId = uuidv4();

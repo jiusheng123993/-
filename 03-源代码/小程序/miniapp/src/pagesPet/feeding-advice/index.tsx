@@ -54,7 +54,7 @@ export default function FeedingAdvicePage() {
     const petRecords = await getFeedingRecords(pet.id)
     setRecords(petRecords)
 
-    const feedingProfile = await buildFeedingProfile(pet)
+    const feedingProfile = await buildFeedingProfile(pet, user.id)
     setProfile(feedingProfile)
     setMealPlan(getMealPlan(feedingProfile))
 

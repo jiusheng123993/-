@@ -341,11 +341,11 @@ describe('Index page — render states', () => {
     expect(container.textContent).toContain('AI 宠物管家')
 
     // 应显示问候消息
-    expect(container.textContent).toContain('AI小助手')
+    expect(container.textContent).toContain('今日健康摘要')
 
     // 应显示快捷操作
     expect(container.textContent).toContain('打卡')
-    expect(container.textContent).toContain('查食物')
+    expect(container.textContent).toContain('食物查询')
     expect(container.textContent).toContain('症状初筛')
 
     // 应显示输入区域
