@@ -1,0 +1,91 @@
+{
+  "data": [
+    {
+      "id": "page-index",
+      "title": "星寰海 · 有记忆的AI宠物管家",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1785955200000,
+      "canvasData": {
+        "x": 0,
+        "y": -36,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 9424,
+          "viewportWidth": 2263,
+          "sourceHash": "fnv1a-3fbc5654",
+          "measuredAt": 1785939677029
+        },
+        "deviceType": "freeSize",
+        "windowSize": {
+          "width": 2263,
+          "height": 9216
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/index.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "星海草地宠物主视觉（草地版静态）",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785955200000,
+      "canvasData": {
+        "x": 0,
+        "y": 2766,
+        "naturalSize": {
+          "width": 2560,
+          "height": 1440
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/hero-pet-grass.jpg"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "星海草地宠物主视觉（动画 GIF）",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785955200000,
+      "canvasData": {
+        "x": 620,
+        "y": 2766,
+        "naturalSize": {
+          "width": 640,
+          "height": 361
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/hero-grass-anim.gif"
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "星海草地宠物主视觉（全站固定背景版）",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1785955200000,
+      "canvasData": {
+        "x": 1240,
+        "y": 2766,
+        "naturalSize": {
+          "width": 2560,
+          "height": 1440
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/hero-pet-grass-bg.jpg"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": false,
+    "deviceType": "desktop",
+    "projectName": "星寰海官网"
+  }
+}

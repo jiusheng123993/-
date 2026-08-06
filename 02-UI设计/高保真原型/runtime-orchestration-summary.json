@@ -642,6 +642,20 @@
         "owner": "main-agent",
         "recordedAt": "2026-08-05T18:40:33.802Z",
         "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "pages/memoir.html",
+        "reason": "added cross-page entry dom-ids",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-05T19:20:00.653Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "pages/ai-chat.html",
+        "reason": "added cross-page entry dom-ids",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-05T19:20:00.718Z",
+        "source": "record-dispatch-completion.mjs"
       }
     ],
     "validationHistory": [
@@ -5386,7 +5400,665 @@
         "ledgerDiagnosticReports": []
       }
     ],
-    "ledgerDiagnosticReports": []
+    "ledgerDiagnosticReports": [],
+    "expectedDispatches": [
+      {
+        "nodeId": "page-breed",
+        "pageId": "page-breed",
+        "targetPageId": "page-breed",
+        "htmlSrc": "pages/breed.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/breed.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "subagent-quality-gate-passed",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:00.354Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-add-pet",
+        "pageId": "page-add-pet",
+        "targetPageId": "page-add-pet",
+        "htmlSrc": "pages/add-pet.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/add-pet.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "subagent-quality-gate-passed",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:00.413Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-hospital",
+        "pageId": "page-hospital",
+        "targetPageId": "page-hospital",
+        "htmlSrc": "pages/hospital.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/hospital.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "subagent-quality-gate-passed",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:00.473Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-memoir-daily",
+        "pageId": "page-memoir-daily",
+        "targetPageId": "page-memoir-daily",
+        "htmlSrc": "pages/memoir-daily.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/memoir-daily.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "subagent-quality-gate-passed",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:00.534Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-memoir-vlog",
+        "pageId": "page-memoir-vlog",
+        "targetPageId": "page-memoir-vlog",
+        "htmlSrc": "pages/memoir-vlog.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/memoir-vlog.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "subagent-quality-gate-passed",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:00.593Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-memoir",
+        "pageId": "page-memoir",
+        "targetPageId": "page-memoir",
+        "htmlSrc": "pages/memoir.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.204Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-ai-chat",
+        "pageId": "page-ai-chat",
+        "targetPageId": "page-ai-chat",
+        "htmlSrc": "pages/ai-chat.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:20.034Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-home",
+        "pageId": "page-home",
+        "targetPageId": "page-home",
+        "htmlSrc": "pages/home.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.376Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-checkin",
+        "pageId": "page-checkin",
+        "targetPageId": "page-checkin",
+        "htmlSrc": "pages/checkin.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.447Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-pet-profile",
+        "pageId": "page-pet-profile",
+        "targetPageId": "page-pet-profile",
+        "htmlSrc": "pages/pet-profile.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.517Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-vaccine",
+        "pageId": "page-vaccine",
+        "targetPageId": "page-vaccine",
+        "htmlSrc": "pages/vaccine.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.585Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-food-query",
+        "pageId": "page-food-query",
+        "targetPageId": "page-food-query",
+        "htmlSrc": "pages/food-query.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.653Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-symptom-check",
+        "pageId": "page-symptom-check",
+        "targetPageId": "page-symptom-check",
+        "htmlSrc": "pages/symptom-check.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.721Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-health-trends",
+        "pageId": "page-health-trends",
+        "targetPageId": "page-health-trends",
+        "htmlSrc": "pages/health-trends.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.791Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-health-trends-appetite-line",
+        "pageId": "page-health-trends-appetite-line",
+        "targetPageId": "page-health-trends-appetite-line",
+        "htmlSrc": "pages/health-trends-appetite-line.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.860Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-timeline",
+        "pageId": "page-timeline",
+        "targetPageId": "page-timeline",
+        "htmlSrc": "pages/timeline.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.927Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-mine",
+        "pageId": "page-mine",
+        "targetPageId": "page-mine",
+        "htmlSrc": "pages/mine.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:18.995Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-family",
+        "pageId": "page-family",
+        "targetPageId": "page-family",
+        "htmlSrc": "pages/family.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.070Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-naming",
+        "pageId": "page-naming",
+        "targetPageId": "page-naming",
+        "htmlSrc": "pages/naming.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.136Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-share-card",
+        "pageId": "page-share-card",
+        "targetPageId": "page-share-card",
+        "htmlSrc": "pages/share-card.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.277Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-auth",
+        "pageId": "page-auth",
+        "targetPageId": "page-auth",
+        "htmlSrc": "pages/auth.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.346Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-membership",
+        "pageId": "page-membership",
+        "targetPageId": "page-membership",
+        "htmlSrc": "pages/membership.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.415Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-health-report",
+        "pageId": "page-health-report",
+        "targetPageId": "page-health-report",
+        "htmlSrc": "pages/health-report.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.482Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-grief",
+        "pageId": "page-grief",
+        "targetPageId": "page-grief",
+        "htmlSrc": "pages/grief.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.549Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-settings",
+        "pageId": "page-settings",
+        "targetPageId": "page-settings",
+        "htmlSrc": "pages/settings.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.617Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-pet-diary",
+        "pageId": "page-pet-diary",
+        "targetPageId": "page-pet-diary",
+        "htmlSrc": "pages/pet-diary.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.686Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-pet-image",
+        "pageId": "page-pet-image",
+        "targetPageId": "page-pet-image",
+        "htmlSrc": "pages/pet-image.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.756Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-family-tree",
+        "pageId": "page-family-tree",
+        "targetPageId": "page-family-tree",
+        "htmlSrc": "pages/family-tree.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.827Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-family-report",
+        "pageId": "page-family-report",
+        "targetPageId": "page-family-report",
+        "htmlSrc": "pages/family-report.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.898Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-annual-review",
+        "pageId": "page-annual-review",
+        "targetPageId": "page-annual-review",
+        "htmlSrc": "pages/annual-review.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:19.966Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-family-calendar",
+        "pageId": "page-family-calendar",
+        "targetPageId": "page-family-calendar",
+        "htmlSrc": "pages/family-calendar.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:20.100Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-family-feed",
+        "pageId": "page-family-feed",
+        "targetPageId": "page-family-feed",
+        "htmlSrc": "pages/family-feed.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:20.178Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-illness-care",
+        "pageId": "page-illness-care",
+        "targetPageId": "page-illness-care",
+        "htmlSrc": "pages/illness-care.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:27.119Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-newbie-guide",
+        "pageId": "page-newbie-guide",
+        "targetPageId": "page-newbie-guide",
+        "htmlSrc": "pages/newbie-guide.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "not_required",
+        "changedFiles": [],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "existing-page-unchanged-this-round",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T19:20:27.188Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ]
   },
   "designSource": {
     "operatingMode": "free-explore",

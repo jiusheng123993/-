@@ -64,3 +64,17 @@ new_breeds.ts
 
 # 临时目录
 .temp/
+.work-tmp/
+graphify-out/
+
+# 构建/部署产物
+03-源代码/小程序/miniapp/dist-h5/
+网站部署包/
+星寰海官网部署包.zip
+.work-tmp/
+graphify-out/
+
+# 构建/部署产物
+03-源代码/小程序/miniapp/dist-h5/
+网站部署包/
+星寰海官网部署包.zip

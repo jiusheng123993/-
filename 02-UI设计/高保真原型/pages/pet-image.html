@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宠物形象 · 形象工坊</title>
+    <title>宠物形象定制</title>
     <style id="theme-vars">
 /* ============================================
    星寰海小程序 · 四季主题体系
@@ -221,7 +221,7 @@ html[data-theme="autumn"] {
   --xhh-blob-a-color: rgba(255, 107, 61, 0.32);
   --xhh-blob-b-color: rgba(255, 176, 32, 0.24);
   --xhh-blob-c-color: rgba(255, 107, 61, 0.16);
-  --xhh-blob-d-color: rgba(255, 176, 32, 0.15);
+  --xhh-blob-d-color: rgba(255, 107, 61, 0.15);
   --xhh-glow-color: rgba(255, 176, 32, 0.13);
 }
 
@@ -561,6 +561,492 @@ body > main {
         background-color: currentColor;
       }
     </style>
+    <style id="xhh-critical-layout">
+      /* ============================================
+         关键布局静态兜底（无 Tailwind 也能渲染框架）
+         星寰海 · 宠物形象定制
+         ============================================ */
+      .xhh-header { position: sticky; top: 0; z-index: 40; }
+      .xhh-header-inner { max-width: 28rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; height: 3rem; padding: 0 0.75rem; }
+      .xhh-brand { display: flex; align-items: baseline; gap: 0.375rem; min-width: 0; }
+      .xhh-capsule { display: flex; align-items: center; justify-content: center; height: 2rem; width: 5.5rem; flex: none; border-radius: 9999px; border: 1px solid var(--xhh-border); background-color: var(--xhh-card); }
+
+      .xhh-main { max-width: 28rem; margin: 0 auto; padding: 0.75rem 1rem 8rem; display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10; }
+
+      .xhh-tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 3.5rem; background-color: color-mix(in srgb, var(--xhh-card) 95%, transparent); border-top: 1px solid var(--xhh-border); backdrop-filter: blur(12px); }
+      .xhh-tabbar-inner { max-width: 28rem; margin: 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 100%; }
+      .xhh-tab-item { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem; padding: 0 0.25rem; }
+
+      .xhh-card { background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: 28px; box-shadow: var(--xhh-shadow-card); }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased max-w-md mx-auto" style="background: var(--xhh-background);">
+    <!-- 全小程序统一动态背景层 -->
+    <div class="xhh-bg-layer" aria-hidden="true">
+        <div class="xhh-blob xhh-blob-a"></div>
+        <div class="xhh-blob xhh-blob-b"></div>
+        <div class="xhh-blob xhh-blob-c"></div>
+        <div class="xhh-blob xhh-blob-d"></div>
+        <div class="xhh-bg-glow"></div>
+    </div>
+
+    <!-- ===================== 顶部小程序导航栏 ===================== -->
+    <header class="xhh-header sticky top-0 z-40" style="background: color-mix(in srgb, var(--xhh-surface-1) 90%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--xhh-border);">
+        <div class="xhh-header-inner w-full max-w-md mx-auto h-12 relative flex items-center justify-between px-3">
+            <div class="xhh-brand flex items-baseline gap-1.5 min-w-0">
+                <h1 class="text-[17px] font-semibold tracking-wide whitespace-nowrap" style="color: var(--xhh-ink);">形象定制</h1>
+                <span class="text-[11px] font-medium truncate" style="color: var(--xhh-ink-3);">AI 宠物管家</span>
+            </div>
+            <div class="xhh-capsule flex h-8 w-[88px] shrink-0 items-center justify-center rounded-full border" style="border-color: var(--xhh-border); background-color: var(--xhh-card);" aria-label="小程序菜单">
+                <button type="button" class="flex h-full flex-1 items-center justify-center" aria-label="更多">
+                    <i data-lucide="more-horizontal" class="h-4 w-4"></i>
+                </button>
+                <span class="h-4 w-px" style="background-color: var(--xhh-border);" aria-hidden="true"></span>
+                <button type="button" class="flex h-full flex-1 items-center justify-center" aria-label="关闭">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================== 主内容 ===================== -->
+    <main class="xhh-main max-w-md mx-auto px-4 pt-3 pb-32 flex flex-col gap-4">
+
+        <!-- 1. 当前形象展示卡 -->
+        <section data-dom-id="avatar-stage" class="xhh-card-enter">
+            <div class="xhh-card rounded-[28px] p-5">
+                <!-- 顶部：徽章 + 风格标签 -->
+                <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral-deep);">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i>
+                        当前形象
+                    </span>
+                    <span class="text-[11px] font-medium px-2.5 py-1 rounded-full" style="background-color: var(--xhh-muted); color: var(--xhh-ink-2);">Q版 · 毛孩子</span>
+                </div>
+                <!-- 中央大圆形头像区域 -->
+                <div class="flex justify-center my-3">
+                    <div class="w-[200px] h-[200px] rounded-full flex items-center justify-center relative" style="background-image: linear-gradient(135deg, var(--xhh-coral-bg), var(--xhh-gold-bg)); border: 4px solid var(--xhh-card); box-shadow: 0 8px 32px -8px color-mix(in srgb, var(--xhh-coral) 35%, transparent), 0 0 0 1px var(--xhh-border);">
+                        <span style="font-size: 96px; line-height: 1; user-select: none;">🐶</span>
+                    </div>
+                </div>
+                <!-- 宠物名 + 描述 -->
+                <div class="text-center mt-4">
+                    <h3 class="text-[18px] font-semibold tracking-tight" style="color: var(--xhh-ink);">毛孩子</h3>
+                    <p class="text-[12px] mt-1" style="color: var(--xhh-ink-2);">中华田园犬 · 2岁3个月 · 元气满满</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 风格切换卡 -->
+        <section data-dom-id="avatar-style" class="xhh-card-enter" style="animation-delay: .08s;">
+            <div class="xhh-card rounded-[28px] p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-[15px] font-semibold" style="color: var(--xhh-ink);">风格</h4>
+                    <span class="text-[11px]" style="color: var(--xhh-ink-3);">换一种画风</span>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <!-- Q版 (激活) -->
+                    <div class="xhh-tap style-chip flex flex-col items-center gap-1.5 py-3 rounded-2xl cursor-pointer" data-style="q" data-active="true" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); box-shadow: var(--xhh-shadow-button);">
+                        <span class="text-xl leading-none">🐾</span>
+                        <span class="text-[12px] font-semibold" style="color: var(--xhh-primary-foreground);">Q版</span>
+                    </div>
+                    <!-- 水彩 -->
+                    <div class="xhh-tap style-chip flex flex-col items-center gap-1.5 py-3 rounded-2xl cursor-pointer" data-style="watercolor" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                        <span class="text-xl leading-none">🎨</span>
+                        <span class="text-[12px] font-medium" style="color: var(--xhh-ink-2);">水彩</span>
+                    </div>
+                    <!-- 像素 -->
+                    <div class="xhh-tap style-chip flex flex-col items-center gap-1.5 py-3 rounded-2xl cursor-pointer" data-style="pixel" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                        <span class="text-xl leading-none">👾</span>
+                        <span class="text-[12px] font-medium" style="color: var(--xhh-ink-2);">像素</span>
+                    </div>
+                    <!-- 线稿 -->
+                    <div class="xhh-tap style-chip flex flex-col items-center gap-1.5 py-3 rounded-2xl cursor-pointer" data-style="lineart" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                        <span class="text-xl leading-none">✏️</span>
+                        <span class="text-[12px] font-medium" style="color: var(--xhh-ink-2);">线稿</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 表情系统卡 -->
+        <section data-dom-id="avatar-expr" class="xhh-card-enter" style="animation-delay: .16s;">
+            <div class="xhh-card rounded-[28px] p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-[15px] font-semibold" style="color: var(--xhh-ink);">表情</h4>
+                    <span class="text-[11px]" style="color: var(--xhh-ink-3);">点一点看变化</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <!-- 开心 (激活) -->
+                    <div class="xhh-tap expr-card flex items-center gap-3 p-3 rounded-2xl cursor-pointer" data-expr="happy" data-active="true" style="background-color: var(--xhh-coral-bg); border: 2px solid var(--xhh-coral);">
+                        <span class="text-2xl leading-none">😊</span>
+                        <div class="min-w-0">
+                            <div class="text-[13px] font-semibold" style="color: var(--xhh-coral-deep);">开心</div>
+                            <div class="text-[10px] truncate" style="color: var(--xhh-ink-2);">尾巴翘起来啦</div>
+                        </div>
+                    </div>
+                    <!-- 撒娇 -->
+                    <div class="xhh-tap expr-card flex items-center gap-3 p-3 rounded-2xl cursor-pointer" data-expr="excited" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                        <span class="text-2xl leading-none">🥰</span>
+                        <div class="min-w-0">
+                            <div class="text-[13px] font-medium" style="color: var(--xhh-ink);">撒娇</div>
+                            <div class="text-[10px] truncate" style="color: var(--xhh-ink-3);">蹭蹭求抱抱</div>
+                        </div>
+                    </div>
+                    <!-- 生气 -->
+                    <div class="xhh-tap expr-card flex items-center gap-3 p-3 rounded-2xl cursor-pointer" data-expr="anxious" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                        <span class="text-2xl leading-none">😤</span>
+                        <div class="min-w-0">
+                            <div class="text-[13px] font-medium" style="color: var(--xhh-ink);">生气</div>
+                            <div class="text-[10px] truncate" style="color: var(--xhh-ink-3);">耳朵都竖起来</div>
+                        </div>
+                    </div>
+                    <!-- 困倦 -->
+                    <div class="xhh-tap expr-card flex items-center gap-3 p-3 rounded-2xl cursor-pointer" data-expr="sleepy" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                        <span class="text-2xl leading-none">😴</span>
+                        <div class="min-w-0">
+                            <div class="text-[13px] font-medium" style="color: var(--xhh-ink);">困倦</div>
+                            <div class="text-[10px] truncate" style="color: var(--xhh-ink-3);">要睡觉觉了</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 形象应用场景 -->
+        <section data-dom-id="avatar-scenes" class="xhh-card-enter" style="animation-delay: .24s;">
+            <div class="grid grid-cols-3 gap-3">
+                <!-- 头像 -->
+                <div data-dom-id="scene-avatar" class="xhh-tap flex flex-col items-center gap-2 cursor-pointer">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl" style="background-color: var(--xhh-coral-bg); border: 2px solid var(--xhh-coral-soft); box-shadow: var(--xhh-shadow-1);">👤</div>
+                    <span class="text-[12px] font-medium" style="color: var(--xhh-ink);">头像</span>
+                </div>
+                <!-- 聊天贴纸 -->
+                <div class="xhh-tap flex flex-col items-center gap-2 cursor-pointer">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl" style="background-color: var(--xhh-gold-bg); border: 2px solid var(--xhh-gold-soft); box-shadow: var(--xhh-shadow-1);">🎨</div>
+                    <span class="text-[12px] font-medium" style="color: var(--xhh-ink);">聊天贴纸</span>
+                </div>
+                <!-- 分享卡片 -->
+                <div data-dom-id="scene-share" class="xhh-tap flex flex-col items-center gap-2 cursor-pointer">
+                    <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl" style="background-color: color-mix(in srgb, var(--state-success) 15%, var(--xhh-card)); border: 2px solid color-mix(in srgb, var(--state-success) 40%, transparent); box-shadow: var(--xhh-shadow-1);">📤</div>
+                    <span class="text-[12px] font-medium" style="color: var(--xhh-ink);">分享卡片</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 生成新形象按钮 -->
+        <section data-dom-id="avatar-gen-btn" class="xhh-card-enter" style="animation-delay: .32s;">
+            <button data-dom-id="btn-generate-image" type="button" class="xhh-tap w-full h-14 rounded-full inline-flex items-center justify-center gap-2 text-[16px] font-semibold" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                生成新形象
+            </button>
+        </section>
+
+        <!-- 6. 生成面板（默认展开） -->
+        <section data-dom-id="avatar-panel" class="xhh-card-enter" style="animation-delay: .40s;">
+            <div class="xhh-card rounded-[28px] p-4">
+                <!-- Tab 切换 -->
+                <div class="flex p-1 rounded-full mb-4" style="background-color: var(--xhh-muted);">
+                    <div class="xhh-tap gen-tab flex-1 py-2.5 rounded-full text-center text-[13px] font-semibold cursor-pointer" data-tab="text" data-active="true" style="background-color: var(--xhh-card); color: var(--xhh-coral); box-shadow: var(--xhh-shadow-1);">文字描述生成</div>
+                    <div class="xhh-tap gen-tab flex-1 py-2.5 rounded-full text-center text-[13px] font-medium cursor-pointer" data-tab="photo" style="color: var(--xhh-ink-2);">照片生成</div>
+                </div>
+
+                <!-- ========== Tab 1: 文字描述生成 ========== -->
+                <div data-tab-content="text">
+                    <!-- 风格选择 -->
+                    <div class="mb-4">
+                        <h5 class="text-[13px] font-semibold mb-2" style="color: var(--xhh-ink);">风格选择</h5>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div class="xhh-tap gen-style-opt p-3 rounded-2xl text-center cursor-pointer" data-style-opt="cartoon" data-active="true" style="background-color: var(--xhh-coral-bg); border: 2px solid var(--xhh-coral);">
+                                <div class="text-[14px] font-semibold" style="color: var(--xhh-coral-deep);">卡通风格</div>
+                                <div class="text-[10px] mt-0.5" style="color: var(--xhh-ink-2);">可爱萌趣</div>
+                            </div>
+                            <div class="xhh-tap gen-style-opt p-3 rounded-2xl text-center cursor-pointer" data-style-opt="realistic" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                                <div class="text-[14px] font-medium" style="color: var(--xhh-ink);">写实风格</div>
+                                <div class="text-[10px] mt-0.5" style="color: var(--xhh-ink-3);">真实细腻</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 基础配色 -->
+                    <div class="mb-4">
+                        <h5 class="text-[13px] font-semibold mb-2.5" style="color: var(--xhh-ink);">基础配色</h5>
+                        <div class="grid grid-cols-4 gap-3">
+                            <!-- 暖阳金 (选中) -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full flex items-center justify-center cursor-pointer" data-color="gold" data-active="true" style="background-color: var(--xhh-gold); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 4px var(--xhh-coral);">
+                                    <i data-lucide="check" class="w-4 h-4" style="color: var(--xhh-card);"></i>
+                                </div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">暖阳金</span>
+                            </div>
+                            <!-- 活力橙 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="coral" style="background-color: var(--xhh-coral);"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">活力橙</span>
+                            </div>
+                            <!-- 清新绿 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="green" style="background-color: var(--state-success);"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">清新绿</span>
+                            </div>
+                            <!-- 天空蓝 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="blue" style="background-color: var(--state-info);"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">天空蓝</span>
+                            </div>
+                            <!-- 甜蜜粉 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="pink" style="background-color: var(--state-error);"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">甜蜜粉</span>
+                            </div>
+                            <!-- 梦幻紫 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="purple" style="background-color: mediumpurple;"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">梦幻紫</span>
+                            </div>
+                            <!-- 奶白色 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="white" style="background-color: var(--xhh-surface-1); border: 1px solid var(--xhh-border);"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">奶白色</span>
+                            </div>
+                            <!-- 酷黑色 -->
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="xhh-tap color-dot w-10 h-10 rounded-full cursor-pointer" data-color="ink" style="background-color: var(--xhh-ink);"></div>
+                                <span class="text-[9px]" style="color: var(--xhh-ink-3);">酷黑色</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 配额提示 -->
+                    <div class="flex items-center gap-1.5 mb-4 px-3 py-2.5 rounded-xl" style="background-color: var(--xhh-gold-bg);">
+                        <i data-lucide="info" class="w-3.5 h-3.5 shrink-0" style="color: var(--xhh-gold-deep);"></i>
+                        <span class="text-[11px]" style="color: var(--xhh-gold-deep);">剩余次数：1/1（开通会员可无限生成）</span>
+                    </div>
+
+                    <!-- 生成按钮 -->
+                    <button type="button" class="xhh-tap w-full h-12 rounded-full inline-flex items-center justify-center gap-2 text-[14px] font-semibold" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);">
+                        <i data-lucide="wand-2" class="w-4 h-4"></i>
+                        生成头像
+                    </button>
+                </div>
+
+                <!-- ========== Tab 2: 照片生成（默认隐藏） ========== -->
+                <div data-tab-content="photo" class="hidden">
+                    <!-- 照片上传区 -->
+                    <div class="mb-4">
+                        <h5 class="text-[13px] font-semibold mb-2" style="color: var(--xhh-ink);">上传宠物照片</h5>
+                        <div class="xhh-tap flex flex-col items-center justify-center gap-2 py-8 rounded-2xl cursor-pointer" style="border: 2px dashed var(--xhh-border); background-color: var(--xhh-muted);">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background-color: var(--xhh-coral-bg);">
+                                <i data-lucide="camera" class="w-6 h-6" style="color: var(--xhh-coral);"></i>
+                            </div>
+                            <span class="text-[12px]" style="color: var(--xhh-ink-2);">点击上传宠物照片</span>
+                            <span class="text-[10px]" style="color: var(--xhh-ink-3);">支持 JPG / PNG，最大 10MB</span>
+                        </div>
+                    </div>
+
+                    <!-- 风格选择 -->
+                    <div class="mb-4">
+                        <h5 class="text-[13px] font-semibold mb-2" style="color: var(--xhh-ink);">风格选择</h5>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div class="xhh-tap gen-style-opt p-3 rounded-2xl text-center cursor-pointer" data-style-opt="cartoon" data-active="true" style="background-color: var(--xhh-coral-bg); border: 2px solid var(--xhh-coral);">
+                                <div class="text-[14px] font-semibold" style="color: var(--xhh-coral-deep);">卡通风格</div>
+                                <div class="text-[10px] mt-0.5" style="color: var(--xhh-ink-2);">可爱萌趣</div>
+                            </div>
+                            <div class="xhh-tap gen-style-opt p-3 rounded-2xl text-center cursor-pointer" data-style-opt="realistic" style="background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);">
+                                <div class="text-[14px] font-medium" style="color: var(--xhh-ink);">写实风格</div>
+                                <div class="text-[10px] mt-0.5" style="color: var(--xhh-ink-3);">真实细腻</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 配额提示 -->
+                    <div class="flex items-center gap-1.5 mb-4 px-3 py-2.5 rounded-xl" style="background-color: var(--xhh-gold-bg);">
+                        <i data-lucide="info" class="w-3.5 h-3.5 shrink-0" style="color: var(--xhh-gold-deep);"></i>
+                        <span class="text-[11px]" style="color: var(--xhh-gold-deep);">剩余照片生成次数：1/1（开通会员可无限生成）</span>
+                    </div>
+
+                    <!-- 生成按钮 -->
+                    <button type="button" class="xhh-tap w-full h-12 rounded-full inline-flex items-center justify-center gap-2 text-[14px] font-semibold" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);">
+                        <i data-lucide="wand-2" class="w-4 h-4"></i>
+                        生成 2D 形象包
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================== 底部 TabBar（宠物激活态） ===================== -->
+    <nav data-mobile-nav="global" class="fixed bottom-0 left-0 right-0 z-50 h-14 bg-white/95 backdrop-blur-xl border-t" style="border-color: var(--xhh-border);"><div class="w-full max-w-md mx-auto grid grid-cols-4 h-full"><a data-nav-key="home" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="home" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">首页</span></a><a data-nav-key="pet" data-active="true" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-coral);"><i data-lucide="paw-print" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate font-semibold">宠物</span></a><a data-nav-key="timeline" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="history" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">时光</span></a><a data-nav-key="mine" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="user" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">我的</span></a></div></nav>
+
+    <!-- ===================== 页面专属样式 ===================== -->
+    <style>
+        @keyframes xhh-fade-up {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .xhh-card-enter { animation: xhh-fade-up .5s ease both; }
+        @media (prefers-reduced-motion: reduce) {
+            .xhh-card-enter { animation: none; }
+        }
+
+        /* 风格 chip 激活态 */
+        .style-chip[data-active="true"] {
+            background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)) !important;
+            box-shadow: var(--xhh-shadow-button) !important;
+            border-color: transparent !important;
+        }
+        .style-chip[data-active="true"] span:last-child {
+            color: var(--xhh-primary-foreground) !important;
+            font-weight: 600;
+        }
+
+        /* 表情卡激活态 */
+        .expr-card[data-active="true"] {
+            background-color: var(--xhh-coral-bg) !important;
+            border: 2px solid var(--xhh-coral) !important;
+        }
+        .expr-card[data-active="true"] .text-\[13px\] {
+            color: var(--xhh-coral-deep) !important;
+            font-weight: 600;
+        }
+
+        /* 生成 Tab 激活态 */
+        .gen-tab[data-active="true"] {
+            background-color: var(--xhh-card) !important;
+            color: var(--xhh-coral) !important;
+            box-shadow: var(--xhh-shadow-1) !important;
+            font-weight: 600;
+        }
+
+        /* 生成面板风格选项激活态 */
+        .gen-style-opt[data-active="true"] {
+            background-color: var(--xhh-coral-bg) !important;
+            border: 2px solid var(--xhh-coral) !important;
+        }
+        .gen-style-opt[data-active="true"] .text-\[14px\] {
+            color: var(--xhh-coral-deep) !important;
+            font-weight: 600;
+        }
+
+        /* 配色圆点选中态 */
+        .color-dot[data-active="true"] {
+            box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 4px var(--xhh-coral) !important;
+        }
+    </style>
+
+    <!-- ===================== 脚本 ===================== -->
+    <script>lucide.createIcons();</script>
+    <script>
+        (function () {
+            // ---- 风格切换 ----
+            var styleChips = document.querySelectorAll('.style-chip');
+            styleChips.forEach(function (chip) {
+                chip.addEventListener('click', function () {
+                    styleChips.forEach(function (c) {
+                        c.removeAttribute('data-active');
+                        c.style.cssText = 'background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);';
+                        var label = c.querySelector('span:last-child');
+                        if (label) { label.style.color = 'var(--xhh-ink-2)'; label.style.fontWeight = ''; }
+                    });
+                    chip.setAttribute('data-active', 'true');
+                    chip.style.cssText = '';
+                    var label = chip.querySelector('span:last-child');
+                    if (label) { label.style.color = 'var(--xhh-primary-foreground)'; label.style.fontWeight = '600'; }
+                });
+            });
+
+            // ---- 表情切换 ----
+            var exprCards = document.querySelectorAll('.expr-card');
+            exprCards.forEach(function (card) {
+                card.addEventListener('click', function () {
+                    exprCards.forEach(function (c) {
+                        c.removeAttribute('data-active');
+                        c.style.cssText = 'background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);';
+                        var label = c.querySelector('.text-\\[13px\\]');
+                        if (label) { label.style.color = 'var(--xhh-ink)'; label.style.fontWeight = ''; }
+                        var desc = c.querySelector('.text-\\[10px\\]');
+                        if (desc) { desc.style.color = 'var(--xhh-ink-3)'; }
+                    });
+                    card.setAttribute('data-active', 'true');
+                    card.style.cssText = '';
+                    var label = card.querySelector('.text-\\[13px\\]');
+                    if (label) { label.style.color = 'var(--xhh-coral-deep)'; label.style.fontWeight = '600'; }
+                    var desc = card.querySelector('.text-\\[10px\\]');
+                    if (desc) { desc.style.color = 'var(--xhh-ink-2)'; }
+                });
+            });
+
+            // ---- 生成面板 Tab 切换 ----
+            var genTabs = document.querySelectorAll('.gen-tab');
+            var textContent = document.querySelector('[data-tab-content="text"]');
+            var photoContent = document.querySelector('[data-tab-content="photo"]');
+            genTabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    genTabs.forEach(function (t) {
+                        t.removeAttribute('data-active');
+                        t.style.cssText = 'color: var(--xhh-ink-2);';
+                        t.classList.remove('font-semibold');
+                        t.classList.add('font-medium');
+                    });
+                    tab.setAttribute('data-active', 'true');
+                    tab.style.cssText = '';
+                    tab.classList.remove('font-medium');
+                    tab.classList.add('font-semibold');
+
+                    var target = tab.getAttribute('data-tab');
+                    if (textContent) { textContent.classList.toggle('hidden', target !== 'text'); }
+                    if (photoContent) { photoContent.classList.toggle('hidden', target !== 'photo'); }
+                });
+            });
+
+            // ---- 生成面板风格选项切换 ----
+            var genStyleOpts = document.querySelectorAll('.gen-style-opt');
+            genStyleOpts.forEach(function (opt) {
+                opt.addEventListener('click', function () {
+                    var parent = opt.parentElement;
+                    parent.querySelectorAll('.gen-style-opt').forEach(function (o) {
+                        o.removeAttribute('data-active');
+                        o.style.cssText = 'background-color: var(--xhh-muted); border: 1px solid var(--xhh-border);';
+                        var label = o.querySelector('.text-\\[14px\\]');
+                        if (label) { label.style.color = 'var(--xhh-ink)'; label.style.fontWeight = ''; }
+                        var desc = o.querySelector('.text-\\[10px\\]');
+                        if (desc) { desc.style.color = 'var(--xhh-ink-3)'; }
+                    });
+                    opt.setAttribute('data-active', 'true');
+                    opt.style.cssText = '';
+                    var label = opt.querySelector('.text-\\[14px\\]');
+                    if (label) { label.style.color = 'var(--xhh-coral-deep)'; label.style.fontWeight = '600'; }
+                    var desc = opt.querySelector('.text-\\[10px\\]');
+                    if (desc) { desc.style.color = 'var(--xhh-ink-2)'; }
+                });
+            });
+
+            // ---- 配色圆点切换 ----
+            var colorDots = document.querySelectorAll('.color-dot');
+            colorDots.forEach(function (dot) {
+                dot.addEventListener('click', function () {
+                    colorDots.forEach(function (d) {
+                        d.removeAttribute('data-active');
+                        d.style.boxShadow = '';
+                        var check = d.querySelector('i[data-lucide]');
+                        if (check) { check.remove(); }
+                    });
+                    dot.setAttribute('data-active', 'true');
+                    dot.style.boxShadow = '0 0 0 2px var(--xhh-card), 0 0 0 4px var(--xhh-coral)';
+                    if (!dot.querySelector('i[data-lucide]')) {
+                        var icon = document.createElement('i');
+                        icon.setAttribute('data-lucide', 'check');
+                        icon.className = 'w-4 h-4';
+                        icon.style.color = 'var(--xhh-card)';
+                        dot.appendChild(icon);
+                        lucide.createIcons();
+                    }
+                });
+            });
+        })();
+    </script>
+
     <style id="xhh-motion-system">
         .xhh-bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
         .xhh-blob{position:absolute;border-radius:9999px;filter:blur(60px);will-change:transform;opacity:.85}
@@ -594,252 +1080,6 @@ body > main {
             .xhh-tap{transition:none !important}
         }
     </style>
-    <script id="xhh-theme-apply">
-    (function () {
-        var THEMES = ['spring', 'summer', 'autumn', 'winter'];
-        var KEY = 'xhh-theme';
-        var html = document.documentElement;
-        var saved = null;
-        try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
-        html.setAttribute('data-theme', (saved && THEMES.indexOf(saved) !== -1) ? saved : 'autumn');
-    })();
-    </script>
-</head>
-<body class="min-h-screen font-sans antialiased">
-    <!-- 全小程序统一动态背景层 -->
-    <div class="xhh-bg-layer" aria-hidden="true">
-        <div class="xhh-blob xhh-blob-a"></div>
-        <div class="xhh-blob xhh-blob-b"></div>
-        <div class="xhh-blob xhh-blob-c"></div>
-        <div class="xhh-blob xhh-blob-d"></div>
-        <div class="xhh-bg-glow"></div>
-    </div>
-
-    <!-- 顶部栏 -->
-    <header class="sticky top-0 z-40" style="background-color: color-mix(in srgb, var(--xhh-background) 92%, transparent); backdrop-filter: blur(16px);">
-        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-baseline gap-2">
-                <span class="text-xl font-extrabold leading-none bg-clip-text text-transparent" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));">星寰海</span>
-                <span class="text-[11px] leading-none" style="color: var(--xhh-ink-3);">AI 宠物管家</span>
-            </div>
-            <div class="flex h-8 w-[88px] shrink-0 items-center justify-center rounded-full border" style="border-color: var(--xhh-border); background-color: var(--xhh-card);" aria-label="小程序菜单">
-                <button type="button" class="flex h-full flex-1 items-center justify-center" aria-label="更多">
-                    <i data-lucide="more-horizontal" class="h-4 w-4"></i>
-                </button>
-                <span class="h-4 w-px" style="background-color: var(--xhh-border);" aria-hidden="true"></span>
-                <button type="button" class="flex h-full flex-1 items-center justify-center" aria-label="关闭">
-                    <i data-lucide="x" class="h-4 w-4"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- 宠物形象页主体 -->
-    <main class="relative z-10 max-w-md mx-auto px-4 pb-32 pt-3 flex flex-col gap-4 xhh-main-shell">
-        <!-- 当前形象展示卡 -->
-        <section data-dom-id="pet-current-image" class="xhh-card-base pet-image-stage">
-            <div class="flex items-center justify-between w-full mb-4">
-                <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral);">当前形象</span>
-                <span class="text-[11px]" style="color: var(--xhh-ink-3);">Q版 · 青橘</span>
-            </div>
-            <img src="../assets/pet-orange-cat.png" alt="青橘的Q版形象" class="pet-image">
-            <h2 class="mt-4 text-base font-semibold" style="color: var(--xhh-ink);">青橘</h2>
-            <p class="mt-1 text-xs" style="color: var(--xhh-ink-3);">橘猫 · 2 岁 · 元气满满</p>
-        </section>
-
-        <!-- 风格切换 -->
-        <section data-dom-id="pet-style-switcher" class="xhh-card-base px-4 py-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold" style="color: var(--xhh-ink);">风格</h3>
-                <span class="text-[11px]" style="color: var(--xhh-ink-3);">换一种画风</span>
-            </div>
-            <div class="pet-style-grid">
-                <button type="button" data-dom-id="style-option-q" data-style-option="q" data-active="true" class="pet-style-chip xhh-tap text-[13px] font-semibold" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);">Q版</button>
-                <button type="button" data-dom-id="style-option-watercolor" data-style-option="watercolor" class="pet-style-chip xhh-tap text-[13px] font-medium" style="background-color: var(--xhh-card); color: var(--xhh-coral); border: 1px solid var(--xhh-coral);">水彩</button>
-                <button type="button" data-dom-id="style-option-pixel" data-style-option="pixel" class="pet-style-chip xhh-tap text-[13px] font-medium" style="background-color: var(--xhh-card); color: var(--xhh-coral); border: 1px solid var(--xhh-coral);">像素</button>
-                <button type="button" data-dom-id="style-option-lineart" data-style-option="lineart" class="pet-style-chip xhh-tap text-[13px] font-medium" style="background-color: var(--xhh-card); color: var(--xhh-coral); border: 1px solid var(--xhh-coral);">线稿</button>
-            </div>
-        </section>
-
-        <!-- 表情系统 2x2 -->
-        <section data-dom-id="pet-expression-grid" class="xhh-card-base px-4 py-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold" style="color: var(--xhh-ink);">表情</h3>
-                <span class="text-[11px]" style="color: var(--xhh-ink-3);">点一点看变化</span>
-            </div>
-            <div class="pet-expr-grid">
-                <button type="button" data-dom-id="expr-happy" class="pet-expr-card xhh-tile text-left" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                    <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, var(--state-success) 16%, var(--xhh-card)); color: var(--state-success);">
-                        <i data-lucide="smile" class="w-5 h-5"></i>
-                    </span>
-                    <span class="min-w-0">
-                        <span class="block text-[13px] font-semibold" style="color: var(--xhh-ink);">开心</span>
-                        <span class="block text-[11px] mt-0.5 truncate" style="color: var(--xhh-ink-3);">尾巴翘起来啦</span>
-                    </span>
-                </button>
-                <button type="button" data-dom-id="expr-cute" class="pet-expr-card xhh-tile text-left" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                    <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, var(--xhh-coral) 16%, var(--xhh-card)); color: var(--xhh-coral);">
-                        <i data-lucide="heart" class="w-5 h-5"></i>
-                    </span>
-                    <span class="min-w-0">
-                        <span class="block text-[13px] font-semibold" style="color: var(--xhh-ink);">撒娇</span>
-                        <span class="block text-[11px] mt-0.5 truncate" style="color: var(--xhh-ink-3);">蹭蹭求抱抱</span>
-                    </span>
-                </button>
-                <button type="button" data-dom-id="expr-angry" class="pet-expr-card xhh-tile text-left" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                    <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, var(--state-error) 16%, var(--xhh-card)); color: var(--state-error);">
-                        <i data-lucide="frown" class="w-5 h-5"></i>
-                    </span>
-                    <span class="min-w-0">
-                        <span class="block text-[13px] font-semibold" style="color: var(--xhh-ink);">生气</span>
-                        <span class="block text-[11px] mt-0.5 truncate" style="color: var(--xhh-ink-3);">耳朵都竖起来</span>
-                    </span>
-                </button>
-                <button type="button" data-dom-id="expr-sleepy" class="pet-expr-card xhh-tile text-left" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                    <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, var(--state-info) 16%, var(--xhh-card)); color: var(--state-info);">
-                        <i data-lucide="moon" class="w-5 h-5"></i>
-                    </span>
-                    <span class="min-w-0">
-                        <span class="block text-[13px] font-semibold" style="color: var(--xhh-ink);">困倦</span>
-                        <span class="block text-[11px] mt-0.5 truncate" style="color: var(--xhh-ink-3);">要睡觉觉了</span>
-                    </span>
-                </button>
-            </div>
-        </section>
-
-        <!-- 形象应用场景 -->
-        <section data-dom-id="pet-apply-scenes" class="pet-scenes-row">
-            <a data-dom-id="scene-avatar" href="#" class="pet-scene-entry xhh-tile block" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                <span class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--xhh-coral-bg); color: var(--xhh-coral);">
-                    <i data-lucide="user-round" class="w-5 h-5"></i>
-                </span>
-                <span class="text-xs font-medium" style="color: var(--xhh-ink);">头像</span>
-            </a>
-            <a data-dom-id="scene-sticker" href="#" class="pet-scene-entry xhh-tile block" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                <span class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);">
-                    <i data-lucide="sticker" class="w-5 h-5"></i>
-                </span>
-                <span class="text-xs font-medium" style="color: var(--xhh-ink);">聊天贴纸</span>
-            </a>
-            <a data-dom-id="scene-share" href="#" class="pet-scene-entry xhh-tile block" style="background-color: var(--xhh-card); border: 1px solid var(--xhh-border); box-shadow: var(--xhh-shadow-1);">
-                <span class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: color-mix(in srgb, var(--state-info) 16%, var(--xhh-card)); color: var(--state-info);">
-                    <i data-lucide="share-2" class="w-5 h-5"></i>
-                </span>
-                <span class="text-xs font-medium" style="color: var(--xhh-ink);">分享卡片</span>
-            </a>
-        </section>
-
-        <!-- 生成按钮 -->
-        <button type="button" data-dom-id="btn-generate-image" class="xhh-tap w-full rounded-lg py-4 flex items-center justify-center gap-2 text-sm font-bold" style="background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);">
-            <i data-lucide="sparkles" class="w-5 h-5"></i>
-            生成新形象
-        </button>
-    </main>
-
-    <!-- 底部 TabBar（宠物激活态） -->
-    <nav data-mobile-nav="global" class="fixed bottom-0 left-0 right-0 z-50 h-14 backdrop-blur-xl border-t" style="background-color: color-mix(in srgb, var(--xhh-card) 95%, transparent); border-color: var(--xhh-border);"><div class="w-full max-w-md mx-auto grid grid-cols-4 h-full"><a data-nav-key="home" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="home" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">首页</span></a><a data-nav-key="pet" data-active="true" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-coral);"><i data-lucide="paw-print" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate font-semibold">宠物</span></a><a data-nav-key="timeline" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="history" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">时光</span></a><a data-nav-key="mine" href="#" class="min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 h-full" style="color: var(--xhh-ink-3);"><i data-lucide="user" class="w-5 h-5 shrink-0"></i><span class="text-[11px] leading-none whitespace-nowrap max-w-full truncate">我的</span></a></div></nav>
-
-    <style id="critical-layout">
-        /* ============================================
-           宠物形象页 · 关键布局兜底
-           （Tailwind 不可用时仍保持结构完整）
-           ============================================ */
-        .xhh-main-shell {
-            max-width: 28rem;
-            margin-inline: auto;
-            padding: 0.75rem 1rem 8rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .xhh-card-base {
-            background-color: var(--xhh-card);
-            border: 1px solid var(--xhh-border);
-            border-radius: var(--xhh-radius-md, 20px);
-            box-shadow: var(--xhh-shadow-card);
-        }
-        /* —— 当前形象展示卡 —— */
-        .pet-image-stage {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1.25rem;
-        }
-        .pet-image {
-            width: 240px;
-            max-width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            border-radius: var(--xhh-radius-md, 20px);
-            box-shadow: var(--xhh-shadow-2);
-        }
-        /* —— 风格切换：4 列胶囊 —— */
-        .pet-style-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0.5rem;
-        }
-        .pet-style-chip {
-            border-radius: 9999px;
-            padding: 0.5rem 0;
-            text-align: center;
-            cursor: pointer;
-            white-space: nowrap;
-            min-width: 0;
-        }
-        /* —— 表情系统：2x2 网格 —— */
-        .pet-expr-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.75rem;
-        }
-        .pet-expr-card {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            border-radius: var(--xhh-radius-sm, 12px);
-            padding: 0.875rem;
-            min-width: 0;
-        }
-        /* —— 应用场景：3 列 —— */
-        .pet-scenes-row {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.75rem;
-        }
-        .pet-scene-entry {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            border-radius: var(--xhh-radius-md, 20px);
-            padding: 1rem 0.5rem;
-            min-width: 0;
-        }
-        /* —— 卡片悬浮上浮 3px —— */
-        .xhh-tile {
-            transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s cubic-bezier(0.3, 0, 0, 1), border-color 0.22s ease;
-            cursor: pointer;
-        }
-        .xhh-tile:hover {
-            transform: translateY(-3px);
-            border-color: color-mix(in srgb, var(--xhh-coral) 35%, transparent);
-            box-shadow: var(--xhh-shadow-2);
-        }
-        .xhh-tile:active {
-            transform: translateY(0) scale(0.97);
-        }
-        /* —— 减少动态效果偏好 —— */
-        @media (prefers-reduced-motion: reduce) {
-            .xhh-tile { transition: none !important; }
-            .xhh-tile:hover { transform: none; }
-        }
-    </style>
-
-    <script>
-        lucide.createIcons();
-    </script>
 
     <script id="xhh-motion-init">
         (function () {
@@ -871,6 +1111,17 @@ body > main {
             if (main && !main.classList.contains('xhh-page-enter')) {
                 main.classList.add('xhh-page-enter');
             }
+        })();
+    </script>
+
+    <script id="xhh-theme-apply">
+        (function () {
+            var THEMES = ['spring', 'summer', 'autumn', 'winter'];
+            var KEY = 'xhh-theme';
+            var html = document.documentElement;
+            var saved = null;
+            try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
+            html.setAttribute('data-theme', (saved && THEMES.indexOf(saved) !== -1) ? saved : 'autumn');
         })();
     </script>
 

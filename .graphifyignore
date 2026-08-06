@@ -1,0 +1,28 @@
+# graphify 排除规则(gitignore 语法)
+# 复制到项目根目录:E:\星寰海\.graphifyignore
+# 只做减法:已排除的不会被重新包含;不会解除 .gitignore 已有的排除
+
+# 构建产物 / 打包输出(避免把压缩后的 webpack bundle 索引进图)
+dist/
+dist-h5/
+dist-electron/
+build/
+release/
+release2/
+网站部署包/
+星寰海官网部署包.zip
+
+# 依赖与缓存
+node_modules/
+.temp/
+.work-tmp/
+.cache/
+coverage/
+
+# 其他工具的产物
+.codegraph/
+.superpowers/
+
+# 补丁/差异文件(无法解析,只会增加噪声)
+*.diff
+*.patch

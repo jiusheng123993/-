@@ -1,0 +1,6 @@
+# 改动说明
+# 问题：提交当前改动与高保真原型
+# 原因：分组提交4个commit：docs(ui)高保真原型29页+设计文档（53fa74d）；feat(miniapp)页面1:1重建128文件（6edc8d2）；feat(server)后端模块+迁移36文件（2d04e28）；chore(board)看板归档193文件（baae465）。排除临时/构建产物：.work-tmp、android、dist-h5、官网部署包
+# 改动：
+#   1. 提交当前改动与高保真原型
+# 影响：分组提交4个commit：docs(ui)高保真原型29页+设计文档（53fa74d）；feat(miniapp)页面1:1重建128文件（6edc8d2）；feat(server)后端模块+迁移36文件（2d04e28）；chore(board)看板归档193文件（baae465）。排除临时/构建产物：.work-tmp、android、dist-h5、官网部署包

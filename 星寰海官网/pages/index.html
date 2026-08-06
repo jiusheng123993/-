@@ -1,0 +1,2904 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星寰海 · 有记忆的AI宠物管家</title>
+    <style id="theme-vars">
+/* ============================================
+   星寰海 · 星海梦境主题 (Starry Ocean Dream)
+   深蓝星河 + 暖金星光 + Q版圆润
+   ============================================ */
+
+:root {
+  /* ---- 基础语义色 ---- */
+  --xhh-background: #0C1E22;
+  --xhh-foreground: #EDF1F8;
+
+  --xhh-card: #13203A;
+  --xhh-card-foreground: #EDF1F8;
+
+  --xhh-popover: #182C4A;
+  --xhh-popover-foreground: #EDF1F8;
+
+  --xhh-primary: #F5C451;
+  --xhh-primary-foreground: #1A1408;
+
+  --xhh-muted: #182C4A;
+  --xhh-muted-foreground: #8E9DB8;
+
+  --xhh-border: #213152;
+  --xhh-input: #213152;
+  --xhh-ring: #F5C451;
+
+  /* ---- 圆角（Q版圆润风格，用户明确要求可爱圆润） ---- */
+  --xhh-radius-sm: 10px;
+  --xhh-radius-md: 18px;
+  --xhh-radius-lg: 28px;
+
+  /* ---- 深度层次 ---- */
+  --xhh-surface-1: #0F1A30;
+  --xhh-surface-2: #13203A;
+  --xhh-surface-3: #182C4A;
+
+  /* ---- 文字层次 ---- */
+  --xhh-ink: #EDF1F8;
+  --xhh-ink-2: #B0BDD4;
+  --xhh-ink-3: #6E7D99;
+
+  /* ---- 品牌金色层次 ---- */
+  --xhh-gold: #F5C451;
+  --xhh-gold-soft: #F8D680;
+  --xhh-gold-deep: #D9A938;
+
+  /* ---- 字体系统 ---- */
+  --xhh-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --xhh-font-display: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+  /* ---- 间距（8pt 栅格） ---- */
+  --xhh-space-1: 4px;
+  --xhh-space-2: 8px;
+  --xhh-space-3: 12px;
+  --xhh-space-4: 16px;
+  --xhh-space-5: 24px;
+  --xhh-space-6: 32px;
+  --xhh-space-7: 48px;
+  --xhh-space-8: 80px;
+
+  /* ---- 阴影 ---- */
+  --xhh-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.08);
+  --xhh-shadow-2: 0 8px 28px -8px rgba(0, 0, 0, 0.4);
+  --xhh-shadow-glow: 0 0 40px rgba(245, 196, 81, 0.12);
+}
+
+/* ---- 暗色模式微调 ---- */
+.dark {
+  --xhh-background: #0C1E22;
+  --xhh-foreground: #EDF1F8;
+  --xhh-card: #13203A;
+  --xhh-card-foreground: #EDF1F8;
+  --xhh-border: #213152;
+}
+
+/* ---- 全局字体 ---- */
+body {
+  font-family: var(--xhh-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(90, 130, 180, 0.10), transparent 60%),
+    linear-gradient(180deg, rgba(9, 16, 30, 0.12) 0%, rgba(9, 20, 24, 0.07) 45%, rgba(10, 28, 22, 0.03) 100%),
+    url('../assets/hero-pet-grass-bg.jpg') center 62% / cover no-repeat fixed;
+}
+@media (max-width: 768px) {
+  body { background-position: 0% 0%, 0% 0%, center 55%; }
+}
+
+/* ---- 标题排版 ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--xhh-font-display);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+/* ---- 数字等宽 ---- */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--xhh-background);
+    --color-foreground: var(--xhh-foreground);
+    --color-card: var(--xhh-card);
+    --color-card-foreground: var(--xhh-card-foreground);
+    --color-popover: var(--xhh-popover);
+    --color-popover-foreground: var(--xhh-popover-foreground);
+    --color-primary: var(--xhh-primary);
+    --color-primary-foreground: var(--xhh-primary-foreground);
+    --color-muted: var(--xhh-muted);
+    --color-muted-foreground: var(--xhh-muted-foreground);
+    --color-border: var(--xhh-border);
+    --color-input: var(--xhh-input);
+    --color-ring: var(--xhh-ring);
+    --radius-sm: var(--xhh-radius-sm);
+    --radius-md: var(--xhh-radius-md);
+    --radius-lg: var(--xhh-radius-lg);
+  }
+  @layer base {
+    body { background: var(--xhh-background); color: var(--xhh-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--xhh-background); }
+      .text-background { color: var(--xhh-background); }
+      .border-background { border-color: var(--xhh-background); }
+      .ring-background { --tw-ring-color: var(--xhh-background); }
+      .bg-foreground { background-color: var(--xhh-foreground); }
+      .text-foreground { color: var(--xhh-foreground); }
+      .border-foreground { border-color: var(--xhh-foreground); }
+      .ring-foreground { --tw-ring-color: var(--xhh-foreground); }
+      .bg-card { background-color: var(--xhh-card); }
+      .text-card { color: var(--xhh-card); }
+      .border-card { border-color: var(--xhh-card); }
+      .ring-card { --tw-ring-color: var(--xhh-card); }
+      .bg-card-foreground { background-color: var(--xhh-card-foreground); }
+      .text-card-foreground { color: var(--xhh-card-foreground); }
+      .border-card-foreground { border-color: var(--xhh-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--xhh-card-foreground); }
+      .bg-popover { background-color: var(--xhh-popover); }
+      .text-popover { color: var(--xhh-popover); }
+      .border-popover { border-color: var(--xhh-popover); }
+      .ring-popover { --tw-ring-color: var(--xhh-popover); }
+      .bg-popover-foreground { background-color: var(--xhh-popover-foreground); }
+      .text-popover-foreground { color: var(--xhh-popover-foreground); }
+      .border-popover-foreground { border-color: var(--xhh-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--xhh-popover-foreground); }
+      .bg-primary { background-color: var(--xhh-primary); }
+      .text-primary { color: var(--xhh-primary); }
+      .border-primary { border-color: var(--xhh-primary); }
+      .ring-primary { --tw-ring-color: var(--xhh-primary); }
+      .bg-primary-foreground { background-color: var(--xhh-primary-foreground); }
+      .text-primary-foreground { color: var(--xhh-primary-foreground); }
+      .border-primary-foreground { border-color: var(--xhh-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--xhh-primary-foreground); }
+      .bg-muted { background-color: var(--xhh-muted); }
+      .text-muted { color: var(--xhh-muted); }
+      .border-muted { border-color: var(--xhh-muted); }
+      .ring-muted { --tw-ring-color: var(--xhh-muted); }
+      .bg-muted-foreground { background-color: var(--xhh-muted-foreground); }
+      .text-muted-foreground { color: var(--xhh-muted-foreground); }
+      .border-muted-foreground { border-color: var(--xhh-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--xhh-muted-foreground); }
+      .bg-border { background-color: var(--xhh-border); }
+      .text-border { color: var(--xhh-border); }
+      .border-border { border-color: var(--xhh-border); }
+      .ring-border { --tw-ring-color: var(--xhh-border); }
+      .bg-input { background-color: var(--xhh-input); }
+      .text-input { color: var(--xhh-input); }
+      .border-input { border-color: var(--xhh-input); }
+      .ring-input { --tw-ring-color: var(--xhh-input); }
+      .bg-ring { background-color: var(--xhh-ring); }
+      .text-ring { color: var(--xhh-ring); }
+      .border-ring { border-color: var(--xhh-ring); }
+      .ring-ring { --tw-ring-color: var(--xhh-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <main>
+      <style id="critical-layout">
+        /* ===== Base Layout ===== */
+        .xhh-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 24px;
+        }
+        .xhh-section {
+          padding: 100px 0;
+          position: relative;
+          background: rgba(9, 20, 28, 0.22);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+        }
+        .xhh-section.xhh-play {
+          background: transparent;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+        }
+        .xhh-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--xhh-gold);
+          background: rgba(245, 196, 81, 0.08);
+          border: 1px solid rgba(245, 196, 81, 0.2);
+          padding: 6px 14px;
+          border-radius: var(--xhh-radius-sm);
+        }
+        .xhh-section-title {
+          font-size: clamp(32px, 4vw, 48px);
+          font-weight: 800;
+          line-height: 1.15;
+          margin: 20px 0 12px;
+          color: var(--xhh-foreground);
+          text-shadow: 0 2px 14px rgba(6, 12, 20, 0.75);
+        }
+        .xhh-section-title .accent { color: var(--xhh-gold); }
+        .xhh-section-sub {
+          font-size: 18px;
+          line-height: 1.7;
+          color: var(--xhh-muted-foreground);
+          max-width: 640px;
+          text-shadow: 0 1px 10px rgba(6, 12, 20, 0.7);
+        }
+
+        /* ===== Buttons ===== */
+        .btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: var(--xhh-primary);
+          color: var(--xhh-primary-foreground);
+          border: none;
+          border-radius: var(--xhh-radius-md);
+          padding: 14px 28px;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: var(--xhh-shadow-glow);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 0 50px rgba(245, 196, 81, 0.25);
+        }
+        .btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: transparent;
+          color: var(--xhh-gold);
+          border: 1.5px solid rgba(245, 196, 81, 0.4);
+          border-radius: var(--xhh-radius-md);
+          padding: 12.5px 26.5px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .btn-secondary:hover {
+          transform: translateY(-2px);
+          background: rgba(245, 196, 81, 0.08);
+          border-color: var(--xhh-gold);
+        }
+
+        /* ===== Navigation ===== */
+        .xhh-nav {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          z-index: 100;
+          background: rgba(11, 20, 38, 0.72);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid transparent;
+          transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+        .xhh-nav.scrolled {
+          border-bottom-color: var(--xhh-border);
+          background: rgba(11, 20, 38, 0.88);
+        }
+        .xhh-nav-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 24px;
+          height: 68px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+        }
+        .xhh-logo {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 20px;
+          font-weight: 800;
+          color: var(--xhh-foreground);
+          text-decoration: none;
+        }
+        .xhh-logo i { color: var(--xhh-gold); width: 22px; height: 22px; }
+        .xhh-nav-links {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+        }
+        .xhh-nav-links a {
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--xhh-ink-2);
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+        .xhh-nav-links a:hover { color: var(--xhh-gold); }
+
+        /* ===== Hero ===== */
+        .xhh-hero {
+          position: relative;
+          padding: 140px 0 80px;
+          overflow: hidden;
+        }
+        .xhh-hero-bg {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 600px 400px at 15% 25%, rgba(245, 196, 81, 0.10) 0%, transparent 60%),
+            radial-gradient(ellipse 500px 500px at 85% 60%, rgba(245, 196, 81, 0.06) 0%, transparent 55%),
+            radial-gradient(ellipse 800px 600px at 50% 100%, rgba(24, 44, 74, 0.6) 0%, transparent 70%);
+          pointer-events: none;
+        }
+        .xhh-star {
+          position: absolute;
+          width: 3px; height: 3px;
+          background: var(--xhh-gold-soft);
+          border-radius: 50%;
+          box-shadow: 0 0 6px rgba(248, 214, 128, 0.8);
+        }
+        .xhh-hero-grid {
+          position: relative;
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 48px;
+          align-items: center;
+        }
+        .xhh-hero-brand {
+          font-size: clamp(48px, 7vw, 88px);
+          font-weight: 900;
+          line-height: 1;
+          background: linear-gradient(135deg, var(--xhh-gold) 0%, var(--xhh-gold-soft) 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          letter-spacing: -0.02em;
+        }
+        .xhh-hero-h1 {
+          font-size: clamp(24px, 3vw, 36px);
+          font-weight: 700;
+          color: var(--xhh-foreground);
+          margin: 16px 0 20px;
+          line-height: 1.3;
+        }
+        .xhh-hero-desc {
+          font-size: 18px;
+          line-height: 1.75;
+          color: var(--xhh-muted-foreground);
+          max-width: 520px;
+          margin-bottom: 32px;
+        }
+        .xhh-hero-cta-row {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .xhh-hero-visual {
+          position: relative;
+        }
+        .xhh-hero-img-wrap {
+          position: relative;
+          border-radius: var(--xhh-radius-lg);
+          overflow: hidden;
+          box-shadow: var(--xhh-shadow-glow), 0 20px 60px -20px rgba(0,0,0,0.5);
+          border: 1px solid rgba(245, 196, 81, 0.15);
+        }
+        .xhh-hero-img-wrap img {
+          display: block;
+        }
+        .xhh-float-card {
+          position: absolute;
+          background: rgba(19, 32, 58, 0.92);
+          backdrop-filter: blur(12px);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-md);
+          padding: 12px 16px;
+          box-shadow: var(--xhh-shadow-2);
+        }
+        .xhh-pet-info {
+          top: 20px; left: 20px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .xhh-pet-info .dot {
+          width: 10px; height: 10px;
+          border-radius: 50%;
+          background: #6CBF6F;
+          box-shadow: 0 0 8px rgba(108, 191, 111, 0.6);
+        }
+        .xhh-widget-tl {
+          top: -16px; right: -20px;
+          transform: rotate(-3deg);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .xhh-widget-br {
+          bottom: -16px; left: -24px;
+          transform: rotate(2deg);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .xhh-widget-num {
+          font-size: 22px;
+          font-weight: 800;
+          color: var(--xhh-gold);
+          font-variant-numeric: tabular-nums;
+        }
+        .xhh-widget-label {
+          font-size: 12px;
+          color: var(--xhh-muted-foreground);
+        }
+
+        /* ===== Memory Engine Compare ===== */
+        .xhh-compare-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          margin-top: 48px;
+        }
+        .xhh-compare-col {
+          border-radius: var(--xhh-radius-lg);
+          padding: 36px 32px;
+          border: 1px solid var(--xhh-border);
+        }
+        .xhh-compare-col.negative {
+          background: var(--xhh-surface-1);
+          opacity: 0.72;
+        }
+        .xhh-compare-col.positive {
+          background: linear-gradient(160deg, rgba(245, 196, 81, 0.06) 0%, var(--xhh-card) 60%);
+          border-color: rgba(245, 196, 81, 0.25);
+          box-shadow: var(--xhh-shadow-glow);
+        }
+        .xhh-compare-tag {
+          display: inline-block;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 5px 12px;
+          border-radius: var(--xhh-radius-sm);
+          margin-bottom: 20px;
+        }
+        .xhh-compare-col.negative .xhh-compare-tag {
+          background: rgba(142, 157, 184, 0.12);
+          color: var(--xhh-muted-foreground);
+        }
+        .xhh-compare-col.positive .xhh-compare-tag {
+          background: rgba(245, 196, 81, 0.15);
+          color: var(--xhh-gold);
+        }
+        .xhh-compare-col h3 {
+          font-size: 22px;
+          font-weight: 700;
+          margin-bottom: 24px;
+        }
+        .xhh-compare-col.negative h3 { color: var(--xhh-muted-foreground); }
+        .xhh-compare-col.positive h3 { color: var(--xhh-foreground); }
+        .xhh-compare-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 14px 0;
+          border-bottom: 1px solid var(--xhh-border);
+        }
+        .xhh-compare-item:last-child { border-bottom: none; }
+        .xhh-compare-item i {
+          width: 20px; height: 20px;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .xhh-compare-col.negative .xhh-compare-item i { color: var(--xhh-ink-3); }
+        .xhh-compare-col.positive .xhh-compare-item i { color: var(--xhh-gold); }
+        .xhh-compare-item-text {
+          font-size: 15px;
+          line-height: 1.5;
+        }
+        .xhh-compare-col.negative .xhh-compare-item-text { color: var(--xhh-muted-foreground); }
+        .xhh-compare-col.positive .xhh-compare-item-text { color: var(--xhh-ink); }
+        .xhh-compare-item-text strong { font-weight: 700; }
+
+        /* ===== Feature Editorial ===== */
+        .xhh-feature-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 56px;
+          align-items: center;
+          margin-bottom: 80px;
+        }
+        .xhh-feature-row:last-child { margin-bottom: 0; }
+        .xhh-feature-row.reverse > :first-child { order: 2; }
+        .xhh-feature-row.full { grid-template-columns: 1fr 1fr; }
+        .xhh-feature-num {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--xhh-gold);
+          letter-spacing: 0.1em;
+          margin-bottom: 12px;
+        }
+        .xhh-feature-title {
+          font-size: clamp(26px, 3vw, 36px);
+          font-weight: 800;
+          color: var(--xhh-foreground);
+          margin-bottom: 16px;
+          line-height: 1.2;
+        }
+        .xhh-feature-desc {
+          font-size: 16px;
+          line-height: 1.75;
+          color: var(--xhh-muted-foreground);
+          margin-bottom: 20px;
+        }
+        .xhh-feature-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .xhh-feature-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--xhh-ink-2);
+          background: var(--xhh-surface-3);
+          border: 1px solid var(--xhh-border);
+          padding: 6px 12px;
+          border-radius: var(--xhh-radius-sm);
+        }
+        .xhh-feature-tag i { width: 14px; height: 14px; color: var(--xhh-gold); }
+
+        /* Chat bubbles */
+        .xhh-chat-demo {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-lg);
+          padding: 28px;
+          box-shadow: var(--xhh-shadow-2);
+        }
+        .xhh-chat-bubble {
+          max-width: 80%;
+          padding: 12px 16px;
+          border-radius: 16px;
+          font-size: 14px;
+          line-height: 1.6;
+          margin-bottom: 12px;
+        }
+        .xhh-chat-bubble.ai {
+          background: var(--xhh-surface-3);
+          color: var(--xhh-ink);
+          border-bottom-left-radius: 4px;
+        }
+        .xhh-chat-bubble.user {
+          background: var(--xhh-primary);
+          color: var(--xhh-primary-foreground);
+          border-bottom-right-radius: 4px;
+          margin-left: auto;
+          font-weight: 500;
+        }
+        .xhh-chat-options {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 8px;
+        }
+        .xhh-chat-option {
+          font-size: 12px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          background: rgba(245, 196, 81, 0.1);
+          border: 1px solid rgba(245, 196, 81, 0.25);
+          color: var(--xhh-gold);
+          font-weight: 500;
+        }
+        .xhh-chat-card-result {
+          margin-top: 12px;
+          background: var(--xhh-surface-1);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-md);
+          padding: 14px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .xhh-chat-card-result i { color: var(--xhh-gold); width: 18px; height: 18px; }
+
+        /* Health trend */
+        .xhh-health-demo {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-lg);
+          padding: 28px;
+          box-shadow: var(--xhh-shadow-2);
+        }
+        .xhh-health-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+        }
+        .xhh-health-score {
+          font-size: 32px;
+          font-weight: 800;
+          color: var(--xhh-gold);
+          font-variant-numeric: tabular-nums;
+        }
+        .xhh-trend-bars {
+          display: flex;
+          align-items: flex-end;
+          gap: 8px;
+          height: 120px;
+          margin-bottom: 20px;
+        }
+        .xhh-trend-bar {
+          flex: 1;
+          border-radius: 6px 6px 0 0;
+          background: linear-gradient(180deg, var(--xhh-gold) 0%, var(--xhh-gold-deep) 100%);
+          opacity: 0.85;
+          min-height: 8px;
+        }
+        .xhh-health-dims {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 8px;
+        }
+        .xhh-health-dim {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          color: var(--xhh-muted-foreground);
+        }
+        .xhh-health-dim i { width: 18px; height: 18px; color: var(--xhh-gold); }
+
+        /* Timeline */
+        .xhh-timeline-demo {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-lg);
+          padding: 28px;
+          box-shadow: var(--xhh-shadow-2);
+        }
+        .xhh-tl-item {
+          display: flex;
+          gap: 16px;
+          padding-bottom: 24px;
+          position: relative;
+        }
+        .xhh-tl-item:last-child { padding-bottom: 0; }
+        .xhh-tl-item::before {
+          content: '';
+          position: absolute;
+          left: 11px;
+          top: 24px;
+          bottom: 0;
+          width: 2px;
+          background: var(--xhh-border);
+        }
+        .xhh-tl-item:last-child::before { display: none; }
+        .xhh-tl-dot {
+          width: 24px; height: 24px;
+          border-radius: 50%;
+          background: var(--xhh-card);
+          border: 2px solid var(--xhh-gold);
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          z-index: 1;
+        }
+        .xhh-tl-dot i { width: 12px; height: 12px; color: var(--xhh-gold); }
+        .xhh-tl-date { font-size: 12px; color: var(--xhh-gold); font-weight: 600; margin-bottom: 4px; }
+        .xhh-tl-title { font-size: 15px; font-weight: 600; color: var(--xhh-foreground); }
+        .xhh-tl-desc { font-size: 13px; color: var(--xhh-muted-foreground); margin-top: 2px; }
+
+        /* Family grid */
+        .xhh-family-demo {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-lg);
+          padding: 28px;
+          box-shadow: var(--xhh-shadow-2);
+        }
+        .xhh-family-cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+        .xhh-family-card {
+          background: var(--xhh-surface-3);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-md);
+          padding: 16px 12px;
+          text-align: center;
+        }
+        .xhh-family-card.active { border-color: rgba(245, 196, 81, 0.3); }
+        .xhh-family-avatar {
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background: var(--xhh-surface-1);
+          margin: 0 auto 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .xhh-family-avatar i { width: 20px; height: 20px; color: var(--xhh-gold); }
+        .xhh-family-name { font-size: 13px; font-weight: 600; color: var(--xhh-foreground); }
+        .xhh-family-meta { font-size: 11px; color: var(--xhh-muted-foreground); }
+        .xhh-family-add {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-size: 13px;
+          color: var(--xhh-muted-foreground);
+          border: 1px dashed var(--xhh-border);
+          border-radius: var(--xhh-radius-md);
+          padding: 10px;
+        }
+
+        /* Name cards */
+        .xhh-name-demo {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
+        .xhh-name-card {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-md);
+          padding: 20px 16px;
+          text-align: center;
+          transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .xhh-name-card:hover {
+          transform: translateY(-3px);
+          border-color: rgba(245, 196, 81, 0.3);
+        }
+        .xhh-name-cat {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--xhh-gold);
+          letter-spacing: 0.05em;
+          margin-bottom: 8px;
+        }
+        .xhh-name-result {
+          font-size: 24px;
+          font-weight: 800;
+          color: var(--xhh-foreground);
+          margin-bottom: 6px;
+        }
+        .xhh-name-desc {
+          font-size: 12px;
+          color: var(--xhh-muted-foreground);
+          line-height: 1.5;
+        }
+
+        /* ===== Phone Mock ===== */
+        .xhh-phone-wrap {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 40px;
+          margin-top: 56px;
+          flex-wrap: wrap;
+        }
+        .xhh-phone {
+          width: 300px;
+          flex-shrink: 0;
+          position: relative;
+          perspective: 1000px;
+        }
+        .xhh-phone-shell {
+          background: #1A1A1A;
+          border-radius: 40px;
+          padding: 10px;
+          box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+          transform: rotateY(-5deg);
+          transition: transform 0.4s ease;
+        }
+        .xhh-phone:hover .xhh-phone-shell { transform: rotateY(0deg); }
+        .xhh-phone-screen {
+          background: var(--xhh-background);
+          border-radius: 32px;
+          overflow: hidden;
+          position: relative;
+          height: 600px;
+          display: flex;
+          flex-direction: column;
+        }
+        .xhh-phone-notch {
+          position: absolute;
+          top: 8px; left: 50%;
+          transform: translateX(-50%);
+          width: 90px; height: 24px;
+          background: #1A1A1A;
+          border-radius: 14px;
+          z-index: 10;
+        }
+        .xhh-phone-status {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 22px 6px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--xhh-foreground);
+        }
+        .xhh-phone-status .icons {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+        }
+        .xhh-phone-status .icons i { width: 14px; height: 14px; color: var(--xhh-foreground); }
+        .xhh-phone-greeting {
+          padding: 8px 20px 16px;
+        }
+        .xhh-phone-greeting .hi { font-size: 12px; color: var(--xhh-muted-foreground); }
+        .xhh-phone-greeting .name { font-size: 20px; font-weight: 800; color: var(--xhh-foreground); }
+        .xhh-phone-chat {
+          flex: 1;
+          padding: 0 16px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .xhh-phone-bubble {
+          max-width: 85%;
+          padding: 10px 14px;
+          border-radius: 14px;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+        .xhh-phone-bubble.ai {
+          background: var(--xhh-surface-3);
+          color: var(--xhh-ink);
+          border-bottom-left-radius: 4px;
+          align-self: flex-start;
+        }
+        .xhh-phone-bubble.user {
+          background: var(--xhh-primary);
+          color: var(--xhh-primary-foreground);
+          border-bottom-right-radius: 4px;
+          align-self: flex-end;
+          font-weight: 500;
+        }
+        .xhh-phone-quick {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+          align-self: flex-start;
+        }
+        .xhh-phone-quick span {
+          font-size: 11px;
+          padding: 4px 10px;
+          border-radius: 16px;
+          background: rgba(245, 196, 81, 0.1);
+          color: var(--xhh-gold);
+          border: 1px solid rgba(245, 196, 81, 0.2);
+        }
+        .xhh-phone-input {
+          padding: 10px 16px 8px;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+        .xhh-phone-input input {
+          flex: 1;
+          background: var(--xhh-surface-3);
+          border: 1px solid var(--xhh-border);
+          border-radius: 20px;
+          padding: 8px 14px;
+          font-size: 12px;
+          color: var(--xhh-foreground);
+          outline: none;
+        }
+        .xhh-phone-input button {
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          background: var(--xhh-primary);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .xhh-phone-input button i { width: 14px; height: 14px; color: var(--xhh-primary-foreground); }
+        .xhh-phone-tabbar {
+          display: flex;
+          border-top: 1px solid var(--xhh-border);
+          padding: 8px 0 16px;
+        }
+        .xhh-phone-tab {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 3px;
+          font-size: 10px;
+          color: var(--xhh-muted-foreground);
+        }
+        .xhh-phone-tab i { width: 18px; height: 18px; }
+        .xhh-phone-tab.active { color: var(--xhh-gold); }
+        .xhh-phone-tab.active i { color: var(--xhh-gold); }
+
+        .xhh-phone-side {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          max-width: 260px;
+        }
+        .xhh-side-card {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-md);
+          padding: 20px;
+          box-shadow: var(--xhh-shadow-2);
+        }
+        .xhh-side-card .label { font-size: 13px; color: var(--xhh-muted-foreground); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .xhh-side-card .label i { width: 16px; height: 16px; color: var(--xhh-gold); }
+        .xhh-side-card .value { font-size: 28px; font-weight: 800; color: var(--xhh-gold); font-variant-numeric: tabular-nums; }
+        .xhh-side-card .sub { font-size: 12px; color: var(--xhh-muted-foreground); margin-top: 4px; }
+
+        /* ===== Emotional Story ===== */
+        .xhh-story {
+          text-align: center;
+        }
+        .xhh-story-quote {
+          font-size: clamp(28px, 4vw, 44px);
+          font-weight: 800;
+          line-height: 1.4;
+          color: var(--xhh-foreground);
+          max-width: 760px;
+          margin: 32px auto;
+        }
+        .xhh-story-quote .accent { color: var(--xhh-gold); }
+        .xhh-story-text {
+          font-size: 17px;
+          line-height: 1.8;
+          color: var(--xhh-muted-foreground);
+          max-width: 620px;
+          margin: 0 auto 48px;
+        }
+        .xhh-milestones {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+          flex-wrap: wrap;
+        }
+        .xhh-milestone {
+          text-align: center;
+          padding: 0 32px;
+        }
+        .xhh-milestone-dot {
+          width: 56px; height: 56px;
+          border-radius: 50%;
+          background: var(--xhh-card);
+          border: 2px solid var(--xhh-gold);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+          box-shadow: var(--xhh-shadow-glow);
+        }
+        .xhh-milestone-dot i { width: 24px; height: 24px; color: var(--xhh-gold); }
+        .xhh-milestone-title { font-size: 16px; font-weight: 700; color: var(--xhh-foreground); }
+        .xhh-milestone-desc { font-size: 13px; color: var(--xhh-muted-foreground); margin-top: 4px; }
+        .xhh-milestone-arrow {
+          color: var(--xhh-border);
+          font-size: 24px;
+        }
+
+        /* ===== Pricing & Promo ===== */
+        .xhh-pricing {
+          background: rgba(9, 20, 28, 0.26);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+          border-top: 1px solid var(--xhh-border);
+          border-bottom: 1px solid var(--xhh-border);
+          padding: 80px 0;
+        }
+        .xhh-pricing-head { text-align: center; margin-bottom: 48px; }
+        .xhh-pricing-title {
+          font-size: clamp(28px, 3.5vw, 40px);
+          font-weight: 900;
+          color: var(--xhh-foreground);
+          margin-bottom: 12px;
+        }
+        .xhh-pricing-sub {
+          font-size: 16px;
+          color: var(--xhh-muted-foreground);
+        }
+        .xhh-pricing-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          max-width: 820px;
+          margin: 0 auto 48px;
+        }
+        @media (max-width: 768px) {
+          .xhh-pricing-grid { grid-template-columns: 1fr; }
+        }
+        .xhh-plan {
+          background: var(--xhh-card);
+          border: 1px solid var(--xhh-border);
+          border-radius: var(--xhh-radius-lg);
+          padding: 36px 32px;
+          position: relative;
+          transition: transform 160ms cubic-bezier(.2,.8,.2,1), border-color 160ms;
+        }
+        .xhh-plan:hover { transform: translateY(-3px); border-color: var(--xhh-gold-deep); }
+        .xhh-plan-featured {
+          border-color: var(--xhh-gold);
+          background: linear-gradient(160deg, var(--xhh-card) 0%, rgba(245,196,81,0.06) 100%);
+        }
+        .xhh-plan-badge {
+          position: absolute;
+          top: -12px; left: 50%;
+          transform: translateX(-50%);
+          background: var(--xhh-gold);
+          color: var(--xhh-primary-foreground);
+          font-size: 12px;
+          font-weight: 700;
+          padding: 4px 16px;
+          border-radius: var(--xhh-radius-sm);
+          white-space: nowrap;
+        }
+        .xhh-plan-name {
+          font-size: 20px;
+          font-weight: 700;
+          color: var(--xhh-foreground);
+          margin-bottom: 8px;
+        }
+        .xhh-plan-price {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+          margin-bottom: 6px;
+        }
+        .xhh-plan-num {
+          font-size: clamp(36px, 4vw, 48px);
+          font-weight: 900;
+          color: var(--xhh-gold);
+          font-variant-numeric: tabular-nums;
+          line-height: 1;
+        }
+        .xhh-plan-unit {
+          font-size: 15px;
+          color: var(--xhh-muted-foreground);
+        }
+        .xhh-plan-orig {
+          font-size: 14px;
+          color: var(--xhh-ink-3);
+          text-decoration: line-through;
+          margin-bottom: 20px;
+        }
+        .xhh-plan-feat {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 28px;
+        }
+        .xhh-plan-feat li {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+          color: var(--xhh-ink-2);
+          padding: 7px 0;
+        }
+        .xhh-plan-feat i {
+          width: 16px; height: 16px;
+          color: var(--xhh-gold);
+          flex-shrink: 0;
+        }
+        .xhh-plan-btn {
+          display: block;
+          width: 100%;
+          text-align: center;
+          padding: 13px;
+          border-radius: var(--xhh-radius-md);
+          font-size: 15px;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: background 140ms, color 140ms;
+        }
+        .xhh-plan-btn-primary {
+          background: var(--xhh-gold);
+          color: var(--xhh-primary-foreground);
+        }
+        .xhh-plan-btn-primary:hover { background: var(--xhh-gold-deep); }
+        .xhh-plan-btn-ghost {
+          background: transparent;
+          color: var(--xhh-foreground);
+          border: 1px solid var(--xhh-border);
+        }
+        .xhh-plan-btn-ghost:hover { border-color: var(--xhh-gold-deep); color: var(--xhh-gold); }
+        /* promo banner */
+        .xhh-promo {
+          max-width: 820px;
+          margin: 0 auto;
+          background: linear-gradient(135deg, rgba(245,196,81,0.10) 0%, rgba(245,196,81,0.03) 100%);
+          border: 1px solid rgba(245,196,81,0.25);
+          border-radius: var(--xhh-radius-lg);
+          padding: 28px 36px;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+        .xhh-promo-icon {
+          width: 44px; height: 44px;
+          background: rgba(245,196,81,0.15);
+          border-radius: var(--xhh-radius-md);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .xhh-promo-icon i { width: 22px; height: 22px; color: var(--xhh-gold); }
+        .xhh-promo-text { flex: 1; min-width: 200px; }
+        .xhh-promo-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--xhh-foreground);
+          margin-bottom: 4px;
+        }
+        .xhh-promo-desc {
+          font-size: 14px;
+          color: var(--xhh-muted-foreground);
+        }
+        .xhh-promo-tag {
+          background: var(--xhh-gold);
+          color: var(--xhh-primary-foreground);
+          font-size: 13px;
+          font-weight: 700;
+          padding: 6px 14px;
+          border-radius: var(--xhh-radius-sm);
+          white-space: nowrap;
+        }
+
+        /* ===== Final CTA ===== */
+        .xhh-cta {
+          position: relative;
+          text-align: center;
+          padding: 120px 0;
+          overflow: hidden;
+          background: rgba(9, 20, 28, 0.22);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+        }
+        .xhh-cta-bg {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 700px 500px at 50% 50%, rgba(245, 196, 81, 0.10) 0%, transparent 65%);
+          pointer-events: none;
+        }
+        .xhh-cta-title {
+          font-size: clamp(32px, 5vw, 52px);
+          font-weight: 900;
+          color: var(--xhh-foreground);
+          margin-bottom: 16px;
+          position: relative;
+        }
+        .xhh-cta-sub {
+          font-size: 18px;
+          color: var(--xhh-muted-foreground);
+          margin-bottom: 36px;
+          position: relative;
+        }
+        .xhh-cta-btns {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          flex-wrap: wrap;
+          position: relative;
+        }
+        .xhh-btn-tag {
+          position: absolute;
+          top: -10px; right: -8px;
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--xhh-gold);
+          background: rgba(245, 196, 81, 0.15);
+          padding: 3px 8px;
+          border-radius: 8px;
+        }
+
+        /* ===== Footer ===== */
+        .xhh-footer {
+          background: rgba(9, 20, 28, 0.3);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+          border-top: 1px solid var(--xhh-border);
+          padding: 64px 0 32px;
+        }
+        .xhh-footer-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: 48px;
+          margin-bottom: 48px;
+        }
+        .xhh-footer-brand .xhh-logo { margin-bottom: 16px; }
+        .xhh-footer-tagline {
+          font-size: 14px;
+          line-height: 1.7;
+          color: var(--xhh-muted-foreground);
+          max-width: 320px;
+        }
+        .xhh-footer-col h4 {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--xhh-foreground);
+          margin-bottom: 16px;
+        }
+        .xhh-footer-col a {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: var(--xhh-muted-foreground);
+          text-decoration: none;
+          padding: 6px 0;
+          transition: color 0.2s ease;
+        }
+        .xhh-footer-col a:hover { color: var(--xhh-gold); }
+        .xhh-footer-col a i { width: 16px; height: 16px; }
+        .xhh-footer-bottom {
+          border-top: 1px solid var(--xhh-border);
+          padding-top: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .xhh-footer-copy {
+          font-size: 13px;
+          color: var(--xhh-ink-3);
+        }
+        .xhh-footer-links {
+          display: flex;
+          gap: 20px;
+        }
+        .xhh-footer-links a {
+          font-size: 13px;
+          color: var(--xhh-ink-3);
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+        .xhh-footer-links a:hover { color: var(--xhh-gold); }
+
+        /* ===== Animations ===== */
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @supports (animation-timeline: view()) {
+          .xhh-section, .xhh-footer {
+            animation: fade-in-up linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 25%;
+          }
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+          .xhh-nav-links { display: none; }
+          .xhh-nav-inner { height: 56px; }
+          .xhh-hero { padding: 100px 0 60px; }
+          .xhh-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+          .xhh-compare-grid { grid-template-columns: 1fr; gap: 16px; }
+          .xhh-feature-row { grid-template-columns: 1fr; gap: 32px; margin-bottom: 60px; }
+          .xhh-feature-row.reverse > :first-child { order: 0; }
+          .xhh-kpi-strip { flex-wrap: wrap; gap: 24px; }
+          .xhh-kpi-divider { display: none; }
+          .xhh-kpi-item { flex: 1 1 40%; padding: 0 12px; }
+          .xhh-phone-shell { transform: rotateY(0deg); }
+          .xhh-phone-side { max-width: 100%; flex-direction: row; }
+          .xhh-side-card { flex: 1; }
+          .xhh-footer-grid { grid-template-columns: 1fr; gap: 32px; }
+          .xhh-milestone-arrow { display: none; }
+          .xhh-milestone { padding: 0 16px 24px; }
+          .xhh-name-demo { grid-template-columns: 1fr 1fr; }
+          .xhh-family-cards { grid-template-columns: 1fr 1fr; }
+          .xhh-widget-tl, .xhh-widget-br { display: none; }
+        }
+      </style>
+
+      <!-- ===== Interactive CSS ===== -->
+      <style id="interactive-styles">
+        /* 滚动渐显 */
+        .xhh-reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
+        .xhh-reveal.xhh-revealed { opacity: 1; transform: translateY(0); }
+        .xhh-reveal.delay-1 { transition-delay: 0.1s; }
+        .xhh-reveal.delay-2 { transition-delay: 0.2s; }
+        .xhh-reveal.delay-3 { transition-delay: 0.3s; }
+        .xhh-reveal.delay-4 { transition-delay: 0.4s; }
+
+        /* 移动端菜单 */
+        .xhh-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: var(--xhh-foreground); }
+        .xhh-menu-btn i { width: 24px; height: 24px; }
+        .xhh-mobile-menu { display: none; position: fixed; top: 60px; left: 0; right: 0; background: var(--xhh-background); border-bottom: 1px solid var(--xhh-border); padding: 16px 24px; z-index: 99; transform: translateY(-100%); transition: transform 0.3s ease; }
+        .xhh-mobile-menu.open { transform: translateY(0); display: block; }
+        .xhh-mobile-menu a { display: block; padding: 12px 0; color: var(--xhh-foreground); text-decoration: none; font-size: 16px; border-bottom: 1px solid var(--xhh-border); }
+
+        /* 价格切换 */
+        .xhh-price-toggle { display: inline-flex; align-items: center; gap: 0; background: var(--xhh-surface-1); border-radius: 999px; padding: 4px; margin-bottom: 32px; border: 1px solid var(--xhh-border); }
+        .xhh-price-toggle button { padding: 10px 24px; border: none; background: none; color: var(--xhh-muted-foreground); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 999px; transition: all 0.3s ease; }
+        .xhh-price-toggle button.active { background: var(--xhh-gold); color: var(--xhh-background); }
+
+        /* FAQ 手风琴 */
+        .xhh-faq-item { border-bottom: 1px solid var(--xhh-border); overflow: hidden; }
+        .xhh-faq-q { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--xhh-foreground); transition: color 0.2s; }
+        .xhh-faq-q:hover { color: var(--xhh-gold); }
+        .xhh-faq-q i { width: 20px; height: 20px; transition: transform 0.3s ease; color: var(--xhh-gold); flex-shrink: 0; margin-left: 16px; }
+        .xhh-faq-item.open .xhh-faq-q i { transform: rotate(180deg); }
+        .xhh-faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; color: var(--xhh-muted-foreground); font-size: 14px; line-height: 1.7; }
+        .xhh-faq-item.open .xhh-faq-a { max-height: 200px; padding-bottom: 20px; }
+
+        /* 聊天打字效果 */
+        .xhh-chat-bubble.typing { position: relative; }
+        .xhh-chat-bubble.typing::after { content: ''; display: inline-block; width: 3px; height: 16px; background: var(--xhh-gold); margin-left: 2px; animation: xhh-blink 0.8s infinite; vertical-align: middle; }
+        @keyframes xhh-blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* 趋势条动画 */
+        .xhh-trend-bar { transform-origin: bottom; transform: scaleY(0); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1); }
+        .xhh-trend-bar.animated { transform: scaleY(1); }
+
+        /* 卡片悬浮效果 */
+        .xhh-feature-row > div > div, .xhh-plan, .xhh-side-card, .xhh-name-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .xhh-plan:hover, .xhh-side-card:hover, .xhh-name-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px -12px rgba(245,196,81,0.15); }
+
+        /* 按钮波纹 */
+        .btn-primary, .btn-secondary, .xhh-plan-btn { position: relative; overflow: hidden; }
+        .btn-primary::after, .btn-secondary::after, .xhh-plan-btn::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.15); transform: translate(-50%,-50%); transition: width 0.5s ease, height 0.5s ease; }
+        .btn-primary:hover::after, .btn-secondary:hover::after, .xhh-plan-btn:hover::after { width: 300px; height: 300px; }
+
+        /* 星星闪烁 */
+        .xhh-star { animation: xhh-twinkle 3s ease-in-out infinite; }
+        @keyframes xhh-twinkle { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+        .xhh-star:nth-child(2) { animation-delay: 0.5s; }
+        .xhh-star:nth-child(3) { animation-delay: 1s; }
+        .xhh-star:nth-child(4) { animation-delay: 1.5s; }
+        .xhh-star:nth-child(5) { animation-delay: 0.3s; }
+        .xhh-star:nth-child(6) { animation-delay: 0.8s; }
+
+        /* 浮动卡片动画 */
+        .xhh-float-card { animation: xhh-float 4s ease-in-out infinite; }
+        @keyframes xhh-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .xhh-widget-br { animation-delay: 1s; }
+
+        /* 聊天选项交互 */
+        .xhh-chat-option { cursor: pointer; transition: all 0.2s ease; }
+        .xhh-chat-option:hover { background: var(--xhh-gold); color: var(--xhh-background); border-color: var(--xhh-gold); }
+
+        /* 返回顶部 */
+        .xhh-back-top { position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; border-radius: 50%; background: var(--xhh-gold); color: var(--xhh-background); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; z-index: 98; box-shadow: 0 4px 20px rgba(245,196,81,0.3); }
+        .xhh-back-top.show { opacity: 1; pointer-events: auto; }
+        .xhh-back-top:hover { transform: scale(1.1); }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+          .xhh-nav-links { display: none; }
+          .xhh-nav .btn-primary { display: none; }
+          .xhh-menu-btn { display: flex; align-items: center; }
+          .xhh-back-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
+        }
+
+        /* ===== 全屏星空 Canvas ===== */
+        #xhhStarfield {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          z-index: 0; pointer-events: none;
+        }
+
+        /* ===== 滚动进度条 ===== */
+        .xhh-scroll-progress {
+          position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+          background: linear-gradient(90deg, var(--xhh-gold-deep), var(--xhh-gold), var(--xhh-gold-soft));
+          z-index: 1000; transition: width 0.1s linear;
+          box-shadow: 0 0 10px rgba(245,196,81,0.5);
+        }
+
+        /* ===== 极光流动光晕 ===== */
+        .xhh-aurora { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none; z-index: 0; }
+        .xhh-aurora-1 { width: 500px; height: 500px; background: radial-gradient(circle, #F5C451, transparent 70%); top: -100px; left: -100px; animation: xhh-aurora-move-1 20s ease-in-out infinite; }
+        .xhh-aurora-2 { width: 600px; height: 600px; background: radial-gradient(circle, #4A6FA5, transparent 70%); top: 30%; right: -200px; animation: xhh-aurora-move-2 25s ease-in-out infinite; }
+        .xhh-aurora-3 { width: 400px; height: 400px; background: radial-gradient(circle, #F5C451, transparent 70%); bottom: 10%; left: 20%; animation: xhh-aurora-move-3 18s ease-in-out infinite; opacity: 0.1; }
+        @keyframes xhh-aurora-move-1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(100px,80px) scale(1.15); } 66% { transform: translate(-50px,120px) scale(0.9); } }
+        @keyframes xhh-aurora-move-2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-120px,-60px) scale(1.2); } }
+        @keyframes xhh-aurora-move-3 { 0%,100% { transform: translate(0,0) scale(1); } 40% { transform: translate(80px,-100px) scale(1.1); } 70% { transform: translate(-60px,50px) scale(0.95); } }
+
+        /* ===== 流星 ===== */
+        .xhh-meteor {
+          position: fixed; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+          box-shadow: 0 0 6px 2px rgba(255,255,255,0.5); pointer-events: none; z-index: 0; opacity: 0;
+        }
+        .xhh-meteor::after {
+          content: ''; position: absolute; top: 0; left: 0; width: 80px; height: 1px;
+          background: linear-gradient(90deg, rgba(255,255,255,0.6), transparent);
+          transform-origin: left center; transform: rotate(45deg) translateX(0);
+        }
+        @keyframes xhh-meteor-fly {
+          0% { opacity: 0; transform: translate(0,0); }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { opacity: 0; transform: translate(-400px, 400px); }
+        }
+
+        /* ===== 浮动粒子 ===== */
+        .xhh-particle { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--xhh-gold-soft); opacity: 0.3; pointer-events: none; }
+        @keyframes xhh-particle-float { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 0.4; } 90% { opacity: 0.3; } 100% { transform: translateY(-300px) translateX(30px); opacity: 0; } }
+
+        /* ===== 品牌名流光 ===== */
+        .xhh-hero-brand {
+          background: linear-gradient(135deg, #F5C451 0%, #F8D680 25%, #FFE9B0 50%, #F8D680 75%, #F5C451 100%);
+          background-size: 200% 200%;
+          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+          animation: xhh-brand-shimmer 4s ease-in-out infinite;
+        }
+        @keyframes xhh-brand-shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+        /* ===== 按钮脉冲发光 ===== */
+        .btn-primary { animation: xhh-btn-pulse 3s ease-in-out infinite; }
+        @keyframes xhh-btn-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,196,81,0.3); } 50% { box-shadow: 0 0 20px 4px rgba(245,196,81,0.15); } }
+
+        /* ===== 视差容器 ===== */
+        .xhh-parallax { will-change: transform; transition: transform 0.1s linear; }
+
+        /* ===== 轨道环 ===== */
+        .xhh-orbit-ring {
+          position: absolute; border: 1px dashed rgba(245,196,81,0.15); border-radius: 50%;
+          top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none;
+        }
+        .xhh-orbit-ring-1 { width: 110%; height: 110%; animation: xhh-orbit-rotate 30s linear infinite; }
+        .xhh-orbit-ring-2 { width: 130%; height: 130%; animation: xhh-orbit-rotate 45s linear infinite reverse; }
+        @keyframes xhh-orbit-rotate { 0% { transform: translate(-50%,-50%) rotate(0deg); } 100% { transform: translate(-50%,-50%) rotate(360deg); } }
+        .xhh-orbit-dot {
+          position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--xhh-gold);
+          box-shadow: 0 0 10px rgba(245,196,81,0.6); top: -4px; left: 50%; margin-left: -4px;
+        }
+
+        /* ===== 波浪分隔线 ===== */
+        .xhh-wave-divider { width: 100%; height: 40px; display: block; }
+        .xhh-wave-divider path { animation: xhh-wave-move 8s ease-in-out infinite; }
+        @keyframes xhh-wave-move { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-20px); } }
+
+        /* ===== 打字光标 ===== */
+        .xhh-typing-cursor::after { content: '|'; color: var(--xhh-gold); animation: xhh-blink 0.8s infinite; margin-left: 2px; }
+
+        /* ===== section 背景流动 ===== */
+        .xhh-section { position: relative; }
+        .xhh-section::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+          background: radial-gradient(ellipse 400px 300px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(245,196,81,0.03) 0%, transparent 60%);
+          pointer-events: none; transition: opacity 0.3s;
+        }
+
+        /* ===== 内容置于星空之上 ===== */
+        .xhh-nav, main > section, main > footer { position: relative; z-index: 1; }
+
+        /* ===== Hero 主视觉：原图完整保留，叠加猫狗微动画（眨眼睛 / 摇尾巴） ===== */
+        .xhh-hero-img-wrap { overflow: hidden; }
+        .xhh-hero-scene {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 4 / 5;
+          overflow: hidden;
+          border-radius: var(--xhh-radius-lg);
+        }
+        /* 原图完整铺满：背景与猫狗全部来自 hero-pet.jpg，不裁切不遮挡 */
+        .xhh-hero-base {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        /* Hero 动图：由原图生成的宠物微动画（眨眼 + 摇尾） */
+
+        /* 金色光晕呼吸 */
+        .xhh-hero-scene-glow {
+          position: absolute;
+          inset: 0;
+          border-radius: var(--xhh-radius-lg);
+          box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.2);
+          animation: xhh-hero-glow 4.5s ease-in-out infinite;
+          pointer-events: none;
+          z-index: 3;
+        }
+        /* 光影斜扫 */
+        .xhh-hero-scene::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.12) 48%, transparent 64%);
+          transform: translateX(-130%);
+          animation: xhh-sheen 7.5s ease-in-out infinite;
+          pointer-events: none;
+          z-index: 4;
+        }
+        @keyframes xhh-hero-glow {
+          0%, 100% { box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.18), 0 0 0 0 rgba(245, 196, 81, 0); }
+          50% { box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.4), 0 0 32px 3px rgba(245, 196, 81, 0.22); }
+        }
+        @keyframes xhh-sheen {
+          0% { transform: translateX(-130%); }
+          55%, 100% { transform: translateX(130%); }
+        }
+
+        /* 浮动卡片与轨道环置于图层之上 */
+        .xhh-hero-img-wrap .xhh-float-card { z-index: 5; }
+        .xhh-hero-img-wrap .xhh-orbit-ring { z-index: 1; }
+
+        /* ===== 猫狗互动游乐区（草地场景 · 视频状态机） ===== */
+        .xhh-play-box {
+          position: relative;
+          height: 520px;
+          border-radius: var(--xhh-radius-lg);
+          overflow: hidden;
+          border: 1px solid rgba(245, 196, 81, 0.18);
+          box-shadow: inset 0 0 90px rgba(245, 196, 81, 0.05), 0 24px 60px -24px rgba(0, 0, 0, 0.55);
+          background: #0B1426;
+          touch-action: none;
+          cursor: default;
+          user-select: none;
+          -webkit-user-select: none;
+        }
+        .xhh-play-bg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .xhh-play-video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: 1;
+          pointer-events: none;
+          transition: opacity 0.35s ease;
+        }
+        .xhh-play-video-fetch { opacity: 0; }
+        .xhh-play-box.showing-fetch .xhh-play-video-idle { opacity: 0; }
+        .xhh-play-box.showing-fetch .xhh-play-video-fetch { opacity: 1; }
+        .xhh-play-hint {
+          position: absolute;
+          top: 16px; left: 50%;
+          transform: translateX(-50%);
+          z-index: 8;
+          font-size: 13px;
+          color: rgba(248, 214, 128, 0.95);
+          background: rgba(19, 32, 58, 0.62);
+          padding: 7px 16px;
+          border-radius: 999px;
+          border: 1px solid rgba(245, 196, 81, 0.22);
+          pointer-events: none;
+          white-space: nowrap;
+          backdrop-filter: blur(6px);
+        }
+        .xhh-sound-btn {
+          position: absolute;
+          top: 14px; right: 14px;
+          z-index: 8;
+          width: 38px; height: 38px;
+          border-radius: 50%;
+          border: 1px solid rgba(245, 196, 81, 0.25);
+          background: rgba(19, 32, 58, 0.65);
+          color: var(--xhh-gold);
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+          backdrop-filter: blur(6px);
+        }
+        .xhh-sound-btn i { width: 18px; height: 18px; }
+        .xhh-sound-btn.on { border-color: rgba(245, 196, 81, 0.55); box-shadow: 0 0 12px rgba(245, 196, 81, 0.25); }
+        .xhh-play-ball {
+          position: absolute;
+          width: 26px; height: 26px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 32% 28%, #FF8A7A, #E6484B 58%, #C43038);
+          box-shadow: 0 4px 9px rgba(0, 0, 0, 0.5), inset -3px -4px 6px rgba(0, 0, 0, 0.28), inset 2px 3px 4px rgba(255, 255, 255, 0.38);
+          z-index: 4;
+          pointer-events: none;
+          left: 118px; top: 200px;
+          transition: opacity 0.3s ease;
+        }
+        .xhh-play-ball.hidden { opacity: 0; }
+        @media (prefers-reduced-motion: reduce) {
+          .xhh-play-video { display: none; }
+        }
+        @media (max-width: 768px) {
+          .xhh-play-box { height: 400px; }
+          .xhh-play-hint { top: 12px; font-size: 12px; max-width: 72%; white-space: normal; text-align: center; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .xhh-hero-scene-glow, .xhh-hero-scene::after { animation: none; }
+        }
+      </style>
+<main>
+      <!-- 全屏动态背景层 -->
+      <canvas id="xhhStarfield"></canvas>
+      <div class="xhh-aurora xhh-aurora-1"></div>
+      <div class="xhh-aurora xhh-aurora-2"></div>
+      <div class="xhh-aurora xhh-aurora-3"></div>
+      <div class="xhh-scroll-progress" id="xhhScrollProgress"></div>
+
+      <!-- 1. Navigation -->
+      <nav id="xhhNav" class="xhh-nav">
+        <div class="xhh-nav-inner">
+          <a href="#" class="xhh-logo">
+            <i data-lucide="sparkles"></i>
+            <span>星寰海</span>
+          </a>
+          <div class="xhh-nav-links">
+            <a href="#features">功能特色</a>
+            <a href="#play">互动游乐</a>
+            <a href="#product">产品体验</a>
+            <a href="#story">情感故事</a>
+          </div>
+          <button class="btn-primary" style="padding: 10px 22px; font-size: 14px;">
+            <i data-lucide="rocket" style="width:16px;height:16px;"></i>
+            立即体验
+          </button>
+          <button class="xhh-menu-btn" id="xhhMenuBtn" aria-label="菜单">
+            <i data-lucide="menu"></i>
+          </button>
+        </div>
+      </nav>
+      <div class="xhh-mobile-menu" id="xhhMobileMenu">
+        <a href="#memory">记忆引擎</a>
+        <a href="#features">功能特色</a>
+        <a href="#play">互动游乐</a>
+        <a href="#product">产品体验</a>
+        <a href="#story">情感故事</a>
+        <a href="#pricing">会员价格</a>
+        <a href="#faq">常见问题</a>
+      </div>
+
+      <!-- 2. Hero -->
+      <section class="xhh-hero">
+        <div class="xhh-hero-bg"></div>
+        <div class="xhh-star" style="top:12%;left:8%;"></div>
+        <div class="xhh-star" style="top:20%;left:92%;width:2px;height:2px;"></div>
+        <div class="xhh-star" style="top:35%;left:48%;width:4px;height:4px;"></div>
+        <div class="xhh-star" style="top:60%;left:5%;width:2px;height:2px;"></div>
+        <div class="xhh-star" style="top:75%;left:88%;"></div>
+        <div class="xhh-star" style="top:8%;left:72%;width:2px;height:2px;"></div>
+        <div class="xhh-container">
+          <div class="xhh-hero-grid">
+            <div>
+              <div class="xhh-eyebrow">
+                <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
+                AI 宠物管家 · 新一代
+              </div>
+              <h1 class="xhh-hero-brand">星寰海</h1>
+              <h2 class="xhh-hero-h1">有记忆的 AI 宠物管家</h2>
+              <p class="xhh-hero-desc">
+                聊宠物，AI 记得全部历史。健康打卡、时光回忆、家庭维度，一站式陪伴。让每一次互动都延续上一次的温度。
+              </p>
+              <div class="xhh-hero-cta-row">
+                <button class="btn-primary">
+                  <i data-lucide="rocket" style="width:18px;height:18px;"></i>
+                  立即体验
+                </button>
+                <button class="btn-secondary">
+                  <i data-lucide="book-open" style="width:18px;height:18px;"></i>
+                  了解更多
+                </button>
+              </div>
+            </div>
+            <div class="xhh-hero-visual">
+              <div class="xhh-hero-img-wrap xhh-parallax" data-parallax-speed="0.15">
+                <div class="xhh-orbit-ring xhh-orbit-ring-1"><div class="xhh-orbit-dot"></div></div>
+                <div class="xhh-orbit-ring xhh-orbit-ring-2"><div class="xhh-orbit-dot"></div></div>
+                <div class="xhh-hero-scene">
+                  <img class="xhh-hero-base" src="../assets/hero-grass-anim.gif" alt="星海草地上的可爱宠物 - 小猫小狗眨眼睛摇尾巴的动态画面" />
+                  <div class="xhh-hero-scene-glow"></div>
+                </div>
+                <div class="xhh-float-card xhh-pet-info">
+                  <div class="dot"></div>
+                  <div>
+                    <div style="font-size:14px;font-weight:700;color:var(--xhh-foreground);">青橘</div>
+                    <div style="font-size:11px;color:var(--xhh-muted-foreground);">3岁 · 金毛</div>
+                  </div>
+                </div>
+              </div>
+              <div class="xhh-float-card xhh-widget-tl">
+                <i data-lucide="flame" style="width:18px;height:18px;color:var(--xhh-gold);"></i>
+                <div>
+                  <div class="xhh-widget-num">28</div>
+                  <div class="xhh-widget-label">连续打卡天数</div>
+                </div>
+              </div>
+              <div class="xhh-float-card xhh-widget-br">
+                <i data-lucide="brain" style="width:18px;height:18px;color:var(--xhh-gold);"></i>
+                <div>
+                  <div class="xhh-widget-num">156</div>
+                  <div class="xhh-widget-label">AI 记忆条数</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Memory Engine -->
+      <section class="xhh-section" id="memory">
+        <div class="xhh-container">
+          <div class="xhh-eyebrow">
+            <i data-lucide="brain-circuit" style="width:14px;height:14px;"></i>
+            核心壁垒
+          </div>
+          <h2 class="xhh-section-title">记忆引擎</h2>
+          <p class="xhh-section-sub">
+            所有竞品都是无状态问诊，星寰海是有记忆的 AI。它记得每一次打卡、每一次症状、每一次情绪波动，让陪伴不再从零开始。
+          </p>
+
+          <div class="xhh-compare-grid">
+            <div class="xhh-compare-col negative">
+              <span class="xhh-compare-tag">无记忆 · 传统方案</span>
+              <h3>每次对话都是陌生人</h3>
+              <div class="xhh-compare-item">
+                <i data-lucide="x"></i>
+                <div class="xhh-compare-item-text"><strong>每次从零开始</strong>，需要反复描述宠物基本情况</div>
+              </div>
+              <div class="xhh-compare-item">
+                <i data-lucide="x"></i>
+                <div class="xhh-compare-item-text"><strong>静态快照</strong>，只看当前一张照片或一次描述</div>
+              </div>
+              <div class="xhh-compare-item">
+                <i data-lucide="x"></i>
+                <div class="xhh-compare-item-text"><strong>等用户来问</strong>，不会主动提醒疫苗、驱虫、生日</div>
+              </div>
+              <div class="xhh-compare-item">
+                <i data-lucide="x"></i>
+                <div class="xhh-compare-item-text"><strong>无情绪感知</strong>，只回答问题，不关心你今天心情</div>
+              </div>
+            </div>
+
+            <div class="xhh-compare-col positive">
+              <span class="xhh-compare-tag">有记忆 · 星寰海</span>
+              <h3>越聊越懂你的毛孩子</h3>
+              <div class="xhh-compare-item">
+                <i data-lucide="check"></i>
+                <div class="xhh-compare-item-text"><strong>完整档案 + 半年打卡</strong>，AI 拥有宠物全生命周期记忆</div>
+              </div>
+              <div class="xhh-compare-item">
+                <i data-lucide="brain"></i>
+                <div class="xhh-compare-item-text"><strong>动态追踪画像</strong>，健康趋势、饮食偏好、性格变化持续更新</div>
+              </div>
+              <div class="xhh-compare-item">
+                <i data-lucide="bell"></i>
+                <div class="xhh-compare-item-text"><strong>主动触达提醒</strong>，疫苗到期、异常波动、生日里程碑主动推送</div>
+              </div>
+              <div class="xhh-compare-item">
+                <i data-lucide="heart"></i>
+                <div class="xhh-compare-item-text"><strong>情绪感知陪伴</strong>，识别主人情绪状态，给予温暖回应</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Feature World -->
+      <section class="xhh-section" id="features">
+        <div class="xhh-container">
+          <div class="xhh-eyebrow">
+            <i data-lucide="grid-3x3" style="width:14px;height:14px;"></i>
+            功能世界
+          </div>
+          <h2 class="xhh-section-title">一个入口，<span class="accent">无限可能</span></h2>
+          <p class="xhh-section-sub">
+            不需要学五个 App，聊宠物就够了。AI 对话是唯一入口，背后串联健康、回忆、家庭、取名五大世界。
+          </p>
+
+          <!-- Feature 1: AI Dialog -->
+          <div class="xhh-feature-row" style="margin-top:64px;">
+            <div>
+              <div class="xhh-feature-num">01 / AI 对话</div>
+              <h3 class="xhh-feature-title">唯一交互入口，聊宠物就够</h3>
+              <p class="xhh-feature-desc">
+                说一句"给青橘打卡"，AI 自动引导五项选择，生成动态卡片。不用翻菜单、不用找按钮，想到什么说什么，AI 懂你。
+              </p>
+              <div class="xhh-feature-tags">
+                <span class="xhh-feature-tag"><i data-lucide="message-circle"></i>自然语言</span>
+                <span class="xhh-feature-tag"><i data-lucide="zap"></i>动态卡片</span>
+                <span class="xhh-feature-tag"><i data-lucide="layers"></i>多轮引导</span>
+              </div>
+            </div>
+            <div>
+              <div class="xhh-chat-demo">
+                <div class="xhh-chat-bubble user">给青橘打卡</div>
+                <div class="xhh-chat-bubble ai">好的，今天要记录哪一项呢？</div>
+                <div class="xhh-chat-options">
+                  <span class="xhh-chat-option">饮食</span>
+                  <span class="xhh-chat-option">运动</span>
+                  <span class="xhh-chat-option">情绪</span>
+                  <span class="xhh-chat-option">便便</span>
+                  <span class="xhh-chat-option">体重</span>
+                </div>
+                <div class="xhh-chat-bubble user">今天吃了 200g 鸡胸肉，精神很好</div>
+                <div class="xhh-chat-card-result">
+                  <i data-lucide="check-circle"></i>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--xhh-foreground);">打卡成功 · 饮食记录</div>
+                    <div style="font-size:12px;color:var(--xhh-muted-foreground);">2026.08.05 · 连续第 28 天</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 2: Health Management -->
+          <div class="xhh-feature-row reverse">
+            <div>
+              <div class="xhh-health-demo">
+                <div class="xhh-health-header">
+                  <div>
+                    <div style="font-size:13px;color:var(--xhh-muted-foreground);">本周健康分</div>
+                    <div class="xhh-health-score">92</div>
+                  </div>
+                  <i data-lucide="trending-up" style="width:24px;height:24px;color:var(--xhh-gold);"></i>
+                </div>
+                <div class="xhh-trend-bars">
+                  <div class="xhh-trend-bar" style="height:55%;"></div>
+                  <div class="xhh-trend-bar" style="height:70%;"></div>
+                  <div class="xhh-trend-bar" style="height:48%;"></div>
+                  <div class="xhh-trend-bar" style="height:82%;"></div>
+                  <div class="xhh-trend-bar" style="height:65%;"></div>
+                  <div class="xhh-trend-bar" style="height:90%;"></div>
+                  <div class="xhh-trend-bar" style="height:78%;"></div>
+                </div>
+                <div class="xhh-health-dims">
+                  <div class="xhh-health-dim"><i data-lucide="utensils"></i>饮食</div>
+                  <div class="xhh-health-dim"><i data-lucide="activity"></i>运动</div>
+                  <div class="xhh-health-dim"><i data-lucide="smile"></i>情绪</div>
+                  <div class="xhh-health-dim"><i data-lucide="droplet"></i>便便</div>
+                  <div class="xhh-health-dim"><i data-lucide="scale"></i>体重</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="xhh-feature-num">02 / 健康管理</div>
+              <h3 class="xhh-feature-title">打卡 / 食物查询 / 症状初筛 / 疫苗日历 / 健康趋势</h3>
+              <p class="xhh-feature-desc">
+                五大健康维度全追踪。每日打卡生成趋势曲线，食物库秒查能不能吃，症状初筛给出建议，疫苗日历自动提醒，健康分一目了然。
+              </p>
+              <div class="xhh-feature-tags">
+                <span class="xhh-feature-tag"><i data-lucide="calendar-check"></i>疫苗日历</span>
+                <span class="xhh-feature-tag"><i data-lucide="search"></i>食物查询</span>
+                <span class="xhh-feature-tag"><i data-lucide="stethoscope"></i>症状初筛</span>
+                <span class="xhh-feature-tag"><i data-lucide="line-chart"></i>健康趋势</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 3: Time Memories -->
+          <div class="xhh-feature-row">
+            <div>
+              <div class="xhh-feature-num">03 / 时光回忆</div>
+              <h3 class="xhh-feature-title">时间线 / 回忆录 / 里程碑 / 旧时光提醒</h3>
+              <p class="xhh-feature-desc">
+                每一条打卡、每一张照片、每一次疫苗，都在时间线上留下痕迹。AI 自动生成回忆录，在"一年前的今天"推送旧时光，让美好不被遗忘。
+              </p>
+              <div class="xhh-feature-tags">
+                <span class="xhh-feature-tag"><i data-lucide="clock"></i>时间线</span>
+                <span class="xhh-feature-tag"><i data-lucide="book-heart"></i>回忆录</span>
+                <span class="xhh-feature-tag"><i data-lucide="award"></i>里程碑</span>
+                <span class="xhh-feature-tag"><i data-lucide="bell-ring"></i>旧时光提醒</span>
+              </div>
+            </div>
+            <div>
+              <div class="xhh-timeline-demo">
+                <div class="xhh-tl-item">
+                  <div class="xhh-tl-dot"><i data-lucide="home"></i></div>
+                  <div>
+                    <div class="xhh-tl-date">2024.03.15</div>
+                    <div class="xhh-tl-title">青橘来到家里</div>
+                    <div class="xhh-tl-desc">第一次见面，3 个月大的小金毛</div>
+                  </div>
+                </div>
+                <div class="xhh-tl-item">
+                  <div class="xhh-tl-dot"><i data-lucide="syringe"></i></div>
+                  <div>
+                    <div class="xhh-tl-date">2024.04.20</div>
+                    <div class="xhh-tl-title">完成第一针疫苗</div>
+                    <div class="xhh-tl-desc">兽医说青橘很勇敢</div>
+                  </div>
+                </div>
+                <div class="xhh-tl-item">
+                  <div class="xhh-tl-dot"><i data-lucide="cake"></i></div>
+                  <div>
+                    <div class="xhh-tl-date">2025.01.03</div>
+                    <div class="xhh-tl-title">青橘一岁生日</div>
+                    <div class="xhh-tl-desc">做了鸡肉蛋糕，摇着尾巴吃完</div>
+                  </div>
+                </div>
+                <div class="xhh-tl-item">
+                  <div class="xhh-tl-dot"><i data-lucide="flame"></i></div>
+                  <div>
+                    <div class="xhh-tl-date">2026.08.05</div>
+                    <div class="xhh-tl-title">连续打卡 28 天</div>
+                    <div class="xhh-tl-desc">健康分稳定在 90 以上</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 4: Family Dimension -->
+          <div class="xhh-feature-row reverse">
+            <div>
+              <div class="xhh-family-demo">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                  <div style="font-size:15px;font-weight:700;color:var(--xhh-foreground);">家庭看板</div>
+                  <i data-lucide="users" style="width:20px;height:20px;color:var(--xhh-gold);"></i>
+                </div>
+                <div class="xhh-family-cards">
+                  <div class="xhh-family-card active">
+                    <div class="xhh-family-avatar"><i data-lucide="dog"></i></div>
+                    <div class="xhh-family-name">青橘</div>
+                    <div class="xhh-family-meta">3岁 · 金毛</div>
+                  </div>
+                  <div class="xhh-family-card">
+                    <div class="xhh-family-avatar"><i data-lucide="cat"></i></div>
+                    <div class="xhh-family-name">柚柚</div>
+                    <div class="xhh-family-meta">2岁 · 英短</div>
+                  </div>
+                  <div class="xhh-family-card">
+                    <div class="xhh-family-avatar"><i data-lucide="rabbit"></i></div>
+                    <div class="xhh-family-name">汤圆</div>
+                    <div class="xhh-family-meta">1岁 · 肉兔</div>
+                  </div>
+                </div>
+                <div class="xhh-family-add">
+                  <i data-lucide="plus" style="width:14px;height:14px;"></i>
+                  添加新成员
+                </div>
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--xhh-border);display:flex;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:11px;color:var(--xhh-muted-foreground);">本周全家福</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--xhh-gold);">3 张新照片</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:var(--xhh-muted-foreground);">周报</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--xhh-foreground);">已生成</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="xhh-feature-num">04 / 家庭维度</div>
+              <h3 class="xhh-feature-title">族谱 / 看板 / 周报 / 全家福</h3>
+              <p class="xhh-feature-desc">
+                多宠物家庭也能轻松管理。家庭看板一目了然谁需要关注，AI 周报自动总结本周动态，族谱记录毛孩子家族脉络，全家福留住每个温馨瞬间。
+              </p>
+              <div class="xhh-feature-tags">
+                <span class="xhh-feature-tag"><i data-lucide="git-branch"></i>族谱</span>
+                <span class="xhh-feature-tag"><i data-lucide="layout-dashboard"></i>看板</span>
+                <span class="xhh-feature-tag"><i data-lucide="file-text"></i>周报</span>
+                <span class="xhh-feature-tag"><i data-lucide="image"></i>全家福</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature 5: Name Engine -->
+          <div class="xhh-feature-row">
+            <div>
+              <div class="xhh-feature-num">05 / 取名引擎</div>
+              <h3 class="xhh-feature-title">五行 + 星象 + 诗词 + 山川 + 典故</h3>
+              <p class="xhh-feature-desc">
+                五大取名维度，为毛孩子起一个有故事的名字。五行调和命格，星象对应性格，诗词赋予意境，山川寄托远志，典故承载文化。每个名字都是一份礼物。
+              </p>
+              <div class="xhh-feature-tags">
+                <span class="xhh-feature-tag"><i data-lucide="flame"></i>五行</span>
+                <span class="xhh-feature-tag"><i data-lucide="star"></i>星象</span>
+                <span class="xhh-feature-tag"><i data-lucide="scroll-text"></i>诗词</span>
+                <span class="xhh-feature-tag"><i data-lucide="mountain"></i>山川</span>
+                <span class="xhh-feature-tag"><i data-lucide="book-marked"></i>典故</span>
+              </div>
+            </div>
+            <div>
+              <div class="xhh-name-demo">
+                <div class="xhh-name-card">
+                  <div class="xhh-name-cat">五行 · 木火相生</div>
+                  <div class="xhh-name-result">青橘</div>
+                  <div class="xhh-name-desc">木生火，温润如橘色晨光</div>
+                </div>
+                <div class="xhh-name-card">
+                  <div class="xhh-name-cat">星象 · 天狼星</div>
+                  <div class="xhh-name-result">天狼</div>
+                  <div class="xhh-name-desc">忠诚守护，夜空中最亮的星</div>
+                </div>
+                <div class="xhh-name-card">
+                  <div class="xhh-name-cat">诗词 · 橘柚</div>
+                  <div class="xhh-name-result">柚柚</div>
+                  <div class="xhh-name-desc">"橘柚花开处"，清新可爱</div>
+                </div>
+                <div class="xhh-name-card">
+                  <div class="xhh-name-cat">山川 · 昆仑</div>
+                  <div class="xhh-name-result">昆仑</div>
+                  <div class="xhh-name-desc">万山之祖，气势磅礴</div>
+                </div>
+                <div class="xhh-name-card">
+                  <div class="xhh-name-cat">典故 · 鲲鹏</div>
+                  <div class="xhh-name-result">鲲鹏</div>
+                  <div class="xhh-name-desc">志在千里，展翅九万里</div>
+                </div>
+                <div class="xhh-name-card">
+                  <div class="xhh-name-cat">五行 · 金水相生</div>
+                  <div class="xhh-name-result">星寰</div>
+                  <div class="xhh-name-desc">金生水，星河浩瀚寰宇</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Product Experience (Phone Mock) -->
+      <section class="xhh-section" id="product">
+        <div class="xhh-container">
+          <div class="xhh-eyebrow">
+            <i data-lucide="smartphone" style="width:14px;height:14px;"></i>
+            产品体验
+          </div>
+          <h2 class="xhh-section-title">聊一聊，<span class="accent">一切都发生</span></h2>
+          <p class="xhh-section-sub">
+            微信小程序，无需下载。打开就是 AI 对话界面，说你想说的，剩下的交给星寰海。
+          </p>
+
+          <div class="xhh-phone-wrap">
+            <div class="xhh-phone">
+              <div class="xhh-phone-shell">
+                <div class="xhh-phone-screen">
+                  <div class="xhh-phone-notch"></div>
+                  <div class="xhh-phone-status">
+                    <span>9:41</span>
+                    <div class="icons">
+                      <i data-lucide="signal"></i>
+                      <i data-lucide="wifi"></i>
+                      <i data-lucide="battery-full"></i>
+                    </div>
+                  </div>
+                  <div class="xhh-phone-greeting">
+                    <div class="hi">你好</div>
+                    <div class="name">青橘的主人</div>
+                  </div>
+                  <div class="xhh-phone-chat">
+                    <div class="xhh-phone-bubble ai">今天青橘怎么样？有想记录的事情吗？</div>
+                    <div class="xhh-phone-bubble user">青橘今天精神不太好</div>
+                    <div class="xhh-phone-bubble ai">关心青橘了。是饮食有变化吗？还是运动量减少了？我可以帮你记下来，过几天看看趋势。</div>
+                    <div class="xhh-phone-quick">
+                      <span>记录情绪</span>
+                      <span>查看历史</span>
+                      <span>症状初筛</span>
+                    </div>
+                  </div>
+                  <div class="xhh-phone-input">
+                    <input placeholder="聊宠物，聊什么都行..." readonly />
+                    <button><i data-lucide="send"></i></button>
+                  </div>
+                  <div class="xhh-phone-tabbar">
+                    <div class="xhh-phone-tab active">
+                      <i data-lucide="home"></i>
+                      <span>首页</span>
+                    </div>
+                    <div class="xhh-phone-tab">
+                      <i data-lucide="paw-print"></i>
+                      <span>宠物</span>
+                    </div>
+                    <div class="xhh-phone-tab">
+                      <i data-lucide="users"></i>
+                      <span>家庭</span>
+                    </div>
+                    <div class="xhh-phone-tab">
+                      <i data-lucide="user"></i>
+                      <span>我的</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="xhh-phone-side">
+              <div class="xhh-side-card">
+                <div class="label"><i data-lucide="heart-pulse"></i>本周健康分</div>
+                <div class="value">92</div>
+                <div class="sub">较上周 +5，饮食规律是关键</div>
+              </div>
+              <div class="xhh-side-card">
+                <div class="label"><i data-lucide="syringe"></i>疫苗提醒</div>
+                <div class="value" style="font-size:22px;">3 天后</div>
+                <div class="sub">狂犬疫苗到期 · 2026.08.08</div>
+              </div>
+              <div class="xhh-side-card">
+                <div class="label"><i data-lucide="bell-ring"></i>旧时光</div>
+                <div class="value" style="font-size:18px;">1 年前今天</div>
+                <div class="sub">青橘第一次学会握手</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5.5 猫狗互动游乐区 -->
+      <section class="xhh-section xhh-play" id="play">
+        <div class="xhh-container">
+          <div class="xhh-eyebrow">
+            <i data-lucide="gamepad-2" style="width:14px;height:14px;"></i>
+            互动游乐区
+          </div>
+          <h2 class="xhh-section-title">和它们 <span class="accent">玩一会儿</span></h2>
+          <p class="xhh-section-sub">
+            点击草地把球抛给小狗，它会颠颠地跑去叼回来；按住逗猫棒拖一拖，小猫的目光一直追着它。
+          </p>
+
+          <div class="xhh-play-box" id="xhhPlayBox">
+            <img class="xhh-play-bg" src="../assets/hero-pet-grass.jpg" alt="" aria-hidden="true" />
+            <video class="xhh-play-video xhh-play-video-idle" id="xhhVideoIdle" src="../assets/grass-idle.mp4" muted autoplay playsinline loop preload="auto" aria-label="草地上安静的小猫小狗"></video>
+            <video class="xhh-play-video xhh-play-video-fetch" id="xhhVideoFetch" src="../assets/grass-fetch.mp4" muted playsinline preload="auto" aria-label="小狗跑去叼球又跑回来"></video>
+            <div class="xhh-play-hint">点击草地，把球抛给小狗</div>
+            <button class="xhh-sound-btn" id="xhhSoundBtn" aria-label="音效开关" aria-pressed="false">
+              <i data-lucide="volume-x" id="xhhSoundIcon"></i>
+            </button>
+            <div class="xhh-play-ball" id="xhhPlayBall" role="img" aria-label="红色小球"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Emotional Story -->
+      <section class="xhh-section xhh-story" id="story">
+        <div class="xhh-container">
+          <div class="xhh-eyebrow" style="margin:0 auto;">
+            <i data-lucide="heart" style="width:14px;height:14px;"></i>
+            情感故事
+          </div>
+          <blockquote class="xhh-story-quote">
+            每一个瞬间都<br /><span class="accent">值得被记住</span>
+          </blockquote>
+          <p class="xhh-story-text">
+            从第一次见面到每一次打卡，从疫苗接种到生日庆祝。星寰海帮你记录每一个值得回味的瞬间，让爱不遗忘。当一年后 AI 推送"今天，青橘第一次来到家里"，你会发现，原来那些平凡的日子，早已串成星河。
+          </p>
+          <div class="xhh-milestones">
+            <div class="xhh-milestone">
+              <div class="xhh-milestone-dot"><i data-lucide="paw-print"></i></div>
+              <div class="xhh-milestone-title">第一次打卡</div>
+              <div class="xhh-milestone-desc">故事开始的地方</div>
+            </div>
+            <div class="xhh-milestone-arrow">&rarr;</div>
+            <div class="xhh-milestone">
+              <div class="xhh-milestone-dot"><i data-lucide="flame"></i></div>
+              <div class="xhh-milestone-title">365 天陪伴</div>
+              <div class="xhh-milestone-desc">日复一日的温暖</div>
+            </div>
+            <div class="xhh-milestone-arrow">&rarr;</div>
+            <div class="xhh-milestone">
+              <div class="xhh-milestone-dot"><i data-lucide="infinity"></i></div>
+              <div class="xhh-milestone-title">一生回忆</div>
+              <div class="xhh-milestone-desc">星河里的永恒</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6.5 FAQ -->
+      <section class="xhh-section" id="faq">
+        <div class="xhh-container" style="max-width:800px;">
+          <div class="xhh-eyebrow xhh-reveal">
+            <i data-lucide="help-circle" style="width:14px;height:14px;"></i>
+            常见问题
+          </div>
+          <h2 class="xhh-section-title xhh-reveal delay-1">你可能想问的</h2>
+          <p class="xhh-section-sub xhh-reveal delay-2">关于星寰海，大家最关心的问题都在这里</p>
+          <div style="margin-top:48px;" class="xhh-reveal delay-3">
+            <div class="xhh-faq-item">
+              <div class="xhh-faq-q">
+                <span>星寰海和小红书、抖音上的宠物工具有什么不同？</span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+              <div class="xhh-faq-a">星寰海是唯一有"记忆"的 AI 宠物管家。其他工具每次对话都从零开始，星寰海记得你家宠物的完整档案、每一次打卡、每一次症状。越用越懂你的毛孩子，不需要重复描述。</div>
+            </div>
+            <div class="xhh-faq-item">
+              <div class="xhh-faq-q">
+                <span>免费版够用吗？会员版值得买吗？</span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+              <div class="xhh-faq-a">免费版包含每日 10 次 AI 对话、健康打卡和 1 只宠物档案，足够日常使用。会员版解锁无限对话、完整记忆引擎、时光回忆录、全家福生成和取名引擎，适合想深度记录宠物生活的家庭。现在限时年卡 59 元，月均不到 5 元。</div>
+            </div>
+            <div class="xhh-faq-item">
+              <div class="xhh-faq-q">
+                <span>我的宠物数据安全吗？</span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+              <div class="xhh-faq-a">所有数据加密存储，不会泄露给第三方。AI 对话内容仅用于为你提供个性化建议，输入文本会自动脱敏处理。你可以随时导出或删除所有数据。</div>
+            </div>
+            <div class="xhh-faq-item">
+              <div class="xhh-faq-q">
+                <span>需要下载 App 吗？</span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+              <div class="xhh-faq-a">不需要。星寰海是微信小程序，扫码即用，无需下载安装。打开微信就能和 AI 聊宠物，和聊天一样简单。</div>
+            </div>
+            <div class="xhh-faq-item">
+              <div class="xhh-faq-q">
+                <span>支持多只宠物和家庭共享吗？</span>
+                <i data-lucide="chevron-down"></i>
+              </div>
+              <div class="xhh-faq-a">会员版支持无限宠物档案和家庭维度共享。全家人可以共同管理宠物记录，每个人看到的都是同一份完整记忆。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Pricing & Promo -->
+      <section class="xhh-pricing" id="pricing">
+        <div class="xhh-container">
+          <div class="xhh-pricing-head">
+            <h2 class="xhh-pricing-title">选择你的<span style="color:var(--xhh-gold);">陪伴方式</span></h2>
+            <p class="xhh-pricing-sub">免费体验核心功能，升级解锁完整记忆引擎</p>
+          </div>
+          <div class="xhh-price-toggle xhh-reveal" id="xhhPriceToggle">
+            <button class="active" data-period="monthly">月付</button>
+            <button data-period="yearly">年付 <span style="font-size:12px;opacity:0.8;">省 50%</span></button>
+          </div>
+          <div class="xhh-pricing-grid">
+            <!-- Free Plan -->
+            <div class="xhh-plan">
+              <div class="xhh-plan-name">免费版</div>
+              <div class="xhh-plan-price">
+                <span class="xhh-plan-num">0</span>
+                <span class="xhh-plan-unit">元 / 永久</span>
+              </div>
+              <div class="xhh-plan-orig" style="visibility:hidden;">.</div>
+              <ul class="xhh-plan-feat">
+                <li><i data-lucide="check"></i>AI 对话（每日 10 次）</li>
+                <li><i data-lucide="check"></i>健康打卡与趋势</li>
+                <li><i data-lucide="check"></i>1 只宠物档案</li>
+                <li><i data-lucide="check"></i>基础食物查询</li>
+              </ul>
+              <button class="xhh-plan-btn xhh-plan-btn-ghost">立即开始</button>
+            </div>
+            <!-- Pro Plan -->
+            <div class="xhh-plan xhh-plan-featured">
+              <span class="xhh-plan-badge">限时早鸟价</span>
+              <div class="xhh-plan-name">会员版</div>
+              <div class="xhh-plan-price" id="xhhProPrice">
+                <span class="xhh-plan-num" data-monthly="9.9" data-yearly="4.9">9.9</span>
+                <span class="xhh-plan-unit" id="xhhProUnit">元 / 月</span>
+              </div>
+              <div class="xhh-plan-orig" id="xhhProOrig">原价 19.9 元 / 月</div>
+              <ul class="xhh-plan-feat">
+                <li><i data-lucide="check"></i>AI 对话无限次</li>
+                <li><i data-lucide="check"></i>记忆引擎完整版</li>
+                <li><i data-lucide="check"></i>无限宠物与家庭维度</li>
+                <li><i data-lucide="check"></i>时光回忆录与全家福</li>
+                <li><i data-lucide="check"></i>取名引擎全部风格</li>
+                <li><i data-lucide="check"></i>主动健康提醒</li>
+              </ul>
+              <button class="xhh-plan-btn xhh-plan-btn-primary">升级会员</button>
+            </div>
+          </div>
+          <!-- Promo Banner -->
+          <div class="xhh-promo">
+            <div class="xhh-promo-icon">
+              <i data-lucide="gift"></i>
+            </div>
+            <div class="xhh-promo-text">
+              <div class="xhh-promo-title">限时活动：年卡直降 50%</div>
+              <div class="xhh-promo-desc">仅需 59 元 / 年，立省 60 元，再送 2 个月。活动截止 9 月 30 日。</div>
+            </div>
+            <span class="xhh-promo-tag">立即抢购</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. Final CTA -->
+      <section class="xhh-cta">
+        <div class="xhh-cta-bg"></div>
+        <div class="xhh-container">
+          <h2 class="xhh-cta-title">开始你和毛孩子的<span style="color:var(--xhh-gold);">星海之旅</span></h2>
+          <p class="xhh-cta-sub">微信扫码，立即体验</p>
+          <div class="xhh-cta-btns">
+            <button class="btn-primary">
+              <i data-lucide="message-circle" style="width:18px;height:18px;"></i>
+              微信体验
+            </button>
+            <div style="position:relative;">
+              <button class="btn-secondary">
+                <i data-lucide="smartphone" style="width:18px;height:18px;"></i>
+                App 即将上线
+              </button>
+              <span class="xhh-btn-tag">敬请期待</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. Footer -->
+      <footer class="xhh-footer">
+        <div class="xhh-container">
+          <div class="xhh-footer-grid">
+            <div class="xhh-footer-brand">
+              <a href="#" class="xhh-logo">
+                <i data-lucide="sparkles"></i>
+                <span>星寰海</span>
+              </a>
+              <p class="xhh-footer-tagline">
+                有记忆的 AI 宠物管家。聊宠物，AI 记得全部历史。健康打卡、时光回忆、家庭维度，一站式陪伴。
+              </p>
+            </div>
+            <div class="xhh-footer-col">
+              <h4>产品</h4>
+              <a href="#features">功能特色</a>
+              <a href="#product">产品体验</a>
+              <a href="#story">情感故事</a>
+              <a href="#">关于我们</a>
+            </div>
+            <div class="xhh-footer-col">
+              <h4>联系</h4>
+              <a href="#"><i data-lucide="mail"></i> hello@xinghuanhai.com</a>
+              <a href="#"><i data-lucide="message-circle"></i> 微信公众号</a>
+              <a href="#"><i data-lucide="github"></i> 开发者社区</a>
+            </div>
+          </div>
+          <div class="xhh-footer-bottom">
+            <div class="xhh-footer-copy">&copy; 2026 星寰海. 保留所有权利.</div>
+            <div class="xhh-footer-links">
+              <a href="#">隐私政策</a>
+              <a href="#">用户协议</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <!-- 返回顶部 -->
+      <button class="xhh-back-top" id="xhhBackTop" aria-label="返回顶部">
+        <i data-lucide="arrow-up" style="width:22px;height:22px;"></i>
+      </button>
+
+      <script>
+        (function() {
+          /* ===== 全屏星空 Canvas 动画 ===== */
+          var canvas = document.getElementById('xhhStarfield');
+          var ctx = canvas.getContext('2d');
+          var stars = [];
+          var shootingStars = [];
+          var w, h;
+
+          function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            stars = [];
+            var count = Math.min(180, Math.floor(w * h / 8000));
+            for (var i = 0; i < count; i++) {
+              stars.push({
+                x: Math.random() * w, y: Math.random() * h,
+                r: Math.random() * 1.5 + 0.3,
+                opacity: Math.random() * 0.6 + 0.2,
+                twinkleSpeed: Math.random() * 0.02 + 0.005,
+                twinklePhase: Math.random() * Math.PI * 2,
+                vx: (Math.random() - 0.5) * 0.05,
+                vy: (Math.random() - 0.5) * 0.05,
+                color: Math.random() > 0.7 ? '245,196,81' : '237,241,248'
+              });
+            }
+          }
+          resize();
+          window.addEventListener('resize', resize);
+
+          function spawnShootingStar() {
+            if (Math.random() > 0.015) return;
+            shootingStars.push({
+              x: Math.random() * w * 0.5 + w * 0.3,
+              y: Math.random() * h * 0.3,
+              len: Math.random() * 80 + 60,
+              speed: Math.random() * 6 + 4,
+              angle: Math.PI * 0.75,
+              opacity: 1
+            });
+          }
+
+          function animate() {
+            ctx.clearRect(0, 0, w, h);
+            /* 绘制星星 */
+            for (var i = 0; i < stars.length; i++) {
+              var s = stars[i];
+              s.twinklePhase += s.twinkleSpeed;
+              var alpha = s.opacity * (0.5 + 0.5 * Math.sin(s.twinklePhase));
+              s.x += s.vx; s.y += s.vy;
+              if (s.x < 0) s.x = w; if (s.x > w) s.x = 0;
+              if (s.y < 0) s.y = h; if (s.y > h) s.y = 0;
+              ctx.beginPath();
+              ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(' + s.color + ',' + alpha + ')';
+              ctx.fill();
+              if (s.r > 1) {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r * 2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(' + s.color + ',' + (alpha * 0.15) + ')';
+                ctx.fill();
+              }
+            }
+            /* 绘制流星 */
+            spawnShootingStar();
+            for (var j = shootingStars.length - 1; j >= 0; j--) {
+              var ss = shootingStars[j];
+              var tailX = ss.x + Math.cos(ss.angle) * ss.len;
+              var tailY = ss.y + Math.sin(ss.angle) * ss.len;
+              var grad = ctx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+              grad.addColorStop(0, 'rgba(255,255,255,' + ss.opacity + ')');
+              grad.addColorStop(0.3, 'rgba(245,196,81,' + (ss.opacity * 0.4) + ')');
+              grad.addColorStop(1, 'rgba(255,255,255,0)');
+              ctx.strokeStyle = grad;
+              ctx.lineWidth = 2;
+              ctx.lineCap = 'round';
+              ctx.beginPath();
+              ctx.moveTo(ss.x, ss.y);
+              ctx.lineTo(tailX, tailY);
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.arc(ss.x, ss.y, 2, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(255,255,255,' + ss.opacity + ')';
+              ctx.fill();
+              ss.x -= Math.cos(ss.angle) * ss.speed;
+              ss.y -= Math.sin(ss.angle) * ss.speed;
+              ss.opacity -= 0.008;
+              if (ss.opacity <= 0 || ss.x < -100 || ss.y > h + 100) shootingStars.splice(j, 1);
+            }
+            requestAnimationFrame(animate);
+          }
+          animate();
+
+          /* ===== 滚动进度条 ===== */
+          var progressBar = document.getElementById('xhhScrollProgress');
+
+          /* ===== 导航栏滚动效果 ===== */
+          var nav = document.getElementById('xhhNav');
+          var backTop = document.getElementById('xhhBackTop');
+          function onScroll() {
+            if (window.scrollY > 20) { nav.classList.add('scrolled'); } else { nav.classList.remove('scrolled'); }
+            if (window.scrollY > 400) { backTop.classList.add('show'); } else { backTop.classList.remove('show'); }
+            var scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            progressBar.style.width = scrollPercent + '%';
+          }
+          window.addEventListener('scroll', onScroll, { passive: true });
+          onScroll();
+
+          /* ===== 返回顶部 ===== */
+          backTop.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+
+          /* ===== 移动端菜单 ===== */
+          var menuBtn = document.getElementById('xhhMenuBtn');
+          var mobileMenu = document.getElementById('xhhMobileMenu');
+          menuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('open');
+          });
+          mobileMenu.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+          });
+
+          /* ===== 平滑滚动 ===== */
+          document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+              var href = this.getAttribute('href');
+              if (href.length > 1) {
+                var target = document.querySelector(href);
+                if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+              }
+            });
+          });
+
+          /* ===== 滚动渐显 ===== */
+          var revealObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('xhh-revealed');
+                revealObserver.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+          document.querySelectorAll('.xhh-section, .xhh-hero, .xhh-pricing, .xhh-cta, .xhh-reveal').forEach(function(el) {
+            revealObserver.observe(el);
+          });
+          /* 给 section 内部元素自动加 reveal */
+          document.querySelectorAll('.xhh-section-title, .xhh-section-sub, .xhh-eyebrow, .xhh-feature-row, .xhh-compare-grid, .xhh-phone-wrap, .xhh-pricing-grid, .xhh-promo, .xhh-cta-title, .xhh-cta-sub, .xhh-cta-btns').forEach(function(el) {
+            el.classList.add('xhh-reveal');
+            revealObserver.observe(el);
+          });
+
+          /* ===== 数字滚动动画 ===== */
+          function animateNumber(el, target, duration) {
+            var start = 0;
+            var startTime = null;
+            var isDecimal = target % 1 !== 0;
+            function step(timestamp) {
+              if (!startTime) startTime = timestamp;
+              var progress = Math.min((timestamp - startTime) / duration, 1);
+              var eased = 1 - Math.pow(1 - progress, 3);
+              var current = start + (target - start) * eased;
+              el.textContent = isDecimal ? current.toFixed(1) : Math.floor(current);
+              if (progress < 1) requestAnimationFrame(step);
+              else el.textContent = isDecimal ? target.toFixed(1) : target;
+            }
+            requestAnimationFrame(step);
+          }
+          var numberObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                var el = entry.target;
+                var target = parseFloat(el.getAttribute('data-target') || el.textContent);
+                el.setAttribute('data-target', target);
+                animateNumber(el, target, 1500);
+                numberObserver.unobserve(el);
+              }
+            });
+          }, { threshold: 0.5 });
+          document.querySelectorAll('.xhh-widget-num, .xhh-health-score, .xhh-plan-num').forEach(function(el) {
+            if (!isNaN(parseFloat(el.textContent))) { numberObserver.observe(el); }
+          });
+
+          /* ===== 趋势条动画 ===== */
+          var trendObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                var bars = entry.target.querySelectorAll('.xhh-trend-bar');
+                bars.forEach(function(bar, i) {
+                  setTimeout(function() { bar.classList.add('animated'); }, i * 100);
+                });
+                trendObserver.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.3 });
+          document.querySelectorAll('.xhh-trend-bars').forEach(function(el) { trendObserver.observe(el); });
+
+          /* ===== 手机演示对话动画 ===== */
+          var phoneChat = document.querySelector('.xhh-phone-chat');
+          if (phoneChat) {
+            var phoneBubbles = phoneChat.querySelectorAll('.xhh-phone-bubble');
+            var phoneQuick = phoneChat.querySelector('.xhh-phone-quick');
+            phoneBubbles.forEach(function(b) { b.style.opacity = '0'; b.style.transform = 'translateY(10px)'; b.style.transition = 'opacity 0.5s ease, transform 0.5s ease'; });
+            if (phoneQuick) { phoneQuick.style.opacity = '0'; phoneQuick.style.transition = 'opacity 0.5s ease'; }
+            var phoneObserver = new IntersectionObserver(function(entries) {
+              entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                  phoneBubbles.forEach(function(b, i) {
+                    setTimeout(function() { b.style.opacity = '1'; b.style.transform = 'translateY(0)'; }, i * 800);
+                  });
+                  if (phoneQuick) {
+                    setTimeout(function() { phoneQuick.style.opacity = '1'; }, phoneBubbles.length * 800 + 400);
+                  }
+                  phoneObserver.unobserve(entry.target);
+                }
+              });
+            }, { threshold: 0.3 });
+            phoneObserver.observe(phoneChat);
+          }
+
+          /* ===== 聊天演示选项交互 ===== */
+          document.querySelectorAll('.xhh-chat-option').forEach(function(opt) {
+            opt.addEventListener('click', function() {
+              var chatDemo = this.closest('.xhh-chat-demo');
+              if (!chatDemo) return;
+              var allOptions = chatDemo.querySelectorAll('.xhh-chat-option');
+              allOptions.forEach(function(o) { o.style.background = ''; o.style.color = ''; o.style.borderColor = ''; });
+              this.style.background = 'var(--xhh-gold)';
+              this.style.color = 'var(--xhh-background)';
+              this.style.borderColor = 'var(--xhh-gold)';
+            });
+          });
+
+          /* ===== 价格切换 ===== */
+          var toggle = document.getElementById('xhhPriceToggle');
+          if (toggle) {
+            var proNum = document.querySelector('#xhhProPrice .xhh-plan-num');
+            var proUnit = document.getElementById('xhhProUnit');
+            var proOrig = document.getElementById('xhhProOrig');
+            toggle.querySelectorAll('button').forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                toggle.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                var period = this.getAttribute('data-period');
+                if (period === 'yearly') {
+                  animateNumber(proNum, 4.9, 600);
+                  proUnit.textContent = '元 / 月（年付）';
+                  proOrig.textContent = '原价 19.9 元 / 月，年付立省 60 元';
+                } else {
+                  animateNumber(proNum, 9.9, 600);
+                  proUnit.textContent = '元 / 月';
+                  proOrig.textContent = '原价 19.9 元 / 月';
+                }
+              });
+            });
+          }
+
+          /* ===== FAQ 手风琴 ===== */
+          document.querySelectorAll('.xhh-faq-item').forEach(function(item) {
+            var q = item.querySelector('.xhh-faq-q');
+            q.addEventListener('click', function() {
+              var isOpen = item.classList.contains('open');
+              document.querySelectorAll('.xhh-faq-item').forEach(function(i) { i.classList.remove('open'); });
+              if (!isOpen) item.classList.add('open');
+            });
+          });
+
+          /* ===== 星星视差 + 滚动视差 ===== */
+          var heroStars = document.querySelectorAll('.xhh-star');
+          var heroBg = document.querySelector('.xhh-hero-bg');
+          document.querySelector('.xhh-hero').addEventListener('mousemove', function(e) {
+            var rect = this.getBoundingClientRect();
+            var x = (e.clientX - rect.left) / rect.width - 0.5;
+            var y = (e.clientY - rect.top) / rect.height - 0.5;
+            heroStars.forEach(function(star, i) {
+              var depth = (i + 1) * 4;
+              star.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth) + 'px)';
+            });
+            if (heroBg) { heroBg.style.transform = 'translate(' + (x * 8) + 'px, ' + (y * 8) + 'px)'; }
+          });
+
+          /* ===== 滚动视差效果 ===== */
+          var parallaxElements = document.querySelectorAll('[data-parallax-speed]');
+          window.addEventListener('scroll', function() {
+            var scrollY = window.scrollY;
+            parallaxElements.forEach(function(el) {
+              var speed = parseFloat(el.getAttribute('data-parallax-speed'));
+              el.style.transform = 'translateY(' + (scrollY * speed) + 'px)';
+            });
+          }, { passive: true });
+
+          /* ===== 浮动粒子生成 ===== */
+          var heroSection = document.querySelector('.xhh-hero');
+          if (heroSection) {
+            function createParticle() {
+              var p = document.createElement('div');
+              p.className = 'xhh-particle';
+              p.style.left = Math.random() * 100 + '%';
+              p.style.bottom = '0';
+              p.style.animation = 'xhh-particle-float ' + (Math.random() * 4 + 4) + 's ease-out forwards';
+              p.style.opacity = '0';
+              heroSection.appendChild(p);
+              setTimeout(function() { p.remove(); }, 8000);
+            }
+            setInterval(createParticle, 600);
+          }
+
+          /* ===== Hero 副标题打字效果 ===== */
+          var heroH2 = document.querySelector('.xhh-hero-h1');
+          if (heroH2) {
+            var fullText = heroH2.textContent;
+            heroH2.textContent = '';
+            heroH2.classList.add('xhh-typing-cursor');
+            var charIndex = 0;
+            function typeChar() {
+              if (charIndex < fullText.length) {
+                heroH2.textContent = fullText.slice(0, charIndex + 1);
+                charIndex++;
+                setTimeout(typeChar, 80);
+              } else {
+                setTimeout(function() { heroH2.classList.remove('xhh-typing-cursor'); }, 2000);
+              }
+            }
+            setTimeout(typeChar, 800);
+          }
+
+          /* ===== section 鼠标跟随光晕 ===== */
+          document.querySelectorAll('.xhh-section').forEach(function(section) {
+            section.addEventListener('mousemove', function(e) {
+              var rect = this.getBoundingClientRect();
+              var x = ((e.clientX - rect.left) / rect.width * 100);
+              var y = ((e.clientY - rect.top) / rect.height * 100);
+              this.style.setProperty('--mouse-x', x + '%');
+              this.style.setProperty('--mouse-y', y + '%');
+            });
+          });
+
+          /* ===== 猫狗互动游乐区（草地场景 · 视频状态机） ===== */
+          (function () {
+            var box = document.getElementById('xhhPlayBox');
+            if (!box) return;
+
+            var ball = document.getElementById('xhhPlayBall');
+            var videoIdle = document.getElementById('xhhVideoIdle');
+            var videoFetch = document.getElementById('xhhVideoFetch');
+            var soundBtn = document.getElementById('xhhSoundBtn');
+            var soundIcon = document.getElementById('xhhSoundIcon');
+
+            var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var soundOn = false;
+            var audioCtx = null;
+            var busy = false;
+
+            function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+            /* ---- 轻音效（Web Audio 合成，默认关闭） ---- */
+            function ensureAudio() {
+              if (!audioCtx) {
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+              }
+              if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
+            }
+            function tone(freq, endFreq, dur, type, vol) {
+              if (!soundOn || !audioCtx) return;
+              var t = audioCtx.currentTime;
+              var o = audioCtx.createOscillator();
+              var g = audioCtx.createGain();
+              o.type = type || 'sine';
+              o.frequency.setValueAtTime(freq, t);
+              o.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t + dur);
+              g.gain.setValueAtTime(vol || 0.08, t);
+              g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+              o.connect(g); g.connect(audioCtx.destination);
+              o.start(t); o.stop(t + dur + 0.02);
+            }
+            function playBounce() { tone(110, 68, 0.08, 'triangle', 0.07); }
+            function playBark() { tone(215, 125, 0.1, 'sawtooth', 0.06); setTimeout(function () { tone(185, 115, 0.12, 'sawtooth', 0.05); }, 95); }
+
+            soundBtn.addEventListener('click', function () {
+              soundOn = !soundOn;
+              soundBtn.classList.toggle('on', soundOn);
+              soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+              soundIcon.setAttribute('data-lucide', soundOn ? 'volume-2' : 'volume-x');
+              if (window.lucide) { lucide.createIcons(); }
+              if (soundOn) { ensureAudio(); }
+            });
+
+            /* ---- 视频就绪检查 ---- */
+            function checkReady() {
+              if (videoIdle && videoIdle.readyState >= 2) {
+                try { videoIdle.play(); } catch (e) {}
+              }
+            }
+            if (videoIdle) {
+              videoIdle.addEventListener('canplay', checkReady);
+              if (videoIdle.readyState >= 2) { checkReady(); }
+            }
+
+            /* ---- 球：狗身边起始 -> 草地落点 ---- */
+            var ballStartPct = { x: 55.5, y: 63.5 };
+            var ballLandPct = { x: 71, y: 74.5 };
+            function ballPx(pct) {
+              return {
+                x: clamp(pct.x / 100 * box.clientWidth - 13, 6, box.clientWidth - 32),
+                y: clamp(pct.y / 100 * box.clientHeight - 13, 6, box.clientHeight - 32)
+              };
+            }
+            function placeBall(pct) {
+              var p = ballPx(pct);
+              ball.style.left = p.x + 'px';
+              ball.style.top = p.y + 'px';
+            }
+            placeBall(ballStartPct);
+
+            /* ---- 抛球：抛物线飞向落点，再播放 fetch 视频 ---- */
+            function throwBall() {
+              if (busy || reduceMotion) return;
+              busy = true;
+              var from = ballPx(ballStartPct);
+              var to = ballPx(ballLandPct);
+              var peak = Math.min(from.y - box.clientHeight * 0.22, 30);
+              var t0 = performance.now(), dur = 620;
+              ball.classList.remove('hidden');
+              function frame(now) {
+                var t = Math.min(1, (now - t0) / dur);
+                var x = from.x + (to.x - from.x) * t;
+                var y = from.y + (to.y - from.y) * t - Math.sin(t * Math.PI) * (from.y - peak);
+                ball.style.left = x + 'px';
+                ball.style.top = y + 'px';
+                if (t < 1) { requestAnimationFrame(frame); }
+                else { finishThrow(); }
+              }
+              requestAnimationFrame(frame);
+            }
+            function finishThrow() {
+              playBounce();
+              ball.classList.add('hidden');
+              playFetch();
+            }
+
+            /* ---- fetch 视频播放与回切 ---- */
+            function playFetch() {
+              if (reduceMotion || !videoFetch) { resetIdle(); return; }
+              box.classList.add('showing-fetch');
+              var done = false;
+              function onEnded() { if (!done) { done = true; finishFetch(); } }
+              videoFetch.addEventListener('ended', onEnded, { once: true });
+              try {
+                videoFetch.currentTime = 0;
+                var p = videoFetch.play();
+                if (p && p.catch) { p.catch(function () { if (!done) { done = true; resetIdle(); setTimeout(function () { busy = false; }, 300); } }); }
+              } catch (e) {
+                if (!done) { done = true; resetIdle(); setTimeout(function () { busy = false; }, 300); }
+              }
+              setTimeout(function () { if (!done && busy) { done = true; finishFetch(); } }, 7000);
+            }
+            function finishFetch() {
+              playBark();
+              resetIdle();
+              setTimeout(function () { busy = false; }, 400);
+            }
+            function resetIdle() {
+              box.classList.remove('showing-fetch');
+              if (videoFetch) { try { videoFetch.pause(); } catch (e) {} }
+              if (videoIdle) {
+                try { videoIdle.currentTime = 0; videoIdle.play(); } catch (e) {}
+              }
+              ball.classList.remove('hidden');
+              placeBall(ballStartPct);
+            }
+
+            /* ---- 点击草地抛球 ---- */
+            box.addEventListener('pointerdown', function (e) {
+              if (e.pointerType === 'mouse' && e.button !== 0) return;
+              var t = e.target;
+              if (t.closest('.xhh-sound-btn, .xhh-play-hint')) return;
+              throwBall();
+            });
+
+            /* ---- 视口内才运转 ---- */
+            var visible = true;
+            if ('IntersectionObserver' in window) {
+              new IntersectionObserver(function (entries) {
+                visible = entries[0].isIntersecting;
+                if (!visible && videoIdle) { try { videoIdle.pause(); } catch (e) {} }
+                else if (visible && !busy && videoIdle) { try { videoIdle.play(); } catch (e) {} }
+              }, { threshold: 0.08 }).observe(box);
+            }
+
+            window.addEventListener('resize', function () { placeBall(ballStartPct); });
+
+            checkReady();
+          })();
+
+          /* ===== 重新初始化 Lucide 图标 ===== */
+          lucide.createIcons();
+        })();
+      </script>
+    </main>
+</body>
+</html>

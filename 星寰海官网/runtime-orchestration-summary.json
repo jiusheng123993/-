@@ -1,0 +1,564 @@
+{
+  "project": {
+    "projectName": "星寰海官网",
+    "designProjectPath": "e:\\星寰海\\星寰海官网",
+    "deviceType": "desktop",
+    "resolvedLane": "free_exploration",
+    "selectedIntentWorkflowRead": true,
+    "intentProfile": {
+      "caseFamily": "free_exploration",
+      "routingReason": "No existing .design project, no Design Library, no restore target, open-ended website creation for 星寰海 pet companion product. User requested starry ocean dream + Q版 cute style.",
+      "operatingMode": "free-explore"
+    },
+    "contextRequirementsLoaded": [
+      {
+        "path": "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/page-rendering-quality-gate.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/design-artifact-validation.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/delivery-evidence-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-experience-guidelines.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-showcase-patterns.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      }
+    ],
+    "contextReadScope": {
+      "mainAgent": {
+        "forbiddenReads": [
+          "other intent-workflows/**",
+          "Sub-Agent implementation files before dispatch"
+        ]
+      },
+      "pageSubAgent": {
+        "allowedReads": [
+          "current lane page runtime guide",
+          "current lane dispatch contract excerpt",
+          "current Page Packet",
+          "supplementaryReads[] only"
+        ],
+        "forbiddenReads": [
+          "SKILL.md full re-read",
+          "other intent-workflows/**",
+          "full runtime-orchestration-summary.json unless explicitly sliced"
+        ]
+      },
+      "readScopeLedgerWriter": "shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs"
+    },
+    "validationRunDiscipline": {
+      "maxFullValidationRuns": 2,
+      "softWarningsTriggerRepair": false,
+      "blockingRepairMode": "targeted-once",
+      "forbiddenRepairTriggers": [
+        "soft-warning-only",
+        "provenance-warning-only",
+        "style-warning-only"
+      ]
+    },
+    "lowValueCallWatchdog": {
+      "applies": true,
+      "noProgressSignals": [
+        "no_tool_call",
+        "no_artifact_diff",
+        "no_structured_decision"
+      ],
+      "noProgressNextAction": "enter_readiness_or_blocked_summary"
+    },
+    "cssPreflightEvidence": {
+      "applies": true,
+      "status": "passed",
+      "command": "node c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\.preflight\\preflight.html\" --title=\"Preflight\" --lang=zh-CN --prefix=xhh",
+      "brandPrefix": "xhh",
+      "checks": {
+        "themeVars": "present",
+        "semanticTokenFallback": "present",
+        "themeInline": "present",
+        "tailwindCdn": "present",
+        "htmlClass": "present",
+        "semanticMappings": "resolved"
+      },
+      "retryCount": 0,
+      "blockingReason": null
+    },
+    "creativeRecipe": {
+      "businessTone": "warm-tech-pet-companion",
+      "layoutArchetype": "P-5 Phone Stage adapted + Editorial rhythm sections",
+      "visualSignature": "Deep navy starry ocean background with warm gold starlight, Q版 cute pet illustrations, rounded soft shapes",
+      "densityTarget": "balanced",
+      "avoidOneThing": "generic SaaS landing page with 3 equal feature cards and neon gradients"
+    },
+    "dispatchPreflightManifest": [
+      {
+        "recorded_at": "2026-08-05T06:56:00.788Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "FreePagePacket",
+        "laneContract": {
+          "resolvedLane": "free_exploration",
+          "packetType": "FreePagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-page-free-exploration/free-exploration-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-page-free-exploration/dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-page-free-exploration/free-exploration-page-runtime.md",
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/index.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/index.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design",
+          "deterministicToolDir": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-design-workspace.mjs",
+            "validateFinishReadiness": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs",
+            "validateRestoreContract": "c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\星寰海官网\" --node-id=\"page-index\" --html-src=\"pages/index.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "e:\\星寰海\\星寰海官网\\colors_and_type.css",
+        "htmlFilePath": "e:\\星寰海\\星寰海官网\\pages\\index.html",
+        "brandPrefix": "xhh",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\pages\\index.html\" --title=\"星寰海 · 有记忆的AI宠物管家\" --lang=\"zh-CN\" --prefix=\"xhh\"",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "document-scroll",
+        "completionSchemaExpected": "compact",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "星寰海官网.design": "e1c830304d154e716278851baaee85de8b41d0e1cb063de4a063121ceb0c7e7b"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-page-free-exploration/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md",
+            "visual-experience/visual-experience-guidelines.md"
+          ],
+          "optionalContextFiles": [],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": false,
+          "appliesToThisPage": false,
+          "canonicalHtmlIncluded": false,
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      }
+    ],
+    "readScopeLedger": [
+      {
+        "actor": "page-sub-agent",
+        "lane": "free_exploration",
+        "path": "intent-workflows/intent-page-free-exploration/free-exploration-page-runtime.md",
+        "reason": "page runtime guide",
+        "scopeClass": "page-runtime",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-08-05T06:56:00.788Z",
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "free_exploration",
+        "path": "intent-workflows/intent-page-free-exploration/dispatch-contract.md",
+        "reason": "dispatch contract",
+        "scopeClass": "dispatch-contract",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-08-05T06:56:00.788Z",
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html"
+      }
+    ],
+    "expectedDispatches": [
+      {
+        "nodeId": "page-index",
+        "pageId": "page-index",
+        "targetPageId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "packetType": "FreePagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/index.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "main-agent-post-dispatch-mutation-pricing-replace-v2",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-05T07:19:56.161Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ],
+    "mainAgentPostDispatchMutations": [
+      {
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "mutationType": "section-replace",
+        "reason": "User requested removing market data KPI strip (宠物经济市场规模等) and replacing with member pricing plans + promotional activity banner",
+        "changedFiles": [
+          "pages/index.html",
+          "星寰海官网.design"
+        ],
+        "mutatedRegions": [
+          "KPI strip section replaced with pricing plans and promo banner",
+          "星寰海官网.design layoutSnapshot updated to reflect post-pricing content height"
+        ],
+        "recordedAt": "2026-08-05T07:20:00.000Z",
+        "source": "main-agent-direct-edit"
+      },
+      {
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "mutationType": "hero-scene-fix",
+        "reason": "User reported hero background was removed. Root cause: cat/dog overlay JPG layers (mix-blend screen) covered the original scene and .xhh-hero-base lacked object-fit cover. Fix: keep hero-pet.jpg as the full base scene, remove the two broken layer images, add CSS/SVG micro-animations overlaid on the original pets (4 blinking eyes at detected positions + golden dog tail wag + orange cat tail swish), verified via paused-animation screenshot diffs (background unchanged, overlay regions correct, animations running).",
+        "changedFiles": [
+          "pages/index.html",
+          "星寰海官网.design",
+          "assets/hero-cat-layer.jpg (deleted)",
+          "assets/hero-dog-layer.jpg (deleted)"
+        ],
+        "mutatedRegions": [
+          "hero scene: base image fix, layer removal, pet eye blink overlays, dog/cat tail animations",
+          "星寰海官网.design: removed image-002/image-003 layer nodes"
+        ],
+        "recordedAt": "2026-08-05T08:58:00.000Z",
+        "source": "main-agent-direct-edit"
+      },
+      {
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "mutationType": "hero-scene-fix-v2",
+        "reason": "User feedback: added SVG tails and dark eye overlays looked fake ('不伦不类'), original pets did not move. Root cause: no separable real tail exists in the visible scene; previous overlays used wrong colors. Fix: removed ALL synthetic overlays; added real-pixel eyelid blinks using fur colors sampled directly from hero-pet.jpg (cat eyes A1/A2 = orange #feb169/#f5b475, dog eyes B1/B2 = cream #fed3a0/#fdd29b), synchronized per face, verified closed-state lids exactly match surrounding fur and blink cycles confirmed live (scaleY 0.045->1->0.045); added subtle group breathing (scale 1.012). All assets remain hero-pet.jpg only; .design unchanged.",
+        "changedFiles": [
+          "pages/index.html"
+        ],
+        "mutatedRegions": [
+          "hero scene overlays: removed fake eyes/tails, added fur-color eyelid blinks + group breathe"
+        ],
+        "recordedAt": "2026-08-05T09:12:00.000Z",
+        "source": "main-agent-direct-edit"
+      },
+      {
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "mutationType": "hero-animated-gif",
+        "reason": "User asked for direct animated output (动图). Used Seedance image-to-video with hero-pet.jpg as first frame to generate a 4s 720p video of the original cat/dog blinking and tail-wagging with locked camera; converted to optimized GIF (640px, 8fps, palette-optimized, 2.8MB). Replaced static hero image with the GIF; removed all CSS eyelid/blink overlay code and the unused eyes-closed AI variant. Registered hero-pet-anim.gif on canvas; kept hero-pet-anim.mp4 as source asset. Verified in browser: GIF loops and pet regions show real motion.",
+        "changedFiles": [
+          "pages/index.html",
+          "星寰海官网.design",
+          "assets/hero-pet-anim.gif (new)",
+          "assets/hero-pet-anim.mp4 (new)",
+          "assets/hero-pet-eyes-closed.jpg (deleted)"
+        ],
+        "mutatedRegions": [
+          "hero scene: static img replaced by animated GIF, lid overlays removed",
+          "星寰海官网.design: added image-002 GIF node"
+        ],
+        "recordedAt": "2026-08-05T09:24:00.000Z",
+        "source": "main-agent-direct-edit"
+      },
+      {
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "mutationType": "playground-section",
+        "reason": "User requested adding interactive cat/dog play area to the site (previously only hero image was dynamic). After discussion agreed: standalone play section between product and story, full fetch-ball loop for dog, Q-style SVG characters, no scoring, optional sound (default off), single persistent ball. Implemented: Q版 gold-retriever + orange cat SVG scene, ball with parabola physics + bounce, dog state machine (idle/run/pick/carry/return/drop), draggable cat teaser with head-follow + pounce, Web Audio synth sounds (default muted), IntersectionObserver perf gating, prefers-reduced-motion fallback, touch + mouse support, responsive 520px/400px. Verified in browser: throw->fetch loop, teaser drag->pounce, mobile touch throw all working.",
+        "changedFiles": [
+          "pages/index.html"
+        ],
+        "mutatedRegions": [
+          "added #play playground section (HTML+CSS+JS), nav links updated",
+          "interactive-styles: play area styles",
+          "main script: play area JS module"
+        ],
+        "recordedAt": "2026-08-05T09:50:00.000Z",
+        "source": "main-agent-direct-edit"
+      },
+      {
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "mutationType": "grass-scene-rework",
+        "reason": "User feedback: pets should be on grassland not water; whole-site background should match. Generated grass-version hero (image-to-image from original: same cat/dog, water -> green meadow, verified pet centroid stable + green 0%->47.7%), regenerated hero animation GIF + play-area idle/fetch video clips from grass first-frame (verified idle stable, fetch dog moves). Replaced Q-style SVG playground with video-state-machine playground: static grass background + looping idle video + click-to-throw ball then fetch clip plays and returns to idle (verified full loop in browser). Whole-site body background now layered grass scene + green-tinted gradient; theme background token adjusted. Deleted water-version assets and stale preview files; .design re-registered to grass assets.",
+        "changedFiles": [
+          "pages/index.html",
+          "星寰海官网.design",
+          "assets/hero-pet-grass.jpg (new)",
+          "assets/hero-grass-anim.gif (new)",
+          "assets/hero-grass-anim.mp4 (new)",
+          "assets/grass-idle.mp4 (new)",
+          "assets/grass-fetch.mp4 (new)",
+          "assets/hero-pet.jpg (deleted)",
+          "assets/hero-pet-anim.gif/mp4, play-*, preview-* (deleted)"
+        ],
+        "mutatedRegions": [
+          "hero scene: water GIF -> grass GIF",
+          "playground: SVG pets -> grass scene + video state machine (idle/fetch)",
+          "body background: grass scene overlay + green gradient, --xhh-background token updated",
+          "星寰海官网.design: image nodes -> grass assets"
+        ],
+        "recordedAt": "2026-08-05T12:06:00.000Z",
+        "source": "main-agent-direct-edit"
+      },
+      {
+        "path": "星寰海官网.design",
+        "reason": "Post-dispatch layoutSnapshot update for pricing section replacement",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-05T07:19:56.161Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ],
+    "validationHistory": [
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "b62cd67af4cbab5102edf12719cbb8d80853a4632cf7cce5ac7190826b96ebe9",
+        "checkedAt": "2026-08-05T07:13:21.582Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 1,
+        "repairPlanHints": [
+          "hardcoded-color-in-body"
+        ],
+        "errorSignatures": [
+          {
+            "errorClass": "artifact-readiness",
+            "normalized": "[dispatch-changed-files] pages/index.html: controlled file changed after dispatch preflight without mainAgentPostDispatchMutations evidence: 星寰海官网.design",
+            "signature": "d3d0dfa56a12e245ab8abff7c4da5965118e210ab2e475fc14d03f1008686ca3"
+          }
+        ],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "0fab2bbc93b678f2d3c7297225e7840fb1c0d2fcce59c6601328b91ad08efdbc",
+        "checkedAt": "2026-08-05T07:20:05.357Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [
+          "hardcoded-color-in-body"
+        ],
+        "errorSignatures": [],
+        "terminalState": null
+      }
+    ],
+    "validationRepairLedger": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "b62cd67af4cbab5102edf12719cbb8d80853a4632cf7cce5ac7190826b96ebe9",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-08-05T07:13:51.780Z",
+        "repairEntryStatus": "revalidated-success",
+        "ownerTriage": [
+          {
+            "owner": "sub-agent",
+            "errorClass": "hardcoded-color-in-body",
+            "affectedFiles": [
+              "index.html"
+            ],
+            "repairScope": "targeted-token-replace",
+            "strategy": "targeted_token_replace_once"
+          }
+        ],
+        "repairPlanHints": [
+          {
+            "errorClass": "hardcoded-color-in-body",
+            "owner": "sub-agent",
+            "repairScope": "targeted-token-replace",
+            "strategy": "targeted_token_replace_once",
+            "affectedFiles": [
+              "index.html"
+            ],
+            "repairReportPath": null,
+            "repairAlreadyAttempted": false,
+            "allowSourceRead": "no-full-html-read",
+            "maxValidationRuns": 2
+          }
+        ],
+        "repairActions": [
+          {
+            "owner": "main-agent",
+            "errorClass": "artifact-readiness",
+            "affectedFiles": [
+              "星寰海官网.design"
+            ],
+            "action": "repair_design_registration_or_file_reference_only",
+            "observedFileHashes": [
+              {
+                "path": "星寰海官网.design",
+                "hash": "dfef970b03a3217249a843a5ed0c96948702735f8d94a73518c1adc325a55fdc"
+              }
+            ],
+            "preEditFileHashes": [],
+            "postEditFileHashes": [],
+            "repairOwnedFields": [
+              "artifact-readiness"
+            ],
+            "recordedAt": "2026-08-05T07:18:14.283Z",
+            "repairActionTableRequired": true
+          }
+        ],
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "0fab2bbc93b678f2d3c7297225e7840fb1c0d2fcce59c6601328b91ad08efdbc",
+        "revalidationSuccess": true,
+        "blockedReason": null,
+        "revalidationRecordedAt": "2026-08-05T07:20:33.718Z"
+      }
+    ],
+    "repairEntryEvidence": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "b62cd67af4cbab5102edf12719cbb8d80853a4632cf7cce5ac7190826b96ebe9",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-08-05T07:13:51.780Z",
+        "ledgerIndex": 0,
+        "ownerTriageCount": 1,
+        "repairActionCount": 1,
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "0fab2bbc93b678f2d3c7297225e7840fb1c0d2fcce59c6601328b91ad08efdbc",
+        "revalidationSuccess": true
+      }
+    ]
+  },
+  "pages": [
+    {
+      "nodeId": "page-index",
+      "htmlSrc": "pages/index.html",
+      "title": "星寰海 · 有记忆的AI宠物管家",
+      "pageType": "showcase",
+      "deviceType": "desktop",
+      "viewportMode": "document-scroll",
+      "writeMode": "SectionPlanThenWrite",
+      "cssPath": "colors_and_type.css",
+      "brandPrefix": "xhh",
+      "fillHtmlHeadCommand": "node c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\pages\\index.html\" --title=\"星寰海 · 有记忆的AI宠物管家\" --lang=zh-CN --prefix=xhh",
+      "cssPreflightStatus": "passed",
+      "assets": [
+        "assets/hero-pet.jpg"
+      ],
+      "domIdsRequired": [],
+      "qualityRisks": [
+        "dark-theme-contrast",
+        "showcase-anti-slop",
+        "phone-mock-layout-stability"
+      ],
+      "sections": [
+        "nav",
+        "hero-phone-stage",
+        "memory-engine-core",
+        "feature-editorial-rhythm",
+        "product-phone-mockup",
+        "emotional-story",
+        "stats-kpi-strip",
+        "final-cta",
+        "footer"
+      ]
+    }
+  ],
+  "dispatchPreflightManifest": [
+    {
+      "nodeId": "page-index",
+      "packetType": "FreePagePacket",
+      "pageRuntimeGuide": "intent-workflows/intent-page-free-exploration/free-exploration-page-runtime.md",
+      "dispatchContract": "intent-workflows/intent-page-free-exploration/dispatch-contract.md",
+      "toolPolicy": {
+        "todoWriteAllowed": false,
+        "validationScriptsAllowed": false,
+        "previewAllowed": false,
+        "helperScriptsAllowed": false,
+        "designFileWriteAllowed": false,
+        "allowedWritePaths": [
+          "pages/index.html"
+        ]
+      }
+    }
+  ],
+  "expectedDispatches": [
+    {
+      "nodeId": "page-index",
+      "packetType": "FreePagePacket",
+      "status": "pending",
+      "changedFiles": [],
+      "toolCallLedger": {
+        "todoWriteCalls": 0,
+        "previewCalls": 0,
+        "validationScriptCalls": 0,
+        "helperScriptWrites": 0
+      }
+    }
+  ]
+}

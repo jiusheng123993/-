@@ -47,15 +47,15 @@
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
-          "contentHeight": 1682,
-          "viewportWidth": 374,
+          "contentHeight": 1665,
+          "viewportWidth": 867,
           "sourceHash": "fnv1a-67f1af8d",
-          "measuredAt": 1785951731059
+          "measuredAt": 1785987466761
         },
         "deviceType": "freeSize",
         "windowSize": {
-          "width": 374,
-          "height": 1752
+          "width": 867,
+          "height": 1382
         }
       },
       "devMetadata": {
@@ -94,15 +94,15 @@
         "group": 0,
         "layoutSnapshot": {
           "version": 1,
-          "contentHeight": 1081,
-          "viewportWidth": 415,
+          "contentHeight": 1062,
+          "viewportWidth": 867,
           "sourceHash": "fnv1a-8195f66f",
-          "measuredAt": 1785932279602
+          "measuredAt": 1785987466761
         },
         "deviceType": "freeSize",
         "windowSize": {
-          "width": 415,
-          "height": 963
+          "width": 867,
+          "height": 1046
         }
       },
       "devMetadata": {
@@ -165,14 +165,14 @@
         "layoutSnapshot": {
           "version": 1,
           "contentHeight": 1435,
-          "viewportWidth": 415,
+          "viewportWidth": 785,
           "sourceHash": "fnv1a-c629bb04",
-          "measuredAt": 1785954617845
+          "measuredAt": 1785987466761
         },
         "deviceType": "freeSize",
         "windowSize": {
-          "width": 415,
-          "height": 1241
+          "width": 785,
+          "height": 1282
         }
       },
       "devMetadata": {
@@ -310,14 +310,14 @@
         "layoutSnapshot": {
           "version": 1,
           "contentHeight": 1357,
-          "viewportWidth": 374,
+          "viewportWidth": 826,
           "sourceHash": "fnv1a-3956b659",
-          "measuredAt": 1785948532694
+          "measuredAt": 1785987466761
         },
         "deviceType": "freeSize",
         "windowSize": {
-          "width": 374,
-          "height": 1392
+          "width": 826,
+          "height": 1145
         }
       },
       "devMetadata": {
@@ -351,20 +351,20 @@
       "version": 1,
       "createdAt": 1785941167201,
       "canvasData": {
-        "x": 1272,
+        "x": 1188,
         "y": 532,
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
-          "width": 374,
-          "height": 812
+          "width": 662,
+          "height": 813
         },
         "layoutSnapshot": {
           "version": 1,
           "contentHeight": 1358,
-          "viewportWidth": 374,
+          "viewportWidth": 662,
           "sourceHash": "fnv1a-92fb315d",
-          "measuredAt": 1785951731059
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
@@ -495,16 +495,16 @@
         "htmlSrc": "pages/memoir.html",
         "interactions": [
           {
-            "domId": "product-vlog",
-            "targetPageId": "page-memoir",
-            "hideEdge": true,
-            "transitionLabel": "纪念Vlog"
-          },
-          {
             "domId": "product-daily",
-            "targetPageId": "page-memoir",
+            "targetPageId": "page-memoir-daily",
             "hideEdge": true,
             "transitionLabel": "日常回忆录"
+          },
+          {
+            "domId": "product-vlog",
+            "targetPageId": "page-memoir-vlog",
+            "hideEdge": true,
+            "transitionLabel": "纪念Vlog"
           }
         ]
       }
@@ -1103,10 +1103,10 @@
         },
         "layoutSnapshot": {
           "version": 1,
-          "contentHeight": 1071,
+          "contentHeight": 1136,
           "viewportWidth": 374,
-          "sourceHash": "fnv1a-1862fedb",
-          "measuredAt": 1785954617845
+          "sourceHash": "fnv1a-c1d3411f",
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
@@ -1117,6 +1117,12 @@
             "targetPageId": "page-ai-chat",
             "hideEdge": true,
             "transitionLabel": "附近医院"
+          },
+          {
+            "domId": "chat-breed-entry",
+            "targetPageId": "page-breed",
+            "hideEdge": true,
+            "transitionLabel": "品种百科"
           }
         ]
       }
@@ -1364,24 +1370,6 @@
             "targetPageId": "page-timeline",
             "hideEdge": true,
             "transitionLabel": "记忆·时光线"
-          },
-          {
-            "domId": "cta-ai-chat",
-            "targetPageId": "page-ai-chat",
-            "hideEdge": true,
-            "transitionLabel": "AI 对话"
-          },
-          {
-            "domId": "shortcut-checkin",
-            "targetPageId": "page-checkin",
-            "hideEdge": true,
-            "transitionLabel": "健康打卡"
-          },
-          {
-            "domId": "shortcut-memoir",
-            "targetPageId": "page-memoir",
-            "hideEdge": true,
-            "transitionLabel": "宠物回忆录"
           }
         ]
       }
@@ -1400,11 +1388,31 @@
         "windowSize": {
           "width": 374,
           "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1379,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-f723085b",
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
         "htmlSrc": "pages/breed.html",
-        "interactions": []
+        "interactions": [
+          {
+            "domId": "breed-ai-scan",
+            "targetPageId": "page-breed",
+            "hideEdge": true,
+            "transitionLabel": "AI 拍照识别"
+          },
+          {
+            "domId": "breed-scan-modal",
+            "targetPageId": "page-breed",
+            "hideEdge": true,
+            "transitionLabel": "识别结果"
+          }
+        ]
       }
     },
     {
@@ -1419,13 +1427,27 @@
         "group": 0,
         "deviceType": "freeSize",
         "windowSize": {
-          "width": 374,
-          "height": 812
+          "width": 703,
+          "height": 813
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1086,
+          "viewportWidth": 703,
+          "sourceHash": "fnv1a-98e14a71",
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
         "htmlSrc": "pages/add-pet.html",
-        "interactions": []
+        "interactions": [
+          {
+            "domId": "add-pet-save",
+            "targetPageId": "page-pet-profile",
+            "hideEdge": true,
+            "transitionLabel": "保存·进入档案"
+          }
+        ]
       }
     },
     {
@@ -1442,11 +1464,37 @@
         "windowSize": {
           "width": 374,
           "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1333,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-981cda47",
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
         "htmlSrc": "pages/hospital.html",
-        "interactions": []
+        "interactions": [
+          {
+            "domId": "hospital-call-1",
+            "targetPageId": "page-hospital",
+            "hideEdge": true,
+            "transitionLabel": "电话"
+          },
+          {
+            "domId": "hospital-nav-1",
+            "targetPageId": "page-hospital",
+            "hideEdge": true,
+            "transitionLabel": "导航"
+          },
+          {
+            "domId": "hospital-emergency-tip",
+            "targetPageId": "page-hospital",
+            "hideEdge": true,
+            "transitionLabel": "急救电话"
+          }
+        ]
       }
     },
     {
@@ -1463,11 +1511,25 @@
         "windowSize": {
           "width": 374,
           "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 1529,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-e5c46c32",
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
         "htmlSrc": "pages/memoir-daily.html",
-        "interactions": []
+        "interactions": [
+          {
+            "domId": "md-generate",
+            "targetPageId": "page-memoir-daily",
+            "hideEdge": true,
+            "transitionLabel": "AI 生成回忆录"
+          }
+        ]
       }
     },
     {
@@ -1484,11 +1546,25 @@
         "windowSize": {
           "width": 374,
           "height": 812
+        },
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 2313,
+          "viewportWidth": 374,
+          "sourceHash": "fnv1a-428b4a4a",
+          "measuredAt": 1785987466761
         }
       },
       "devMetadata": {
         "htmlSrc": "pages/memoir-vlog.html",
-        "interactions": []
+        "interactions": [
+          {
+            "domId": "mv-pay",
+            "targetPageId": "page-memoir-vlog",
+            "hideEdge": true,
+            "transitionLabel": "确认生成"
+          }
+        ]
       }
     }
   ],
