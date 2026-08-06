@@ -6,6 +6,7 @@ import { useThemeStore } from './stores/themeStore'
 import { usePetStore } from './stores/petStore'
 import { useThemeClass } from './hooks/useThemeClass'
 import { wsClient } from './services/wsClient'
+import { PENDING_INVITE_CODE_KEY } from './services/shareService'
 import { isWeapp } from './platform'
 import './app.scss'
 
@@ -46,6 +47,18 @@ export default function App({ children }: any) {
             },
           })
         })
+      }
+
+      // 记录启动参数携带的邀请码，登录成功后由 authStore 消费建立推荐关系（邀请裂变）
+      try {
+        const launchOptions = Taro.getLaunchOptionsSync()
+        const query = (launchOptions && (launchOptions as any).query) || {}
+        const inviteCode = typeof query.inviteCode === 'string' ? query.inviteCode.trim() : ''
+        if (inviteCode) {
+          Taro.setStorageSync(PENDING_INVITE_CODE_KEY, inviteCode)
+        }
+      } catch {
+        // 读取启动参数失败不阻塞启动
       }
 
       useThemeStore.getState().loadTheme()

@@ -125,6 +125,27 @@ export async function processReferral(
   }
 }
 
+/** 待处理邀请码的本地存储 key（启动参数带入，登录成功后消费） */
+export const PENDING_INVITE_CODE_KEY = 'xhh_pending_invite_code'
+
+/**
+ * 登录成功后消费待处理邀请码，建立推荐关系（邀请裂变链路）
+ * @param userId - 当前登录用户 ID
+ */
+export async function processPendingReferral(userId: string): Promise<void> {
+  try {
+    const code = Taro.getStorageSync(PENDING_INVITE_CODE_KEY)
+    if (!code || typeof code !== 'string') return
+    // 仅在服务端确认建立推荐关系后清除；网络失败（processReferral 返回 false）保留供下次重试
+    const ok = await processReferral(code, userId)
+    if (ok) {
+      Taro.removeStorageSync(PENDING_INVITE_CODE_KEY)
+    }
+  } catch {
+    // 处理失败保留邀请码，下次登录再试
+  }
+}
+
 export function getLocalShareHistory(): ShareRecord[] {
   return Taro.getStorageSync(SHARE_HISTORY_KEY) || [];
 }

@@ -37,6 +37,7 @@ import {
   recordShare,
   getShareStats,
   processReferral,
+  processPendingReferral,
   getLocalShareHistory,
   clearLocalShareHistory,
 } from '../shareService'
@@ -199,6 +200,35 @@ describe('shareService', () => {
       clearLocalShareHistory()
       expect(memoryStore.has('xhh_share_history')).toBe(false)
       expect(getLocalShareHistory()).toEqual([])
+    })
+  })
+
+  describe('processPendingReferral', () => {
+    it('存在待处理邀请码时调用 processReferral 并清除', async () => {
+      memoryStore.set('xhh_pending_invite_code', 'ABC123')
+      mockApiPost.mockResolvedValue({})
+
+      await processPendingReferral('user-1')
+
+      expect(mockApiPost).toHaveBeenCalledWith('/api/referrals/process', {
+        invite_code: 'ABC123',
+        invitee_id: 'user-1',
+      })
+      expect(memoryStore.get('xhh_pending_invite_code')).toBeUndefined()
+    })
+
+    it('无待处理邀请码时不发起请求', async () => {
+      await processPendingReferral('user-1')
+      expect(mockApiPost).not.toHaveBeenCalled()
+    })
+
+    it('处理失败时保留邀请码供下次重试', async () => {
+      memoryStore.set('xhh_pending_invite_code', 'ABC123')
+      mockApiPost.mockRejectedValue(new Error('network error'))
+
+      await processPendingReferral('user-1')
+
+      expect(memoryStore.get('xhh_pending_invite_code')).toBe('ABC123')
     })
   })
 })

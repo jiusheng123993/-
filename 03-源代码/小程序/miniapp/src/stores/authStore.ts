@@ -9,6 +9,7 @@ import { api } from '../services/api'
 import { storage } from '../utils/storage'
 import { wsClient } from '../services/wsClient'
 import { getLoginCode, loginWithPhone, API_BASE_URL } from '../platform'
+import { processPendingReferral } from '../services/shareService'
 import {
   setStorageUserId,
   getStorage,
@@ -49,11 +50,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const user = storage.getUser()
         if (user) {
           set({ user, token, isAuthenticated: true, isInitialized: true, isLoading: false })
+          // 已登录用户打开邀请链接时同样消费待处理邀请码
+          void processPendingReferral(user.id)
           return
         }
         const freshUser = await api.getUser()
         storage.setUser(freshUser)
         set({ user: freshUser, token, isAuthenticated: true, isInitialized: true, isLoading: false })
+        void processPendingReferral(freshUser.id)
         return
       }
     } catch {
@@ -77,6 +81,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       storage.setRefreshToken(res.refreshToken)
       storage.setUser(res.user)
       set({ user: res.user, token: res.token, isAuthenticated: true, isLoading: false })
+      // 登录成功后消费启动时记录的邀请码，建立推荐关系
+      void processPendingReferral(res.user.id)
     } catch (err) {
       set({ isLoading: false })
       throw err
@@ -102,6 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       })
+      void processPendingReferral(result.user.id)
     } catch (err) {
       set({ isLoading: false })
       throw err
