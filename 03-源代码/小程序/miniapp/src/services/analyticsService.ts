@@ -24,6 +24,9 @@ const FLUSH_THRESHOLD = 20
 
 const pageTimers: Map<string, number> = new Map()
 
+// 上报单飞标志：防止阈值连发时多个 flush 并发，导致基于过期队列计数互相清空
+let flushing = false
+
 function getUserId(): string | undefined {
   try {
     const user = Taro.getStorageSync('xhh_user')
@@ -62,9 +65,23 @@ export function trackEvent(
 
 export async function flushEvents(): Promise<void> {
   const queue = getQueue()
-  if (queue.length === 0) return
+  // 队列为空或已有上报进行中时直接跳过（单飞），避免并发清空
+  if (queue.length === 0 || flushing) return
+  flushing = true
 
-  Taro.setStorageSync(EVENT_QUEUE_KEY, '[]')
+  try {
+    // 真实上报：把本地队列批量 POST 到服务端 /api/analytics/events
+    await api.post('/api/analytics/events', { events: queue })
+    // 上报成功后才清除已发送的前 N 条；上报期间新产生的事件（可能在 await 期间入队）
+    // 用 slice 保留下来，避免整个队列被清空导致丢事件
+    const remaining = getQueue()
+    Taro.setStorageSync(EVENT_QUEUE_KEY, JSON.stringify(remaining.slice(queue.length)))
+  } catch (error) {
+    // 上报失败时保留队列，等待下次达到阈值或手动重试（不静默丢事件）
+    console.warn('[Analytics] 事件上报失败，队列保留待重试:', error)
+  } finally {
+    flushing = false
+  }
 }
 
 export function getQueueLength(): number {

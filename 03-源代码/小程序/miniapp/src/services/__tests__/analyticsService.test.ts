@@ -3,6 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { trackEvent, flushEvents, getQueueLength, clearQueue } from '../analyticsService'
+import { api } from '../api'
 
 const mockStorage: Record<string, string> = {}
 
@@ -51,11 +52,19 @@ describe('analyticsService', () => {
     expect(getQueueLength()).toBe(15)
   })
 
-  it('queue flushes events when reaching flush threshold', () => {
+  it('queue flushes events when reaching flush threshold', async () => {
     for (let i = 0; i < 25; i++) {
       trackEvent('test_event', { index: i })
     }
-    expect(getQueueLength()).toBe(5)
+    // flushEvents 为异步真实上报（POST 成功后才清空队列），
+    // 需要等待微任务完成后再断言队列被截断为阈值以内的数量
+    await vi.waitFor(() => {
+      expect(getQueueLength()).toBe(5)
+    })
+    // 同时验证事件确实被批量上报到服务端埋点接口
+    expect(api.post).toHaveBeenCalledWith('/api/analytics/events', {
+      events: expect.any(Array),
+    })
   })
 
   it('flushEvents clears the queue', async () => {

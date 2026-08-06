@@ -42,6 +42,7 @@ import familyPhotosRoutes from './routes/familyPhotos.js';
 import agentRoutes from './routes/agentRouter.js';
 import memoryRoutes from './routes/memory.js';
 import feedbackRoutes from './routes/feedback.js';
+import analyticsRoutes from './routes/analytics.js';
 import { cleanStaleTasks } from './services/taskQueue.js';
 import { runMemoryDecay } from './services/memoryService.js';
 import { initWebSocket } from './services/websocketService.js';
@@ -125,6 +126,7 @@ app.use('/api/pets', yearlyReviewRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/memory', memoryRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ===== 全局错误处理 =====
 app.use(errorHandler);
