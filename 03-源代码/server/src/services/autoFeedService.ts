@@ -5,6 +5,8 @@
  * 自动写入家庭动态（PRD 4.11.5）。策略：只发"有意义的节点"，避免每次打卡都发导致刷屏。
  */
 import { pool } from '../db.js';
+import crypto from 'crypto';
+import { TimelineRepository } from '../repositories/timelineRepository.js';
 
 /** 查找宠物所属的第一个家庭；宠物不在任何家庭时返回 null */
 export async function findPetFamilyId(petId: string): Promise<string | null> {
@@ -162,5 +164,34 @@ export async function postMemoirCompletedFeed(
     });
   } catch (error) {
     console.warn('[AutoFeed] 回忆录动态处理失败:', error);
+  }
+}
+
+/** 回忆录生成完成 → 写入时光线（pet_moments），作为一条"回忆"时刻 */
+export async function postMemoirTimelineMoment(
+  userId: string,
+  petId: string,
+  memoirType: string,
+  videoUrl: string,
+  previewUrl: string,
+): Promise<void> {
+  try {
+    const timelineRepository = new TimelineRepository();
+    const label = memoirType === 'vlog' ? '纪念Vlog' : '日常回忆录';
+    await timelineRepository.createMoment(
+      crypto.randomUUID(),
+      userId,
+      petId,
+      'memory',
+      JSON.stringify({
+        memoirType,
+        title: `${label}完成`,
+        videoUrl,
+        previewUrl,
+      }),
+      previewUrl ? [previewUrl] : [],
+    );
+  } catch (error) {
+    console.warn('[AutoFeed] 回忆录写入时光线失败:', error);
   }
 }
