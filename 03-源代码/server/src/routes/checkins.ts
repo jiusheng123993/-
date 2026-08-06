@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.js';
 import { createCheckinSchema, checkinHistoryQuerySchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { CheckinRepository } from '../repositories/checkinRepository.js';
+import { computeStreakDays, maybePostCheckinFeed } from '../services/autoFeedService.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -66,6 +67,14 @@ router.post('/:petId/checkins', checkPetOwnership, validate({ body: createChecki
       risk_level,
       note: note ?? null,
     });
+
+    // 自动家庭动态：连续打卡里程碑 / 异常预警（异步，不影响主流程）
+    try {
+      const streakDays = await computeStreakDays(petId, req.userId!);
+      void maybePostCheckinFeed(req.userId!, petId, risk_level, streakDays);
+    } catch (err) {
+      console.warn('[Checkins] 自动动态计算失败:', err);
+    }
 
     res.status(201).json({ success: true, data: toCamelCase(row as unknown as Record<string, unknown>) });
   } catch (err) {

@@ -22,6 +22,7 @@ import {
 } from './videoGenerationService.js';
 import { moderateVideo } from './videoModerationService.js';
 import { sendToUser } from './websocketService.js';
+import { postMemoirCompletedFeed } from './autoFeedService.js';
 import { sanitizeError } from '../utils/sanitize.js';
 
 /** 最大重试次数（审核失败时） */
@@ -175,6 +176,8 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
 
     // 6. 审核通过，标记完成
     await memoirRepository.markCompleted(task.id, result.videoUrl, result.previewUrl);
+    // 回忆录生成完成 → 自动发家庭动态
+    void postMemoirCompletedFeed(task.user_id, task.pet_id, task.memoir_type);
 
     // 7. 清理重试计数
     retryCountMap.delete(task.id);

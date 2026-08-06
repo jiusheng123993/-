@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.js';
 import { createVaccineSchema, vaccineReminderSchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { VaccineRepository } from '../repositories/vaccineRepository.js';
+import { postVaccineCompletedFeed } from '../services/autoFeedService.js';
 
 const router = Router();
 
@@ -31,7 +32,9 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
   }
 }
 
-router.get('/api/pets/:petId/vaccines', authMiddleware, async (req: Request, res: Response) => {
+// 注意：本路由已挂载在 app.use('/api/pets', ...) 下，这里使用相对路径，
+// 避免拼出 /api/pets/api/pets/... 导致 404
+router.get('/:petId/vaccines', authMiddleware, async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
@@ -51,7 +54,7 @@ router.get('/api/pets/:petId/vaccines', authMiddleware, async (req: Request, res
   }
 });
 
-router.post('/api/pets/:petId/vaccines', authMiddleware, checkPetOwnership, validate({ body: createVaccineSchema }), async (req: Request, res: Response) => {
+router.post('/:petId/vaccines', authMiddleware, checkPetOwnership, validate({ body: createVaccineSchema }), async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
@@ -77,6 +80,11 @@ router.post('/api/pets/:petId/vaccines', authMiddleware, checkPetOwnership, vali
       reminder_enabled: reminder_enabled !== undefined ? reminder_enabled : true,
     });
 
+    // 疫苗完成 → 自动发家庭动态
+    if (recordStatus === 'completed') {
+      void postVaccineCompletedFeed(userId, petId, category || type);
+    }
+
     res.json({ success: true, data: row });
   } catch (err) {
     console.error('[Vaccines Post Error]', err);
@@ -84,7 +92,7 @@ router.post('/api/pets/:petId/vaccines', authMiddleware, checkPetOwnership, vali
   }
 });
 
-router.put('/api/pets/:petId/vaccines/:vaccineId/complete', authMiddleware, async (req: Request, res: Response) => {
+router.put('/:petId/vaccines/:vaccineId/complete', authMiddleware, async (req: Request, res: Response) => {
   try {
     const vaccineId = req.params.vaccineId as string;
     const userId = req.userId!;
@@ -109,7 +117,7 @@ router.put('/api/pets/:petId/vaccines/:vaccineId/complete', authMiddleware, asyn
   }
 });
 
-router.put('/api/pets/:petId/vaccines/:vaccineId/reminder', authMiddleware, validate({ body: vaccineReminderSchema }), async (req: Request, res: Response) => {
+router.put('/:petId/vaccines/:vaccineId/reminder', authMiddleware, validate({ body: vaccineReminderSchema }), async (req: Request, res: Response) => {
   try {
     const vaccineId = req.params.vaccineId as string;
     const userId = req.userId!;

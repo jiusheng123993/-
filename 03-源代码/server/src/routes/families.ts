@@ -13,6 +13,7 @@ import {
   FamilyMemberRepository,
 } from '../repositories/familyRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
+import { postMemberJoinedFeed } from '../services/autoFeedService.js';
 
 const router = Router();
 
@@ -171,6 +172,9 @@ router.post('/:id/members', authMiddleware, validate({ body: addFamilyMemberSche
       pet_id: petId,
       role: role || null,
     });
+
+    // 新成员加入 → 自动发家庭动态
+    void postMemberJoinedFeed(familyId, userId, petId);
 
     res.json({ success: true, data: toCamelCase(member as unknown as Record<string, unknown>) });
   } catch (err) {
