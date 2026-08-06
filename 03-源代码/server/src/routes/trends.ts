@@ -14,7 +14,9 @@ const router = Router();
 const petRepository = new PetRepository();
 const trendRepository = new TrendRepository();
 
-router.get('/api/pets/:petId/trends', authMiddleware, validate({ query: trendQuerySchema }), async (req: Request, res: Response) => {
+// 注意：本路由已挂载在 app.use('/api/pets', ...) 下，这里使用相对路径，
+// 避免拼出 /api/pets/api/pets/... 导致 404
+router.get('/:petId/trends', authMiddleware, validate({ query: trendQuerySchema }), async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
@@ -78,7 +80,7 @@ router.get('/api/pets/:petId/trends', authMiddleware, validate({ query: trendQue
   }
 });
 
-router.get('/api/pets/:petId/trends/report', authMiddleware, validate({ query: trendReportQuerySchema }), async (req: Request, res: Response) => {
+router.get('/:petId/trends/report', authMiddleware, validate({ query: trendReportQuerySchema }), async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;

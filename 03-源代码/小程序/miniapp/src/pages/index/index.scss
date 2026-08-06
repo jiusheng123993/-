@@ -172,10 +172,14 @@
 // ===== 消息列表 =====
 .chat-msg-list {
   flex: 1;
-  padding: 32rpx;
   overflow-y: auto;
   position: relative;
   z-index: 1;
+}
+
+// scroll-view 上不支持 padding（webview 渲染模式），间距放到内部容器
+.chat-msg-list__inner {
+  padding: 32rpx;
 }
 
 // ===== 消息行 =====

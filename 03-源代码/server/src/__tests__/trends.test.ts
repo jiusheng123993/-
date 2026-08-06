@@ -39,7 +39,8 @@ import trendsRouter from '../routes/trends.js';
 function createApp() {
   const app = express();
   app.use(express.json());
-  app.use('/', trendsRouter);
+  // 与 index.ts 保持一致：路由挂载在 /api/pets 前缀下（路由内部使用相对路径）
+  app.use('/api/pets', trendsRouter);
   return app;
 }
 

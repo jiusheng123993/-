@@ -31,11 +31,14 @@
 
   // 宠物筛选
   &__filter {
-    white-space: nowrap;
-    padding: 24rpx 24rpx 0;
+    // scroll-view 上不支持 padding（webview 渲染模式），间距和 nowrap 移到内部容器
+    &-inner {
+      white-space: nowrap;
+      padding: 24rpx 24rpx 0;
 
-    &--category {
-      padding-top: 16rpx;
+      &--category {
+        padding-top: 16rpx;
+      }
     }
 
     &-tab {

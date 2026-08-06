@@ -124,6 +124,22 @@ export interface AgentChatParams {
 }
 
 /**
+ * 发送前对对话历史做安全裁剪，与服务端 agentChatSchema 校验规则保持一致
+ * - 只保留 user/assistant 角色（schema 只允许这两种角色）
+ * - 最多保留最近 10 条（schema 限制 history 最多 10 条）
+ * - 每条内容截断到 1000 字（schema 限制 content 最长 1000）
+ * 否则请求会被 400 拦截，前端收不到任何流式事件，导致界面出现空白回复
+ * @param history - 原始对话历史（可缺省）
+ * @returns 裁剪后的安全历史列表
+ */
+function sanitizeHistory(history?: ChatMessage[]): ChatMessage[] {
+  return (history || [])
+    .filter((h): h is ChatMessage => h.role === 'user' || h.role === 'assistant')
+    .slice(-10)
+    .map((h) => ({ role: h.role, content: h.content.slice(0, 1000) }))
+}
+
+/**
  * 发送 Agent 对话请求，返回事件流
  *
  * 微信小程序限制：不支持标准 SSE，通过 enableChunked 接收分块数据
@@ -144,7 +160,7 @@ export async function* agentChat(params: AgentChatParams): AsyncGenerator<AgentE
       },
       data: {
         message: params.message,
-        history: params.history || [],
+        history: sanitizeHistory(params.history),
         petId: params.petId,
       },
       enableChunked: true,
@@ -234,7 +250,7 @@ export async function agentChatFallback(params: AgentChatParams): Promise<{
       },
       data: {
         message: params.message,
-        history: params.history || [],
+        history: sanitizeHistory(params.history),
         petId: params.petId,
       },
     })

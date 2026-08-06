@@ -277,6 +277,18 @@ export default function Index() {
     // 分析用户消息，更新推荐
     const suggestions = suggestQuickActions(text)
     setCurrentQuickActions(suggestions)
+
+    // 打卡流程激活时，优先把输入的文字当作打卡答案处理（与语音输入行为一致），
+    // 避免输入宠物名/选项时误发给 Agent，导致请求被 400 拦截而出现空白回复
+    const flowType = getCurrentFlowType()
+    if (flowType === 'checkin') {
+      const handled = checkin.handleCheckinAnswer(text)
+      if (handled) {
+        setInputValue('')
+        return
+      }
+    }
+
     // 调用原始 handleSend
     chat.handleSend()
   }
@@ -295,7 +307,9 @@ export default function Index() {
   }
 
   const getCurrentFlowType = (): 'checkin' | 'symptom' | 'naming' | null => {
-    if (checkin.checkinStep >= 0) return 'checkin'
+    // checkinStep === -2 是多宠选择的"为谁打卡"步骤，
+    // 也必须识别为打卡流程，否则该步骤的选项按钮点击会被忽略
+    if (checkin.checkinStep !== -1) return 'checkin'
     if (symptom.symptomStep >= 0) return 'symptom'
     if (naming.namingStep >= 0) return 'naming'
     return null
@@ -649,6 +663,9 @@ export default function Index() {
         ref={chat.scrollRef}
       >
 
+        {/* 内层容器：scroll-view 上不支持 padding（webview 渲染模式），由内部元素承载间距 */}
+        <View className='chat-msg-list__inner'>
+
         {/* ===== 今日健康摘要卡（设计稿对齐） ===== */}
         <View className='home-summary-card' onClick={() => checkin.startCheckin()}>
           <View className='home-summary-main'>
@@ -887,6 +904,7 @@ export default function Index() {
               <Text className='home-shortcut-desc'>一页看全家健康</Text>
             </View>
           </View>
+        </View>
         </View>
       </ScrollView>
 

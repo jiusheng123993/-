@@ -201,35 +201,41 @@ export default function MemoryPage() {
       {/* 宠物筛选 */}
       {pets.length > 1 && (
         <ScrollView scrollX className='memory-page__filter' enhanced showScrollbar={false}>
-          <View
-            className={`memory-page__filter-tab ${activePetId === '' ? 'memory-page__filter-tab--active' : ''}`}
-            onClick={() => setActivePetId('')}
-          >
-            <Text>全部</Text>
-          </View>
-          {pets.map(pet => (
+          {/* 内层容器：scroll-view 上不支持 padding（webview 渲染模式），间距放到内部元素 */}
+          <View className='memory-page__filter-inner'>
             <View
-              key={pet.id}
-              className={`memory-page__filter-tab ${activePetId === pet.id ? 'memory-page__filter-tab--active' : ''}`}
-              onClick={() => setActivePetId(pet.id)}
+              className={`memory-page__filter-tab ${activePetId === '' ? 'memory-page__filter-tab--active' : ''}`}
+              onClick={() => setActivePetId('')}
             >
-              <Text>{pet.name}</Text>
+              <Text>全部</Text>
             </View>
-          ))}
+            {pets.map(pet => (
+              <View
+                key={pet.id}
+                className={`memory-page__filter-tab ${activePetId === pet.id ? 'memory-page__filter-tab--active' : ''}`}
+                onClick={() => setActivePetId(pet.id)}
+              >
+                <Text>{pet.name}</Text>
+              </View>
+            ))}
+          </View>
         </ScrollView>
       )}
 
       {/* 分类筛选 */}
       <ScrollView scrollX className='memory-page__filter memory-page__filter--category' enhanced showScrollbar={false}>
-        {CATEGORY_FILTERS.map(cat => (
-          <View
-            key={cat.key}
-            className={`memory-page__filter-tab ${activeCategory === cat.key ? 'memory-page__filter-tab--active' : ''}`}
-            onClick={() => setActiveCategory(cat.key)}
-          >
-            <Text>{cat.icon} {cat.label}{cat.key ? ` ${categoryCounts[cat.key] || 0}` : ` ${memories.length}`}</Text>
-          </View>
-        ))}
+        {/* 内层容器：scroll-view 上不支持 padding（webview 渲染模式），间距放到内部元素 */}
+        <View className='memory-page__filter-inner memory-page__filter-inner--category'>
+          {CATEGORY_FILTERS.map(cat => (
+            <View
+              key={cat.key}
+              className={`memory-page__filter-tab ${activeCategory === cat.key ? 'memory-page__filter-tab--active' : ''}`}
+              onClick={() => setActiveCategory(cat.key)}
+            >
+              <Text>{cat.icon} {cat.label}{cat.key ? ` ${categoryCounts[cat.key] || 0}` : ` ${memories.length}`}</Text>
+            </View>
+          ))}
+        </View>
       </ScrollView>
 
       {/* 内容区 */}
