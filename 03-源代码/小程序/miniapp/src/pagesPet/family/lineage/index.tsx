@@ -577,49 +577,173 @@ export default function LineagePage() {
             <View className='lineage-overview-loading'>
               <Text>加载中...</Text>
             </View>
-          ) : overviewData && overviewData.members.length > 0 ? (
-            <>
-              {/* 成员总览 */}
-              <View className='lineage-overview-section'>
-                <Text className='lineage-overview-section-title'>👥 家庭成员（{overviewData.members.length}）</Text>
-                <View className='lineage-overview-members'>
-                  {overviewData.members.map(m => {
-                    const emoji = m.species === 'cat' ? '🐱' : m.species === 'dog' ? '🐕' : '🐾'
-                    const genderIcon = m.gender === 'male' ? '♂' : m.gender === 'female' ? '♀' : ''
-                    const genderClass = m.gender === 'male' ? 'male' : m.gender === 'female' ? 'female' : ''
-                    return (
-                      <View key={m.petId} className='lineage-overview-member'>
-                        <Text className='lineage-overview-member-emoji'>{emoji}</Text>
-                        <Text className='lineage-overview-member-name'>{m.name || '未命名'}</Text>
-                        {genderIcon && <Text className={`lineage-overview-member-gender lineage-overview-member-gender--${genderClass}`}>{genderIcon}</Text>}
-                      </View>
-                    )
-                  })}
-                </View>
-              </View>
+          ) : overviewData && overviewData.members.length > 0 ? (() => {
+            // ===== 图谱布局计算 =====
+            const { members, lineages, relationships } = overviewData
+            const childToParents = new Map<string, string[]>()
+            const parentToChildren = new Map<string, string[]>()
+            lineages.forEach(l => {
+              if (!childToParents.has(l.childId)) childToParents.set(l.childId, [])
+              childToParents.get(l.childId)!.push(l.parentId)
+              if (!parentToChildren.has(l.parentId)) parentToChildren.set(l.parentId, [])
+              parentToChildren.get(l.parentId)!.push(l.childId)
+            })
 
-              {/* 亲子关系 */}
-              <View className='lineage-overview-section'>
-                <Text className='lineage-overview-section-title'>👆 亲子关系（{overviewData.lineages.length}）</Text>
-                {overviewData.lineages.length === 0 ? (
-                  <Text className='lineage-overview-empty'>暂无亲子关系</Text>
-                ) : (
-                  <View className='lineage-overview-rel-list'>
-                    {overviewData.lineages.map(l => {
-                      const parentEmoji = l.parentSpecies === 'cat' ? '🐱' : l.parentSpecies === 'dog' ? '🐕' : '🐾'
-                      const childEmoji = l.childSpecies === 'cat' ? '🐱' : l.childSpecies === 'dog' ? '🐕' : '🐾'
+            // BFS 分层
+            const roots = members.filter(m => !childToParents.has(m.petId)).map(m => m.petId)
+            const levels: string[][] = []
+            const visited = new Set<string>()
+            let current = roots
+            while (current.length > 0) {
+              levels.push(current)
+              current.forEach(id => visited.add(id))
+              const next: string[] = []
+              current.forEach(id => {
+                const children = parentToChildren.get(id) || []
+                children.forEach(cid => {
+                  if (!visited.has(cid) && !next.includes(cid)) next.push(cid)
+                })
+              })
+              current = next
+            }
+            members.forEach(m => {
+              if (!visited.has(m.petId)) {
+                levels.push([m.petId])
+                visited.add(m.petId)
+              }
+            })
+
+            const memberMap = new Map(members.map(m => [m.petId, m]))
+            const siblingRels = relationships.filter(r => r.relationType === 'sibling')
+            const mateRels = relationships.filter(r => r.relationType === 'mate')
+
+            const NODE_W = 120
+            const NODE_GAP = 24
+            const LAYER_GAP = 100
+
+            return (
+              <>
+                {/* 图谱统计栏 */}
+                <View className='graph-stats-bar'>
+                  <View className='graph-stats-item'>
+                    <Text className='graph-stats-num'>{members.length}</Text>
+                    <Text className='graph-stats-label'>成员</Text>
+                  </View>
+                  <View className='graph-stats-divider' />
+                  <View className='graph-stats-item'>
+                    <Text className='graph-stats-num'>{lineages.length}</Text>
+                    <Text className='graph-stats-label'>亲子</Text>
+                  </View>
+                  <View className='graph-stats-divider' />
+                  <View className='graph-stats-item'>
+                    <Text className='graph-stats-num'>{siblingRels.length}</Text>
+                    <Text className='graph-stats-label'>手足</Text>
+                  </View>
+                  <View className='graph-stats-divider' />
+                  <View className='graph-stats-item'>
+                    <Text className='graph-stats-num'>{mateRels.length}</Text>
+                    <Text className='graph-stats-label'>配偶</Text>
+                  </View>
+                </View>
+
+                {/* 关系图谱 */}
+                <ScrollView scrollX className='graph-scroll' enhanced showScrollbar={false}>
+                  <View
+                    className='graph-canvas'
+                    style={{
+                      width: `${Math.max(...levels.map(l => l.length)) * (NODE_W + NODE_GAP) + NODE_GAP}rpx`,
+                      minHeight: `${levels.length * LAYER_GAP + 60}rpx`,
+                    }}
+                  >
+                    {/* 铲屎官根节点 */}
+                    {levels[0] && levels[0].length > 0 && childToParents.size === 0 && user && (
+                      <View
+                        className='graph-node graph-node--owner'
+                        style={{
+                          left: `${(levels[0].length * (NODE_W + NODE_GAP)) / 2 - NODE_W / 2 + NODE_GAP / 2}rpx`,
+                          top: '0rpx',
+                          width: `${NODE_W}rpx`,
+                        }}
+                      >
+                        <View className='graph-node-avatar graph-node-avatar--owner'>
+                          <Text className='graph-node-emoji'>🧑</Text>
+                        </View>
+                        <Text className='graph-node-name'>{user.nickname || '铲屎官'}</Text>
+                        <Text className='graph-node-tag'>🏠 家长</Text>
+                      </View>
+                    )}
+
+                    {/* 宠物节点 */}
+                    {levels.map((level, levelIdx) =>
+                      level.map((petId, idx) => {
+                        const m = memberMap.get(petId)
+                        if (!m) return null
+                        const emoji = m.species === 'cat' ? '🐱' : m.species === 'dog' ? '🐕' : '🐾'
+                        const genderIcon = m.gender === 'male' ? '♂' : m.gender === 'female' ? '♀' : ''
+                        const genderClass = m.gender === 'male' ? 'male' : m.gender === 'female' ? 'female' : ''
+                        const left = idx * (NODE_W + NODE_GAP) + NODE_GAP / 2
+                        const hasOwnerRoot = childToParents.size === 0 && !!user
+                        const top = hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20
+
+                        return (
+                          <View
+                            key={petId}
+                            className='graph-node'
+                            style={{
+                              left: `${left}rpx`,
+                              top: `${top}rpx`,
+                              width: `${NODE_W}rpx`,
+                            }}
+                          >
+                            <View className='graph-node-avatar'>
+                              <Text className='graph-node-emoji'>{emoji}</Text>
+                            </View>
+                            <Text className='graph-node-name'>{m.name || '未命名'}</Text>
+                            <View className='graph-node-tags'>
+                              {genderIcon && (
+                                <Text className={`graph-node-gender graph-node-gender--${genderClass}`}>{genderIcon}</Text>
+                              )}
+                              <Text className='graph-node-layer'>L{levelIdx + 1}</Text>
+                            </View>
+                          </View>
+                        )
+                      })
+                    )}
+
+                    {/* 亲子连线 */}
+                    {lineages.map(l => {
+                      let parentPos: { x: number; y: number } | null = null
+                      let childPos: { x: number; y: number } | null = null
+                      const hasOwnerRoot = childToParents.size === 0 && !!user
+                      levels.forEach((level, levelIdx) => {
+                        const pIdx = level.indexOf(l.parentId)
+                        if (pIdx >= 0) {
+                          parentPos = {
+                            x: pIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2,
+                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + 60,
+                          }
+                        }
+                        const cIdx = level.indexOf(l.childId)
+                        if (cIdx >= 0) {
+                          childPos = {
+                            x: cIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W / 2,
+                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20),
+                          }
+                        }
+                      })
+                      if (!parentPos || !childPos) return null
+
                       return (
-                        <View key={l.id} className='lineage-overview-rel-item'>
-                          <View className='lineage-overview-rel-pet'>
-                            <Text className='lineage-overview-rel-emoji'>{parentEmoji}</Text>
-                            <Text className='lineage-overview-rel-name'>{l.parentName || '未知'}</Text>
-                          </View>
-                          <Text className='lineage-overview-rel-arrow'>→</Text>
-                          <View className='lineage-overview-rel-pet'>
-                            <Text className='lineage-overview-rel-emoji'>{childEmoji}</Text>
-                            <Text className='lineage-overview-rel-name'>{l.childName || '未知'}</Text>
-                          </View>
-                          <View className='lineage-overview-rel-del' onClick={() => {
+                        <View
+                          key={l.id}
+                          className='graph-edge graph-edge--lineage'
+                          style={{
+                            left: `${Math.min(parentPos.x, childPos.x)}rpx`,
+                            top: `${parentPos.y}rpx`,
+                            width: `${Math.abs(childPos.x - parentPos.x) || 2}rpx`,
+                            height: `${childPos.y - parentPos.y}rpx`,
+                          }}
+                          onClick={() => {
                             if (!currentFamily) return
                             Taro.showModal({
                               title: '删除亲子关系',
@@ -640,50 +764,67 @@ export default function LineagePage() {
                                 }
                               },
                             })
-                          }}>
-                            <Text>✕</Text>
-                          </View>
-                        </View>
+                          }}
+                        />
                       )
                     })}
-                  </View>
-                )}
-              </View>
 
-              {/* 手足关系 */}
-              <View className='lineage-overview-section'>
-                <Text className='lineage-overview-section-title'>🤝 手足关系（{overviewData.relationships.filter(r => r.relationType === 'sibling').length}）</Text>
-                {overviewData.relationships.filter(r => r.relationType === 'sibling').length === 0 ? (
-                  <Text className='lineage-overview-empty'>暂无手足关系</Text>
-                ) : (
-                  <View className='lineage-overview-rel-list'>
-                    {overviewData.relationships.filter(r => r.relationType === 'sibling').map(r => {
-                      const emojiA = r.petAAvatarUrl ? '' : '🐾'
-                      const emojiB = r.petBAvatarUrl ? '' : '🐾'
-                      const siblingLabel = getSiblingLabel(r.petAGender || undefined, r.petBGender || undefined)
+                    {/* 配偶/手足连线 */}
+                    {relationships.map(r => {
+                      let posA: { x: number; y: number } | null = null
+                      let posB: { x: number; y: number } | null = null
+                      const hasOwnerRoot = childToParents.size === 0 && !!user
+                      levels.forEach((level, levelIdx) => {
+                        const aIdx = level.indexOf(r.petIdA)
+                        if (aIdx >= 0) {
+                          posA = {
+                            x: aIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2 + NODE_W,
+                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + 30,
+                          }
+                        }
+                        const bIdx = level.indexOf(r.petIdB)
+                        if (bIdx >= 0) {
+                          posB = {
+                            x: bIdx * (NODE_W + NODE_GAP) + NODE_GAP / 2,
+                            y: (hasOwnerRoot ? (levelIdx + 1) * LAYER_GAP + 20 : levelIdx * LAYER_GAP + 20) + 30,
+                          }
+                        }
+                      })
+                      if (!posA || !posB) return null
+                      if (Math.abs(posA.y - posB.y) > 10) return null
+
+                      const isMate = r.relationType === 'mate'
+                      const label = isMate ? '💞' : (() => {
+                        const ma = memberMap.get(r.petIdA)
+                        const mb = memberMap.get(r.petIdB)
+                        return getSiblingLabel(ma?.gender || undefined, mb?.gender || undefined)
+                      })()
+
                       return (
-                        <View key={r.id} className='lineage-overview-rel-item'>
-                          <View className='lineage-overview-rel-pet'>
-                            <Text className='lineage-overview-rel-emoji'>{emojiA}</Text>
-                            <Text className='lineage-overview-rel-name'>{r.petAName || '未知'}</Text>
-                          </View>
-                          <Text className='lineage-overview-rel-label'>{siblingLabel}</Text>
-                          <View className='lineage-overview-rel-pet'>
-                            <Text className='lineage-overview-rel-emoji'>{emojiB}</Text>
-                            <Text className='lineage-overview-rel-name'>{r.petBName || '未知'}</Text>
-                          </View>
-                          <View className='lineage-overview-rel-del' onClick={() => {
+                        <View
+                          key={r.id}
+                          className={`graph-edge-h ${isMate ? 'graph-edge-h--mate' : 'graph-edge-h--sibling'}`}
+                          style={{
+                            left: `${Math.min(posA.x, posB.x)}rpx`,
+                            top: `${posA.y}rpx`,
+                            width: `${Math.abs(posB.x - posA.x)}rpx`,
+                          }}
+                          onClick={() => {
                             if (!currentFamily) return
                             Taro.showModal({
-                              title: '删除手足关系',
-                              content: `确认删除 ${r.petAName} 和 ${r.petBName} 的${siblingLabel}关系吗？`,
+                              title: `删除${isMate ? '配偶' : label}关系`,
+                              content: `确认删除 ${r.petAName} 和 ${r.petBName} 的${isMate ? '配偶' : label}关系吗？`,
                               confirmText: '确认删除',
                               confirmColor: '#E0856B',
                               cancelText: '取消',
                               success: async (res) => {
                                 if (res.confirm) {
                                   try {
-                                    await familyService.removeSibling(currentFamily.id, r.id)
+                                    if (isMate) {
+                                      await familyService.removeMate(currentFamily.id, r.id)
+                                    } else {
+                                      await familyService.removeSibling(currentFamily.id, r.id)
+                                    }
                                     loadOverview()
                                     Taro.showToast({ title: '关系已删除', icon: 'success' })
                                   } catch (err: unknown) {
@@ -693,63 +834,34 @@ export default function LineagePage() {
                                 }
                               },
                             })
-                          }}>
-                            <Text>✕</Text>
-                          </View>
+                          }}
+                        >
+                          <Text className='graph-edge-label'>{label}</Text>
                         </View>
                       )
                     })}
                   </View>
-                )}
-              </View>
+                </ScrollView>
 
-              {/* 配偶关系 */}
-              <View className='lineage-overview-section'>
-                <Text className='lineage-overview-section-title'>💞 配偶关系（{overviewData.relationships.filter(r => r.relationType === 'mate').length}）</Text>
-                {overviewData.relationships.filter(r => r.relationType === 'mate').length === 0 ? (
-                  <Text className='lineage-overview-empty'>暂无配偶关系</Text>
-                ) : (
-                  <View className='lineage-overview-rel-list'>
-                    {overviewData.relationships.filter(r => r.relationType === 'mate').map(r => (
-                      <View key={r.id} className='lineage-overview-rel-item'>
-                        <View className='lineage-overview-rel-pet'>
-                          <Text className='lineage-overview-rel-name'>{r.petAName || '未知'}</Text>
-                        </View>
-                        <Text className='lineage-overview-rel-label'>💞</Text>
-                        <View className='lineage-overview-rel-pet'>
-                          <Text className='lineage-overview-rel-name'>{r.petBName || '未知'}</Text>
-                        </View>
-                        <View className='lineage-overview-rel-del' onClick={() => {
-                          if (!currentFamily) return
-                          Taro.showModal({
-                            title: '删除配偶关系',
-                            content: `确认删除 ${r.petAName} 和 ${r.petBName} 的配偶关系吗？`,
-                            confirmText: '确认删除',
-                            confirmColor: '#E0856B',
-                            cancelText: '取消',
-                            success: async (res) => {
-                              if (res.confirm) {
-                                try {
-                                  await familyService.removeMate(currentFamily.id, r.id)
-                                  loadOverview()
-                                  Taro.showToast({ title: '关系已删除', icon: 'success' })
-                                } catch (err: unknown) {
-                                  const error = err as { message?: string }
-                                  Taro.showToast({ title: error.message || '删除失败', icon: 'none' })
-                                }
-                              }
-                            },
-                          })
-                        }}>
-                          <Text>✕</Text>
-                        </View>
-                      </View>
-                    ))}
+                {/* 图例 */}
+                <View className='graph-legend'>
+                  <View className='graph-legend-item'>
+                    <View className='graph-legend-line graph-legend-line--solid' />
+                    <Text>亲子</Text>
                   </View>
-                )}
-              </View>
-            </>
-          ) : (
+                  <View className='graph-legend-item'>
+                    <View className='graph-legend-line graph-legend-line--dashed-red' />
+                    <Text>配偶</Text>
+                  </View>
+                  <View className='graph-legend-item'>
+                    <View className='graph-legend-line graph-legend-line--dashed-blue' />
+                    <Text>手足</Text>
+                  </View>
+                  <Text className='graph-legend-hint'>点击连线可删除关系</Text>
+                </View>
+              </>
+            )
+          })() : (
             <View className='lineage-overview-empty'>
               <Text>暂无家庭成员</Text>
             </View>
