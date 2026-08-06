@@ -545,214 +545,8 @@ body > main {
       .border-ring { border-color: var(--xhh-ring); }
       .ring-ring { --tw-ring-color: var(--xhh-ring); }
     </style>
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      [data-icon] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
-        background-color: currentColor;
-      }
-    </style>
-    <style id="critical-layout">
-      /* ============================================
-         宠物回忆录页 · 关键布局静态兜底
-         核心结构不依赖 Tailwind 运行时，CDN 失败仍可渲染
-         ============================================ */
-
-      /* ---- 标题区 ---- */
-      .xhh-memoir-head h1 { font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--xhh-ink); }
-      .xhh-memoir-head p { font-size: 13px; line-height: 1.5; color: var(--xhh-ink-2); margin-top: 4px; }
-
-      /* ---- hero 主视觉横幅 ---- */
-      .xhh-hero { position: relative; overflow: hidden; border-radius: var(--xhh-radius-lg); box-shadow: var(--xhh-shadow-card); }
-      .xhh-hero img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-      .xhh-hero__badge {
-        position: absolute; left: 12px; bottom: 12px;
-        display: inline-flex; align-items: center; gap: 5px;
-        padding: 6px 10px; border-radius: 9999px;
-        background-color: var(--xhh-card); color: var(--xhh-coral);
-        font-size: 11px; font-weight: 600; line-height: 1;
-        box-shadow: var(--xhh-shadow-1);
-      }
-      .xhh-hero__badge i { width: 12px; height: 12px; }
-
-      /* ---- 双产品线卡 ---- */
-      .xhh-product-list { display: flex; flex-direction: column; gap: 12px; }
-      .xhh-product-card {
-        position: relative;
-        display: flex; flex-direction: column; justify-content: space-between;
-        min-height: 180px; padding: 20px;
-        border-radius: var(--xhh-radius-md);
-        color: var(--xhh-primary-foreground);
-        text-decoration: none;
-        overflow: hidden;
-      }
-      .xhh-product-card--coral { background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); box-shadow: var(--xhh-shadow-button); }
-      .xhh-product-card--gold { background-image: linear-gradient(135deg, var(--xhh-gold-soft), var(--xhh-gold-deep)); box-shadow: var(--xhh-shadow-2); }
-      .xhh-product-card__head { display: flex; align-items: center; gap: 12px; }
-      .xhh-product-card__icon {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 44px; height: 44px; border-radius: 9999px; flex-shrink: 0;
-        background-color: color-mix(in srgb, var(--xhh-primary-foreground) 24%, transparent);
-        color: var(--xhh-primary-foreground);
-      }
-      .xhh-product-card__icon i { width: 20px; height: 20px; }
-      .xhh-product-card__titles { flex: 1; min-width: 0; }
-      .xhh-product-card__name { font-size: 16px; font-weight: 700; line-height: 1.35; color: var(--xhh-primary-foreground); }
-      .xhh-product-card__price { font-size: 12px; line-height: 1.4; margin-top: 2px; color: color-mix(in srgb, var(--xhh-primary-foreground) 88%, transparent); }
-      .xhh-product-card__arrow { width: 18px; height: 18px; flex-shrink: 0; color: color-mix(in srgb, var(--xhh-primary-foreground) 88%, transparent); }
-      .xhh-badge-paid {
-        display: inline-flex; align-items: center; flex-shrink: 0;
-        padding: 4px 9px; border-radius: 9999px;
-        background-color: color-mix(in srgb, var(--xhh-gold-deep) 45%, transparent);
-        color: var(--xhh-primary-foreground);
-        font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
-      }
-      .xhh-product-card__tags { display: flex; flex-wrap: wrap; gap: 8px; }
-      .xhh-pill {
-        display: inline-flex; align-items: center;
-        padding: 4px 10px; border-radius: 9999px;
-        background-color: color-mix(in srgb, var(--xhh-primary-foreground) 22%, transparent);
-        color: var(--xhh-primary-foreground);
-        font-size: 11px; line-height: 1.4;
-      }
-      .xhh-card-hover { transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s ease; }
-      .xhh-card-hover:hover { transform: translateY(-3px); }
-
-      /* ---- 步骤指示器 1-2-3 ---- */
-      .xhh-steps { display: flex; align-items: center; gap: 8px; padding: 4px 2px; }
-      .xhh-step { display: flex; align-items: center; gap: 6px; min-width: 0; }
-      .xhh-step__dot {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 22px; height: 22px; border-radius: 9999px;
-        font-size: 11px; font-weight: 700; flex-shrink: 0;
-      }
-      .xhh-step:not(.xhh-step--active) .xhh-step__dot { background-color: var(--xhh-muted); color: var(--xhh-muted-foreground); }
-      .xhh-step--active .xhh-step__dot {
-        background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
-        color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-1);
-      }
-      .xhh-step em { font-style: normal; font-size: 11px; line-height: 1; white-space: nowrap; }
-      .xhh-step--active em { color: var(--xhh-coral); font-weight: 600; }
-      .xhh-step:not(.xhh-step--active) em { color: var(--xhh-ink-3); }
-      .xhh-step__line { flex: 1; height: 2px; border-radius: 2px; background-color: var(--xhh-border); min-width: 12px; }
-
-      /* ---- 通用白卡面板 ---- */
-      .xhh-card {
-        background-color: var(--xhh-card);
-        border: 1px solid var(--xhh-border);
-        border-radius: var(--xhh-radius-md);
-        box-shadow: var(--xhh-shadow-card);
-      }
-      .xhh-panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-      .xhh-section-title { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--xhh-ink); }
-      .xhh-section-title i { width: 16px; height: 16px; }
-
-      /* ---- 上传素材：照片 2x2 网格 ---- */
-      .xhh-photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .xhh-photo-slot {
-        position: relative; width: 100%; aspect-ratio: 1 / 1;
-        object-fit: cover; border-radius: var(--xhh-radius-sm);
-        border: 1px solid var(--xhh-border);
-      }
-      .xhh-photo-slot--add {
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-        border: 1.5px dashed color-mix(in srgb, var(--xhh-coral) 45%, transparent);
-        background-color: var(--xhh-coral-bg); color: var(--xhh-coral);
-        font-size: 11px; font-weight: 600; cursor: pointer; padding: 0;
-      }
-      .xhh-photo-slot--add i { width: 20px; height: 20px; }
-
-      /* ---- 按钮 ---- */
-      .xhh-btn {
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-        width: 100%; height: 44px; border-radius: var(--xhh-radius-sm);
-        font-size: 14px; font-weight: 600;
-        transition: transform 0.14s ease, opacity 0.14s ease;
-        cursor: pointer;
-      }
-      .xhh-btn:active { transform: scale(0.95); }
-      .xhh-btn i { width: 16px; height: 16px; }
-      .xhh-btn--primary {
-        background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
-        color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);
-        border: none;
-      }
-      .xhh-btn--ghost { background-color: var(--xhh-card); color: var(--xhh-coral); border: 1px solid var(--xhh-coral); }
-
-      /* ---- 文字描述输入 ---- */
-      .xhh-textarea {
-        width: 100%; min-height: 72px; resize: none;
-        border-radius: var(--xhh-radius-sm);
-        background-color: var(--xhh-input);
-        border: 1px solid var(--xhh-border);
-        padding: 12px; font-size: 13px; line-height: 1.6; color: var(--xhh-ink);
-        outline: none; box-sizing: border-box;
-      }
-      .xhh-textarea::placeholder { color: var(--xhh-ink-3); }
-      .xhh-textarea:focus { border-color: var(--xhh-coral); }
-
-      /* ---- 角色一致性锁定提示条 ---- */
-      .xhh-lockbar {
-        display: flex; align-items: center; gap: 6px;
-        padding: 10px 12px; border-radius: var(--xhh-radius-sm);
-        background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);
-        font-size: 12px; font-weight: 500; line-height: 1.4;
-      }
-      .xhh-lockbar i { width: 14px; height: 14px; flex-shrink: 0; }
-
-      /* ---- 生成进度 ---- */
-      .xhh-progress { display: flex; align-items: center; gap: 10px; }
-      .xhh-progress__track { flex: 1; height: 8px; border-radius: 9999px; background-color: var(--xhh-muted); overflow: hidden; }
-      .xhh-progress__bar {
-        display: block; height: 100%; width: 62%; border-radius: 9999px;
-        background-image: linear-gradient(90deg, var(--xhh-coral-soft), var(--xhh-coral));
-        animation: xhh-progress-sheen 2.2s ease-in-out infinite;
-      }
-      @keyframes xhh-progress-sheen { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-      .xhh-progress__pct { font-size: 12px; font-weight: 700; color: var(--xhh-coral); }
-      .xhh-gen-text { font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--xhh-ink); }
-      .xhh-gen-hint { display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 1.4; color: var(--xhh-ink-3); }
-      .xhh-gen-hint i { width: 12px; height: 12px; flex-shrink: 0; }
-
-      /* ---- 预览保存：视频封面 ---- */
-      .xhh-cover { position: relative; border-radius: var(--xhh-radius-md); overflow: hidden; box-shadow: var(--xhh-shadow-1); }
-      .xhh-cover img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-      .xhh-cover__play {
-        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-        background-color: color-mix(in srgb, var(--xhh-ink) 28%, transparent);
-      }
-      .xhh-cover__play-btn {
-        display: flex; align-items: center; justify-content: center;
-        width: 52px; height: 52px; border-radius: 9999px;
-        background-color: color-mix(in srgb, var(--xhh-primary-foreground) 92%, transparent);
-        color: var(--xhh-coral); box-shadow: var(--xhh-shadow-2);
-      }
-      .xhh-cover__play-btn svg { width: 24px; height: 24px; }
-      .xhh-cover__duration {
-        position: absolute; right: 10px; bottom: 10px;
-        padding: 3px 8px; border-radius: 9999px;
-        background-color: color-mix(in srgb, var(--xhh-ink) 62%, transparent);
-        color: var(--xhh-primary-foreground);
-        font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
-      }
-
-      /* ---- 减少动态效果偏好（页面级） ---- */
-      @media (prefers-reduced-motion: reduce) {
-        .xhh-progress__bar { animation: none !important; }
-        .xhh-card-hover { transition: none !important; }
-        .xhh-card-hover:hover { transform: none; }
-        .xhh-btn { transition: none !important; }
-      }
-    </style>
+    
+    
 </head>
 <body class="min-h-screen font-sans antialiased">
     <!-- 全小程序统一动态背景层 -->
@@ -984,5 +778,214 @@ body > main {
     <script>
         lucide.createIcons();
     </script>
+
+<style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+<style id="critical-layout">
+      /* ============================================
+         宠物回忆录页 · 关键布局静态兜底
+         核心结构不依赖 Tailwind 运行时，CDN 失败仍可渲染
+         ============================================ */
+
+      /* ---- 标题区 ---- */
+      .xhh-memoir-head h1 { font-size: 16px; font-weight: 600; line-height: 1.4; color: var(--xhh-ink); }
+      .xhh-memoir-head p { font-size: 13px; line-height: 1.5; color: var(--xhh-ink-2); margin-top: 4px; }
+
+      /* ---- hero 主视觉横幅 ---- */
+      .xhh-hero { position: relative; overflow: hidden; border-radius: var(--xhh-radius-lg); box-shadow: var(--xhh-shadow-card); }
+      .xhh-hero img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+      .xhh-hero__badge {
+        position: absolute; left: 12px; bottom: 12px;
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 6px 10px; border-radius: 9999px;
+        background-color: var(--xhh-card); color: var(--xhh-coral);
+        font-size: 11px; font-weight: 600; line-height: 1;
+        box-shadow: var(--xhh-shadow-1);
+      }
+      .xhh-hero__badge i { width: 12px; height: 12px; }
+
+      /* ---- 双产品线卡 ---- */
+      .xhh-product-list { display: flex; flex-direction: column; gap: 12px; }
+      .xhh-product-card {
+        position: relative;
+        display: flex; flex-direction: column; justify-content: space-between;
+        min-height: 180px; padding: 20px;
+        border-radius: var(--xhh-radius-md);
+        color: var(--xhh-primary-foreground);
+        text-decoration: none;
+        overflow: hidden;
+      }
+      .xhh-product-card--coral { background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); box-shadow: var(--xhh-shadow-button); }
+      .xhh-product-card--gold { background-image: linear-gradient(135deg, var(--xhh-gold-soft), var(--xhh-gold-deep)); box-shadow: var(--xhh-shadow-2); }
+      .xhh-product-card__head { display: flex; align-items: center; gap: 12px; }
+      .xhh-product-card__icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 44px; height: 44px; border-radius: 9999px; flex-shrink: 0;
+        background-color: color-mix(in srgb, var(--xhh-primary-foreground) 24%, transparent);
+        color: var(--xhh-primary-foreground);
+      }
+      .xhh-product-card__icon i { width: 20px; height: 20px; }
+      .xhh-product-card__titles { flex: 1; min-width: 0; }
+      .xhh-product-card__name { font-size: 16px; font-weight: 700; line-height: 1.35; color: var(--xhh-primary-foreground); }
+      .xhh-product-card__price { font-size: 12px; line-height: 1.4; margin-top: 2px; color: color-mix(in srgb, var(--xhh-primary-foreground) 88%, transparent); }
+      .xhh-product-card__arrow { width: 18px; height: 18px; flex-shrink: 0; color: color-mix(in srgb, var(--xhh-primary-foreground) 88%, transparent); }
+      .xhh-badge-paid {
+        display: inline-flex; align-items: center; flex-shrink: 0;
+        padding: 4px 9px; border-radius: 9999px;
+        background-color: color-mix(in srgb, var(--xhh-gold-deep) 45%, transparent);
+        color: var(--xhh-primary-foreground);
+        font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+      }
+      .xhh-product-card__tags { display: flex; flex-wrap: wrap; gap: 8px; }
+      .xhh-pill {
+        display: inline-flex; align-items: center;
+        padding: 4px 10px; border-radius: 9999px;
+        background-color: color-mix(in srgb, var(--xhh-primary-foreground) 22%, transparent);
+        color: var(--xhh-primary-foreground);
+        font-size: 11px; line-height: 1.4;
+      }
+      .xhh-card-hover { transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s ease; }
+      .xhh-card-hover:hover { transform: translateY(-3px); }
+
+      /* ---- 步骤指示器 1-2-3 ---- */
+      .xhh-steps { display: flex; align-items: center; gap: 8px; padding: 4px 2px; }
+      .xhh-step { display: flex; align-items: center; gap: 6px; min-width: 0; }
+      .xhh-step__dot {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px; border-radius: 9999px;
+        font-size: 11px; font-weight: 700; flex-shrink: 0;
+      }
+      .xhh-step:not(.xhh-step--active) .xhh-step__dot { background-color: var(--xhh-muted); color: var(--xhh-muted-foreground); }
+      .xhh-step--active .xhh-step__dot {
+        background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
+        color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-1);
+      }
+      .xhh-step em { font-style: normal; font-size: 11px; line-height: 1; white-space: nowrap; }
+      .xhh-step--active em { color: var(--xhh-coral); font-weight: 600; }
+      .xhh-step:not(.xhh-step--active) em { color: var(--xhh-ink-3); }
+      .xhh-step__line { flex: 1; height: 2px; border-radius: 2px; background-color: var(--xhh-border); min-width: 12px; }
+
+      /* ---- 通用白卡面板 ---- */
+      .xhh-card {
+        background-color: var(--xhh-card);
+        border: 1px solid var(--xhh-border);
+        border-radius: var(--xhh-radius-md);
+        box-shadow: var(--xhh-shadow-card);
+      }
+      .xhh-panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+      .xhh-section-title { font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--xhh-ink); }
+      .xhh-section-title i { width: 16px; height: 16px; }
+
+      /* ---- 上传素材：照片 2x2 网格 ---- */
+      .xhh-photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .xhh-photo-slot {
+        position: relative; width: 100%; aspect-ratio: 1 / 1;
+        object-fit: cover; border-radius: var(--xhh-radius-sm);
+        border: 1px solid var(--xhh-border);
+      }
+      .xhh-photo-slot--add {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+        border: 1.5px dashed color-mix(in srgb, var(--xhh-coral) 45%, transparent);
+        background-color: var(--xhh-coral-bg); color: var(--xhh-coral);
+        font-size: 11px; font-weight: 600; cursor: pointer; padding: 0;
+      }
+      .xhh-photo-slot--add i { width: 20px; height: 20px; }
+
+      /* ---- 按钮 ---- */
+      .xhh-btn {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        width: 100%; height: 44px; border-radius: var(--xhh-radius-sm);
+        font-size: 14px; font-weight: 600;
+        transition: transform 0.14s ease, opacity 0.14s ease;
+        cursor: pointer;
+      }
+      .xhh-btn:active { transform: scale(0.95); }
+      .xhh-btn i { width: 16px; height: 16px; }
+      .xhh-btn--primary {
+        background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
+        color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button);
+        border: none;
+      }
+      .xhh-btn--ghost { background-color: var(--xhh-card); color: var(--xhh-coral); border: 1px solid var(--xhh-coral); }
+
+      /* ---- 文字描述输入 ---- */
+      .xhh-textarea {
+        width: 100%; min-height: 72px; resize: none;
+        border-radius: var(--xhh-radius-sm);
+        background-color: var(--xhh-input);
+        border: 1px solid var(--xhh-border);
+        padding: 12px; font-size: 13px; line-height: 1.6; color: var(--xhh-ink);
+        outline: none; box-sizing: border-box;
+      }
+      .xhh-textarea::placeholder { color: var(--xhh-ink-3); }
+      .xhh-textarea:focus { border-color: var(--xhh-coral); }
+
+      /* ---- 角色一致性锁定提示条 ---- */
+      .xhh-lockbar {
+        display: flex; align-items: center; gap: 6px;
+        padding: 10px 12px; border-radius: var(--xhh-radius-sm);
+        background-color: var(--xhh-gold-bg); color: var(--xhh-gold-deep);
+        font-size: 12px; font-weight: 500; line-height: 1.4;
+      }
+      .xhh-lockbar i { width: 14px; height: 14px; flex-shrink: 0; }
+
+      /* ---- 生成进度 ---- */
+      .xhh-progress { display: flex; align-items: center; gap: 10px; }
+      .xhh-progress__track { flex: 1; height: 8px; border-radius: 9999px; background-color: var(--xhh-muted); overflow: hidden; }
+      .xhh-progress__bar {
+        display: block; height: 100%; width: 62%; border-radius: 9999px;
+        background-image: linear-gradient(90deg, var(--xhh-coral-soft), var(--xhh-coral));
+        animation: xhh-progress-sheen 2.2s ease-in-out infinite;
+      }
+      @keyframes xhh-progress-sheen { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+      .xhh-progress__pct { font-size: 12px; font-weight: 700; color: var(--xhh-coral); }
+      .xhh-gen-text { font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--xhh-ink); }
+      .xhh-gen-hint { display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 1.4; color: var(--xhh-ink-3); }
+      .xhh-gen-hint i { width: 12px; height: 12px; flex-shrink: 0; }
+
+      /* ---- 预览保存：视频封面 ---- */
+      .xhh-cover { position: relative; border-radius: var(--xhh-radius-md); overflow: hidden; box-shadow: var(--xhh-shadow-1); }
+      .xhh-cover img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+      .xhh-cover__play {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        background-color: color-mix(in srgb, var(--xhh-ink) 28%, transparent);
+      }
+      .xhh-cover__play-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 52px; height: 52px; border-radius: 9999px;
+        background-color: color-mix(in srgb, var(--xhh-primary-foreground) 92%, transparent);
+        color: var(--xhh-coral); box-shadow: var(--xhh-shadow-2);
+      }
+      .xhh-cover__play-btn svg { width: 24px; height: 24px; }
+      .xhh-cover__duration {
+        position: absolute; right: 10px; bottom: 10px;
+        padding: 3px 8px; border-radius: 9999px;
+        background-color: color-mix(in srgb, var(--xhh-ink) 62%, transparent);
+        color: var(--xhh-primary-foreground);
+        font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+      }
+
+      /* ---- 减少动态效果偏好（页面级） ---- */
+      @media (prefers-reduced-motion: reduce) {
+        .xhh-progress__bar { animation: none !important; }
+        .xhh-card-hover { transition: none !important; }
+        .xhh-card-hover:hover { transform: none; }
+        .xhh-btn { transition: none !important; }
+      }
+    </style>
 </body>
 </html>

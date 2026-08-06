@@ -545,120 +545,8 @@ body > main {
       .border-ring { border-color: var(--xhh-ring); }
       .ring-ring { --tw-ring-color: var(--xhh-ring); }
     </style>
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      [data-icon] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
-        background-color: currentColor;
-      }
-    </style>
-    <style id="critical-layout">
-      /* ============================================
-         family-report 页面关键布局兜底
-         （不依赖 Tailwind 运行时也能正确排布）
-         ============================================ */
-      html, body { overflow-x: hidden; }
-      .fr-main {
-        position: relative;
-        z-index: 10;
-        width: 100%;
-        max-width: 28rem;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 0.75rem 1rem 8rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .fr-card {
-        background-color: var(--xhh-card);
-        border: 1px solid var(--xhh-border);
-        border-radius: var(--xhh-radius-md);
-        box-shadow: var(--xhh-shadow-card);
-        transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s cubic-bezier(0.3, 0, 0, 1);
-      }
-      @media (hover: hover) {
-        .fr-card:hover {
-          transform: translateY(-3px);
-          box-shadow: var(--xhh-shadow-card), 0 10px 26px -10px color-mix(in srgb, var(--xhh-ink) 18%, transparent);
-        }
-      }
-      .fr-banner { border: none; }
-      .fr-ai-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        border-radius: 9999px;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 1;
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-      .fr-highlight-row { display: flex; align-items: flex-start; gap: 10px; }
-      .fr-highlight-dot {
-        width: 20px;
-        height: 20px;
-        border-radius: 9999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-      .fr-member-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
-      .fr-member-row:first-child { padding-top: 0; }
-      .fr-member-row:last-child { padding-bottom: 0; }
-      .fr-member-row + .fr-member-row { border-top: 1px solid var(--xhh-border); }
-      .fr-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 9999px;
-        object-fit: cover;
-        flex-shrink: 0;
-      }
-      .fr-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        border-radius: 9999px;
-        padding: 4px 10px;
-        font-size: 11px;
-        font-weight: 500;
-        line-height: 1;
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-      .fr-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .fr-stat-tile { border-radius: var(--xhh-radius-sm); padding: 14px; }
-      .fr-note { border-width: 1px; }
-      .fr-share-btn {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        border-radius: var(--xhh-radius-md);
-        padding: 14px 20px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .fr-card { transition: none; }
-        @media (hover: hover) { .fr-card:hover { transform: none; } }
-      }
-    </style>
+    
+    
 </head>
 <body class="min-h-screen font-sans antialiased">
     <!-- 全小程序统一动态背景层 -->
@@ -898,5 +786,120 @@ body > main {
         })();
     </script>
 
+
+<style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+<style id="critical-layout">
+      /* ============================================
+         family-report 页面关键布局兜底
+         （不依赖 Tailwind 运行时也能正确排布）
+         ============================================ */
+      html, body { overflow-x: hidden; }
+      .fr-main {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 28rem;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0.75rem 1rem 8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .fr-card {
+        background-color: var(--xhh-card);
+        border: 1px solid var(--xhh-border);
+        border-radius: var(--xhh-radius-md);
+        box-shadow: var(--xhh-shadow-card);
+        transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s cubic-bezier(0.3, 0, 0, 1);
+      }
+      @media (hover: hover) {
+        .fr-card:hover {
+          transform: translateY(-3px);
+          box-shadow: var(--xhh-shadow-card), 0 10px 26px -10px color-mix(in srgb, var(--xhh-ink) 18%, transparent);
+        }
+      }
+      .fr-banner { border: none; }
+      .fr-ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 9999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .fr-highlight-row { display: flex; align-items: flex-start; gap: 10px; }
+      .fr-highlight-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .fr-member-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+      .fr-member-row:first-child { padding-top: 0; }
+      .fr-member-row:last-child { padding-bottom: 0; }
+      .fr-member-row + .fr-member-row { border-top: 1px solid var(--xhh-border); }
+      .fr-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .fr-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 9999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .fr-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .fr-stat-tile { border-radius: var(--xhh-radius-sm); padding: 14px; }
+      .fr-note { border-width: 1px; }
+      .fr-share-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: var(--xhh-radius-md);
+        padding: 14px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .fr-card { transition: none; }
+        @media (hover: hover) { .fr-card:hover { transform: none; } }
+      }
+    </style>
 </body>
 </html>

@@ -268,6 +268,20 @@ html[data-theme="winter"] {
   --xhh-glow-color: rgba(143, 168, 232, 0.13);
 }
 
+/* ============================================
+   四季主题色板（主题切换预览 / 成就卡等场景）
+   与各主题的 --xhh-coral 主色一一对应
+   ============================================ */
+:root {
+  --xhh-swatch-spring: #54B460;
+  --xhh-swatch-spring-soft: #8AD390;
+  --xhh-swatch-summer: #2FA8E8;
+  --xhh-swatch-summer-soft: #7CC6F0;
+  --xhh-swatch-autumn: #FF6B3D;
+  --xhh-swatch-autumn-soft: #FFA082;
+  --xhh-swatch-winter: #6C7CF0;
+  --xhh-swatch-winter-soft: #A5B1F7;
+}
 /* ---- 全局字体 ---- */
 body {
   font-family: var(--xhh-font-sans);
@@ -727,10 +741,10 @@ body > main {
                     </span>
                     <span class="flex items-center gap-1.5 shrink-0">
                         <span id="theme-dots" class="flex items-center gap-1">
-                            <span class="w-3 h-3 rounded-full" style="background:#54B460;"></span>
-                            <span class="w-3 h-3 rounded-full" style="background:#2FA8E8;"></span>
-                            <span class="w-3 h-3 rounded-full" style="background:#FF6B3D;"></span>
-                            <span class="w-3 h-3 rounded-full" style="background:#6C7CF0;"></span>
+                            <span class="w-3 h-3 rounded-full" style="background:var(--xhh-swatch-spring);"></span>
+                            <span class="w-3 h-3 rounded-full" style="background:var(--xhh-swatch-summer);"></span>
+                            <span class="w-3 h-3 rounded-full" style="background:var(--xhh-swatch-autumn);"></span>
+                            <span class="w-3 h-3 rounded-full" style="background:var(--xhh-swatch-winter);"></span>
                         </span>
                         <i data-lucide="chevron-right" class="w-4 h-4 transition-transform duration-300" style="color: var(--xhh-ink-3);" id="theme-chevron"></i>
                     </span>
@@ -741,19 +755,19 @@ body > main {
                         <p class="text-xs mb-2.5" style="color: var(--xhh-ink-3);">选一套喜欢的季节配色，整站同步生效</p>
                         <div class="grid grid-cols-4 gap-2">
                             <button type="button" data-theme-choice="spring" class="theme-choice flex flex-col items-center gap-1.5 py-2.5 rounded-xl transition-transform active:scale-95">
-                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, #8AD390, #54B460); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
+                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, var(--xhh-swatch-spring-soft), var(--xhh-swatch-spring)); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
                                 <span class="text-[11px] font-medium" style="color: var(--xhh-ink-2);">春</span>
                             </button>
                             <button type="button" data-theme-choice="summer" class="theme-choice flex flex-col items-center gap-1.5 py-2.5 rounded-xl transition-transform active:scale-95">
-                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, #7CC6F0, #2FA8E8); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
+                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, var(--xhh-swatch-summer-soft), var(--xhh-swatch-summer)); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
                                 <span class="text-[11px] font-medium" style="color: var(--xhh-ink-2);">夏</span>
                             </button>
                             <button type="button" data-theme-choice="autumn" class="theme-choice flex flex-col items-center gap-1.5 py-2.5 rounded-xl transition-transform active:scale-95">
-                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, #FFA082, #FF6B3D); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
+                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, var(--xhh-swatch-autumn-soft), var(--xhh-swatch-autumn)); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
                                 <span class="text-[11px] font-medium" style="color: var(--xhh-ink-2);">秋</span>
                             </button>
                             <button type="button" data-theme-choice="winter" class="theme-choice flex flex-col items-center gap-1.5 py-2.5 rounded-xl transition-transform active:scale-95">
-                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, #A5B1F7, #6C7CF0); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
+                                <span class="w-9 h-9 rounded-full" style="background: linear-gradient(135deg, var(--xhh-swatch-winter-soft), var(--xhh-swatch-winter)); box-shadow: 0 0 0 2px var(--xhh-card), 0 0 0 3.5px var(--xhh-border);"></span>
                                 <span class="text-[11px] font-medium" style="color: var(--xhh-ink-2);">冬</span>
                             </button>
                         </div>

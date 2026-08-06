@@ -1566,6 +1566,253 @@
           }
         ]
       }
+    },
+    {
+      "id": "page-edit",
+      "title": "编辑宠物",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 0,
+        "y": 3600,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1400, "viewportWidth": 374, "sourceHash": "fnv1a-edit-page", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/edit.html",
+        "interactions": [{ "domId": "edit-save", "targetPageId": "page-edit", "hideEdge": true, "transitionLabel": "保存修改" }]
+      }
+    },
+    {
+      "id": "page-breed-detail",
+      "title": "品种详情",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 430,
+        "y": 3600,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-breed-detail", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/breed-detail.html",
+        "interactions": [{ "domId": "breed-detail-set-pet", "targetPageId": "page-edit", "hideEdge": true, "transitionLabel": "设为我的宠物品种" }]
+      }
+    },
+    {
+      "id": "page-chronic-tracking",
+      "title": "慢性病追踪",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 860,
+        "y": 3600,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1600, "viewportWidth": 374, "sourceHash": "fnv1a-chronic", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/chronic-tracking.html",
+        "interactions": [{ "domId": "chronic-add", "targetPageId": "page-chronic-tracking", "hideEdge": true, "transitionLabel": "添加记录" }]
+      }
+    },
+    {
+      "id": "page-feeding-advice",
+      "title": "喂养建议",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 1290,
+        "y": 3600,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1650, "viewportWidth": 374, "sourceHash": "fnv1a-feeding", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/feeding-advice.html",
+        "interactions": [{ "domId": "feeding-log-save", "targetPageId": "page-feeding-advice", "hideEdge": true, "transitionLabel": "保存记录" }]
+      }
+    },
+    {
+      "id": "page-wardrobe",
+      "title": "宠物衣橱",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 0,
+        "y": 3980,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1900, "viewportWidth": 374, "sourceHash": "fnv1a-wardrobe", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/wardrobe.html",
+        "interactions": [{ "domId": "wardrobe-save", "targetPageId": "page-wardrobe", "hideEdge": true, "transitionLabel": "保存形象" }]
+      }
+    },
+    {
+      "id": "page-leaderboard",
+      "title": "家庭排行",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 430,
+        "y": 3980,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-leaderboard", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/leaderboard.html",
+        "interactions": [{ "domId": "leaderboard-refresh", "targetPageId": "page-leaderboard", "hideEdge": true, "transitionLabel": "刷新" }]
+      }
+    },
+    {
+      "id": "page-achievement",
+      "title": "成就墙",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 860,
+        "y": 3980,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-achievement", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/achievement.html",
+        "interactions": [{ "domId": "achievement-list", "targetPageId": "page-achievement", "hideEdge": true, "transitionLabel": "分享成就卡" }]
+      }
+    },
+    {
+      "id": "page-profile",
+      "title": "个人资料",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 1290,
+        "y": 3980,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-profile", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/profile.html",
+        "interactions": [{ "domId": "profile-report-gen", "targetPageId": "page-profile", "hideEdge": true, "transitionLabel": "生成健康报告" }]
+      }
+    },
+    {
+      "id": "page-agreement",
+      "title": "用户协议",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 0,
+        "y": 4360,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1900, "viewportWidth": 374, "sourceHash": "fnv1a-agreement", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/agreement.html",
+        "interactions": [{ "domId": "agreement-accept", "targetPageId": "page-auth", "hideEdge": true, "transitionLabel": "同意并继续" }]
+      }
+    },
+    {
+      "id": "page-invite",
+      "title": "邀请好友",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 430,
+        "y": 4360,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-invite", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/invite.html",
+        "interactions": [{ "domId": "invite-copy", "targetPageId": "page-invite", "hideEdge": true, "transitionLabel": "复制邀请码" }]
+      }
+    },
+    {
+      "id": "page-effect-tracking",
+      "title": "效果追踪",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 860,
+        "y": 4360,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1600, "viewportWidth": 374, "sourceHash": "fnv1a-effect", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/effect-tracking.html",
+        "interactions": [{ "domId": "effect-tabs", "targetPageId": "page-effect-tracking", "hideEdge": true, "transitionLabel": "切换分类" }]
+      }
+    },
+    {
+      "id": "page-memory",
+      "title": "AI 记忆",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 1290,
+        "y": 4360,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1600, "viewportWidth": 374, "sourceHash": "fnv1a-memory", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memory.html",
+        "interactions": [{ "domId": "memory-edit-1", "targetPageId": "page-memory", "hideEdge": true, "transitionLabel": "修正记忆" }]
+      }
+    },
+    {
+      "id": "page-feedback",
+      "title": "意见反馈",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1786000000000,
+      "canvasData": {
+        "x": 0,
+        "y": 4740,
+        "group": 0,
+        "deviceType": "freeSize",
+        "windowSize": { "width": 374, "height": 812 },
+        "layoutSnapshot": { "version": 1, "contentHeight": 1500, "viewportWidth": 374, "sourceHash": "fnv1a-feedback", "measuredAt": 1786000000000 }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/feedback.html",
+        "interactions": [{ "domId": "feedback-submit", "targetPageId": "page-feedback", "hideEdge": true, "transitionLabel": "提交反馈" }]
+      }
     }
   ],
   "config": {

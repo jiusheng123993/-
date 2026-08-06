@@ -545,387 +545,13 @@ body > main {
       .border-ring { border-color: var(--xhh-ring); }
       .ring-ring { --tw-ring-color: var(--xhh-ring); }
     </style>
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      [data-icon] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
-        background-color: currentColor;
-      }
-    </style>
+    
 
     <!-- ============================================
         日常回忆录页 · 关键布局静态 CSS（不依赖 Tailwind CDN）
         结构类 + 交互反馈类，全部颜色走 var(--xhh-*)
         ============================================ -->
-    <style id="critical-layout">
-      /* ---- 页面主体 ---- */
-      .md-page-main {
-        max-width: 28rem;
-        margin: 0 auto;
-        padding: 12px 16px 128px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .md-card {
-        background: var(--xhh-card);
-        border: 1px solid var(--xhh-border);
-        border-radius: 20px;
-        box-shadow: var(--xhh-shadow-card);
-      }
-      .md-panel { padding: 16px; }
-      .md-section-title { font-size: 15px; font-weight: 600; color: var(--xhh-ink); }
-      .md-section-sub { font-size: 12px; color: var(--xhh-ink-3); margin-top: 2px; }
-
-      /* ---- 标题区 ---- */
-      .md-head { display: flex; flex-direction: column; gap: 4px; padding: 2px 0 0; }
-      .md-head-title { font-size: 16px; font-weight: 600; color: var(--xhh-ink); }
-      .md-head-sub { font-size: 13px; color: var(--xhh-ink-2); }
-
-      /* ---- Hero 横幅 ---- */
-      .md-hero {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, var(--xhh-coral), var(--xhh-coral-deep));
-        box-shadow: var(--xhh-shadow-2);
-        color: var(--xhh-primary-foreground);
-      }
-      .md-hero-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-      .md-hero-badge {
-        align-self: flex-start;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        background: color-mix(in srgb, var(--xhh-primary-foreground) 92%, transparent);
-        color: var(--xhh-coral-deep);
-        font-size: 11px;
-        font-weight: 600;
-      }
-      .md-hero-title { font-size: 16px; font-weight: 600; color: var(--xhh-primary-foreground); line-height: 1.35; }
-      .md-hero-sub { font-size: 12px; color: color-mix(in srgb, var(--xhh-primary-foreground) 85%, transparent); }
-      .md-hero-img {
-        width: 96px;
-        height: 96px;
-        object-fit: cover;
-        border-radius: 16px;
-        border: 2px solid color-mix(in srgb, var(--xhh-primary-foreground) 40%, transparent);
-        flex-shrink: 0;
-      }
-
-      /* ---- 双产品线卡 ---- */
-      .md-product-list { display: flex; flex-direction: column; gap: 8px; }
-      .md-product-card {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px 16px;
-        border-radius: 20px;
-        border: 1.5px solid transparent;
-        text-align: left;
-        width: 100%;
-        cursor: pointer;
-      }
-      .md-product-card--coral {
-        background: linear-gradient(135deg, color-mix(in srgb, var(--xhh-coral) 10%, var(--xhh-card)), var(--xhh-card));
-        border-color: var(--xhh-coral);
-        box-shadow: var(--xhh-shadow-card);
-      }
-      .md-product-card--gold {
-        background: linear-gradient(135deg, var(--xhh-gold-bg), var(--xhh-card));
-        border-color: color-mix(in srgb, var(--xhh-gold-deep) 30%, transparent);
-      }
-      .md-product-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        color: var(--xhh-primary-foreground);
-      }
-      .md-product-icon--coral { background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); box-shadow: var(--xhh-shadow-button); }
-      .md-product-icon--gold { background: linear-gradient(135deg, var(--xhh-gold-soft), var(--xhh-gold)); box-shadow: var(--xhh-shadow-1); }
-      .md-product-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-      .md-product-name { font-size: 15px; font-weight: 600; color: var(--xhh-ink); }
-      .md-product-price { font-size: 12px; color: var(--xhh-ink-2); }
-      .md-product-flag {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 10px;
-        border-radius: 9999px;
-        background: var(--xhh-coral-bg);
-        color: var(--xhh-coral-deep);
-        font-size: 11px;
-        font-weight: 600;
-        flex-shrink: 0;
-      }
-      .md-product-arrow {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 26px;
-        height: 26px;
-        border-radius: 9999px;
-        background: var(--xhh-card);
-        border: 1px solid var(--xhh-border);
-        color: var(--xhh-ink-3);
-        flex-shrink: 0;
-      }
-
-      /* ---- 三步流程 ---- */
-      .md-steps { display: flex; align-items: flex-start; justify-content: center; padding: 6px 0; }
-      .md-step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-      .md-step-dot {
-        width: 28px;
-        height: 28px;
-        border-radius: 9999px;
-        background: var(--xhh-card);
-        border: 1.5px solid var(--xhh-border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--xhh-ink-3);
-        transition: all 0.2s ease;
-      }
-      .md-step--active .md-step-dot {
-        background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
-        border-color: transparent;
-        color: var(--xhh-primary-foreground);
-        box-shadow: var(--xhh-shadow-button);
-      }
-      .md-step-label { font-size: 11px; color: var(--xhh-ink-3); white-space: nowrap; }
-      .md-step--active .md-step-label { color: var(--xhh-coral); font-weight: 600; }
-      .md-step-line { width: 56px; height: 2px; background: var(--xhh-border); margin: 13px 10px 0; }
-
-      /* ---- 素材选择区 ---- */
-      .md-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-      .md-count {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        background: var(--xhh-surface-1);
-        border: 1px solid var(--xhh-border);
-        font-size: 12px;
-        color: var(--xhh-ink-2);
-        flex-shrink: 0;
-      }
-      .md-count i { color: var(--xhh-coral); }
-      .md-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-      .md-photo-cell {
-        position: relative;
-        aspect-ratio: 1;
-        border-radius: 12px;
-        overflow: hidden;
-        background: var(--xhh-surface-1);
-        border: 1.5px solid var(--xhh-border);
-        padding: 0;
-        cursor: pointer;
-      }
-      .md-photo-cell.selected {
-        border-color: var(--xhh-coral);
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--xhh-coral) 30%, transparent);
-      }
-      .md-photo-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-      .md-photo-badge {
-        position: absolute;
-        top: 6px;
-        left: 6px;
-        width: 22px;
-        height: 22px;
-        border-radius: 9999px;
-        background: color-mix(in srgb, var(--xhh-card) 92%, transparent);
-        border: 1px solid var(--xhh-border);
-        color: var(--xhh-ink-3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2;
-      }
-      .md-photo-cell.selected .md-photo-badge {
-        background: var(--xhh-coral);
-        border-color: transparent;
-        color: var(--xhh-primary-foreground);
-      }
-      .md-badge-x { display: none; }
-      .md-photo-cell.selected .md-badge-x { display: inline-flex; }
-      .md-photo-cell.selected .md-badge-check { display: none; }
-      .md-photo-del {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        width: 22px;
-        height: 22px;
-        border-radius: 9999px;
-        background: color-mix(in srgb, var(--xhh-ink) 55%, transparent);
-        color: var(--xhh-primary-foreground);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 3;
-        border: none;
-        cursor: pointer;
-      }
-      .md-photo-cell.selected .md-photo-del { display: flex; }
-      .md-add-cell {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        border: 1.5px dashed color-mix(in srgb, var(--xhh-border) 80%, var(--xhh-ink-3));
-        border-radius: 12px;
-        background: var(--xhh-surface-1);
-        color: var(--xhh-ink-3);
-        font-size: 12px;
-        aspect-ratio: 1;
-        cursor: pointer;
-      }
-      .md-photo-hint {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        margin-top: 10px;
-        font-size: 12px;
-        color: var(--xhh-ink-3);
-      }
-      .md-photo-hint i { color: var(--state-info); }
-
-      /* ---- 风格选择 ---- */
-      .md-style-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .md-style-card {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px;
-        border-radius: 12px;
-        border: 1px solid var(--xhh-border);
-        background: var(--xhh-card);
-        text-align: left;
-        cursor: pointer;
-        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-      }
-      .md-style-card.md-selected {
-        border-color: var(--xhh-coral);
-        background: var(--xhh-coral-bg);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--xhh-coral) 45%, transparent);
-      }
-      .md-style-emoji {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: var(--xhh-surface-1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-      }
-      .md-style-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-      .md-style-name { font-size: 13px; font-weight: 600; color: var(--xhh-ink); }
-      .md-style-desc { font-size: 11px; color: var(--xhh-ink-3); }
-
-      /* ---- BGM 选择 ---- */
-      .md-bgm-list { display: flex; gap: 8px; }
-      .md-bgm-item {
-        flex: 1;
-        min-width: 0;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        padding: 12px 8px;
-        border-radius: 9999px;
-        border: 1px solid var(--xhh-border);
-        background: var(--xhh-card);
-        cursor: pointer;
-        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-      }
-      .md-bgm-item.md-selected {
-        border-color: var(--xhh-coral);
-        background: var(--xhh-coral-bg);
-      }
-      .md-bgm-item.md-playing .md-bgm-preview {
-        background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
-        color: var(--xhh-primary-foreground);
-      }
-      .md-bgm-name { font-size: 12px; font-weight: 600; color: var(--xhh-ink); }
-      .md-bgm-tag { font-size: 10px; color: var(--xhh-ink-3); }
-      .md-bgm-preview {
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        width: 22px;
-        height: 22px;
-        border-radius: 9999px;
-        background: var(--xhh-gold-bg);
-        border: none;
-        color: var(--xhh-gold-deep);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-      }
-
-      /* ---- 生成按钮 ---- */
-      .md-gen-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-      .md-btn-primary {
-        width: 100%;
-        height: 48px;
-        border: none;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--xhh-primary-foreground);
-        background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
-        box-shadow: var(--xhh-shadow-button);
-        cursor: pointer;
-      }
-      .md-gen-hint {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: var(--xhh-ink-3);
-      }
-
-      /* ---- 交互反馈 ---- */
-      .md-card-hover { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
-      .md-card-hover:hover { transform: translateY(-3px); }
-      .md-card-hover:hover { box-shadow: var(--xhh-shadow-2); }
-      .md-btn-press { transition: transform 0.14s ease, opacity 0.14s ease; }
-      .md-btn-press:active { transform: scale(0.95); opacity: 0.9; }
-
-      @media (prefers-reduced-motion: reduce) {
-        .md-card-hover, .md-btn-press, .md-style-card, .md-bgm-item, .md-step-dot { transition: none !important; }
-        .md-card-hover:hover { transform: none; box-shadow: none; }
-        .md-btn-press:active { transform: none; }
-      }
-    </style>
+    
 </head>
 <body class="min-h-screen font-sans antialiased max-w-md mx-auto" style="background: var(--xhh-background);">
     <!-- 全小程序统一动态背景层 -->
@@ -1312,5 +938,382 @@ body > main {
         })();
     </script>
 
+
+<style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+<style id="critical-layout">
+      /* ---- 页面主体 ---- */
+      .md-page-main {
+        max-width: 28rem;
+        margin: 0 auto;
+        padding: 12px 16px 128px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .md-card {
+        background: var(--xhh-card);
+        border: 1px solid var(--xhh-border);
+        border-radius: 20px;
+        box-shadow: var(--xhh-shadow-card);
+      }
+      .md-panel { padding: 16px; }
+      .md-section-title { font-size: 15px; font-weight: 600; color: var(--xhh-ink); }
+      .md-section-sub { font-size: 12px; color: var(--xhh-ink-3); margin-top: 2px; }
+
+      /* ---- 标题区 ---- */
+      .md-head { display: flex; flex-direction: column; gap: 4px; padding: 2px 0 0; }
+      .md-head-title { font-size: 16px; font-weight: 600; color: var(--xhh-ink); }
+      .md-head-sub { font-size: 13px; color: var(--xhh-ink-2); }
+
+      /* ---- Hero 横幅 ---- */
+      .md-hero {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, var(--xhh-coral), var(--xhh-coral-deep));
+        box-shadow: var(--xhh-shadow-2);
+        color: var(--xhh-primary-foreground);
+      }
+      .md-hero-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+      .md-hero-badge {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: color-mix(in srgb, var(--xhh-primary-foreground) 92%, transparent);
+        color: var(--xhh-coral-deep);
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .md-hero-title { font-size: 16px; font-weight: 600; color: var(--xhh-primary-foreground); line-height: 1.35; }
+      .md-hero-sub { font-size: 12px; color: color-mix(in srgb, var(--xhh-primary-foreground) 85%, transparent); }
+      .md-hero-img {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border-radius: 16px;
+        border: 2px solid color-mix(in srgb, var(--xhh-primary-foreground) 40%, transparent);
+        flex-shrink: 0;
+      }
+
+      /* ---- 双产品线卡 ---- */
+      .md-product-list { display: flex; flex-direction: column; gap: 8px; }
+      .md-product-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        border: 1.5px solid transparent;
+        text-align: left;
+        width: 100%;
+        cursor: pointer;
+      }
+      .md-product-card--coral {
+        background: linear-gradient(135deg, color-mix(in srgb, var(--xhh-coral) 10%, var(--xhh-card)), var(--xhh-card));
+        border-color: var(--xhh-coral);
+        box-shadow: var(--xhh-shadow-card);
+      }
+      .md-product-card--gold {
+        background: linear-gradient(135deg, var(--xhh-gold-bg), var(--xhh-card));
+        border-color: color-mix(in srgb, var(--xhh-gold-deep) 30%, transparent);
+      }
+      .md-product-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--xhh-primary-foreground);
+      }
+      .md-product-icon--coral { background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); box-shadow: var(--xhh-shadow-button); }
+      .md-product-icon--gold { background: linear-gradient(135deg, var(--xhh-gold-soft), var(--xhh-gold)); box-shadow: var(--xhh-shadow-1); }
+      .md-product-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+      .md-product-name { font-size: 15px; font-weight: 600; color: var(--xhh-ink); }
+      .md-product-price { font-size: 12px; color: var(--xhh-ink-2); }
+      .md-product-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        background: var(--xhh-coral-bg);
+        color: var(--xhh-coral-deep);
+        font-size: 11px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .md-product-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 9999px;
+        background: var(--xhh-card);
+        border: 1px solid var(--xhh-border);
+        color: var(--xhh-ink-3);
+        flex-shrink: 0;
+      }
+
+      /* ---- 三步流程 ---- */
+      .md-steps { display: flex; align-items: flex-start; justify-content: center; padding: 6px 0; }
+      .md-step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+      .md-step-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 9999px;
+        background: var(--xhh-card);
+        border: 1.5px solid var(--xhh-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--xhh-ink-3);
+        transition: all 0.2s ease;
+      }
+      .md-step--active .md-step-dot {
+        background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
+        border-color: transparent;
+        color: var(--xhh-primary-foreground);
+        box-shadow: var(--xhh-shadow-button);
+      }
+      .md-step-label { font-size: 11px; color: var(--xhh-ink-3); white-space: nowrap; }
+      .md-step--active .md-step-label { color: var(--xhh-coral); font-weight: 600; }
+      .md-step-line { width: 56px; height: 2px; background: var(--xhh-border); margin: 13px 10px 0; }
+
+      /* ---- 素材选择区 ---- */
+      .md-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      .md-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: var(--xhh-surface-1);
+        border: 1px solid var(--xhh-border);
+        font-size: 12px;
+        color: var(--xhh-ink-2);
+        flex-shrink: 0;
+      }
+      .md-count i { color: var(--xhh-coral); }
+      .md-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .md-photo-cell {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--xhh-surface-1);
+        border: 1.5px solid var(--xhh-border);
+        padding: 0;
+        cursor: pointer;
+      }
+      .md-photo-cell.selected {
+        border-color: var(--xhh-coral);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--xhh-coral) 30%, transparent);
+      }
+      .md-photo-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .md-photo-badge {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 9999px;
+        background: color-mix(in srgb, var(--xhh-card) 92%, transparent);
+        border: 1px solid var(--xhh-border);
+        color: var(--xhh-ink-3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+      }
+      .md-photo-cell.selected .md-photo-badge {
+        background: var(--xhh-coral);
+        border-color: transparent;
+        color: var(--xhh-primary-foreground);
+      }
+      .md-badge-x { display: none; }
+      .md-photo-cell.selected .md-badge-x { display: inline-flex; }
+      .md-photo-cell.selected .md-badge-check { display: none; }
+      .md-photo-del {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 9999px;
+        background: color-mix(in srgb, var(--xhh-ink) 55%, transparent);
+        color: var(--xhh-primary-foreground);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 3;
+        border: none;
+        cursor: pointer;
+      }
+      .md-photo-cell.selected .md-photo-del { display: flex; }
+      .md-add-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1.5px dashed color-mix(in srgb, var(--xhh-border) 80%, var(--xhh-ink-3));
+        border-radius: 12px;
+        background: var(--xhh-surface-1);
+        color: var(--xhh-ink-3);
+        font-size: 12px;
+        aspect-ratio: 1;
+        cursor: pointer;
+      }
+      .md-photo-hint {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--xhh-ink-3);
+      }
+      .md-photo-hint i { color: var(--state-info); }
+
+      /* ---- 风格选择 ---- */
+      .md-style-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .md-style-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--xhh-border);
+        background: var(--xhh-card);
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      }
+      .md-style-card.md-selected {
+        border-color: var(--xhh-coral);
+        background: var(--xhh-coral-bg);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--xhh-coral) 45%, transparent);
+      }
+      .md-style-emoji {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--xhh-surface-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+      }
+      .md-style-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+      .md-style-name { font-size: 13px; font-weight: 600; color: var(--xhh-ink); }
+      .md-style-desc { font-size: 11px; color: var(--xhh-ink-3); }
+
+      /* ---- BGM 选择 ---- */
+      .md-bgm-list { display: flex; gap: 8px; }
+      .md-bgm-item {
+        flex: 1;
+        min-width: 0;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 12px 8px;
+        border-radius: 9999px;
+        border: 1px solid var(--xhh-border);
+        background: var(--xhh-card);
+        cursor: pointer;
+        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      }
+      .md-bgm-item.md-selected {
+        border-color: var(--xhh-coral);
+        background: var(--xhh-coral-bg);
+      }
+      .md-bgm-item.md-playing .md-bgm-preview {
+        background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
+        color: var(--xhh-primary-foreground);
+      }
+      .md-bgm-name { font-size: 12px; font-weight: 600; color: var(--xhh-ink); }
+      .md-bgm-tag { font-size: 10px; color: var(--xhh-ink-3); }
+      .md-bgm-preview {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        width: 22px;
+        height: 22px;
+        border-radius: 9999px;
+        background: var(--xhh-gold-bg);
+        border: none;
+        color: var(--xhh-gold-deep);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      /* ---- 生成按钮 ---- */
+      .md-gen-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+      .md-btn-primary {
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--xhh-primary-foreground);
+        background: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral));
+        box-shadow: var(--xhh-shadow-button);
+        cursor: pointer;
+      }
+      .md-gen-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--xhh-ink-3);
+      }
+
+      /* ---- 交互反馈 ---- */
+      .md-card-hover { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+      .md-card-hover:hover { transform: translateY(-3px); }
+      .md-card-hover:hover { box-shadow: var(--xhh-shadow-2); }
+      .md-btn-press { transition: transform 0.14s ease, opacity 0.14s ease; }
+      .md-btn-press:active { transform: scale(0.95); opacity: 0.9; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .md-card-hover, .md-btn-press, .md-style-card, .md-bgm-item, .md-step-dot { transition: none !important; }
+        .md-card-hover:hover { transform: none; box-shadow: none; }
+        .md-btn-press:active { transform: none; }
+      }
+    </style>
 </body>
 </html>

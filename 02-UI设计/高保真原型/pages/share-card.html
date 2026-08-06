@@ -545,92 +545,8 @@ body > main {
       .border-ring { border-color: var(--xhh-ring); }
       .ring-ring { --tw-ring-color: var(--xhh-ring); }
     </style>
-    <style id="critical-layout">
-/* ============================================
-   分享卡片页 · 关键布局静态 CSS
-   不依赖运行时 Tailwind，全部使用语义变量
-   ============================================ */
-
-/* —— 标题区 —— */
-.xhh-sc-hero { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px 0; }
-.xhh-sc-hero__title { display: flex; align-items: center; gap: 8px; }
-.xhh-sc-hero__h { font-size: 18px; font-weight: 700; line-height: 1.2; color: var(--xhh-ink); }
-.xhh-sc-hero__badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--xhh-gold-deep); background-color: var(--xhh-gold-bg); border-radius: 9999px; padding: 3px 10px; flex-shrink: 0; }
-.xhh-sc-hero__sub { font-size: 13px; color: var(--xhh-ink-3); }
-
-/* —— 卡片类型矩阵 2 列 —— */
-.xhh-sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.xhh-sc-tpl { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; text-align: left; background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: var(--xhh-radius-md); padding: 14px 14px 16px; box-shadow: var(--xhh-shadow-card); cursor: pointer; transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), border-color 0.22s ease, box-shadow 0.22s ease; }
-.xhh-sc-tpl:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--xhh-coral) 35%, transparent); box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--xhh-coral) 28%, transparent); }
-.xhh-sc-tpl:active { transform: translateY(0) scale(0.95); }
-.xhh-sc-tpl--active { border-color: var(--xhh-coral); }
-.xhh-sc-tpl__icon { width: 40px; height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.xhh-sc-tpl__name { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--xhh-ink); }
-.xhh-sc-tpl__desc { font-size: 11px; line-height: 1.5; color: var(--xhh-ink-3); }
-.xhh-sc-tpl__check { display: none; width: 16px; height: 16px; border-radius: 9999px; background-color: var(--xhh-coral); color: var(--xhh-primary-foreground); align-items: center; justify-content: center; flex-shrink: 0; }
-.xhh-sc-tpl--active .xhh-sc-tpl__check { display: inline-flex; }
-
-/* —— 图标尺寸（lucide 替换后保留） —— */
-.xhh-ic-sm { width: 18px; height: 18px; }
-.xhh-ic-xs { width: 14px; height: 14px; }
-.xhh-ic-2xs { width: 12px; height: 12px; }
-
-/* —— 选中模板的卡片预览区 —— */
-.xhh-sc-preview { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 16px 18px; background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: var(--xhh-radius-md); box-shadow: var(--xhh-shadow-card); }
-.xhh-sc-preview__head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.xhh-sc-preview__label { font-size: 14px; font-weight: 600; color: var(--xhh-ink); }
-.xhh-sc-preview__tag { font-size: 11px; font-weight: 500; color: var(--xhh-ink-3); background-color: var(--xhh-surface-2); border-radius: 9999px; padding: 3px 10px; flex-shrink: 0; }
-
-/* —— 分享卡本体（3:4，约 260px） —— */
-.xhh-sc-card { width: 260px; max-width: 100%; aspect-ratio: 3 / 4; border-radius: var(--xhh-radius-lg); padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background-image: linear-gradient(135deg, var(--xhh-gold-soft), var(--xhh-gold-bg)); box-shadow: var(--xhh-shadow-2); }
-.xhh-sc-card__avatar { width: 76px; height: 76px; border-radius: 9999px; border: 3px solid var(--xhh-card); object-fit: cover; box-shadow: var(--xhh-shadow-1); }
-.xhh-sc-card__body { display: flex; flex-direction: column; align-items: center; gap: 9px; text-align: center; }
-.xhh-sc-card__kicker { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--xhh-gold-deep); background-color: color-mix(in srgb, var(--xhh-card) 74%, transparent); border-radius: 9999px; padding: 4px 12px; }
-.xhh-sc-card__main { font-size: 20px; font-weight: 800; line-height: 1.25; color: var(--xhh-ink); }
-.xhh-sc-card__main b { font-size: 26px; color: var(--xhh-coral); }
-.xhh-sc-card__score { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--xhh-ink-2); }
-.xhh-sc-card__score b { color: var(--xhh-ink); }
-.xhh-sc-card__quote { font-size: 13px; color: var(--xhh-gold-deep); }
-.xhh-sc-card__footer { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
-.xhh-sc-brand { display: inline-flex; align-items: baseline; gap: 4px; }
-.xhh-sc-brand__name { font-size: 15px; font-weight: 800; line-height: 1; background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.xhh-sc-brand__slogan { font-size: 10px; color: var(--xhh-ink-3); }
-
-/* —— 模拟小程序码（CSS 方块网格示意） —— */
-.xhh-sc-qr { width: 42px; height: 42px; flex-shrink: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 1.5px; padding: 3px; border-radius: 8px; background-color: var(--xhh-card); box-shadow: var(--xhh-shadow-1); }
-.xhh-sc-qr i { display: block; background-color: transparent; border-radius: 1px; }
-.xhh-sc-qr i.xhh-qr--dark { background-color: var(--xhh-ink); }
-
-/* —— 操作区 —— */
-.xhh-sc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 2px; }
-.xhh-sc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 46px; border-radius: var(--xhh-radius-md); font-size: 14px; font-weight: 600; min-width: 0; cursor: pointer; transition: transform 0.15s ease, opacity 0.15s ease; }
-.xhh-sc-btn:active { transform: scale(0.95); opacity: 0.9; }
-.xhh-sc-btn--primary { background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button); }
-.xhh-sc-btn--ghost { background-color: var(--xhh-card); border: 1px solid var(--xhh-coral); color: var(--xhh-coral); }
-
-@media (prefers-reduced-motion: reduce) {
-  .xhh-sc-tpl, .xhh-sc-btn { transition: none !important; }
-  .xhh-sc-tpl:hover { transform: none; }
-  .xhh-sc-tpl:active { transform: none; }
-  .xhh-sc-btn:active { transform: none; }
-}
-    </style>
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      [data-icon] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
-        background-color: currentColor;
-      }
-    </style>
+    
+    
 </head>
 <body class="min-h-screen font-sans antialiased">
     <!-- 全小程序统一动态背景层 -->
@@ -832,5 +748,92 @@ body > main {
 
     <script>lucide.createIcons();</script>
 
+
+<style id="critical-layout">
+/* ============================================
+   分享卡片页 · 关键布局静态 CSS
+   不依赖运行时 Tailwind，全部使用语义变量
+   ============================================ */
+
+/* —— 标题区 —— */
+.xhh-sc-hero { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px 0; }
+.xhh-sc-hero__title { display: flex; align-items: center; gap: 8px; }
+.xhh-sc-hero__h { font-size: 18px; font-weight: 700; line-height: 1.2; color: var(--xhh-ink); }
+.xhh-sc-hero__badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--xhh-gold-deep); background-color: var(--xhh-gold-bg); border-radius: 9999px; padding: 3px 10px; flex-shrink: 0; }
+.xhh-sc-hero__sub { font-size: 13px; color: var(--xhh-ink-3); }
+
+/* —— 卡片类型矩阵 2 列 —— */
+.xhh-sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.xhh-sc-tpl { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; text-align: left; background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: var(--xhh-radius-md); padding: 14px 14px 16px; box-shadow: var(--xhh-shadow-card); cursor: pointer; transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), border-color 0.22s ease, box-shadow 0.22s ease; }
+.xhh-sc-tpl:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--xhh-coral) 35%, transparent); box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--xhh-coral) 28%, transparent); }
+.xhh-sc-tpl:active { transform: translateY(0) scale(0.95); }
+.xhh-sc-tpl--active { border-color: var(--xhh-coral); }
+.xhh-sc-tpl__icon { width: 40px; height: 40px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.xhh-sc-tpl__name { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--xhh-ink); }
+.xhh-sc-tpl__desc { font-size: 11px; line-height: 1.5; color: var(--xhh-ink-3); }
+.xhh-sc-tpl__check { display: none; width: 16px; height: 16px; border-radius: 9999px; background-color: var(--xhh-coral); color: var(--xhh-primary-foreground); align-items: center; justify-content: center; flex-shrink: 0; }
+.xhh-sc-tpl--active .xhh-sc-tpl__check { display: inline-flex; }
+
+/* —— 图标尺寸（lucide 替换后保留） —— */
+.xhh-ic-sm { width: 18px; height: 18px; }
+.xhh-ic-xs { width: 14px; height: 14px; }
+.xhh-ic-2xs { width: 12px; height: 12px; }
+
+/* —— 选中模板的卡片预览区 —— */
+.xhh-sc-preview { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 16px 18px; background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: var(--xhh-radius-md); box-shadow: var(--xhh-shadow-card); }
+.xhh-sc-preview__head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.xhh-sc-preview__label { font-size: 14px; font-weight: 600; color: var(--xhh-ink); }
+.xhh-sc-preview__tag { font-size: 11px; font-weight: 500; color: var(--xhh-ink-3); background-color: var(--xhh-surface-2); border-radius: 9999px; padding: 3px 10px; flex-shrink: 0; }
+
+/* —— 分享卡本体（3:4，约 260px） —— */
+.xhh-sc-card { width: 260px; max-width: 100%; aspect-ratio: 3 / 4; border-radius: var(--xhh-radius-lg); padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background-image: linear-gradient(135deg, var(--xhh-gold-soft), var(--xhh-gold-bg)); box-shadow: var(--xhh-shadow-2); }
+.xhh-sc-card__avatar { width: 76px; height: 76px; border-radius: 9999px; border: 3px solid var(--xhh-card); object-fit: cover; box-shadow: var(--xhh-shadow-1); }
+.xhh-sc-card__body { display: flex; flex-direction: column; align-items: center; gap: 9px; text-align: center; }
+.xhh-sc-card__kicker { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--xhh-gold-deep); background-color: color-mix(in srgb, var(--xhh-card) 74%, transparent); border-radius: 9999px; padding: 4px 12px; }
+.xhh-sc-card__main { font-size: 20px; font-weight: 800; line-height: 1.25; color: var(--xhh-ink); }
+.xhh-sc-card__main b { font-size: 26px; color: var(--xhh-coral); }
+.xhh-sc-card__score { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--xhh-ink-2); }
+.xhh-sc-card__score b { color: var(--xhh-ink); }
+.xhh-sc-card__quote { font-size: 13px; color: var(--xhh-gold-deep); }
+.xhh-sc-card__footer { width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.xhh-sc-brand { display: inline-flex; align-items: baseline; gap: 4px; }
+.xhh-sc-brand__name { font-size: 15px; font-weight: 800; line-height: 1; background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.xhh-sc-brand__slogan { font-size: 10px; color: var(--xhh-ink-3); }
+
+/* —— 模拟小程序码（CSS 方块网格示意） —— */
+.xhh-sc-qr { width: 42px; height: 42px; flex-shrink: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 1.5px; padding: 3px; border-radius: 8px; background-color: var(--xhh-card); box-shadow: var(--xhh-shadow-1); }
+.xhh-sc-qr i { display: block; background-color: transparent; border-radius: 1px; }
+.xhh-sc-qr i.xhh-qr--dark { background-color: var(--xhh-ink); }
+
+/* —— 操作区 —— */
+.xhh-sc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 2px; }
+.xhh-sc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 46px; border-radius: var(--xhh-radius-md); font-size: 14px; font-weight: 600; min-width: 0; cursor: pointer; transition: transform 0.15s ease, opacity 0.15s ease; }
+.xhh-sc-btn:active { transform: scale(0.95); opacity: 0.9; }
+.xhh-sc-btn--primary { background-image: linear-gradient(135deg, var(--xhh-coral-soft), var(--xhh-coral)); color: var(--xhh-primary-foreground); box-shadow: var(--xhh-shadow-button); }
+.xhh-sc-btn--ghost { background-color: var(--xhh-card); border: 1px solid var(--xhh-coral); color: var(--xhh-coral); }
+
+@media (prefers-reduced-motion: reduce) {
+  .xhh-sc-tpl, .xhh-sc-btn { transition: none !important; }
+  .xhh-sc-tpl:hover { transform: none; }
+  .xhh-sc-tpl:active { transform: none; }
+  .xhh-sc-btn:active { transform: none; }
+}
+    </style>
+<style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
 </body>
 </html>

@@ -545,91 +545,8 @@ body > main {
       .border-ring { border-color: var(--xhh-ring); }
       .ring-ring { --tw-ring-color: var(--xhh-ring); }
     </style>
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      [data-icon] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
-        background-color: currentColor;
-      }
-    </style>
-    <style id="critical-layout">
-      /* ============================================
-         宠物家庭页 · 关键布局静态兜底
-         核心结构不依赖 Tailwind 运行时，CDN 失败亦可完整渲染
-         ============================================ */
-      *, *::before, *::after { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; }
-      body { min-height: 100vh; background-color: var(--xhh-background); }
-      img { display: block; max-width: 100%; }
-      .xhh-shell {
-        position: relative; z-index: 10;
-        max-width: 448px; margin-left: auto; margin-right: auto;
-        padding: 12px 16px 128px;
-        display: flex; flex-direction: column; gap: 16px;
-      }
-      .xhh-card {
-        background-color: var(--xhh-card);
-        border: 1px solid var(--xhh-border);
-        border-radius: var(--xhh-radius-md);
-        box-shadow: var(--xhh-shadow-card);
-        padding: 16px;
-      }
-      .xhh-scroll-x {
-        display: flex; align-items: stretch; gap: 12px;
-        overflow-x: auto; -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x proximity;
-      }
-      .xhh-scroll-item { flex: 0 0 auto; scroll-snap-align: start; }
-      .xhh-member-card {
-        width: 104px; border-radius: var(--xhh-radius-md);
-        background-color: var(--xhh-card);
-        border: 1px solid var(--xhh-border);
-        box-shadow: var(--xhh-shadow-1);
-        padding: 12px 10px; text-align: center;
-        text-decoration: none;
-      }
-      .xhh-chip {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 3px 9px; border-radius: 9999px;
-        background-color: var(--xhh-muted); color: var(--xhh-ink-2);
-        font-size: 11px; white-space: nowrap;
-      }
-      .xhh-role-tag {
-        display: inline-flex; align-items: center; gap: 3px;
-        padding: 2px 8px; border-radius: 9999px;
-        background-color: var(--xhh-coral-bg); color: var(--xhh-coral);
-        font-size: 10px; font-weight: 600; line-height: 1.4;
-      }
-      .xhh-graph-line {
-        flex: 1; min-width: 14px; margin-top: 22px;
-        border-top: 2px dashed color-mix(in srgb, var(--xhh-coral) 45%, transparent);
-      }
-      .xhh-tl-dot {
-        width: 8px; height: 8px; border-radius: 9999px;
-        background-color: var(--xhh-coral); flex-shrink: 0;
-      }
-      .xhh-lift {
-        transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s cubic-bezier(0.3, 0, 0, 1), border-color 0.22s ease;
-      }
-      .xhh-lift:hover {
-        transform: translateY(-3px);
-        border-color: color-mix(in srgb, var(--xhh-coral) 35%, transparent);
-        box-shadow: 0 10px 26px -10px rgba(255, 107, 61, 0.28);
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .xhh-lift { transition: none; }
-        .xhh-lift:hover { transform: none; }
-      }
-    </style>
+    
+    
 </head>
 <body class="min-h-screen font-sans antialiased">
     <!-- 全小程序统一动态背景层 -->
@@ -951,5 +868,91 @@ body > main {
         lucide.createIcons();
     </script>
 
+
+<style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+<style id="critical-layout">
+      /* ============================================
+         宠物家庭页 · 关键布局静态兜底
+         核心结构不依赖 Tailwind 运行时，CDN 失败亦可完整渲染
+         ============================================ */
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body { min-height: 100vh; background-color: var(--xhh-background); }
+      img { display: block; max-width: 100%; }
+      .xhh-shell {
+        position: relative; z-index: 10;
+        max-width: 448px; margin-left: auto; margin-right: auto;
+        padding: 12px 16px 128px;
+        display: flex; flex-direction: column; gap: 16px;
+      }
+      .xhh-card {
+        background-color: var(--xhh-card);
+        border: 1px solid var(--xhh-border);
+        border-radius: var(--xhh-radius-md);
+        box-shadow: var(--xhh-shadow-card);
+        padding: 16px;
+      }
+      .xhh-scroll-x {
+        display: flex; align-items: stretch; gap: 12px;
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+      }
+      .xhh-scroll-item { flex: 0 0 auto; scroll-snap-align: start; }
+      .xhh-member-card {
+        width: 104px; border-radius: var(--xhh-radius-md);
+        background-color: var(--xhh-card);
+        border: 1px solid var(--xhh-border);
+        box-shadow: var(--xhh-shadow-1);
+        padding: 12px 10px; text-align: center;
+        text-decoration: none;
+      }
+      .xhh-chip {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 9px; border-radius: 9999px;
+        background-color: var(--xhh-muted); color: var(--xhh-ink-2);
+        font-size: 11px; white-space: nowrap;
+      }
+      .xhh-role-tag {
+        display: inline-flex; align-items: center; gap: 3px;
+        padding: 2px 8px; border-radius: 9999px;
+        background-color: var(--xhh-coral-bg); color: var(--xhh-coral);
+        font-size: 10px; font-weight: 600; line-height: 1.4;
+      }
+      .xhh-graph-line {
+        flex: 1; min-width: 14px; margin-top: 22px;
+        border-top: 2px dashed color-mix(in srgb, var(--xhh-coral) 45%, transparent);
+      }
+      .xhh-tl-dot {
+        width: 8px; height: 8px; border-radius: 9999px;
+        background-color: var(--xhh-coral); flex-shrink: 0;
+      }
+      .xhh-lift {
+        transition: transform 0.22s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.22s cubic-bezier(0.3, 0, 0, 1), border-color 0.22s ease;
+      }
+      .xhh-lift:hover {
+        transform: translateY(-3px);
+        border-color: color-mix(in srgb, var(--xhh-coral) 35%, transparent);
+        box-shadow: 0 10px 26px -10px rgba(255, 107, 61, 0.28);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .xhh-lift { transition: none; }
+        .xhh-lift:hover { transform: none; }
+      }
+    </style>
 </body>
 </html>

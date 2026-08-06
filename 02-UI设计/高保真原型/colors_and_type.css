@@ -261,6 +261,20 @@ html[data-theme="winter"] {
   --xhh-glow-color: rgba(143, 168, 232, 0.13);
 }
 
+/* ============================================
+   四季主题色板（主题切换预览 / 成就卡等场景）
+   与各主题的 --xhh-coral 主色一一对应
+   ============================================ */
+:root {
+  --xhh-swatch-spring: #54B460;
+  --xhh-swatch-spring-soft: #8AD390;
+  --xhh-swatch-summer: #2FA8E8;
+  --xhh-swatch-summer-soft: #7CC6F0;
+  --xhh-swatch-autumn: #FF6B3D;
+  --xhh-swatch-autumn-soft: #FFA082;
+  --xhh-swatch-winter: #6C7CF0;
+  --xhh-swatch-winter-soft: #A5B1F7;
+}
 /* ---- 全局字体 ---- */
 body {
   font-family: var(--xhh-font-sans);

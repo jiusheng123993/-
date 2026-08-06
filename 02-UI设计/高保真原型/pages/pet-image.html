@@ -545,40 +545,8 @@ body > main {
       .border-ring { border-color: var(--xhh-ring); }
       .ring-ring { --tw-ring-color: var(--xhh-ring); }
     </style>
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      [data-icon] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        -webkit-mask-size: contain;
-        mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        mask-position: center;
-        background-color: currentColor;
-      }
-    </style>
-    <style id="xhh-critical-layout">
-      /* ============================================
-         关键布局静态兜底（无 Tailwind 也能渲染框架）
-         星寰海 · 宠物形象定制
-         ============================================ */
-      .xhh-header { position: sticky; top: 0; z-index: 40; }
-      .xhh-header-inner { max-width: 28rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; height: 3rem; padding: 0 0.75rem; }
-      .xhh-brand { display: flex; align-items: baseline; gap: 0.375rem; min-width: 0; }
-      .xhh-capsule { display: flex; align-items: center; justify-content: center; height: 2rem; width: 5.5rem; flex: none; border-radius: 9999px; border: 1px solid var(--xhh-border); background-color: var(--xhh-card); }
-
-      .xhh-main { max-width: 28rem; margin: 0 auto; padding: 0.75rem 1rem 8rem; display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10; }
-
-      .xhh-tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 3.5rem; background-color: color-mix(in srgb, var(--xhh-card) 95%, transparent); border-top: 1px solid var(--xhh-border); backdrop-filter: blur(12px); }
-      .xhh-tabbar-inner { max-width: 28rem; margin: 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 100%; }
-      .xhh-tab-item { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem; padding: 0 0.25rem; }
-
-      .xhh-card { background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: 28px; box-shadow: var(--xhh-shadow-card); }
-    </style>
+    
+    
 </head>
 <body class="min-h-screen font-sans antialiased max-w-md mx-auto" style="background: var(--xhh-background);">
     <!-- 全小程序统一动态背景层 -->
@@ -1125,5 +1093,40 @@ body > main {
         })();
     </script>
 
+
+<style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+<style id="xhh-critical-layout">
+      /* ============================================
+         关键布局静态兜底（无 Tailwind 也能渲染框架）
+         星寰海 · 宠物形象定制
+         ============================================ */
+      .xhh-header { position: sticky; top: 0; z-index: 40; }
+      .xhh-header-inner { max-width: 28rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; height: 3rem; padding: 0 0.75rem; }
+      .xhh-brand { display: flex; align-items: baseline; gap: 0.375rem; min-width: 0; }
+      .xhh-capsule { display: flex; align-items: center; justify-content: center; height: 2rem; width: 5.5rem; flex: none; border-radius: 9999px; border: 1px solid var(--xhh-border); background-color: var(--xhh-card); }
+
+      .xhh-main { max-width: 28rem; margin: 0 auto; padding: 0.75rem 1rem 8rem; display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10; }
+
+      .xhh-tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; height: 3.5rem; background-color: color-mix(in srgb, var(--xhh-card) 95%, transparent); border-top: 1px solid var(--xhh-border); backdrop-filter: blur(12px); }
+      .xhh-tabbar-inner { max-width: 28rem; margin: 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 100%; }
+      .xhh-tab-item { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem; padding: 0 0.25rem; }
+
+      .xhh-card { background-color: var(--xhh-card); border: 1px solid var(--xhh-border); border-radius: 28px; box-shadow: var(--xhh-shadow-card); }
+    </style>
 </body>
 </html>
