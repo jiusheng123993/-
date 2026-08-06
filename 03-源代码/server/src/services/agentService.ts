@@ -102,15 +102,15 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
 
 ### 📸 回忆 → 调用 record_memory
 用户想记录宠物回忆、写日记、保存美好时刻时，调用 record_memory。
+**关键：如果用户已在消息中描述了回忆内容，必须把内容作为 content 参数传入，工具会直接保存到「时光」页面。**
 示例：
-- "记录回忆" → record_memory
-- "写个日记" → record_memory
-- "保存这段回忆" → record_memory
-- "今天发生了一件有趣的事" → record_memory
-- "记录一下我们今天的经历" → record_memory
-- "留下美好回忆" → record_memory
-- "记个日记" → record_memory
-- "写段回忆" → record_memory
+- "记录回忆" → record_memory（不传 content，启动录制流程）
+- "写个日记" → record_memory（不传 content，启动录制流程）
+- "记录回忆：豆豆今天追逗猫棒玩疯了" → record_memory（content="豆豆今天追逗猫棒玩疯了"，直接保存）
+- "写个日记：今天带它去公园散步" → record_memory（content="今天带它去公园散步"，直接保存）
+- "记下这件事：它今天把花瓶打碎了" → record_memory（content="它今天把花瓶打碎了"，直接保存）
+- "今天发生了一件有趣的事，它在沙发上翻跟头" → record_memory（content="它在沙发上翻跟头"，直接保存）
+- "记录一下我们今天的经历，去了宠物公园" → record_memory（content="去了宠物公园"，直接保存）
 
 ### 🏥 症状 → 调用 check_symptom
 用户描述宠物不适症状时，调用 check_symptom。
@@ -127,15 +127,21 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
 - "老挠自己" → check_symptom
 
 ### 🍎 食物查询 → 调用 query_food_safety
-用户询问食物安全性时，调用 query_food_safety。
+用户明确询问某种食物对宠物是否安全、有毒时，才调用 query_food_safety。
+**关键区分：用户是在"提问"食物安全性，而不是在"陈述"宠物吃了什么。**
 示例：
 - "巧克力能吃吗" → query_food_safety
 - "葡萄可以喂吗" → query_food_safety
-- "吃什么好" → query_food_safety
 - "这个有毒吗" → query_food_safety
-- "查一下鸡肉" → query_food_safety
-- "喂什么好" → query_food_safety
+- "查一下鸡肉对猫安全吗" → query_food_safety
+- "猫能吃什么" → query_food_safety
 - "推荐一些安全的食物" → query_food_safety
+**以下情况不要调用 query_food_safety（用户在分享日常，不是在查食物）：**
+- "烧鸡今天吃了超多" → 直接回复（分享日常）
+- "它今天吃了很多猫粮" → 直接回复（分享日常）
+- "我只是和你分享" → 直接回复（聊天）
+- "它把罐头全吃完了" → 直接回复（分享日常）
+- "今天给它喂了鸡胸肉，它很喜欢" → 直接回复（分享日常）
 
 ### 🐱 品种百科 → 调用 search_breed_info
 用户询问品种信息时，调用 search_breed_info。
@@ -147,13 +153,22 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
 - "品种推荐" → search_breed_info
 - "适合新手养的狗" → search_breed_info
 
-### 💬 普通聊天 / 其他 → 直接回复
-用户只是聊天、问候、表达情感时，直接文字回复，不调用工具。
+### 💬 普通聊天 / 分享日常 → 直接回复
+用户只是在聊天、问候、表达情感、分享宠物日常时，直接文字回复，不调用任何工具。
+**关键判断：如果用户不是在提问、不是在寻求建议、不是在要求记录，就属于聊天/分享，直接回复即可。**
 示例：
 - "你好" → 直接回复
 - "今天天气真好" → 直接回复
 - "豆豆真可爱" → 直接回复
 - "谢谢你" → 直接回复
+- "烧鸡今天吃了超多" → 直接回复（分享日常，关心一下即可）
+- "它今天吃了很多猫粮" → 直接回复（分享日常）
+- "它把罐头全吃完了" → 直接回复（分享日常）
+- "今天给它喂了鸡胸肉，它很喜欢" → 直接回复（分享日常）
+- "我只是和你分享" → 直接回复（聊天）
+- "它今天一直在睡觉" → 直接回复（分享日常）
+- "它刚才追逗猫棒玩疯了" → 直接回复（分享日常）
+- "它今天对我发脾气了" → 直接回复（分享日常）
 
 ## 你的能力
 你可以通过调用工具来帮助用户管理宠物健康：
@@ -308,6 +323,138 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
   return prompt;
 }
 
+// ========== 第一步：意图分类（两步路由核心） ==========
+
+/** 意图分类结果 */
+interface IntentResult {
+  intent: string;
+  confidence: number;
+  reason: string;
+}
+
+/** 意图 → 工具名映射（高置信度时强制调用） */
+const INTENT_TOOL_MAP: Record<string, string | null> = {
+  chat: null,           // 聊天/分享 → 不调用任何工具
+  naming: 'start_naming',
+  memory: 'record_memory',
+  symptom: 'check_symptom',
+  food: 'query_food_safety',
+  breed: 'search_breed_info',
+  feeding: 'record_feeding',
+  vaccine: 'get_vaccine_calendar',
+  hospital: 'search_hospital',
+  family: 'get_family_pets',
+  checkin: '__auto__',   // 可能是 start_checkin 或 record_health_checkin
+  pet_info: '__auto__',  // 可能是 get_pet_profile 或 get_pet_facts
+  health_trend: '__auto__', // 可能是 get_recent_checkins 或 get_health_trends
+};
+
+/**
+ * 第一步：用 LLM 做意图分类
+ * 独立的短 prompt，只输出 JSON，速度快、成本低
+ */
+async function classifyIntent(
+  userMessage: string,
+  history: ChatMessage[],
+): Promise<IntentResult> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    return { intent: 'chat', confidence: 0, reason: 'AI 未配置，默认聊天' };
+  }
+
+  // 构建分类 prompt（含最近 3 条对话上下文）
+  const recentHistory = history.slice(-3)
+    .map(m => `${m.role === 'user' ? '用户' : 'AI'}: ${m.content.slice(0, 100)}`)
+    .join('\n');
+
+  const classifyPrompt = `你是意图分类器。根据用户消息判断意图，只输出JSON，不要输出其他内容。
+
+## 意图类别
+- chat: 聊天、问候、分享日常、表达情感、感谢（不调用任何工具）
+- naming: 为宠物取名、换名字、求推荐名字
+- checkin: 健康打卡、记录今天状态
+- memory: 记录回忆、写日记、保存美好时刻（包括用户已提供具体回忆内容的情况，如"记录回忆：豆豆今天玩疯了"）
+- symptom: 宠物不适、生病症状、精神不好
+- food: 询问某种食物是否安全/能不能吃/有没有毒
+- breed: 品种信息、品种推荐、品种百科
+- feeding: 记录喂养/喂食
+- vaccine: 疫苗日历/疫苗接种
+- hospital: 查找医院/宠物医院
+- pet_info: 查询宠物档案/基本信息
+- family: 家庭宠物管理/添加宠物
+- health_trend: 健康趋势/历史打卡记录
+
+## 关键区分规则（务必遵守）
+1. **分享 vs 查食物**：
+   - "烧鸡今天吃了超多" → chat（分享日常，不是查食物）
+   - "它把罐头全吃完了" → chat（分享日常）
+   - "今天喂了鸡胸肉，它很爱吃" → chat（分享日常）
+   - "巧克力能吃吗" → food（询问安全性）
+   - "葡萄对猫有毒吗" → food（询问安全性）
+   - 判断标准：用户在"陈述"宠物吃了什么 → chat；用户在"提问"某食物是否安全 → food
+
+2. **分享 vs 症状**：
+   - "它今天一直在睡觉" → chat（分享日常）
+   - "它今天没精神，不吃不喝" → symptom（描述不适症状）
+   - 判断标准：正常行为描述 → chat；异常/不适描述 → symptom
+
+3. **分享 vs 记录**：
+   - "它刚才追逗猫棒玩疯了" → chat（分享日常）
+   - "记个日记" / "记录回忆" → memory（明确要求记录）
+   - 判断标准：用户在分享但没要求记录 → chat；用户明确要求记录 → memory
+
+## 最近对话上下文
+${recentHistory || '（无）'}
+
+## 输出格式
+{"intent":"类别","confidence":0.0到1.0,"reason":"简短原因"}`;
+
+  try {
+    const response = await fetch(`${getBaseUrl()}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: getModel(),
+        messages: [
+          { role: 'system', content: classifyPrompt },
+          { role: 'user', content: userMessage },
+        ],
+        temperature: 0.1,
+        max_tokens: 100,
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) {
+      return { intent: 'chat', confidence: 0, reason: '分类器请求失败，降级为 auto' };
+    }
+
+    const data = await response.json() as {
+      choices: Array<{ message: { content?: string } }>;
+    };
+
+    const content = data.choices[0]?.message?.content || '';
+    // 提取 JSON（兼容 markdown 代码块包裹）
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return { intent: 'chat', confidence: 0, reason: '分类器输出解析失败，降级为 auto' };
+    }
+
+    const result = JSON.parse(jsonMatch[0]) as IntentResult;
+    return {
+      intent: result.intent in INTENT_TOOL_MAP ? result.intent : 'chat',
+      confidence: typeof result.confidence === 'number' ? result.confidence : 0,
+      reason: result.reason || '',
+    };
+  } catch {
+    return { intent: 'chat', confidence: 0, reason: '分类器异常，降级为 auto' };
+  }
+}
+
 // ========== 调用 LLM（支持 function calling） ==========
 
 interface LLMResponse {
@@ -317,9 +464,13 @@ interface LLMResponse {
   reasoningContent: string | null;
 }
 
+/** tool_choice 参数类型：'auto' | 'none' | 指定工具 */
+type ToolChoice = 'auto' | 'none' | { type: 'function'; function: { name: string } };
+
 async function callLLM(
   messages: ChatMessage[],
   stream: boolean,
+  toolChoice?: ToolChoice,
 ): Promise<LLMResponse> {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -333,7 +484,7 @@ async function callLLM(
     max_tokens: 1024,
     stream: false,
     tools: getToolDefinitionsForLLM(),
-    tool_choice: 'auto',
+    tool_choice: toolChoice || 'auto',
   };
 
   const response = await fetch(`${getBaseUrl()}/chat/completions`, {
@@ -399,6 +550,33 @@ export async function* agentLoop(
 ): AsyncGenerator<AgentEvent> {
   const startTime = Date.now();
 
+  // ========== 第一步：意图分类 ==========
+  yield { type: 'thinking', data: { iteration: 0, label: '理解意图中...' } };
+  const intentResult = await classifyIntent(userMessage, history);
+  console.log(`[Agent] 意图分类: ${intentResult.intent} (置信度: ${intentResult.confidence}) - ${intentResult.reason}`);
+
+  // 根据意图决定 tool_choice
+  let initialToolChoice: ToolChoice = 'auto';
+  const CONFIDENCE_THRESHOLD = 0.7;
+
+  if (intentResult.confidence >= CONFIDENCE_THRESHOLD) {
+    const mappedTool = INTENT_TOOL_MAP[intentResult.intent];
+    if (mappedTool === null) {
+      // chat 意图 → 禁用所有工具，直接回复
+      initialToolChoice = 'none';
+      console.log('[Agent] 路由决策: chat → 禁用工具，直接回复');
+    } else if (mappedTool && mappedTool !== '__auto__') {
+      // 明确工具 → 强制调用
+      initialToolChoice = { type: 'function', function: { name: mappedTool } };
+      console.log(`[Agent] 路由决策: ${intentResult.intent} → 强制调用 ${mappedTool}`);
+    } else {
+      // 多工具意图 → auto
+      console.log(`[Agent] 路由决策: ${intentResult.intent} → auto（多工具候选）`);
+    }
+  } else {
+    console.log(`[Agent] 路由决策: 置信度 ${intentResult.confidence} < ${CONFIDENCE_THRESHOLD} → auto（降级）`);
+  }
+
   // 构建系统提示词（传入用户消息以检索相关记忆）
   const systemPrompt = await buildSystemPrompt(context, userMessage);
 
@@ -423,7 +601,9 @@ export async function* agentLoop(
     yield { type: 'thinking', data: { iteration: iterations } };
 
     try {
-      const response = await callLLM(messages, false);
+      // 第一次迭代用意图分类的 tool_choice，后续迭代用 auto（处理工具结果）
+      const toolChoice = iterations === 1 ? initialToolChoice : 'auto';
+      const response = await callLLM(messages, false, toolChoice);
 
       // LLM 想调用工具
       if (response.toolCalls && response.toolCalls.length > 0) {

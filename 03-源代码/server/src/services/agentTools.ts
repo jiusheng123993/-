@@ -632,10 +632,48 @@ registerTool('start_checkin', async (args, context): Promise<ToolResult> => {
 // ========== 15. record_memory ==========
 
 registerTool('record_memory', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物，无法记录回忆' };
+  }
+
+  const content = (args.content as string)?.trim();
+
+  // 分支 A：LLM 已从用户消息中提取回忆内容 → 直接写入数据库
+  if (content) {
+    const { rows: petRows } = await pool.query(
+      'SELECT name, species FROM pet_profiles WHERE id = $1 AND user_id = $2',
+      [petId, context.userId]
+    );
+    const petName = petRows[0]?.name || '宠物';
+    const petEmoji = petRows[0]?.species === 'cat' ? '🐱' : '🐶';
+
+    const momentId = uuidv4();
+    await pool.query(
+      `INSERT INTO pet_moments (id, user_id, pet_id, type, content, photos)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        momentId,
+        context.userId,
+        petId,
+        'memory',
+        JSON.stringify({ petName, petEmoji, description: content }),
+        [],
+      ]
+    );
+
+    return {
+      success: true,
+      data: { saved: true, momentId },
+      message: `回忆已记录 ✦\n\n"${content}"\n\n已保存到「时光」页面，你可以去查看哦～`,
+    };
+  }
+
+  // 分支 B：用户未提供具体内容 → 触发前端回忆录制流程
   return {
     success: true,
     data: { action: 'memory_flow' },
-    message: '好的，记录下你们的美好回忆吧！可以上传照片或写一段话。',
+    message: '好的，进入回忆录制模式 ✦\n\n请在下方输入框写一段话描述这段回忆，也可以先上传一张照片，我会在你输入完成后保存到「时光」页面。',
   };
 });
 

@@ -89,7 +89,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   },
   {
     name: 'query_food_safety',
-    description: '查询某种食物对宠物是否安全。当用户问"XX能吃吗"、"XX有毒吗"时使用。',
+    description: '查询某种食物对宠物是否安全。仅当用户主动提问食物安全性时使用（如"XX能吃吗""XX有毒吗"）。用户分享宠物吃了什么（如"它今天吃了超多"）时不使用此工具。',
     parameters: {
       type: 'object',
       properties: {
@@ -193,10 +193,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   },
   {
     name: 'record_memory',
-    description: '当用户想要记录宠物回忆、写回忆时使用。调用此工具后前端会启动回忆记录流程。',
+    description: '当用户想要记录宠物回忆、写回忆、写日记时使用。如果用户已在消息中描述了回忆内容（如"记录回忆：豆豆今天玩疯了""写个日记：今天带它去公园"），必须把回忆内容作为 content 参数传入，工具会直接保存到「时光」页面。如果用户只是表达想记录回忆但未提供具体内容（如"添加回忆""想写个日记"），则不传 content，会启动回忆录制流程让用户输入。',
     parameters: {
       type: 'object',
-      properties: {},
+      properties: {
+        content: { type: 'string', description: '回忆内容描述。用户已在消息中提供回忆内容时传入，例如"豆豆今天追逗猫棒玩疯了""今天带它去公园散步，遇到一只小狗"' },
+      },
       required: [],
     },
   },
