@@ -69,15 +69,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-home\" --html-src=\"pages/home.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-home\" --html-src=\"pages/home.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\home.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\home.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\home.html\" --title=\"首页 · AI对话\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\home.html\" --title=\"首页 · AI对话\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -87,7 +87,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -181,15 +181,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-checkin\" --html-src=\"pages/checkin.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-checkin\" --html-src=\"pages/checkin.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\checkin.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\checkin.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\checkin.html\" --title=\"健康打卡\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\checkin.html\" --title=\"健康打卡\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -199,7 +199,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -293,15 +293,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-pet-profile\" --html-src=\"pages/pet-profile.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-pet-profile\" --html-src=\"pages/pet-profile.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\pet-profile.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\pet-profile.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\pet-profile.html\" --title=\"宠物档案\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\pet-profile.html\" --title=\"宠物档案\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -311,7 +311,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -405,15 +405,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-vaccine\" --html-src=\"pages/vaccine.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-vaccine\" --html-src=\"pages/vaccine.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\vaccine.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\vaccine.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\vaccine.html\" --title=\"疫苗日历\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\vaccine.html\" --title=\"疫苗日历\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -423,7 +423,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -517,15 +517,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-food-query\" --html-src=\"pages/food-query.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-food-query\" --html-src=\"pages/food-query.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\food-query.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\food-query.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\food-query.html\" --title=\"食物查询\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\food-query.html\" --title=\"食物查询\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -535,7 +535,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -629,15 +629,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-symptom-check\" --html-src=\"pages/symptom-check.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-symptom-check\" --html-src=\"pages/symptom-check.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\symptom-check.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\symptom-check.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\symptom-check.html\" --title=\"症状初筛\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\symptom-check.html\" --title=\"症状初筛\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -647,7 +647,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -741,15 +741,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-health-trends\" --html-src=\"pages/health-trends.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-health-trends\" --html-src=\"pages/health-trends.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\health-trends.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\health-trends.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\health-trends.html\" --title=\"健康趋势\" --lang=\"zh-CN\" --prefix=\"xhh\" --charts --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\health-trends.html\" --title=\"健康趋势\" --lang=\"zh-CN\" --prefix=\"xhh\" --charts --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -759,7 +759,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -853,15 +853,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-timeline\" --html-src=\"pages/timeline.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-timeline\" --html-src=\"pages/timeline.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\timeline.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\timeline.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\timeline.html\" --title=\"时光线\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\timeline.html\" --title=\"时光线\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -871,7 +871,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -965,15 +965,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-mine\" --html-src=\"pages/mine.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-mine\" --html-src=\"pages/mine.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\mine.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\mine.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\mine.html\" --title=\"我的\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\mine.html\" --title=\"我的\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -983,7 +983,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1077,15 +1077,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-family\" --html-src=\"pages/family.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-family\" --html-src=\"pages/family.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family.html\" --title=\"宠物家庭\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family.html\" --title=\"宠物家庭\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1095,7 +1095,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1189,15 +1189,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-naming\" --html-src=\"pages/naming.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-naming\" --html-src=\"pages/naming.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\naming.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\naming.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\naming.html\" --title=\"取名引擎\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\naming.html\" --title=\"取名引擎\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1207,7 +1207,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1301,15 +1301,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-memoir\" --html-src=\"pages/memoir.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-memoir\" --html-src=\"pages/memoir.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memoir.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memoir.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memoir.html\" --title=\"宠物回忆录\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memoir.html\" --title=\"宠物回忆录\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1319,7 +1319,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1413,15 +1413,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-share-card\" --html-src=\"pages/share-card.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-share-card\" --html-src=\"pages/share-card.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\share-card.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\share-card.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\share-card.html\" --title=\"分享卡片\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\share-card.html\" --title=\"分享卡片\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1431,7 +1431,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1525,15 +1525,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-auth\" --html-src=\"pages/auth.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-auth\" --html-src=\"pages/auth.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\auth.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\auth.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\auth.html\" --title=\"登录\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\auth.html\" --title=\"登录\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1543,7 +1543,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1637,15 +1637,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-membership\" --html-src=\"pages/membership.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-membership\" --html-src=\"pages/membership.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\membership.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\membership.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\membership.html\" --title=\"会员中心\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\membership.html\" --title=\"会员中心\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1655,7 +1655,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1749,15 +1749,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-health-report\" --html-src=\"pages/health-report.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-health-report\" --html-src=\"pages/health-report.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\health-report.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\health-report.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\health-report.html\" --title=\"健康报告\" --lang=\"zh-CN\" --prefix=\"xhh\" --charts --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\health-report.html\" --title=\"健康报告\" --lang=\"zh-CN\" --prefix=\"xhh\" --charts --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1767,7 +1767,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1861,15 +1861,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-grief\" --html-src=\"pages/grief.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-grief\" --html-src=\"pages/grief.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\grief.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\grief.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\grief.html\" --title=\"情绪陪伴\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\grief.html\" --title=\"情绪陪伴\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1879,7 +1879,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -1973,15 +1973,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-settings\" --html-src=\"pages/settings.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-settings\" --html-src=\"pages/settings.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\settings.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\settings.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\settings.html\" --title=\"设置\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\settings.html\" --title=\"设置\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -1991,7 +1991,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2085,15 +2085,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-health-trends-appetite-line\" --html-src=\"pages/health-trends-appetite-line.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-health-trends-appetite-line\" --html-src=\"pages/health-trends-appetite-line.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\health-trends-appetite-line.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\health-trends-appetite-line.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\health-trends-appetite-line.html\" --title=\"健康趋势 · 食欲折线图\" --lang=\"zh-CN\" --prefix=\"xhh\" --charts --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\health-trends-appetite-line.html\" --title=\"健康趋势 · 食欲折线图\" --lang=\"zh-CN\" --prefix=\"xhh\" --charts --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2103,7 +2103,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2197,15 +2197,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-pet-diary\" --html-src=\"pages/pet-diary.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-pet-diary\" --html-src=\"pages/pet-diary.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\pet-diary.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\pet-diary.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\pet-diary.html\" --title=\"宠物日记\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\pet-diary.html\" --title=\"宠物日记\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2215,7 +2215,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2309,15 +2309,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-pet-image\" --html-src=\"pages/pet-image.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-pet-image\" --html-src=\"pages/pet-image.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\pet-image.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\pet-image.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\pet-image.html\" --title=\"宠物形象\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\pet-image.html\" --title=\"宠物形象\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2327,7 +2327,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2421,15 +2421,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-family-tree\" --html-src=\"pages/family-tree.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-family-tree\" --html-src=\"pages/family-tree.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-tree.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-tree.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-tree.html\" --title=\"家族图谱\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-tree.html\" --title=\"家族图谱\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2439,7 +2439,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2533,15 +2533,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-family-report\" --html-src=\"pages/family-report.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-family-report\" --html-src=\"pages/family-report.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-report.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-report.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-report.html\" --title=\"家庭周报\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-report.html\" --title=\"家庭周报\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2551,7 +2551,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2645,15 +2645,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-annual-review\" --html-src=\"pages/annual-review.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-annual-review\" --html-src=\"pages/annual-review.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\annual-review.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\annual-review.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\annual-review.html\" --title=\"年度回忆\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\annual-review.html\" --title=\"年度回忆\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2663,7 +2663,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2757,15 +2757,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-ai-chat\" --html-src=\"pages/ai-chat.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-ai-chat\" --html-src=\"pages/ai-chat.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\ai-chat.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\ai-chat.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\ai-chat.html\" --title=\"AI 对话\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\ai-chat.html\" --title=\"AI 对话\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2775,7 +2775,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2869,15 +2869,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-family-calendar\" --html-src=\"pages/family-calendar.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-family-calendar\" --html-src=\"pages/family-calendar.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-calendar.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-calendar.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-calendar.html\" --title=\"家庭日历\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-calendar.html\" --title=\"家庭日历\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2887,7 +2887,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -2981,15 +2981,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-family-feed\" --html-src=\"pages/family-feed.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-family-feed\" --html-src=\"pages/family-feed.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-feed.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-feed.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\family-feed.html\" --title=\"家庭动态\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\family-feed.html\" --title=\"家庭动态\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -2999,7 +2999,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3093,15 +3093,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-illness-care\" --html-src=\"pages/illness-care.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-illness-care\" --html-src=\"pages/illness-care.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\illness-care.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\illness-care.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\illness-care.html\" --title=\"生病护理\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\illness-care.html\" --title=\"生病护理\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3111,7 +3111,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3205,15 +3205,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-newbie-guide\" --html-src=\"pages/newbie-guide.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-newbie-guide\" --html-src=\"pages/newbie-guide.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\newbie-guide.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\newbie-guide.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\newbie-guide.html\" --title=\"新手引导\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\newbie-guide.html\" --title=\"新手引导\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3223,7 +3223,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3317,15 +3317,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-breed\" --html-src=\"pages/breed.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-breed\" --html-src=\"pages/breed.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\breed.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\breed.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\breed.html\" --title=\"品种百科\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\breed.html\" --title=\"品种百科\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3335,7 +3335,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3429,15 +3429,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-add-pet\" --html-src=\"pages/add-pet.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-add-pet\" --html-src=\"pages/add-pet.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\add-pet.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\add-pet.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\add-pet.html\" --title=\"添加宠物\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\add-pet.html\" --title=\"添加宠物\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3447,7 +3447,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3541,15 +3541,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-hospital\" --html-src=\"pages/hospital.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-hospital\" --html-src=\"pages/hospital.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\hospital.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\hospital.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\hospital.html\" --title=\"附近医院\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\hospital.html\" --title=\"附近医院\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3559,7 +3559,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3653,15 +3653,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-memoir-daily\" --html-src=\"pages/memoir-daily.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-memoir-daily\" --html-src=\"pages/memoir-daily.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memoir-daily.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memoir-daily.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memoir-daily.html\" --title=\"日常回忆录\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memoir-daily.html\" --title=\"日常回忆录\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3671,7 +3671,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3765,15 +3765,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-memoir-vlog\" --html-src=\"pages/memoir-vlog.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-memoir-vlog\" --html-src=\"pages/memoir-vlog.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memoir-vlog.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memoir-vlog.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memoir-vlog.html\" --title=\"纪念Vlog\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memoir-vlog.html\" --title=\"纪念Vlog\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3783,7 +3783,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3877,15 +3877,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-edit\" --html-src=\"pages/edit.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-edit\" --html-src=\"pages/edit.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\edit.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\edit.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\edit.html\" --title=\"编辑宠物\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\edit.html\" --title=\"编辑宠物\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -3895,7 +3895,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -3989,15 +3989,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-breed-detail\" --html-src=\"pages/breed-detail.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-breed-detail\" --html-src=\"pages/breed-detail.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\breed-detail.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\breed-detail.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\breed-detail.html\" --title=\"品种详情\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\breed-detail.html\" --title=\"品种详情\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4007,7 +4007,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4101,15 +4101,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-chronic-tracking\" --html-src=\"pages/chronic-tracking.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-chronic-tracking\" --html-src=\"pages/chronic-tracking.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\chronic-tracking.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\chronic-tracking.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\chronic-tracking.html\" --title=\"慢性病追踪\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\chronic-tracking.html\" --title=\"慢性病追踪\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4119,7 +4119,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4213,15 +4213,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-feeding-advice\" --html-src=\"pages/feeding-advice.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-feeding-advice\" --html-src=\"pages/feeding-advice.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\feeding-advice.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\feeding-advice.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\feeding-advice.html\" --title=\"喂养建议\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\feeding-advice.html\" --title=\"喂养建议\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4231,7 +4231,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4325,15 +4325,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-wardrobe\" --html-src=\"pages/wardrobe.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-wardrobe\" --html-src=\"pages/wardrobe.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\wardrobe.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\wardrobe.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\wardrobe.html\" --title=\"宠物衣橱\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\wardrobe.html\" --title=\"宠物衣橱\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4343,7 +4343,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4437,15 +4437,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-leaderboard\" --html-src=\"pages/leaderboard.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-leaderboard\" --html-src=\"pages/leaderboard.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\leaderboard.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\leaderboard.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\leaderboard.html\" --title=\"家庭排行\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\leaderboard.html\" --title=\"家庭排行\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4455,7 +4455,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4549,15 +4549,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-achievement\" --html-src=\"pages/achievement.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-achievement\" --html-src=\"pages/achievement.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\achievement.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\achievement.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\achievement.html\" --title=\"成就墙\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\achievement.html\" --title=\"成就墙\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4567,7 +4567,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4661,15 +4661,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-profile\" --html-src=\"pages/profile.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-profile\" --html-src=\"pages/profile.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\profile.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\profile.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\profile.html\" --title=\"个人资料\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\profile.html\" --title=\"个人资料\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4679,7 +4679,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4773,15 +4773,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-agreement\" --html-src=\"pages/agreement.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-agreement\" --html-src=\"pages/agreement.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\agreement.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\agreement.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\agreement.html\" --title=\"用户协议\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\agreement.html\" --title=\"用户协议\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4791,7 +4791,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4885,15 +4885,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-invite\" --html-src=\"pages/invite.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-invite\" --html-src=\"pages/invite.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\invite.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\invite.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\invite.html\" --title=\"邀请好友\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\invite.html\" --title=\"邀请好友\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -4903,7 +4903,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -4997,15 +4997,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-effect-tracking\" --html-src=\"pages/effect-tracking.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-effect-tracking\" --html-src=\"pages/effect-tracking.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\effect-tracking.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\effect-tracking.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\effect-tracking.html\" --title=\"效果追踪\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\effect-tracking.html\" --title=\"效果追踪\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -5015,7 +5015,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -5109,15 +5109,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-memory\" --html-src=\"pages/memory.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-memory\" --html-src=\"pages/memory.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memory.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memory.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\memory.html\" --title=\"AI 记忆\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\memory.html\" --title=\"AI 记忆\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -5127,7 +5127,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
@@ -5221,15 +5221,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --node-id=\"page-feedback\" --html-src=\"pages/feedback.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --node-id=\"page-feedback\" --html-src=\"pages/feedback.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\02-UI设计\\高保真原型\\pages\\feedback.html",
+      "cssFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\feedback.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星寰海\\02-UI设计\\高保真原型\\pages\\feedback.html\" --title=\"意见反馈\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
+      "fillHtmlHeadCommand": "node \"C:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\colors_and_type.css\" \"e:\\星河宠记\\02-UI设计\\高保真原型\\pages\\feedback.html\" --title=\"意见反馈\" --lang=\"zh-CN\" --prefix=\"xhh\" --replace-head",
       "headFillMode": "replace-head-after-body",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "full",
@@ -5239,7 +5239,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "xinghuanhai-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
+        "xinghechongji-redesign.design": "e5f0c547268c847f15f191431d8c0a70f5420ef6de2f0518ce0a53074bce3255"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",

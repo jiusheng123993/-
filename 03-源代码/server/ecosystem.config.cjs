@@ -1,11 +1,11 @@
 // ============================================================
-// 星寰海 - PM2 进程配置
+// 星河宠记 - PM2 进程配置
 // 放置路径: 03-源代码/server/ecosystem.config.cjs
 // ============================================================
 module.exports = {
   apps: [
     {
-      name: 'xinghuanhai-server',
+      name: 'xinghechongji-server',
       script: 'src/index.ts',
       interpreter: 'node',
       interpreter_args: '--import tsx',
@@ -27,8 +27,8 @@ module.exports = {
 
       // 日志
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      error_file: '/opt/xinghuanhai/logs/err.log',
-      out_file: '/opt/xinghuanhai/logs/out.log',
+      error_file: '/opt/xinghechongji/logs/err.log',
+      out_file: '/opt/xinghechongji/logs/out.log',
       merge_logs: true,
 
       // 自动重启

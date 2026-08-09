@@ -1,8 +1,8 @@
 {
-  "name": "xinghuanhai-miniapp",
+  "name": "xinghechongji-miniapp",
   "private": true,
   "version": "0.1.0",
-  "description": "星寰海微信小程序 - AI主动外联引擎",
+  "description": "星河宠记微信小程序 - AI主动外联引擎",
   "scripts": {
     "dev:weapp": "taro build --type weapp --watch",
     "dev:h5": "taro build --type h5 --watch",

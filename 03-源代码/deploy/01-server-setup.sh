@@ -1,13 +1,13 @@
 #!/bin/bash
 # ============================================================
-# 星寰海 - 服务器环境初始化脚本
+# 星河宠记 - 服务器环境初始化脚本
 # 适用于 Ubuntu 20.04+ / Debian 11+
 # 使用方法: chmod +x 01-server-setup.sh && sudo bash 01-server-setup.sh
 # ============================================================
 set -e
 
 echo "=========================================="
-echo " 星寰海 - 服务器环境初始化"
+echo " 星河宠记 - 服务器环境初始化"
 echo "=========================================="
 
 # ---------- 1. 更新系统 ----------
@@ -42,10 +42,10 @@ echo "PostgreSQL 安装完成"
 
 # 创建数据库和用户（如果不存在）
 echo "[4/8] 配置数据库..."
-su - postgres -c "psql -tc \"SELECT 1 FROM pg_roles WHERE rolname='xinghuanhai'\" | grep -q 1 || psql -c \"CREATE USER xinghuanhai WITH PASSWORD 'CHANGE_ME_STRONG_PASSWORD';\""
-su - postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname='xinghuanhai'\" | grep -q 1 || psql -c \"CREATE DATABASE xinghuanhai OWNER xinghuanhai;\""
-su - postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE xinghuanhai TO xinghuanhai;\""
-echo "数据库 xinghuanhai 创建完成"
+su - postgres -c "psql -tc \"SELECT 1 FROM pg_roles WHERE rolname='xinghechongji'\" | grep -q 1 || psql -c \"CREATE USER xinghechongji WITH PASSWORD 'CHANGE_ME_STRONG_PASSWORD';\""
+su - postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname='xinghechongji'\" | grep -q 1 || psql -c \"CREATE DATABASE xinghechongji OWNER xinghechongji;\""
+su - postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE xinghechongji TO xinghechongji;\""
+echo "数据库 xinghechongji 创建完成"
 
 # ---------- 5. 安装 Nginx ----------
 echo "[5/8] 安装 Nginx..."
@@ -71,9 +71,9 @@ echo "防火墙配置完成"
 
 # ---------- 8. 创建项目目录 ----------
 echo "[8/8] 创建项目目录..."
-mkdir -p /opt/xinghuanhai
-mkdir -p /opt/xinghuanhai/uploads
-chmod 755 /opt/xinghuanhai
+mkdir -p /opt/xinghechongji
+mkdir -p /opt/xinghechongji/uploads
+chmod 755 /opt/xinghechongji
 
 echo ""
 echo "=========================================="
@@ -89,8 +89,8 @@ echo "   - Nginx $(nginx -v 2>&1 | grep -oP 'nginx/\K[\d.]+')"
 echo "   - Certbot"
 echo ""
 echo " 数据库信息:"
-echo "   用户名: xinghuanhai"
-echo "   数据库: xinghuanhai"
+echo "   用户名: xinghechongji"
+echo "   数据库: xinghechongji"
 echo "   密码: CHANGE_ME_STRONG_PASSWORD  <-- 请修改这个密码!"
 echo ""
 echo " 下一步: 运行 02-deploy-app.sh 部署应用"

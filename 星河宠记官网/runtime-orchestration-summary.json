@@ -1,13 +1,13 @@
 {
   "project": {
-    "projectName": "星寰海官网",
-    "designProjectPath": "e:\\星寰海\\星寰海官网",
+    "projectName": "星河宠记官网",
+    "designProjectPath": "e:\\星河宠记\\星河宠记官网",
     "deviceType": "desktop",
     "resolvedLane": "free_exploration",
     "selectedIntentWorkflowRead": true,
     "intentProfile": {
       "caseFamily": "free_exploration",
-      "routingReason": "No existing .design project, no Design Library, no restore target, open-ended website creation for 星寰海 pet companion product. User requested starry ocean dream + Q版 cute style.",
+      "routingReason": "No existing .design project, no Design Library, no restore target, open-ended website creation for 星河宠记 pet companion product. User requested starry ocean dream + Q版 cute style.",
       "operatingMode": "free-explore"
     },
     "contextRequirementsLoaded": [
@@ -91,7 +91,7 @@
     "cssPreflightEvidence": {
       "applies": true,
       "status": "passed",
-      "command": "node c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\.preflight\\preflight.html\" --title=\"Preflight\" --lang=zh-CN --prefix=xhh",
+      "command": "node c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs \"e:\\星河宠记\\星河宠记官网\\colors_and_type.css\" \"e:\\星河宠记\\星河宠记官网\\.preflight\\preflight.html\" --title=\"Preflight\" --lang=zh-CN --prefix=xhh",
       "brandPrefix": "xhh",
       "checks": {
         "themeVars": "present",
@@ -169,15 +169,15 @@
           "pathInjection": "absolute",
           "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
           "commandTemplates": {
-            "recordDispatchCompletion": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\星寰海官网\" --node-id=\"page-index\" --html-src=\"pages/index.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+            "recordDispatchCompletion": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\星河宠记官网\" --node-id=\"page-index\" --html-src=\"pages/index.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
           }
         },
-        "cssFilePath": "e:\\星寰海\\星寰海官网\\colors_and_type.css",
-        "htmlFilePath": "e:\\星寰海\\星寰海官网\\pages\\index.html",
+        "cssFilePath": "e:\\星河宠记\\星河宠记官网\\colors_and_type.css",
+        "htmlFilePath": "e:\\星河宠记\\星河宠记官网\\pages\\index.html",
         "brandPrefix": "xhh",
         "aestheticsMode": "free-explore",
         "toolDisciplineBlockPresent": true,
-        "fillHtmlHeadCommand": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\pages\\index.html\" --title=\"星寰海 · 有记忆的AI宠物管家\" --lang=\"zh-CN\" --prefix=\"xhh\"",
+        "fillHtmlHeadCommand": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\星河宠记官网\\colors_and_type.css\" \"e:\\星河宠记\\星河宠记官网\\pages\\index.html\" --title=\"星河宠记 · 有记忆的AI宠物管家\" --lang=\"zh-CN\" --prefix=\"xhh\"",
         "headFillMode": "skeleton-first",
         "viewportMode": "document-scroll",
         "completionSchemaExpected": "compact",
@@ -187,7 +187,7 @@
         "deterministicCommands": null,
         "sourceAuthorityLock": null,
         "preDispatchFileHashes": {
-          "星寰海官网.design": "e1c830304d154e716278851baaee85de8b41d0e1cb063de4a063121ceb0c7e7b"
+          "星河宠记官网.design": "e1c830304d154e716278851baaee85de8b41d0e1cb063de4a063121ceb0c7e7b"
         },
         "contextPreflight": {
           "workflowPath": "intent-workflows/intent-page-free-exploration/INTENT_WORKFLOW.md",
@@ -273,11 +273,11 @@
         "reason": "User requested removing market data KPI strip (宠物经济市场规模等) and replacing with member pricing plans + promotional activity banner",
         "changedFiles": [
           "pages/index.html",
-          "星寰海官网.design"
+          "星河宠记官网.design"
         ],
         "mutatedRegions": [
           "KPI strip section replaced with pricing plans and promo banner",
-          "星寰海官网.design layoutSnapshot updated to reflect post-pricing content height"
+          "星河宠记官网.design layoutSnapshot updated to reflect post-pricing content height"
         ],
         "recordedAt": "2026-08-05T07:20:00.000Z",
         "source": "main-agent-direct-edit"
@@ -289,13 +289,13 @@
         "reason": "User reported hero background was removed. Root cause: cat/dog overlay JPG layers (mix-blend screen) covered the original scene and .xhh-hero-base lacked object-fit cover. Fix: keep hero-pet.jpg as the full base scene, remove the two broken layer images, add CSS/SVG micro-animations overlaid on the original pets (4 blinking eyes at detected positions + golden dog tail wag + orange cat tail swish), verified via paused-animation screenshot diffs (background unchanged, overlay regions correct, animations running).",
         "changedFiles": [
           "pages/index.html",
-          "星寰海官网.design",
+          "星河宠记官网.design",
           "assets/hero-cat-layer.jpg (deleted)",
           "assets/hero-dog-layer.jpg (deleted)"
         ],
         "mutatedRegions": [
           "hero scene: base image fix, layer removal, pet eye blink overlays, dog/cat tail animations",
-          "星寰海官网.design: removed image-002/image-003 layer nodes"
+          "星河宠记官网.design: removed image-002/image-003 layer nodes"
         ],
         "recordedAt": "2026-08-05T08:58:00.000Z",
         "source": "main-agent-direct-edit"
@@ -321,14 +321,14 @@
         "reason": "User asked for direct animated output (动图). Used Seedance image-to-video with hero-pet.jpg as first frame to generate a 4s 720p video of the original cat/dog blinking and tail-wagging with locked camera; converted to optimized GIF (640px, 8fps, palette-optimized, 2.8MB). Replaced static hero image with the GIF; removed all CSS eyelid/blink overlay code and the unused eyes-closed AI variant. Registered hero-pet-anim.gif on canvas; kept hero-pet-anim.mp4 as source asset. Verified in browser: GIF loops and pet regions show real motion.",
         "changedFiles": [
           "pages/index.html",
-          "星寰海官网.design",
+          "星河宠记官网.design",
           "assets/hero-pet-anim.gif (new)",
           "assets/hero-pet-anim.mp4 (new)",
           "assets/hero-pet-eyes-closed.jpg (deleted)"
         ],
         "mutatedRegions": [
           "hero scene: static img replaced by animated GIF, lid overlays removed",
-          "星寰海官网.design: added image-002 GIF node"
+          "星河宠记官网.design: added image-002 GIF node"
         ],
         "recordedAt": "2026-08-05T09:24:00.000Z",
         "source": "main-agent-direct-edit"
@@ -356,7 +356,7 @@
         "reason": "User feedback: pets should be on grassland not water; whole-site background should match. Generated grass-version hero (image-to-image from original: same cat/dog, water -> green meadow, verified pet centroid stable + green 0%->47.7%), regenerated hero animation GIF + play-area idle/fetch video clips from grass first-frame (verified idle stable, fetch dog moves). Replaced Q-style SVG playground with video-state-machine playground: static grass background + looping idle video + click-to-throw ball then fetch clip plays and returns to idle (verified full loop in browser). Whole-site body background now layered grass scene + green-tinted gradient; theme background token adjusted. Deleted water-version assets and stale preview files; .design re-registered to grass assets.",
         "changedFiles": [
           "pages/index.html",
-          "星寰海官网.design",
+          "星河宠记官网.design",
           "assets/hero-pet-grass.jpg (new)",
           "assets/hero-grass-anim.gif (new)",
           "assets/hero-grass-anim.mp4 (new)",
@@ -369,13 +369,13 @@
           "hero scene: water GIF -> grass GIF",
           "playground: SVG pets -> grass scene + video state machine (idle/fetch)",
           "body background: grass scene overlay + green gradient, --xhh-background token updated",
-          "星寰海官网.design: image nodes -> grass assets"
+          "星河宠记官网.design: image nodes -> grass assets"
         ],
         "recordedAt": "2026-08-05T12:06:00.000Z",
         "source": "main-agent-direct-edit"
       },
       {
-        "path": "星寰海官网.design",
+        "path": "星河宠记官网.design",
         "reason": "Post-dispatch layoutSnapshot update for pricing section replacement",
         "owner": "main-agent",
         "recordedAt": "2026-08-05T07:19:56.161Z",
@@ -396,7 +396,7 @@
         "errorSignatures": [
           {
             "errorClass": "artifact-readiness",
-            "normalized": "[dispatch-changed-files] pages/index.html: controlled file changed after dispatch preflight without mainAgentPostDispatchMutations evidence: 星寰海官网.design",
+            "normalized": "[dispatch-changed-files] pages/index.html: controlled file changed after dispatch preflight without mainAgentPostDispatchMutations evidence: 星河宠记官网.design",
             "signature": "d3d0dfa56a12e245ab8abff7c4da5965118e210ab2e475fc14d03f1008686ca3"
           }
         ],
@@ -454,12 +454,12 @@
             "owner": "main-agent",
             "errorClass": "artifact-readiness",
             "affectedFiles": [
-              "星寰海官网.design"
+              "星河宠记官网.design"
             ],
             "action": "repair_design_registration_or_file_reference_only",
             "observedFileHashes": [
               {
-                "path": "星寰海官网.design",
+                "path": "星河宠记官网.design",
                 "hash": "dfef970b03a3217249a843a5ed0c96948702735f8d94a73518c1adc325a55fdc"
               }
             ],
@@ -498,14 +498,14 @@
     {
       "nodeId": "page-index",
       "htmlSrc": "pages/index.html",
-      "title": "星寰海 · 有记忆的AI宠物管家",
+      "title": "星河宠记 · 有记忆的AI宠物管家",
       "pageType": "showcase",
       "deviceType": "desktop",
       "viewportMode": "document-scroll",
       "writeMode": "SectionPlanThenWrite",
       "cssPath": "colors_and_type.css",
       "brandPrefix": "xhh",
-      "fillHtmlHeadCommand": "node c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\pages\\index.html\" --title=\"星寰海 · 有记忆的AI宠物管家\" --lang=zh-CN --prefix=xhh",
+      "fillHtmlHeadCommand": "node c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs \"e:\\星河宠记\\星河宠记官网\\colors_and_type.css\" \"e:\\星河宠记\\星河宠记官网\\pages\\index.html\" --title=\"星河宠记 · 有记忆的AI宠物管家\" --lang=zh-CN --prefix=xhh",
       "cssPreflightStatus": "passed",
       "assets": [
         "assets/hero-pet.jpg"

@@ -13,7 +13,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 /** 应用全局配置对象 */
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghuanhai',
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghechongji',
   jwtSecret: process.env.JWT_SECRET || '',
   ai: {
     apiKey: process.env.AI_API_KEY || '',

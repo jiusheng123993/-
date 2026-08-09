@@ -1,6 +1,6 @@
 {
-  "appId": "com.xinghuanhai.app",
-  "appName": "星寰海",
+  "appId": "com.xinghechongji.app",
+  "appName": "星河宠记",
   "webDir": "dist-h5",
   "server": {
     "androidScheme": "https",

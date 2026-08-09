@@ -9,8 +9,8 @@
 **Tech Stack:** Taro 3 + React 18 + TypeScript + Zustand + Supabase + Seedream API + Meshy API + three.js
 
 **Source paths:**
-- 前端: `e:\星寰海\03-源代码\小程序\miniapp\src\`
-- 后端: `e:\星寰海\03-源代码\server\src\`
+- 前端: `e:\星河宠记\03-源代码\小程序\miniapp\src\`
+- 后端: `e:\星河宠记\03-源代码\server\src\`
 
 ---
 
@@ -19,7 +19,7 @@
 ### Task 1: 后端配置新增 Meshy API
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\server\src\config.ts`
+- Modify: `e:\星河宠记\03-源代码\server\src\config.ts`
 
 - [ ] **Step 1: 新增 Meshy 配置项**
 
@@ -49,7 +49,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
-  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghuanhai',
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghechongji',
   jwtSecret: process.env.JWT_SECRET || 'change-me-to-a-random-string-at-least-32-chars',
   ai: {
     apiKey: process.env.AI_API_KEY || '',
@@ -78,7 +78,7 @@ export const config = {
 - [ ] **Step 2: 验证**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 ---
@@ -86,7 +86,7 @@ cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
 ### Task 2: 数据库迁移 SQL
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\server\migrations\003_avatar_generation_tables.sql`
+- Create: `e:\星河宠记\03-源代码\server\migrations\003_avatar_generation_tables.sql`
 
 - [ ] **Step 1: 创建迁移文件**
 
@@ -142,7 +142,7 @@ CREATE INDEX IF NOT EXISTS idx_avatar_3d_task_id ON avatar_3d_models(task_id);
 - [ ] **Step 2: 执行迁移**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; psql $DATABASE_URL -f migrations/003_avatar_generation_tables.sql
+cd "e:\星河宠记\03-源代码\server" ; psql $DATABASE_URL -f migrations/003_avatar_generation_tables.sql
 ```
 
 ---
@@ -152,7 +152,7 @@ cd "e:\星寰海\03-源代码\server" ; psql $DATABASE_URL -f migrations/003_ava
 ### Task 3: photoUploadService.ts
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\server\src\services\photoUploadService.ts`
+- Create: `e:\星河宠记\03-源代码\server\src\services\photoUploadService.ts`
 
 - [ ] **Step 1: 创建照片上传服务**
 
@@ -216,7 +216,7 @@ export async function uploadPetPhoto(params: UploadPhotoParams): Promise<UploadP
 - [ ] **Step 2: 验证编译**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 ---
@@ -226,7 +226,7 @@ cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
 ### Task 4: taskQueue.ts
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\server\src\services\taskQueue.ts`
+- Create: `e:\星河宠记\03-源代码\server\src\services\taskQueue.ts`
 
 - [ ] **Step 1: 创建任务队列服务**
 
@@ -332,7 +332,7 @@ function mapTaskRow(row: Record<string, unknown>): GenerationTask {
 - [ ] **Step 2: 验证编译**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 ---
@@ -342,7 +342,7 @@ cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
 ### Task 5: image2DService.ts
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\server\src\services\image2DService.ts`
+- Create: `e:\星河宠记\03-源代码\server\src\services\image2DService.ts`
 
 - [ ] **Step 1: 创建 2D 形象生成服务**
 
@@ -521,7 +521,7 @@ export { EXPRESSIONS, ANGLES, ACTIONS, ACTION_ANGLES };
 - [ ] **Step 2: 验证编译**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 ---
@@ -531,7 +531,7 @@ cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
 ### Task 6: model3DService.ts
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\server\src\services\model3DService.ts`
+- Create: `e:\星河宠记\03-源代码\server\src\services\model3DService.ts`
 
 - [ ] **Step 1: 创建 3D 模型生成服务**
 
@@ -661,7 +661,7 @@ function delay(ms: number): Promise<void> {
 - [ ] **Step 2: 验证编译**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 ---
@@ -671,7 +671,7 @@ cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
 ### Task 7: 更新 avatar 路由
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\server\src\routes\avatar.ts`
+- Modify: `e:\星河宠记\03-源代码\server\src\routes\avatar.ts`
 
 - [ ] **Step 1: 新增照片上传、2D/3D 生成、任务查询路由**
 
@@ -892,7 +892,7 @@ router.get('/model/:petId', authMiddleware, async (req: Request, res: Response) 
 - [ ] **Step 2: 验证编译**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 ---
@@ -902,7 +902,7 @@ cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
 ### Task 8: 更新 avatarTypes.ts
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\小程序\miniapp\src\types\avatarTypes.ts`
+- Modify: `e:\星河宠记\03-源代码\小程序\miniapp\src\types\avatarTypes.ts`
 
 - [ ] **Step 1: 新增类型定义**
 
@@ -1005,7 +1005,7 @@ export interface Generate3DResult {
 ### Task 9: 更新常量文件
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\小程序\miniapp\src\constants\index.ts`
+- Modify: `e:\星河宠记\03-源代码\小程序\miniapp\src\constants\index.ts`
 
 - [ ] **Step 1: 新增表情、角度、动作常量**
 
@@ -1066,7 +1066,7 @@ export const STORAGE_KEYS = {
 ### Task 10: PhotoUploader.tsx
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\小程序\miniapp\src\components\PetAvatar\PhotoUploader.tsx`
+- Create: `e:\星河宠记\03-源代码\小程序\miniapp\src\components\PetAvatar\PhotoUploader.tsx`
 
 - [ ] **Step 1: 创建照片上传组件**
 
@@ -1151,7 +1151,7 @@ export default function PhotoUploader({ value, onChange, disabled = false }: Pho
 ### Task 11: GenerationProgress.tsx
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\小程序\miniapp\src\components\PetAvatar\GenerationProgress.tsx`
+- Create: `e:\星河宠记\03-源代码\小程序\miniapp\src\components\PetAvatar\GenerationProgress.tsx`
 
 - [ ] **Step 1: 创建生成进度组件**
 
@@ -1213,7 +1213,7 @@ export default function GenerationProgress({ progress, status, type, error }: Ge
 ### Task 12: ImageGallery.tsx
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\小程序\miniapp\src\components\PetAvatar\ImageGallery.tsx`
+- Create: `e:\星河宠记\03-源代码\小程序\miniapp\src\components\PetAvatar\ImageGallery.tsx`
 
 - [ ] **Step 1: 创建 2D 形象画廊组件**
 
@@ -1347,7 +1347,7 @@ export default function ImageGallery({ images, onSaveAsAvatar, onGenerate3D, isG
 ### Task 13: Model3DViewer.tsx
 
 **Files:**
-- Create: `e:\星寰海\03-源代码\小程序\miniapp\src\components\PetAvatar\Model3DViewer.tsx`
+- Create: `e:\星河宠记\03-源代码\小程序\miniapp\src\components\PetAvatar\Model3DViewer.tsx`
 
 - [ ] **Step 1: 创建 3D 模型预览组件**
 
@@ -1429,7 +1429,7 @@ export default function Model3DViewer({ modelUrl, thumbnailUrl }: Model3DViewerP
 ### Task 14: 更新 avatarService.ts
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\小程序\miniapp\src\services\avatarService.ts`
+- Modify: `e:\星河宠记\03-源代码\小程序\miniapp\src\services\avatarService.ts`
 
 - [ ] **Step 1: 新增照片上传、2D/3D 生成、任务查询接口**
 
@@ -1597,7 +1597,7 @@ import { AVATAR_PHOTO_FREE_COUNT, AVATAR_3D_MONTHLY_LIMIT } from '../constants'
 ### Task 15: 更新 petStore.ts
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\小程序\miniapp\src\stores\petStore.ts`
+- Modify: `e:\星河宠记\03-源代码\小程序\miniapp\src\stores\petStore.ts`
 
 - [ ] **Step 1: 新增形象生成相关状态**
 
@@ -1645,8 +1645,8 @@ setAvatar3DTaskId: (taskId) => {
 ### Task 16: 改造 avatar-customize 页面
 
 **Files:**
-- Modify: `e:\星寰海\03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.tsx`
-- Modify: `e:\星寰海\03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.scss`
+- Modify: `e:\星河宠记\03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.tsx`
+- Modify: `e:\星河宠记\03-源代码\小程序\miniapp\src\pagesPet\avatar-customize\index.scss`
 
 - [ ] **Step 1: 重构为双 Tab 结构**
 
@@ -2557,19 +2557,19 @@ export default function AvatarCustomizePage() {
 - [ ] **Step 1: 后端编译检查**
 
 ```bash
-cd "e:\星寰海\03-源代码\server" ; npx tsc --noEmit
+cd "e:\星河宠记\03-源代码\server" ; npx tsc --noEmit
 ```
 
 - [ ] **Step 2: 小程序编译检查**
 
 ```bash
-cd "e:\星寰海\03-源代码\小程序\miniapp" ; npm run typecheck
+cd "e:\星河宠记\03-源代码\小程序\miniapp" ; npm run typecheck
 ```
 
 - [ ] **Step 3: 小程序开发构建**
 
 ```bash
-cd "e:\星寰海\03-源代码\小程序\miniapp" ; npm run dev:weapp
+cd "e:\星河宠记\03-源代码\小程序\miniapp" ; npm run dev:weapp
 ```
 
 ---

@@ -63,15 +63,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星寰海\\星寰海官网\" --node-id=\"page-index\" --html-src=\"pages/index.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"e:\\星河宠记\\星河宠记官网\" --node-id=\"page-index\" --html-src=\"pages/index.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
-      "cssFilePath": "e:\\星寰海\\星寰海官网\\colors_and_type.css",
-      "htmlFilePath": "e:\\星寰海\\星寰海官网\\pages\\index.html",
+      "cssFilePath": "e:\\星河宠记\\星河宠记官网\\colors_and_type.css",
+      "htmlFilePath": "e:\\星河宠记\\星河宠记官网\\pages\\index.html",
       "brandPrefix": "xhh",
       "aestheticsMode": "free-explore",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星寰海\\星寰海官网\\colors_and_type.css\" \"e:\\星寰海\\星寰海官网\\pages\\index.html\" --title=\"星寰海 · 有记忆的AI宠物管家\" --lang=\"zh-CN\" --prefix=\"xhh\"",
+      "fillHtmlHeadCommand": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"e:\\星河宠记\\星河宠记官网\\colors_and_type.css\" \"e:\\星河宠记\\星河宠记官网\\pages\\index.html\" --title=\"星河宠记 · 有记忆的AI宠物管家\" --lang=\"zh-CN\" --prefix=\"xhh\"",
       "headFillMode": "skeleton-first",
       "viewportMode": "document-scroll",
       "completionSchemaExpected": "compact",
@@ -81,7 +81,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "星寰海官网.design": "e1c830304d154e716278851baaee85de8b41d0e1cb063de4a063121ceb0c7e7b"
+        "星河宠记官网.design": "e1c830304d154e716278851baaee85de8b41d0e1cb063de4a063121ceb0c7e7b"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-page-free-exploration/INTENT_WORKFLOW.md",

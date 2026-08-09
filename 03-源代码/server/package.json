@@ -1,7 +1,7 @@
 {
-  "name": "xinghuanhai-server",
+  "name": "xinghechongji-server",
   "version": "1.0.0",
-  "description": "星寰海 - 宠物管家后端服务",
+  "description": "星河宠记 - 宠物管家后端服务",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",

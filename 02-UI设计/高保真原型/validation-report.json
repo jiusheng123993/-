@@ -141,7 +141,7 @@
   "terminalState": null,
   "nextCheck": {
     "type": "finish-readiness",
-    "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --check=all",
+    "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --check=all",
     "fullValidationAllowed": false,
     "reason": "workspace validation passed; run complete finish readiness before final delivery"
   },
@@ -167,7 +167,7 @@
     "repairActionTable": [],
     "nextCheck": {
       "type": "finish-readiness",
-      "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星寰海\\02-UI设计\\高保真原型\" --check=all",
+      "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星河宠记\\02-UI设计\\高保真原型\" --check=all",
       "fullValidationAllowed": false,
       "reason": "workspace validation passed; run complete finish readiness before final delivery"
     },
@@ -179,7 +179,7 @@
     ]
   },
   "projectFileHashes": {
-    "xinghuanhai-redesign.design": "7d21a8cdb88009d128375c66c8190cb7644f44fc95571017833a3e1a90bb56ff",
+    "xinghechongji-redesign.design": "7d21a8cdb88009d128375c66c8190cb7644f44fc95571017833a3e1a90bb56ff",
     "colors_and_type.css": "cf678d1da62f9c6d18a32ec28c50f65bb769bfdb6ae073b2c25b75de7213e19d",
     "runtime-orchestration-summary.json": "914ba861427a3bf5c5ff587b72af4fcfa24e16dafc58873e7c63887bb4943d5d",
     "pages/achievement.html": "b29e89414b5fa1a2412c253798af3f0a47e72dd0e431a225d456ebff0d6155d2",
@@ -236,7 +236,7 @@
     "assets/pet-cat2.png": "0c348f26ee48758e129a0764af7d0be00e09d9a6ecf0a9955fa799307b8e1e1a",
     "assets/pet-orange-cat.png": "486311a8e66c98e466515116b1804f99476b434d84dd4d38b2f61517c14f701b"
   },
-  "designDir": "e:\\星寰海\\02-UI设计\\高保真原型",
+  "designDir": "e:\\星河宠记\\02-UI设计\\高保真原型",
   "expectedPages": null,
   "requireInteractions": null,
   "checkedAt": "2026-08-06T07:59:05.559Z"

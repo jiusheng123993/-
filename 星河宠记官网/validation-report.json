@@ -70,7 +70,7 @@
   "terminalState": null,
   "nextCheck": {
     "type": "finish-readiness",
-    "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星寰海\\星寰海官网\" --check=all",
+    "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星河宠记\\星河宠记官网\" --check=all",
     "fullValidationAllowed": false,
     "reason": "workspace validation passed; run complete finish readiness before final delivery"
   },
@@ -97,7 +97,7 @@
     "repairActionTable": [],
     "nextCheck": {
       "type": "finish-readiness",
-      "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星寰海\\星寰海官网\" --check=all",
+      "command": "node \"c:\\Users\\zhang\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"e:\\星河宠记\\星河宠记官网\" --check=all",
       "fullValidationAllowed": false,
       "reason": "workspace validation passed; run complete finish readiness before final delivery"
     },
@@ -109,7 +109,7 @@
     ]
   },
   "projectFileHashes": {
-    "星寰海官网.design": "dc803e2e305e28427615723469cad09f8abf1776ed0f73cd43cd15618869a3e4",
+    "星河宠记官网.design": "dc803e2e305e28427615723469cad09f8abf1776ed0f73cd43cd15618869a3e4",
     "colors_and_type.css": "037eef53c192ec55e0bb3ddd3bcea9516005591bf678ea936d53f9832da11121",
     "runtime-orchestration-summary.json": "06c2ee29124075a4d0beee8c1b566ba5539b8d5cf98294beb3ce80365dd9aea0",
     "pages/index.html": "43e6780e8b13054363c03661ab2dcda02feeb671fe1e9bfa9243027a21527005",
@@ -117,7 +117,7 @@
     "assets/hero-pet-grass-bg.jpg": "59767df46bc9e12735b64467f4d37beee6933a8c218ee8027aaeee47bf004e34",
     "assets/hero-pet-grass.jpg": "4e263b7e5c86112841dd2e688ca68f7b9dd6b9a24e78445966a58f596af8aa00"
   },
-  "designDir": "e:\\星寰海\\星寰海官网",
+  "designDir": "e:\\星河宠记\\星河宠记官网",
   "expectedPages": null,
   "requireInteractions": null,
   "checkedAt": "2026-08-05T14:20:09.910Z"

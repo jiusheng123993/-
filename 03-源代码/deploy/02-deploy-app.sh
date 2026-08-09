@@ -1,15 +1,15 @@
 #!/bin/bash
 # ============================================================
-# 星寰海 - 应用部署脚本
+# 星河宠记 - 应用部署脚本
 # 使用方法: chmod +x 02-deploy-app.sh && bash 02-deploy-app.sh
 # ============================================================
 set -e
 
-APP_DIR="/opt/xinghuanhai"
+APP_DIR="/opt/xinghechongji"
 SERVER_DIR="$APP_DIR/server"
 
 echo "=========================================="
-echo " 星寰海 - 应用部署"
+echo " 星河宠记 - 应用部署"
 echo "=========================================="
 
 # ---------- 1. 拉取/更新代码 ----------
@@ -19,8 +19,8 @@ if [ -d "$APP_DIR/.git" ]; then
   git pull origin main
 else
   echo "请先将代码上传到服务器 $APP_DIR 目录"
-  echo "方式一: git clone 你的仓库地址 /opt/xinghuanhai"
-  echo "方式二: 用 scp 上传 server 目录到 /opt/xinghuanhai/server"
+  echo "方式一: git clone 你的仓库地址 /opt/xinghechongji"
+  echo "方式二: 用 scp 上传 server 目录到 /opt/xinghechongji/server"
   exit 1
 fi
 
@@ -56,7 +56,7 @@ cd "$SERVER_DIR"
 npx tsx --eval "import './src/index.js'" 2>/dev/null || true
 
 # 使用 PM2 启动
-pm2 delete xinghuanhai-server 2>/dev/null || true
+pm2 delete xinghechongji-server 2>/dev/null || true
 pm2 start ecosystem.config.cjs --env production
 pm2 save
 pm2 startup systemd -u root --hp /root 2>/dev/null || true
@@ -70,8 +70,8 @@ echo " 检查服务状态:"
 echo "   pm2 status"
 echo ""
 echo " 查看日志:"
-echo "   pm2 logs xinghuanhai-server"
+echo "   pm2 logs xinghechongji-server"
 echo ""
 echo " 重启服务:"
-echo "   pm2 restart xinghuanhai-server"
+echo "   pm2 restart xinghechongji-server"
 echo "=========================================="

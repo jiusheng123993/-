@@ -270,7 +270,7 @@ export function buildMockNotifyBody(
 const WECHAT_PAY_API_BASE = 'https://api.mch.weixin.qq.com';
 
 /** 微信支付 API 请求 User-Agent（微信要求必填） */
-const WECHAT_PAY_UA = 'xinghuanhai-server/1.0.0';
+const WECHAT_PAY_UA = 'xinghechongji-server/1.0.0';
 
 /** PEM 配置加载缓存（privateKey / platformCert） */
 const pemCache = new Map<string, string>();

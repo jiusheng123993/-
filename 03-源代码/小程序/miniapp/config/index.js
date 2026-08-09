@@ -10,7 +10,7 @@ const path = require('path')
 const isH5 = process.env.TARO_ENV === 'h5'
 
 const config = {
-  projectName: 'xinghuanhai-miniapp',
+  projectName: 'xinghechongji-miniapp',
   date: '2024-07-22',
   designWidth: 750,
   deviceRatio: {
@@ -66,7 +66,7 @@ const config = {
       chain.merge({
         ignoreWarnings: [/Conflicting order/],
       })
-      // 关闭 symlink 解析：E:\xinghuanhai 是指向 E:\星寰海 的符号链接，
+      // 关闭 symlink 解析：E:\xinghechongji 是指向 E:\星河宠记 的符号链接，
       // 不关闭时 webpack 解析出的真实路径与 sourceDir 不匹配，babel-loader 规则全部失效
       chain.resolve.symlinks(false)
       // 修复小程序运行时 "process is not defined" 错误

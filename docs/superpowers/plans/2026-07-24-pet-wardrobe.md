@@ -294,7 +294,7 @@ describe('wardrobeTypes', () => {
 
 - [ ] **Step 5: 运行测试确认通过**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/types/wardrobeTypes.test.ts`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/types/wardrobeTypes.test.ts`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -480,7 +480,7 @@ describe('themeSuites metadata', () => {
 
 - [ ] **Step 5: 运行测试**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/data/wardrobe/accessories.test.ts`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/data/wardrobe/accessories.test.ts`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -565,7 +565,7 @@ describe('outfitRenderer', () => {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/outfitRenderer.test.ts`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/outfitRenderer.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: 写 outfitRenderer.ts 实现**
@@ -610,7 +610,7 @@ export function resolveOutfitLayers(slots: OutfitSlotMap, species: PetSpecies): 
 
 - [ ] **Step 4: 运行 outfitRenderer 测试**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/outfitRenderer.test.ts`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/outfitRenderer.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: 写 svgRenderer 扩展测试**
@@ -665,12 +665,12 @@ describe('svgRenderer outfitLayers', () => {
 
 - [ ] **Step 7: 运行 svgRenderer 扩展测试**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/__tests__/svgRenderer.outfit.test.ts`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/__tests__/svgRenderer.outfit.test.ts`
 Expected: PASS
 
 - [ ] **Step 8: 运行现有 svgRenderer 测试确保无回归**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/__tests__/svgRenderer.test.ts`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/engines/petAvatar/__tests__/svgRenderer.test.ts`
 Expected: PASS（原有测试仍通过）
 
 - [ ] **Step 9: Commit**
@@ -745,7 +745,7 @@ export default definePageConfig({ navigationBarTitleText: '宠物衣橱' })
 
 - [ ] **Step 6: 运行测试确认通过**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/components/__tests__/PetAvatar.outfit.test.tsx`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/components/__tests__/PetAvatar.outfit.test.tsx`
 Expected: PASS
 
 - [ ] **Step 7: Commit**
@@ -769,7 +769,7 @@ git commit -m "feat(wardrobe): extend PetAvatar with outfitSlots and add wardrob
 
 - [ ] **Step 2: 在开发环境执行迁移**
 
-Run: `cd e:\星寰海\03-源代码\server && npx tsx src/migrate.ts`
+Run: `cd e:\星河宠记\03-源代码\server && npx tsx src/migrate.ts`
 Expected: 所有表创建成功
 
 - [ ] **Step 3: Commit**
@@ -804,7 +804,7 @@ git commit -m "feat(wardrobe): add database migration for wardrobe tables"
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `cd e:\星寰海\03-源代码\server && npx vitest run src/services/wardrobeRepository.test.ts`
+Run: `cd e:\星河宠记\03-源代码\server && npx vitest run src/services/wardrobeRepository.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: 写 wardrobeRepository.ts 实现**
@@ -813,7 +813,7 @@ Expected: FAIL
 
 - [ ] **Step 4: 运行测试确认通过**
 
-Run: `cd e:\星寰海\03-源代码\server && npx vitest run src/services/wardrobeRepository.test.ts`
+Run: `cd e:\星河宠记\03-源代码\server && npx vitest run src/services/wardrobeRepository.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: 写 themeSuiteRepository 测试+实现**
@@ -892,7 +892,7 @@ export type TaskType = '2d' | '3d' | 'theme_suite'
 
 - [ ] **Step 8: 运行所有后端测试确认通过**
 
-Run: `cd e:\星寰海\03-源代码\server && npx vitest run`
+Run: `cd e:\星河宠记\03-源代码\server && npx vitest run`
 Expected: ALL PASS
 
 - [ ] **Step 9: Commit**
@@ -936,7 +936,7 @@ app.use('/api/wardrobe', wardrobeRoutes)
 
 - [ ] **Step 6: 运行后端安全测试**
 
-Run: `cd e:\星寰海\03-源代码\server && npx vitest run src/routes/wardrobe.test.ts`
+Run: `cd e:\星河宠记\03-源代码\server && npx vitest run src/routes/wardrobe.test.ts`
 Expected: PASS — 安全边界校验通过
 
 - [ ] **Step 7: Commit**
@@ -1098,7 +1098,7 @@ AI 生成进度展示。复用现有 GenerationProgress 组件的样式，增加
 
 - [ ] **Step 8: 运行所有组件测试**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run src/components/Wardrobe/`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run src/components/Wardrobe/`
 Expected: ALL PASS
 
 - [ ] **Step 9: Commit**
@@ -1133,7 +1133,7 @@ git commit -m "feat(wardrobe): add all 7 wardrobe UI components"
 
 - [ ] **Step 5: 运行全量测试确认无回归**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run`
 Expected: ALL PASS
 
 - [ ] **Step 6: Commit**
@@ -1164,12 +1164,12 @@ git commit -m "feat(wardrobe): add wardrobe main page with 3 tabs"
 
 - [ ] **Step 2: 运行全量后端测试**
 
-Run: `cd e:\星寰海\03-源代码\server && npx vitest run`
+Run: `cd e:\星河宠记\03-源代码\server && npx vitest run`
 Expected: ALL PASS
 
 - [ ] **Step 3: 运行全量前端测试**
 
-Run: `cd e:\星寰海\03-源代码\小程序\miniapp && npx vitest run`
+Run: `cd e:\星河宠记\03-源代码\小程序\miniapp && npx vitest run`
 Expected: ALL PASS
 
 - [ ] **Step 4: Commit**

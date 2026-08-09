@@ -8,7 +8,7 @@ export const CONFIG = {
   API_BASE_URL: process.env.TARO_APP_API_BASE_URL || 'https://api.xinghuanhai.com',
   /**
    * 静态资源地址（BGM 预览等）。
-   * 目前复用 api 域名（服务器 /var/www/xinghuanhai 静态目录）；
+   * 目前复用 api 域名（服务器 /var/www/xinghechongji 静态目录）；
    * 以后 assets.xinghuanhai.com 解析好后，用环境变量 TARO_APP_ASSETS_BASE_URL 切换即可。
    */
   ASSETS_BASE_URL: process.env.TARO_APP_ASSETS_BASE_URL || 'https://api.xinghuanhai.com',

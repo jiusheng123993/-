@@ -1,4 +1,4 @@
-# 星寰海 API 文档
+# 星河宠记 API 文档
 
 > Base URL: `http://localhost:3001`
 
