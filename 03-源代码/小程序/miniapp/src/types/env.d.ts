@@ -9,6 +9,17 @@ declare module '*.webp' {
   export default src
 }
 
+declare module '*.jpg' {
+  const src: string
+  export default src
+}
+
+// 兼容 src/app.js 等无类型入口文件的 side-effect 导入
+declare module '*.js' {
+  const content: unknown
+  export default content
+}
+
 declare const process: {
   env: {
     TARO_APP_API_BASE_URL: string

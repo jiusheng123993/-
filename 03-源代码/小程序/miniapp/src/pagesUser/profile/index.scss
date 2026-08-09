@@ -287,3 +287,96 @@
   font-size: 24rpx;
   color: $color-text-tertiary;
 }
+
+// ===== 资料编辑卡片（头像/昵称跟随微信） =====
+.profile-edit-card {
+  margin: 24rpx;
+  padding: 28rpx 24rpx;
+  @include card-base;
+  box-shadow: $shadow-sm;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-edit-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  color: $color-text-primary;
+}
+
+.profile-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+// 头像选择按钮：重置微信 Button 默认样式，避免外框/背景干扰
+.avatar-pick-btn {
+  width: 128rpx;
+  height: 128rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  overflow: hidden;
+  line-height: 1;
+
+  &::after {
+    border: none;
+  }
+}
+
+.avatar-pick-img {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+}
+
+.avatar-pick-placeholder {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  background: $color-bg-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-pick-icon {
+  font-size: 56rpx;
+}
+
+.nickname-input {
+  flex: 1;
+  height: 88rpx;
+  background: $color-bg-secondary;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+}
+
+.profile-edit-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
+
+.profile-save-btn {
+  margin-top: 24rpx;
+  height: 84rpx;
+  border-radius: 42rpx;
+  background: $gradient-gold;
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+
+  &::after {
+    border: none;
+  }
+}

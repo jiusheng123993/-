@@ -2,7 +2,7 @@
  * 用户资料页面
  * 用户个人信息展示与编辑
  */
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, Button, Input } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../stores/authStore';
@@ -14,12 +14,19 @@ import { APP_VERSION, HOTLINE_NUMBER } from '../../constants';
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics';
 import { PageLoading, PageError } from '../../components';
 import { useThemeClass } from '../../hooks/useThemeClass';
+import { isWeapp } from '../../platform';
+import { api } from '../../services/api';
+import { chooseImageWithPrivacy } from '../../utils/privacy';
 import './index.scss';
 
 export default function Profile() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, updateProfile } = useAuthStore();
+  // 资料编辑草稿：昵称跟随微信（type=nickname 输入框），头像跟随微信（chooseAvatar）
+  const [nicknameDraft, setNicknameDraft] = useState('')
+  const [avatarDraft, setAvatarDraft] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const stats = useUserStats();
   const fetchStatuses = useSubscribeStore((s) => s.fetchStatuses)
   const hasAnyAccepted = useSubscribeStore((s) => s.hasAnyAccepted)
@@ -46,11 +53,57 @@ export default function Profile() {
     loadProfileData()
   }, [loadProfileData])
 
+  // 用户资料变化时同步昵称草稿
+  useEffect(() => {
+    setNicknameDraft(user?.nickname || '')
+  }, [user?.nickname])
+
+  /** 未登录时点击头像跳转登录页 */
   const handleAvatarClick = () => {
     if (!isAuthenticated) {
       Taro.navigateTo({ url: '/pages/login/index' });
     }
   };
+
+  /**
+   * 选择微信头像：微信端走 chooseAvatar（返回临时文件路径），
+   * 其他端回退到相册/相机选择
+   */
+  const handleChooseAvatar = (e?: any) => {
+    const temp = e?.detail?.avatarUrl
+    if (temp) {
+      setAvatarDraft(temp)
+      return
+    }
+    chooseImageWithPrivacy({ count: 1, sizeType: ['compressed'] })
+      .then((res) => {
+        if (res.tempFilePaths.length) setAvatarDraft(res.tempFilePaths[0])
+      })
+      .catch(() => {})
+  }
+
+  /** 保存资料：先上传新头像（如有），再更新昵称与头像 */
+  const handleSaveProfile = async () => {
+    if (saving || !isAuthenticated) return
+    setSaving(true)
+    try {
+      let avatarUrl = user?.avatar || ''
+      if (avatarDraft && avatarDraft !== user?.avatar) {
+        const uploaded = await api.uploadAvatar(avatarDraft)
+        avatarUrl = uploaded.url
+      }
+      await updateProfile(nicknameDraft.trim() || user?.nickname || '', avatarUrl)
+      setAvatarDraft(null)
+      Taro.showToast({ title: '已保存', icon: 'success' })
+    } catch (err) {
+      Taro.showToast({
+        title: err instanceof Error ? err.message : '保存失败，请重试',
+        icon: 'none',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleHealthReport = async () => {
     trackEvent('click_health_report')
@@ -195,6 +248,48 @@ export default function Profile() {
           </View>
         </View>
       </View>
+
+      {isAuthenticated && (
+        <View className='profile-edit-card ink-item' style={{ animationDelay: '0.2s' }}>
+          <View className='profile-edit-title'>头像与昵称（跟随微信）</View>
+          <View className='profile-edit-row'>
+            {/* 头像按钮：微信端走 chooseAvatar 自动带出微信头像 */}
+            <Button
+              className='avatar-pick-btn'
+              openType={isWeapp() ? 'chooseAvatar' : undefined}
+              onChooseAvatar={handleChooseAvatar}
+              onClick={isWeapp() ? undefined : handleChooseAvatar}
+            >
+              {avatarDraft ? (
+                <Image className='avatar-pick-img' src={avatarDraft} mode='aspectFill' />
+              ) : user?.avatar ? (
+                <Image className='avatar-pick-img' src={user.avatar} mode='aspectFill' />
+              ) : (
+                <View className='avatar-pick-placeholder'>
+                  <Text className='avatar-pick-icon'>👤</Text>
+                </View>
+              )}
+            </Button>
+            {/* 昵称输入框：type=nickname 时微信会带出微信昵称建议 */}
+            <Input
+              className='nickname-input'
+              type='nickname'
+              value={nicknameDraft}
+              placeholder='输入昵称（可带出微信昵称）'
+              onInput={(e) => setNicknameDraft(e.detail.value)}
+            />
+          </View>
+          <View className='profile-edit-tip'>头像与昵称跟随微信，保存后全局同步展示</View>
+          <Button
+            className='profile-save-btn'
+            loading={saving}
+            disabled={saving}
+            onClick={handleSaveProfile}
+          >
+            保存
+          </Button>
+        </View>
+      )}
 
       <View className='stats-section ink-item' style={{ animationDelay: '0.2s' }}>
         <View className='stats-title'>

@@ -5,6 +5,9 @@
 import { Router, type Request, type Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import path from 'path';
+import multer from 'multer';
 import { config } from '../config.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -14,6 +17,15 @@ import { UserRepository } from '../repositories/userRepository.js';
 const router = Router();
 
 const userRepository = new UserRepository();
+
+/** 头像上传：内存暂存，由路由写入磁盘（限制 10MB） */
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+/** 允许的头像图片格式（与微信 chooseAvatar 输出一致） */
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
  * 短信验证码存储（内存实现，生产环境应替换为 Redis + 短信服务商）
@@ -204,6 +216,40 @@ router.put('/profile', authMiddleware, async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[Auth Profile Update Error]', err);
     res.status(500).json({ success: false, message: '服务器内部错误' });
+  }
+});
+
+/**
+ * POST /api/auth/avatar - 上传用户头像（微信 chooseAvatar 临时文件）
+ * 校验登录态、图片格式与大小，保存到 uploads/user-avatars/{userId}/ 并返回公开 URL
+ */
+router.post('/avatar', authMiddleware, avatarUpload.single('avatar'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, message: '请选择头像图片' });
+      return;
+    }
+
+    if (!ALLOWED_AVATAR_TYPES.includes(req.file.mimetype)) {
+      res.status(400).json({ success: false, message: '不支持的图片格式，请使用 JPG/PNG/WebP' });
+      return;
+    }
+
+    // 文件名使用 UUID 防止重名与路径注入，扩展名取自原文件
+    const ext = (req.file.originalname.split('.').pop() || 'jpg').toLowerCase();
+    const filename = `${uuidv4()}.${ext}`;
+    const dirPath = path.join(config.uploadDir, 'user-avatars', req.userId!);
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.writeFileSync(path.join(dirPath, filename), req.file.buffer);
+
+    // 静态目录 /uploads 已在入口注册，返回公开可访问的 URL
+    res.json({
+      success: true,
+      data: { url: `/uploads/user-avatars/${req.userId}/${filename}` },
+    });
+  } catch (err) {
+    console.error('[Auth Avatar Upload Error]', err);
+    res.status(500).json({ success: false, message: '头像上传失败，请稍后重试' });
   }
 });
 

@@ -220,6 +220,12 @@ export const mockApi = {
     await wait()
     return mockUsers[0]
   },
+  updateProfile: async (nickname: string, avatarUrl: string): Promise<User> => {
+    // Mock 模式：直接更新第一个用户，模拟服务端行为
+    await wait()
+    mockUsers[0] = { ...mockUsers[0], nickname, avatar: avatarUrl }
+    return mockUsers[0]
+  },
   getPets: async (userId: string): Promise<Pet[]> => {
     await wait()
     return mockPets.filter(p => p.userId === userId)

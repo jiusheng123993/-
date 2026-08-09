@@ -10,6 +10,20 @@ import { mockApi } from './mock'
 import type { ApiResponse, User, Pet, Checkin, Membership, LoginResponse } from '../types'
 
 /**
+ * 服务端用户字段统一映射：avatarUrl/avatar_url → 前端 User.avatar
+ * 服务端统一返回 camelCase（avatarUrl），历史兼容 snake_case（avatar_url）
+ */
+function normalizeUser(raw: any): User {
+  return {
+    id: raw.id,
+    nickname: raw.nickname || '',
+    avatar: raw.avatarUrl || raw.avatar_url || raw.avatar || '',
+    phone: raw.phone,
+    createdAt: raw.createdAt || raw.created_at || '',
+  }
+}
+
+/**
  * 通用请求方法
  * @param path - API 路径
  * @param options - 请求配置（方法/数据/查询参数）
@@ -109,12 +123,48 @@ export const api = {
   /** 微信登录：使用 code 换取登录态 */
   login: async (code: string): Promise<LoginResponse> => {
     if (useMock()) return mockApi.login(code)
-    return request<LoginResponse>('/api/auth/login', { method: 'POST', data: { provider: 'wechat', code } })
+    const res = await request<LoginResponse>('/api/auth/login', { method: 'POST', data: { provider: 'wechat', code } })
+    return { ...res, user: normalizeUser(res.user) }
   },
   /** 获取当前登录用户信息 */
   getUser: async (): Promise<User> => {
     if (useMock()) return mockApi.getUser()
-    return request<User>('/api/auth/session')
+    // 服务端真实路由为 /api/auth/profile（旧 /session 不存在，会导致登录态无法恢复）
+    return normalizeUser(await request<any>('/api/auth/profile'))
+  },
+  /** 更新用户资料（昵称 + 头像），跟随微信的资料以用户选择为准 */
+  updateProfile: async (nickname: string, avatarUrl: string): Promise<User> => {
+    if (useMock()) return mockApi.updateProfile(nickname, avatarUrl)
+    const raw = await request<any>('/api/auth/profile', {
+      method: 'PUT',
+      data: { nickname, avatar_url: avatarUrl },
+    })
+    return normalizeUser(raw)
+  },
+  /** 上传用户头像（微信 chooseAvatar 返回的临时文件 → 服务器） */
+  uploadAvatar: (filePath: string): Promise<{ url: string }> => {
+    const token = storage.getToken()
+    return new Promise((resolve, reject) => {
+      Taro.uploadFile({
+        url: `${CONFIG.API_BASE_URL}/api/auth/avatar`,
+        filePath,
+        name: 'avatar',
+        header: token ? { Authorization: `Bearer ${token}` } : {},
+        success: (res) => {
+          try {
+            const body = JSON.parse(res.data)
+            if (body.success && body.data?.url) {
+              resolve({ url: body.data.url })
+            } else {
+              reject(new Error(body.message || '头像上传失败'))
+            }
+          } catch {
+            reject(new Error('头像上传失败'))
+          }
+        },
+        fail: () => reject(new Error('头像上传失败，请重试')),
+      })
+    })
   },
   /** 获取用户的所有宠物列表 */
   getPets: async (userId: string): Promise<Pet[]> => {

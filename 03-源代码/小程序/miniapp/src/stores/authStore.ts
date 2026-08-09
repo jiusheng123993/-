@@ -27,6 +27,8 @@ interface AuthState {
   isInitialized: boolean
   login: () => Promise<void>
   loginByPhone: (phone: string, code: string) => Promise<void>
+  /** 更新用户资料（昵称/头像），成功后同步到 store 与本地存储 */
+  updateProfile: (nickname: string, avatarUrl: string) => Promise<User>
   logout: () => Promise<void>
   initialize: () => Promise<void>
 }
@@ -113,6 +115,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: false })
       throw err
     }
+  },
+
+  /**
+   * 更新用户资料（昵称/头像），成功后同步到 store 与本地存储
+   * @param nickname - 用户昵称（跟随微信昵称）
+   * @param avatarUrl - 头像地址（跟随微信头像，已上传到服务器）
+   */
+  updateProfile: async (nickname: string, avatarUrl: string) => {
+    const updated = await api.updateProfile(nickname, avatarUrl)
+    storage.setUser(updated)
+    set({ user: updated })
+    return updated
   },
 
   logout: async () => {
