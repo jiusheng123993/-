@@ -319,7 +319,7 @@ describe('POST /api/share-cards/generate - 生成分享卡片', () => {
   it('支持全部 card_type 枚举值', async () => {
     const types = [
       'health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir',
-      'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review', 'wardrobe',
+      'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review',
     ];
     for (const cardType of types) {
       mockPool.query.mockReset();

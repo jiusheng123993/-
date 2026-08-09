@@ -59,7 +59,7 @@ export default function NpsSurvey({ triggerEvent, onSubmit, onDismiss }: NpsSurv
       <View className='nps-survey__overlay' onClick={onDismiss} />
       <View className='nps-survey__card'>
         <View className='nps-survey__header'>
-          <Text className='nps-survey__title'>您有多愿意推荐星寰海？</Text>
+          <Text className='nps-survey__title'>您有多愿意推荐星河宠记？</Text>
           <Text className='nps-survey__subtitle'>0 = 完全不会 · 10 = 一定会</Text>
         </View>
 

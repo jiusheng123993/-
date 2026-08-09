@@ -81,6 +81,8 @@ export const AVATAR_ANGLES = [
 export const AVATAR_ACTION_ANGLES = AVATAR_ANGLES.slice(0, 3);
 
 export const AVATAR_PHOTO_FREE_COUNT = 1;
+/** 会员每月"照片专属多风格头像"生成次数（3 风格照片生成共用） */
+export const AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT = 3;
 export const AVATAR_3D_MONTHLY_LIMIT = 3;
 
 export const STORAGE_KEYS = {

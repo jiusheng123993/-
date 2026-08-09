@@ -33,12 +33,12 @@ export default function InvitePage() {
   }, [trackPageView])
 
   useShareAppMessage(() => ({
-    title: '我在用星寰海管理宠物健康，快来一起吧！',
+    title: '我在用星河宠记管理宠物健康，快来一起吧！',
     path: `/pages/index/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
   }))
 
   useShareTimeline(() => ({
-    title: '星寰海 - 宠物健康管家',
+    title: '星河宠记 - 宠物健康管家',
     query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 

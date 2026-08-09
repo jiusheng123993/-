@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星河宠记 · Logo 展示</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(160deg, #FFF6EE 0%, #FFEBDD 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 56px 24px;
+    }
+    .wrap { width: 100%; max-width: 960px; }
+    .brand-head {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .brand-name {
+      font-size: 64px;
+      font-weight: 800;
+      letter-spacing: 8px;
+      background: linear-gradient(135deg, #FF6B3D, #FFB020);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .brand-slogan {
+      margin-top: 12px;
+      font-size: 20px;
+      color: #8A6F5B;
+      letter-spacing: 4px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+    }
+    .card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 36px 28px 28px;
+      box-shadow: 0 12px 32px rgba(255, 107, 61, 0.12);
+      border: 1px solid #FFE0CF;
+      text-align: center;
+      transition: transform .2s ease;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card img {
+      width: 100%;
+      border-radius: 20px;
+      display: block;
+    }
+    .card .label {
+      margin-top: 18px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #FF6B3D;
+      letter-spacing: 2px;
+    }
+    .card .desc {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #B69B83;
+    }
+    .foot {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #C9B39C;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand-head">
+      <div class="brand-name">星河宠记</div>
+      <div class="brand-slogan">AI 宠物管家，懂 TA 的一生</div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <img src="./logo-猫狗-01-大头像.png" alt="方案1">
+        <div class="label">方案 1 · 大头像</div>
+        <div class="desc">橘猫 + 金毛圆润大头像并排</div>
+      </div>
+      <div class="card">
+        <img src="./logo-猫狗-02-依偎.png" alt="方案2">
+        <div class="label">方案 2 · 依偎</div>
+        <div class="desc">猫咪靠在小狗身上 · 暖珊瑚圆形背景</div>
+      </div>
+    </div>
+    <div class="foot">两版均已备好 1024×1024 圆角图标稿（图标-猫狗01/02-圆角.png），可直接用于小程序图标</div>
+    <div class="foot">星河宠记 · 品牌视觉候选稿（矢量手绘）</div>
+  </div>
+</body>
+</html>

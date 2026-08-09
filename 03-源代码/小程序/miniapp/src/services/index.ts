@@ -28,12 +28,6 @@ export { familyService } from './familyService'
 export { timelineService } from './timelineService'
 /** 健康报告 - 报告生成与格式化 */
 export { generateHealthReport, formatReportAsText, type HealthReport } from './reportService'
-/** 衣橱系统 - 宠物配饰的装备/卸载/搭配 */
-export { getWardrobeOverview, getAccessoriesBySlot, equipAccessory, unequipAccessory, saveTryOnSnapshot, unlockAccessory, getLocalOutfitForPet, updateLocalOutfit, debouncedEquipAccessory, debouncedUnequipAccessory, clearOutfitSaveTimer, createWardrobeError, mapWardrobeErrorCode } from './wardrobeService'
-/** 主题套装 - 主题生成/配额管理 */
-export { getThemeSuiteOverview, generateThemeSuite, getThemeSuiteTaskStatus, pollThemeSuiteTask, saveThemeSuiteResult, getThemeQuota, canGenerateTheme, getActiveThemeTask } from './themeSuiteService'
-/** 穿搭预览 - 套装组合/槽位管理 */
-export { buildOutfitPreview, toggleSlotInOutfit, clearAllSlots, getEquippedCount, getEmptySlots, getSlotLabel, isOutfitEmpty, areOutfitsEqual, mergeOutfitSlots, type OutfitPreview } from './outfitComposition'
 /** 排行榜 - 家庭排行榜与角色分配 */
 export { leaderboardService, type LeaderboardPeriod, type RankingItem, type LeaderboardResponse, type RoleType, type RoleResponse, type FamilyRolesResponse } from './leaderboardService'
 /** 家族图谱 - 图谱数据/关系管理/快照/血亲树 */

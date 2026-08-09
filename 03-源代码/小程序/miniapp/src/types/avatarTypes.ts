@@ -1,5 +1,4 @@
 import type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes'
-import type { OutfitSlotMap, OutfitLayer } from './wardrobeTypes'
 
 export type { PetHealthEntry, HealthRiskLevel }
 
@@ -36,7 +35,6 @@ export interface ExpressionConfig {
   mouth: string
   accessory: string
   animation: AnimationType
-  outfitSlots?: OutfitSlotMap
 }
 
 /** 表情计算上下文 */
@@ -65,7 +63,6 @@ export interface SvgPetFace {
   mouth: string
   accessory: string
   animation: string
-  outfitLayers?: OutfitLayer[]
 }
 
 export interface SeedreamGenerateParams {
@@ -102,6 +99,8 @@ export interface AchievementConfig {
 export interface AvatarCustomization {
   species: PetSpecies
   style: 'cartoon' | 'realistic'
+  /** 多风格候选中的具体风格（Q版萌系/日系治愈/美式卡通） */
+  styleVariant?: string
   baseColor: string
   accessory?: string
   generatedAt?: string

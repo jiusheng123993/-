@@ -383,7 +383,7 @@ export const weeklyReportQuerySchema = z.object({
 /** 生成分享卡片请求 */
 export const generateShareCardSchema = z.object({
   card_type: z.enum(
-    ['health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir', 'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review', 'wardrobe'],
+    ['health_report', 'weekly_summary', 'milestone', 'family_tree', 'memoir', 'naming', 'birthday', 'achievement', 'daily_moment', 'yearly_review'],
     { error: 'card_type 无效' },
   ),
   source_data: z
@@ -648,49 +648,6 @@ export const memoirListQuerySchema = z.object({
 /** 回忆录预览请求 */
 export const memoirPreviewSchema = z.object({
   memoir_id: z.string({ error: 'memoir_id 不能为空' }).min(1, 'memoir_id 不能为空'),
-});
-
-// ===== 衣橱模块 - Query/Body 参数 =====
-
-/** 衣橱总览查询参数（petId 必填） */
-export const wardrobeOverviewQuerySchema = z.object({
-  petId: z.string({ error: 'petId 参数不能为空' }).min(1, 'petId 参数不能为空'),
-});
-
-/** 配饰列表查询参数（slot 可选枚举） */
-export const wardrobeAccessoriesQuerySchema = z.object({
-  slot: z.enum(['head', 'neck', 'back', 'body', 'feet'], { error: '无效的槽位参数' }).optional(),
-});
-
-/** 装备配饰请求 */
-export const wardrobeEquipSchema = z.object({
-  petId: z.string({ error: 'petId 参数不能为空' }).min(1, 'petId 参数不能为空'),
-  slot: z.string({ error: 'slot 参数不能为空' }).min(1, 'slot 参数不能为空'),
-  accessoryId: z.string({ error: 'accessoryId 参数不能为空' }).min(1, 'accessoryId 参数不能为空').max(64, 'accessoryId 过长').regex(/^[a-zA-Z0-9_-]+$/, 'accessoryId 格式不合法'),
-});
-
-/** 卸下配饰请求 */
-export const wardrobeUnequipSchema = z.object({
-  petId: z.string({ error: 'petId 参数不能为空' }).min(1, 'petId 参数不能为空'),
-  slot: z.string({ error: 'slot 参数不能为空' }).min(1, 'slot 参数不能为空'),
-});
-
-/** 试穿请求 */
-export const wardrobeTryOnSchema = z.object({
-  petId: z.string({ error: 'petId 参数不能为空' }).min(1, 'petId 参数不能为空'),
-  outfitSnapshot: z.record(z.string(), z.unknown(), { error: 'outfitSnapshot 参数不能为空' }),
-});
-
-/** 解锁配饰请求 */
-export const wardrobeUnlockSchema = z.object({
-  accessoryId: z.string({ error: 'accessoryId 参数不能为空' }).min(1, 'accessoryId 参数不能为空').max(64, 'accessoryId 过长').regex(/^[a-zA-Z0-9_-]+$/, 'accessoryId 格式不合法'),
-  source: z.string().max(50, 'source 最长 50 字符').optional(),
-});
-
-/** 主题套装生成请求 */
-export const themeSuiteGenerateSchema = z.object({
-  petId: z.string({ error: 'petId 参数不能为空' }).min(1, 'petId 参数不能为空'),
-  suiteId: z.string({ error: 'suiteId 参数不能为空' }).min(1, 'suiteId 参数不能为空').max(64, 'suiteId 过长').regex(/^[a-zA-Z0-9_-]+$/, 'suiteId 格式不合法'),
 });
 
 // ===== 疫苗模块 - Body 参数 =====

@@ -6,7 +6,8 @@ import Taro from '@tarojs/taro'
 import { isWeapp } from './detector'
 import { storage } from './storage'
 
-const API_BASE_URL = (typeof process !== 'undefined' ? process.env : ({} as any)).TARO_APP_API_BASE_URL || 'http://49.232.203.85'
+// 正式 API 域名（微信小程序要求 HTTPS；本地/测试可用环境变量覆盖）
+const API_BASE_URL = (typeof process !== 'undefined' ? process.env : ({} as any)).TARO_APP_API_BASE_URL || 'https://api.xinghuanhai.com'
 
 async function request<T>(path: string, options?: {
   method?: string

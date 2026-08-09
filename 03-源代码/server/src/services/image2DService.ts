@@ -172,7 +172,16 @@ async function generateBatch(
 
 const MAX_429_RETRIES = 2;
 
-async function callSeedream(prompt: string, referenceImageUrl: string, apiKey: string, retryCount = 0): Promise<string | null> {
+/**
+ * 调用 Seedream 文生图/图生图接口（带 429 重试）
+ * 供 2D 形象包、多风格候选头像等模块复用
+ * @param prompt - 生成提示词
+ * @param referenceImageUrl - 参考照片 URL（可空，空则走文生图）
+ * @param apiKey - Seedream API Key
+ * @param retryCount - 当前重试次数（内部递归使用）
+ * @returns 生成图片 URL，失败返回 null
+ */
+export async function callSeedream(prompt: string, referenceImageUrl: string, apiKey: string, retryCount = 0): Promise<string | null> {
   const response = await fetch(SEEDREAM_API, {
     method: 'POST',
     headers: {
@@ -184,7 +193,8 @@ async function callSeedream(prompt: string, referenceImageUrl: string, apiKey: s
       prompt,
       size: '1024x1024',
       n: 1,
-      image: referenceImageUrl,
+      // 仅当传了参考照片时带 image 字段，走图生图；否则为纯文生图
+      ...(referenceImageUrl ? { image: referenceImageUrl } : {}),
     }),
   });
 

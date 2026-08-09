@@ -1,2 +1,0 @@
-/** SVG 袜子（小） */
-export const SVG_SOCKS_SMALL = `<g transform="translate(30, 82)"><rect x="0" y="0" width="12" height="14" rx="3" fill="#E0E0E0"/><rect x="0" y="10" width="16" height="6" rx="3" fill="#E0E0E0"/><rect x="0" y="0" width="12" height="3" rx="1" fill="#FF7043"/></g>`

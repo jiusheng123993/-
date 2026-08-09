@@ -1,8 +1,9 @@
 /**
  * 宠物形象生成服务 - 调用 Seedream API 生成宠物形象
- * 支持卡通/写实风格，配置缺失时生成 SVG 占位图
+ * 支持卡通/写实单张生成（旧接口），以及多风格候选批量生成（新接口）
  */
 import { config } from '../config.js';
+import { callSeedream } from './image2DService.js';
 
 /** 宠物形象生成请求参数 */
 export interface GeneratePetImageParams {
@@ -21,6 +22,105 @@ export interface GeneratePetImageResult {
 }
 
 const DEFAULT_STYLE = 'cartoon';
+
+/**
+ * 多风格候选定义（5 种画风 × 猫/狗各一套描述）
+ * - 多宠家庭里猫狗可能同时存在，所以每种画风都要有猫、狗专属提示词，
+ *   避免把猫咪生成成狗狗脸、或狗狗生成成猫咪脸
+ * - 提示词必须把各画风写得很"极端"且互相排斥，否则带参考照片图生图时
+ *   所有图都会往参考照片写实方向收敛，看起来几乎一样
+ */
+export const AVATAR_STYLE_OPTIONS = [
+  {
+    key: 'q',
+    label: 'Q版萌系',
+    dog: '典型Q版二头身狗狗，超大头小身体，圆脸占画面一半，大圆眼带高光，腮红，耳朵软萌下垂，线条圆润无棱角，萌系贴纸质感',
+    cat: '典型Q版二头身猫咪，超大头小身体，圆脸占画面一半，大圆眼带高光，腮红，猫耳小巧，胡须简洁，线条圆润无棱角，萌系贴纸质感',
+  },
+  {
+    key: 'japanese',
+    label: '日系治愈',
+    dog: '日系治愈系狗狗插画，水彩晕染，奶油色柔和渐变，吉卜力式温馨氛围，毛发细腻柔和笔触',
+    cat: '日系治愈系猫咪插画，水彩晕染，奶油色柔和渐变，吉卜力式温馨氛围，皮毛细腻柔和笔触',
+  },
+  {
+    key: 'american',
+    label: '美式卡通',
+    dog: '美式动画电影风格狗狗角色（类似皮克斯/迪士尼），粗描边，高饱和撞色，夸张五官和生动表情',
+    cat: '美式动画电影风格猫咪角色（类似皮克斯/迪士尼），粗描边，高饱和撞色，夸张五官和生动表情',
+  },
+  {
+    key: 'watercolor',
+    label: '水彩手绘',
+    dog: '清新水彩手绘狗狗头像，透明水彩晕染，留白边缘，纸张纹理，淡雅清新',
+    cat: '清新水彩手绘猫咪头像，透明水彩晕染，留白边缘，纸张纹理，淡雅清新',
+  },
+  {
+    key: 'clay',
+    label: '黏土萌宠',
+    dog: '黏土玩偶质感狗狗，软陶立体，手作质感，圆润可爱，柔和影棚光',
+    cat: '黏土玩偶质感猫咪，软陶立体，手作质感，圆润可爱，柔和影棚光',
+  },
+] as const;
+
+/** 多风格候选生成请求参数 */
+export interface GeneratePetImageOptionsParams {
+  petId: string;
+  species: string;
+  breed: string;
+  gender: string;
+  /** 参考照片 URL（有则图生图保证像宠物本人，无则文生图） */
+  photoUrl?: string;
+  /** 基础基调：cartoon（卡通）/ realistic（写实） */
+  style?: string;
+}
+
+/** 单个风格候选结果 */
+export interface PetImageOption {
+  style: string;
+  label: string;
+  url: string;
+}
+
+/**
+ * 生成多风格候选形象（5 种画风，猫狗各一套提示词）
+ * 并发调用 Seedream 生成全部候选；任一失败自动跳过，全部失败返回 null
+ * @returns 候选列表；AI 服务不可用时返回 null（不返回丑陋占位图）
+ */
+export async function generatePetImageOptions(
+  params: GeneratePetImageOptionsParams,
+): Promise<PetImageOption[] | null> {
+  const apiKey = config.seedream.apiKey;
+  if (!apiKey) return null;
+
+  const style = params.style || DEFAULT_STYLE;
+  const genderLabel = params.gender === 'male' ? '公' : params.gender === 'female' ? '母' : '';
+  const isDog = params.species === 'dog';
+  const speciesName = isDog ? '狗狗' : '猫咪';
+  const basePrompt = `一只${genderLabel}${params.breed}${speciesName}的头像，高质量，细节丰富，干净背景`;
+  const styleText = style === 'realistic' ? '写实风格，真实细腻' : '可爱卡通风格';
+
+  // 5 种风格并发生成，互不阻塞；某个风格失败不影响其余候选
+  const results = await Promise.allSettled(
+    AVATAR_STYLE_OPTIONS.map((item) =>
+      callSeedream(`${basePrompt}，${styleText}，${isDog ? item.dog : item.cat}`, params.photoUrl || '', apiKey).then((url) =>
+        url ? { style: item.key, label: item.label, url } : null,
+      ),
+    ),
+  );
+
+  const options: PetImageOption[] = [];
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value) {
+      options.push(result.value);
+    } else if (result.status === 'rejected') {
+      console.warn('[AvatarOptions] 某个风格生成失败:', result.reason);
+    }
+  }
+
+  // 至少成功 1 张才算可用；全部失败视为服务不可用
+  return options.length > 0 ? options : null;
+}
 
 function generateSvgPlaceholder(params: GeneratePetImageParams): string {
   const colorMap: Record<string, string> = {

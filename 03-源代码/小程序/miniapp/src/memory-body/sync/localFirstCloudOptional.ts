@@ -1,4 +1,4 @@
-// 星寰海 v2.0 - memory-body 本地优先同步策略
+// 星河宠记 v2.0 - memory-body 本地优先同步策略
 
 /** 同步状态 */
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'error' | 'offline';

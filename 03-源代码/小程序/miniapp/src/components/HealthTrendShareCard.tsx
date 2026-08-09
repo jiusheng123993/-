@@ -57,7 +57,7 @@ export default function HealthTrendShareCard({
       <View className='health-trend-share__overlay' onClick={onClose} />
       <View className='health-trend-share__card'>
         <View className='health-trend-share__header'>
-          <View className='health-trend-share__brand'>星寰海</View>
+          <View className='health-trend-share__brand'>星河宠记</View>
           <View className='health-trend-share__close' onClick={onClose}>✕</View>
         </View>
 

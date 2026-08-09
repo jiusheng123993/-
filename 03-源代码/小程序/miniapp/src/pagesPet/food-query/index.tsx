@@ -96,14 +96,14 @@ export default function PetFoodQuery() {
     return {
       title: lastResult
         ? `我家毛孩子能吃${lastResult.foodName}吗？快查查！`
-        : '星寰海 - 宠物健康管家',
+        : '星河宠记 - 宠物健康管家',
       path: `/pagesPet/food-query/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
     }
   })
   useShareTimeline(() => ({
     title: lastResult
       ? `我家毛孩子能吃${lastResult.foodName}吗？`
-      : '星寰海 - 宠物健康管家',
+      : '星河宠记 - 宠物健康管家',
     query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 

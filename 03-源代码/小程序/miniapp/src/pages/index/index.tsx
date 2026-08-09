@@ -633,7 +633,7 @@ export default function Index() {
         /* 空状态：引导用户添加宠物 */
         <View className='chat-empty'>
           <View className='chat-empty-icon'>🐾</View>
-          <Text className='chat-empty-title'>欢迎来到星寰海</Text>
+          <Text className='chat-empty-title'>欢迎来到星河宠记</Text>
           <Text className='chat-empty-desc'>添加你的第一位宠物伙伴，{'\n'}开始记录温馨的每一天</Text>
           <View className='chat-empty-btn' onClick={() => Taro.navigateTo({ url: '/pagesPet/add/index' })}>
             <Text className='chat-empty-btn-text'>+ 添加宠物</Text>
@@ -644,7 +644,7 @@ export default function Index() {
       <View className='chat-top-bar'>
         <View className='chat-top-left'>
           <View className='chat-top-brand'>
-            <Text className='chat-pet-name'>星寰海</Text>
+            <Text className='chat-pet-name'>星河宠记</Text>
             <Text className='chat-pet-detail'>AI 宠物管家</Text>
           </View>
         </View>
@@ -722,7 +722,7 @@ export default function Index() {
           </View>
           <View className='msg-bubble-wrap'>
             <View className='msg-bubble'>
-              <Text>你好呀～我是星寰海的AI宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
+              <Text>你好呀～我是星河宠记的AI宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
             </View>
             {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>

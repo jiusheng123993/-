@@ -1,5 +1,6 @@
 /**
- * 宠物头像饰品穿搭测试
+ * PetAvatar 形象展示测试（替代原 outfitLayers 测试）
+ * 验证组件不再生成简笔画 SVG，形象图优先、无图时使用渐变 emoji 兜底
  */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
@@ -28,61 +29,60 @@ const mockExpression = {
 
 vi.mock('../../engines/petAvatar', () => ({
   calculateExpression: vi.fn(() => mockExpression),
-  getPetFaceDataUri: vi.fn(() => 'data:image/svg+xml,facestub'),
-  generateDiaryForToday: vi.fn(() => null),
-}))
-
-vi.mock('../../engines/petAvatar/outfitRenderer', () => ({
-  resolveOutfitLayers: vi.fn(() => []),
+  generateDiaryForToday: vi.fn(),
+  EXPRESSION_MAP: {},
 }))
 
 import PetAvatar from '../PetAvatar'
-import { getPetFaceDataUri } from '../../engines/petAvatar'
-import { resolveOutfitLayers } from '../../engines/petAvatar/outfitRenderer'
-import type { ExpressionContext } from '../../types/avatarTypes'
-import type { OutfitSlotMap } from '../../types/wardrobeTypes'
+import type { ExpressionContext } from '../../engines/petAvatar'
 
 const defaultContext: ExpressionContext = {
-  todayEntry: null, hasAnomaly: false, anomalyCount: 0,
-  riskLevel: null, streakDays: 0, isBirthday: false,
-  isVaccineComplete: false, isRecovery: false, isDeceased: false,
+  todayEntry: null,
+  hasAnomaly: false,
+  anomalyCount: 0,
+  riskLevel: null,
+  streakDays: 0,
+  isBirthday: false,
+  isVaccineComplete: false,
+  isRecovery: false,
+  isDeceased: false,
 }
 
-describe('PetAvatar with outfit', () => {
-  it('renders without outfitSlots prop', () => {
+describe('PetAvatar 形象展示', () => {
+  it('no outfitSlots required anymore（不再叠加 SVG 图层）', () => {
+    // 仅验证传基础属性即可渲染，不依赖 outfitSlots
     const { container } = render(
-      <PetAvatar species='dog' petName='Buddy' expressionContext={defaultContext} />
+      <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />
     )
     expect(container.querySelector('.pet-avatar')).toBeDefined()
   })
 
-  it('calls resolveOutfitLayers when outfitSlots provided', () => {
-    const slots: OutfitSlotMap = { head: 'hat_bowler' }
-    render(
-      <PetAvatar species='dog' petName='Buddy' expressionContext={defaultContext} outfitSlots={slots} />
+  it('不输出任何 SVG 简笔画脸（无 <svg> 内容）', () => {
+    const { container } = render(
+      <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />
     )
-    expect(resolveOutfitLayers).toHaveBeenCalledWith(slots, 'dog')
+    expect(container.innerHTML).not.toContain('<svg')
+    expect(container.querySelector('img')).toBeNull()
   })
 
-  it('passes outfitLayers to getPetFaceDataUri', () => {
-    vi.clearAllMocks()
-    const slots: OutfitSlotMap = { head: 'hat_bowler' }
+  it('传入 imageUrl 时展示图片而非 emoji 兜底', () => {
     render(
-      <PetAvatar species='dog' petName='Buddy' expressionContext={defaultContext} outfitSlots={slots} />
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        imageUrl='https://cdn.example.com/cartoon.png'
+      />
     )
-    expect(getPetFaceDataUri).toHaveBeenCalledWith(
-      expect.objectContaining({ expression: 'happy' }),
-      'dog',
-      100,
-      expect.any(Array)
-    )
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/cartoon.png')
+    expect(screen.queryByText('🐱')).toBeNull()
   })
 
-  it('does not call resolveOutfitLayers when outfitSlots is undefined', () => {
-    vi.clearAllMocks()
+  it('无 imageUrl 时展示物种 emoji 兜底', () => {
     render(
-      <PetAvatar species='dog' petName='Buddy' expressionContext={defaultContext} />
+      <PetAvatar species='cat' petName='咪咪' expressionContext={defaultContext} />
     )
-    expect(resolveOutfitLayers).not.toHaveBeenCalled()
+    expect(screen.getByText('🐱')).toBeDefined()
   })
 })

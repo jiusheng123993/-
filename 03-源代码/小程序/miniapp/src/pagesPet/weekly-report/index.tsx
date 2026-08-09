@@ -67,11 +67,11 @@ export default function WeeklyReport() {
   const [generating, setGenerating] = useState(false)
 
   useShareAppMessage(() => ({
-    title: latestReport ? `${currentFamily?.name || '家庭'} · 本周周报` : '星寰海 - 家庭周报',
+    title: latestReport ? `${currentFamily?.name || '家庭'} · 本周周报` : '星河宠记 - 家庭周报',
     path: `/pagesPet/weekly-report/index`,
   }))
   useShareTimeline(() => ({
-    title: latestReport ? `${currentFamily?.name || '家庭'} · 本周周报` : '星寰海 - 家庭周报',
+    title: latestReport ? `${currentFamily?.name || '家庭'} · 本周周报` : '星河宠记 - 家庭周报',
     query: '',
   }))
 

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Removed
+- **衣橱/换装功能**：因产品范围调整砍掉宠物换装（衣柜饰品 + AI 主题套装），
+  同步移除小程序端 wardrobe 页面/组件/数据/资源，以及服务端 `/api/wardrobe` 路由、
+  相关服务、仓库与 schema；PRD、设计规格、实施计划与测试路径文档已同步更新。
+
 ## [0.1.0] - 2026-06-26
 ### Added
 - **记忆系统**

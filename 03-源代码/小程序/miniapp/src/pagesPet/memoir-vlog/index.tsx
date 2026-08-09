@@ -53,9 +53,10 @@ interface MemberCheckResponse {
 
 // ==================== 常量 ====================
 
+// 背景音乐（全部为 incompetech.com 的 Kevin MacLeod 作品，CC BY 3.0 免费可商用，需署名）
 const BGM_OPTIONS: BGMOption[] = [
   { key: 'piano', emoji: '🎵', name: '温柔时光', tag: '钢琴曲', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/piano-preview.mp3` },
-  { key: 'guitar', emoji: '🎵', name: '暖心回忆', tag: '吉他', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/guitar-preview.mp3` },
+  { key: 'guitar', emoji: '🎵', name: '暖心回忆', tag: '轻快', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/guitar-preview.mp3` },
   { key: 'strings', emoji: '🎵', name: '深情告白', tag: '弦乐', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/strings-preview.mp3` },
   { key: 'upbeat', emoji: '🎵', name: '欢快瞬间', tag: '轻快节奏', previewUrl: `${CONFIG.ASSETS_BASE_URL}/bgm/upbeat-preview.mp3` },
 ]
@@ -621,6 +622,10 @@ export default function MemoirVlog() {
           </View>
         ))}
       </View>
+      {/* B 级曲目（CC BY 3.0）需署名：来源说明常驻展示，满足授权要求 */}
+      <Text style={{ marginTop: '16rpx', fontSize: '20rpx', color: '#999' }}>
+        音乐：Kevin MacLeod（incompetech.com）· CC BY 3.0
+      </Text>
     </View>
   )
 

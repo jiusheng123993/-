@@ -92,7 +92,7 @@ function drawBrandHeader(ctx: CanvasRenderingContext2D, y: number): number {
   ctx.fillStyle = COLORS.brand
   ctx.font = `bold ${TITLE_FONT_SIZE}px sans-serif`
   ctx.textAlign = 'center'
-  ctx.fillText('星寰海', CANVAS_WIDTH / 2, y + 50)
+  ctx.fillText('星河宠记', CANVAS_WIDTH / 2, y + 50)
 
   ctx.fillStyle = COLORS.textLight
   ctx.font = `${SMALL_FONT_SIZE}px sans-serif`
@@ -113,7 +113,7 @@ function drawBrandFooter(ctx: CanvasRenderingContext2D, y: number): number {
   ctx.font = `${SMALL_FONT_SIZE}px sans-serif`
   ctx.textAlign = 'center'
   ctx.fillText('长按识别小程序码 · 关注宠物健康', CANVAS_WIDTH / 2, y + 40)
-  ctx.fillText('星寰海 - 宠物健康管理', CANVAS_WIDTH / 2, y + 75)
+  ctx.fillText('星河宠记 - 宠物健康管理', CANVAS_WIDTH / 2, y + 75)
   ctx.restore()
   return y + 100
 }

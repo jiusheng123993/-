@@ -156,11 +156,11 @@ export default function PetCheckin() {
   const inviteCode = useShareStore(s => s.inviteCode)
 
   useShareAppMessage(() => ({
-    title: '星寰海 - 宠物健康打卡',
+    title: '星河宠记 - 宠物健康打卡',
     path: `/pagesPet/checkin/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
   }))
   useShareTimeline(() => ({
-    title: '星寰海 - 宠物健康打卡',
+    title: '星河宠记 - 宠物健康打卡',
     query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 

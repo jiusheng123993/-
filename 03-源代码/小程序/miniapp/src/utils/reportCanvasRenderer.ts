@@ -349,7 +349,7 @@ export function drawReportFooter(
   ctx.textAlign = 'center'
   ctx.fillText('⚠️ 本报告仅供参考，不替代兽医诊断。如发现异常请及时就医。', CANVAS_WIDTH / 2, y + 40)
   ctx.fillText(`生成时间：${generatedAt}`, CANVAS_WIDTH / 2, y + 75)
-  ctx.fillText('星寰海 - 宠物健康管理', CANVAS_WIDTH / 2, y + 105)
+  ctx.fillText('星河宠记 - 宠物健康管理', CANVAS_WIDTH / 2, y + 105)
 
   ctx.restore()
   return y + 120

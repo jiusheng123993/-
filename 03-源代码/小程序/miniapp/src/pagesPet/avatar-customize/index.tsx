@@ -16,21 +16,28 @@ import ImageGallery from '../../components/PetAvatar/ImageGallery'
 import Model3DViewer from '../../components/PetAvatar/Model3DViewer'
 import GenerationProgress from '../../components/PetAvatar/GenerationProgress'
 import { EXPRESSION_MAP, type PetExpression } from '../../engines/petAvatar'
+import { getPresetsBySpecies, type AvatarPreset } from './data/avatarPresets'
 import {
   generateAvatarImage,
+  generateAvatarOptions,
   getAvatarCustomization,
   saveAvatarCustomization,
   canGenerateAvatar,
   getGenerationCount,
+  incrementGenerationCount,
   uploadPetPhoto,
   generate2DAvatar,
   generate3DAvatar,
   getAvatar2DImages,
   getAvatar3DModel,
   canGeneratePhoto,
+  canGeneratePhotoOptions,
   getPhotoGenerationCount,
+  getPhotoOptionsCount,
+  incrementPhotoOptionsCount,
   canGenerate3D,
   getAvatarQuota,
+  type AvatarStyleOption,
 } from '../../services/avatarService'
 import { usePetStore } from '../../stores/petStore'
 import { useMembership } from '../../hooks/useMembership'
@@ -109,12 +116,24 @@ export default function AvatarCustomizePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [genCount, setGenCount] = useState(getGenerationCount())
+  // 多风格候选形象（5 种画风选 1，猫狗各有专属提示词）
+  const [styleOptions, setStyleOptions] = useState<AvatarStyleOption[] | null>(null)
+  const [selectedStyleIndex, setSelectedStyleIndex] = useState<number | null>(null)
+  // 预设头像库（免费用户入口）：选中的预设 ID
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null)
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [photoStyle, setPhotoStyle] = useState<'cartoon' | 'realistic'>('cartoon')
   const [serverQuota, setServerQuota] = useState<AvatarQuota | null>(null)
+
+  // 当前宠物物种对应的 8 张预设头像
+  const presetList = useMemo(() => getPresetsBySpecies(species), [species])
+  const selectedPreset = useMemo(
+    () => presetList.find((item) => item.id === selectedPresetId) || null,
+    [presetList, selectedPresetId],
+  )
 
   useEffect(() => {
     trackPageView('avatar_customize')
@@ -135,10 +154,14 @@ export default function AvatarCustomizePage() {
   // 当前展示形象（优先生成结果 → 已保存形象 → 默认卡通脸）
   const previewUrl = useMemo(() => {
     if (isGenerating) return null
+    if (styleOptions && selectedStyleIndex != null && styleOptions[selectedStyleIndex]) {
+      return styleOptions[selectedStyleIndex].url
+    }
+    if (selectedPreset) return selectedPreset.image
     if (generatedUrl) return generatedUrl
     const custom = getAvatarCustomization()
     return custom?.cartoonUrl || null
-  }, [isGenerating, generatedUrl])
+  }, [isGenerating, generatedUrl, styleOptions, selectedStyleIndex, selectedPreset])
 
   // 形象卡副标题：品种 · 年龄 · 状态
   const petDesc = useMemo(() => {
@@ -163,6 +186,12 @@ export default function AvatarCustomizePage() {
     return canGeneratePhoto(isMember)
   }, [serverQuota, isMember])
 
+  // 照片专属多风格头像（会员每月 3 次，与服务端口径一致）
+  const canGenPhotoOptions = useMemo(
+    () => canGeneratePhotoOptions(isMember),
+    [isMember],
+  )
+
   const canGen3D = useMemo(() => {
     if (serverQuota) {
       return serverQuota.isMember && serverQuota.generation3D.used < serverQuota.generation3D.limit
@@ -180,13 +209,11 @@ export default function AvatarCustomizePage() {
   }, [serverQuota, isMember, genCount])
 
   const photoQuotaText = useMemo(() => {
-    if (serverQuota) {
-      if (serverQuota.isMember) return '会员无限生成'
-      const remaining = Math.max(0, serverQuota.generation2D.limit - serverQuota.generation2D.used)
-      return `剩余照片生成次数：${remaining}/${serverQuota.generation2D.limit}`
-    }
-    return isMember ? '会员无限生成' : `剩余照片生成次数：${Math.max(0, 1 - getPhotoGenerationCount())}/1`
-  }, [serverQuota, isMember])
+    // 照片生成（参照自家宠物）为会员专享，每月 3 次
+    if (!isMember) return '照片生成仅限会员 · 每月 3 次'
+    const remaining = Math.max(0, 3 - getPhotoOptionsCount())
+    return `照片生成（会员）：剩余 ${remaining}/3 次`
+  }, [isMember])
 
   useEffect(() => {
     if (!petId) return
@@ -261,7 +288,7 @@ export default function AvatarCustomizePage() {
     if (!uploadedPhotoUrl) return
 
     if (!canGenPhoto) {
-      showMemberGuide('免费用户每月仅可生成 1 次 2D 形象，开通会员可无限生成')
+      showMemberGuide('照片生成专属形象仅限会员使用，请先开通会员')
       return
     }
 
@@ -322,15 +349,19 @@ export default function AvatarCustomizePage() {
 
   const handleTextGenerate = useCallback(async () => {
     if (!canGenerate || isGenerating) return
-    trackEvent('generate_avatar', { style: selectedStyle, species })
+    trackEvent('generate_avatar_options', { style: selectedStyle, species })
     setIsGenerating(true)
+    setStyleOptions(null)
+    setSelectedStyleIndex(null)
     try {
-      const result = await generateAvatarImage(petId, species, petName, selectedStyle, undefined, selectedColor)
-      if (result?.success && result.imageUrl) {
-        setGeneratedUrl(result.imageUrl)
+      // 一次生成 5 种画风候选（Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠），供用户 5 选 1
+      const options = await generateAvatarOptions(petId, undefined, selectedStyle)
+      if (options && options.length > 0) {
+        setStyleOptions(options)
+        incrementGenerationCount()
         setGenCount(getGenerationCount())
-        trackEvent('generate_avatar_success', { style: selectedStyle })
-        Taro.showToast({ title: '生成成功', icon: 'success' })
+        trackEvent('generate_avatar_options_success', { style: selectedStyle, count: options.length })
+        Taro.showToast({ title: '生成成功，请选择喜欢的形象', icon: 'none' })
       } else if (!canGenerateAvatar(isMember)) {
         Taro.showModal({
           title: '生成次数已用完',
@@ -350,6 +381,92 @@ export default function AvatarCustomizePage() {
       setIsGenerating(false)
     }
   }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, trackEvent])
+
+  /**
+   * 照片生成多风格候选（带参考照片，保证形象像宠物本人）
+   * @param referenceImageUrl - 已上传的照片 URL
+   */
+  const handleGeneratePhotoOptions = useCallback(async (referenceImageUrl: string) => {
+    if (!referenceImageUrl || !canGenPhotoOptions || isGenerating) return
+    if (!isMember) {
+      showMemberGuide('照片生成专属形象仅限会员使用，请先开通会员')
+      return
+    }
+    trackEvent('generate_photo_options', { style: photoStyle })
+    setIsGenerating(true)
+    setStyleOptions(null)
+    setSelectedStyleIndex(null)
+    try {
+      const options = await generateAvatarOptions(petId, referenceImageUrl, photoStyle)
+      if (options && options.length > 0) {
+        setStyleOptions(options)
+        incrementPhotoOptionsCount()
+        trackEvent('generate_photo_options_success', { count: options.length })
+        Taro.showToast({ title: '生成成功，请选择喜欢的形象', icon: 'none' })
+      } else {
+        Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
+      }
+    } catch (err) {
+      trackEvent('generate_avatar_failure')
+      // 展示服务端返回的具体原因（如"仅限会员"、"本月次数已用完"）
+      Taro.showToast({ title: err instanceof Error ? err.message : '生成失败，请重试', icon: 'none' })
+    } finally {
+      setIsGenerating(false)
+    }
+  }, [canGenPhotoOptions, isGenerating, isMember, petId, photoStyle, showMemberGuide, trackEvent])
+
+  /** 保存用户选中的候选形象并返回宠物主页 */
+  const handleSaveSelectedOption = useCallback(async () => {
+    if (selectedStyleIndex == null || !styleOptions || !styleOptions[selectedStyleIndex]) {
+      Taro.showToast({ title: '请先选择一个形象', icon: 'none' })
+      return
+    }
+    const option = styleOptions[selectedStyleIndex]
+    trackEvent('save_avatar_option', { style: option.style })
+    try {
+      await saveAvatarCustomization({
+        species,
+        style: selectedStyle,
+        styleVariant: option.style,
+        baseColor: selectedColor,
+        generatedAt: new Date().toISOString(),
+        cartoonUrl: option.url,
+      })
+      Taro.showToast({ title: '保存成功', icon: 'success' })
+      setTimeout(() => safeNavigateBack(), 1500)
+    } catch {
+      Taro.showToast({ title: '保存失败', icon: 'none' })
+    }
+  }, [selectedStyleIndex, styleOptions, species, selectedStyle, selectedColor, trackEvent])
+
+  /** 清空候选，允许重新生成 */
+  const handleResetOptions = useCallback(() => {
+    setStyleOptions(null)
+    setSelectedStyleIndex(null)
+  }, [])
+
+  /** 保存选中的预设头像并返回宠物主页（免费用户主入口） */
+  const handleSavePreset = useCallback(async () => {
+    if (!selectedPreset) {
+      Taro.showToast({ title: '请先选择一个形象', icon: 'none' })
+      return
+    }
+    trackEvent('save_preset_avatar', { presetId: selectedPreset.id })
+    try {
+      await saveAvatarCustomization({
+        species,
+        style: 'cartoon',
+        styleVariant: selectedPreset.id,
+        baseColor: '#FFD93D',
+        generatedAt: new Date().toISOString(),
+        cartoonUrl: selectedPreset.image,
+      })
+      Taro.showToast({ title: '保存成功', icon: 'success' })
+      setTimeout(() => safeNavigateBack(), 1500)
+    } catch {
+      Taro.showToast({ title: '保存失败', icon: 'none' })
+    }
+  }, [selectedPreset, species, trackEvent])
 
   const handleTextSave = useCallback(async () => {
     if (!generatedUrl) return
@@ -465,6 +582,42 @@ export default function AvatarCustomizePage() {
         <Text className='avatar-stage__desc'>{petDesc}</Text>
       </View>
 
+      {/* 1.5 预设形象库（免费用户主入口：从现成的 8 款里选，无需 AI 生成） */}
+      <View className='xhh-card avatar-preset'>
+        <View className='avatar-preset__head'>
+          <Text className='avatar-preset__title'>预设形象 · 免费</Text>
+          <Text className='avatar-preset__hint'>{species === 'cat' ? '8 款猫咪' : '8 款狗狗'}，选一个直接用</Text>
+        </View>
+        <View className='avatar-preset__grid'>
+          {presetList.map((preset) => (
+            <View
+              key={preset.id}
+              className={`avatar-preset__card ${selectedPresetId === preset.id ? 'avatar-preset__card--active' : ''}`}
+              onClick={() => setSelectedPresetId(preset.id)}
+            >
+              <View className='avatar-preset__img-wrap'>
+                <Image className='avatar-preset__img' src={preset.image} mode='aspectFill' lazyLoad />
+                {selectedPresetId === preset.id && (
+                  <View className='avatar-preset__check'>
+                    <Text className='avatar-preset__check-text'>✓</Text>
+                  </View>
+                )}
+              </View>
+              <Text className='avatar-preset__label'>{preset.breed}</Text>
+              <Text className='avatar-preset__style'>{preset.styleLabel}</Text>
+            </View>
+          ))}
+        </View>
+        <View className='avatar-preset__actions'>
+          <View
+            className={`avatar-preset__btn ${!selectedPreset ? 'avatar-preset__btn--disabled' : ''}`}
+            onClick={handleSavePreset}
+          >
+            <Text className='avatar-preset__btn-text'>保存所选形象</Text>
+          </View>
+        </View>
+      </View>
+
       {/* 2. 风格切换 */}
       <View className='xhh-card avatar-style'>
         <View className='avatar-style__head'>
@@ -551,15 +704,29 @@ export default function AvatarCustomizePage() {
 
           {/* Tab 1: 文字描述生成 */}
           {activeTab === 'text' && (
-            <>
+            !isMember ? (
+              <View className='avatar-customize__member-only'>
+                <Text className='avatar-customize__member-only-icon'>✨</Text>
+                <Text className='avatar-customize__member-only-title'>AI 形象生成 · 会员专享</Text>
+                <Text className='avatar-customize__member-only-desc'>AI 生成 5 种画风候选并挑选；免费用户可直接使用上方"预设形象"</Text>
+                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可使用 AI 生成专属形象（文字/照片）')}>
+                  <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
+                </View>
+              </View>
+            ) : (
+              <>
               <View className='avatar-customize__preview'>
                 {isGenerating ? (
                   <View className='avatar-customize__generating'>
                     <View className='avatar-customize__generating-spinner' />
                     <Text className='avatar-customize__generating-text'>AI 正在为你生成专属形象...</Text>
                   </View>
-                ) : generatedUrl ? (
-                  <Image className='avatar-customize__generated-img' src={generatedUrl} mode='aspectFit' />
+                ) : styleOptions && selectedStyleIndex != null && styleOptions[selectedStyleIndex] ? (
+                  <Image
+                    className='avatar-customize__generated-img'
+                    src={styleOptions[selectedStyleIndex].url}
+                    mode='aspectFit'
+                  />
                 ) : (
                   <PetAvatar species={species} petName={petName} expressionContext={expressionContext} size={160} showLabel />
                 )}
@@ -604,30 +771,29 @@ export default function AvatarCustomizePage() {
               </View>
 
               <View className='avatar-customize__actions'>
-                {!generatedUrl ? (
-                  <View
-                    className={`avatar-customize__btn ${!canGenerate ? 'avatar-customize__btn--disabled' : ''}`}
-                    onClick={handleTextGenerate}
-                  >
-                    <Text className='avatar-customize__btn-text'>生成头像</Text>
-                  </View>
-                ) : (
-                  <View className='avatar-customize__btn-group'>
-                    <View className='avatar-customize__btn avatar-customize__btn--secondary' onClick={() => setGeneratedUrl(null)}>
-                      <Text className='avatar-customize__btn-text'>重新生成</Text>
-                    </View>
-                    <View className='avatar-customize__btn' onClick={handleTextSave}>
-                      <Text className='avatar-customize__btn-text'>保存头像</Text>
-                    </View>
-                  </View>
-                )}
+                <View
+                  className={`avatar-customize__btn ${!canGenerate ? 'avatar-customize__btn--disabled' : ''}`}
+                  onClick={handleTextGenerate}
+                >
+                  <Text className='avatar-customize__btn-text'>生成 5 种风格头像</Text>
+                </View>
               </View>
             </>
-          )}
+            ))}
 
           {/* Tab 2: 照片生成 */}
           {activeTab === 'photo' && (
-            <>
+            !isMember ? (
+              <View className='avatar-customize__member-only'>
+                <Text className='avatar-customize__member-only-icon'>🔒</Text>
+                <Text className='avatar-customize__member-only-title'>照片专属形象 · 会员专享</Text>
+                <Text className='avatar-customize__member-only-desc'>上传自家宠物照片，AI 生成专属风格形象，每月限 3 次</Text>
+                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可上传宠物照片生成专属形象，每月 3 次')}>
+                  <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
+                </View>
+              </View>
+            ) : (
+              <>
               <View className='avatar-customize__section'>
                 <Text className='avatar-customize__section-title'>上传宠物照片</Text>
                 <PhotoUploader value={photoUrl} onChange={handlePhotoChange} disabled={isUploading} />
@@ -664,6 +830,17 @@ export default function AvatarCustomizePage() {
                     onClick={handleGenerate2D}
                   >
                     <Text className='avatar-customize__btn-text'>生成 2D 形象包</Text>
+                  </View>
+                </View>
+              )}
+
+              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                <View className='avatar-customize__actions avatar-customize__actions--spaced'>
+                  <View
+                    className={`avatar-customize__btn avatar-customize__btn--secondary ${(!uploadedPhotoUrl || !canGenPhotoOptions || isGenerating) ? 'avatar-customize__btn--disabled' : ''}`}
+                    onClick={() => uploadedPhotoUrl && handleGeneratePhotoOptions(uploadedPhotoUrl)}
+                  >
+                    <Text className='avatar-customize__btn-text'>生成 5 种风格头像</Text>
                   </View>
                 </View>
               )}
@@ -717,6 +894,46 @@ export default function AvatarCustomizePage() {
                 </View>
               )}
             </>
+            ))}
+
+          {/* 多风格候选：5 选 1（两个 Tab 共用） */}
+          {styleOptions && styleOptions.length > 0 && (
+            <View className='avatar-options'>
+              <View className='avatar-options__head'>
+                <Text className='avatar-options__title'>选择你喜欢的形象</Text>
+                <Text className='avatar-options__hint'>Q版萌系 / 日系治愈 / 美式卡通 / 水彩手绘 / 黏土萌宠</Text>
+              </View>
+              <View className='avatar-options__grid'>
+                {styleOptions.map((option, index) => (
+                  <View
+                    key={option.style}
+                    className={`avatar-options__card ${selectedStyleIndex === index ? 'avatar-options__card--active' : ''}`}
+                    onClick={() => setSelectedStyleIndex(index)}
+                  >
+                    <View className='avatar-options__img-wrap'>
+                      <Image className='avatar-options__img' src={option.url} mode='aspectFill' lazyLoad />
+                      {selectedStyleIndex === index && (
+                        <View className='avatar-options__check'>
+                          <Text className='avatar-options__check-text'>✓</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text className='avatar-options__label'>{option.label}</Text>
+                  </View>
+                ))}
+              </View>
+              <View className='avatar-options__actions'>
+                <View className='avatar-options__btn avatar-options__btn--secondary' onClick={handleResetOptions}>
+                  <Text className='avatar-options__btn-text'>重新生成</Text>
+                </View>
+                <View
+                  className={`avatar-options__btn ${selectedStyleIndex == null ? 'avatar-options__btn--disabled' : ''}`}
+                  onClick={handleSaveSelectedOption}
+                >
+                  <Text className='avatar-options__btn-text'>保存所选形象</Text>
+                </View>
+              </View>
+            </View>
           )}
         </View>
       )}

@@ -18,7 +18,7 @@ export default function MemberGate({ featureName }: MemberGateProps) {
     <View className='member-gate'>
       <View className='member-gate-icon'>👑</View>
       <Text className='member-gate-title'>会员专属功能</Text>
-      <Text className='member-gate-desc'>{featureName}为星寰海会员权益（9.9 元/月），开通后即可使用</Text>
+      <Text className='member-gate-desc'>{featureName}为星河宠记会员权益（9.9 元/月），开通后即可使用</Text>
       <View className='member-gate-btn' onClick={() => Taro.navigateTo({ url: '/pages/member/index' })}>
         <Text className='member-gate-btn-text'>开通会员</Text>
       </View>

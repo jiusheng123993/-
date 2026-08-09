@@ -243,7 +243,7 @@ async function buildAiInsight(
     return null;
   }
 
-  const systemPrompt = `你是"星寰海"AI 宠物管家的周报助手。请根据本周家庭数据生成一段中文周报总结，要求：
+  const systemPrompt = `你是"星河宠记"AI 宠物管家的周报助手。请根据本周家庭数据生成一段中文周报总结，要求：
 1. 语气温和、积极、有温度，像朋友间的关心
 2. 不超过 200 字
 3. 简要概括本周健康状况和活跃度

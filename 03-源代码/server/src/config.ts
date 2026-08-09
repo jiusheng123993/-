@@ -20,6 +20,9 @@ export const config = {
     baseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
     model: process.env.AI_MODEL || 'deepseek-chat',
   },
+  pushplus: {
+    token: process.env.PUSHPLUS_TOKEN || '',
+  },
   bailian: {
     apiKey: process.env.BAILIAN_API_KEY || '',
     baseUrl: process.env.BAILIAN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1',

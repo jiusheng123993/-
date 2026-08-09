@@ -2,11 +2,14 @@
  * 登录页面
  * 品牌区 + 主视觉 + 功能预览 + 微信/手机号登录 + 协议
  */
-import { View, Text, Button, Input } from '@tarojs/components'
+import { View, Text, Button, Input, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { isWeapp, sendSmsCode, isApp, API_BASE_URL } from '../../platform'
+import loginHero from '../../assets/login-hero.webp'
+// 品牌 logo：猫狗大头像（定稿方案 1，圆角图标版，WebP 压缩）
+import brandLogo from '../../assets/logo-catdog-01.webp'
 import './index.scss'
 
 const FEATURES = [
@@ -123,19 +126,16 @@ export default function Login() {
       <View className='login-page__content'>
         {/* ===== 品牌区 ===== */}
         <View className='auth-brand'>
-          <View className='auth-brand__badge'>
-            <Text className='auth-brand__badge-icon'>🐾</Text>
-          </View>
-          <Text className='auth-brand__logo'>星寰海</Text>
+          {/* 品牌 logo 图标（暖色版，替代深蓝金原版） */}
+          <Image className='auth-brand__badge-img' src={brandLogo} mode='aspectFit' />
+          <Text className='auth-brand__logo'>星河宠记</Text>
           <Text className='auth-brand__slogan'>AI 宠物管家，懂 TA 的一生</Text>
         </View>
 
-        {/* ===== 主视觉卡：招爪橘猫 ===== */}
+        {/* ===== 主视觉卡：猫狗插画（Seedream 生成） ===== */}
         <View className='auth-hero'>
-          <View className='auth-hero__circle'>
-            <Text className='auth-hero__emoji'>🐱</Text>
-          </View>
-          <Text className='auth-hero__caption'>招爪橘猫</Text>
+          <Image className='auth-hero__img' src={loginHero} mode='widthFix' />
+          <Text className='auth-hero__caption'>🐱🐶 猫狗双全，幸福加倍</Text>
         </View>
 
         {/* ===== 功能预览 ===== */}

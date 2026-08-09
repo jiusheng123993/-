@@ -11,7 +11,7 @@ import { seedreamAdapter } from '../engines/petAvatar/seedreamAdapter'
 import { api } from './api'
 import { CONFIG } from '../config'
 import type { ExpressionContext, AvatarCustomization, PetSpecies, PetImageParams, SeedreamGenerateResult, UploadPhotoResult, Generate2DResult, Generate3DResult, GenerationTask, Avatar2DPack, Avatar3DResult, AvatarQuota } from '../types/avatarTypes'
-import { AVATAR_FREE_GENERATIONS, AVATAR_PHOTO_FREE_COUNT, AVATAR_3D_MONTHLY_LIMIT } from '../constants'
+import { AVATAR_FREE_GENERATIONS, AVATAR_PHOTO_FREE_COUNT, AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT, AVATAR_3D_MONTHLY_LIMIT } from '../constants'
 
 const STORAGE_KEYS = {
   AVATAR_CUSTOM: 'xhh_avatar_custom',
@@ -20,11 +20,42 @@ const STORAGE_KEYS = {
   CURRENT_PET_ID: 'xhh_current_pet_id',
 }
 
+/** 多风格候选返回项（PRD 4.9.2：Q版萌系/日系治愈/美式卡通） */
+export interface AvatarStyleOption {
+  style: string
+  label: string
+  url: string
+}
+
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
   const token = Taro.getStorageSync('xhh_token')
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extra,
+  }
+}
+
+/**
+ * 生成多风格候选形象（后端一次生成 5 张画风候选，用户 5 选 1）
+ * @param petId - 宠物 ID
+ * @param referenceImageUrl - 参考照片 URL（有则图生图保证像宠物本人）
+ * @param style - 基础基调：cartoon（卡通）/ realistic（写实）
+ * @returns 候选列表；失败返回 null（调用方提示重试，不回退丑陋占位图）
+ */
+export async function generateAvatarOptions(
+  petId: string,
+  referenceImageUrl?: string,
+  style: 'cartoon' | 'realistic' = 'cartoon',
+): Promise<AvatarStyleOption[] | null> {
+  try {
+    const data = await api.post<{ options: AvatarStyleOption[] }>('/api/avatar/generate-options', {
+      petId,
+      referenceImageUrl,
+      style,
+    })
+    return data?.options?.length ? data.options : null
+  } catch {
+    return null
   }
 }
 
@@ -240,13 +271,33 @@ export function getPhotoGenerationCount(): number {
 }
 
 export function canGeneratePhoto(isMember: boolean): boolean {
-  if (isMember) return true
+  // 照片生成（参照自家宠物）为会员专享：非会员一律不可用
+  if (!isMember) return false
+  // 会员每月限次（2D 形象包 1 次/月）
   return getPhotoGenerationCount() < AVATAR_PHOTO_FREE_COUNT
 }
 
 export function incrementPhotoGenerationCount(): void {
   const count = getPhotoGenerationCount()
   Taro.setStorageSync('xhh_avatar_photo_count', count + 1)
+}
+
+/** 获取本月"照片专属多风格头像"生成次数（本地展示用，服务端为准） */
+export function getPhotoOptionsCount(): number {
+  const count = Taro.getStorageSync('xhh_avatar_photo_options_count')
+  return typeof count === 'number' ? count : 0
+}
+
+/** 判断会员是否还能生成照片专属多风格头像（每月 3 次） */
+export function canGeneratePhotoOptions(isMember: boolean): boolean {
+  if (!isMember) return false
+  return getPhotoOptionsCount() < AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT
+}
+
+/** 照片专属多风格头像生成成功时 +1 */
+export function incrementPhotoOptionsCount(): void {
+  const count = getPhotoOptionsCount()
+  Taro.setStorageSync('xhh_avatar_photo_options_count', count + 1)
 }
 
 export function get3DGenerationCount(): number {

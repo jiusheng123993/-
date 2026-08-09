@@ -58,7 +58,9 @@ export const usePetStore = create<PetState>((set, get) => ({
    * @param userId - 用户 ID
    */
   fetchPets: async (userId: string) => {
-    set({ isLoading: true, error: null })
+    // 这里必须同步记录 userId：部分页面（如宠物档案）直接调用 fetchPets 而不是 initUser，
+    // 如果不写 userId，后续 switchPet / addPet 等操作会因 store.userId 为空而抛“用户未登录”
+    set({ userId, isLoading: true, error: null })
     try {
       const pets = await getPets(userId)
       const { currentPet } = get()

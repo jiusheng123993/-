@@ -57,7 +57,7 @@ export default function VaccineShareCard({
       <View className='vaccine-share__overlay' onClick={onClose} />
       <View className='vaccine-share__card'>
         <View className='vaccine-share__header'>
-          <View className='vaccine-share__brand'>星寰海</View>
+          <View className='vaccine-share__brand'>星河宠记</View>
           <View className='vaccine-share__close' onClick={onClose}>✕</View>
         </View>
 
@@ -82,7 +82,7 @@ export default function VaccineShareCard({
         </View>
 
         <View className='vaccine-share__footer'>
-          <Text className='vaccine-share__footer-text'>负责任的毛孩子家长 · 星寰海</Text>
+          <Text className='vaccine-share__footer-text'>负责任的毛孩子家长 · 星河宠记</Text>
         </View>
 
         {inviteCode && (

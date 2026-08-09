@@ -243,7 +243,7 @@ function drawFooter(ctx: CanvasRenderingContext2D): void {
   ctx.fillStyle = BRAND_COLORS.textLight
   ctx.font = '20px sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('星寰海 · 记录毛孩子的温暖时光', CANVAS_WIDTH / 2, footerY + 40)
+  ctx.fillText('星河宠记 · 记录毛孩子的温暖时光', CANVAS_WIDTH / 2, footerY + 40)
   ctx.fillText('长按保存 · 分享给家人', CANVAS_WIDTH / 2, footerY + 70)
 
   ctx.restore()

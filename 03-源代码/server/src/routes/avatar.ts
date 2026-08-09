@@ -7,7 +7,7 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
-import { generatePetImage } from '../services/avatarService.js';
+import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS } from '../services/avatarService.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
 import { generate2DAvatarPack } from '../services/image2DService.js';
@@ -48,8 +48,10 @@ const generateLimiter = rateLimit({
   message: { success: false, message: '生成请求过于频繁，请稍后再试' },
 });
 
-// 免费用户每月可生成的 2D 形象包数量
+// 会员每月可生成的 2D 形象包数量（照片生成属会员专享）
 const FREE_2D_MONTHLY_LIMIT = 1;
+// 会员每月可生成的"照片专属多风格头像"次数
+const MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT = 3;
 // 会员每月可生成的 3D 模型数量
 const MEMBER_3D_MONTHLY_LIMIT = 3;
 // 允许的风格白名单
@@ -174,6 +176,104 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
   }
 });
 
+// 生成多风格候选形象（5 种画风：Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠）
+router.post('/generate-options', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { petId, referenceImageUrl, style } = req.body;
+    const userId = req.userId!;
+
+    if (!petId || typeof petId !== 'string') {
+      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
+      return;
+    }
+
+    // style 白名单校验（写实/卡通基础基调）
+    const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
+
+    // 校验宠物归属
+    const pet = await petRepository.findByIdAndUser(petId, userId);
+    if (!pet) {
+      res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
+      return;
+    }
+
+    // 参考照片：仅当用户显式传入时才使用（照片生成是会员专享功能）。
+    // 注意：不要自动回退到宠物档案里已存的照片，否则免费用户"文字生成"会被误判成照片生成
+    let photoUrl: string | undefined;
+    if (referenceImageUrl) {
+      if (!isValidHttpUrl(referenceImageUrl) || !isOwnedPhotoUrl(referenceImageUrl, userId)) {
+        res.status(400).json({ success: false, message: '参考照片地址不合法' });
+        return;
+      }
+      photoUrl = referenceImageUrl;
+    }
+
+    // 参照自家宠物照片生成 = 会员专享 + 每月限次（服务端强制，不能只靠前端隐藏）
+    if (photoUrl) {
+      const { isMember } = await getUserMembership(userId);
+      if (!isMember) {
+        res.status(403).json({
+          success: false,
+          message: '参照宠物照片生成专属形象仅限会员使用，请先开通会员',
+          code: 'MEMBER_ONLY',
+        });
+        return;
+      }
+
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const usedCount = await avatarGenerationRepository.countMonthlyOptionsByUser(userId, monthStart);
+      if (usedCount >= MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT) {
+        res.status(403).json({
+          success: false,
+          message: `本月照片生成次数已用完（${MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT} 次/月），请下月再试`,
+          code: 'QUOTA_EXCEEDED',
+        });
+        return;
+      }
+    }
+
+    const generationId = uuidv4();
+    await avatarGenerationRepository.createGeneration({
+      id: generationId,
+      user_id: userId,
+      pet_id: petId,
+      prompt: `为${pet.breed}生成 ${AVATAR_STYLE_OPTIONS.length} 种风格候选形象（${AVATAR_STYLE_OPTIONS.map(i => i.label).join(' / ')}）`,
+      style: `options-${safeStyle}`,
+    });
+
+    const options = await generatePetImageOptions({
+      petId: pet.id,
+      species: pet.species,
+      breed: pet.breed,
+      gender: pet.gender ?? '',
+      photoUrl,
+      style: safeStyle,
+    });
+
+    // 生成失败时明确报错，绝不返回丑陋占位图
+    if (!options || options.length === 0) {
+      await avatarGenerationRepository.markFailed(generationId, 'Image generation service unavailable');
+      res.status(503).json({ success: false, message: 'AI 形象生成服务暂不可用，请稍后重试' });
+      return;
+    }
+
+    await avatarGenerationRepository.markCompleted(generationId, options[0].url);
+
+    res.json({
+      success: true,
+      data: {
+        generationId,
+        options,
+      },
+    });
+  } catch (error) {
+    console.error('[Avatar generate-options] Error:', error);
+    res.status(500).json({ success: false, message: '形象生成失败，请稍后重试' });
+  }
+});
+
 // 上传宠物参考照片
 router.post('/photo/upload', authMiddleware, photoUploadLimiter, upload.single('photo'), async (req: Request, res: Response) => {
   try {
@@ -248,18 +348,26 @@ router.post('/generate-2d', authMiddleware, generateLimiter, async (req: Request
     // style 白名单校验
     const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
 
-    // 服务端配额校验：免费用户每月 1 次，会员无限
+    // 照片生成（参照自家宠物）为会员专享：服务端强制，不能只靠前端隐藏
     const { isMember } = await getUserMembership(userId);
     if (!isMember) {
-      const usedCount = await countMonthlyTasks(userId, '2d');
-      if (usedCount >= FREE_2D_MONTHLY_LIMIT) {
-        res.status(403).json({
-          success: false,
-          message: '免费用户每月仅可生成 1 次 2D 形象，开通会员可无限生成',
-          code: 'QUOTA_EXCEEDED',
-        });
-        return;
-      }
+      res.status(403).json({
+        success: false,
+        message: '照片生成专属形象仅限会员使用，请先开通会员',
+        code: 'MEMBER_ONLY',
+      });
+      return;
+    }
+
+    // 会员每月限次（2D 形象包一次生成 96 张，成本较高）
+    const usedCount = await countMonthlyTasks(userId, '2d');
+    if (usedCount >= FREE_2D_MONTHLY_LIMIT) {
+      res.status(403).json({
+        success: false,
+        message: `本月 2D 形象包生成次数已用完（${FREE_2D_MONTHLY_LIMIT} 次/月），请下月再试`,
+        code: 'QUOTA_EXCEEDED',
+      });
+      return;
     }
 
     const pet = await petRepository.findByIdAndUser(petId, userId);

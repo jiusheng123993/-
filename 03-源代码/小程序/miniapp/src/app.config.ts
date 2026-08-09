@@ -11,7 +11,7 @@ export default defineAppConfig({
   window: {
     navigationBarBackgroundColor: '#FFF6EE',
     navigationBarTextStyle: 'black',
-    navigationBarTitleText: '星寰海',
+    navigationBarTitleText: '星河宠记',
     backgroundColor: '#FFF6EE',
     backgroundTextStyle: 'light',
   },
@@ -77,7 +77,6 @@ export default defineAppConfig({
         'family/dashboard/index',
         'family/calendar/index',
         'family/lineage/index',
-        'wardrobe/index',
         'memoir-daily/index',
         'memoir-vlog/index',
         'family/feed/index',

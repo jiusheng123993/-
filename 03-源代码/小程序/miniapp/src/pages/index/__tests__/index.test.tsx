@@ -320,7 +320,7 @@ describe('Index page — render states', () => {
     const { container } = render(createElement(Index))
 
     // 空状态应显示欢迎文案
-    expect(container.textContent).toContain('欢迎来到星寰海')
+    expect(container.textContent).toContain('欢迎来到星河宠记')
     expect(container.textContent).toContain('添加你的第一位宠物伙伴')
     expect(container.textContent).toContain('添加宠物')
 
@@ -337,7 +337,7 @@ describe('Index page — render states', () => {
     const { container } = render(createElement(Index))
 
     // 顶栏固定显示应用名，不显示具体宠物名/品种
-    expect(container.textContent).toContain('星寰海')
+    expect(container.textContent).toContain('星河宠记')
     expect(container.textContent).toContain('AI 宠物管家')
 
     // 应显示问候消息
@@ -352,7 +352,7 @@ describe('Index page — render states', () => {
     expect(container.textContent).toContain('+')
 
     // 不应显示空状态
-    expect(container.textContent).not.toContain('欢迎来到星寰海')
+    expect(container.textContent).not.toContain('欢迎来到星河宠记')
   })
 
   it('renders paw emoji for dog species', () => {
@@ -398,7 +398,7 @@ describe('Index page — render states', () => {
 
     const skeleton = container.querySelector('[data-testid="home-skeleton"]')
     expect(skeleton).toBeFalsy()
-    expect(container.textContent).toContain('星寰海')
+    expect(container.textContent).toContain('星河宠记')
   })
 
   it('empty state add-pet button navigates to add pet page', () => {

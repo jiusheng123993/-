@@ -259,6 +259,8 @@ export default function PetProfile() {
             species={activePet.species}
             petName={activePet.name}
             expressionContext={defaultExpressionContext}
+            // 优先展示真实照片，其次 AI 卡通形象；都没有时走渐变 emoji 兜底
+            imageUrl={activePet.avatarPhotoUrl || activePet.avatarCartoonUrl || undefined}
             size={80}
           />
         </View>
@@ -467,10 +469,6 @@ export default function PetProfile() {
           <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/avatar-customize/index')}>
             <Text className='profile-action-icon'>🎨</Text>
             <Text className='profile-action-label'>形象定制</Text>
-          </View>
-          <View className='profile-action-btn' onClick={() => navigateTo('/pagesPet/wardrobe/index')}>
-            <Text className='profile-action-icon'>👗</Text>
-            <Text className='profile-action-label'>换装</Text>
           </View>
         </View>
       </View>

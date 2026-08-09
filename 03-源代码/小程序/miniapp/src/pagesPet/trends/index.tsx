@@ -166,11 +166,11 @@ export default function PetTrendsPage() {
   usePageView('trends')
 
   useShareAppMessage(() => ({
-    title: '星寰海 - 宠物健康趋势',
+    title: '星河宠记 - 宠物健康趋势',
     path: `/pagesPet/trends/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
   }))
   useShareTimeline(() => ({
-    title: '星寰海 - 宠物健康趋势',
+    title: '星河宠记 - 宠物健康趋势',
     query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 

@@ -268,7 +268,7 @@ router.post(
       const { plan } = req.body as { plan: 'monthly' | 'quarterly' | 'yearly' };
 
       const price = getMembershipPlanPrice(plan);
-      const description = `星寰海会员订阅-${plan === 'monthly' ? '月度' : plan === 'quarterly' ? '季度' : '年度'}`;
+      const description = `星河宠记会员订阅-${plan === 'monthly' ? '月度' : plan === 'quarterly' ? '季度' : '年度'}`;
 
       // 查询用户 openid
       const user = await userRepository.findById(userId);

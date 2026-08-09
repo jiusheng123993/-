@@ -124,8 +124,8 @@ export default function Profile() {
 
   const handleAboutClick = () => {
     Taro.showModal({
-      title: '关于星寰海',
-      content: `版本：${APP_VERSION}\n\n星寰海 — AI宠物管家，以memory-body引擎为核心，帮助宠物主人科学管理宠物健康。\n\n宠物急救热线：${HOTLINE_NUMBER}`,
+      title: '关于星河宠记',
+      content: `版本：${APP_VERSION}\n\n星河宠记 — AI宠物管家，以memory-body引擎为核心，帮助宠物主人科学管理宠物健康。\n\n宠物急救热线：${HOTLINE_NUMBER}`,
       showCancel: true,
       cancelText: '拨打热线',
       confirmText: '知道了',
@@ -252,7 +252,7 @@ export default function Profile() {
       )}
 
       <View className='profile-footer'>
-        <Text className='footer-text'>星寰海 v{APP_VERSION}</Text>
+        <Text className='footer-text'>星河宠记 v{APP_VERSION}</Text>
       </View>
 
     </View>

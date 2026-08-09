@@ -7,8 +7,6 @@ import type { ExpressionConfig, PetSpecies, SeedreamGenerateParams, SeedreamGene
 
 export type { SeedreamGenerateParams, SeedreamGenerateResult, PetImageParams }
 
-import { getPetFaceDataUri } from './svgRenderer'
-import { EXPRESSION_MAP } from './expressionEngine'
 import { CONFIG } from '../../config'
 import { storage } from '../../utils/storage'
 
@@ -44,10 +42,10 @@ export class SeedreamAdapter {
   }
 
   private generateStubImage(params: PetImageParams): SeedreamGenerateResult {
-    const dataUri = getPetFaceDataUri(params.expression, params.species, 256)
+    // 开发/测试环境的 stub 模式：明确返回失败，绝不回退到丑陋的 SVG 简笔画脸
     return {
-      success: true,
-      imageUrl: dataUri,
+      success: false,
+      error: 'AI 形象生成服务暂不可用，请稍后重试',
     }
   }
 
@@ -95,9 +93,7 @@ export class SeedreamAdapter {
     species: PetSpecies
   ): Promise<SeedreamGenerateResult> {
     if (this.useStub) {
-      const expression = EXPRESSION_MAP.excited
-      const dataUri = getPetFaceDataUri(expression, species, 256)
-      return { success: true, imageUrl: dataUri }
+      return { success: false, error: 'AI 形象生成服务暂不可用，请稍后重试' }
     }
 
     try {
@@ -126,13 +122,9 @@ export class SeedreamAdapter {
         }
       }
 
-      const expression = EXPRESSION_MAP.excited
-      const dataUri = getPetFaceDataUri(expression, species, 256)
-      return { success: true, imageUrl: dataUri }
+      return { success: false, error: 'AI 形象生成服务暂不可用，请稍后重试' }
     } catch {
-      const expression = EXPRESSION_MAP.excited
-      const dataUri = getPetFaceDataUri(expression, species, 256)
-      return { success: true, imageUrl: dataUri }
+      return { success: false, error: 'AI 形象生成服务暂不可用，请稍后重试' }
     }
   }
 }

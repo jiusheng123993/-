@@ -576,7 +576,7 @@ describe('POST /api/families/:id/weekly-reports/generate - 手动生成周报', 
     const chatArgs = mockChat.mock.calls[0][0] as Array<{ role: string; content: string }>;
     expect(chatArgs).toHaveLength(2);
     expect(chatArgs[0].role).toBe('system');
-    expect(chatArgs[0].content).toContain('星寰海');
+    expect(chatArgs[0].content).toContain('星河宠记');
     expect(chatArgs[1].role).toBe('user');
     expect(chatArgs[1].content).toContain('周报数据');
     // insertReport 参数中 ai_insight 应为 AI 返回的文本

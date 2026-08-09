@@ -16,24 +16,8 @@ vi.mock('@tarojs/components', () => ({
   ),
 }))
 
-vi.mock('../../engines/petAvatar', () => ({
-  getPetFaceDataUri: vi.fn(() => 'data:image/svg+xml;base64,facestub'),
-  EXPRESSION_MAP: {
-    excited: {
-      expression: 'excited',
-      label: '兴奋',
-      eyes: 'star',
-      mouth: 'open_smile',
-      accessory: 'confetti',
-      animation: 'jump',
-      color: '#FF69B4'
-    }
-  },
-}))
-
 import AchievementCard, { ACHIEVEMENT_DEFS } from '../AchievementCard'
 import type { AchievementConfig } from '../AchievementCard'
-import { getPetFaceDataUri } from '../../engines/petAvatar'
 
 const birthdayAchievement: AchievementConfig = {
   type: 'birthday',
@@ -86,18 +70,13 @@ describe('AchievementCard', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('renders face image with correct species', () => {
-    vi.clearAllMocks()
+  it('renders face badge with species emoji instead of SVG face', () => {
     render(
       <AchievementCard achievement={birthdayAchievement} petName='旺财' species='cat' />
     )
-    expect(getPetFaceDataUri).toHaveBeenCalledWith(
-      expect.objectContaining({ expression: 'excited' }),
-      'cat',
-      80
-    )
-    const img = screen.getByRole('img')
-    expect(img.getAttribute('src')).toBe('data:image/svg+xml;base64,facestub')
+    expect(screen.getByText('🐱')).toBeDefined()
+    expect(document.querySelector('.achievement-card__face-badge--cat')).toBeDefined()
+    expect(document.querySelector('.achievement-card__face-badge--dog')).toBeNull()
   })
 
   it('title has achievement color style', () => {
@@ -165,25 +144,12 @@ describe('AchievementCard', () => {
     expect(screen.getByText('成就纪念卡')).toBeDefined()
   })
 
-  it('renders face image with 80px size style', () => {
+  it('renders dog emoji badge for dog species', () => {
     render(
       <AchievementCard achievement={birthdayAchievement} petName='旺财' species='dog' />
     )
-    const img = screen.getByRole('img')
-    expect(img.style.width).toBe('80px')
-    expect(img.style.height).toBe('80px')
-  })
-
-  it('passes EXPRESSION_MAP.excited to getPetFaceDataUri', () => {
-    vi.clearAllMocks()
-    render(
-      <AchievementCard achievement={birthdayAchievement} petName='旺财' species='dog' />
-    )
-    expect(getPetFaceDataUri).toHaveBeenCalledWith(
-      expect.objectContaining({ expression: 'excited' }),
-      'dog',
-      80
-    )
+    expect(screen.getByText('🐶')).toBeDefined()
+    expect(document.querySelector('.achievement-card__face-badge--dog')).toBeDefined()
   })
 
   it('does not show share button when onShare not provided', () => {

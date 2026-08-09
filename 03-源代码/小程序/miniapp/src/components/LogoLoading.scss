@@ -1,0 +1,92 @@
+@import '../styles/_theme';
+@import '../styles/_animations';
+
+// 品牌缓冲页：全屏遮罩，居中内容
+.logo-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: linear-gradient(160deg, #FFF6EE 0%, #FFEBDD 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+// 柔光层：径向珊瑚光晕，opacity 呼吸（不与内容位移叠加）
+.logo-loading__glow {
+  position: absolute;
+  width: 420rpx;
+  height: 420rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 107, 61, 0.22), rgba(255, 107, 61, 0) 70%);
+  animation: glowPulse 2.8s ease-in-out infinite;
+}
+
+// 居中内容列
+.logo-loading__center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36rpx;
+}
+
+// Logo：浮动呼吸（上浮 14rpx + 轻微放大，ease-in-out 循环）
+.logo-loading__logo {
+  width: 280rpx;
+  height: 280rpx;
+  animation: logoFloat 2.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+.logo-loading__logo-img {
+  width: 100%;
+  height: 100%;
+}
+
+// 品牌名：淡入（进场用 ease-out）
+.logo-loading__name {
+  font-size: 46rpx;
+  font-weight: 800;
+  letter-spacing: 8rpx;
+  background: linear-gradient(135deg, #FF6B3D, #FFB020);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fadeIn 0.5s ease-out 0.2s both;
+}
+
+// 三点加载指示：错峰跳动（复用全局 dotBounce）
+.logo-loading__dots {
+  display: flex;
+  gap: 18rpx;
+}
+
+.logo-loading__dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #FFB020;
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+
+.logo-loading__dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.logo-loading__dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+// 减少动态效果偏好：Logo/柔光/圆点静止，只保留品牌名淡入
+@media (prefers-reduced-motion: reduce) {
+  .logo-loading__logo,
+  .logo-loading__glow,
+  .logo-loading__dot {
+    animation: none;
+  }
+}

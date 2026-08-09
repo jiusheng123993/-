@@ -61,11 +61,14 @@ import {
   getPhotoGenerationCount,
   canGeneratePhoto,
   incrementPhotoGenerationCount,
+  getPhotoOptionsCount,
+  canGeneratePhotoOptions,
+  incrementPhotoOptionsCount,
   get3DGenerationCount,
   canGenerate3D,
   increment3DGenerationCount,
 } from './avatarService';
-import { AVATAR_PHOTO_FREE_COUNT, AVATAR_3D_MONTHLY_LIMIT } from '../constants';
+import { AVATAR_PHOTO_FREE_COUNT, AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT, AVATAR_3D_MONTHLY_LIMIT } from '../constants';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -92,24 +95,51 @@ describe('avatarService - 配额管理（前端缓存）', () => {
   });
 
   describe('canGeneratePhoto', () => {
-    it('会员应始终返回 true', () => {
-      mockTaro.getStorageSync.mockReturnValue(999);
+    it('非会员应始终返回 false（照片生成会员专享）', () => {
+      mockTaro.getStorageSync.mockReturnValue(0);
+      expect(canGeneratePhoto(false)).toBe(false);
+    });
+
+    it('会员未达上限应返回 true', () => {
+      mockTaro.getStorageSync.mockReturnValue(0);
       expect(canGeneratePhoto(true)).toBe(true);
     });
 
-    it('免费用户未达上限应返回 true', () => {
-      mockTaro.getStorageSync.mockReturnValue(0);
-      expect(canGeneratePhoto(false)).toBe(true);
-    });
-
-    it('免费用户达到上限应返回 false', () => {
+    it('会员达到上限应返回 false', () => {
       mockTaro.getStorageSync.mockReturnValue(AVATAR_PHOTO_FREE_COUNT);
-      expect(canGeneratePhoto(false)).toBe(false);
+      expect(canGeneratePhoto(true)).toBe(false);
     });
 
-    it('免费用户超过上限应返回 false', () => {
+    it('会员超过上限应返回 false', () => {
       mockTaro.getStorageSync.mockReturnValue(AVATAR_PHOTO_FREE_COUNT + 5);
-      expect(canGeneratePhoto(false)).toBe(false);
+      expect(canGeneratePhoto(true)).toBe(false);
+    });
+  });
+
+  describe('照片专属多风格头像配额（会员每月 3 次）', () => {
+    it('getPhotoOptionsCount 未存储时应返回 0', () => {
+      mockTaro.getStorageSync.mockReturnValue(null);
+      expect(getPhotoOptionsCount()).toBe(0);
+    });
+
+    it('非会员不可生成照片专属头像', () => {
+      expect(canGeneratePhotoOptions(false)).toBe(false);
+    });
+
+    it('会员未达上限应返回 true', () => {
+      mockTaro.getStorageSync.mockReturnValue(0);
+      expect(canGeneratePhotoOptions(true)).toBe(true);
+    });
+
+    it('会员达到每月上限应返回 false', () => {
+      mockTaro.getStorageSync.mockReturnValue(AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT);
+      expect(canGeneratePhotoOptions(true)).toBe(false);
+    });
+
+    it('生成成功后计数 +1', () => {
+      mockTaro.getStorageSync.mockReturnValue(2);
+      incrementPhotoOptionsCount();
+      expect(mockTaro.setStorageSync).toHaveBeenCalledWith('xhh_avatar_photo_options_count', 3);
     });
   });
 
@@ -205,8 +235,12 @@ describe('avatarService - 3D 配额（按月重置）', () => {
 });
 
 describe('avatarService - 配额一致性验证', () => {
-  it('AVATAR_PHOTO_FREE_COUNT 应为 1（免费用户每月 1 次 2D）', () => {
+  it('AVATAR_PHOTO_FREE_COUNT 应为 1（会员每月 1 次 2D 形象包）', () => {
     expect(AVATAR_PHOTO_FREE_COUNT).toBe(1);
+  });
+
+  it('AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT 应为 3（会员每月 3 次照片专属头像）', () => {
+    expect(AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT).toBe(3);
   });
 
   it('AVATAR_3D_MONTHLY_LIMIT 应为 3（会员每月 3 次 3D）', () => {

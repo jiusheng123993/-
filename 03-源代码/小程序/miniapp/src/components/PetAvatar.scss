@@ -14,6 +14,32 @@
 
   &__image {
     display: block;
+    border-radius: 50%;
+    box-shadow: 0 6rpx 20rpx rgba(61, 33, 18, 0.12);
+  }
+
+  // 兜底形象：渐变圆底 + 物种 emoji（替代原先的简笔画 SVG 脸）
+  &__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: inset 0 -12rpx 24rpx rgba(255, 255, 255, 0.22),
+      0 8rpx 24rpx rgba(61, 33, 18, 0.12);
+    border: 2rpx solid rgba(255, 255, 255, 0.65);
+
+    &--dog {
+      background: linear-gradient(135deg, #FFE7C2 0%, #FFC48A 55%, #FFB06B 100%);
+    }
+
+    &--cat {
+      background: linear-gradient(135deg, #DDEFFF 0%, #A8D8F0 55%, #7FC0E8 100%);
+    }
+  }
+
+  &__placeholder-emoji {
+    line-height: 1;
+    filter: drop-shadow(0 4rpx 8rpx rgba(61, 33, 18, 0.18));
   }
 
   &__label {

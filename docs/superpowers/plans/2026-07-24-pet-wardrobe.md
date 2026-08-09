@@ -1,5 +1,7 @@
 # 宠物换装(衣橱)功能实施计划
 
+> ⚠️ **已砍（2026-08）**：该功能因产品范围调整被移除，本文件仅作历史归档，不再实施。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在现有宠物形象系统上新增换装功能，支持 SVG 饰品 5 槽位叠加（免费全用户）+ AI 主题套装生成（会员/付费）。

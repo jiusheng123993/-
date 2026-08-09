@@ -87,11 +87,11 @@ export default function PetDiaryPage() {
   const { trackPageView, trackEvent } = useAnalytics()
 
   useShareAppMessage(() => ({
-    title: '星寰海 - 宠物日记',
+    title: '星河宠记 - 宠物日记',
     path: '/pagesPet/diary/index',
   }))
   useShareTimeline(() => ({
-    title: '星寰海 - 宠物日记',
+    title: '星河宠记 - 宠物日记',
   }))
 
   usePageView('diary')

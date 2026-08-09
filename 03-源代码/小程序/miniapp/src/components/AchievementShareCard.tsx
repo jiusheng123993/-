@@ -66,7 +66,7 @@ export default function AchievementShareCard({
           <Text className='achievement-share__pet-name'>{petName}</Text>
         </View>
         <View className='achievement-share__footer' style={{ backgroundColor: achievementColor }}>
-          <Text className='achievement-share__footer-text'>成就纪念卡 · 星寰海</Text>
+          <Text className='achievement-share__footer-text'>成就纪念卡 · 星河宠记</Text>
         </View>
         {inviteCode && (
           <View className='achievement-share__invite'>

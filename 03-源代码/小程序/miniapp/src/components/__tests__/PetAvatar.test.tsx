@@ -1,5 +1,6 @@
 /**
  * 宠物头像组件测试
+ * 验证：有形象图时展示图片，无形象图时展示渐变 emoji 兜底（不再生成简笔画 SVG）
  */
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
@@ -30,7 +31,6 @@ const mockDiary = { emoji: '😊', text: '今天很开心', tone: 'happy' as con
 
 vi.mock('../../engines/petAvatar', () => ({
   calculateExpression: vi.fn(() => mockExpression),
-  getPetFaceDataUri: vi.fn(() => 'data:image/svg+xml;base64,facestub'),
   generateDiaryForToday: vi.fn(() => mockDiary),
   EXPRESSION_MAP: {
     excited: {
@@ -46,7 +46,7 @@ vi.mock('../../engines/petAvatar', () => ({
 }))
 
 import PetAvatar from '../PetAvatar'
-import { calculateExpression, getPetFaceDataUri, generateDiaryForToday } from '../../engines/petAvatar'
+import { calculateExpression, generateDiaryForToday } from '../../engines/petAvatar'
 import type { ExpressionContext } from '../../engines/petAvatar'
 
 const defaultContext: ExpressionContext = {
@@ -69,13 +69,46 @@ describe('PetAvatar', () => {
     expect(container.querySelector('.pet-avatar')).toBeDefined()
   })
 
-  it('renders Image with faceUri from getPetFaceDataUri', () => {
-    render(
+  it('renders gradient emoji placeholder for dog when no imageUrl', () => {
+    const { container } = render(
       <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />
     )
+    expect(screen.getByText('🐶')).toBeDefined()
+    expect(container.querySelector('.pet-avatar__placeholder--dog')).toBeDefined()
+    expect(container.querySelector('.pet-avatar__image')).toBeNull()
+  })
+
+  it('renders gradient emoji placeholder for cat when no imageUrl', () => {
+    const { container } = render(
+      <PetAvatar species='cat' petName='咪咪' expressionContext={defaultContext} />
+    )
+    expect(screen.getByText('🐱')).toBeDefined()
+    expect(container.querySelector('.pet-avatar__placeholder--cat')).toBeDefined()
+  })
+
+  it('renders Image with imageUrl when provided', () => {
+    render(
+      <PetAvatar
+        species='dog'
+        petName='旺财'
+        expressionContext={defaultContext}
+        imageUrl='https://cdn.example.com/avatar.png'
+      />
+    )
     const img = screen.getByRole('img')
-    expect(img).toBeDefined()
-    expect(img.getAttribute('src')).toBe('data:image/svg+xml;base64,facestub')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/avatar.png')
+  })
+
+  it('prefers imageUrl over placeholder', () => {
+    render(
+      <PetAvatar
+        species='dog'
+        petName='旺财'
+        expressionContext={defaultContext}
+        imageUrl='https://cdn.example.com/avatar.png'
+      />
+    )
+    expect(screen.queryByText('🐶')).toBeNull()
   })
 
   it('does not show label by default', () => {
@@ -137,19 +170,6 @@ describe('PetAvatar', () => {
     expect(calculateExpression).not.toHaveBeenCalled()
   })
 
-  it('passes correct species and size to getPetFaceDataUri', () => {
-    vi.clearAllMocks()
-    render(
-      <PetAvatar species='cat' petName='咪咪' expressionContext={defaultContext} size={150} />
-    )
-    expect(getPetFaceDataUri).toHaveBeenCalledWith(
-      expect.objectContaining({ expression: 'happy' }),
-      'cat',
-      150,
-      []
-    )
-  })
-
   it('applies className prop', () => {
     render(
       <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} className='custom-class' />
@@ -158,16 +178,22 @@ describe('PetAvatar', () => {
     expect(avatar).toBeDefined()
   })
 
-  it('uses default size of 100 when size not provided', () => {
-    render(
+  it('uses default size of 100 for placeholder when size not provided', () => {
+    const { container } = render(
       <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />
     )
-    expect(getPetFaceDataUri).toHaveBeenCalledWith(
-      expect.anything(),
-      'dog',
-      100,
-      []
+    const placeholder = container.querySelector('.pet-avatar__placeholder') as HTMLElement
+    expect(placeholder.style.width).toBe('100px')
+    expect(placeholder.style.height).toBe('100px')
+  })
+
+  it('uses provided size for placeholder', () => {
+    const { container } = render(
+      <PetAvatar species='cat' petName='咪咪' expressionContext={defaultContext} size={150} />
     )
+    const placeholder = container.querySelector('.pet-avatar__placeholder') as HTMLElement
+    expect(placeholder.style.width).toBe('150px')
+    expect(placeholder.style.height).toBe('150px')
   })
 
   it('calls calculateExpression with expressionContext', () => {
@@ -199,25 +225,14 @@ describe('PetAvatar', () => {
     expect(generateDiaryForToday).not.toHaveBeenCalled()
   })
 
-  it('renders image with correct size style', () => {
+  it('applies animation class to image based on expression.animation', () => {
     render(
-      <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} size={200} />
-    )
-    const img = screen.getByRole('img')
-    expect(img.style.width).toBe('200px')
-    expect(img.style.height).toBe('200px')
-  })
-
-  it('renders diary author with petName', () => {
-    render(
-      <PetAvatar species='cat' petName='咪咪' expressionContext={defaultContext} showDiary />
-    )
-    expect(screen.getByText(/咪咪/)).toBeDefined()
-  })
-
-  it('applies animation class based on expression.animation', () => {
-    render(
-      <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />
+      <PetAvatar
+        species='dog'
+        petName='旺财'
+        expressionContext={defaultContext}
+        imageUrl='https://cdn.example.com/avatar.png'
+      />
     )
     const img = screen.getByRole('img')
     expect(img.className).toContain('pet-avatar__image--bounce')
@@ -233,7 +248,7 @@ describe('PetAvatar', () => {
       accessory: 'confetti',
       animation: 'jump' as const
     }
-    render(
+    const { container } = render(
       <PetAvatar
         species='dog'
         petName='旺财'
@@ -241,8 +256,7 @@ describe('PetAvatar', () => {
         customExpression={customExpression}
       />
     )
-    const img = screen.getByRole('img')
-    expect(img.className).toContain('pet-avatar__image--jump')
-    expect(img.className).not.toContain('pet-avatar__image--bounce')
+    const placeholder = container.querySelector('.pet-avatar__placeholder') as HTMLElement
+    expect(placeholder.className).toContain('pet-avatar__image--jump')
   })
 })

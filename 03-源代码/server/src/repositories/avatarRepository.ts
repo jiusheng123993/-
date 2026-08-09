@@ -92,6 +92,22 @@ export class AvatarGenerationRepository extends BaseRepository<AvatarGenerationR
       [resultUrl, generationId],
     );
   }
+
+  /**
+   * 统计用户本月已完成的多风格候选生成次数（用于照片生成会员额度）
+   * 只统计 style 为 options-* 且成功完成的记录，AI 服务故障导致的失败不占用次数
+   * @param userId - 用户 ID
+   * @param monthStart - 本月 1 号 0 点
+   */
+  async countMonthlyOptionsByUser(userId: string, monthStart: Date): Promise<number> {
+    const result = await this.rawQuery(
+      `SELECT COUNT(*)::int AS count
+       FROM ${this.tableName}
+       WHERE user_id = $1 AND style LIKE 'options-%' AND status = 'completed' AND created_at >= $2`,
+      [userId, monthStart],
+    );
+    return result.rows[0]?.count ?? 0;
+  }
 }
 
 /**

@@ -3,7 +3,7 @@
  *
  * 微信登录（code 换取 token）、用户信息获取、Token 刷新、退出登录
  */
-// 星寰海 v2.0 - 认证服务
+// 星河宠记 v2.0 - 认证服务
 import Taro from '@tarojs/taro';
 import { api } from './api';
 import { storage } from '../utils/storage';

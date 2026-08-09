@@ -673,7 +673,6 @@ describe('G11.5 频率限制防护', () => {
         'trends/*',
         'families/*',
         'membership/*',
-        'wardrobe/*',
       ];
 
       expect(routesWithRateLimit.length).toBeGreaterThan(0);

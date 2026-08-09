@@ -29,8 +29,13 @@ export default function PetSwitcher({ pets, currentPetId, onSwitch, onAdd }: Pet
               onClick={() => onSwitch(pet.id)}
             >
               <View className='pet-switcher__avatar'>
-                {pet.avatarPhotoUrl ? (
-                  <Image src={pet.avatarPhotoUrl} className='pet-switcher__avatar-img' mode='aspectFill' lazyLoad />
+                {pet.avatarPhotoUrl || pet.avatarCartoonUrl ? (
+                  <Image
+                    src={pet.avatarPhotoUrl || pet.avatarCartoonUrl!}
+                    className='pet-switcher__avatar-img'
+                    mode='aspectFill'
+                    lazyLoad
+                  />
                 ) : (
                   <Text className='pet-switcher__avatar-emoji'>{getDefaultEmoji(pet.species)}</Text>
                 )}

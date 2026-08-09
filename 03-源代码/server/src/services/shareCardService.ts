@@ -92,7 +92,6 @@ const CARD_TYPE_META: Record<string, { title: string; icon: string; defaultConte
   achievement: { title: '成就', icon: '🏆', defaultContent: '达成的成就里程碑' },
   daily_moment: { title: '日常动态', icon: '📸', defaultContent: '今日份的小确幸' },
   yearly_review: { title: '年度回顾', icon: '📅', defaultContent: '这一年的温暖回忆' },
-  wardrobe: { title: '时装秀', icon: '👔', defaultContent: '看看我的穿搭造型！' },
 };
 
 /**
@@ -149,7 +148,7 @@ function wrapText(text: string, maxCharsPerLine: number): string[] {
  * 布局设计：
  *   ┌─────────────────────────────────────┐
  *   │  ╭ 顶部装饰条（渐变）              ╮ │
- *   │  │ 星寰海 · 分享卡片               │ │
+ *   │  │ 星河宠记 · 分享卡片               │ │
  *   │  ╰────────────────────────────────╯ │
  *   │                                     │
  *   │     ┌──────────────┐                │
@@ -184,7 +183,7 @@ export function renderCardSvg(
   const content = sourceData.custom_text || meta.defaultContent;
   const date = new Date().toISOString().slice(0, 10);
 
-  const appName = '星寰海';
+  const appName = '星河宠记';
   const shortId = cardId.slice(0, 8);
 
   // 多行文本拆分（中文每行最多 18 字符）

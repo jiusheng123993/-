@@ -77,6 +77,8 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  // 进入页面时品牌栏轻缓滑入，避免内容瞬间出现（ease-out，仅 transform/opacity）
+  animation: topBarEnter 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 .chat-top-left {
@@ -1558,6 +1560,8 @@
   padding: 28rpx 32rpx;
   margin-bottom: 20rpx;
   @include press-feedback;
+  // 与顶部栏错开 80ms 入场，形成轻微层次感
+  animation: fadeInUp 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) 0.08s both;
 }
 
 .home-summary-main {
@@ -1795,4 +1799,14 @@
   font-size: 20rpx;
   color: $color-text-tertiary;
   line-height: 1.5;
+}
+
+// 减少动态效果偏好：入场只保留淡入，去掉位移动画
+@media (prefers-reduced-motion: reduce) {
+  .chat-top-bar,
+  .home-summary-card,
+  .msg-quick-actions,
+  .chat-empty {
+    animation: fadeIn 0.2s ease both;
+  }
 }

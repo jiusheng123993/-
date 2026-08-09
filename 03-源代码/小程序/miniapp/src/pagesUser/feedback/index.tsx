@@ -3,13 +3,15 @@
  * NPS 满意度评分 + 文字反馈
  */
 import { useState, useCallback } from 'react'
-import { View, Text, Textarea } from '@tarojs/components'
+import { View, Text, Textarea, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { submitNpsFeedback } from '../../services/feedbackService'
 import { useThemeClass } from '../../hooks/useThemeClass'
+import contactQr from '../../assets/contact-qr.jpg'
 import './index.scss'
 
 const SCORE_LABELS = ['极差', '很差', '较差', '一般', '还行', '不错', '满意', '很好', '非常好', '极好', '完美']
+const CONTACT_WECHAT = 'qiqi82016_'
 
 export default function FeedbackPage() {
   const [score, setScore] = useState<number | null>(null)
@@ -17,6 +19,11 @@ export default function FeedbackPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const themeClass = useThemeClass()
+
+  // 复制运营微信号，方便用户加微信
+  const copyWx = useCallback(() => {
+    Taro.setClipboardData({ data: CONTACT_WECHAT })
+  }, [])
 
   const handleSubmit = useCallback(async () => {
     if (score === null) {
@@ -106,6 +113,21 @@ export default function FeedbackPage() {
         <Text className='feedback-submit__text'>
           {submitting ? '提交中...' : '提交反馈'}
         </Text>
+      </View>
+
+      {/* 联系我们：微信二维码 + 微信号 */}
+      <View className='feedback-contact'>
+        <Text className='feedback-contact__title'>想直接找我们？</Text>
+        <View className='feedback-contact__row'>
+          <Text className='feedback-contact__wx'>
+            微信号：<Text className='feedback-contact__id'>{CONTACT_WECHAT}</Text>
+          </Text>
+          <View className='feedback-contact__copy' onClick={copyWx}>
+            <Text>复制</Text>
+          </View>
+        </View>
+        <Image className='feedback-contact__qr' src={contactQr} mode='aspectFit' />
+        <Text className='feedback-contact__hint'>扫码或搜索微信号添加，备注「星河宠记」</Text>
       </View>
     </View>
   )

@@ -107,14 +107,14 @@ export default function PetSymptomCheck() {
     return {
       title: currentResult
         ? `我家毛孩子的症状分析结果，快来看看！`
-        : '星寰海 - 宠物健康管家',
+        : '星河宠记 - 宠物健康管家',
       path: `/pagesPet/symptom-check/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
     }
   })
   useShareTimeline(() => ({
     title: currentResult
       ? `我家毛孩子的症状分析结果`
-      : '星寰海 - 宠物健康管家',
+      : '星河宠记 - 宠物健康管家',
     query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 

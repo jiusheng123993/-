@@ -21,7 +21,7 @@ export default function EmptyStateGuide({ onAddPet, onExplore }: EmptyStateGuide
     <View className='empty-state-guide'>
       <View className='empty-state-guide__hero'>
         <Text className='empty-state-guide__hero-emoji'>🐾</Text>
-        <Text className='empty-state-guide__hero-title'>欢迎来到星寰海</Text>
+        <Text className='empty-state-guide__hero-title'>欢迎来到星河宠记</Text>
         <Text className='empty-state-guide__hero-subtitle'>你的宠物健康管家</Text>
       </View>
 

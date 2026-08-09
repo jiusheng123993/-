@@ -401,7 +401,7 @@ export function drawYearlyReview(ctx: CanvasRenderingContext2D, data: YearlyRevi
   ctx.fillStyle = COLORS.textLight
   ctx.font = '22px sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText('星寰海 · 记录毛孩子的温暖时光', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 40)
+  ctx.fillText('星河宠记 · 记录毛孩子的温暖时光', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 40)
 }
 
 export async function renderYearlyReview(

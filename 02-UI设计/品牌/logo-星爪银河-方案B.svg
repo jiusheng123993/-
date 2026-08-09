@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+  <defs>
+    <linearGradient id="coralB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFA082"/>
+      <stop offset="0.55" stop-color="#FF6B3D"/>
+      <stop offset="1" stop-color="#F04E1D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 奶油圆角底 -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#FFF6EE" stroke="#FFE0CF" stroke-width="4"/>
+
+  <!-- 星河星轨（弧形扫过爪印下方） -->
+  <path d="M 52 402 A 206 206 0 0 0 460 402" fill="none" stroke="#FFB020" stroke-width="12" stroke-linecap="round" opacity="0.85"/>
+  <circle cx="118" cy="456" r="10" fill="#FFB020"/>
+  <circle cx="256" cy="492" r="10" fill="#FFB020"/>
+  <circle cx="394" cy="456" r="10" fill="#FFB020"/>
+
+  <!-- 四颗金色爪趾 -->
+  <ellipse cx="161" cy="170" rx="27" ry="38" fill="#FFB020" transform="rotate(-18 161 170)"/>
+  <ellipse cx="214" cy="138" rx="27" ry="38" fill="#FFB020" transform="rotate(-8 214 138)"/>
+  <ellipse cx="298" cy="138" rx="27" ry="38" fill="#FFB020" transform="rotate(8 298 138)"/>
+  <ellipse cx="351" cy="170" rx="27" ry="38" fill="#FFB020" transform="rotate(18 351 170)"/>
+
+  <!-- 主视觉：四角星光爪垫 -->
+  <path d="M 256 180 Q 294.9 261.1 376 300 Q 294.9 338.9 256 420 Q 217.1 338.9 136 300 Q 217.1 261.1 256 180 Z"
+        fill="url(#coralB)"/>
+
+  <!-- 星光高光 -->
+  <ellipse cx="232" cy="268" rx="26" ry="16" fill="#FFFFFF" opacity="0.35" transform="rotate(-38 232 268)"/>
+
+  <!-- 头顶两颗小星光 -->
+  <path d="M 256 36 Q 262 52 276 54 Q 262 56 256 72 Q 250 56 236 54 Q 250 52 256 36 Z" fill="#FFB020"/>
+  <path d="M 452 120 Q 456 130 466 131 Q 456 132 452 142 Q 448 132 438 131 Q 448 130 452 120 Z" fill="#FFB020" opacity="0.85"/>
+</svg>

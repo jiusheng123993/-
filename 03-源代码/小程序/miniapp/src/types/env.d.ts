@@ -1,4 +1,14 @@
 /** 环境变量类型声明 */
+declare module '*.png' {
+  const src: string
+  export default src
+}
+
+declare module '*.webp' {
+  const src: string
+  export default src
+}
+
 declare const process: {
   env: {
     TARO_APP_API_BASE_URL: string

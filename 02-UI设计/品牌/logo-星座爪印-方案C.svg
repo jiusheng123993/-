@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+  <defs>
+    <linearGradient id="coralC" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFA082"/>
+      <stop offset="0.55" stop-color="#FF6B3D"/>
+      <stop offset="1" stop-color="#F04E1D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 奶油圆角底 -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#FFF6EE" stroke="#FFE0CF" stroke-width="4"/>
+
+  <!-- 星座连线 -->
+  <g stroke="#FFB020" stroke-width="5" opacity="0.85" stroke-linecap="round">
+    <line x1="161" y1="170" x2="256" y2="310"/>
+    <line x1="214" y1="138" x2="256" y2="310"/>
+    <line x1="298" y1="138" x2="256" y2="310"/>
+    <line x1="351" y1="170" x2="256" y2="310"/>
+  </g>
+
+  <!-- 四颗爪趾星点 -->
+  <circle cx="161" cy="170" r="26" fill="#FF6B3D"/>
+  <circle cx="214" cy="138" r="26" fill="#FF6B3D"/>
+  <circle cx="298" cy="138" r="26" fill="#FF6B3D"/>
+  <circle cx="351" cy="170" r="26" fill="#FF6B3D"/>
+
+  <!-- 主视觉：星光主掌垫 -->
+  <path d="M 256 214 Q 288.3 281.7 356 310 Q 288.3 338.3 256 406 Q 223.7 338.3 156 310 Q 223.7 281.7 256 214 Z"
+        fill="url(#coralC)"/>
+
+  <!-- 星河小星点 -->
+  <path d="M 256 52 Q 261 66 274 68 Q 261 70 256 84 Q 251 70 238 68 Q 251 66 256 52 Z" fill="#FFB020"/>
+  <path d="M 432 96 Q 435 104 443 105 Q 435 106 432 114 Q 429 106 421 105 Q 429 104 432 96 Z" fill="#FFB020"/>
+  <path d="M 84 220 Q 86 226 92 227 Q 86 228 84 234 Q 82 228 76 227 Q 82 226 84 220 Z" fill="#FFB020"/>
+</svg>

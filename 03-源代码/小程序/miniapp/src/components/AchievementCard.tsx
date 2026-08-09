@@ -2,9 +2,7 @@
  * 成就卡片组件
  * 展示宠物各类成就（生日、疫苗、连续打卡等），含宠物头像和成就信息
  */
-import { View, Text, Image } from '@tarojs/components'
-import { useMemo } from 'react'
-import { getPetFaceDataUri, EXPRESSION_MAP } from '../engines/petAvatar'
+import { View, Text } from '@tarojs/components'
 import './AchievementCard.scss'
 
 export interface AchievementConfig {
@@ -83,10 +81,9 @@ export default function AchievementCard({
   onClose,
   onShare
 }: AchievementCardProps) {
-  const faceUri = useMemo(
-    () => getPetFaceDataUri(EXPRESSION_MAP.excited, species, 80),
-    [species]
-  )
+  // 兜底形象：物种 emoji + 渐变圆底（替代简笔画 SVG 脸）
+  const fallbackEmoji = species === 'cat' ? '🐱' : '🐶'
+  const fallbackClass = species === 'cat' ? 'achievement-card__face-badge--cat' : 'achievement-card__face-badge--dog'
 
   return (
     <View className='achievement-card' style={{ borderColor: achievement.color }}>
@@ -102,13 +99,9 @@ export default function AchievementCard({
 
       <View className='achievement-card__body'>
         <View className='achievement-card__face'>
-          <Image
-            className='achievement-card__face-img'
-            src={faceUri}
-            mode='aspectFit'
-            style={{ width: '80px', height: '80px' }}
-            lazyLoad
-          />
+          <View className={`achievement-card__face-badge ${fallbackClass}`}>
+            <Text className='achievement-card__face-emoji'>{fallbackEmoji}</Text>
+          </View>
         </View>
 
         <View className='achievement-card__info'>

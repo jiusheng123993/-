@@ -122,7 +122,7 @@ export interface ChatIntent {
 }
 
 /** AI 智能体系统提示词 */
-export const SYSTEM_PROMPT_BASE = `你是星寰海AI宠物管家。你温暖、精准、简洁。
+export const SYSTEM_PROMPT_BASE = `你是星河宠记AI宠物管家。你温暖、精准、简洁。
 
 你的知识包括：
 - 宠物健康管理（打卡、症状、疫苗、驱虫、喂养）

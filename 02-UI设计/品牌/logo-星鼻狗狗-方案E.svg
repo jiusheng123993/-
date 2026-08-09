@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+  <defs>
+    <linearGradient id="coralE" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFA082"/>
+      <stop offset="0.55" stop-color="#FF6B3D"/>
+      <stop offset="1" stop-color="#F04E1D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 奶油圆角底 -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="#FFF6EE" stroke="#FFE0CF" stroke-width="4"/>
+
+  <!-- 垂耳（后层） -->
+  <ellipse cx="110" cy="272" rx="48" ry="92" fill="#F04E1D" transform="rotate(-14 110 272)"/>
+  <ellipse cx="402" cy="272" rx="48" ry="92" fill="#F04E1D" transform="rotate(14 402 272)"/>
+
+  <!-- 狗脸 -->
+  <rect x="118" y="178" width="276" height="252" rx="118" fill="url(#coralE)"/>
+
+  <!-- 眼睛 -->
+  <circle cx="196" cy="286" r="17" fill="#FFF6EE"/>
+  <circle cx="196" cy="286" r="7" fill="#F04E1D"/>
+  <circle cx="316" cy="286" r="17" fill="#FFF6EE"/>
+  <circle cx="316" cy="286" r="7" fill="#F04E1D"/>
+
+  <!-- 星光鼻子（星河点睛） -->
+  <path d="M 256 296 Q 266.6 319.4 290 330 Q 266.6 340.6 256 364 Q 245.4 340.6 222 330 Q 245.4 319.4 256 296 Z" fill="#FFB020"/>
+
+  <!-- 嘴巴 -->
+  <path d="M 256 368 Q 240 388 218 378" fill="none" stroke="#FFF6EE" stroke-width="9" stroke-linecap="round"/>
+  <path d="M 256 368 Q 272 388 294 378" fill="none" stroke="#FFF6EE" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- 腮红 -->
+  <circle cx="150" cy="330" r="16" fill="#FFD0B8" opacity="0.8"/>
+  <circle cx="362" cy="330" r="16" fill="#FFD0B8" opacity="0.8"/>
+</svg>

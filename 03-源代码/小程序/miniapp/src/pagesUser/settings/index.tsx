@@ -117,7 +117,7 @@ export default function SettingsPage() {
 
     Taro.showModal({
       title: '导出全部数据',
-      content: '将导出您在星寰海的所有个人数据（云端+本地），生成JSON文件。是否继续？',
+      content: '将导出您在星河宠记的所有个人数据（云端+本地），生成JSON文件。是否继续？',
       success: async (res) => {
         if (!res.confirm) return
         setExportingData(true)

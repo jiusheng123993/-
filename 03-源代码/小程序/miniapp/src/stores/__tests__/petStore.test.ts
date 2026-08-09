@@ -134,6 +134,26 @@ describe('petStore', () => {
       expect(state.isLoading).toBe(false)
       expect(state.error).toBe('Network error')
     })
+
+    it('should record userId so switchPet works after direct fetchPets', async () => {
+      // 回归测试：宠物档案等页面只调用 fetchPets 不调用 initUser，
+      // fetchPets 必须把 userId 写入 store，否则 switchPet 会抛“用户未登录”
+      usePetStore.setState({ userId: null })
+      const pet1 = makePet()
+      const pet2 = makePet({ id: 'pet_002', name: '咪咪' })
+      mockPetService.getPets.mockResolvedValue([pet1, pet2])
+      mockPetService.setCurrentPet.mockResolvedValue(undefined)
+
+      await usePetStore.getState().fetchPets('user_after_login')
+
+      const state = usePetStore.getState()
+      expect(state.userId).toBe('user_after_login')
+
+      // 模拟点击第二个宠物标签进行切换，不应再抛“用户未登录”
+      await usePetStore.getState().switchPet('pet_002')
+      expect(usePetStore.getState().currentPet!.id).toBe('pet_002')
+      expect(mockPetService.setCurrentPet).toHaveBeenCalledWith('user_after_login', 'pet_002')
+    })
   })
 
   describe('addPet', () => {

@@ -47,8 +47,13 @@ const PetCard: React.FC<PetCardProps> = ({ pet, isCurrent = false, onClick, onLo
       onLongPress={handleLongPress}
     >
       <View className='pet-card__avatar'>
-        {pet.avatarPhotoUrl ? (
-          <Image className='pet-card__avatar-img' src={pet.avatarPhotoUrl} mode='aspectFill' lazyLoad />
+        {pet.avatarPhotoUrl || pet.avatarCartoonUrl ? (
+          <Image
+            className='pet-card__avatar-img'
+            src={pet.avatarPhotoUrl || pet.avatarCartoonUrl!}
+            mode='aspectFill'
+            lazyLoad
+          />
         ) : (
           <Text className='pet-card__avatar-emoji'>{defaultAvatar}</Text>
         )}

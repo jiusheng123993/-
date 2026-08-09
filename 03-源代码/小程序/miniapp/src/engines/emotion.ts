@@ -130,7 +130,7 @@ const GRIEF_FOLLOW_UPS: string[] = [
 ]
 
 const DISCLAIMERS: Record<EmotionSceneType, string> = {
-  grief: '⚠️ 星寰海提供的情绪支持为自助工具，不构成心理咨询或治疗。如需专业帮助，请拨打24h心理援助热线：400-161-9995',
+  grief: '⚠️ 星河宠记提供的情绪支持为自助工具，不构成心理咨询或治疗。如需专业帮助，请拨打24h心理援助热线：400-161-9995',
   sick_anxiety: '⚠️ 健康数据仅供参考，不替代兽医诊断。如发现异常请及时就医。',
   new_owner_anxiety: '⚠️ 养宠建议仅供参考，具体问题请咨询专业兽医。',
 }

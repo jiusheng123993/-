@@ -206,7 +206,7 @@ export default function YearlyReviewPage() {
                 </View>
               </View>
               <Text className='annual-summary__text'>{review.summary || '这一年有太多值得记录的瞬间，继续陪伴毛孩子成长吧。'}</Text>
-              <Text className='annual-summary__sign'>— 星寰海 AI 管家</Text>
+              <Text className='annual-summary__sign'>— 星河宠记 AI 管家</Text>
             </View>
 
             {/* ===== 年度视频 ===== */}

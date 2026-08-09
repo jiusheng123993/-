@@ -28,7 +28,6 @@ import aiRoutes from './routes/ai.js';
 import avatarRoutes from './routes/avatar.js';
 import membershipRoutes from './routes/membership.js';
 import paymentRoutes from './routes/payment.js';
-import wardrobeRoutes from './routes/wardrobe.js';
 import timelineRoutes from './routes/timeline.js';
 import namingRoutes from './routes/naming.js';
 import memoirRoutes from './routes/memoir.js';
@@ -88,7 +87,7 @@ app.use('/uploads', express.static(path.resolve(__dirname, '..', config.uploadDi
 
 // ===== 健康检查 =====
 app.get('/api/health', (_req, res) => {
-  res.json({ success: true, message: '星寰海服务运行中', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: '星河宠记服务运行中', timestamp: new Date().toISOString() });
 });
 
 // ===== 功能开关接口（需登录） =====
@@ -119,7 +118,6 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/avatar', avatarRoutes);
 app.use('/api/membership', membershipRoutes);
 app.use('/api/payment', paymentRoutes);
-app.use('/api/wardrobe', wardrobeRoutes);
 app.use('/api/timeline', timelineRoutes);
 app.use('/api/naming', namingRoutes);
 app.use('/api/pets', memoirRoutes);
@@ -139,7 +137,7 @@ const server = app.listen(config.port, () => {
     console.error('[Server] 致命错误: JWT_SECRET 未配置或长度不足 32 字符，拒绝启动');
     process.exit(1);
   }
-  console.log(`[Server] 星寰海后端服务已启动: http://localhost:${config.port}`);
+  console.log(`[Server] 星河宠记后端服务已启动: http://localhost:${config.port}`);
   console.log(`[Server] 环境: ${process.env.NODE_ENV || 'development'}`);
 
   const runCleanup = async () => {

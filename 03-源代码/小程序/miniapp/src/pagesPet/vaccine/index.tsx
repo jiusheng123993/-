@@ -63,11 +63,11 @@ export default function PetVaccine() {
   } = useReminder()
 
   useShareAppMessage(() => ({
-    title: '星寰海 - 宠物疫苗日历',
+    title: '星河宠记 - 宠物疫苗日历',
     path: `/pagesPet/vaccine/index${inviteCode ? `?inviteCode=${inviteCode}` : ''}`,
   }))
   useShareTimeline(() => ({
-    title: '星寰海 - 宠物疫苗日历',
+    title: '星河宠记 - 宠物疫苗日历',
     query: inviteCode ? `inviteCode=${inviteCode}` : '',
   }))
 
