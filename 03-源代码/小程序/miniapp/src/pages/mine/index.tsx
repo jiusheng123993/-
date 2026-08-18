@@ -3,7 +3,7 @@
  * 对齐高保真原型 mine.html：渐变横幅用户卡 + 数据概览 3 列 + 分组菜单（数据服务/管理/设置-主题皮肤）+ 退出登录
  * 保留原有业务逻辑：登录校验、打卡/回忆统计、宠物切换、会员状态、退出登录
  */
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
@@ -164,7 +164,12 @@ export default function Mine() {
         <View className='mine-user-banner' />
         <View className='mine-user-main'>
           <View className='mine-avatar'>
-            <Text className='mine-avatar-text'>{user?.nickname?.charAt(0) || '👤'}</Text>
+            {/* 有头像就显示头像图片；没有才退回昵称首字占位 */}
+            {user?.avatar ? (
+              <Image className='mine-avatar-img' src={user.avatar} mode='aspectFill' />
+            ) : (
+              <Text className='mine-avatar-text'>{user?.nickname?.charAt(0) || '👤'}</Text>
+            )}
           </View>
           <View className='mine-user-info'>
             <View className='mine-user-name-row'>
