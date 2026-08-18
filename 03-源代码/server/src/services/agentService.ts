@@ -57,11 +57,11 @@ function getApiKey(): string {
 }
 
 function getBaseUrl(): string {
-  return config.ai.baseUrl || 'https://api.deepseek.com/v1';
+  return config.ai.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3';
 }
 
 function getModel(): string {
-  return config.ai.model || 'deepseek-chat';
+  return config.ai.model || 'deepseek-v4-flash-ga-260731';
 }
 
 // ========== 记忆系统：构建系统提示词 ==========

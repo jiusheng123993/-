@@ -16,9 +16,11 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghechongji',
   jwtSecret: process.env.JWT_SECRET || '',
   ai: {
-    apiKey: process.env.AI_API_KEY || '',
-    baseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
-    model: process.env.AI_MODEL || 'deepseek-chat',
+    // 火山方舟 DeepSeek-V4-Flash（GA 版）：与 DeepSeek 官方同款模型，换入口是为了
+    // 微信「深度合成-AI问答」类目能签第三方合作协议；优先读 ARK_*，兼容旧 AI_*
+    apiKey: process.env.ARK_API_KEY || process.env.AI_API_KEY || '',
+    baseUrl: process.env.ARK_BASE_URL || process.env.AI_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3',
+    model: process.env.ARK_MODEL || process.env.AI_MODEL || 'deepseek-v4-flash-ga-260731',
   },
   pushplus: {
     token: process.env.PUSHPLUS_TOKEN || '',
