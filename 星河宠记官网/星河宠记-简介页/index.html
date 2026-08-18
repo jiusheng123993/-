@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星河宠记 · 有记忆的 AI 宠物管家</title>
+  <!--
+    星河宠记 · 项目简介页（Demo v1）
+    设计参考：jiro.build "AI Marketing Landing Page - Kelo" 的 SaaS 落地页结构
+    视觉方向：个性大胆 —— 深蓝夜空 × 珊瑚橙 × 暖金撞色 + 超大字号 + Q 版圆润
+    品牌基色沿用星河宠记官网的星海梦境主题（#0B1426 深蓝 + #F5C451 暖金）
+  -->
+  <!-- 圆润大气的展示字体（离线时自动回退到系统中文字体） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ============ 设计变量：撞色体系 ============ */
+    :root {
+      --night: #0B1426;        /* 夜空底色（品牌主色） */
+      --night-2: #101C33;      /* 次级夜空 */
+      --night-3: #182C4A;      /* 卡片底色 */
+      --gold: #F5C451;         /* 品牌暖金 */
+      --gold-soft: #F8D680;    /* 浅金 */
+      --coral: #FF6B3D;        /* 撞色珊瑚橙 */
+      --coral-deep: #F04E1D;   /* 深珊瑚 */
+      --pink: #FF7BA9;         /* 点缀粉（回忆录暖意） */
+      --cream: #FFF6EE;        /* 奶油白（撞色块） */
+      --ink: #EDF1F8;          /* 深色底上的主文字 */
+      --ink-2: #B0BDD4;        /* 次级文字 */
+      --radius-lg: 28px;       /* Q 版大圆角 */
+      --radius-md: 18px;
+      --font-display: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+
+    /* 全局重置与基础排版 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--night);
+      color: var(--ink);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* 固定星海背景：由 JS 生成小星星，营造夜空纵深 */
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* 通用容器：控制内容最大宽度与左右留白 */
+    .wrap {
+      width: min(1180px, 92vw);
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============ 顶部导航 ============ */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      transition: background .3s, box-shadow .3s, backdrop-filter .3s;
+    }
+    .nav.scrolled {
+      background: rgba(11, 20, 38, .82);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+    /* 品牌区：SVG 爪印 logo + 名称 */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-display);
+      font-size: 24px;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+    .brand img { width: 44px; height: 44px; }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 15px;
+      color: var(--ink-2);
+    }
+    .nav-links a { transition: color .2s; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--coral), var(--coral-deep));
+      color: #fff;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 999px;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 8px 24px rgba(255, 107, 61, .35);
+    }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255, 107, 61, .5); }
+
+    /* ============ Hero：超大标题 + 手机样机 ============ */
+    .hero {
+      padding: 150px 0 90px;
+      position: relative;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 48px;
+      align-items: center;
+    }
+    /* 顶部小徽章：产品定位一句话 */
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245, 196, 81, .12);
+      border: 1px solid rgba(245, 196, 81, .45);
+      color: var(--gold);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 999px;
+      margin-bottom: 26px;
+    }
+    /* 超大主标题：clamp 实现 5vw~9vw 弹性缩放，真正的大字 */
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(56px, 8vw, 112px);
+      line-height: 1.06;
+      letter-spacing: 2px;
+      color: var(--ink);
+    }
+    /* 标题中的撞色高亮词 */
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--gold), var(--coral));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero-sub {
+      margin-top: 24px;
+      color: var(--ink-2);
+      font-size: 18px;
+      line-height: 1.8;
+      max-width: 30em;
+    }
+    .hero-sub strong { color: var(--gold); }
+    .hero-cta-row {
+      display: flex;
+      gap: 14px;
+      margin-top: 36px;
+      flex-wrap: wrap;
+    }
+    /* 主按钮：珊瑚渐变；次按钮：金色描边 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 15px 30px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 16px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--coral), var(--coral-deep));
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(255, 107, 61, .4);
+    }
+    .btn-primary:hover { transform: translateY(-3px) scale(1.02); }
+    .btn-ghost {
+      border: 2px solid var(--gold);
+      color: var(--gold);
+    }
+    .btn-ghost:hover { background: rgba(245, 196, 81, .1); transform: translateY(-3px); }
+    .hero-meta {
+      margin-top: 20px;
+      font-size: 14px;
+      color: var(--ink-2);
+    }
+
+    /* ---- Hero 右侧视觉：手机 + 漂浮卡片 ---- */
+    .hero-visual { position: relative; }
+    /* 撞色光斑：珊瑚与金色大圆，营造大胆氛围 */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .5;
+      z-index: 0;
+    }
+    .blob-coral { width: 340px; height: 340px; background: var(--coral); top: -40px; right: -60px; }
+    .blob-gold { width: 280px; height: 280px; background: var(--gold); bottom: -50px; left: -40px; opacity: .28; }
+    /* 手机外框：模拟真机质感 */
+    .phone {
+      position: relative;
+      z-index: 1;
+      width: 300px;
+      margin: 0 auto;
+      border-radius: 44px;
+      border: 10px solid #1a2438;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 0 0 2px rgba(245, 196, 81, .25);
+      overflow: hidden;
+      transform: rotate(2deg);
+      animation: float 6s ease-in-out infinite;
+    }
+    .phone img { width: 100%; }
+    /* 漂浮卡片：回忆录卡 + 提醒卡，制造活泼层次 */
+    .float-card {
+      position: absolute;
+      z-index: 2;
+      background: var(--cream);
+      color: var(--night);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-weight: 700;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .4);
+      animation: float 5s ease-in-out infinite;
+    }
+    .float-memoir {
+      top: 42px; left: -18px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      animation-delay: .4s;
+    }
+    .float-remind {
+      bottom: 64px; right: -16px;
+      background: linear-gradient(135deg, #FFD9E6, #FFB7CF);
+      color: #7A1F42;
+      animation-delay: 1.2s;
+    }
+    .float-card small { display: block; font-weight: 500; font-size: 12px; opacity: .75; margin-top: 4px; }
+
+    /* 通用漂浮动画 */
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(2deg); }
+      50% { transform: translateY(-14px) rotate(2deg); }
+    }
+
+    /* ============ 大字跑马灯：撞色金条 ============ */
+    .marquee {
+      background: var(--gold);
+      color: var(--night);
+      transform: rotate(-1.2deg) scale(1.02);
+      padding: 16px 0;
+      overflow: hidden;
+      font-family: var(--font-display);
+      font-size: 26px;
+      letter-spacing: 2px;
+      white-space: nowrap;
+      border-top: 4px solid var(--coral);
+      border-bottom: 4px solid var(--coral);
+    }
+    .marquee-track {
+      display: inline-block;
+      animation: marquee 22s linear infinite;
+    }
+    .marquee span { margin: 0 28px; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ============ 大字立场声明：奶油色撞色块 ============ */
+    .statement {
+      background: var(--cream);
+      color: var(--night);
+      padding: 110px 0;
+      text-align: center;
+    }
+    .statement h2 {
+      font-family: var(--font-display);
+      font-size: clamp(38px, 5.6vw, 76px);
+      line-height: 1.25;
+      letter-spacing: 1px;
+    }
+    .statement h2 em {
+      font-style: normal;
+      color: var(--coral-deep);
+    }
+    .statement p {
+      margin: 24px auto 0;
+      max-width: 36em;
+      color: #5c5349;
+      font-size: 17px;
+      line-height: 1.9;
+    }
+
+    /* ============ 功能六宫格 ============ */
+    .features { padding: 110px 0; }
+    .sec-head { text-align: center; margin-bottom: 64px; }
+    .sec-head .kicker {
+      color: var(--coral);
+      font-weight: 900;
+      letter-spacing: 4px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+    .sec-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(34px, 4.6vw, 60px);
+      margin-top: 12px;
+      letter-spacing: 1px;
+    }
+    .sec-head p { color: var(--ink-2); margin-top: 12px; }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    /* 功能卡：深蓝卡 + 上滑高亮 + 彩色图标块 */
+    .f-card {
+      background: linear-gradient(160deg, var(--night-3), var(--night-2));
+      border: 1px solid rgba(237, 241, 248, .08);
+      border-radius: var(--radius-lg);
+      padding: 30px 26px;
+      transition: transform .3s, border-color .3s, box-shadow .3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .f-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(245, 196, 81, .45);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
+    }
+    .f-icon {
+      width: 58px; height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    /* 图标块按序号撞色轮换，避免单调 */
+    .f-card:nth-child(3n+1) .f-icon { background: rgba(255, 107, 61, .18); }
+    .f-card:nth-child(3n+2) .f-icon { background: rgba(245, 196, 81, .16); }
+    .f-card:nth-child(3n) .f-icon { background: rgba(255, 123, 169, .16); }
+    .f-no {
+      position: absolute;
+      top: 22px; right: 24px;
+      font-family: var(--font-display);
+      font-size: 34px;
+      color: rgba(237, 241, 248, .07);
+    }
+    .f-card h3 { font-size: 21px; margin-bottom: 10px; }
+    .f-card p { color: var(--ink-2); font-size: 15px; line-height: 1.8; }
+    .f-tag {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      background: rgba(245, 196, 81, .1);
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    /* ============ 宠物回忆录专区 ============ */
+    .memoir {
+      background: var(--night-2);
+      padding: 110px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .memoir-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .memoir h2 {
+      font-family: var(--font-display);
+      font-size: clamp(34px, 4.4vw, 58px);
+      line-height: 1.25;
+    }
+    .memoir h2 em { font-style: normal; color: var(--coral); }
+    .memoir p {
+      color: var(--ink-2);
+      line-height: 1.9;
+      margin-top: 20px;
+    }
+    .memoir-points { margin-top: 26px; display: grid; gap: 12px; }
+    .memoir-points li {
+      list-style: none;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 15px;
+    }
+    .memoir-points li::before { content: "✦"; color: var(--gold); }
+    /* 回忆录卡片堆叠效果：金卡 + 粉卡错位 */
+    .memoir-cards { position: relative; min-height: 420px; }
+    .mem-card {
+      position: absolute;
+      width: 78%;
+      border-radius: 26px;
+      padding: 26px 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+    }
+    .mem-card-gold {
+      background: linear-gradient(150deg, var(--gold), var(--gold-soft));
+      color: #3a2c08;
+      top: 8px; left: 0;
+      transform: rotate(-4deg);
+      z-index: 1;
+    }
+    .mem-card-pink {
+      background: linear-gradient(150deg, #FFB7CF, #FF8FB0);
+      color: #6f1e3d;
+      bottom: 8px; right: 0;
+      transform: rotate(4deg);
+    }
+    .mem-card .m-date { font-size: 13px; font-weight: 700; opacity: .7; }
+    .mem-card .m-title { font-family: var(--font-display); font-size: 22px; margin: 8px 0 10px; }
+    .mem-card .m-text { font-size: 14px; line-height: 1.7; opacity: .9; }
+    .mem-card .m-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; font-size: 13px; font-weight: 700; }
+    /* 播放小按钮：呼应视频回忆录 */
+    .m-play {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      color: var(--coral-deep);
+      font-size: 15px;
+    }
+    .mem-price {
+      display: inline-block;
+      margin-top: 26px;
+      background: rgba(245, 196, 81, .12);
+      border: 1px dashed rgba(245, 196, 81, .5);
+      color: var(--gold);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* ============ 数据条 ============ */
+    .stats {
+      padding: 80px 0;
+      border-top: 1px solid rgba(237, 241, 248, .08);
+      border-bottom: 1px solid rgba(237, 241, 248, .08);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: clamp(44px, 5vw, 72px);
+      color: var(--gold);
+    }
+    .stat-label { color: var(--ink-2); margin-top: 8px; font-size: 15px; }
+
+    /* ============ 定价 ============ */
+    .pricing { padding: 110px 0; }
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+    .p-card {
+      background: var(--night-3);
+      border: 1px solid rgba(237, 241, 248, .08);
+      border-radius: var(--radius-lg);
+      padding: 34px 28px;
+      display: flex;
+      flex-direction: column;
+      transition: transform .3s;
+    }
+    .p-card:hover { transform: translateY(-6px); }
+    /* 中间会员卡：金色高亮 + 上浮，制造视觉重心 */
+    .p-card.hot {
+      background: linear-gradient(165deg, #1d2c4d, #101c33);
+      border: 2px solid var(--gold);
+      transform: translateY(-10px);
+      box-shadow: 0 24px 60px rgba(245, 196, 81, .18);
+    }
+    .p-card.hot:hover { transform: translateY(-16px); }
+    .p-name { font-weight: 900; font-size: 18px; }
+    .p-card.hot .p-name { color: var(--gold); }
+    .p-desc { color: var(--ink-2); font-size: 14px; margin: 8px 0 20px; }
+    .p-price { font-family: var(--font-display); font-size: 42px; color: var(--ink); }
+    .p-price small { font-size: 15px; color: var(--ink-2); font-family: var(--font-body); }
+    .p-list { margin: 22px 0 28px; display: grid; gap: 12px; flex: 1; }
+    .p-list li {
+      list-style: none;
+      font-size: 14px;
+      color: var(--ink-2);
+      display: flex;
+      gap: 10px;
+    }
+    .p-list li::before { content: "✓"; color: var(--coral); font-weight: 900; }
+    .p-card.hot .p-list li::before { color: var(--gold); }
+    .p-btn {
+      text-align: center;
+      padding: 13px;
+      border-radius: 999px;
+      font-weight: 700;
+      border: 2px solid rgba(237, 241, 248, .2);
+      transition: all .2s;
+    }
+    .p-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .p-card.hot .p-btn {
+      background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+      color: #1a1408;
+      border: none;
+    }
+
+    /* ============ 用户故事 ============ */
+    .stories { padding: 30px 0 110px; }
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .story {
+      background: var(--night-3);
+      border-radius: var(--radius-lg);
+      padding: 30px 26px;
+      border: 1px solid rgba(237, 241, 248, .08);
+    }
+    .story .q {
+      font-family: var(--font-display);
+      font-size: 40px;
+      color: var(--coral);
+      line-height: 1;
+    }
+    .story p { color: var(--ink-2); line-height: 1.9; font-size: 15px; margin: 10px 0 20px; }
+    .story .who { font-size: 14px; color: var(--gold); font-weight: 700; }
+
+    /* ============ 结尾 CTA：珊瑚大色块 ============ */
+    .cta {
+      background: linear-gradient(120deg, var(--coral), var(--coral-deep) 60%, #ff8f5a);
+      color: var(--cream);
+      padding: 110px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 6.4vw, 88px);
+      line-height: 1.2;
+      letter-spacing: 2px;
+    }
+    .cta p { margin: 20px auto 34px; max-width: 30em; font-size: 17px; opacity: .95; }
+    .cta .btn-primary {
+      background: var(--cream);
+      color: var(--coral-deep);
+      box-shadow: 0 14px 40px rgba(60, 10, 0, .3);
+    }
+    /* 尾部小爪印装饰 */
+    .cta .paws { position: absolute; inset: 0; pointer-events: none; font-size: 26px; opacity: .18; }
+
+    /* ============ 页脚 ============ */
+    footer {
+      padding: 44px 0;
+      border-top: 1px solid rgba(237, 241, 248, .08);
+      color: var(--ink-2);
+      font-size: 14px;
+      text-align: center;
+      line-height: 2;
+    }
+    footer .brand { justify-content: center; margin-bottom: 8px; }
+
+    /* ============ 滚动入场动画 ============ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ============ 响应式：平板 & 手机 ============ */
+    @media (max-width: 960px) {
+      .hero-grid, .memoir-grid { grid-template-columns: 1fr; }
+      .feature-grid, .price-grid, .story-grid, .stats-grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 120px; }
+      .hero-visual { margin-top: 40px; }
+      .float-memoir { left: 0; }
+      .float-remind { right: 0; }
+      .p-card.hot { transform: none; }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .hero h1 { font-size: clamp(44px, 13vw, 64px); }
+      .marquee { font-size: 20px; }
+      .mem-card { width: 92%; }
+      .memoir-cards { min-height: 380px; }
+      .hero-cta-row .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 星海背景画布（星星由 JS 生成） -->
+  <div class="stars" id="stars"></div>
+
+  <!-- ============ 顶部导航 ============ -->
+  <header class="nav" id="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <img src="./assets/logo-paw.svg" alt="星河宠记 logo" />
+        星河宠记
+      </a>
+      <nav class="nav-links">
+        <a href="#features">核心功能</a>
+        <a href="#memoir">宠物回忆录</a>
+        <a href="#pricing">定价</a>
+        <a href="#stories">用户故事</a>
+      </nav>
+      <a class="nav-cta" href="#">微信小程序体验</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ Hero：大字 + 手机样机 + 撞色光斑 ============ -->
+    <section class="hero">
+      <div class="blob blob-coral"></div>
+      <div class="blob blob-gold"></div>
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <span class="hero-badge">🐾 有记忆的 AI 宠物管家</span>
+          <h1>把每一段陪伴<br /><em>写进星河</em></h1>
+          <p class="hero-sub">
+            健康打卡、症状初筛、疫苗日历，还有会讲故事的<strong>宠物回忆录</strong>——
+            它记得你毛孩子的每一个瞬间，也记得你们一起走过的每一天。
+          </p>
+          <div class="hero-cta-row">
+            <a class="btn btn-primary" href="#">微信搜索「星河宠记」体验</a>
+            <a class="btn btn-ghost" href="#memoir">看看回忆录长什么样 →</a>
+          </div>
+          <div class="hero-meta">免费开始 · 会员解锁全部 · 日常回忆录 9.9 元起</div>
+        </div>
+
+        <div class="hero-visual">
+          <!-- 手机样机：内嵌小程序首页截图 -->
+          <div class="phone">
+            <img src="./assets/app-home.png" alt="星河宠记小程序首页" />
+          </div>
+          <!-- 漂浮的回忆录卡片 -->
+          <div class="float-card float-memoir">
+            🐱 小橘 · 5 岁
+            <small>2026 年 8 月 12 日 · 日常回忆录</small>
+          </div>
+          <!-- 漂浮的疫苗提醒卡片 -->
+          <div class="float-card float-remind">
+            💉 疫苗提醒 · 8 月 15 日
+            <small>距第三针还有 3 天</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 大字跑马灯：产品关键词滚动 ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track" id="marqueeTrack">
+        <span>🐾 AI 健康分诊</span><span>📅 疫苗日历</span><span>📖 宠物回忆录</span><span>⏳ 时光引擎</span><span>🐱 家庭图谱</span><span>🌙 旧时光提醒</span>
+      </div>
+    </div>
+
+    <!-- ============ 大字立场声明：奶油撞色块 ============ -->
+    <section class="statement">
+      <div class="wrap reveal">
+        <h2>它不是又一个 AI 助手<br />是<em>记得你毛孩子</em>的家人</h2>
+        <p>
+          市面上很多 AI 问诊，每次都要从零开始。星河宠记把每一次健康打卡、
+          每一段对话都沉淀成「记忆」，越用越懂你的宠物。
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 核心功能六宫格 ============ -->
+    <section class="features" id="features">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div class="kicker">Core Features</div>
+          <h2>从健康到回忆，一个都不少</h2>
+          <p>六大能力，围绕「记得」这件事展开</p>
+        </div>
+        <div class="feature-grid">
+          <div class="f-card reveal">
+            <span class="f-no">01</span>
+            <div class="f-icon">🩺</div>
+            <h3>AI 健康分诊</h3>
+            <p>症状初筛 + 就医建议，规则层拦截 80% 风险，AI 层兜底剩余 20%，不误事也不小题大做。</p>
+            <span class="f-tag">建议是否就医</span>
+          </div>
+          <div class="f-card reveal">
+            <span class="f-no">02</span>
+            <div class="f-icon">🧠</div>
+            <h3>记忆引擎</h3>
+            <p>宠物健康史、偏好、习惯全部沉淀为长期记忆，每次对话都有上下文，越聊越懂它。</p>
+            <span class="f-tag">有记忆的 AI</span>
+          </div>
+          <div class="f-card reveal">
+            <span class="f-no">03</span>
+            <div class="f-icon">📖</div>
+            <h3>宠物回忆录</h3>
+            <p>日常 15-30 秒静图动效免费做，纪念 Vlog 由 AI 生成 45-60 秒视频，把告别前的每一天留住。</p>
+            <span class="f-tag">9.9 元起 / 会员免费</span>
+          </div>
+          <div class="f-card reveal">
+            <span class="f-no">04</span>
+            <div class="f-icon">⏳</div>
+            <h3>时光引擎</h3>
+            <p>时间线、里程碑、旧时光提醒——它回家那天的照片，三个月前的第一次打针，都不会被忘记。</p>
+            <span class="f-tag">回忆自动沉淀</span>
+          </div>
+          <div class="f-card reveal">
+            <span class="f-no">05</span>
+            <div class="f-icon">🐱</div>
+            <h3>宠物家庭图谱</h3>
+            <p>多宠家庭、亲属关系、血统谱系一目了然，一大家子的故事串成一条星河。</p>
+            <span class="f-tag">family & lineage</span>
+          </div>
+          <div class="f-card reveal">
+            <span class="f-no">06</span>
+            <div class="f-icon">💛</div>
+            <h3>暖心主动触达</h3>
+            <p>疫苗到期、体检提醒、纪念日到来前主动告诉你，像家人一样惦记着。</p>
+            <span class="f-tag">7×24 陪伴</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 宠物回忆录专区 ============ -->
+    <section class="memoir" id="memoir">
+      <div class="wrap memoir-grid">
+        <div class="reveal">
+          <h2>有些回忆，<em>值得被永远记得</em></h2>
+          <p>
+            日常回忆录：选几张照片，AI 配上动效和音乐，15-30 秒把今天的美好封存。
+            纪念 Vlog：45-60 秒的完整故事，99 元留住一段永恒的记忆。
+          </p>
+          <ul class="memoir-points">
+            <li>CREST 叙事结构，照片自动串成有起承转合的故事</li>
+            <li>BGM 全部商用授权，分享不侵权</li>
+            <li>会员每月免费 3 次日常回忆录</li>
+          </ul>
+          <div class="mem-price">✦ 纪念 Vlog ¥99 · 私域精修 ¥299 起</div>
+        </div>
+        <!-- 回忆录卡片堆叠：金色日常卡 + 粉色纪念卡 -->
+        <div class="memoir-cards reveal">
+          <div class="mem-card mem-card-gold">
+            <div class="m-date">2026.08.12 · 日常回忆录</div>
+            <div class="m-title">今天小橘第一次主动蹭我</div>
+            <div class="m-text">三花猫小橘来到家里的第 1825 天。它今天主动把脑袋埋进我手心，呼噜声像小马达。</div>
+            <div class="m-foot"><span>♥ 和它的第 5 年</span><span class="m-play">▶</span></div>
+          </div>
+          <div class="mem-card mem-card-pink">
+            <div class="m-date">2026.07.01 · 纪念 Vlog</div>
+            <div class="m-title">「彩虹桥的那一边」</div>
+            <div class="m-text">99 元，45 秒。从第一次见面到最后的告别，AI 替我们把它的一生讲成了故事。</div>
+            <div class="m-foot"><span>播放 2.3w 次</span><span>✦ 值得</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 数据条 ============ -->
+    <section class="stats">
+      <div class="wrap stats-grid">
+        <div class="reveal">
+          <div class="stat-num" data-count="1.2">0</div>
+          <div class="stat-label">亿 + 中国宠物主</div>
+        </div>
+        <div class="reveal">
+          <div class="stat-num" data-count="3500">0</div>
+          <div class="stat-label">亿 宠物经济市场规模</div>
+        </div>
+        <div class="reveal">
+          <div class="stat-num" data-count="365">0</div>
+          <div class="stat-label">天，记忆从不缺席</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 定价 ============ -->
+    <section class="pricing" id="pricing">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div class="kicker">Pricing</div>
+          <h2>从免费开始，按需升级</h2>
+          <p>先体验核心能力，觉得值得再付费</p>
+        </div>
+        <div class="price-grid">
+          <div class="p-card reveal">
+            <div class="p-name">免费版</div>
+            <div class="p-desc">感受「有记忆」的宠物管家</div>
+            <div class="p-price">¥0<small> / 永久</small></div>
+            <ul class="p-list">
+              <li>健康打卡与趋势记录</li>
+              <li>AI 健康分诊（每日限额）</li>
+              <li>疫苗日历与提醒</li>
+              <li>日常回忆录每月 3 次</li>
+            </ul>
+            <a class="p-btn" href="#">免费开始</a>
+          </div>
+          <div class="p-card hot reveal">
+            <div class="p-name">✦ 星河会员</div>
+            <div class="p-desc">解锁全部 AI 能力与回忆录权益</div>
+            <div class="p-price">¥9.9<small> / 月起</small></div>
+            <ul class="p-list">
+              <li>AI 对话与分诊不限次</li>
+              <li>日常回忆录不限次数</li>
+              <li>纪念 Vlog 会员价 ¥99</li>
+              <li>时光引擎全部能力</li>
+              <li>新功能优先体验</li>
+            </ul>
+            <a class="p-btn" href="#">开通会员</a>
+          </div>
+          <div class="p-card reveal">
+            <div class="p-name">私域精修</div>
+            <div class="p-desc">人工 + AI 混合，逐帧打磨</div>
+            <div class="p-price">¥299<small> 起 / 条</small></div>
+            <ul class="p-list">
+              <li>人工调色与逐帧优化</li>
+              <li>专属 BGM 定制</li>
+              <li>故事结构人工打磨</li>
+              <li>高清版本永久保存</li>
+            </ul>
+            <a class="p-btn" href="#">预约精修</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 用户故事 ============ -->
+    <section class="stories" id="stories">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div class="kicker">Stories</div>
+          <h2>和毛孩子在一起的人</h2>
+        </div>
+        <div class="story-grid">
+          <div class="story reveal">
+            <div class="q">"</div>
+            <p>它走的那天，我哭着用回忆录把三年的照片做成了视频。不是 AI 替我记得，是它陪我把告别走完。</p>
+            <div class="who">柚子 · 金毛「可乐」的主人</div>
+          </div>
+          <div class="story reveal">
+            <div class="q">"</div>
+            <p>疫苗日历救了我一命——上次差点忘了第三针。现在它比我还上心，到日子自己提醒我。</p>
+            <div class="who">阿哲 · 布偶「团子」的主人</div>
+          </div>
+          <div class="story reveal">
+            <div class="q">"</div>
+            <p>我家三只猫一只狗，家庭图谱把它们的辈分理得明明白白，连我妈都夸这 App 有心。</p>
+            <div class="who">Doris · 四宠之家</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 结尾 CTA ============ -->
+    <section class="cta">
+      <div class="paws" aria-hidden="true">🐾 🐾 🐾 🐾 🐾 🐾 🐾 🐾 🐾 🐾</div>
+      <div class="wrap reveal">
+        <h2>让回忆，成为星河</h2>
+        <p>微信搜索「星河宠记」，从今天开始，和它一起写你们的故事。</p>
+        <a class="btn btn-primary" href="#">立即体验 →</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ 页脚 ============ -->
+  <footer>
+    <div class="wrap">
+      <div class="brand"><img src="./assets/logo-paw.svg" alt="星河宠记 logo" />星河宠记</div>
+      <div>有记忆的 AI 宠物管家 · 微信小程序内搜索「星河宠记」</div>
+      <div>© 2026 星河宠记 · 仅作项目简介演示页</div>
+    </div>
+  </footer>
+
+  <script>
+    /* ============================================================
+       星河宠记简介页 · 交互脚本
+       1) 生成固定星海背景
+       2) 导航滚动加背景
+       3) 滚动入场动画（IntersectionObserver）
+       4) 数字滚动计数
+       ============================================================ */
+
+    /* ---- 1. 星海背景：在随机位置生成小星星，视觉更"星河" ---- */
+    (function makeStars() {
+      var box = document.getElementById('stars');
+      if (!box) return;
+      var html = '';
+      // 生成 90 颗星星：随机大小（1~3px）、随机位置、随机延迟闪烁
+      for (var i = 0; i < 90; i++) {
+        var size = (Math.random() * 2 + 1).toFixed(1);
+        var left = (Math.random() * 100).toFixed(2) + '%';
+        var top = (Math.random() * 100).toFixed(2) + '%';
+        var delay = (Math.random() * 4).toFixed(2);
+        html += '<span style="position:absolute;left:' + left + ';top:' + top +
+          ';width:' + size + 'px;height:' + size + 'px;border-radius:50%;' +
+          'background:rgba(255,255,255,.55);animation:twinkle 3s ease-in-out ' + delay + 's infinite;"></span>';
+      }
+      box.innerHTML = html;
+      // 把闪烁动画样式注入页面
+      var style = document.createElement('style');
+      style.textContent = '@keyframes twinkle{0%,100%{opacity:.25}50%{opacity:.9}}';
+      document.head.appendChild(style);
+    })();
+
+    /* ---- 2. 导航滚动背景：页面滚过 20px 后给导航加深色底 ---- */
+    var nav = document.getElementById('nav');
+    window.addEventListener('scroll', function () {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    /* ---- 3. 滚动入场动画：元素进入视口时加 .visible ---- */
+    var revealEls = document.querySelectorAll('.reveal');
+    // 兼容不支持 IntersectionObserver 的老浏览器：直接全部显示
+    if (!('IntersectionObserver' in window)) {
+      revealEls.forEach(function (el) { el.classList.add('visible'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            io.unobserve(entry.target); // 只播一次，避免重复触发
+          }
+        });
+      }, { threshold: 0.12 });
+      revealEls.forEach(function (el) { io.observe(el); });
+    }
+
+    /* ---- 4. 数字计数：带小数点的数字按原样滚动，整数则取整 ---- */
+    var counters = document.querySelectorAll('.stat-num[data-count]');
+    function animateCount(el) {
+      var target = parseFloat(el.getAttribute('data-count'));
+      var decimals = (el.getAttribute('data-count').split('.')[1] || '').length;
+      var start = null;
+      var dur = 1200; // 动画时长 1.2 秒
+      function step(ts) {
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        // easeOutCubic：先快后慢，更有"冲上去"的爽感
+        var eased = 1 - Math.pow(1 - p, 3);
+        var val = target * eased;
+        el.textContent = decimals ? val.toFixed(decimals) : Math.round(val).toLocaleString();
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    var statIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          animateCount(entry.target);
+          statIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function (el) { statIO.observe(el); });
+
+    /* ---- 跑马灯内容复制一份，保证无缝循环 ---- */
+    var track = document.getElementById('marqueeTrack');
+    if (track) track.innerHTML += track.innerHTML;
+  </script>
+</body>
+</html>
