@@ -1,55 +1,55 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>星河宠记 · 有记忆的AI宠物管家</title>
     <style id="theme-vars">
 /* ============================================
-   星河宠记 · 星海梦境主题 (Starry Ocean Dream)
-   深蓝星河 + 暖金星光 + Q版圆润
+   星河宠记 · 温馨暖阳主题（Warm Sunshine）
+   暖奶油底 + 暖金星光 + Q版圆润（原深蓝夜空转浅色温馨版）
    ============================================ */
 
 :root {
-  /* ---- 基础语义色 ---- */
-  --xhh-background: #0C1E22;
-  --xhh-foreground: #EDF1F8;
+  /* ---- 基础语义色（温馨浅色版） ---- */
+  --xhh-background: #FFF8F3;      /* 暖奶油底 */
+  --xhh-foreground: #4A2E3B;      /* 暖墨梅主文字 */
 
-  --xhh-card: #13203A;
-  --xhh-card-foreground: #EDF1F8;
+  --xhh-card: #FFFFFF;            /* 奶油白卡片 */
+  --xhh-card-foreground: #4A2E3B;
 
-  --xhh-popover: #182C4A;
-  --xhh-popover-foreground: #EDF1F8;
+  --xhh-popover: #FFFFFF;
+  --xhh-popover-foreground: #4A2E3B;
 
-  --xhh-primary: #F5C451;
-  --xhh-primary-foreground: #1A1408;
+  --xhh-primary: #F5A623;         /* 暖金（主按钮） */
+  --xhh-primary-foreground: #3A2410;
 
-  --xhh-muted: #182C4A;
-  --xhh-muted-foreground: #8E9DB8;
+  --xhh-muted: #FFF0F5;           /* 浅粉底 */
+  --xhh-muted-foreground: #8A6E7A;
 
-  --xhh-border: #213152;
-  --xhh-input: #213152;
-  --xhh-ring: #F5C451;
+  --xhh-border: #FFE3EC;          /* 粉色细线 */
+  --xhh-input: #FFE3EC;
+  --xhh-ring: #F5A623;
 
   /* ---- 圆角（Q版圆润风格，用户明确要求可爱圆润） ---- */
   --xhh-radius-sm: 10px;
   --xhh-radius-md: 18px;
   --xhh-radius-lg: 28px;
 
-  /* ---- 深度层次 ---- */
-  --xhh-surface-1: #0F1A30;
-  --xhh-surface-2: #13203A;
-  --xhh-surface-3: #182C4A;
+  /* ---- 深度层次（浅色版） ---- */
+  --xhh-surface-1: #FFF6F8;
+  --xhh-surface-2: #FFFDFB;
+  --xhh-surface-3: #FFF0F5;
 
   /* ---- 文字层次 ---- */
-  --xhh-ink: #EDF1F8;
-  --xhh-ink-2: #B0BDD4;
-  --xhh-ink-3: #6E7D99;
+  --xhh-ink: #4A2E3B;
+  --xhh-ink-2: #7A5E6C;
+  --xhh-ink-3: #B89AA6;
 
-  /* ---- 品牌金色层次 ---- */
-  --xhh-gold: #F5C451;
-  --xhh-gold-soft: #F8D680;
-  --xhh-gold-deep: #D9A938;
+  /* ---- 品牌金色层次（暖金） ---- */
+  --xhh-gold: #F5A623;
+  --xhh-gold-soft: #F8C96B;
+  --xhh-gold-deep: #D98E1F;
 
   /* ---- 字体系统 ---- */
   --xhh-font-sans: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
@@ -66,18 +66,23 @@
   --xhh-space-8: 80px;
 
   /* ---- 阴影 ---- */
-  --xhh-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.08);
-  --xhh-shadow-2: 0 8px 28px -8px rgba(0, 0, 0, 0.4);
-  --xhh-shadow-glow: 0 0 40px rgba(245, 196, 81, 0.12);
+  --xhh-shadow-1: 0 1px 2px rgba(74, 46, 59, 0.08), 0 1px 1px rgba(74, 46, 59, 0.05);
+  --xhh-shadow-2: 0 8px 28px -8px rgba(74, 46, 59, 0.18);
+  /* ---- 沉浸光感：辉光三档（近/中/远），暖金 + 蜜桃环境光（温馨浅色版） ---- */
+  --xhh-shadow-glow: 0 0 18px rgba(245, 166, 35, 0.20), 0 0 44px rgba(245, 166, 35, 0.10), 0 0 90px rgba(255, 123, 172, 0.10);
+  --xhh-shadow-glow-strong: 0 0 26px rgba(245, 166, 35, 0.30), 0 0 70px rgba(245, 166, 35, 0.16), 0 0 130px rgba(255, 123, 172, 0.14);
+  /* ---- 弹簧曲线（仿 ArkUI Spring：带过冲、可被打断） ---- */
+  --xhh-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --xhh-spring-dur: 0.55s;
 }
 
-/* ---- 暗色模式微调 ---- */
+/* ---- 兼容旧 class="dark"（现为浅色温馨主题，不再启用深色） ---- */
 .dark {
-  --xhh-background: #0C1E22;
-  --xhh-foreground: #EDF1F8;
-  --xhh-card: #13203A;
-  --xhh-card-foreground: #EDF1F8;
-  --xhh-border: #213152;
+  --xhh-background: #FFF8F3;
+  --xhh-foreground: #4A2E3B;
+  --xhh-card: #FFFFFF;
+  --xhh-card-foreground: #4A2E3B;
+  --xhh-border: #FFE3EC;
 }
 
 /* ---- 全局字体 ---- */
@@ -86,8 +91,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background:
-    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(90, 130, 180, 0.10), transparent 60%),
-    linear-gradient(180deg, rgba(9, 16, 30, 0.12) 0%, rgba(9, 20, 24, 0.07) 45%, rgba(10, 28, 22, 0.03) 100%),
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 123, 172, 0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255, 248, 243, 0.92) 0%, rgba(255, 246, 240, 0.88) 45%, rgba(255, 253, 251, 0.85) 100%),
     url('../assets/hero-pet-grass-bg.jpg') center 62% / cover no-repeat fixed;
 }
 @media (max-width: 768px) {
@@ -217,7 +222,7 @@ h1, h2, h3, h4, h5, h6 {
         .xhh-section {
           padding: 100px 0;
           position: relative;
-          background: rgba(9, 20, 28, 0.22);
+          background: rgba(255, 255, 255, 0.45);
           backdrop-filter: blur(5px);
           -webkit-backdrop-filter: blur(5px);
         }
@@ -239,6 +244,7 @@ h1, h2, h3, h4, h5, h6 {
           border: 1px solid rgba(245, 196, 81, 0.2);
           padding: 6px 14px;
           border-radius: var(--xhh-radius-sm);
+          box-shadow: 0 0 22px rgba(245, 196, 81, 0.12);
         }
         .xhh-section-title {
           font-size: clamp(32px, 4vw, 48px);
@@ -246,7 +252,7 @@ h1, h2, h3, h4, h5, h6 {
           line-height: 1.15;
           margin: 20px 0 12px;
           color: var(--xhh-foreground);
-          text-shadow: 0 2px 14px rgba(6, 12, 20, 0.75);
+          text-shadow: 0 1px 0 #fff, 0 0 30px rgba(245, 166, 35, 0.25);
         }
         .xhh-section-title .accent { color: var(--xhh-gold); }
         .xhh-section-sub {
@@ -254,7 +260,7 @@ h1, h2, h3, h4, h5, h6 {
           line-height: 1.7;
           color: var(--xhh-muted-foreground);
           max-width: 640px;
-          text-shadow: 0 1px 10px rgba(6, 12, 20, 0.7);
+          text-shadow: 0 1px 0 #fff, 0 0 24px rgba(255, 123, 172, 0.15);
         }
 
         /* ===== Buttons ===== */
@@ -271,12 +277,13 @@ h1, h2, h3, h4, h5, h6 {
           font-weight: 700;
           cursor: pointer;
           box-shadow: var(--xhh-shadow-glow);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          transition: transform var(--xhh-spring-dur) var(--xhh-spring), box-shadow 0.3s ease;
         }
         .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 0 50px rgba(245, 196, 81, 0.25);
+          box-shadow: var(--xhh-shadow-glow-strong);
         }
+        .btn-primary:active { transform: scale(0.96); }
         .btn-secondary {
           display: inline-flex;
           align-items: center;
@@ -289,20 +296,22 @@ h1, h2, h3, h4, h5, h6 {
           font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+          transition: transform var(--xhh-spring-dur) var(--xhh-spring), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
         .btn-secondary:hover {
           transform: translateY(-2px);
           background: rgba(245, 196, 81, 0.08);
           border-color: var(--xhh-gold);
+          box-shadow: 0 0 30px rgba(245, 196, 81, 0.15);
         }
+        .btn-secondary:active { transform: scale(0.96); }
 
         /* ===== Navigation ===== */
         .xhh-nav {
           position: fixed;
           top: 0; left: 0; right: 0;
           z-index: 100;
-          background: rgba(11, 20, 38, 0.72);
+          background: rgba(255, 255, 255, 0.72);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border-bottom: 1px solid transparent;
@@ -310,7 +319,7 @@ h1, h2, h3, h4, h5, h6 {
         }
         .xhh-nav.scrolled {
           border-bottom-color: var(--xhh-border);
-          background: rgba(11, 20, 38, 0.88);
+          background: rgba(255, 255, 255, 0.88);
         }
         .xhh-nav-inner {
           max-width: 1200px;
@@ -359,7 +368,7 @@ h1, h2, h3, h4, h5, h6 {
           background:
             radial-gradient(ellipse 600px 400px at 15% 25%, rgba(245, 196, 81, 0.10) 0%, transparent 60%),
             radial-gradient(ellipse 500px 500px at 85% 60%, rgba(245, 196, 81, 0.06) 0%, transparent 55%),
-            radial-gradient(ellipse 800px 600px at 50% 100%, rgba(24, 44, 74, 0.6) 0%, transparent 70%);
+            radial-gradient(ellipse 800px 600px at 50% 100%, rgba(255, 176, 32, 0.10) 0%, transparent 70%);
           pointer-events: none;
         }
         .xhh-star {
@@ -413,19 +422,19 @@ h1, h2, h3, h4, h5, h6 {
           border-radius: var(--xhh-radius-lg);
           overflow: hidden;
           box-shadow: var(--xhh-shadow-glow), 0 20px 60px -20px rgba(0,0,0,0.5);
-          border: 1px solid rgba(245, 196, 81, 0.15);
+          border: 1px solid rgba(245, 166, 35, 0.30);
         }
         .xhh-hero-img-wrap img {
           display: block;
         }
         .xhh-float-card {
           position: absolute;
-          background: rgba(19, 32, 58, 0.92);
-          backdrop-filter: blur(12px);
-          border: 1px solid var(--xhh-border);
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(18px) saturate(1.3);
+          border: 1px solid rgba(245, 166, 35, 0.35);
           border-radius: var(--xhh-radius-md);
           padding: 12px 16px;
-          box-shadow: var(--xhh-shadow-2);
+          box-shadow: var(--xhh-shadow-2), var(--xhh-shadow-glow);
         }
         .xhh-pet-info {
           top: 20px; left: 20px;
@@ -458,6 +467,7 @@ h1, h2, h3, h4, h5, h6 {
           font-weight: 800;
           color: var(--xhh-gold);
           font-variant-numeric: tabular-nums;
+          text-shadow: 0 0 16px rgba(245, 196, 81, 0.4), 0 0 40px rgba(245, 196, 81, 0.18);
         }
         .xhh-widget-label {
           font-size: 12px;
@@ -587,7 +597,7 @@ h1, h2, h3, h4, h5, h6 {
           border: 1px solid var(--xhh-border);
           border-radius: var(--xhh-radius-lg);
           padding: 28px;
-          box-shadow: var(--xhh-shadow-2);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--xhh-shadow-2);
         }
         .xhh-chat-bubble {
           max-width: 80%;
@@ -642,7 +652,7 @@ h1, h2, h3, h4, h5, h6 {
           border: 1px solid var(--xhh-border);
           border-radius: var(--xhh-radius-lg);
           padding: 28px;
-          box-shadow: var(--xhh-shadow-2);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--xhh-shadow-2);
         }
         .xhh-health-header {
           display: flex;
@@ -655,6 +665,7 @@ h1, h2, h3, h4, h5, h6 {
           font-weight: 800;
           color: var(--xhh-gold);
           font-variant-numeric: tabular-nums;
+          text-shadow: 0 0 16px rgba(245, 196, 81, 0.4), 0 0 40px rgba(245, 196, 81, 0.18);
         }
         .xhh-trend-bars {
           display: flex;
@@ -691,7 +702,7 @@ h1, h2, h3, h4, h5, h6 {
           border: 1px solid var(--xhh-border);
           border-radius: var(--xhh-radius-lg);
           padding: 28px;
-          box-shadow: var(--xhh-shadow-2);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--xhh-shadow-2);
         }
         .xhh-tl-item {
           display: flex;
@@ -733,7 +744,7 @@ h1, h2, h3, h4, h5, h6 {
           border: 1px solid var(--xhh-border);
           border-radius: var(--xhh-radius-lg);
           padding: 28px;
-          box-shadow: var(--xhh-shadow-2);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--xhh-shadow-2);
         }
         .xhh-family-cards {
           display: grid;
@@ -785,7 +796,7 @@ h1, h2, h3, h4, h5, h6 {
           border-radius: var(--xhh-radius-md);
           padding: 20px 16px;
           text-align: center;
-          transition: transform 0.2s ease, border-color 0.2s ease;
+          transition: transform var(--xhh-spring-dur) var(--xhh-spring), border-color 0.3s ease;
         }
         .xhh-name-card:hover {
           transform: translateY(-3px);
@@ -971,11 +982,11 @@ h1, h2, h3, h4, h5, h6 {
           border: 1px solid var(--xhh-border);
           border-radius: var(--xhh-radius-md);
           padding: 20px;
-          box-shadow: var(--xhh-shadow-2);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), var(--xhh-shadow-2);
         }
         .xhh-side-card .label { font-size: 13px; color: var(--xhh-muted-foreground); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .xhh-side-card .label i { width: 16px; height: 16px; color: var(--xhh-gold); }
-        .xhh-side-card .value { font-size: 28px; font-weight: 800; color: var(--xhh-gold); font-variant-numeric: tabular-nums; }
+        .xhh-side-card .value { font-size: 28px; font-weight: 800; color: var(--xhh-gold); font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(245, 196, 81, 0.4), 0 0 40px rgba(245, 196, 81, 0.18); }
         .xhh-side-card .sub { font-size: 12px; color: var(--xhh-muted-foreground); margin-top: 4px; }
 
         /* ===== Emotional Story ===== */
@@ -1030,7 +1041,7 @@ h1, h2, h3, h4, h5, h6 {
 
         /* ===== Pricing & Promo ===== */
         .xhh-pricing {
-          background: rgba(9, 20, 28, 0.26);
+          background: rgba(255, 255, 255, 0.55);
           backdrop-filter: blur(5px);
           -webkit-backdrop-filter: blur(5px);
           border-top: 1px solid var(--xhh-border);
@@ -1064,12 +1075,25 @@ h1, h2, h3, h4, h5, h6 {
           border-radius: var(--xhh-radius-lg);
           padding: 36px 32px;
           position: relative;
-          transition: transform 160ms cubic-bezier(.2,.8,.2,1), border-color 160ms;
+          transition: transform var(--xhh-spring-dur) var(--xhh-spring), border-color 0.3s ease, box-shadow 0.3s ease;
         }
-        .xhh-plan:hover { transform: translateY(-3px); border-color: var(--xhh-gold-deep); }
+        .xhh-plan:hover { transform: translateY(-4px); border-color: var(--xhh-gold-deep); box-shadow: var(--xhh-shadow-glow); }
         .xhh-plan-featured {
           border-color: var(--xhh-gold);
           background: linear-gradient(160deg, var(--xhh-card) 0%, rgba(245,196,81,0.06) 100%);
+          box-shadow: var(--xhh-shadow-glow);
+        }
+        /* 会员卡脉冲光晕环：仿鸿蒙"充电光晕"的扩散辉光（只动 box-shadow，GPU 友好） */
+        .xhh-plan-featured::before {
+          content: ''; position: absolute; inset: 0; border-radius: inherit;
+          box-shadow: 0 0 0 0 rgba(245, 196, 81, 0);
+          animation: xhh-ring-pulse 3.2s var(--xhh-spring) infinite;
+          pointer-events: none;
+        }
+        @keyframes xhh-ring-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.28); }
+          70% { box-shadow: 0 0 0 20px rgba(245, 166, 35, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0); }
         }
         .xhh-plan-badge {
           position: absolute;
@@ -1082,6 +1106,7 @@ h1, h2, h3, h4, h5, h6 {
           padding: 4px 16px;
           border-radius: var(--xhh-radius-sm);
           white-space: nowrap;
+          box-shadow: 0 0 18px rgba(245, 196, 81, 0.45);
         }
         .xhh-plan-name {
           font-size: 20px;
@@ -1101,6 +1126,7 @@ h1, h2, h3, h4, h5, h6 {
           color: var(--xhh-gold);
           font-variant-numeric: tabular-nums;
           line-height: 1;
+          text-shadow: 0 0 16px rgba(245, 196, 81, 0.4), 0 0 40px rgba(245, 196, 81, 0.18);
         }
         .xhh-plan-unit {
           font-size: 15px;
@@ -1195,6 +1221,7 @@ h1, h2, h3, h4, h5, h6 {
           padding: 6px 14px;
           border-radius: var(--xhh-radius-sm);
           white-space: nowrap;
+          box-shadow: 0 0 20px rgba(245, 196, 81, 0.35);
         }
 
         /* ===== Final CTA ===== */
@@ -1203,7 +1230,7 @@ h1, h2, h3, h4, h5, h6 {
           text-align: center;
           padding: 120px 0;
           overflow: hidden;
-          background: rgba(9, 20, 28, 0.22);
+          background: rgba(255, 255, 255, 0.45);
           backdrop-filter: blur(5px);
           -webkit-backdrop-filter: blur(5px);
         }
@@ -1246,7 +1273,7 @@ h1, h2, h3, h4, h5, h6 {
 
         /* ===== Footer ===== */
         .xhh-footer {
-          background: rgba(9, 20, 28, 0.3);
+          background: rgba(255, 255, 255, 0.6);
           backdrop-filter: blur(5px);
           -webkit-backdrop-filter: blur(5px);
           border-top: 1px solid var(--xhh-border);
@@ -1386,8 +1413,8 @@ h1, h2, h3, h4, h5, h6 {
         .xhh-trend-bar.animated { transform: scaleY(1); }
 
         /* 卡片悬浮效果 */
-        .xhh-feature-row > div > div, .xhh-plan, .xhh-side-card, .xhh-name-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .xhh-plan:hover, .xhh-side-card:hover, .xhh-name-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px -12px rgba(245,196,81,0.15); }
+        .xhh-feature-row > div > div, .xhh-plan, .xhh-side-card, .xhh-name-card { transition: transform var(--xhh-spring-dur) var(--xhh-spring), box-shadow 0.3s ease, border-color 0.3s ease; }
+        .xhh-plan:hover, .xhh-side-card:hover, .xhh-name-card:hover { transform: translateY(-6px); box-shadow: var(--xhh-shadow-glow-strong); }
 
         /* 按钮波纹 */
         .btn-primary, .btn-secondary, .xhh-plan-btn { position: relative; overflow: hidden; }
@@ -1413,9 +1440,9 @@ h1, h2, h3, h4, h5, h6 {
         .xhh-chat-option:hover { background: var(--xhh-gold); color: var(--xhh-background); border-color: var(--xhh-gold); }
 
         /* 返回顶部 */
-        .xhh-back-top { position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; border-radius: 50%; background: var(--xhh-gold); color: var(--xhh-background); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; z-index: 98; box-shadow: 0 4px 20px rgba(245,196,81,0.3); }
+        .xhh-back-top { position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; border-radius: 50%; background: var(--xhh-gold); color: var(--xhh-background); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform var(--xhh-spring-dur) var(--xhh-spring); z-index: 98; box-shadow: var(--xhh-shadow-glow); }
         .xhh-back-top.show { opacity: 1; pointer-events: auto; }
-        .xhh-back-top:hover { transform: scale(1.1); }
+        .xhh-back-top:hover { transform: scale(1.12); box-shadow: var(--xhh-shadow-glow-strong); }
 
         /* 响应式 */
         @media (max-width: 768px) {
@@ -1442,7 +1469,7 @@ h1, h2, h3, h4, h5, h6 {
         /* ===== 极光流动光晕 ===== */
         .xhh-aurora { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.15; pointer-events: none; z-index: 0; }
         .xhh-aurora-1 { width: 500px; height: 500px; background: radial-gradient(circle, #F5C451, transparent 70%); top: -100px; left: -100px; animation: xhh-aurora-move-1 20s ease-in-out infinite; }
-        .xhh-aurora-2 { width: 600px; height: 600px; background: radial-gradient(circle, #4A6FA5, transparent 70%); top: 30%; right: -200px; animation: xhh-aurora-move-2 25s ease-in-out infinite; }
+        .xhh-aurora-2 { width: 600px; height: 600px; background: radial-gradient(circle, #FF7BAC, transparent 70%); top: 30%; right: -200px; animation: xhh-aurora-move-2 25s ease-in-out infinite; }
         .xhh-aurora-3 { width: 400px; height: 400px; background: radial-gradient(circle, #F5C451, transparent 70%); bottom: 10%; left: 20%; animation: xhh-aurora-move-3 18s ease-in-out infinite; opacity: 0.1; }
         @keyframes xhh-aurora-move-1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(100px,80px) scale(1.15); } 66% { transform: translate(-50px,120px) scale(0.9); } }
         @keyframes xhh-aurora-move-2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-120px,-60px) scale(1.2); } }
@@ -1450,12 +1477,12 @@ h1, h2, h3, h4, h5, h6 {
 
         /* ===== 流星 ===== */
         .xhh-meteor {
-          position: fixed; width: 2px; height: 2px; background: #fff; border-radius: 50%;
-          box-shadow: 0 0 6px 2px rgba(255,255,255,0.5); pointer-events: none; z-index: 0; opacity: 0;
+          position: fixed; width: 2px; height: 2px; background: #F5A623; border-radius: 50%;
+          box-shadow: 0 0 6px 2px rgba(245, 166, 35, 0.45); pointer-events: none; z-index: 0; opacity: 0;
         }
         .xhh-meteor::after {
           content: ''; position: absolute; top: 0; left: 0; width: 80px; height: 1px;
-          background: linear-gradient(90deg, rgba(255,255,255,0.6), transparent);
+          background: linear-gradient(90deg, rgba(245, 166, 35, 0.55), transparent);
           transform-origin: left center; transform: rotate(45deg) translateX(0);
         }
         @keyframes xhh-meteor-fly {
@@ -1475,12 +1502,14 @@ h1, h2, h3, h4, h5, h6 {
           background-size: 200% 200%;
           -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
           animation: xhh-brand-shimmer 4s ease-in-out infinite;
+          /* 沉浸光感：品牌名整体辉光 */
+          filter: drop-shadow(0 0 26px rgba(245, 196, 81, 0.35)) drop-shadow(0 0 70px rgba(245, 196, 81, 0.18));
         }
         @keyframes xhh-brand-shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
         /* ===== 按钮脉冲发光 ===== */
         .btn-primary { animation: xhh-btn-pulse 3s ease-in-out infinite; }
-        @keyframes xhh-btn-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,196,81,0.3); } 50% { box-shadow: 0 0 20px 4px rgba(245,196,81,0.15); } }
+        @keyframes xhh-btn-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.3); } 50% { box-shadow: 0 0 20px 4px rgba(245,166,35,0.15); } }
 
         /* ===== 视差容器 ===== */
         .xhh-parallax { will-change: transform; transition: transform 0.1s linear; }
@@ -1495,7 +1524,7 @@ h1, h2, h3, h4, h5, h6 {
         @keyframes xhh-orbit-rotate { 0% { transform: translate(-50%,-50%) rotate(0deg); } 100% { transform: translate(-50%,-50%) rotate(360deg); } }
         .xhh-orbit-dot {
           position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--xhh-gold);
-          box-shadow: 0 0 10px rgba(245,196,81,0.6); top: -4px; left: 50%; margin-left: -4px;
+          box-shadow: 0 0 10px rgba(245, 166, 35, 0.6); top: -4px; left: 50%; margin-left: -4px;
         }
 
         /* ===== 波浪分隔线 ===== */
@@ -1559,8 +1588,8 @@ h1, h2, h3, h4, h5, h6 {
           z-index: 4;
         }
         @keyframes xhh-hero-glow {
-          0%, 100% { box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.18), 0 0 0 0 rgba(245, 196, 81, 0); }
-          50% { box-shadow: inset 0 0 0 1px rgba(245, 196, 81, 0.4), 0 0 32px 3px rgba(245, 196, 81, 0.22); }
+          0%, 100% { box-shadow: inset 0 0 0 1px rgba(245, 166, 35, 0.18), 0 0 0 0 rgba(245, 166, 35, 0); }
+          50% { box-shadow: inset 0 0 0 1px rgba(245, 166, 35, 0.4), 0 0 32px 3px rgba(245, 166, 35, 0.22); }
         }
         @keyframes xhh-sheen {
           0% { transform: translateX(-130%); }
@@ -1578,8 +1607,8 @@ h1, h2, h3, h4, h5, h6 {
           border-radius: var(--xhh-radius-lg);
           overflow: hidden;
           border: 1px solid rgba(245, 196, 81, 0.18);
-          box-shadow: inset 0 0 90px rgba(245, 196, 81, 0.05), 0 24px 60px -24px rgba(0, 0, 0, 0.55);
-          background: #0B1426;
+          box-shadow: inset 0 0 90px rgba(245, 166, 35, 0.06), 0 24px 60px -24px rgba(74, 46, 59, 0.25);
+          background: #FFF0F5;
           touch-action: none;
           cursor: default;
           user-select: none;
@@ -1613,8 +1642,8 @@ h1, h2, h3, h4, h5, h6 {
           transform: translateX(-50%);
           z-index: 8;
           font-size: 13px;
-          color: rgba(248, 214, 128, 0.95);
-          background: rgba(19, 32, 58, 0.62);
+          color: #A06A10;
+          background: rgba(255, 255, 255, 0.85);
           padding: 7px 16px;
           border-radius: 999px;
           border: 1px solid rgba(245, 196, 81, 0.22);
@@ -1628,8 +1657,8 @@ h1, h2, h3, h4, h5, h6 {
           z-index: 8;
           width: 38px; height: 38px;
           border-radius: 50%;
-          border: 1px solid rgba(245, 196, 81, 0.25);
-          background: rgba(19, 32, 58, 0.65);
+          border: 1px solid rgba(245, 166, 35, 0.35);
+          background: rgba(255, 255, 255, 0.85);
           color: var(--xhh-gold);
           display: flex; align-items: center; justify-content: center;
           cursor: pointer;
@@ -2429,7 +2458,7 @@ h1, h2, h3, h4, h5, h6 {
                 twinklePhase: Math.random() * Math.PI * 2,
                 vx: (Math.random() - 0.5) * 0.05,
                 vy: (Math.random() - 0.5) * 0.05,
-                color: Math.random() > 0.7 ? '245,196,81' : '237,241,248'
+                color: Math.random() > 0.5 ? '245,166,35' : '255,123,172'
               });
             }
           }
