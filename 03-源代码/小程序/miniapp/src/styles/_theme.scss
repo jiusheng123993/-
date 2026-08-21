@@ -41,13 +41,13 @@ $radius-xl: 72rpx;
 $radius-round: 999rpx;
 $radius-full: 999rpx;
 
-// —— 阴影（Q版软萌立体，对齐设计稿） ——
+// —— 阴影（Q版软萌立体，对齐设计稿；沉浸光感：基础阴影自带一层主色柔光，全项目卡片/按钮统一受益） ——
 $shadow-xs: 0 2rpx 8rpx rgba(61, 33, 18, 0.05);
 $shadow-sm: 0 8rpx 40rpx -24rpx rgba(240, 78, 29, 0.18);
 $shadow-md: 0 16rpx 56rpx -28rpx rgba(61, 33, 18, 0.2);
 $shadow-lg: 0 24rpx 80rpx -32rpx rgba(61, 33, 18, 0.28);
-$shadow-card: 0 8rpx 40rpx -12rpx rgba(61, 33, 18, 0.08);
-$shadow-button: 0 12rpx 36rpx -8rpx rgba(255, 107, 61, 0.35);
+$shadow-card: 0 8rpx 40rpx -12rpx rgba(61, 33, 18, 0.08), 0 0 24rpx rgba(var(--primary-rgb, 255, 107, 61), 0.08), 0 0 60rpx rgba(255, 176, 32, 0.05);
+$shadow-button: 0 12rpx 36rpx -8rpx rgba(255, 107, 61, 0.35), 0 0 26rpx rgba(var(--primary-rgb, 255, 107, 61), 0.30), 0 0 70rpx rgba(255, 176, 32, 0.16);
 
 // —— 过渡 ——
 $transition-fast: 0.15s ease;
@@ -105,6 +105,16 @@ page {
   --gradient-card: linear-gradient(135deg, rgba(255, 107, 61, 0.06), rgba(255, 176, 32, 0.03));
   --gradient-gold: linear-gradient(135deg, #FF6B3D, #FFB020);
   --gradient-warm: linear-gradient(135deg, #FF6B3D, #FFA082, #FFD068);
+
+  /* —— 沉浸光感（WXSS 降级版）：多层阴影辉光 + 弹簧曲线；WXSS 无 backdrop-filter，玻璃用半透明实色 —— */
+  --gold-rgb: 255, 176, 32;
+  --glow-sm: 0 0 16rpx rgba(var(--primary-rgb), 0.20), 0 0 44rpx rgba(var(--primary-rgb), 0.10);
+  --glow-md: 0 0 24rpx rgba(var(--primary-rgb), 0.28), 0 0 70rpx rgba(var(--primary-rgb), 0.15), 0 0 120rpx rgba(var(--gold-rgb), 0.12);
+  --glow-strong: 0 0 30rpx rgba(var(--primary-rgb), 0.36), 0 0 90rpx rgba(var(--primary-rgb), 0.20), 0 0 150rpx rgba(var(--gold-rgb), 0.16);
+  --spring-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-dur: 0.5s;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.92);
 }
 
 // app-root 同样设置默认主题变量
@@ -155,6 +165,16 @@ page {
   --gradient-card: linear-gradient(135deg, rgba(255, 107, 61, 0.06), rgba(255, 176, 32, 0.03));
   --gradient-gold: linear-gradient(135deg, #FF6B3D, #FFB020);
   --gradient-warm: linear-gradient(135deg, #FF6B3D, #FFA082, #FFD068);
+
+  /* —— 沉浸光感（WXSS 降级版）：多层阴影辉光 + 弹簧曲线；WXSS 无 backdrop-filter，玻璃用半透明实色 —— */
+  --gold-rgb: 255, 176, 32;
+  --glow-sm: 0 0 16rpx rgba(var(--primary-rgb), 0.20), 0 0 44rpx rgba(var(--primary-rgb), 0.10);
+  --glow-md: 0 0 24rpx rgba(var(--primary-rgb), 0.28), 0 0 70rpx rgba(var(--primary-rgb), 0.15), 0 0 120rpx rgba(var(--gold-rgb), 0.12);
+  --glow-strong: 0 0 30rpx rgba(var(--primary-rgb), 0.36), 0 0 90rpx rgba(var(--primary-rgb), 0.20), 0 0 150rpx rgba(var(--gold-rgb), 0.16);
+  --spring-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-dur: 0.5s;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.92);
 }
 
 // ============================================
@@ -199,6 +219,15 @@ $gradient-card: var(--gradient-card, linear-gradient(135deg, rgba(255, 107, 61, 
 $gradient-gold: var(--gradient-gold, linear-gradient(135deg, #FF6B3D, #FFB020));
 $gradient-warm: var(--gradient-warm, linear-gradient(135deg, #FF6B3D, #FFA082, #FFD068));
 
+// —— 沉浸光感（WXSS 降级版）——
+$glow-sm: var(--glow-sm, 0 0 16rpx rgba(var(--primary-rgb, 255, 107, 61), 0.20), 0 0 44rpx rgba(var(--primary-rgb, 255, 107, 61), 0.10));
+$glow-md: var(--glow-md, 0 0 24rpx rgba(var(--primary-rgb, 255, 107, 61), 0.28), 0 0 70rpx rgba(var(--primary-rgb, 255, 107, 61), 0.15), 0 0 120rpx rgba(255, 176, 32, 0.12));
+$glow-strong: var(--glow-strong, 0 0 30rpx rgba(var(--primary-rgb, 255, 107, 61), 0.36), 0 0 90rpx rgba(var(--primary-rgb, 255, 107, 61), 0.20), 0 0 150rpx rgba(255, 176, 32, 0.16));
+$spring-curve: var(--spring-curve, cubic-bezier(0.34, 1.56, 0.64, 1));
+$spring-dur: var(--spring-dur, 0.5s);
+$glass-bg: var(--glass-bg, rgba(255, 255, 255, 0.72));
+$glass-border: var(--glass-border, rgba(255, 255, 255, 0.92));
+
 // ============================================
 // 春·嫩芽绿 Spring Dew
 // 主色：清新嫩芽绿 · 迎春花黄 · 奶油嫩白
@@ -216,6 +245,7 @@ $gradient-warm: var(--gradient-warm, linear-gradient(135deg, #FF6B3D, #FFA082, #
   --warning: #FFC94D;
   --warning-rgb: 255, 201, 77;
   --gold: #FFC94D;
+  --gold-rgb: 255, 201, 77; /* 沉浸光感辉光用，跟随本主题金色 */
   --gold-soft: #FFE08F;
   --gold-deep: #E8A81C;
   --gold-bg: #FFF8DC;
@@ -265,6 +295,7 @@ $gradient-warm: var(--gradient-warm, linear-gradient(135deg, #FF6B3D, #FFA082, #
   --warning: #FFB84D;
   --warning-rgb: 255, 184, 77;
   --gold: #FFB84D;
+  --gold-rgb: 255, 184, 77; /* 沉浸光感辉光用，跟随本主题金色 */
   --gold-soft: #FFD98F;
   --gold-deep: #E8931C;
   --gold-bg: #FFF3DC;
@@ -343,6 +374,16 @@ $gradient-warm: var(--gradient-warm, linear-gradient(135deg, #FF6B3D, #FFA082, #
   --gradient-card: linear-gradient(135deg, rgba(255, 107, 61, 0.06), rgba(255, 176, 32, 0.03));
   --gradient-gold: linear-gradient(135deg, #FF6B3D, #FFB020);
   --gradient-warm: linear-gradient(135deg, #FF6B3D, #FFA082, #FFD068);
+
+  /* —— 沉浸光感（WXSS 降级版）：多层阴影辉光 + 弹簧曲线；WXSS 无 backdrop-filter，玻璃用半透明实色 —— */
+  --gold-rgb: 255, 176, 32;
+  --glow-sm: 0 0 16rpx rgba(var(--primary-rgb), 0.20), 0 0 44rpx rgba(var(--primary-rgb), 0.10);
+  --glow-md: 0 0 24rpx rgba(var(--primary-rgb), 0.28), 0 0 70rpx rgba(var(--primary-rgb), 0.15), 0 0 120rpx rgba(var(--gold-rgb), 0.12);
+  --glow-strong: 0 0 30rpx rgba(var(--primary-rgb), 0.36), 0 0 90rpx rgba(var(--primary-rgb), 0.20), 0 0 150rpx rgba(var(--gold-rgb), 0.16);
+  --spring-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-dur: 0.5s;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.92);
 }
 
 // ============================================
@@ -362,6 +403,7 @@ $gradient-warm: var(--gradient-warm, linear-gradient(135deg, #FF6B3D, #FFA082, #
   --warning: #8FA8E8;
   --warning-rgb: 143, 168, 232;
   --gold: #8FA8E8;
+  --gold-rgb: 143, 168, 232; /* 沉浸光感辉光用，跟随本主题金色 */
   --gold-soft: #B8C7F2;
   --gold-deep: #6A82CE;
   --gold-bg: #EDF1FA;
@@ -445,4 +487,20 @@ $gradient-warm: var(--gradient-warm, linear-gradient(135deg, #FF6B3D, #FFA082, #
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+// 弹簧按压反馈：过冲曲线（可被打断、带回弹），替代默认线性缩放
+@mixin spring-feedback {
+  transition: transform $spring-dur $spring-curve, box-shadow 0.3s ease;
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// 光晕卡片：白玻璃底 + 主色辉光（WXSS 降级版毛玻璃 = 半透明实色 + 细描边）
+@mixin glow-card {
+  background: $glass-bg;
+  border: 1px solid $glass-border;
+  border-radius: $radius-md;
+  box-shadow: $glow-sm;
 }

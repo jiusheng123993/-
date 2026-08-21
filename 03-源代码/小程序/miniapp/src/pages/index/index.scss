@@ -1556,7 +1556,7 @@
   background: $color-bg-card;
   border-radius: $radius-lg;
   border: 1rpx solid $color-border;
-  box-shadow: $shadow-card;
+  box-shadow: $shadow-card, $glow-sm;
   padding: 28rpx 32rpx;
   margin-bottom: 20rpx;
   @include press-feedback;
@@ -1580,7 +1580,7 @@
   justify-content: center;
   font-size: 56rpx;
   flex-shrink: 0;
-  box-shadow: 0 0 24rpx rgba($color-primary, 0.3);
+  box-shadow: 0 0 24rpx rgba($color-primary, 0.3), 0 0 60rpx rgba($color-primary, 0.18), 0 0 110rpx rgba($color-gold, 0.12);
 }
 
 .home-summary-info {
@@ -1613,6 +1613,8 @@
 
   &--coral {
     color: $color-primary;
+    // 沉浸光感：暖色统计数字辉光
+    text-shadow: 0 0 12rpx rgba(var(--primary-rgb), 0.35), 0 0 34rpx rgba(255, 176, 32, 0.18);
   }
 
   &--success {
@@ -1676,13 +1678,25 @@
   border-radius: $radius-lg;
   padding: 28rpx 32rpx;
   margin-bottom: 28rpx;
-  box-shadow: $shadow-button;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  position: relative;
+  box-shadow: $shadow-button, 0 0 30rpx rgba($color-primary, 0.35), 0 0 80rpx rgba($color-gold, 0.2);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, box-shadow 0.3s ease;
 
   &--hover {
     transform: scale(0.97);
     opacity: 0.92;
   }
+}
+
+// 扩散光晕环（仿鸿蒙"充电光晕"脉冲）：渐变主按钮自带呼吸辉光
+.home-checkin-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  animation: xhh-pulse-ring 3.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  pointer-events: none;
 }
 
 .home-checkin-cta-left {
@@ -1758,9 +1772,9 @@
   background: $color-bg-card;
   border-radius: $radius-lg;
   border: 1rpx solid $color-border;
-  box-shadow: $shadow-card;
+  box-shadow: $shadow-card, $glow-sm;
   padding: 24rpx;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
   @include press-feedback;
 
   &--hover {

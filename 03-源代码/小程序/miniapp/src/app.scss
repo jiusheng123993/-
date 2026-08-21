@@ -164,7 +164,8 @@ cover-view {
 // 通用按压反馈
 // =============================================
 .xhh-tap {
-  transition: transform 0.14s ease, opacity 0.14s ease;
+  // 沉浸光感：全局按压反馈换弹簧曲线（可打断、带回弹），比线性缩放更"活"
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.14s ease;
 }
 
 .xhh-tap:active {
@@ -184,6 +185,50 @@ cover-view {
 .xhh-revealed {
   opacity: 1;
   transform: translateY(0);
+}
+
+// ============================================
+// 沉浸光感（WXSS 降级版）通用工具类
+// WXSS 不支持 backdrop-filter：玻璃 = 半透明实色 + 细描边；
+// 光晕 = 多层 box-shadow；弹簧 = cubic-bezier 过冲；只动 transform/opacity，GPU 友好
+// ============================================
+
+// 光晕卡片（用法：<View className="xhh-glow-card">）
+.xhh-glow-card {
+  background: $glass-bg;
+  border: 1px solid $glass-border;
+  border-radius: $radius-md;
+  box-shadow: $glow-sm;
+}
+
+// 数字/标题辉光（用法：大数字、统计值加此类）
+.xhh-glow-text {
+  text-shadow: 0 0 14rpx rgba(var(--primary-rgb), 0.4), 0 0 40rpx rgba(var(--gold-rgb, 255, 176, 32), 0.2);
+}
+
+// 弹簧按压反馈（替代 .xhh-tap 的线性缩放）
+.xhh-spring {
+  transition: transform $spring-dur $spring-curve, box-shadow 0.3s ease;
+}
+
+.xhh-spring:active {
+  transform: scale(0.95);
+}
+
+// 扩散光晕环（仿鸿蒙"充电光晕"脉冲）：宿主需 position: relative，环作为子元素铺满
+.xhh-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  animation: xhh-pulse-ring 3.2s $spring-curve infinite;
+  pointer-events: none;
+}
+
+@keyframes xhh-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.35); }
+  70% { box-shadow: 0 0 0 24rpx rgba(var(--primary-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
 }
 
 // ============================================
