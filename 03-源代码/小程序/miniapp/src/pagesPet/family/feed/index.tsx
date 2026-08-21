@@ -3,8 +3,10 @@ import { View, Text, ScrollView, Image, Textarea, Button } from '@tarojs/compone
 import Taro from '@tarojs/taro'
 import { useFamilyStore } from '../../../stores/familyStore'
 import { usePetStore } from '../../../stores/petStore'
+import { useAuthStore } from '../../../stores/authStore'
 import { feedService, type FeedType, type FeedWithPet } from '../../../services/feedService'
 import { useThemeClass } from '../../../hooks/useThemeClass'
+import SpeciesAvatar from '../lineage/SpeciesAvatar'
 import './index.scss'
 
 const FEED_TYPE_LABELS: Record<FeedType, string> = {
@@ -18,7 +20,8 @@ const PAGE_SIZE = 10
 
 export default function FamilyFeed() {
   const { currentFamily } = useFamilyStore()
-  const { pets } = usePetStore()
+  const { pets, fetchPets } = usePetStore()
+  const user = useAuthStore(s => s.user)
   const themeClass = useThemeClass()
 
   const [feeds, setFeeds] = useState<FeedWithPet[]>([])
@@ -35,6 +38,13 @@ export default function FamilyFeed() {
   const [publishing, setPublishing] = useState(false)
 
   const familyId = currentFamily?.id
+
+  // 冷启动（分享链接直达等场景）补拉一次宠物列表，保证按 pet_id 匹配头像不落空
+  useEffect(() => {
+    if (user?.id) {
+      fetchPets(user.id).catch(() => {})
+    }
+  }, [user?.id])
 
   const loadFeeds = useCallback(async (pageNum: number, isRefresh: boolean) => {
     if (!familyId) return
@@ -138,10 +148,29 @@ export default function FamilyFeed() {
 
       <ScrollView className='feed-list' scrollY refresherEnabled refresherTriggered={refreshing}
         onRefresherRefresh={handleRefresh} onScrollToLower={handleLoadMore}>
-        {feeds.map(feed => (
+        {feeds.map(feed => {
+          // 按 pet_id 匹配家庭宠物档案；动态自带宠物照片优先（跨用户动态也能显示）
+          const feedPet = feed.pet_id ? pets.find(p => p.id === feed.pet_id) : undefined
+          // 孤儿 pet_id（宠物已删但动态还在）：按动态类型区分——家庭事件用 🏡，其余用 🐾
+          const isFamilyEvent = feed.feed_type === 'family_event'
+          const showHomeIcon = !feed.pet_id && isFamilyEvent
+          return (
           <View key={feed.id} className='feed-card' onLongPress={() => handleDelete(feed.id)}>
             <View className='feed-card-header'>
-              <View className='feed-card-avatar'><Text>{feed.pet_name ? '🐾' : '🏡'}</Text></View>
+              <View className='feed-card-avatar'>
+                {feedPet ? (
+                  <SpeciesAvatar
+                    pet={feedPet}
+                    imgClass='feed-card-avatar-img'
+                    emojiClass='feed-card-avatar-emoji'
+                  />
+                ) : feed.pet_avatar_url ? (
+                  // 动态自带宠物照片（如其他家庭成员发布的动态）
+                  <Image src={feed.pet_avatar_url} className='feed-card-avatar-img' mode='aspectFill' lazyLoad />
+                ) : (
+                  <Text className='feed-card-avatar-emoji'>{showHomeIcon ? '🏡' : '🐾'}</Text>
+                )}
+              </View>
               <View className='feed-card-petinfo'>
                 <Text className='feed-card-petname'>{feed.pet_name || '家庭'}</Text>
                 <View className='feed-card-type' style={{ backgroundColor: FEED_TYPE_COLORS[feed.feed_type] }}>
@@ -157,7 +186,8 @@ export default function FamilyFeed() {
             )}
             <Text className='feed-card-time'>{feed.created_at.slice(0, 16).replace('T', ' ')}</Text>
           </View>
-        ))}
+          )
+        })}
         {loadingMore && <View className='feed-loading'><Text>加载中...</Text></View>}
         {!hasMore && feeds.length > 0 && <View className='feed-end'><Text>— 没有更多了 —</Text></View>}
         <View className='feed-bottom-safe' />

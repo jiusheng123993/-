@@ -134,6 +134,20 @@
   font-size: 28rpx;
   flex-shrink: 0;
   border: 2rpx solid $color-border;
+  overflow: hidden;
+}
+
+/* 家庭动态里的小动物头像图片：铺满圆形容器 */
+.feed-card-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-full;
+}
+
+/* 家庭动态里加载失败/无宠物时的回退 emoji */
+.feed-card-avatar-emoji {
+  font-size: 28rpx;
+  line-height: 1;
 }
 
 .feed-card-petinfo {

@@ -2,7 +2,7 @@
  * 家庭页面
  * 家庭头部 + 成员横滑 + 今日健康摘要 + 家族图谱 + 家庭日历 + 家庭周报 + 家庭动态预览
  */
-import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { usePetStore } from '../../stores/petStore'
@@ -17,6 +17,7 @@ import type { PetMoment } from '../../types/familyTypes'
 import type { PetHealthEntry } from '../../services/checkinService'
 import { usePolling } from '../../hooks/usePolling'
 import { calculateHealthScore } from './utils'
+import FamilyPetAvatar from './FamilyPetAvatar'
 import './index.scss'
 
 /** 食欲等级文案（1-6） */
@@ -482,11 +483,11 @@ export default function FamilyPage() {
                 >
                   <View className='family-member-card__avatar-wrap'>
                     <View className='family-member-card__avatar' style={{ borderColor }}>
-                      {pet.avatarPhotoUrl ? (
-                        <Image src={pet.avatarPhotoUrl} className='family-member-card__avatar-img' mode='aspectFill' />
-                      ) : (
-                        <Text className='family-member-card__avatar-emoji'>🐾</Text>
-                      )}
+                      <FamilyPetAvatar
+                        pet={pet}
+                        imgClass='family-member-card__avatar-img'
+                        emojiClass='family-member-card__avatar-emoji'
+                      />
                     </View>
                     <View className={`family-member-card__dot${checked ? ' family-member-card__dot--on' : ''}`} />
                   </View>
@@ -525,11 +526,11 @@ export default function FamilyPage() {
                 return (
                   <View key={pet.id} className='family-summary__row'>
                     <View className='family-summary__avatar'>
-                      {pet.avatarPhotoUrl ? (
-                        <Image src={pet.avatarPhotoUrl} className='family-summary__avatar-img' mode='aspectFill' />
-                      ) : (
-                        <Text className='family-summary__avatar-emoji'>🐾</Text>
-                      )}
+                      <FamilyPetAvatar
+                        pet={pet}
+                        imgClass='family-summary__avatar-img'
+                        emojiClass='family-summary__avatar-emoji'
+                      />
                     </View>
                     <Text className='family-summary__name'>{pet.name}</Text>
                     <View className='family-summary__chip family-summary__chip--uncheck'>
@@ -541,11 +542,11 @@ export default function FamilyPage() {
               return (
                 <View key={pet.id} className='family-summary__row'>
                   <View className='family-summary__avatar'>
-                    {pet.avatarPhotoUrl ? (
-                      <Image src={pet.avatarPhotoUrl} className='family-summary__avatar-img' mode='aspectFill' />
-                    ) : (
-                      <Text className='family-summary__avatar-emoji'>🐾</Text>
-                    )}
+                    <FamilyPetAvatar
+                      pet={pet}
+                      imgClass='family-summary__avatar-img'
+                      emojiClass='family-summary__avatar-emoji'
+                    />
                   </View>
                   <Text className='family-summary__name'>{pet.name}</Text>
                   <View className='family-summary__chips'>
@@ -590,11 +591,11 @@ export default function FamilyPage() {
                   className='family-graph__avatar'
                   style={{ borderColor: index % 3 === 0 ? '#FF6B3D' : index % 3 === 1 ? '#FFB020' : '#8B6E58' }}
                 >
-                  {pet.avatarPhotoUrl ? (
-                    <Image src={pet.avatarPhotoUrl} className='family-graph__avatar-img' mode='aspectFill' />
-                  ) : (
-                    <Text className='family-graph__avatar-emoji'>🐾</Text>
-                  )}
+                  <FamilyPetAvatar
+                    pet={pet}
+                    imgClass='family-graph__avatar-img'
+                    emojiClass='family-graph__avatar-emoji'
+                  />
                 </View>
                 <Text className='family-graph__name'>{pet.name}</Text>
               </View>

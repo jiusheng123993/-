@@ -18,7 +18,8 @@ import { useFamilyStore } from '../../../stores/familyStore'
 import { familyService } from '../../../services/familyService'
 import { useThemeClass } from '../../../hooks/useThemeClass'
 import type { PetProfile } from '../../../services/petService'
-import type { LineageResponse, LineageChild, LineageMate, FamilyOverviewResponse, OverviewMember, OverviewLineage, OverviewRelationship } from '../../../types/familyTypes'
+import type { LineageResponse, LineageChild, LineageMate, FamilyOverviewResponse, OverviewMember, OverviewRelationship } from '../../../types/familyTypes'
+import SpeciesAvatar from './SpeciesAvatar'
 import './index.scss'
 
 const RELATION_LABELS: Record<string, string> = {
@@ -41,21 +42,6 @@ function getSiblingLabel(selfGender: string | undefined, siblingGender: string |
   if (selfGender === 'male' && siblingGender === 'female') return '兄妹'
   if (selfGender === 'female' && siblingGender === 'male') return '姐弟'
   return '兄弟姐妹'
-}
-
-const SPECIES_EMOJI: Record<string, string> = {
-  cat: '🐱',
-  dog: '🐕',
-  bird: '🐦',
-  fish: '🐟',
-  rabbit: '🐰',
-  hamster: '🐹',
-  turtle: '🐢',
-  other: '🐾',
-}
-
-function getSpeciesEmoji(species?: string): string {
-  return SPECIES_EMOJI[species || ''] || '🐾'
 }
 
 function calcAge(birthDate?: string): string {
@@ -455,7 +441,11 @@ export default function LineagePage() {
         </View>
         <View className='lineage-card-body'>
           <View className='lineage-card-avatar'>
-            <Text className='lineage-card-emoji'>{getSpeciesEmoji(pet.species)}</Text>
+            <SpeciesAvatar
+              pet={pet}
+              imgClass='lineage-card-avatar-img'
+              emojiClass='lineage-card-emoji'
+            />
           </View>
           <View className='lineage-card-info'>
             <View className='lineage-card-name-row'>
@@ -562,7 +552,11 @@ export default function LineagePage() {
                 className={`lineage-selector-item ${pet.id === selectedPetId ? 'lineage-selector-item--active' : ''}`}
                 onClick={() => handleSelectPet(pet.id)}
               >
-                <Text className='lineage-selector-emoji'>{getSpeciesEmoji(pet.species)}</Text>
+                <SpeciesAvatar
+                  pet={pet}
+                  imgClass='lineage-selector-avatar-img'
+                  emojiClass='lineage-selector-emoji'
+                />
                 <Text className='lineage-selector-name'>{pet.name}</Text>
                 {pet.id === selectedPetId && <Text className='lineage-selector-check'>✓</Text>}
               </View>
@@ -743,7 +737,6 @@ export default function LineagePage() {
                       level.map((petId, idx) => {
                         const m = memberMap.get(petId)
                         if (!m) return null
-                        const emoji = m.species === 'cat' ? '🐱' : m.species === 'dog' ? '🐕' : '🐾'
                         const genderIcon = m.gender === 'male' ? '♂' : m.gender === 'female' ? '♀' : ''
                         const genderClass = m.gender === 'male' ? 'male' : m.gender === 'female' ? 'female' : ''
                         // 横向位置取布局计算出的节点中心（回退到按序排列，避免 undefined 导致布局崩坏）
@@ -763,7 +756,11 @@ export default function LineagePage() {
                             }}
                           >
                             <View className='graph-node-avatar'>
-                              <Text className='graph-node-emoji'>{emoji}</Text>
+                              <SpeciesAvatar
+                                pet={m}
+                                imgClass='graph-node-avatar-img'
+                                emojiClass='graph-node-emoji'
+                              />
                             </View>
                             <Text className='graph-node-name'>{m.name || '未命名'}</Text>
                             <View className='graph-node-tags'>
@@ -1066,7 +1063,11 @@ export default function LineagePage() {
                     <View className='lineage-self-glow' />
                     <View className='lineage-self-body'>
                       <View className='lineage-self-avatar'>
-                        <Text className='lineage-self-emoji'>{getSpeciesEmoji(selectedPet.species)}</Text>
+                        <SpeciesAvatar
+                          pet={selectedPet}
+                          imgClass='lineage-self-avatar-img'
+                          emojiClass='lineage-self-emoji'
+                        />
                       </View>
                       <View className='lineage-self-info'>
                         <View className='lineage-self-name-row'>
@@ -1202,7 +1203,11 @@ export default function LineagePage() {
                   className='lineage-available-item'
                   onClick={() => handleConfirmRelation(pet.id)}
                 >
-                  <Text className='lineage-available-emoji'>{getSpeciesEmoji(pet.species)}</Text>
+                  <SpeciesAvatar
+                    pet={pet}
+                    imgClass='lineage-available-avatar-img'
+                    emojiClass='lineage-available-emoji'
+                  />
                   <View className='lineage-available-info'>
                     <Text className='lineage-available-name'>{pet.name}</Text>
                     <Text className='lineage-available-breed'>{pet.breed || '未知品种'}</Text>

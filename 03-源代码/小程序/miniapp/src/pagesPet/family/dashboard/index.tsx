@@ -22,6 +22,7 @@ import {
 import type { FamilyPhotoStyle } from '../../../services/familyPhotoService'
 import type { PetProfile } from '../../../services/petService'
 import type { PetFamilyMember, FamilyPhoto } from '../../../types/familyTypes'
+import FamilyPetAvatar from '../../../pages/family/FamilyPetAvatar'
 import './index.scss'
 
 const ROLE_ICONS: Record<string, string> = {
@@ -381,12 +382,15 @@ export default function FamilyDashboard() {
                 if (!pet) return null
                 const status = todayStatus[member.petId]
                 const isChecked = status?.checked
-                const emoji = pet.species === 'cat' ? '🐱' : '🐕'
                 const roleIcon = member.role ? ROLE_ICONS[member.role] || '' : ''
                 return (
                   <View key={member.petId} className={`fd-health-member ${isChecked ? 'fd-health-member--checked' : ''}`}>
                     <View className={`fd-health-member-avatar ${isChecked ? 'fd-health-member-avatar--checked' : ''}`}>
-                      <Text>{emoji}</Text>
+                      <FamilyPetAvatar
+                        pet={pet}
+                        imgClass='fd-health-member-avatar-img'
+                        emojiClass='fd-health-member-avatar-emoji'
+                      />
                     </View>
                     <Text className='fd-health-member-name'>{pet.name}</Text>
                     {isChecked ? (
@@ -465,7 +469,11 @@ export default function FamilyDashboard() {
                         className='fd-photo-generate-avatar'
                         style={{ left: `${x}%`, top: `${y}%` }}
                       >
-                        <Text>{pet.species === 'cat' ? '🐱' : '🐕'}</Text>
+                        <FamilyPetAvatar
+                          pet={pet}
+                          imgClass='fd-photo-generate-avatar-img'
+                          emojiClass='fd-photo-generate-avatar-emoji'
+                        />
                       </View>
                     )
                   })}
@@ -515,7 +523,11 @@ export default function FamilyDashboard() {
               <View key={member.petId} className='fd-member-card'>
                 <View className='fd-member-top'>
                   <View className='fd-member-avatar-wrap'>
-                    <Text>{pet.species === 'cat' ? '🐱' : '🐕'}</Text>
+                    <FamilyPetAvatar
+                      pet={pet}
+                      imgClass='fd-member-avatar-img'
+                      emojiClass='fd-member-avatar-emoji'
+                    />
                   </View>
                   <View
                     className='fd-member-role-btn'
@@ -551,7 +563,11 @@ export default function FamilyDashboard() {
             {unassignedPets.map(pet => (
               <View key={pet.id} className='fd-invite-item'>
                 <View className='fd-invite-avatar'>
-                  <Text>{pet.species === 'cat' ? '🐱' : '🐕'}</Text>
+                  <FamilyPetAvatar
+                    pet={pet}
+                    imgClass='fd-invite-avatar-img'
+                    emojiClass='fd-invite-avatar-emoji'
+                  />
                 </View>
                 <View className='fd-invite-info'>
                   <Text className='fd-invite-name'>{pet.name}</Text>
