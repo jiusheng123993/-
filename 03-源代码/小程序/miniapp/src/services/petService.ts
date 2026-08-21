@@ -126,7 +126,9 @@ export async function updatePet(
 ): Promise<PetProfile> {
   if (!userId) throw new Error('[PetService] userId is required');
   try {
-    const result = await api.put<PetProfile>(`/api/pets/${id}`, data);
+    // 服务端 PUT /api/pets/:id 只认 snake_case（zod 会剥离 camelCase 键导致 400），
+    // 与 createPet 保持一致：提交前统一转 snake_case
+    const result = await api.put<PetProfile>(`/api/pets/${id}`, toSnakeCase(data as unknown as Record<string, unknown>));
     const localPets = getLocalPets(userId);
     const index = localPets.findIndex(p => p.id === id);
     if (index !== -1) {
@@ -155,9 +157,9 @@ export async function updatePet(
         localPets.splice(index, 1);
         localPets.push(merged);
         saveLocalPets(userId, localPets);
-        // 用服务器 ID 再次尝试更新
+        // 用服务器 ID 再次尝试更新（同样转 snake_case 对齐服务端契约）
         try {
-          const result = await api.put<PetProfile>(`/api/pets/${serverPet.id}`, data);
+          const result = await api.put<PetProfile>(`/api/pets/${serverPet.id}`, toSnakeCase(data as unknown as Record<string, unknown>));
           const refreshedPets = getLocalPets(userId);
           const idx = refreshedPets.findIndex(p => p.id === serverPet.id);
           if (idx !== -1) {

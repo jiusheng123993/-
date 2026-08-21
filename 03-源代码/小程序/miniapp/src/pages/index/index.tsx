@@ -670,7 +670,17 @@ export default function Index() {
         <View className='home-summary-card' onClick={() => checkin.startCheckin()}>
           <View className='home-summary-main'>
             <View className='home-summary-avatar'>
-              <Text>{petInfo.emoji || '🐾'}</Text>
+              {/* 头像与全局一致：真实照片/AI 形象优先，没有才回退物种 emoji */}
+              {petInfo.activePet?.avatarPhotoUrl || petInfo.activePet?.avatarCartoonUrl ? (
+                <Image
+                  className='home-summary-avatar-img'
+                  src={petInfo.activePet?.avatarPhotoUrl || petInfo.activePet?.avatarCartoonUrl || ''}
+                  mode='aspectFill'
+                  lazyLoad
+                />
+              ) : (
+                <Text>{petInfo.emoji || '🐾'}</Text>
+              )}
             </View>
             <View className='home-summary-info'>
               <Text className='home-summary-title'>今日健康摘要</Text>

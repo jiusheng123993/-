@@ -215,7 +215,7 @@ export default function PetVaccine() {
     if (!currentPet) return
     setVaccineShareData({
       petName: currentPet.name,
-      petAvatar: currentPet.avatarPhotoUrl || '',
+      petAvatar: currentPet.avatarPhotoUrl || currentPet.avatarCartoonUrl || '',
       vaccineName: record.category,
       completedDate: record.date,
       badgeTitle: '负责任家长',
@@ -679,7 +679,7 @@ export default function PetVaccine() {
       {showAchievementShare && vaccineAchievement && currentPet && (
         <AchievementShareCard
           petName={currentPet.name}
-          petAvatar={currentPet.avatarPhotoUrl || ''}
+          petAvatar={currentPet.avatarPhotoUrl || currentPet.avatarCartoonUrl || ''}
           achievementType={vaccineAchievement.type}
           achievementTitle={vaccineAchievement.title}
           achievementSubtitle={vaccineAchievement.subtitle}

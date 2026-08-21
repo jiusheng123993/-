@@ -275,7 +275,7 @@ export default function PetTrendsPage() {
     if (!currentPet || !summary) return
     setTrendShareData({
       petName: currentPet.name,
-      petAvatar: currentPet.avatarPhotoUrl || '',
+      petAvatar: currentPet.avatarPhotoUrl || currentPet.avatarCartoonUrl || '',
       dateRange: `${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toLocaleDateString('zh-CN')} - ${new Date().toLocaleDateString('zh-CN')}`,
       trendSummary: summary.aiAnalysis || '暂无趋势数据',
       aiInsight: summary.weightChangePercent > 0 ? '体重上升趋势' : summary.weightChangePercent < 0 ? '体重下降趋势' : '体重稳定',

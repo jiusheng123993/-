@@ -8,16 +8,29 @@ import { getPetFaceDataUri } from '../engines/petAvatar/svgRenderer'
 import { calculateExpression } from '../engines/petAvatar/expressionEngine'
 import { generateDiaryForToday } from '../engines/petAvatar/diaryEngine'
 import { seedreamAdapter } from '../engines/petAvatar/seedreamAdapter'
-import { api } from './api'
+import { api, resolveAvatarUrl } from './api'
 import { CONFIG } from '../config'
+import type { PetProfile } from './petService'
 import type { ExpressionContext, AvatarCustomization, PetSpecies, PetImageParams, SeedreamGenerateResult, UploadPhotoResult, Generate2DResult, Generate3DResult, GenerationTask, Avatar2DPack, Avatar3DResult, AvatarQuota } from '../types/avatarTypes'
 import { AVATAR_FREE_GENERATIONS, AVATAR_PHOTO_FREE_COUNT, AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT, AVATAR_3D_MONTHLY_LIMIT } from '../constants'
 
 const STORAGE_KEYS = {
   AVATAR_CUSTOM: 'xhh_avatar_custom',
+  // 按宠物维度的头像缓存前缀：多宠物家庭里每只宠物的头像互不覆盖
+  AVATAR_CUSTOM_PREFIX: 'xhh_avatar_custom_',
   AVATAR_GEN_COUNT: 'xhh_avatar_gen_count',
   DIARY_CACHE: 'xhh_diary_cache',
   CURRENT_PET_ID: 'xhh_current_pet_id',
+}
+
+/**
+ * 计算头像本地缓存的存储 key
+ * 传入 petId 时按宠物隔离（xhh_avatar_custom_{petId}），
+ * 不传时回退到历史全局 key（xhh_avatar_custom），兼容老版本数据。
+ * @param petId - 宠物 ID，可选
+ */
+function avatarCustomKey(petId?: string): string {
+  return petId ? `${STORAGE_KEYS.AVATAR_CUSTOM_PREFIX}${petId}` : STORAGE_KEYS.AVATAR_CUSTOM
 }
 
 /** 多风格候选返回项（PRD 4.9.2：Q版萌系/日系治愈/美式卡通） */
@@ -146,25 +159,91 @@ export function getPetDiary(
   return diaryText
 }
 
-export function getAvatarCustomization(): AvatarCustomization | null {
-  const stored = Taro.getStorageSync(STORAGE_KEYS.AVATAR_CUSTOM)
-  if (!stored) return null
+/**
+ * 读取某只宠物的头像定制缓存
+ * 优先按宠物维度读取，其次兼容历史全局 key。
+ * @param petId - 宠物 ID，可选（不传时读历史全局 key）
+ */
+export function getAvatarCustomization(petId?: string): AvatarCustomization | null {
+  const stored = Taro.getStorageSync(avatarCustomKey(petId))
+  if (!stored) {
+    // 兼容老版本：新 key 没有时读全局 key（仅当 petId 存在时）
+    if (petId) {
+      const legacy = Taro.getStorageSync(STORAGE_KEYS.AVATAR_CUSTOM)
+      return legacy ? (legacy as AvatarCustomization) : null
+    }
+    return null
+  }
   return stored as AvatarCustomization
 }
 
-export async function saveAvatarCustomization(custom: AvatarCustomization): Promise<void> {
-  Taro.setStorageSync(STORAGE_KEYS.AVATAR_CUSTOM, custom)
-  try {
-    const petId = Taro.getStorageSync(STORAGE_KEYS.CURRENT_PET_ID)
-    if (!petId) return
+/**
+ * 保存某只宠物的头像定制（本地缓存 + 服务端 best-effort 同步）
+ * 服务端成功更新后返回最新宠物档案，调用方可用来刷新 petStore。
+ *
+ * 坑点（服务端契约）：PUT /api/pets/:id 的 body 必须是 snake_case
+ * （avatar_style / avatar_cartoon_url / avatar_photo_url），zod 校验会剥离 camelCase 键，
+ * 否则 updateData 为空直接 400。avatar_generated_at 服务端 schema 未定义，故不发送（本地缓存保留）。
+ *
+ * 另：保存卡通/AI 形象时同时把 avatar_photo_url 置 null——
+ * 全局展示优先级是 avatarPhotoUrl > avatarCartoonUrl，若不清照片，之前设过照片头像的宠物
+ * 之后保存任何卡通/预设/AI 形象都不会显示。
+ *
+ * @param custom - 头像定制信息
+ * @param petId - 宠物 ID，可选（不传时尝试读当前宠物 ID）
+ */
+export async function saveAvatarCustomization(custom: AvatarCustomization, petId?: string): Promise<PetProfile | null> {
+  const targetPetId = petId || Taro.getStorageSync(STORAGE_KEYS.CURRENT_PET_ID)
+  // 本地缓存：按宠物隔离，避免多宠物互相覆盖
+  Taro.setStorageSync(avatarCustomKey(targetPetId), custom)
+  if (!targetPetId) return null
 
-    await api.put(`/api/pets/${petId}`, {
-      avatarStyle: custom.style,
-      avatarCartoonUrl: custom.cartoonUrl,
-      avatarGeneratedAt: custom.generatedAt,
+  try {
+    const updated = await api.put<PetProfile>(`/api/pets/${targetPetId}`, {
+      avatar_style: custom.style,
+      avatar_cartoon_url: custom.cartoonUrl,
+      avatar_photo_url: null,
     })
+    return updated
   } catch {
     // local save succeeded, DB save is best-effort
+    return null
+  }
+}
+
+/**
+ * 把用户上传/拍摄的照片直接设为宠物头像（所有用户可用，不消耗 AI 配额）
+ * 1) 补全相对路径为绝对地址；2) 本地缓存按宠物记录；3) 同步服务端 avatar_photo_url（snake_case 契约）。
+ * 注意：展示优先级是 avatarPhotoUrl（真实照片）> avatarCartoonUrl（卡通/AI 形象）。
+ * @param petId - 宠物 ID
+ * @param photoUrl - 上传接口返回的照片地址（可能为相对路径）
+ * @returns 是否成功；成功时携带服务端返回的最新宠物档案（离线时可能为空）与补全后的照片地址
+ */
+export async function setPetPhotoAsAvatar(
+  petId: string,
+  photoUrl: string,
+): Promise<{ success: boolean; pet?: PetProfile; photoUrl?: string }> {
+  // 服务端上传接口返回 /uploads/... 相对路径，必须补全为绝对地址，否则 <Image> 和 AI 参考图都加载不了
+  const absoluteUrl = resolveAvatarUrl(photoUrl)
+  // 本地缓存：记录到当前宠物的定制里（cartoonUrl 字段仅作本地展示缓存，权威数据以宠物档案为准）
+  const prev = getAvatarCustomization(petId)
+  const custom: AvatarCustomization = {
+    species: (prev?.species as PetSpecies) || 'dog',
+    style: 'realistic',
+    baseColor: prev?.baseColor || '#FFD93D',
+    generatedAt: new Date().toISOString(),
+    cartoonUrl: absoluteUrl,
+  }
+  Taro.setStorageSync(avatarCustomKey(petId), custom)
+
+  try {
+    const updated = await api.put<PetProfile>(`/api/pets/${petId}`, {
+      avatar_photo_url: absoluteUrl,
+    })
+    return { success: true, pet: updated, photoUrl: absoluteUrl }
+  } catch {
+    // 离线/服务端失败：本地缓存已生效，页面即时展示；服务端数据待下次联网后由档案页刷新拉取
+    return { success: true, photoUrl: absoluteUrl }
   }
 }
 
@@ -197,6 +276,11 @@ export async function uploadPetPhoto(
     })
 
     const data = JSON.parse(res.data) as UploadPhotoResult
+    // 服务端返回 /uploads/... 相对路径，这里统一补全为绝对地址，
+    // 否则照片预览、AI 生成参考图（要求 http(s) URL）都会加载失败
+    if (data.success && data.data?.url) {
+      data.data.url = resolveAvatarUrl(data.data.url)
+    }
     return data
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : '上传失败' }

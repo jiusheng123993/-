@@ -910,7 +910,7 @@ export default function PetCheckin() {
       {showAchievementShare && achievement && currentPet && (
         <AchievementShareCard
           petName={currentPet.name}
-          petAvatar={currentPet.avatarPhotoUrl || ''}
+          petAvatar={currentPet.avatarPhotoUrl || currentPet.avatarCartoonUrl || ''}
           achievementType={achievement.type}
           achievementTitle={achievement.title}
           achievementSubtitle={achievement.subtitle}

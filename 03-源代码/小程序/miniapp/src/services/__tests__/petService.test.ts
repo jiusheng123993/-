@@ -256,9 +256,10 @@ describe('petService', () => {
 
       expect(result.isDeceased).toBe(true)
       expect(result.deceasedDate).toBe('2024-06-01')
+      // updatePet 统一转 snake_case 对齐服务端契约
       expect(api.put).toHaveBeenCalledWith('/api/pets/pet_001', {
-        isDeceased: true,
-        deceasedDate: '2024-06-01',
+        is_deceased: true,
+        deceased_date: '2024-06-01',
       })
     })
   })

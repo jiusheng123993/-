@@ -26,6 +26,7 @@ vi.mock('../api', () => ({
   api: {
     put: mockApiPut,
   },
+  resolveAvatarUrl: (url: string) => url,
 }))
 
 vi.mock('../../engines/petAvatar/seedreamAdapter', () => ({
@@ -131,11 +132,13 @@ describe('avatarService', () => {
         cartoonUrl: 'https://example.com/avatar.png',
       }
       await saveAvatarCustomization(custom)
-      expect(memoryStore.get('xhh_avatar_custom')).toEqual(custom)
+      // 头像定制按宠物隔离：写 xhh_avatar_custom_{petId}，而不是全局 key
+      expect(memoryStore.get('xhh_avatar_custom_pet-123')).toEqual(custom)
+      // 服务端契约：snake_case 字段 + 保存卡通时清空 avatar_photo_url（避免照片优先级压住卡通）
       expect(mockApiPut).toHaveBeenCalledWith('/api/pets/pet-123', {
-        avatarStyle: 'cartoon',
-        avatarCartoonUrl: 'https://example.com/avatar.png',
-        avatarGeneratedAt: '2025-01-01',
+        avatar_style: 'cartoon',
+        avatar_cartoon_url: 'https://example.com/avatar.png',
+        avatar_photo_url: null,
       })
     })
 
@@ -159,7 +162,8 @@ describe('avatarService', () => {
         baseColor: '#FFD93D',
       }
       await saveAvatarCustomization(custom)
-      expect(memoryStore.get('xhh_avatar_custom')).toEqual(custom)
+      // 头像定制按宠物隔离：写 xhh_avatar_custom_{petId}，而不是全局 key
+      expect(memoryStore.get('xhh_avatar_custom_pet-456')).toEqual(custom)
     })
   })
 

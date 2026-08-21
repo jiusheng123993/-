@@ -1580,7 +1580,15 @@
   justify-content: center;
   font-size: 56rpx;
   flex-shrink: 0;
+  overflow: hidden;
   box-shadow: 0 0 24rpx rgba($color-primary, 0.3), 0 0 60rpx rgba($color-primary, 0.18), 0 0 110rpx rgba($color-gold, 0.12);
+}
+
+/* 宠物真实头像（与档案页一致）：圆角裁切 */
+.home-summary-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .home-summary-info {

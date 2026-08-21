@@ -79,6 +79,8 @@ vi.mock('@tarojs/components', () => ({
       onKeyDown: (e: any) => e.key === 'Enter' && onConfirm?.(),
       onFocus,
     }),
+  Image: ({ src, className, mode }: any) =>
+    createElement('img', { src, className, 'data-mode': mode }),
 }))
 
 // ============================================================
@@ -364,6 +366,31 @@ describe('Index page — render states', () => {
 
     // 顶栏头像统一为 🐾，不区分物种
     expect(container.textContent).toContain('🐾')
+  })
+
+  it('renders pet avatar image when pet has avatar (photo > cartoon priority)', () => {
+    // 全局一致性：首页摘要卡头像优先显示真实照片，其次 AI/卡通形象，与档案页/其他页面一致
+    const petWithPhoto = { ...mockPet, avatarPhotoUrl: 'https://example.com/photo.jpg' }
+    petStoreState.currentPet = petWithPhoto
+    petStoreState.pets = [petWithPhoto]
+    petStoreState.isLoading = false
+
+    const { container } = render(createElement(Index))
+    const img = container.querySelector('.home-summary-avatar-img') as HTMLImageElement | null
+    expect(img).not.toBeNull()
+    expect(img?.src).toContain('https://example.com/photo.jpg')
+  })
+
+  it('renders cartoon avatar when pet only has cartoon image', () => {
+    const petWithCartoon = { ...mockPet, avatarCartoonUrl: 'https://example.com/cartoon.jpg' }
+    petStoreState.currentPet = petWithCartoon
+    petStoreState.pets = [petWithCartoon]
+    petStoreState.isLoading = false
+
+    const { container } = render(createElement(Index))
+    const img = container.querySelector('.home-summary-avatar-img') as HTMLImageElement | null
+    expect(img).not.toBeNull()
+    expect(img?.src).toContain('https://example.com/cartoon.jpg')
   })
 
   it('renders paw emoji for cat species', () => {

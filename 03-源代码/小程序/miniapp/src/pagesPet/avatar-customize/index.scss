@@ -537,6 +537,11 @@
     border: 2rpx solid $color-primary;
     box-shadow: none;
   }
+
+  /* 直接用照片作头像：免费入口，金色渐变突出「免费可用」 */
+  &--photo-as-avatar {
+    background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%);
+  }
 }
 
 .avatar-customize__btn-text {
