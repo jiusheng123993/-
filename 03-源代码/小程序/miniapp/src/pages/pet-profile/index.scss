@@ -59,6 +59,25 @@
   @include breathe-glow;
 }
 
+/* 更换头像角标：悬浮在头像右下角，点击进入形象定制页 */
+.profile-hero-avatar-edit {
+  position: absolute;
+  right: -6rpx;
+  bottom: -6rpx;
+  padding: 8rpx 18rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%);
+  box-shadow: $shadow-sm;
+  border: 4rpx solid $color-bg-card;
+  @include press-feedback;
+}
+
+.profile-hero-avatar-edit-text {
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: $font-weight-semibold;
+}
+
 .profile-hero-name-row {
   display: flex;
   align-items: center;

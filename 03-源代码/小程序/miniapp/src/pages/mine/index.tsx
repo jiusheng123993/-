@@ -171,8 +171,9 @@ export default function Mine() {
       <View className='mine-user-card'>
         <View className='mine-user-banner' />
         <View className='mine-user-main'>
-          <View className='mine-avatar'>
+          <View className='mine-avatar' onClick={() => navigateTo('/pagesUser/profile/index')}>
             {/* 有头像且未加载失败就显示图片；头像为空或加载失败（onError）才退回昵称首字占位 */}
+            {/* 点击头像进入资料页：支持选择微信头像或相册上传更换 */}
             {user?.avatar && !avatarLoadFailed ? (
               <Image
                 className='mine-avatar-img'

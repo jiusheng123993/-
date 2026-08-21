@@ -14,6 +14,7 @@ import { useAnalytics } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { safeNavigateBack } from '../../utils/navigation'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
+import { uploadPetPhoto } from '../../services/avatarService'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import './index.scss'
 
@@ -77,7 +78,7 @@ function saveDraft(data: FormData) {
 
 export default function AddPet() {
   const themeClass = useThemeClass()
-  const { addPet } = usePet()
+  const { addPet, updatePet } = usePet()
   const { initPlan } = useVaccine()
   const { trackPageView, trackEvent } = useAnalytics()
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
@@ -86,7 +87,13 @@ export default function AddPet() {
     // 尝试恢复草稿
     const draft = loadDraft()
     if (draft) {
-      return { ...INITIAL_FORM, ...draft }
+      // 草稿里的头像可能是上次会话的微信临时路径（wxfile:// / http://tmp），跨会话已失效——
+      // 直接置空，避免恢复后提交时上传必失败
+      const safeDraft = { ...draft }
+      if (safeDraft.avatarUrl && /^(wxfile:\/\/|http:\/\/tmp)/.test(safeDraft.avatarUrl)) {
+        safeDraft.avatarUrl = ''
+      }
+      return { ...INITIAL_FORM, ...safeDraft }
     }
     return { ...INITIAL_FORM }
   })
@@ -205,7 +212,11 @@ export default function AddPet() {
     if (!ensureLoggedIn()) return
 
     setSubmitting(true)
+    // 头像上传失败标志（作用域需覆盖下方 toast 分支；失败不阻塞"添加成功"）
+    let avatarFailed = false
     try {
+      // 创建时不带微信临时路径头像（wxfile:// 无效，落库即坏）：
+      // 创建成功后拿到 petId 再上传照片，回填真实 URL
       const newPet = await addPet({
         name: formData.name.trim(),
         species: formData.species as 'dog' | 'cat',
@@ -215,8 +226,7 @@ export default function AddPet() {
         birthDate: formData.birthDate,
         weight: formData.weight ? parseFloat(formData.weight) : 0,
         coatColor: formData.coatColor.trim(),
-        avatarPhotoUrl: formData.avatarUrl,
-        photos: formData.avatarUrl ? [formData.avatarUrl] : [],
+        photos: [], // 头像照片在创建成功后上传再回填，避免微信临时路径落库
         isNeutered: formData.isNeutered,
         microchipId: formData.microchipId.trim(),
         allergies: formData.allergies ? formData.allergies.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
@@ -235,12 +245,39 @@ export default function AddPet() {
           birthDate: formData.birthDate,
         }).catch(() => {
         })
+
+        // 用户选择了头像照片：创建成功后上传并回填（上传失败不影响"添加成功"，头像可稍后在档案中修改）
+        // 注意：photos 是"相册"集合，与"头像"语义分离——这里只回填 avatarPhotoUrl，不整体覆盖 photos
+        if (formData.avatarUrl) {
+          try {
+            const up = await uploadPetPhoto(newPet.id, formData.avatarUrl)
+            if (up.success && up.data?.url) {
+              await updatePet(newPet.id, { avatarPhotoUrl: up.data.url })
+            } else {
+              avatarFailed = true
+            }
+          } catch {
+            // uploadPetPhoto 内部已 try/catch 返回失败，一般不抛；
+            // 此处防御 updatePet 的网络异常
+            avatarFailed = true
+          }
+        }
       }
 
       Taro.showToast({ title: '添加成功', icon: 'success' })
-      setTimeout(() => {
-        safeNavigateBack()
-      }, 1500)
+      if (avatarFailed) {
+        // 失败提示延后弹出，避免被"添加成功"toast 单槽覆盖
+        setTimeout(() => {
+          Taro.showToast({ title: '头像上传失败，可稍后在档案中修改', icon: 'none', duration: 2000 })
+        }, 1200)
+        setTimeout(() => {
+          safeNavigateBack()
+        }, 3400)
+      } else {
+        setTimeout(() => {
+          safeNavigateBack()
+        }, 1500)
+      }
     } catch (err) {
       trackEvent('add_pet_failure')
       const message = err instanceof Error ? err.message : '添加失败，请重试'

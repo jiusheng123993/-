@@ -263,6 +263,10 @@ export default function PetProfile() {
             imageUrl={activePet.avatarPhotoUrl || activePet.avatarCartoonUrl || undefined}
             size={80}
           />
+          {/* 更换头像入口：点击进入形象定制页（上传/拍照、预设、AI 生成三途径） */}
+          <View className='profile-hero-avatar-edit' onClick={() => navigateTo('/pagesPet/avatar-customize/index')}>
+            <Text className='profile-hero-avatar-edit-text'>📷 换头像</Text>
+          </View>
         </View>
         <View className='profile-hero-name-row'>
           <Text className='profile-hero-name'>{activePet.name}</Text>
