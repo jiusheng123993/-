@@ -6,6 +6,7 @@
 import { api } from './api';
 import { getStorage, setStorage, removeStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
+import { toSnakeCase, toCamelCase } from '../utils/snakeCase';
 import type { PetProfile as UnifiedPetProfile } from '../memory-body/types/memoryBodyTypes';
 
 export type PetProfile = UnifiedPetProfile;
@@ -79,15 +80,6 @@ export async function getPetById(userId: string, id: string): Promise<PetProfile
   }
 }
 
-function toSnakeCase(obj: Record<string, unknown>): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
-  for (const key of Object.keys(obj)) {
-    const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
-    result[snakeKey] = obj[key]
-  }
-  return result
-}
-
 export async function createPet(
   userId: string,
   data: Omit<PetProfile, 'id' | 'createdAt' | 'updatedAt'>
@@ -129,14 +121,17 @@ export async function updatePet(
     // 服务端 PUT /api/pets/:id 只认 snake_case（zod 会剥离 camelCase 键导致 400），
     // 与 createPet 保持一致：提交前统一转 snake_case
     const result = await api.put<PetProfile>(`/api/pets/${id}`, toSnakeCase(data as unknown as Record<string, unknown>));
+    // 返回结果统一归一化为 camelCase（幂等）：
+    // 真实服务端已返回 camelCase；mock 模式会原样返回 snake_case 提交体，归一化避免污染本地 store/同步队列
+    const normalized = toCamelCase(result as unknown as Record<string, unknown>) as unknown as PetProfile;
     const localPets = getLocalPets(userId);
     const index = localPets.findIndex(p => p.id === id);
     if (index !== -1) {
-      localPets[index] = result;
+      localPets[index] = normalized;
       saveLocalPets(userId, localPets);
     }
-    queueSync('pet_profiles', id, 'update', result, userId);
-    return result;
+    queueSync('pet_profiles', id, 'update', normalized, userId);
+    return normalized;
   } catch (error) {
     const localPets = getLocalPets(userId);
     const index = localPets.findIndex(p => p.id === id);
@@ -157,17 +152,18 @@ export async function updatePet(
         localPets.splice(index, 1);
         localPets.push(merged);
         saveLocalPets(userId, localPets);
-        // 用服务器 ID 再次尝试更新（同样转 snake_case 对齐服务端契约）
+        // 用服务器 ID 再次尝试更新（同样转 snake_case 对齐服务端契约；返回结果归一化 camelCase）
         try {
           const result = await api.put<PetProfile>(`/api/pets/${serverPet.id}`, toSnakeCase(data as unknown as Record<string, unknown>));
+          const normalized = toCamelCase(result as unknown as Record<string, unknown>) as unknown as PetProfile;
           const refreshedPets = getLocalPets(userId);
           const idx = refreshedPets.findIndex(p => p.id === serverPet.id);
           if (idx !== -1) {
-            refreshedPets[idx] = result;
+            refreshedPets[idx] = normalized;
             saveLocalPets(userId, refreshedPets);
           }
-          queueSync('pet_profiles', serverPet.id, 'update', result, userId);
-          return result;
+          queueSync('pet_profiles', serverPet.id, 'update', normalized, userId);
+          return normalized;
         } catch {
           // 服务器更新也失败，至少已创建成功，返回合并后的数据
           queueSync('pet_profiles', serverPet.id, 'update', merged, userId);

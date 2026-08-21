@@ -230,6 +230,23 @@ describe('petService', () => {
 
       await expect(updatePet('test_user', 'nonexistent', { name: 'test' })).rejects.toThrow()
     })
+
+    it('mock 模式返回 snake_case 键时应归一化为 camelCase（避免污染本地 store/同步队列）', async () => {
+      // 模拟 mock 模式：api.put 原样返回 snake_case 提交体
+      vi.mocked(api.put).mockResolvedValue({
+        id: 'pet_001',
+        name: '旺财2',
+        avatar_photo_url: 'https://cdn.example.com/photo.jpg',
+        is_neutered: true,
+      } as unknown as PetProfile)
+
+      const result = await updatePet('test_user', 'pet_001', { name: '旺财2' })
+
+      // 本地 store/同步队列里必须是 camelCase
+      expect(result.avatarPhotoUrl).toBe('https://cdn.example.com/photo.jpg')
+      expect(result.isNeutered).toBe(true)
+      expect((result as unknown as Record<string, unknown>).avatar_photo_url).toBeUndefined()
+    })
   })
 
   describe('deletePet', () => {

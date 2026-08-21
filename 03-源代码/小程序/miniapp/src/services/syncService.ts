@@ -6,6 +6,7 @@
 import { api } from './api'
 import { encrypt, decrypt } from '../utils/crypto'
 import { getStorage, setStorage } from '../utils/storage'
+import { toSnakeCase } from '../utils/snakeCase'
 
 export type SyncTable =
   | 'pet_profiles'
@@ -60,6 +61,17 @@ const TABLE_ENDPOINTS: Record<SyncTable, { list: string; item: (id: string) => s
   emotion_triggers: null,
   pet_grief_sessions: null,
   pet_outfits: null,
+}
+
+/**
+ * 各表推送前的 payload 字段转换（服务端 zod schema 契约差异）
+ * - pet_profiles：服务端 PUT /api/pets/:id 只认 snake_case，camelCase 会被 zod 剥离导致 400，
+ *   离线队列里存的是 camelCase PetProfile，联网推送前必须转 snake_case；
+ * - 其他表（vaccines/symptom-checks/food 等）服务端契约是 camelCase 与 snake_case 混合，
+ *   不能一刀切转换，保持原样推送。
+ */
+const PUSH_PAYLOAD_TRANSFORM: Partial<Record<SyncTable, (data: Record<string, unknown>) => Record<string, unknown>>> = {
+  pet_profiles: toSnakeCase,
 }
 
 function getSyncTimestamps(): Record<string, string> {
@@ -173,11 +185,16 @@ export class SyncService {
           await api.delete(mapping.item(record.record_id))
         } else {
           const { userId: _parsedUserId, ...restData } = parsed
-          const payload = {
+          let payload: Record<string, unknown> = {
             ...restData,
             id: record.record_id,
             userId: this.userId,
             syncedAt: new Date().toISOString()
+          }
+          // 按表应用契约转换（如 pet_profiles → snake_case），避免服务端 zod 剥离导致同步失败
+          const transform = PUSH_PAYLOAD_TRANSFORM[table]
+          if (transform) {
+            payload = transform(payload)
           }
           await api.put(mapping.item(record.record_id), payload)
         }
