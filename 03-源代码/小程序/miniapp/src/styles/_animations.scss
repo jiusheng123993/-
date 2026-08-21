@@ -37,10 +37,10 @@
   to   { transform: translateY(0); }
 }
 
-// —— 呼吸光晕（温馨版） ——
+// —— 呼吸光晕（温馨版，强度提升，肉眼可见的脉动） ——
 @keyframes warmBreathe {
-  0%, 100% { box-shadow: 0 0 12rpx rgba(var(--primary-rgb), 0.12), 0 0 24rpx rgba(var(--primary-rgb), 0.06); }
-  50%      { box-shadow: 0 0 24rpx rgba(var(--primary-rgb), 0.28), 0 0 48rpx rgba(var(--primary-rgb), 0.14); }
+  0%, 100% { box-shadow: 0 0 14rpx rgba(var(--primary-rgb), 0.18), 0 0 32rpx rgba(var(--primary-rgb), 0.10); }
+  50%      { box-shadow: 0 0 34rpx rgba(var(--primary-rgb), 0.45), 0 0 80rpx rgba(var(--primary-rgb), 0.24), 0 0 120rpx rgba(var(--gold-rgb, 255, 176, 32), 0.16); }
 }
 
 // —— 卡片微光流转 ——
@@ -113,16 +113,20 @@
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-// —— 淡入上移 ——
+// —— 淡入上移（全局共用：改造为 spring 过冲弹入，所有使用处自动"弹一下"） ——
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(24rpx); }
-  to   { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0; transform: translateY(28rpx) scale(0.96); }
+  60%  { opacity: 1; transform: translateY(-6rpx) scale(1.02); }
+  80%  { transform: translateY(3rpx) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-// —— 淡入缩放 ——
+// —— 淡入缩放（同样过冲） ——
 @keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.9); }
-  to   { opacity: 1; transform: scale(1); }
+  0%   { opacity: 0; transform: scale(0.9); }
+  60%  { opacity: 1; transform: scale(1.04); }
+  80%  { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 // —— 淡入 ——
@@ -200,10 +204,11 @@
   50%      { opacity: 0.5; }
 }
 
-// —— 页面入场 ——
+// —— 页面入场（全局：spring 过冲，整页进入带一点回弹） ——
 @keyframes pageEnter {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  0%   { opacity: 0; transform: scale(0.985) translateY(10rpx); }
+  60%  { opacity: 1; transform: scale(1.008) translateY(-2rpx); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 // —— 顶部品牌栏入场（首页/入口页） ——
@@ -234,34 +239,34 @@
 // 混入（Mixin）
 // ============================================
 
-// 页面入场动画
+// 页面入场动画（spring 过冲曲线，可被打断）
 @mixin page-enter {
-  animation: pageEnter 0.35s ease-out;
+  animation: pageEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-// 卡片入场序列（用于列表）
+// 卡片入场序列（用于列表；spring 过冲弹入 + 交错）
 @mixin stagger-enter($index, $base-delay: 0.06s) {
-  animation: cardStaggerIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: cardStaggerIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: $index * $base-delay;
 }
 
 // 弹性入场
 @mixin bounce-enter {
-  animation: popupBounceIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: popupBounceIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-// 按下反馈
+// 按下反馈（全局共用：spring 过冲回弹，所有用到此 mixin 的按钮/卡片按压都有弹性）
 @mixin press-feedback {
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
   &:active {
-    transform: scale(0.96);
+    transform: scale(0.94);
     opacity: 0.85;
   }
 }
 
-// 呼吸光晕
+// 呼吸光晕（全局共用：辉光呼吸更明显）
 @mixin breathe-glow {
-  animation: warmBreathe 3s ease-in-out infinite;
+  animation: warmBreathe 2.6s ease-in-out infinite;
 }
 
 // 卡片微光

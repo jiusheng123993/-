@@ -188,6 +188,18 @@ cover-view {
 }
 
 // ============================================
+// 全局按钮动效兜底：所有原生 button 一律弹簧按压
+// （页面内已单独设置 transition 的按页面为准，这里兜底未设置的）
+// ============================================
+button {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, box-shadow 0.3s ease;
+}
+button:active {
+  transform: scale(0.94);
+  opacity: 0.9;
+}
+
+// ============================================
 // 沉浸光感（WXSS 降级版）通用工具类
 // WXSS 不支持 backdrop-filter：玻璃 = 半透明实色 + 细描边；
 // 光晕 = 多层 box-shadow；弹簧 = cubic-bezier 过冲；只动 transform/opacity，GPU 友好
@@ -229,6 +241,37 @@ cover-view {
   0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.35); }
   70% { box-shadow: 0 0 0 24rpx rgba(var(--primary-rgb), 0); }
   100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+}
+
+// ============================================
+// 可见动效工具类（打开页面即可看到，不依赖交互）
+// ============================================
+
+// 呼吸光晕：无限脉动的辉光（重点按钮/徽章/数字用，制造"活着"的感觉）
+.xhh-breathe {
+  animation: xhh-breathe 2.4s ease-in-out infinite;
+}
+@keyframes xhh-breathe {
+  0%, 100% { box-shadow: 0 0 18rpx rgba(var(--primary-rgb), 0.35), 0 0 44rpx rgba(var(--primary-rgb), 0.18); }
+  50% { box-shadow: 0 0 36rpx rgba(var(--primary-rgb), 0.55), 0 0 90rpx rgba(var(--primary-rgb), 0.30), 0 0 130rpx rgba(var(--gold-rgb, 255, 176, 32), 0.20); }
+}
+
+// 柔和浮动：轻微上下漂移（空态图标/插画/卡片用）
+.xhh-float {
+  animation: xhh-float 3.6s ease-in-out infinite;
+}
+@keyframes xhh-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+}
+
+// 弹入入场：spring 过冲（元素出现时带一点回弹，替代纯淡入）
+.xhh-pop-in {
+  animation: xhh-pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes xhh-pop-in {
+  0% { opacity: 0; transform: scale(0.86); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 // ============================================

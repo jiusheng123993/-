@@ -42,6 +42,8 @@
   background: linear-gradient(135deg, $color-primary-light, $color-primary);
   @include flex-center;
   box-shadow: $shadow-button;
+  /* 可见动效：品牌徽章呼吸光晕（打开登录页即可看到） */
+  animation: xhh-breathe 2.4s ease-in-out infinite;
 }
 
 .auth-brand__badge-icon {
@@ -169,6 +171,8 @@
     background: linear-gradient(135deg, $color-primary-light, $color-primary);
     color: #FFFFFF;
     box-shadow: $shadow-button;
+    /* 可见动效：主登录按钮呼吸光晕 */
+    animation: xhh-breathe 2.4s ease-in-out 0.6s infinite;
   }
 
   &--phone {

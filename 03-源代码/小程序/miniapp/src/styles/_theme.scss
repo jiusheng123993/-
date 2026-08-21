@@ -46,8 +46,8 @@ $shadow-xs: 0 2rpx 8rpx rgba(61, 33, 18, 0.05);
 $shadow-sm: 0 8rpx 40rpx -24rpx rgba(240, 78, 29, 0.18);
 $shadow-md: 0 16rpx 56rpx -28rpx rgba(61, 33, 18, 0.2);
 $shadow-lg: 0 24rpx 80rpx -32rpx rgba(61, 33, 18, 0.28);
-$shadow-card: 0 8rpx 40rpx -12rpx rgba(61, 33, 18, 0.08), 0 0 24rpx rgba(var(--primary-rgb, 255, 107, 61), 0.08), 0 0 60rpx rgba(255, 176, 32, 0.05);
-$shadow-button: 0 12rpx 36rpx -8rpx rgba(255, 107, 61, 0.35), 0 0 26rpx rgba(var(--primary-rgb, 255, 107, 61), 0.30), 0 0 70rpx rgba(255, 176, 32, 0.16);
+$shadow-card: 0 8rpx 40rpx -12rpx rgba(61, 33, 18, 0.08), 0 0 26rpx rgba(var(--primary-rgb, 255, 107, 61), 0.14), 0 0 70rpx rgba(255, 176, 32, 0.08);
+$shadow-button: 0 12rpx 36rpx -8rpx rgba(255, 107, 61, 0.35), 0 0 30rpx rgba(var(--primary-rgb, 255, 107, 61), 0.38), 0 0 80rpx rgba(255, 176, 32, 0.20);
 
 // —— 过渡 ——
 $transition-fast: 0.15s ease;
