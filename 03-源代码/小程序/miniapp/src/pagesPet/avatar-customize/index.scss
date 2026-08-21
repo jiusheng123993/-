@@ -1100,7 +1100,7 @@
 }
 
 // ============================================
-// 预设形象库（免费用户入口：16 款现成形象选 1）
+// 预设形象库（免费用户入口：20 款现成形象选 1）
 // ============================================
 .avatar-preset {
   padding: $spacing-lg;
@@ -1130,8 +1130,8 @@
   }
 
   &__card {
-    // 一行 4 个，两行展示 8 款
-    flex: 1 1 calc(25% - #{$spacing-md});
+    // 一行 5 个，两行展示 10 款（品牌头像为圆形，5×2 网格更整齐）
+    flex: 1 1 calc(20% - #{$spacing-md});
     min-width: 0;
     position: relative;
     border-radius: $radius-sm;
@@ -1182,14 +1182,6 @@
     font-size: $font-size-xs;
     font-weight: $font-weight-semibold;
     color: $color-text-primary;
-  }
-
-  &__style {
-    display: block;
-    text-align: center;
-    padding-bottom: $spacing-xs;
-    font-size: 18rpx;
-    color: $color-text-tertiary;
   }
 
   &__actions {

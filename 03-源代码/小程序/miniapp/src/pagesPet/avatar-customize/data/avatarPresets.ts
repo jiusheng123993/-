@@ -1,68 +1,60 @@
 /**
- * 预设头像库数据（位于 pagesPet 分包内）
+ * 预设形象库数据（位于 pagesPet 分包内）
  *
- * 免费用户可直接从这 16 张预设头像里选择（狗 8 张 + 猫 8 张），
- * 每种画风搭配一个常见品种，保证多宠家庭里每只宠物都能选到不一样的形象。
+ * 免费用户可直接从 20 张预设形象里选择（狗 10 张 + 猫 10 张），
+ * 图片与家庭页头像同源：均为品牌风格小动物头像（服务端 /uploads/avatars/home-style 静态托管），
+ * 通过远程 URL 引用（不占分包体积），保证「预设形象」与「家庭页头像」是同一张图、同一种风格。
  *
- * 为什么放在分包内：
- * - 图片由 Seedream 生成后原图约 300-440KB/张，16 张共 5MB，放主包会撑爆 2MB 限制；
- * - 这里统一改成 512x512 WebP（共约 200KB），并通过 import 静态引用，
- *   让 Taro 把图片打进 pagesPet 分包，主包体积不受影响。
+ * 为什么从本地资源改为远程 URL：
+ * - 旧 16 张扁平卡通图（白底方图）与品牌头像（暖橙渐变 + 星星 + 圆裁）风格不一致；
+ * - 品牌头像已部署到服务器并接入家庭页，预设库直接复用同源数据派生即可实现"形象 = 头像"。
  */
-import dog01Q from '../assets/preset/dog/01-q.webp'
-import dog02Japanese from '../assets/preset/dog/02-japanese.webp'
-import dog03American from '../assets/preset/dog/03-american.webp'
-import dog04Watercolor from '../assets/preset/dog/04-watercolor.webp'
-import dog05Clay from '../assets/preset/dog/05-clay.webp'
-import dog06Pixel from '../assets/preset/dog/06-pixel.webp'
-import dog07Lineart from '../assets/preset/dog/07-lineart.webp'
-import dog08Plush from '../assets/preset/dog/08-plush.webp'
-import cat01Q from '../assets/preset/cat/01-q.webp'
-import cat02Japanese from '../assets/preset/cat/02-japanese.webp'
-import cat03American from '../assets/preset/cat/03-american.webp'
-import cat04Watercolor from '../assets/preset/cat/04-watercolor.webp'
-import cat05Clay from '../assets/preset/cat/05-clay.webp'
-import cat06Pixel from '../assets/preset/cat/06-pixel.webp'
-import cat07Lineart from '../assets/preset/cat/07-lineart.webp'
-import cat08Plush from '../assets/preset/cat/08-plush.webp'
+import { HOME_STYLE_AVATARS, getHomeStyleAvatarUrlByKey } from '../../../data/homeStyleAvatars'
 
-/** 预设头像条目 */
+/** 预设形象条目 */
 export interface AvatarPreset {
-  /** 唯一 ID（用于保存时记录选中的预设） */
+  /** 唯一 ID（与品牌头像文件名 key 一致，用于保存时记录选中的预设） */
   id: string
   species: 'dog' | 'cat'
-  /** 画风 key（q/japanese/american/watercolor/clay/pixel/lineart/plush） */
-  styleKey: string
-  /** 画风名称 */
-  styleLabel: string
-  /** 品种（保证同一物种内 8 张脸型/毛色差异明显） */
+  /** 品种展示名（与家庭页头像匹配口径一致） */
   breed: string
-  /** 图片资源（Taro 打包后为可用的本地路径） */
+  /** 图片地址（服务端 /uploads 静态托管的品牌头像，与家庭页头像同图） */
   image: string
 }
 
-/** 全部预设头像：狗 8 张 + 猫 8 张 */
-export const AVATAR_PRESETS: AvatarPreset[] = [
-  { id: 'dog-q', species: 'dog', styleKey: 'q', styleLabel: 'Q版萌系', breed: '金毛犬', image: dog01Q },
-  { id: 'dog-japanese', species: 'dog', styleKey: 'japanese', styleLabel: '日系治愈', breed: '柴犬', image: dog02Japanese },
-  { id: 'dog-american', species: 'dog', styleKey: 'american', styleLabel: '美式卡通', breed: '柯基', image: dog03American },
-  { id: 'dog-watercolor', species: 'dog', styleKey: 'watercolor', styleLabel: '水彩手绘', breed: '比熊', image: dog04Watercolor },
-  { id: 'dog-clay', species: 'dog', styleKey: 'clay', styleLabel: '黏土萌宠', breed: '法斗', image: dog05Clay },
-  { id: 'dog-pixel', species: 'dog', styleKey: 'pixel', styleLabel: '像素复古', breed: '哈士奇', image: dog06Pixel },
-  { id: 'dog-lineart', species: 'dog', styleKey: 'lineart', styleLabel: '极简线稿', breed: '边牧', image: dog07Lineart },
-  { id: 'dog-plush', species: 'dog', styleKey: 'plush', styleLabel: '毛绒玩偶', breed: '萨摩耶', image: dog08Plush },
+/** 品牌头像 key → 品种展示名（20 项，与 HOME_STYLE_AVATARS 的 key 一一对应） */
+const BREED_LABELS: Record<string, string> = {
+  'cat-01-orange-tabby': '橘猫',
+  'cat-02-british-blue': '英短蓝猫',
+  'cat-03-cow': '奶牛猫',
+  'cat-04-calico': '三花猫',
+  'cat-05-black': '黑猫',
+  'cat-06-white-blue-eye': '白猫',
+  'cat-07-siamese': '暹罗猫',
+  'cat-08-ragdoll': '布偶猫',
+  'cat-09-chinese-tabby': '狸花猫',
+  'cat-10-american-shorthair': '美短',
+  'dog-01-golden': '金毛犬',
+  'dog-02-shiba': '柴犬',
+  'dog-03-corgi': '柯基',
+  'dog-04-husky': '哈士奇',
+  'dog-05-samoyed': '萨摩耶',
+  'dog-06-french-bulldog': '法斗',
+  'dog-07-bichon': '比熊',
+  'dog-08-border-collie': '边牧',
+  'dog-09-labrador': '拉布拉多',
+  'dog-10-poodle': '泰迪',
+}
 
-  { id: 'cat-q', species: 'cat', styleKey: 'q', styleLabel: 'Q版萌系', breed: '橘猫', image: cat01Q },
-  { id: 'cat-japanese', species: 'cat', styleKey: 'japanese', styleLabel: '日系治愈', breed: '布偶猫', image: cat02Japanese },
-  { id: 'cat-american', species: 'cat', styleKey: 'american', styleLabel: '美式卡通', breed: '英短蓝猫', image: cat03American },
-  { id: 'cat-watercolor', species: 'cat', styleKey: 'watercolor', styleLabel: '水彩手绘', breed: '奶牛猫', image: cat04Watercolor },
-  { id: 'cat-clay', species: 'cat', styleKey: 'clay', styleLabel: '黏土萌宠', breed: '三花猫', image: cat05Clay },
-  { id: 'cat-pixel', species: 'cat', styleKey: 'pixel', styleLabel: '像素复古', breed: '暹罗猫', image: cat06Pixel },
-  { id: 'cat-lineart', species: 'cat', styleKey: 'lineart', styleLabel: '极简线稿', breed: '黑猫', image: cat07Lineart },
-  { id: 'cat-plush', species: 'cat', styleKey: 'plush', styleLabel: '毛绒玩偶', breed: '美短', image: cat08Plush },
-]
+/** 全部预设形象：狗 10 张 + 猫 10 张（由品牌头像同源数据派生，避免 key 手抄漂移） */
+export const AVATAR_PRESETS: AvatarPreset[] = HOME_STYLE_AVATARS.map((item) => ({
+  id: item.key,
+  species: item.species,
+  breed: BREED_LABELS[item.key] || item.key,
+  image: getHomeStyleAvatarUrlByKey(item.key, item.species),
+}))
 
-/** 按物种筛选预设头像 */
+/** 按物种筛选预设形象 */
 export function getPresetsBySpecies(species: 'dog' | 'cat'): AvatarPreset[] {
   return AVATAR_PRESETS.filter((item) => item.species === species)
 }

@@ -26,8 +26,9 @@ interface HomeStyleAvatarItem {
   species: 'dog' | 'cat'
 }
 
-/** 20 张头像条目：猫 10 + 狗 10（与 server/uploads/avatars/home-style 目录一一对应） */
-const HOME_STYLE_AVATARS: HomeStyleAvatarItem[] = [
+/** 20 张头像条目：猫 10 + 狗 10（与 server/uploads/avatars/home-style 目录一一对应）
+ * 导出给预设形象库复用（同源派生，避免 key 手抄漂移） */
+export const HOME_STYLE_AVATARS: HomeStyleAvatarItem[] = [
   // ===== 猫 10 张 =====
   {
     key: 'cat-01-orange-tabby', species: 'cat',
@@ -215,6 +216,16 @@ export function getHomeStyleAvatarKey(pet: Pick<PetProfile, 'species' | 'breed' 
  */
 export function getHomeStyleAvatarUrl(pet: Pick<PetProfile, 'species' | 'breed' | 'breedId'>): string {
   const key = getHomeStyleAvatarKey(pet)
-  const species = normalizeSpecies(pet.species)
+  return getHomeStyleAvatarUrlByKey(key, normalizeSpecies(pet.species))
+}
+
+/**
+ * 按文件名 key + 物种直接拼品牌头像绝对 URL（预设形象库等"已知 key"场景使用）
+ * 与 getHomeStyleAvatarUrl 同源，保证「预设形象」与「家庭页头像」引用同一张图。
+ * @param key - 头像文件名（不含扩展名），如 cat-01-orange-tabby
+ * @param species - 物种（决定 URL 子目录）
+ * @returns 完整 URL，如 https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.webp
+ */
+export function getHomeStyleAvatarUrlByKey(key: string, species: 'dog' | 'cat'): string {
   return resolveAvatarUrl(`/uploads/avatars/home-style/${species}/${key}.webp`)
 }

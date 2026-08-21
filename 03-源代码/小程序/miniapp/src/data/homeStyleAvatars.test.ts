@@ -9,7 +9,7 @@ vi.mock('../services/api', () => ({
   resolveAvatarUrl: (path: string) => `https://mock-api.example.com${path}`,
 }))
 
-import { getHomeStyleAvatarKey, getHomeStyleAvatarUrl } from './homeStyleAvatars'
+import { getHomeStyleAvatarKey, getHomeStyleAvatarUrl, getHomeStyleAvatarUrlByKey } from './homeStyleAvatars'
 
 // 构造最小宠物档案（PetProfile 的 Pick 类型所需字段）
 function makePet(overrides: Partial<{ species: 'dog' | 'cat'; breed: string; breedId: string }>) {
@@ -135,5 +135,22 @@ describe('家庭页小动物头像映射', () => {
     // "白色贵宾犬" 含 "贵宾"（dog-10）与 "白"（cat-06 但跨物种不比较），狗侧应命中 dog-10
     const key = getHomeStyleAvatarKey(makePet({ species: 'dog', breed: '白色贵宾犬' }))
     expect(key).toBe('dog-10-poodle')
+  })
+
+  it('URL 按 key 直拼：getHomeStyleAvatarUrlByKey 带物种子目录 + .webp 后缀', () => {
+    // 猫：cat-08 → cat 子目录
+    expect(getHomeStyleAvatarUrlByKey('cat-08-ragdoll', 'cat'))
+      .toBe('https://mock-api.example.com/uploads/avatars/home-style/cat/cat-08-ragdoll.webp')
+    // 狗：dog-01 → dog 子目录
+    expect(getHomeStyleAvatarUrlByKey('dog-01-golden', 'dog'))
+      .toBe('https://mock-api.example.com/uploads/avatars/home-style/dog/dog-01-golden.webp')
+  })
+
+  it('getHomeStyleAvatarUrl 与 getHomeStyleAvatarUrlByKey 输出一致（同源不漂移）', () => {
+    // 预设形象库用 ByKey 直拼、家庭页用品种匹配，两者必须指向同一张图
+    const pet = makePet({ species: 'cat', breedId: 'ragdoll' })
+    expect(getHomeStyleAvatarUrl(pet)).toBe(getHomeStyleAvatarUrlByKey('cat-08-ragdoll', 'cat'))
+    const dog = makePet({ species: 'dog', breedId: 'golden_retriever' })
+    expect(getHomeStyleAvatarUrl(dog)).toBe(getHomeStyleAvatarUrlByKey('dog-01-golden', 'dog'))
   })
 })

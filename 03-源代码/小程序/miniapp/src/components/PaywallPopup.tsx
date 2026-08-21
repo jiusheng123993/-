@@ -14,7 +14,7 @@ const COMPARISON_ITEMS = [
   { featureName: '症状初筛', freeValue: '2次/天', memberValue: '无限' },
   { featureName: '健康趋势', freeValue: '7天', memberValue: '30天' },
   { featureName: '宠物数量', freeValue: '2只', memberValue: '5只' },
-  { featureName: '宠物形象', freeValue: '预设头像 16款', memberValue: 'AI生成+照片专属' },
+  { featureName: '宠物形象', freeValue: '预设头像 20款', memberValue: 'AI生成+照片专属' },
 ]
 
 interface PaywallPopupProps {

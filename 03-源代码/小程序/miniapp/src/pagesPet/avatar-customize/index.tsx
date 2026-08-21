@@ -17,6 +17,7 @@ import Model3DViewer from '../../components/PetAvatar/Model3DViewer'
 import GenerationProgress from '../../components/PetAvatar/GenerationProgress'
 import { EXPRESSION_MAP, type PetExpression } from '../../engines/petAvatar'
 import { getPresetsBySpecies, type AvatarPreset } from './data/avatarPresets'
+import { getHomeStyleAvatarUrl } from '../../data/homeStyleAvatars'
 import {
   generateAvatarImage,
   generateAvatarOptions,
@@ -131,7 +132,7 @@ export default function AvatarCustomizePage() {
   const [photoStyle, setPhotoStyle] = useState<'cartoon' | 'realistic'>('cartoon')
   const [serverQuota, setServerQuota] = useState<AvatarQuota | null>(null)
 
-  // 当前宠物物种对应的 8 张预设头像
+  // 当前宠物物种对应的 10 张预设形象
   const presetList = useMemo(() => getPresetsBySpecies(species), [species])
   const selectedPreset = useMemo(
     () => presetList.find((item) => item.id === selectedPresetId) || null,
@@ -154,7 +155,7 @@ export default function AvatarCustomizePage() {
     isDeceased: false,
   }), [])
 
-  // 当前展示形象（优先交互中的选择 → 宠物档案已保存的头像 → 本地缓存兜底 → 默认卡通脸）
+  // 当前展示形象（优先交互中的选择 → 宠物档案已保存的头像 → 本地缓存兜底 → 默认品牌头像）
   const previewUrl = useMemo(() => {
     if (isGenerating) return null
     if (styleOptions && selectedStyleIndex != null && styleOptions[selectedStyleIndex]) {
@@ -166,7 +167,10 @@ export default function AvatarCustomizePage() {
     if (currentPet?.avatarPhotoUrl) return currentPet.avatarPhotoUrl
     if (currentPet?.avatarCartoonUrl) return currentPet.avatarCartoonUrl
     const custom = getAvatarCustomization(petId)
-    return custom?.cartoonUrl || null
+    if (custom?.cartoonUrl) return custom.cartoonUrl
+    // 默认形象：没有自定义头像时按品种匹配品牌小动物头像，与家庭页头像保持一致（同图同源）
+    if (currentPet) return getHomeStyleAvatarUrl(currentPet)
+    return null
   }, [isGenerating, generatedUrl, styleOptions, selectedStyleIndex, selectedPreset, currentPet, petId])
 
   // 形象卡副标题：品种 · 年龄 · 状态
@@ -672,11 +676,11 @@ export default function AvatarCustomizePage() {
         <Text className='avatar-stage__desc'>{petDesc}</Text>
       </View>
 
-      {/* 1.5 预设形象库（免费用户主入口：从现成的 8 款里选，无需 AI 生成） */}
+      {/* 1.5 预设形象库（免费用户主入口：从现成的 10 款里选，无需 AI 生成） */}
       <View className='xhh-card avatar-preset'>
         <View className='avatar-preset__head'>
           <Text className='avatar-preset__title'>预设形象 · 免费</Text>
-          <Text className='avatar-preset__hint'>{species === 'cat' ? '8 款猫咪' : '8 款狗狗'}，选一个直接用</Text>
+          <Text className='avatar-preset__hint'>{species === 'cat' ? '10 款猫咪' : '10 款狗狗'}，选一个直接用</Text>
         </View>
         <View className='avatar-preset__grid'>
           {presetList.map((preset) => (
@@ -694,7 +698,6 @@ export default function AvatarCustomizePage() {
                 )}
               </View>
               <Text className='avatar-preset__label'>{preset.breed}</Text>
-              <Text className='avatar-preset__style'>{preset.styleLabel}</Text>
             </View>
           ))}
         </View>
