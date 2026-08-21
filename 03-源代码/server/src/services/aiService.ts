@@ -1,5 +1,5 @@
 /**
- * AI 服务层 - 封装对 DeepSeek 和阿里云百炼 API 的调用
+ * AI 服务层 - 封装对 OpenAI 兼容协议（默认为火山方舟 Ark）与阿里云百炼 API 的调用
  * 提供文本对话、安全内容检测、语音识别、多模态识别能力
  */
 import { config } from '../config.js';
@@ -50,16 +50,18 @@ function getApiKey(): string {
   return config.ai.apiKey || '';
 }
 
+/** 返回已配置的模型服务地址（config 已保证非空兜底为火山方舟默认值） */
 function getBaseUrl(): string {
-  return config.ai.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3';
+  return config.ai.baseUrl || '';
 }
 
+/** 返回已配置的模型名（config 已保证非空兜底为 deepseek-v4-flash-ga-260731） */
 function getModel(): string {
-  return config.ai.model || 'deepseek-v4-flash-ga-260731';
+  return config.ai.model || '';
 }
 
 /**
- * AI 对话 - 调用 DeepSeek 兼容 API 进行文本对话
+ * AI 对话 - 调用 OpenAI 兼容文本对话接口
  * @param messages - 对话消息列表
  * @param options - 对话参数（温度、最大 token 数）
  * @returns AI 回复文本
@@ -71,7 +73,7 @@ export async function chat(
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    return 'AI 服务暂未配置，请联系管理员设置 AI_API_KEY 环境变量。';
+    return 'AI 服务暂未配置，请联系管理员设置 ARK_API_KEY（或兼容的 AI_API_KEY）环境变量。';
   }
 
   const temperature = options?.temperature ?? 0.7;

@@ -56,12 +56,14 @@ function getApiKey(): string {
   return config.ai.apiKey || '';
 }
 
+/** 返回已配置的模型服务地址（config 已保证非空兜底为火山方舟默认值） */
 function getBaseUrl(): string {
-  return config.ai.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3';
+  return config.ai.baseUrl || '';
 }
 
+/** 返回已配置的模型名（config 已保证非空兜底为 deepseek-v4-flash-ga-260731） */
 function getModel(): string {
-  return config.ai.model || 'deepseek-v4-flash-ga-260731';
+  return config.ai.model || '';
 }
 
 // ========== 记忆系统：构建系统提示词 ==========
