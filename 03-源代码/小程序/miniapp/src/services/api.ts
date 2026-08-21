@@ -10,6 +10,24 @@ import { mockApi } from './mock'
 import type { ApiResponse, User, Pet, Checkin, Membership, LoginResponse } from '../types'
 
 /**
+ * 将服务端返回的可能为相对路径的头像 URL 补全为绝对地址
+ * 坑点：上传头像接口返回 `/uploads/user-avatars/...` 这种相对路径，微信小程序 <Image>
+ * 对相对路径无法加载（缺少 scheme/host）。这里对以单个 `/` 开头、且非完整 URL 的路径，
+ * 用 API_BASE_URL 拼出绝对地址；已是 http(s):// 或 data: 等完整地址则原样返回。
+ * @param avatar - 服务端返回的头像值
+ * @returns 可直接用于 <Image> 的绝对 URL（空值原样返回）
+ */
+export function resolveAvatarUrl(avatar: string | undefined | null): string {
+  if (!avatar) return ''
+  // 已是绝对地址（含协议）或相对协议的 //host 形式，直接可用
+  if (/^(https?:)?\/\//i.test(avatar)) return avatar
+  // 单个 `/` 开头的站内相对路径（如 /uploads/...），拼上 API_BASE_URL
+  if (avatar.startsWith('/')) return `${CONFIG.API_BASE_URL}${avatar}`
+  // 其他（dataURI、blob、纯文件名等）原样返回
+  return avatar
+}
+
+/**
  * 服务端用户字段统一映射：avatarUrl/avatar_url → 前端 User.avatar
  * 服务端统一返回 camelCase（avatarUrl），历史兼容 snake_case（avatar_url）
  */
@@ -17,7 +35,7 @@ function normalizeUser(raw: any): User {
   return {
     id: raw.id,
     nickname: raw.nickname || '',
-    avatar: raw.avatarUrl || raw.avatar_url || raw.avatar || '',
+    avatar: resolveAvatarUrl(raw.avatarUrl || raw.avatar_url || raw.avatar || ''),
     phone: raw.phone,
     createdAt: raw.createdAt || raw.created_at || '',
   }
@@ -154,7 +172,8 @@ export const api = {
           try {
             const body = JSON.parse(res.data)
             if (body.success && body.data?.url) {
-              resolve({ url: body.data.url })
+              // 补全相对路径头像为绝对地址，避免 <Image> 无法加载
+              resolve({ url: resolveAvatarUrl(body.data.url) })
             } else {
               reject(new Error(body.message || '头像上传失败'))
             }

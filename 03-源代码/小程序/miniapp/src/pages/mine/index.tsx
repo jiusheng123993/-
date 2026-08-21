@@ -74,7 +74,15 @@ export default function Mine() {
   const [totalCheckins, setTotalCheckins] = useState(0)
   const [totalMemories, setTotalMemories] = useState(0)
   const [themePanelOpen, setThemePanelOpen] = useState(false)
+  // 头像加载失败标记：Image 触发 onError 时置 true 退回昵称占位，避免显示裂图
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
   const themeClass = useThemeClass()
+
+  // 头像地址变化时重置加载失败标记：mine 是 tab 页常驻，同一会话内在 profile 换头像或
+  // 图片瞬断恢复后，如果不重置会一直卡在昵称占位、Image 也不再重试。
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [user?.avatar])
 
   useEffect(() => {
     if (!isInitialized) return
@@ -164,11 +172,19 @@ export default function Mine() {
         <View className='mine-user-banner' />
         <View className='mine-user-main'>
           <View className='mine-avatar'>
-            {/* 有头像就显示头像图片；没有才退回昵称首字占位 */}
-            {user?.avatar ? (
-              <Image className='mine-avatar-img' src={user.avatar} mode='aspectFill' />
+            {/* 有头像且未加载失败就显示图片；头像为空或加载失败（onError）才退回昵称首字占位 */}
+            {user?.avatar && !avatarLoadFailed ? (
+              <Image
+                className='mine-avatar-img'
+                src={user.avatar}
+                mode='aspectFill'
+                onError={() => setAvatarLoadFailed(true)}
+              />
             ) : (
-              <Text className='mine-avatar-text'>{user?.nickname?.charAt(0) || '👤'}</Text>
+              <Text className='mine-avatar-text'>
+                {/* Array.from 按 Unicode 码点取首字符，避免 emoji 代理对被 charAt 截成半个乱码 */}
+                {user?.nickname ? Array.from(user.nickname)[0] : '👤'}
+              </Text>
             )}
           </View>
           <View className='mine-user-info'>
