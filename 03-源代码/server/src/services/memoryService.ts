@@ -829,10 +829,15 @@ export async function recordHealthMemory(params: {
   importance?: number;
   /** 溯源（打卡/初筛记录 ID，可回溯） */
   evidence?: string;
+  /**
+   * 事件子类后缀（可选）：拼进幂等 key（health_<category>_<日期>_<suffix>），
+   * 使"初筛记忆"与"恢复事件记忆"（同天）互不覆盖
+   */
+  keySuffix?: string;
 }): Promise<void> {
   const importance = Math.min(10, Math.max(1, params.importance ?? 7));
-  // key：同类事件当天一条（当天多次异常覆盖为最新，防止逐条堆积）
-  const key = `health_${params.category}_${new Date().toISOString().slice(0, 10)}`;
+  // key：同类事件当天一条（当天多次异常覆盖为最新，防止逐条堆积）；keySuffix 区分子类事件
+  const key = `health_${params.category}_${new Date().toISOString().slice(0, 10)}${params.keySuffix ? `_${params.keySuffix}` : ''}`;
   try {
     await pool.query(
       `INSERT INTO agent_memories

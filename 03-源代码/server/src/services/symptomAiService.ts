@@ -66,8 +66,9 @@ function calcAgeMonths(birthDate: string): number {
  * 打卡日期格式化（审查项修复）
  * pg 的 TIMESTAMPTZ 返回 Date 对象，String(Date).slice(0,10) 会产出 "Thu Aug 20" 之类乱码，
  * 统一转为 YYYY-MM-DD（UTC），无法解析时回退字符串截断
+ * 导出供 routes/symptoms.ts 恢复事件记忆复用
  */
-function formatDate(d: unknown): string {
+export function formatDate(d: unknown): string {
   if (d instanceof Date && !Number.isNaN(d.getTime())) {
     const y = d.getUTCFullYear();
     const m = String(d.getUTCMonth() + 1).padStart(2, '0');

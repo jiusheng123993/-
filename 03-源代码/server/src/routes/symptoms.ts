@@ -12,7 +12,7 @@ import { PetRepository } from '../repositories/petRepository.js';
 import { SymptomRepository } from '../repositories/symptomRepository.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { recordHealthMemory } from '../services/memoryService.js';
-import { deepAnalyzeSymptom } from '../services/symptomAiService.js';
+import { deepAnalyzeSymptom, formatDate } from '../services/symptomAiService.js';
 
 const router = Router();
 
@@ -92,6 +92,34 @@ router.post('/:petId/symptom-check', authMiddleware, symptomLimiter, validate({ 
       });
     } catch (err) {
       console.warn('[SymptomCheck] 健康事件记忆失败:', err);
+    }
+
+    // 恢复事件闭环（设计方案 6.2，Phase 1 遗留补齐）：
+    // 本次为低风险检查（normal/caution）且 14 天内存在"同症状 + 高风险(warning/emergency)"检查
+    // → 沉淀"XX症状已恢复"记忆（importance 6，key 带 recovery 后缀与初筛记忆隔离）
+    try {
+      const lowRisk = risk_level === 'normal' || risk_level === 'caution';
+      const symptomIds = Array.isArray(symptoms) ? (symptoms as string[]) : [];
+      if (lowRisk && symptomIds.length > 0) {
+        const prev = await symptomRepository.findRecentHighRiskCheck(petId, userId, symptomIds, 14);
+        if (prev && Array.isArray(prev.symptoms) && prev.symptoms.length > 0) {
+          const prevRiskText: Record<string, string> = { emergency: '紧急需就医', warning: '需尽快就医' };
+          // 用 formatDate 统一格式化（pg 的 TIMESTAMPTZ 是 Date 对象，String().slice 会产出 "Thu Aug 19"）
+          const prevDate = formatDate(prev.created_at);
+          void recordHealthMemory({
+            userId,
+            petId,
+            category: 'medical',
+            content: `${new Date().toLocaleDateString('zh-CN')} ${prev.symptoms.join('、')}症状已恢复（上次${prevDate}检查评估：${prevRiskText[prev.risk_level] || prev.risk_level}），持续观察中`,
+            importance: 6,
+            evidence: `symptom:${id}:recovery`,
+            keySuffix: 'recovery',
+          });
+        }
+      }
+    } catch (err) {
+      // 恢复事件检测失败不影响主流程（异步旁路）
+      console.warn('[SymptomCheck] 恢复事件记忆失败:', err);
     }
   } catch (err) {
     console.error('[Symptom Check Error]', err);
