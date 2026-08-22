@@ -1036,6 +1036,20 @@
     display: block;
   }
 
+  /* 图片加载失败兜底：与图片同尺寸的圆形底 + 物种 emoji，避免"只有文字没有图片" */
+  &__fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: $color-primary-bg;
+    @include flex-center;
+
+    &-emoji {
+      font-size: 44rpx;
+      line-height: 1;
+    }
+  }
+
   &__check {
     position: absolute;
     top: 8rpx;

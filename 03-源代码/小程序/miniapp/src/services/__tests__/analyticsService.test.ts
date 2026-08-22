@@ -79,4 +79,23 @@ describe('analyticsService', () => {
     clearQueue()
     expect(getQueueLength()).toBe(0)
   })
+
+  it('flush 失败后进入退避：60 秒内不重试（避免打爆服务端限流）', async () => {
+    // mock.calls 是跨测试累积的，先记录基线再断言增量
+    const baseline = vi.mocked(api.post).mock.calls.length
+    // 用低于自动阈值（20）的数量，只测显式 flush 的退避逻辑
+    vi.mocked(api.post).mockRejectedValueOnce(new Error('429 Too Many Requests'))
+    for (let i = 0; i < 10; i++) {
+      trackEvent('test_event', { index: i })
+    }
+    // 显式触发 flush：首次因 mock 失败 → 记录退避时间
+    await flushEvents()
+    expect(vi.mocked(api.post).mock.calls.length).toBe(baseline + 1)
+    // 失败后队列应保留（不清空）
+    expect(getQueueLength()).toBe(10)
+
+    // 退避窗口内再次触发 flush 应被跳过（api.post 不再被调用）
+    await flushEvents()
+    expect(vi.mocked(api.post).mock.calls.length).toBe(baseline + 1)
+  })
 })

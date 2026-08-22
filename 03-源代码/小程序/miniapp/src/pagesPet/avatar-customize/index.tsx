@@ -18,6 +18,7 @@ import GenerationProgress from '../../components/PetAvatar/GenerationProgress'
 import { EXPRESSION_MAP, type PetExpression } from '../../engines/petAvatar'
 import { getPresetsBySpecies, type AvatarPreset } from './data/avatarPresets'
 import { getHomeStyleAvatarUrl } from '../../data/homeStyleAvatars'
+import PresetAvatar from './PresetAvatar'
 import {
   generateAvatarImage,
   generateAvatarOptions,
@@ -690,7 +691,12 @@ export default function AvatarCustomizePage() {
               onClick={() => setSelectedPresetId(preset.id)}
             >
               <View className='avatar-preset__img-wrap'>
-                <Image className='avatar-preset__img' src={preset.image} mode='aspectFill' lazyLoad />
+                <PresetAvatar
+                  src={preset.image}
+                  species={preset.species}
+                  imgClass='avatar-preset__img'
+                  fallbackClass='avatar-preset__fallback'
+                />
                 {selectedPresetId === preset.id && (
                   <View className='avatar-preset__check'>
                     <Text className='avatar-preset__check-text'>✓</Text>

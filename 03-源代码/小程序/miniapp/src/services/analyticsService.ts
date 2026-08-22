@@ -21,11 +21,17 @@ const USER_PROPERTIES_KEY = 'xhh_analytics_user_props'
 const FUNNEL_STEPS_KEY = 'xhh_analytics_funnel_steps'
 const MAX_QUEUE_SIZE = 100
 const FLUSH_THRESHOLD = 20
+/** 服务端 batchSchema 单次最多 50 条（超过会 400 Too big） */
+const BATCH_SIZE = 50
+/** 上报失败（429 等）后的退避窗口：期间不再发起 flush，避免打爆服务端限流 */
+const RETRY_BACKOFF_MS = 60_000
 
 const pageTimers: Map<string, number> = new Map()
 
 // 上报单飞标志：防止阈值连发时多个 flush 并发，导致基于过期队列计数互相清空
 let flushing = false
+// 上次上报失败时间：429/5xx 后进入退避，等窗口重置再重试
+let lastFlushFailAt = 0
 
 function getUserId(): string | undefined {
   try {
@@ -67,18 +73,25 @@ export async function flushEvents(): Promise<void> {
   const queue = getQueue()
   // 队列为空或已有上报进行中时直接跳过（单飞），避免并发清空
   if (queue.length === 0 || flushing) return
+  // 退避：上次上报失败（429/5xx）后 60 秒内不重试，让服务端限流窗口重置
+  if (Date.now() - lastFlushFailAt < RETRY_BACKOFF_MS) return
   flushing = true
 
   try {
-    // 真实上报：把本地队列批量 POST 到服务端 /api/analytics/events
-    await api.post('/api/analytics/events', { events: queue })
-    // 上报成功后才清除已发送的前 N 条；上报期间新产生的事件（可能在 await 期间入队）
-    // 用 slice 保留下来，避免整个队列被清空导致丢事件
+    // 单次只发一批（≤50 条）：服务端 batchSchema 限制单次最多 50 条，
+    // 且一次发多批会瞬间消耗大量限流额度（120 次/分钟）导致 429；
+    // 剩余队列留待下次阈值触发时再发，天然平滑。
+    const batch = queue.slice(0, BATCH_SIZE)
+    await api.post('/api/analytics/events', { events: batch })
+    // 上报成功：清除已发送的 batch 条；上报期间新产生的事件（await 期间入队）
+    // 用 slice 保留，避免整个队列被清空导致丢事件
     const remaining = getQueue()
-    Taro.setStorageSync(EVENT_QUEUE_KEY, JSON.stringify(remaining.slice(queue.length)))
+    Taro.setStorageSync(EVENT_QUEUE_KEY, JSON.stringify(remaining.slice(batch.length)))
+    lastFlushFailAt = 0
   } catch (error) {
-    // 上报失败时保留队列，等待下次达到阈值或手动重试（不静默丢事件）
-    console.warn('[Analytics] 事件上报失败，队列保留待重试:', error)
+    // 上报失败：记录失败时间进入退避，并保留队列等待下次重试（不静默丢事件）
+    lastFlushFailAt = Date.now()
+    console.warn('[Analytics] 事件上报失败，进入退避重试:', error)
   } finally {
     flushing = false
   }
