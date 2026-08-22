@@ -218,6 +218,20 @@
 .msg-row.ai .msg-avatar {
   background: $gradient-warm;
   box-shadow: 0 0 16rpx rgba($color-primary, 0.3);
+  overflow: hidden;
+}
+
+/* AI 管家头像图片：铺满圆形 */
+.msg-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* AI 管家头像加载失败回退 emoji */
+.msg-avatar-emoji {
+  font-size: 32rpx;
+  line-height: 1;
 }
 
 .msg-row.user .msg-avatar {

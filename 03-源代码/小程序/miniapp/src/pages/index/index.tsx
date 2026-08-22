@@ -19,6 +19,7 @@ import { getTodayCheckin } from '../../services/checkinService'
 import type { CardData, Message, NamingDetail, PetInfo } from '../../types/chatTypes'
 import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
 import HomeSkeleton from '../../components/HomeSkeleton'
+import AiAvatar from './AiAvatar'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { uploadVoiceForTranscription } from '../../services/voiceService'
@@ -645,7 +646,7 @@ export default function Index() {
         <View className='chat-top-left'>
           <View className='chat-top-brand'>
             <Text className='chat-pet-name'>星河宠记</Text>
-            <Text className='chat-pet-detail'>AI 宠物管家</Text>
+            <Text className='chat-pet-detail'>团团 · AI 宠物管家</Text>
           </View>
         </View>
         <View className='chat-top-right'>
@@ -728,11 +729,11 @@ export default function Index() {
 
         <View className='msg-row ai'>
           <View className='msg-avatar'>
-            <Text>🤖</Text>
+            <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
           </View>
           <View className='msg-bubble-wrap'>
             <View className='msg-bubble'>
-              <Text>你好呀～我是星河宠记的AI宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
+              <Text>你好呀～我是团团，你的 AI 宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
             </View>
             {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
@@ -749,7 +750,11 @@ export default function Index() {
         {chat.messages.map((msg, idx) => (
           <View key={msg.id} className={`msg-row ${msg.type}`}>
             <View className='msg-avatar'>
-              <Text>{msg.type === 'ai' ? '🤖' : '😊'}</Text>
+              {msg.type === 'ai' ? (
+                <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
+              ) : (
+                <Text>😊</Text>
+              )}
             </View>
             <View className='msg-bubble-wrap'>
               <View
@@ -849,7 +854,7 @@ export default function Index() {
         {agentToolStatus && (
           <View className='msg-row ai'>
             <View className='msg-avatar'>
-              <Text>🤖</Text>
+              <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
             </View>
             <View className='msg-bubble agent-status-bubble'>
               <Text className='agent-status-text'>{agentToolStatus}</Text>
@@ -860,7 +865,7 @@ export default function Index() {
         {chat.isTyping && (
           <View className='msg-row ai'>
             <View className='msg-avatar'>
-              <Text>🤖</Text>
+              <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
             </View>
             <View className='msg-bubble typing-bubble'>
               <View className='typing-dots'>

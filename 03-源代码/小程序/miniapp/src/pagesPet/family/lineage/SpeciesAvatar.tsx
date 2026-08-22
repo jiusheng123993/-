@@ -5,10 +5,11 @@
  * 所以这里只对 cat/dog 显示小动物头像图片（品牌风格，品种匹配），
  * 其他物种继续用 emoji，避免把兔子显示成猫狗头像。
  *
- * 展示优先级（与 FamilyPetAvatar 保持一致）：
+ * 展示优先级（与 FamilyPetAvatar / 档案页 PetAvatar 语义一致）：
  *   1. 宠物有照片（avatarPhotoUrl / avatarUrl）→ 显示真实照片；
- *   2. 猫狗 → 品种匹配的小动物头像（失败回退物种 emoji）；
- *   3. 其他物种 → 物种 emoji（鸟/鱼/兔/仓鼠/龟等）。
+ *   2. 有 AI 卡通形象（avatarCartoonUrl）→ 显示用户定制的形象；
+ *   3. 猫狗 → 品种匹配的小动物头像（失败回退物种 emoji）；
+ *   4. 其他物种 → 物种 emoji（鸟/鱼/兔/仓鼠/龟等）。
  */
 import { useState, useEffect } from 'react'
 import { Image, Text } from '@tarojs/components'
@@ -41,10 +42,12 @@ interface SpeciesAvatarPet {
   /** 真实照片（PetProfile 用 avatarPhotoUrl；动态/图谱数据用 avatarUrl） */
   avatarPhotoUrl?: string | null
   avatarUrl?: string | null
+  /** AI 卡通形象（形象定制保存的结果，家庭/图谱/动态应跟随档案） */
+  avatarCartoonUrl?: string | null
 }
 
 interface SpeciesAvatarProps {
-  /** 宠物档案（用于照片/物种/品种匹配） */
+  /** 宠物档案（用于照片/卡通形象/物种/品种匹配） */
   pet: SpeciesAvatarPet
   /** 图片样式类（圆形裁剪铺满） */
   imgClass: string
@@ -58,8 +61,9 @@ export default function SpeciesAvatar({ pet, imgClass, emojiClass, style }: Spec
   // 图片加载失败标记：一旦失败则改用 emoji，避免裂图
   const [failed, setFailed] = useState(false)
 
-  // 真实照片优先（与 FamilyPetAvatar 一致：有照片显示照片）
-  const photoUrl = pet.avatarPhotoUrl || pet.avatarUrl
+  // 照片 → 用户定制的卡通形象 → 品种匹配小动物头像（与档案页优先级一致，
+  // 保证"家庭跟随档案"：形象定制保存的卡通形象这里必须能显示）
+  const photoUrl = pet.avatarPhotoUrl || pet.avatarUrl || pet.avatarCartoonUrl
   // 物种归类：仅猫狗显示小动物头像，其他物种走 emoji
   const kind = getSpeciesKind(pet.species)
 

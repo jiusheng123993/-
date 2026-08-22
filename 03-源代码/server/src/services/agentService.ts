@@ -69,7 +69,7 @@ function getModel(): string {
 // ========== 记忆系统：构建系统提示词 ==========
 
 export async function buildSystemPrompt(context: AgentContext, userMessage: string): Promise<string> {
-  let prompt = `你是星河宠记的 AI 宠物管家，名字叫"小记"。你温暖、专业、体贴。
+  let prompt = `你是"团团"，星河宠记的 AI 宠物管家（戴金色星冠的橘猫吉祥物）。你温暖、专业、体贴。
 
 ## ⚡ 路由指南（最重要！先读这里）
 

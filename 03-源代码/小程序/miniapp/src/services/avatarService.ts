@@ -9,6 +9,7 @@ import { calculateExpression } from '../engines/petAvatar/expressionEngine'
 import { generateDiaryForToday } from '../engines/petAvatar/diaryEngine'
 import { seedreamAdapter } from '../engines/petAvatar/seedreamAdapter'
 import { api, resolveAvatarUrl } from './api'
+import { storage } from '../platform/storage'
 import { CONFIG } from '../config'
 import type { PetProfile } from './petService'
 import type { ExpressionContext, AvatarCustomization, PetSpecies, PetImageParams, SeedreamGenerateResult, UploadPhotoResult, Generate2DResult, Generate3DResult, GenerationTask, Avatar2DPack, Avatar3DResult, AvatarQuota } from '../types/avatarTypes'
@@ -41,7 +42,11 @@ export interface AvatarStyleOption {
 }
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
-  const token = Taro.getStorageSync('xhh_token')
+  // 坑点：token 经 platform/storage 的 setToken 以 base64 编码存储，
+  // 必须用 storage.getToken() 解码读取；直接用 Taro.getStorageSync('xhh_token')
+  // 会拿到编码后的乱码，导致 Authorization 头非法 → 所有 avatar 接口 401
+  // （其他接口走 api.ts 内部用 storage.getToken()，所以只有头像接口会 401）
+  const token = storage.getToken()
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extra,

@@ -101,6 +101,18 @@ describe('SpeciesAvatar', () => {
     expect(img.src).toBe('https://real.example.com/dog.jpg')
   })
 
+  it('卡通形象（avatarCartoonUrl）跟随档案：无照片时显示形象定制保存的图', () => {
+    render(
+      <SpeciesAvatar
+        pet={{ id: 'p7b', species: 'cat', breed: '橘猫', avatarCartoonUrl: 'https://real.example.com/cartoon.png' }}
+        imgClass='img'
+        emojiClass='em'
+      />,
+    )
+    const img = document.querySelector('.img') as HTMLImageElement
+    expect(img.src).toBe('https://real.example.com/cartoon.png')
+  })
+
   it('图片加载失败：猫回退 🐱、狗回退 🐕', () => {
     const { rerender } = render(
       <SpeciesAvatar pet={{ id: 'p8', species: 'cat' }} imgClass='img' emojiClass='em' />,
