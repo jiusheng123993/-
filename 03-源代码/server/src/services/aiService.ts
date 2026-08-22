@@ -30,6 +30,11 @@ export interface ChatOptions {
    * 否则 max_tokens 会被 reasoning_content 吃掉，content 为空/截断。
    */
   thinking?: 'enabled' | 'disabled';
+  /**
+   * 请求超时（毫秒），默认 30s。
+   * 长输出调用方（如回忆录分镜）可按需调大；超时抛 AbortError，由调用方决定降级策略。
+   */
+  timeoutMs?: number;
 }
 
 /** 输入安全检测结果 */
@@ -99,6 +104,8 @@ export async function chat(
       // DeepSeek V4 思考模式控制（OpenAI 兼容格式）；不传则用模型默认（思考开启）
       ...(options?.thinking ? { thinking: { type: options.thinking } } : {}),
     }),
+    // 请求超时（默认 30s）：LLM 调用不允许无限挂起（超时抛 AbortError，由调用方决定降级策略）
+    signal: AbortSignal.timeout(options?.timeoutMs ?? 30_000),
   });
 
   if (!response.ok) {
@@ -161,46 +168,64 @@ export async function guardCheck(text: string): Promise<GuardResult> {
 
 /**
  * 输出安全检测 - 检查 AI 回复是否包含不安全的医疗建议
+ * fail-closed 语义：opts.failClosed=true 时，检测服务不可用/解析失败一律视为不安全（宁可拦截，不可放行）
  * @param text - AI 回复文本
+ * @param opts - 选项（failClosed：服务异常时是否按"不安全"处理，默认 false=放行，保持旧行为）
  * @returns 输出安全检测结果
  */
-export async function guardCheckOutput(text: string): Promise<GuardOutputResult> {
+export async function guardCheckOutput(
+  text: string,
+  opts?: { failClosed?: boolean },
+): Promise<GuardOutputResult> {
   const apiKey = getApiKey();
+  const failClosed = opts?.failClosed ?? false;
+  // 检测失败/无密钥/解析失败时的默认结果：fail-closed 则拦截，否则放行（向后兼容）
+  const block = (): GuardOutputResult => ({ isUnsafeMedicalAdvice: failClosed });
 
   if (!apiKey) {
-    return { isUnsafeMedicalAdvice: false };
+    return block();
   }
 
   const prompt =
     '你是一个安全检测助手。请分析以下AI回答是否包含不安全的医疗建议（如推荐具体药物、处方、替代兽医诊断等）。只回复JSON格式：{"isUnsafeMedicalAdvice":<true/false>}';
 
-  const response = await fetch(`${getBaseUrl()}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: getModel(),
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: text },
-      ],
-      temperature: 0,
-      max_tokens: 50,
-    }),
-  });
-
-  if (!response.ok) {
-    return { isUnsafeMedicalAdvice: false };
+  let response: Response;
+  try {
+    response = await fetch(`${getBaseUrl()}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: getModel(),
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content: text },
+        ],
+        temperature: 0,
+        max_tokens: 50,
+      }),
+      // 15s 超时：安全检测不允许挂起
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    // 网络异常/超时：按 fail-closed 语义返回
+    return block();
   }
 
-  const data = (await response.json()) as ChatCompletionResponse;
+  if (!response.ok) {
+    return block();
+  }
+
+  // response.json() 本身可能抛（非法 JSON），一并纳入 try 按 fail-closed 语义兜底
+  let data: ChatCompletionResponse;
   try {
+    data = (await response.json()) as ChatCompletionResponse;
     const parsed = JSON.parse(data.choices[0].message.content);
     return { isUnsafeMedicalAdvice: parsed.isUnsafeMedicalAdvice as boolean };
   } catch {
-    return { isUnsafeMedicalAdvice: false };
+    return block();
   }
 }
 

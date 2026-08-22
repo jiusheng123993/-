@@ -1296,3 +1296,50 @@ export async function deleteCheckResult(id: string): Promise<void> {
   } catch (error) {
   }
 }
+
+// ===== AI 深度分析（Phase 2，会员专属） =====
+
+/** 记忆召回条目（服务端返回，basis='record' 只作背景展示） */
+export interface AiRecalledMemory {
+  content: string
+  importance: number
+  category: string
+}
+
+/** AI 深度分析结果 */
+export interface AiDeepAnalysisResult {
+  aiAdvice: string               // AI 组织后的建议（含免责声明）
+  memoriesUsed: AiRecalledMemory[] // 记忆召回（历史健康/医疗背景）
+  unsafe: boolean                // 输出安全检测是否拦截（true 时 aiAdvice 为兜底文案）
+  degraded?: boolean             // LLM 调用失败降级（true 时 aiAdvice 为"稍后再试"文案，可选）
+}
+
+/**
+ * 请求会员 AI 深度分析
+ * 入参 = 本地初筛结论（规则+图谱依据），服务端注入宠物档案/打卡/记忆闸门召回后调 LLM
+ * @param petId - 宠物 ID
+ * @param payload - 本地初筛上下文
+ * @returns AI 建议 + 记忆召回（非会员由服务端 403 拒绝）
+ */
+export async function aiDeepAnalyze(
+  petId: string,
+  payload: {
+    symptoms: string[]
+    symptomNames: string[]
+    riskLevel: SymptomCheckResult['riskLevel']
+    possibleConditions: string[]
+    conclusions: AnalysisConclusion[]
+    duration?: string
+    severity?: string
+  }
+): Promise<AiDeepAnalysisResult> {
+  return api.post<AiDeepAnalysisResult>(`/api/pets/${petId}/symptom-check/ai-analysis`, {
+    symptoms: payload.symptoms,
+    symptom_names: payload.symptomNames,
+    risk_level: payload.riskLevel,
+    possible_conditions: payload.possibleConditions,
+    conclusions: payload.conclusions,
+    duration: payload.duration,
+    severity: payload.severity,
+  })
+}

@@ -6,15 +6,28 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import crypto from 'crypto';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { symptomCheckSchema, symptomHistoryQuerySchema } from '../schemas/index.js';
+import { symptomLimiter } from '../middleware/rateLimit.js';
+import { symptomCheckSchema, symptomHistoryQuerySchema, aiSymptomAnalysisSchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { SymptomRepository } from '../repositories/symptomRepository.js';
+import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { recordHealthMemory } from '../services/memoryService.js';
+import { deepAnalyzeSymptom } from '../services/symptomAiService.js';
 
 const router = Router();
 
 const petRepository = new PetRepository();
 const symptomRepository = new SymptomRepository();
+const membershipRepository = new MembershipRepository();
+
+/** 查询用户会员状态（AI 深度分析会员强制校验，不能只靠前端隐藏） */
+async function getUserMembership(userId: string): Promise<{ isMember: boolean; status: string }> {
+  const row = await membershipRepository.findTierAndStatus(userId);
+  if (!row) return { isMember: false, status: 'none' };
+  const isExpired = row.expires_at && new Date(row.expires_at) < new Date();
+  if (isExpired) return { isMember: false, status: 'expired' };
+  return { isMember: row.tier !== 'free' && row.status === 'active', status: row.status };
+}
 
 async function checkPetOwnership(req: Request, res: Response, next: NextFunction) {
   try {
@@ -116,6 +129,38 @@ router.get('/:petId/symptom-check/history', authMiddleware, validate({ query: sy
   } catch (err) {
     console.error('[Symptom History Error]', err);
     res.status(500).json({ success: false, message: '获取初筛历史失败' });
+  }
+});
+
+/**
+ * POST /api/pets/:petId/symptom-check/ai-analysis
+ * AI 深度分析（会员专属，Phase 2）
+ * 请求体 = 前端本地初筛结论（规则+图谱依据），服务端注入宠物档案/打卡/记忆闸门召回后调 LLM
+ * 安全：auth + 症状限流(10次/分钟) + 宠物归属 + 会员强制 + zod 校验 + 输出安全检测（服务内）
+ */
+router.post('/:petId/symptom-check/ai-analysis', authMiddleware, symptomLimiter, validate({ body: aiSymptomAnalysisSchema }), checkPetOwnership, async (req: Request, res: Response) => {
+  try {
+    // 会员强制校验（服务端，不能只靠前端隐藏——LLM 调用有成本）
+    const { isMember } = await getUserMembership(req.userId!);
+    if (!isMember) {
+      res.status(403).json({ success: false, message: 'AI 深度分析仅限会员使用，请先开通会员' });
+      return;
+    }
+
+    const result = await deepAnalyzeSymptom(req.userId!, req.params.petId as string, {
+      symptoms: req.body.symptoms,
+      symptomNames: req.body.symptom_names,
+      riskLevel: req.body.risk_level,
+      possibleConditions: req.body.possible_conditions || [],
+      conclusions: req.body.conclusions || [],
+      duration: req.body.duration,
+      severity: req.body.severity,
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[Symptom AI Analysis Error]', err);
+    res.status(500).json({ success: false, message: 'AI 深度分析失败' });
   }
 });
 

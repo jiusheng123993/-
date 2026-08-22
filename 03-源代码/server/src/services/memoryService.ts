@@ -377,6 +377,46 @@ export async function getActiveMemories(
   }
 }
 
+/**
+ * 症状分析记忆召回（带闸门，见 设计方案-2026-08-22 第六章 6.3）
+ * 只召回：health/medical 类 + active + importance≥5 + 近90天 + 内容命中症状关键词
+ * 用途：AI 深度分析/症状初筛的"类人背景"，只作展示（basis='record'），不参与 riskLevel 推导
+ * @param userId - 用户 ID
+ * @param petId - 宠物 ID
+ * @param keywords - 召回关键词（症状中文名等）
+ * @param limit - 返回条数上限
+ * @returns 召回的记忆（含内容/重要度/分类/时间）
+ */
+export async function recallHealthMemories(
+  userId: string,
+  petId: string,
+  keywords: string[],
+  limit = 5,
+): Promise<Array<{ content: string; importance: number; category: string; created_at: string }>> {
+  try {
+    if (keywords.length === 0) return [];
+    // 转义 ILIKE 通配符（%/_），防止用户可控关键词（如 "100%"）变成宽匹配（审查项修复）
+    const escaped = keywords.map((k) => k.replace(/[\\%_]/g, (m) => '\\' + m));
+    const { rows } = await pool.query(
+      `SELECT content, importance, category, created_at
+       FROM agent_memories
+       WHERE user_id = $1 AND pet_id = $2
+         AND status = 'active'
+         AND category IN ('health', 'medical')
+         AND importance >= 5
+         AND created_at >= NOW() - INTERVAL '90 days'
+         AND content ILIKE ANY($3::text[])
+       ORDER BY importance DESC, created_at DESC
+       LIMIT $4`,
+      [userId, petId, escaped.map((k) => `%${k}%`), limit],
+    );
+    return rows;
+  } catch {
+    // 记忆召回失败不阻塞主流程（降级为无记忆）
+    return [];
+  }
+}
+
 function rowToMemoryEntry(row: Record<string, unknown>): MemoryEntry {
   return {
     id: row.id as number,

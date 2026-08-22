@@ -847,3 +847,73 @@
   background: #9AA4B2;
 }
 
+/* ===== AI 深度分析区块（Phase 2，会员专属） ===== */
+.pet-symptom-check__deep {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, rgba(138, 92, 246, 0.08), rgba(74, 144, 217, 0.06));
+  border: 1px solid rgba(138, 92, 246, 0.18);
+}
+
+/* 触发按钮（未分析时展示） */
+.pet-symptom-check__deep-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #8B5CF6, #4A90D9);
+}
+
+.pet-symptom-check__deep-btn--loading {
+  opacity: 0.7;
+}
+
+.pet-symptom-check__deep-btn-text {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+}
+
+/* 分析结果 */
+.pet-symptom-check__deep-head {
+  margin-bottom: 16rpx;
+}
+
+.pet-symptom-check__deep-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: #6D3FD9;
+}
+
+.pet-symptom-check__deep-advice {
+  display: block;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  color: $color-text-primary;
+}
+
+/* 记忆召回（basis='record'，只作背景展示） */
+.pet-symptom-check__deep-memories {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1px dashed rgba(138, 92, 246, 0.25);
+}
+
+.pet-symptom-check__deep-memories-title {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: #8B5CF6;
+  margin-bottom: 10rpx;
+}
+
+.pet-symptom-check__deep-memory {
+  display: block;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-text-secondary;
+  padding: 6rpx 0;
+}
+
