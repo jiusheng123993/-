@@ -11,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db.js';
 import { registerTool, type ToolResult } from './toolRegistry.js';
 import { listHealthReports } from './healthReportService.js';
+// 图谱评估器（Phase 3 收尾：聊天路径 check_symptom 消费权威图谱，与症状初筛页判断一致）
+import { loadActiveGraph, mapSymptomTextToIds, evaluateSymptomLevel } from './graphEvaluator.js';
 
 type Context = { userId: string; petId?: string };
 
@@ -377,7 +379,7 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
   const symptom = (args.symptom as string).trim();
   const duration = (args.duration as string) || '未知';
 
-  // 紧急关键词检测
+  // ===== 紧急关键词检测（安全底线：自由文本最可靠的紧急信号，保持不变） =====
   const emergencyKeywords = ['抽搐', '昏迷', '呼吸困难', '吐血', '中毒', '车祸', '坠落', '瘫痪', '大出血', '休克'];
   const isEmergency = emergencyKeywords.some((kw) => symptom.includes(kw));
 
@@ -393,9 +395,38 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
     };
   }
 
-  // 中高风险关键词
-  const warningKeywords = ['呕吐', '拉稀', '腹泻', '不吃', '发烧', '精神差', '便血', '尿血', '跛行', '肿胀'];
-  const isWarning = warningKeywords.some((kw) => symptom.includes(kw));
+  // ===== 图谱评估（设计 §8：聊天路径消费权威图谱，与症状初筛页判断一致） =====
+  // 文本能映射到已知症状名 → 用图谱规则定级；映射不上 → 回落关键词兜底
+  let riskLevel: 'warning' | 'caution' = 'caution';
+  let ruleName: string | undefined;
+  const graph = await loadActiveGraph();
+  const mappedIds = graph ? mapSymptomTextToIds(graph, symptom) : [];
+  if (graph && mappedIds.length > 0) {
+    const evaluated = evaluateSymptomLevel(graph, mappedIds, duration === '未知' ? undefined : duration);
+    if (evaluated.level === 'emergency') {
+      return {
+        success: true,
+        data: {
+          riskLevel: 'emergency',
+          message: '检测到高风险症状组合！请尽快就医检查。这不是诊断，请咨询专业兽医。',
+          needHospital: true,
+          emergency: true,
+        },
+      };
+    }
+    if (evaluated.level === 'warning') {
+      riskLevel = 'warning';
+      ruleName = evaluated.ruleName;
+    }
+  }
+
+  // ===== 关键词兜底（文本未映射到图谱症状时保持原逻辑） =====
+  if (mappedIds.length === 0) {
+    const warningKeywords = ['呕吐', '拉稀', '腹泻', '不吃', '发烧', '精神差', '便血', '尿血', '跛行', '肿胀'];
+    if (warningKeywords.some((kw) => symptom.includes(kw))) {
+      riskLevel = 'warning';
+    }
+  }
 
   // 记录症状检查
   const id = uuidv4();
@@ -406,11 +437,11 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
     [
       id, petId, context.userId,
       [symptom], duration,
-      isWarning ? 'warning' : 'caution',
-      isWarning
-        ? `根据症状"${symptom}"（持续${duration}），建议尽快就医检查。这不是诊断，请咨询专业兽医。`
+      riskLevel,
+      riskLevel === 'warning'
+        ? `根据症状"${symptom}"（持续${duration}），建议尽快就医检查。这不是诊断，请咨询专业兽医。${ruleName ? `（依据：${ruleName}）` : ''}`
         : `根据症状"${symptom}"（持续${duration}），建议密切观察。如果症状加重或持续超过24小时，请就医。`,
-      isWarning
+      riskLevel === 'warning'
         ? ['立即就医', '暂时禁食观察', '记录症状变化']
         : ['密切观察', '保持正常饮食', '如加重请就医'],
     ]
@@ -419,11 +450,11 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
   return {
     success: true,
     data: {
-      riskLevel: isWarning ? 'warning' : 'caution',
-      message: isWarning
+      riskLevel,
+      message: riskLevel === 'warning'
         ? '建议尽快就医检查，这不是诊断，请咨询专业兽医。'
         : '建议密切观察，如果症状加重请及时就医。',
-      needHospital: isWarning,
+      needHospital: riskLevel === 'warning',
       disclaimer: '以上为 AI 辅助分析，不替代兽医诊断。',
     },
   };
