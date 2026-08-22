@@ -101,6 +101,26 @@ export const config = {
   moderate: {
     apiKey: process.env.MODERATE_API_KEY || '',
   },
+  /** 回忆录旁白 TTS 配置（火山引擎豆包语音 Doubao Speech 2.0，回忆录 2.0 M3 模块） */
+  doubaoSpeech: {
+    /** 豆包语音新控制台 API Key（需在火山引擎控制台开通"语音技术/豆包语音"获取） */
+    apiKey: process.env.DOUBAO_SPEECH_API_KEY || '',
+    /** 资源 ID（豆包语音 2.0） */
+    resourceId: process.env.DOUBAO_SPEECH_RESOURCE_ID || 'seed-tts-2.0',
+    /** 默认音色（豆包语音 speaker ID） */
+    voice: process.env.DOUBAO_SPEECH_VOICE || 'zh_female_vv_uranus_bigtts',
+    /** 接口地址（异步合成：submit/query） */
+    baseUrl: process.env.DOUBAO_SPEECH_BASE_URL || 'https://openspeech.bytedance.com/api/v3/tts',
+  },
+  /** 回忆录视频质量质检配置（DeepSeek 视觉模型，M5 模块） */
+  qualityCheck: {
+    /** 质检 API Key（缺省复用主 AI key；可单独配置） */
+    apiKey: process.env.QUALITY_CHECK_API_KEY || '',
+    /** 质检模型服务地址（默认 DeepSeek 官方 vision-exp） */
+    baseUrl: process.env.QUALITY_CHECK_BASE_URL || 'https://api.deepseek.com/v1',
+    /** 质检视觉模型（默认 DeepSeek 最新视觉模型） */
+    model: process.env.QUALITY_CHECK_MODEL || 'deepseek-v4-flash-vision-exp',
+  },
   wechatPay: {
     /** Mock 模式：true=本地开发模拟支付，不调真实微信 API；false=真实微信支付 V3 */
     mock: process.env.WECHAT_PAY_MOCK !== 'false',

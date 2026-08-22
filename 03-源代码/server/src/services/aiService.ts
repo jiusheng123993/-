@@ -24,6 +24,12 @@ export interface ChatMessage {
 export interface ChatOptions {
   temperature?: number;
   max_tokens?: number;
+  /**
+   * DeepSeek V4 思考模式开关（默认不传=模型默认思考开启）
+   * 分镜生成等"要完整 JSON 正文"的场景应传 'disabled'，
+   * 否则 max_tokens 会被 reasoning_content 吃掉，content 为空/截断。
+   */
+  thinking?: 'enabled' | 'disabled';
 }
 
 /** 输入安全检测结果 */
@@ -90,6 +96,8 @@ export async function chat(
       messages,
       temperature,
       max_tokens: maxTokens,
+      // DeepSeek V4 思考模式控制（OpenAI 兼容格式）；不传则用模型默认（思考开启）
+      ...(options?.thinking ? { thinking: { type: options.thinking } } : {}),
     }),
   });
 

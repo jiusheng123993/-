@@ -27,6 +27,11 @@ import { promisify } from 'node:util';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// 回忆录 2.0 模块（M2 提示词组装 / M4 字幕 / M3 旁白）
+import { buildFinalSegmentPrompt } from './promptTemplates.js';
+import { buildAssContent, type SubtitleItem } from './subtitles.js';
+import { synthNarration, type NarrationSegment } from './ttsService.js';
+import type { MemoirScript } from '../schemas/memoirScript.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -49,6 +54,12 @@ export interface VideoGenerationParams {
   duration?: number | null;
   /** 风格预设 */
   stylePreset?: string | null;
+  /**
+   * AI 分镜脚本（回忆录 2.0，M1 生成）
+   * 存在时走"分镜驱动"新管线（十段提示词 + 字幕 + 旁白 + xfade）；
+   * 不存在时走旧管线（兼容历史任务）
+   */
+  script?: MemoirScript | null;
 }
 
 /** 视频生成结果 */
@@ -166,7 +177,7 @@ export function validateDuration(
 export async function generateMemoirVideo(
   params: VideoGenerationParams,
 ): Promise<VideoGenerationResult> {
-  const { taskId, productLine, sourcePhotos, sourceText, musicStyle, duration, stylePreset } = params;
+  const { taskId, productLine, sourcePhotos, sourceText, musicStyle, duration, stylePreset, script } = params;
 
   // 参数校验
   const photoError = validatePhotoCount(productLine, sourcePhotos.length);
@@ -182,11 +193,298 @@ export async function generateMemoirVideo(
   const cfg = PRODUCT_LINE_CONFIG[productLine];
   const targetDuration = duration ?? cfg.defaultDuration;
 
-  // 根据产品线选择生成策略
+  // 回忆录 2.0：有 AI 分镜脚本 → 分镜驱动新管线
+  if (script && Array.isArray(script.segments) && script.segments.length > 0) {
+    return generateFromScript(taskId, sourcePhotos, script, musicStyle);
+  }
+
+  // 旧管线（兼容历史任务：narrative_structure 无 script）
   if (productLine === 'memorial') {
     return generateMemorialVlog(taskId, sourcePhotos, sourceText, musicStyle, targetDuration, stylePreset);
   }
   return generateDailyMemoir(taskId, sourcePhotos, sourceText, musicStyle, targetDuration, stylePreset);
+}
+
+/**
+ * 分镜时间轴（每镜在成片中的起止时间，秒）
+ */
+interface ScriptTimeline {
+  startSec: number;
+  endSec: number;
+}
+
+/**
+ * 静态照片动效片段（全家福/合影镜头专用）
+ * 用 ffmpeg zoompan 对照片做缓慢推近/拉远，不调用 AI 视频生成——
+ * 多角色同框合影"不重建角色"，零一致性风险 + 零 AI 成本。
+ * @param taskId - 任务 ID
+ * @param photoUrl - 照片 URL（下载到本地处理）
+ * @param durationSec - 片段时长（秒）
+ * @param direction - 运镜方向：in=推近 / out=拉远
+ * @returns 可访问的片段 URL（uploads 托管，与 Seedance 片段一致）
+ */
+async function generateStaticSegment(
+  taskId: string,
+  photoUrl: string,
+  durationSec: number,
+  direction: 'in' | 'out' = 'in',
+): Promise<string> {
+  const workDir = path.join(UPLOAD_DIR, 'memoir', taskId);
+  await mkdir(workDir, { recursive: true });
+  const photoPath = path.join(workDir, `static_${Date.now()}.jpg`);
+  const outPath = path.join(workDir, `static_${Date.now()}.mp4`);
+  await downloadFile(photoUrl, photoPath);
+
+  const frames = Math.max(1, Math.round(durationSec * 24)); // 24fps
+  const zoomExpr =
+    direction === 'in'
+      ? `min(1+0.0006*on,1.25)` // 缓慢推近
+      : `max(1.25-0.0006*on,1.0)`; // 缓慢拉远
+
+  try {
+    await execFileAsync('ffmpeg', [
+      '-y',
+      '-loop', '1',
+      '-i', photoPath,
+      '-vf',
+      `scale=1920:1080:force_original_aspect_ratio=decrease,` +
+        `pad=1920:1080:(ow-iw)/2:(oh-ih)/2,` +
+        `zoompan=z='${zoomExpr}':d=${frames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1280x720:fps=24`,
+      '-t', String(durationSec),
+      '-c:v', 'libx264',
+      '-pix_fmt', 'yuv420p',
+      outPath,
+    ], { timeout: 60_000 });
+  } finally {
+    // 清理照片临时文件（保留生成的 mp4 供拼接）
+    await rm(photoPath, { force: true }).catch(() => {});
+  }
+
+  // 返回可访问 URL（与 Seedance 片段一致，stitch 统一按 URL 下载）
+  const baseUrl = config.publicBaseUrl || '';
+  return `${baseUrl}/uploads/memoir/${taskId}/${path.basename(outPath)}`;
+}
+
+/**
+ * 分镜驱动生成（回忆录 2.0 新管线）
+ * 逐镜用分镜脚本的提示词（经 M2 十段组装 + Locks）与时长生成，
+ * 拼接阶段做 xfade 转场 + ASS 字幕 + TTS 旁白。
+ * @param taskId - 任务 ID
+ * @param photos - 源照片 URL 数组
+ * @param script - AI 分镜脚本（M1 生成）
+ * @param musicStyle - 音乐风格（预留）
+ * @returns 视频生成结果
+ */
+async function generateFromScript(
+  taskId: string,
+  photos: string[],
+  script: MemoirScript,
+  musicStyle: string | null | undefined,
+): Promise<VideoGenerationResult> {
+  if (!isSeedanceConfigured()) {
+    console.warn(`[VideoGen] Task ${taskId}: API key not configured, using mock mode (scripted)`);
+    return mockGenerationResult(taskId, 'memorial', photos, 60);
+  }
+
+  try {
+    // 1. 逐镜生成（用分镜的提示词 + 时长）
+    const segmentUrls: string[] = [];
+    const timeline: ScriptTimeline[] = [];
+    let cursor = 0;
+    for (let i = 0; i < script.segments.length; i++) {
+      const seg = script.segments[i];
+      const photoUrl = photos[seg.photo_index] ?? photos[0];
+      let url: string | null;
+
+      if (seg.source === 'static_photo') {
+        // 全家福/合影镜头：ffmpeg zoompan 静态动效（不重建角色，零 AI 成本、零一致性风险）
+        url = await generateStaticSegment(taskId, photoUrl, seg.duration_sec, 'in');
+      } else {
+        // M2 组装最终提示词：十段补全 + 本镜在场角色锚点（多宠物/多人）+ Locks
+        const prompt = buildFinalSegmentPrompt({
+          segment: seg,
+          anchors: script.anchors ?? [],
+          identityAnchor: script.identity_anchor,
+          screenDirection: 'right',
+        });
+        url = await generateSegmentWithRetry(taskId, photoUrl, prompt, seg.duration_sec);
+      }
+
+      if (!url) {
+        throw new Error(`[VideoGen] Scripted segment ${i} generation failed`);
+      }
+      segmentUrls.push(url);
+      timeline.push({ startSec: cursor, endSec: cursor + seg.duration_sec });
+      cursor += seg.duration_sec;
+    }
+
+    // 2. 拼接：xfade 转场 + 字幕 + 旁白
+    const finalVideo = await stitchWithScript(taskId, segmentUrls, timeline, script, musicStyle);
+
+    return {
+      videoUrl: finalVideo.videoUrl,
+      previewUrl: finalVideo.previewUrl,
+      actualDuration: finalVideo.actualDuration,
+      engine: 'seedance-scripted-vlog',
+    };
+  } catch (error) {
+    throw new Error(`[VideoGen] Scripted generation failed: ${sanitizeError(error)}`);
+  }
+}
+
+/**
+ * 分镜驱动拼接（回忆录 2.0）
+ * 1. 下载片段 → 2. xfade 交叉淡化链 → 3. ASS 字幕烧录 → 4. TTS 旁白混音 → 5. 预览
+ * 降级：字幕/旁白不可用时自动跳过（不阻断）
+ * @param taskId - 任务 ID
+ * @param segmentUrls - 各镜视频 URL（顺序与 script.segments 一致）
+ * @param timeline - 各镜时间轴
+ * @param script - 分镜脚本（提供字幕/旁白文案）
+ * @param musicStyle - 音乐风格（预留）
+ * @returns 拼接结果
+ */
+async function stitchWithScript(
+  taskId: string,
+  segmentUrls: string[],
+  timeline: ScriptTimeline[],
+  script: MemoirScript,
+  _musicStyle: string | null | undefined,
+): Promise<StitchResult> {
+  if (segmentUrls.length === 0) {
+    throw new Error(`[VideoGen] No segments to stitch for task ${taskId}`);
+  }
+
+  const workDir = path.join(UPLOAD_DIR, 'memoir', taskId);
+  await mkdir(workDir, { recursive: true });
+
+  try {
+    // 1. 下载所有片段
+    const localPaths: string[] = [];
+    for (let i = 0; i < segmentUrls.length; i++) {
+      const localPath = path.join(workDir, `segment_${i}.mp4`);
+      await downloadFile(segmentUrls[i], localPath);
+      localPaths.push(localPath);
+    }
+
+    // 2. 生成 ASS 字幕（subtitle + 时间轴）
+    const subtitles: SubtitleItem[] = script.segments
+      .map((seg, i) => ({
+        startSec: timeline[i]?.startSec ?? 0,
+        endSec: timeline[i]?.endSec ?? 0,
+        text: seg.subtitle,
+      }))
+      .filter((s) => s.text && s.text.trim().length > 0);
+    const assPath = path.join(workDir, 'sub.ass');
+    if (subtitles.length > 0) {
+      await writeFile(assPath, buildAssContent(subtitles), 'utf8');
+    }
+
+    // 3. 合成旁白（TTS；降级时 audioPath 为空 → 无旁白；音色用分镜的 narration_voice）
+    const narrationSegs: NarrationSegment[] = script.segments.map((seg, i) => ({
+      text: seg.narration,
+      startSec: timeline[i]?.startSec ?? 0,
+      endSec: timeline[i]?.endSec ?? 0,
+    }));
+    const tts = await synthNarration(taskId, narrationSegs, script.narration_voice);
+
+    // 4. 组装 ffmpeg 命令：xfade 链 + 字幕 + 音频
+    const inputs: string[] = [];
+    localPaths.forEach((p) => inputs.push('-i', p));
+
+    // 视频 filter：先统一分辨率/帧率（防异构照片片段导致 xfade 失败），再做交叉淡化链
+    const transitionSec = 0.5;
+    const filterParts: string[] = [];
+    // 每段归一化到 1280x720@24fps（居中裁剪填充，时间戳归零）
+    const normLabels: string[] = [];
+    for (let i = 0; i < localPaths.length; i++) {
+      normLabels.push(`vn${i}`);
+      filterParts.push(
+        `[${i}:v]scale=1280:720:force_original_aspect_ratio=decrease,` +
+          `pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=24,setpts=PTS-STARTPTS[vn${i}]`,
+      );
+    }
+    let prevLabel = normLabels[0];
+    let accumulated = 0;
+    for (let i = 1; i < localPaths.length; i++) {
+      accumulated += timeline[i - 1]?.endSec - timeline[i - 1]?.startSec || 0;
+      // xfade offset = 已累积原始时长 - 已消耗的转场时长
+      const offset = Math.max(0, accumulated - i * transitionSec);
+      const outLabel = i === localPaths.length - 1 ? 'vxf' : `vx${i}`;
+      filterParts.push(
+        `[${prevLabel}][${normLabels[i]}]xfade=transition=fade:duration=${transitionSec}:offset=${offset.toFixed(2)}[${outLabel}]`,
+      );
+      prevLabel = outLabel;
+    }
+    if (localPaths.length === 1) {
+      filterParts.push(`[${normLabels[0]}]null[vxf]`);
+    }
+
+    // 字幕烧录（有字幕时）
+    if (subtitles.length > 0) {
+      filterParts.push(`[vxf]ass=filename=${assPath.replace(/\\/g, '/')}[vout]`);
+    } else {
+      filterParts.push(`[vxf]null[vout]`);
+    }
+
+    // 音频：静音底噪 + 旁白（若有）；BGM 音乐库后续接入
+    const totalDuration = accumulated + (timeline[timeline.length - 1]?.endSec - timeline[timeline.length - 1]?.startSec || 0);
+    const baseAudioIdx = localPaths.length; // anullsrc 输入下标
+    inputs.push('-f', 'lavfi', '-t', String(Math.max(totalDuration, 1)), '-i', 'anullsrc=r=44100:cl=stereo');
+    filterParts.push(`[${baseAudioIdx}:a]anull[abase]`);
+
+    if (tts && !tts.degraded && tts.audioPath) {
+      const narIdx = baseAudioIdx + 1;
+      inputs.push('-i', tts.audioPath);
+      // 旁白为整段已对齐时间轴，直接混入
+      filterParts.push(`[${narIdx}:a]volume=1.0[anar]`);
+      filterParts.push(`[abase][anar]amix=inputs=2:duration=first:normalize=0[aout]`);
+    } else {
+      filterParts.push(`[abase]anull[aout]`);
+    }
+
+    // 执行 ffmpeg
+    const finalPath = path.join(workDir, 'final.mp4');
+    await execFileAsync('ffmpeg', [
+      '-y',
+      ...inputs,
+      '-filter_complex', filterParts.join(';'),
+      '-map', '[vout]',
+      '-map', '[aout]',
+      '-c:v', 'libx264',
+      '-crf', '23',
+      '-preset', 'fast',
+      '-c:a', 'aac',
+      '-shortest',
+      finalPath,
+    ]);
+
+    // 5. 生成预览（低码率）
+    const previewPath = path.join(workDir, 'preview.mp4');
+    await execFileAsync('ffmpeg', [
+      '-y',
+      '-i', finalPath,
+      '-vf', 'scale=480:-2',
+      '-c:v', 'libx264',
+      '-crf', '28',
+      '-preset', 'fast',
+      '-t', String(Math.min(totalDuration, 30)),
+      previewPath,
+    ]);
+
+    // 6. 生成可访问 URL
+    const baseUrl = config.publicBaseUrl || '';
+    const videoUrl = `${baseUrl}/uploads/memoir/${taskId}/final.mp4`;
+    const previewUrl = `${baseUrl}/uploads/memoir/${taskId}/preview.mp4`;
+
+    // 7. 清理临时片段（保留 final/preview 与 sub.ass/narration 供审计）
+    for (const p of localPaths) {
+      await rm(p, { force: true }).catch(() => {});
+    }
+
+    return { videoUrl, previewUrl, actualDuration: totalDuration };
+  } catch (error) {
+    throw new Error(`[VideoGen] Scripted stitch failed: ${sanitizeError(error)}`);
+  }
 }
 
 /**
