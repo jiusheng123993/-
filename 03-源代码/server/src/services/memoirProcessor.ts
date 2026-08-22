@@ -22,7 +22,7 @@ import {
   type VideoGenerationResult,
 } from './videoGenerationService.js';
 import { generateMemoirScript } from './memoirScriptService.js';
-import { buildMemoryContext } from './memoryService.js';
+import { buildMemoryContext, getMemoriesByTags } from './memoryService.js';
 import { checkVideoQuality } from './qualityCheckService.js';
 import { cleanupNarration } from './ttsService.js';
 import { cleanupDoubaoSpeech } from './doubaoSpeechTts.js';
@@ -298,15 +298,27 @@ async function ensureMemoirScript(
     // 查宠物档案（失败用兜底档案，不阻断）
     const pet = await petRepository.findByIdAndUser(task.pet_id, task.user_id);
 
-    // 记忆摘要（失败不影响分镜生成）
+    // 记忆摘要（F4：按回忆标签筛核心层记忆作素材；失败不影响分镜生成）
     let memorySummary: string | undefined;
     try {
-      const ctx = await buildMemoryContext(
-        task.user_id,
-        task.pet_id,
-        task.source_text || '为宠物生成回忆录分镜',
-      );
-      memorySummary = ctx.memories || undefined;
+      const tags = Array.isArray(narrative.tags) ? (narrative.tags as string[]) : undefined;
+      if (tags && tags.length > 0) {
+        // 用户选了标签 → 按标签取核心层记忆（记忆驱动）
+        memorySummary = await getMemoriesByTags({
+          userId: task.user_id,
+          petId: task.pet_id,
+          tags,
+          limit: 20,
+        });
+      } else {
+        // 未选标签 → 用完整记忆上下文
+        const ctx = await buildMemoryContext(
+          task.user_id,
+          task.pet_id,
+          task.source_text || '为宠物生成回忆录分镜',
+        );
+        memorySummary = ctx.memories || undefined;
+      }
     } catch {
       // 记忆摘要失败忽略
     }

@@ -786,13 +786,15 @@ export async function recordHealthMemory(params: {
   try {
     await pool.query(
       `INSERT INTO agent_memories
-         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta)
-       VALUES ($1,$2,$3,$4,$5,$6,0.9,'health_event',$7,$8)
+         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta, tags, level)
+       VALUES ($1,$2,$3,$4,$5,$6,0.9,'health_event',$7,$8, $9, 'core')
        ON CONFLICT (user_id, pet_id, key)
        DO UPDATE SET
          content = EXCLUDED.content,
          importance = GREATEST(agent_memories.importance, EXCLUDED.importance),
          evidence = agent_memories.evidence || EXCLUDED.evidence,
+         tags = agent_memories.tags || EXCLUDED.tags,
+         level = 'core',
          updated_at = now()`,
       [
         params.userId,
@@ -803,11 +805,62 @@ export async function recordHealthMemory(params: {
         importance,
         params.evidence ?? null,
         JSON.stringify({ type: 'health_event', recordedAt: new Date().toISOString() }),
+        // 健康事件标签（回忆录"health_heal"维度）；medical 归入核心
+        [params.category === 'medical' ? 'health_heal' : 'health'],
       ],
     );
   } catch (err) {
     // 记忆失败不阻塞主流程（打卡/初筛已成功）
     console.warn('[Memory] 健康事件记忆记录失败（不阻塞主流程）:', (err as Error).message);
+  }
+}
+
+/**
+ * 按回忆标签取记忆（回忆录 2.0 F4：素材自动备好）
+ * 回忆录创建时按用户选的标签筛选核心层记忆，作为分镜生成的素材上下文。
+ * @param params - 筛选参数
+ * @returns 记忆文本（按 importance 排序，可给分镜生成器）
+ */
+export async function getMemoriesByTags(params: {
+  userId: string;
+  petId: string;
+  /** 回忆标签（如 milestone/daily_joy/bonding/farewell）；空=全部核心层 */
+  tags?: string[];
+  /** 最多取多少条（默认 20） */
+  limit?: number;
+}): Promise<string> {
+  const limit = Math.min(50, Math.max(1, params.limit ?? 20));
+  try {
+    const tagClause = params.tags && params.tags.length > 0 ? 'AND tags && $4::text[]' : '';
+    const values: unknown[] = [params.userId, params.petId, limit];
+    if (params.tags && params.tags.length > 0) values.push(params.tags);
+
+    const { rows } = await pool.query(
+      `SELECT content, importance, tags, created_at
+       FROM agent_memories
+       WHERE user_id = $1 AND pet_id = $2
+         AND status = 'active'
+         AND level = 'core'
+         ${tagClause}
+       ORDER BY importance DESC, created_at DESC
+       LIMIT $3`,
+      values,
+    );
+
+    if (rows.length === 0) {
+      return `（${params.tags && params.tags.length > 0 ? `标签「${params.tags.join('、')}」暂无核心记忆` : '暂无核心记忆'}）`;
+    }
+
+    return rows
+      .map((r) => {
+        const date = new Date(r.created_at).toLocaleDateString('zh-CN');
+        const tags = Array.isArray(r.tags) && r.tags.length > 0 ? ` [${r.tags.join('/')}]` : '';
+        return `- ${date}：${r.content}（重要度:${r.importance}）${tags}`;
+      })
+      .join('\n');
+  } catch (err) {
+    console.warn('[Memory] 按标签取记忆失败:', (err as Error).message);
+    return '';
   }
 }
 

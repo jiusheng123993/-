@@ -44,6 +44,11 @@ export interface CreateMemoirInput {
   music_style?: string;
   duration?: number;
   style_preset?: string;
+  /**
+   * 回忆标签（F4：记忆驱动回忆录）
+   * 用户选标签（如 milestone/daily_joy/farewell），分镜生成时按标签筛核心层记忆作素材
+   */
+  tags?: string[];
 }
 
 /** 业务错误（带状态码，供路由层捕获） */
@@ -253,6 +258,8 @@ export async function createMemoir(
     music_style: data.music_style ?? null,
     duration: data.duration ?? cfg.defaultDuration,
     style_preset: data.style_preset ?? null,
+    // F4：回忆标签（分镜生成时按标签筛核心层记忆）
+    tags: Array.isArray(data.tags) ? data.tags.filter((t) => typeof t === 'string') : undefined,
   };
 
   // 6. 插入任务记录
@@ -320,6 +327,8 @@ export async function createMemoirFromPayment(
     music_style: data.music_style ?? null,
     duration: data.duration ?? cfg.defaultDuration,
     style_preset: data.style_preset ?? null,
+    // F4：回忆标签（分镜生成时按标签筛核心层记忆）
+    tags: Array.isArray(data.tags) ? data.tags.filter((t) => typeof t === 'string') : undefined,
   };
 
   // 5. 插入任务记录，关联支付订单
