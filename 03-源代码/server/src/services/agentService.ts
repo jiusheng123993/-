@@ -20,6 +20,68 @@ import {
   type MemoryEntry,
 } from './memoryService.js';
 
+// ========== 对话成本日志（AI 算账，2026-08-23） ==========
+
+/** LLM 调用 token 用量（OpenAI 兼容响应的 usage 字段） */
+export interface LLMUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+}
+
+/** 对话日志参数（写入 agent_conversation_logs 表） */
+export interface ConversationLogParams {
+  userId: string;
+  petId?: string;
+  intent?: string;
+  toolChain: string[];
+  iterations: number;
+  promptTokens: number;
+  completionTokens: number;
+  durationMs: number;
+  status: 'ok' | 'timeout' | 'error';
+  error?: string;
+}
+
+/**
+ * 记录一轮对话的成本日志（AI 算账）
+ * 写入失败静默（日志绝不能影响对话主流程）
+ * @param params - 对话统计（意图/工具链/token/耗时/状态）
+ */
+export async function recordConversationLog(params: ConversationLogParams): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO agent_conversation_logs
+         (user_id, pet_id, intent, tool_chain, iterations, prompt_tokens, completion_tokens, duration_ms, status, error)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [
+        params.userId,
+        params.petId || null,
+        params.intent || null,
+        params.toolChain,
+        params.iterations,
+        params.promptTokens,
+        params.completionTokens,
+        params.durationMs,
+        params.status,
+        // 错误摘要截断 + 脱敏（不记录完整堆栈/敏感信息）
+        params.error ? params.error.slice(0, 500) : null,
+      ],
+    );
+  } catch (err) {
+    // 日志失败静默（不阻塞对话主流程）
+    console.warn('[AgentLog] 对话日志写入失败（静默）:', (err as Error).message);
+  }
+}
+
+/**
+ * 日志错误脱敏（审查项修复）：只保留第一行摘要
+ * LLM API 错误响应体可能回显请求内容（含用户输入），防敏感信息落日志
+ */
+function sanitizeLogError(err: unknown): string {
+  const message = err instanceof Error ? err.message : 'AI 服务异常';
+  return message.split('\n')[0].slice(0, 200);
+}
+
 // ========== 类型定义 ==========
 
 export interface ChatMessage {
@@ -352,6 +414,8 @@ interface IntentResult {
   intent: string;
   confidence: number;
   reason: string;
+  /** LLM 调用 token 用量（AI 算账用；降级路径可能为空） */
+  usage?: LLMUsage;
 }
 
 /** 意图 → 工具名映射（高置信度时强制调用） */
@@ -457,6 +521,7 @@ ${recentHistory || '（无）'}
 
     const data = await response.json() as {
       choices: Array<{ message: { content?: string } }>;
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
     };
 
     const content = data.choices[0]?.message?.content || '';
@@ -471,6 +536,11 @@ ${recentHistory || '（无）'}
       intent: result.intent in INTENT_TOOL_MAP ? result.intent : 'chat',
       confidence: typeof result.confidence === 'number' ? result.confidence : 0,
       reason: result.reason || '',
+      // AI 算账：记录意图分类这次调用的 token 用量
+      usage: {
+        prompt_tokens: data.usage?.prompt_tokens ?? 0,
+        completion_tokens: data.usage?.completion_tokens ?? 0,
+      },
     };
   } catch {
     return { intent: 'chat', confidence: 0, reason: '分类器异常，降级为 auto' };
@@ -484,6 +554,8 @@ interface LLMResponse {
   toolCalls: ToolCall[] | null;
   finishReason: string;
   reasoningContent: string | null;
+  /** token 用量（AI 算账用） */
+  usage: LLMUsage;
 }
 
 /** tool_choice 参数类型：'auto' | 'none' | 指定工具 */
@@ -536,6 +608,7 @@ async function callLLM(
       };
       finish_reason: string;
     }>;
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
 
   const choice = data.choices[0];
@@ -560,6 +633,11 @@ async function callLLM(
     toolCalls: toolCalls.length > 0 ? toolCalls : null,
     finishReason: choice.finish_reason,
     reasoningContent: (msg as Record<string, unknown>).reasoning_content as string || null,
+    // AI 算账：记录本次主循环调用的 token 用量
+    usage: {
+      prompt_tokens: data.usage?.prompt_tokens ?? 0,
+      completion_tokens: data.usage?.completion_tokens ?? 0,
+    },
   };
 }
 
@@ -572,12 +650,47 @@ export async function* agentLoop(
 ): AsyncGenerator<AgentEvent> {
   const startTime = Date.now();
 
-  // ========== 第一步：意图分类 ==========
-  yield { type: 'thinking', data: { iteration: 0, label: '理解意图中...' } };
-  const intentResult = await classifyIntent(userMessage, history);
-  console.log(`[Agent] 意图分类: ${intentResult.intent} (置信度: ${intentResult.confidence}) - ${intentResult.reason}`);
+  // AI 算账：累计 token/工具链，try/finally 统一兜底写成本日志（幂等，只写一次）
+  let promptTokens = 0;
+  let completionTokens = 0;
+  const toolChain: string[] = [];
+  let logStatus: 'ok' | 'timeout' | 'error' = 'ok';
+  let logError: string | undefined;
+  let logWritten = false;
+  let intentResult: IntentResult | undefined;
+  let iterations = 0;
+  let finalContent = '';
 
-  // 根据意图决定 tool_choice
+  /** 写成本日志（幂等；异步不阻塞；finally 兜底正常/超时/异常/客户端断开路径） */
+  const writeLog = () => {
+    if (logWritten) return;
+    logWritten = true;
+    void recordConversationLog({
+      userId: context.userId,
+      petId: context.petId,
+      intent: intentResult?.intent,
+      toolChain,
+      iterations,
+      promptTokens,
+      completionTokens,
+      durationMs: Date.now() - startTime,
+      status: logStatus,
+      error: logError,
+    });
+  };
+
+  try {
+    // ========== 第一步：意图分类 ==========
+    yield { type: 'thinking', data: { iteration: 0, label: '理解意图中...' } };
+    intentResult = await classifyIntent(userMessage, history);
+    console.log(`[Agent] 意图分类: ${intentResult.intent} (置信度: ${intentResult.confidence}) - ${intentResult.reason}`);
+    // 算账：意图分类调用的 token 计入本轮
+    if (intentResult.usage) {
+      promptTokens += intentResult.usage.prompt_tokens;
+      completionTokens += intentResult.usage.completion_tokens;
+    }
+
+    // 根据意图决定 tool_choice
   let initialToolChoice: ToolChoice = 'auto';
   const CONFIDENCE_THRESHOLD = 0.7;
 
@@ -609,12 +722,10 @@ export async function* agentLoop(
     { role: 'user', content: userMessage },
   ];
 
-  let iterations = 0;
-  let finalContent = '';
-
   while (iterations < MAX_ITERATIONS) {
     // 超时检查
     if (Date.now() - startTime > AGENT_TIMEOUT_MS) {
+      logStatus = 'timeout';
       yield { type: 'error', data: { message: '思考超时，请稍后重试' } };
       return;
     }
@@ -626,10 +737,17 @@ export async function* agentLoop(
       // 第一次迭代用意图分类的 tool_choice，后续迭代用 auto（处理工具结果）
       const toolChoice = iterations === 1 ? initialToolChoice : 'auto';
       const response = await callLLM(messages, false, toolChoice);
+      // 算账：主循环每次调用的 token 累计
+      promptTokens += response.usage?.prompt_tokens ?? 0;
+      completionTokens += response.usage?.completion_tokens ?? 0;
 
       // LLM 想调用工具
       if (response.toolCalls && response.toolCalls.length > 0) {
         for (const toolCall of response.toolCalls) {
+          // 算账：记录工具调用链（数量/长度上限，防行膨胀，审查项修复）
+          if (toolChain.length < 20) {
+            toolChain.push(toolCall.name.slice(0, 100));
+          }
           // 通知前端：正在调用工具
           yield {
             type: 'tool_call',
@@ -716,6 +834,8 @@ export async function* agentLoop(
 
     } catch (error) {
       const message = error instanceof Error ? error.message : 'AI 服务异常';
+      logStatus = 'error';
+      logError = sanitizeLogError(error);
 
       // 如果已经执行过工具调用，返回部分结果
       if (iterations > 1) {
@@ -749,6 +869,15 @@ export async function* agentLoop(
       await ingestMemories(context.userId, context.petId || '', userMessage, finalContent, existing);
       await detectContradiction(context.userId, context.petId || '', userMessage);
     })().catch(() => {});
+  }
+  } catch (error) {
+    // 前置异常（意图分类/系统提示词等未覆盖路径）：记 error 后原样抛出（保持原行为）
+    logStatus = 'error';
+    logError = sanitizeLogError(error);
+    throw error;
+  } finally {
+    // 统一兜底：正常/超时/异常/客户端断开（生成器 return() 会触发 finally）都写日志
+    writeLog();
   }
 }
 
