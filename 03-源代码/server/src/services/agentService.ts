@@ -292,20 +292,40 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
     }
   }
 
-  // 注入家庭宠物列表
+  // 注入家庭宠物列表（多宠上下文：名字/品种/年龄/性别/已故/最近状态一句话）
   if (context.userId) {
     try {
       const { rows: familyPets } = await pool.query(
-        `SELECT name, species, breed FROM pet_profiles
-         WHERE user_id = $1 AND id != $2
-         ORDER BY created_at`,
+        `SELECT p.name, p.species, p.breed, p.gender, p.birth_date, p.is_deceased,
+                (SELECT CASE WHEN h.spirit_level IN ('一般','不太好') OR h.appetite_level IN ('一般','不太好')
+                        THEN '最近状态一般，建议多留意'
+                        ELSE '最近状态正常' END
+                 FROM pet_health_entries h
+                 WHERE h.pet_id = p.id
+                 ORDER BY h.created_at DESC LIMIT 1) AS recent_status
+         FROM pet_profiles p
+         WHERE p.user_id = $1 AND p.id != $2
+         ORDER BY p.created_at`,
         [context.userId, context.petId || '']
       );
       if (familyPets.length > 0) {
-        prompt += `\n## 家庭其他宠物\n`;
+        prompt += `\n## 家庭其他宠物（用户全家养的宠物，你可能被问到它们）\n`;
         for (const fp of familyPets) {
-          prompt += `- ${fp.name}（${fp.breed}，${fp.species === 'cat' ? '猫' : '狗'}）\n`;
+          // 年龄文本（有出生日期才显示）
+          let ageText = '';
+          if (fp.birth_date) {
+            const ageYears = Math.floor(
+              (Date.now() - new Date(fp.birth_date).getTime()) / (365.25 * 24 * 3600 * 1000),
+            );
+            if (ageYears >= 1) ageText = `${ageYears}岁`;
+            else ageText = `${Math.max(1, Math.floor(((Date.now() - new Date(fp.birth_date).getTime()) / (30.44 * 24 * 3600 * 1000))))}个月`;
+          }
+          const genderText = fp.gender === 'male' ? '公' : fp.gender === 'female' ? '母' : '';
+          const deceasedText = fp.is_deceased ? '（已故）' : '';
+          const statusText = fp.recent_status ? `，${fp.recent_status}` : '';
+          prompt += `- ${fp.name}（${fp.breed}，${fp.species === 'cat' ? '猫' : '狗'}${genderText ? `，${genderText}` : ''}${ageText ? `，${ageText}` : ''}${deceasedText}）${statusText}\n`;
         }
+        prompt += `\n用户提到"家里的小黑/豆豆"等具体名字时，先确认指的是哪只，再结合对应宠物的情况回答。\n`;
       }
     } catch {
       // 查询失败不阻塞

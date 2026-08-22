@@ -761,4 +761,54 @@ export async function summarizePetMemory(
   return sections.join('\n\n');
 }
 
+/**
+ * 记录健康事件记忆（回忆录 2.0 F1：打卡异常/症状初筛自动沉淀）
+ * 宠物不舒服时自动写记忆（importance 高），后续 Agent 对话能"记得"生病历史，
+ * 回忆录也能从记忆里筛出健康时刻。
+ * 幂等：同类事件当天一条（UPSERT by user_id+pet_id+key），避免记忆膨胀。
+ * @param params - 健康事件参数
+ */
+export async function recordHealthMemory(params: {
+  userId: string;
+  petId: string;
+  /** medical=症状/就医；health=打卡异常/日常健康 */
+  category: 'medical' | 'health';
+  /** 记忆内容（含日期/异常项/建议，供 Agent 和回忆录使用） */
+  content: string;
+  /** 重要度 1-10（按紧急程度：emergency=10 → 一般=7） */
+  importance?: number;
+  /** 溯源（打卡/初筛记录 ID，可回溯） */
+  evidence?: string;
+}): Promise<void> {
+  const importance = Math.min(10, Math.max(1, params.importance ?? 7));
+  // key：同类事件当天一条（当天多次异常覆盖为最新，防止逐条堆积）
+  const key = `health_${params.category}_${new Date().toISOString().slice(0, 10)}`;
+  try {
+    await pool.query(
+      `INSERT INTO agent_memories
+         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta)
+       VALUES ($1,$2,$3,$4,$5,$6,0.9,'health_event',$7,$8)
+       ON CONFLICT (user_id, pet_id, key)
+       DO UPDATE SET
+         content = EXCLUDED.content,
+         importance = GREATEST(agent_memories.importance, EXCLUDED.importance),
+         evidence = agent_memories.evidence || EXCLUDED.evidence,
+         updated_at = now()`,
+      [
+        params.userId,
+        params.petId,
+        params.category,
+        key,
+        params.content,
+        importance,
+        params.evidence ?? null,
+        JSON.stringify({ type: 'health_event', recordedAt: new Date().toISOString() }),
+      ],
+    );
+  } catch (err) {
+    // 记忆失败不阻塞主流程（打卡/初筛已成功）
+    console.warn('[Memory] 健康事件记忆记录失败（不阻塞主流程）:', (err as Error).message);
+  }
+}
+
 console.log('[MemoryService] memory-body 引擎已就绪');

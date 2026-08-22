@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.js';
 import { symptomCheckSchema, symptomHistoryQuerySchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { SymptomRepository } from '../repositories/symptomRepository.js';
+import { recordHealthMemory } from '../services/memoryService.js';
 
 const router = Router();
 
@@ -55,6 +56,30 @@ router.post('/:petId/symptom-check', authMiddleware, validate({ body: symptomChe
     });
 
     res.json({ success: true, data: row });
+
+    // 健康事件自动记忆（F1）：症状初筛 → 自动沉淀医疗记忆（异步，不影响主流程）
+    try {
+      const importance =
+        risk_level === 'emergency' ? 10 : risk_level === 'warning' ? 9 : risk_level === 'caution' ? 8 : 7;
+      const riskText: Record<string, string> = {
+        emergency: '紧急需就医',
+        warning: '需尽快就医',
+        caution: '需观察',
+        normal: '一般',
+      };
+      const symptomText = Array.isArray(symptoms) ? (symptoms as string[]).join('、') : String(symptoms ?? '');
+      const adviceText = req.body.ai_advice ? `，建议：${String(req.body.ai_advice).slice(0, 80)}` : '';
+      void recordHealthMemory({
+        userId,
+        petId,
+        category: 'medical',
+        content: `${new Date().toLocaleDateString('zh-CN')} 症状初筛：${symptomText}（${duration || '时长未知'}），评估：${riskText[risk_level || 'normal']}${adviceText}`,
+        importance,
+        evidence: `symptom:${id}`,
+      });
+    } catch (err) {
+      console.warn('[SymptomCheck] 健康事件记忆失败:', err);
+    }
   } catch (err) {
     console.error('[Symptom Check Error]', err);
     res.status(500).json({ success: false, message: '提交症状初筛失败' });

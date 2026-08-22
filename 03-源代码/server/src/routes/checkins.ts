@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.js';
 import { createCheckinSchema, checkinHistoryQuerySchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { CheckinRepository } from '../repositories/checkinRepository.js';
+import { recordHealthMemory } from '../services/memoryService.js';
 import { computeStreakDays, maybePostCheckinFeed } from '../services/autoFeedService.js';
 
 const router = Router();
@@ -74,6 +75,27 @@ router.post('/:petId/checkins', checkPetOwnership, validate({ body: createChecki
       void maybePostCheckinFeed(req.userId!, petId, risk_level, streakDays);
     } catch (err) {
       console.warn('[Checkins] 自动动态计算失败:', err);
+    }
+
+    // 健康事件自动记忆（F1）：异常打卡 → 自动沉淀健康事件（异步，不影响主流程）
+    try {
+      const hasAbnormal = has_anomaly === true || (Array.isArray(anomaly_items) && anomaly_items.length > 0);
+      if (hasAbnormal) {
+        const items = Array.isArray(anomaly_items) && anomaly_items.length > 0
+          ? (anomaly_items as string[]).join('、')
+          : '有异常';
+        const importance = risk_level === 'high' ? 9 : risk_level === 'medium' ? 8 : 7;
+        void recordHealthMemory({
+          userId: req.userId!,
+          petId,
+          category: 'health',
+          content: `${new Date().toLocaleDateString('zh-CN')} 打卡异常：${items}${note ? `（${note}）` : ''}`,
+          importance,
+          evidence: `checkin:${id}`,
+        });
+      }
+    } catch (err) {
+      console.warn('[Checkins] 健康事件记忆失败:', err);
     }
 
     res.status(201).json({ success: true, data: toCamelCase(row as unknown as Record<string, unknown>) });

@@ -15,7 +15,23 @@ type Context = { userId: string; petId?: string };
 
 // ========== 辅助函数 ==========
 
-async function getPetId(context: Context): Promise<string | null> {
+/**
+ * 解析目标宠物 ID（多宠上下文：支持按名字/ID 指定非当前宠物）
+ * 优先级：① 工具传入的 pet_id（已校验归属）→ ② context.petId（当前活跃宠物）→ ③ 用户第一只
+ * @param context - Agent 上下文
+ * @param petIdOverride - 工具显式指定的宠物 ID（来自 find_pet_by_name）
+ * @returns 宠物 ID 或 null
+ */
+async function getPetId(context: Context, petIdOverride?: string): Promise<string | null> {
+  // ① 工具显式指定（用户问"小黑今天怎么样"时，Agent 先用 find_pet_by_name 拿到小黑的 id 传进来）
+  if (petIdOverride) {
+    const { rows } = await pool.query(
+      'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
+      [petIdOverride, context.userId]
+    );
+    if (rows.length > 0) return petIdOverride;
+  }
+  // ② 当前活跃宠物
   if (context.petId) {
     const { rows } = await pool.query(
       'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
@@ -23,7 +39,7 @@ async function getPetId(context: Context): Promise<string | null> {
     );
     if (rows.length > 0) return context.petId;
   }
-  // 自动获取用户第一只宠物
+  // ③ 自动获取用户第一只宠物
   const { rows } = await pool.query(
     'SELECT id FROM pet_profiles WHERE user_id = $1 ORDER BY created_at LIMIT 1',
     [context.userId]
@@ -31,10 +47,44 @@ async function getPetId(context: Context): Promise<string | null> {
   return rows.length > 0 ? rows[0].id : null;
 }
 
+// ========== 0. find_pet_by_name（多宠解析：名字 → 宠物 ID） ==========
+
+registerTool('find_pet_by_name', async (args, context): Promise<ToolResult> => {
+  const name = String(args.name || '').trim();
+  if (!name) {
+    return { success: false, message: '请提供宠物名字，如"小黑""豆豆"' };
+  }
+
+  const { rows } = await pool.query(
+    `SELECT id, name, species, breed, is_deceased FROM pet_profiles
+     WHERE user_id = $1 AND name ILIKE $2
+     ORDER BY created_at`,
+    [context.userId, `%${name}%`]
+  );
+
+  if (rows.length === 0) {
+    return { success: false, message: `没有找到叫"${name}"的宠物` };
+  }
+
+  return {
+    success: true,
+    data: {
+      pets: rows.map((r) => ({
+        pet_id: r.id,
+        name: r.name,
+        species: r.species,
+        breed: r.breed,
+        is_deceased: r.is_deceased,
+      })),
+      message: '找到以下宠物，后续查询请带上对应 pet_id',
+    },
+  };
+});
+
 // ========== 1. get_pet_profile ==========
 
 registerTool('get_pet_profile', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，请先在"宠物"页面添加' };
   }
@@ -84,7 +134,7 @@ registerTool('get_pet_profile', async (args, context): Promise<ToolResult> => {
 // ========== 2. get_pet_facts ==========
 
 registerTool('get_pet_facts', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -112,7 +162,7 @@ registerTool('get_pet_facts', async (args, context): Promise<ToolResult> => {
 // ========== 3. get_recent_checkins ==========
 
 registerTool('get_recent_checkins', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -163,7 +213,7 @@ registerTool('get_recent_checkins', async (args, context): Promise<ToolResult> =
 // ========== 4. record_health_checkin ==========
 
 registerTool('record_health_checkin', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，无法打卡' };
   }
@@ -288,7 +338,7 @@ registerTool('query_food_safety', async (args, context): Promise<ToolResult> => 
 // ========== 6. check_symptom ==========
 
 registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，无法进行症状分析' };
   }
@@ -351,7 +401,7 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
 // ========== 7. get_vaccine_calendar ==========
 
 registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -394,7 +444,7 @@ registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> 
 // ========== 8. get_health_trends ==========
 
 registerTool('get_health_trends', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -547,7 +597,7 @@ registerTool('get_family_pets', async (args, context): Promise<ToolResult> => {
 // ========== 11. record_feeding ==========
 
 registerTool('record_feeding', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -632,7 +682,7 @@ registerTool('start_checkin', async (args, context): Promise<ToolResult> => {
 // ========== 15. record_memory ==========
 
 registerTool('record_memory', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，无法记录回忆' };
   }
