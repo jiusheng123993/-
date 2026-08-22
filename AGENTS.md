@@ -36,3 +36,18 @@ Rules:
 - 服务器监控：与情侣消消乐共用一台服务器，监控脚本由情侣消消乐仓库维护：`E:\情侣消消乐\05-部署配置\monitor.sh`（健康/磁盘/证书/内存 + 微信告警，cron 每 5 分钟）。
 - 待办（P0 级）：AI 算力余额告警、数据库备份异地副本 + 恢复演练、支付订单每日对账、上传目录容量监控。
 - 用户明确要求：两个项目（情侣消消乐、星河宠记）均为用户所有，运营应急准备要同步推进；本条目即项目记忆，后续新进展继续追加在这里。
+
+### 2026-08-23 · 知识图谱全流程 + 监控备份体系（重要里程碑）
+
+**功能落地（三阶段设计全部实现，服务端已部署）**
+- Phase1 医学知识图谱 + 置信度（`miniapp/src/data/petKnowledge/medicalGraph.ts`，前端静态兜底）；Phase2 会员 AI 深度分析 + 记忆闸门召回（服务端 `symptomAiService.ts`）；Phase3 图谱热更新（服务端权威 + `setActiveGraph` 切换）+ 用户纠错 + 审核后台（`/admin`，ADMIN_TOKEN）；恢复事件记忆闭环；聊天 `check_symptom` 消费权威图谱（`graphEvaluator.ts`）。设计文档：`01-产品文档/宠物医学知识图谱与置信度-设计方案-2026-08-22.md`。
+- Agent 对话成本日志（AI 算账）：`agent_conversation_logs` 表记录每轮对话意图/工具链/token/耗时（try/finally 兜底客户端断开），可回答"每用户每天烧多少 AI 钱"。
+
+**监控与备份（2026-08-23 补齐 P0 缺口，服务器 49.232.203.85）**
+- 监控（5 分钟 cron + 微信告警，`/srv/ops/monitor.sh`）：双 API 健康/PostgreSQL/磁盘/内存/证书。
+- 数据库备份（每日 3 点）：`backup-xinghuanhai.sh` 备份 xinghuanhai 库（**此前只有 qinglv 库有备份，xinghuanhai 无备份是 P0 缺口，已修复**），保留 15 份，失败告警。
+- 异地备份（每日 7 点本地计划任务 `XHH-Backup-Pull`）：`05-部署配置/backup-local-pull.js` 免密 SSH 拉取到 `E:\Backups\xinghuanhai\`（保留 30 份）；已校验 checksum 与服务器一致。
+- AI 余额告警（每日 9 点）：DeepSeek <¥10 告警（当前 ¥73.21）；支付对账（每日 9:30）：异常告警。
+- **恢复演练已验证**：备份还原临时库成功（56 表 + 关键表数据完整）。
+- 运维脚本唯一事实源：`05-部署配置/monitor/`（git 管理），服务器 `/srv/ops/` 为生产副本。
+- 待补：恢复演练已做一次（建议定期复演）；ARK/百炼/Seedream 余额告警需控制台 AK/SK；**root 密码曾暴露于聊天记录，建议尽快改密**。
