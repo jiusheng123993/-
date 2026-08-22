@@ -758,3 +758,92 @@
 .pet-symptom-check__btn-text--white {
   color: #FFFFFF;
 }
+
+/* ===== 置信度与依据展示（Phase 1：见 设计方案-2026-08-22 第五章，单位统一 rpx） ===== */
+.pet-symptom-check__confidence {
+  margin-top: 40rpx;
+  padding: 40rpx;
+  background: #F7F9FC;
+  border-radius: 32rpx;
+}
+
+.pet-symptom-check__confidence-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.pet-symptom-check__confidence-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+/* 置信度徽标：高=绿 / 中=橙 / 低=灰，颜色与风险语义弱绑定，避免与风险等级混淆 */
+.pet-symptom-check__confidence-badge {
+  padding: 8rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+}
+
+.pet-symptom-check__confidence-badge--high {
+  background: #2FC98E;
+}
+
+.pet-symptom-check__confidence-badge--medium {
+  background: #FFB020;
+}
+
+.pet-symptom-check__confidence-badge--low {
+  background: #B0B7C3;
+}
+
+/* 单条结论：文案 + 依据徽标 */
+.pet-symptom-check__conclusion {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 20rpx 0;
+  border-top: 1px solid #EEF1F5;
+
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.pet-symptom-check__conclusion-text {
+  flex: 1;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-text-secondary;
+}
+
+.pet-symptom-check__conclusion-basis {
+  flex-shrink: 0;
+  padding: 4rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: $font-size-xs;
+  color: #FFFFFF;
+}
+
+/* 依据类型配色：规则=蓝 / 图谱=紫 / 记录=青 / AI推测=灰 */
+.pet-symptom-check__conclusion-basis--rule {
+  background: #4A90D9;
+}
+
+.pet-symptom-check__conclusion-basis--graph {
+  background: #8B5CF6;
+}
+
+.pet-symptom-check__conclusion-basis--record {
+  background: #0EA5A0;
+}
+
+.pet-symptom-check__conclusion-basis--llm {
+  background: #9AA4B2;
+}
+

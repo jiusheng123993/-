@@ -61,6 +61,21 @@ const RISK_CONFIG: Record<string, { label: string; emoji: string; color: string 
   emergency: { label: '立即就医', emoji: '🚨', color: '#FF4D4F' },
 }
 
+/** 置信度展示文案（由代码按依据推导，见 medicalGraph） */
+const CONFIDENCE_LABEL: Record<string, string> = {
+  high: '高',
+  medium: '中',
+  low: '低',
+}
+
+/** 结论依据徽标文案（rule=规则 / graph=图谱 / record=记录 / llm=AI推测） */
+const BASIS_LABEL: Record<string, string> = {
+  rule: '规则',
+  graph: '图谱',
+  record: '记录',
+  llm: 'AI推测',
+}
+
 export default function PetSymptomCheck() {
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
   const {
@@ -415,6 +430,27 @@ export default function PetSymptomCheck() {
                   {currentResult.aiAdvice}
                 </Text>
               </View>
+
+              {/* ===== 置信度与依据（Phase 1：整体置信度 + 每条结论带依据徽标） ===== */}
+              {currentResult.conclusions && currentResult.conclusions.length > 0 && (
+                <View className='pet-symptom-check__confidence'>
+                  <View className='pet-symptom-check__confidence-head'>
+                    <Text className='pet-symptom-check__confidence-title'>分析置信度</Text>
+                    <Text className={`pet-symptom-check__confidence-badge pet-symptom-check__confidence-badge--${currentResult.confidence || 'low'}`}>
+                      {CONFIDENCE_LABEL[currentResult.confidence || 'low']}
+                    </Text>
+                  </View>
+                  {currentResult.conclusions.map((conclusion, index) => (
+                    <View key={index} className='pet-symptom-check__conclusion'>
+                      <Text className='pet-symptom-check__conclusion-text'>{conclusion.text}</Text>
+                      <Text className={`pet-symptom-check__conclusion-basis pet-symptom-check__conclusion-basis--${conclusion.basis}`}>
+                        {BASIS_LABEL[conclusion.basis] || conclusion.basis}
+                        {conclusion.confidence === 'low' ? ' 🤖' : ''}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
 
               {currentResult.possibleConditions.length > 0 && (
                 <View className='pet-symptom-check__result-section'>
