@@ -5,7 +5,6 @@
  */
 import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
-import { queueSync } from './syncHelper'
 import type { PetHealthEntry } from './checkinService'
 import type { PetProfile } from './petService'
 import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes'
