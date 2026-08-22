@@ -47,7 +47,7 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
 
 // 注意：本路由已挂载在 app.use('/api/pets', ...) 下，这里使用相对路径，
 // 避免拼出 /api/pets/api/pets/... 导致 404
-router.post('/:petId/symptom-check', authMiddleware, validate({ body: symptomCheckSchema }), checkPetOwnership, async (req: Request, res: Response) => {
+router.post('/:petId/symptom-check', authMiddleware, symptomLimiter, validate({ body: symptomCheckSchema }), checkPetOwnership, async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
