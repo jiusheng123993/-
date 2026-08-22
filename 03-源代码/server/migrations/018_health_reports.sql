@@ -2,7 +2,8 @@
 -- 用户上传体检报告照片 → visionService 提取结构化指标 → 存此表 + 写健康事件记忆
 CREATE TABLE IF NOT EXISTS health_reports (
   id            TEXT PRIMARY KEY,
-  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  -- 注意：users.id 是 UUID，外键两侧类型必须一致（text↔uuid 无法建 FK）
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   pet_id        TEXT NOT NULL REFERENCES pet_profiles(id) ON DELETE CASCADE,
   -- 体检日期（用户选择或从报告识别；可空则取创建时间）
   report_date   DATE,

@@ -213,16 +213,24 @@ async function upsertMemory(
   fact: ExtractedFact,
 ): Promise<void> {
   try {
+    // F4 分层：重要度 ≥7 的记忆自动进入核心层（回忆录素材库）；否则流水层（可衰减）
+    const level = fact.importance >= 7 ? 'core' : 'flow';
+    // 按分类映射回忆标签（medical/health → health_heal；其余暂空，后续 AI 辅助打标）
+    const tags = fact.category === 'medical' || fact.category === 'health'
+      ? ['health_heal']
+      : [];
     await pool.query(
       `INSERT INTO agent_memories
-         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta)
-       VALUES ($1,$2,$3,$4,$5,$6,0.8,'auto',$7,$8)
+         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta, tags, level)
+       VALUES ($1,$2,$3,$4,$5,$6,0.8,'auto',$7,$8,$9,$10)
        ON CONFLICT (user_id, pet_id, key)
        DO UPDATE SET
          content = EXCLUDED.content,
          importance = GREATEST(agent_memories.importance, EXCLUDED.importance),
          confidence = LEAST(1.0, agent_memories.confidence + 0.1),
          evidence = agent_memories.evidence || EXCLUDED.evidence,
+         tags = agent_memories.tags || EXCLUDED.tags,
+         level = CASE WHEN agent_memories.level = 'core' OR EXCLUDED.importance >= 7 THEN 'core' ELSE 'flow' END,
          updated_at = now()`,
       [
         userId,
@@ -233,6 +241,8 @@ async function upsertMemory(
         fact.importance,
         fact.evidence,
         JSON.stringify({ extractedAt: new Date().toISOString() }),
+        tags,
+        level,
       ],
     );
   } catch {
@@ -803,7 +813,8 @@ export async function recordHealthMemory(params: {
         key,
         params.content,
         importance,
-        params.evidence ?? null,
+        // evidence 列是 TEXT[]（数组）：必须传数组，传字符串会 malformed array literal
+        params.evidence ? [params.evidence] : null,
         JSON.stringify({ type: 'health_event', recordedAt: new Date().toISOString() }),
         // 健康事件标签（回忆录"health_heal"维度）；medical 归入核心
         [params.category === 'medical' ? 'health_heal' : 'health'],

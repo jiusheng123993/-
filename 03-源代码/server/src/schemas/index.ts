@@ -209,6 +209,9 @@ export const createMembershipOrderSchema = z.object({
  *   3. 调微信支付下单，返回 JSAPI 支付参数
  *   4. 前端调起支付 → 微信回调 → 创建 memoir 任务
  */
+/** 回忆标签枚举（F4 记忆驱动回忆录：与记忆引擎回忆标签一致） */
+const MEMOIR_TAGS = ['milestone', 'daily_joy', 'bonding', 'special_day', 'family', 'health_heal', 'farewell', 'seasonal'] as const;
+
 export const createMemoirOrderSchema = z
   .object({
     pet_id: z.string({ error: 'pet_id 不能为空' }).min(1, 'pet_id 不能为空').max(100, 'pet_id 过长'),
@@ -222,6 +225,8 @@ export const createMemoirOrderSchema = z
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
     duration: z.number().int().min(5).max(180).optional(),
     style_preset: z.string().max(100).optional(),
+    // F4：回忆标签（与 createMemoirSchema 一致，走支付流程也透传）
+    tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
   })
   .superRefine((data, ctx) => {
     // 照片数量按产品线差异化校验（与 createMemoirSchema 一致）
@@ -294,6 +299,8 @@ export const createMemoirSchema = z
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
     duration: z.number().int().min(5).max(180).optional(),
     style_preset: z.string().max(100).optional(),
+    // F4：回忆标签（用户选，分镜按标签筛核心层记忆）
+    tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
   })
   .superRefine((data, ctx) => {
     // 照片数量按产品线差异化校验
