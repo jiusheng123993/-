@@ -128,4 +128,41 @@ router.post('/photo/upload', authMiddleware, upload.single('photo'), async (req:
   }
 });
 
+/**
+ * 旧时光提醒（F5）：查询"去年今天"的回忆
+ * 前端时光页展示 + 后续订阅消息推送
+ */
+router.get('/last-year', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId as string;
+    const now = new Date();
+    // 去年今天（月日相同，年份-1）
+    const lastYear = now.getFullYear() - 1;
+    const moments = await timelineRepository.findLastYearMoments(
+      userId,
+      lastYear,
+      now.getMonth() + 1,
+      now.getDate(),
+    );
+
+    res.json({
+      success: true,
+      data: {
+        lastYear: `${lastYear}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+        count: moments.length,
+        moments: moments.map((m) => ({
+          id: m.id,
+          pet_id: m.pet_id,
+          content: m.content,
+          photos: m.photos,
+          created_at: m.created_at,
+        })),
+      },
+    });
+  } catch (err) {
+    console.error('[Timeline LastYear Error]', err);
+    res.status(500).json({ success: false, message: '查询去年今天失败' });
+  }
+});
+
 export default router;

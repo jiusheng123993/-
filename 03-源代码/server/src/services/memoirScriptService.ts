@@ -184,7 +184,8 @@ ${petProfile.notes ? `档案备注：${petProfile.notes}` : ''}
 【照片信息】${photoText}
 
 【产品线】${meta.label}（${meta.durationText}），情感曲线：${meta.curve}
-目标时长：${targetDuration} 秒${musicStyle ? `，音乐风格偏好：${musicStyle}` : ''}`;
+目标时长：${targetDuration} 秒${musicStyle ? `，音乐风格偏好：${musicStyle}` : ''}
+${petProfile.is_deceased ? '\n【基调要求】这是对已故宠物的纪念：请用克制、温暖、释怀的基调（F7），不渲染痛苦、不假装它还活着，旁白强调"回忆与感激"，如"它还在我们的记忆里晒太阳"。' : ''}`;
 }
 
 /**

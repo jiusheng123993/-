@@ -86,4 +86,26 @@ export class TimelineRepository extends BaseRepository<MomentRow> {
     );
     return result.rows;
   }
+
+  /**
+   * 查询"去年今天"的回忆（F5 旧时光提醒）
+   * 匹配指定年-月-日的回忆记录（用于"去年今天"推送/展示）
+   * @param userId - 用户 ID
+   * @param year - 目标年份（如去年）
+   * @param month - 月份（1-12）
+   * @param day - 日（1-31）
+   * @returns 该日期的回忆记录
+   */
+  async findLastYearMoments(userId: string, year: number, month: number, day: number): Promise<MomentRow[]> {
+    const result = await this.rawQuery<MomentRow>(
+      `SELECT * FROM ${this.tableName}
+       WHERE user_id = $1
+         AND EXTRACT(YEAR FROM created_at) = $2
+         AND EXTRACT(MONTH FROM created_at) = $3
+         AND EXTRACT(DAY FROM created_at) = $4
+       ORDER BY created_at`,
+      [userId, year, month, day],
+    );
+    return result.rows;
+  }
 }
