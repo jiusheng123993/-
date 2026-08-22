@@ -4716,3 +4716,60 @@ function isFeatureEnabled(flagKey: string, userId?: string): boolean {
 - 金额/库存上下限（如照片数量 8-15 张）— 业务规则
 - 数据归属校验（宠物是否属于当前用户）— 权限相关
 - 文件类型/大小校验（上传安全）— 安全相关
+
+---
+
+## 二十、回忆录 2.0 技术设计（2026-08-22 增量）
+
+> 依据：《回忆录2.0-设计规格-2026-08-22.md》《需求追踪与实现状态-2026-08-22.md》
+> 本节为回忆录 2.0（v2）技术设计，与 3.2j/5.8（v1）并存。代码已实现（server/src/services 下对应模块）。
+
+### 20.1 生成管线（v2）
+
+```
+memoirProcessor（异步队列，只处理已确认剧本的任务）
+  ├─ ensureMemoirScript：无分镜 → 查宠物档案+记忆摘要 → DeepSeek 生成分镜 → 持久化(jsonb_set)
+  ├─ generateMemoirVideo（分镜驱动）：
+  │    ├─ 逐镜：ai_video 走 Seedance；static_photo（全家福）走 ffmpeg zoompan
+  │    ├─ prompt 经 promptTemplates 组装（十段 + Locks + 多角色锚点）
+  │    └─ stitchWithScript：xfade 转场 + ASS 字幕 + TTS 旁白混音
+  ├─ checkVideoQuality：ffmpeg 抽 5 帧 → DeepSeek 视觉评分（degraded 放行）
+  └─ moderateVideo 内容审核 → 完成/通知
+```
+
+### 20.2 新增模块清单
+
+| 模块 | 文件 | 职责 |
+| --- | --- | --- |
+| 分镜 Schema | `schemas/memoirScript.ts` | 多角色锚点/枚举容错/镜头来源(ai_video\|static_photo) |
+| 分镜生成器 | `services/memoirScriptService.ts` | DeepSeek 分镜（3 次重试+兜底+归一化） |
+| 提示词模板 | `services/promptTemplates.ts` | 十段补全+在场角色注入+Locks |
+| 豆包 TTS | `services/doubaoSpeechTts.ts` | 火山豆包语音 SSE 流式（X-Api-Key + seed-tts-2.0） |
+| 旁白合成 | `services/ttsService.ts` | 逐镜先裁后延(atrim→asetpts→adelay)→amix |
+| 字幕 | `services/subtitles.ts` | ASS 生成（时间格式/样式/转义） |
+| 质检 | `services/qualityCheckService.ts` | 抽帧+DeepSeek 视觉评分（taskId 隔离目录） |
+| 管线 | `services/memoirProcessor.ts` | ensureMemoirScript + 质检接入 + 临时文件清理 |
+| 分镜持久化 | `repositories/memoirRepository.ts` | updateScript（jsonb_set 兼容旧字段） |
+
+### 20.3 关键设计决策
+
+- **多角色锚点**：anchors 数组 + characters_present（每镜只注入在场角色），旧 identity_anchor 兼容归一化
+- **全家福镜头**：source=static_photo → ffmpeg zoompan（零 AI 成本零漂移），不重建角色
+- **TTS 切换**：edge-tts（非官方接口/合规风险）→ 火山豆包语音（云端 SSE，DOUBAO_SPEECH_API_KEY）
+- **质检降级**：无 key/API 失败 → degraded 放行（打日志不静默），不合格重试（整条 ≤2 次）
+- **思考模式关闭**：ChatOptions.thinking='disabled'（DeepSeek V4 默认思考会吃光 max_tokens）
+- **剧本确认**（设计）：确认后才生成视频（防刷+省钱），状态机 pending→script_ready→script_confirmed→generating
+
+### 20.4 成本（分模型）
+
+1.5 Pro 720p 无音频 $1.2/M token ≈ 0.19 元/秒（fal 口径）；2.5 约 6-8 倍。
+单宠物回忆录 15-22 元；多宠物（2.5）125-200 元。详见《成本核算-2026-08-22.md》与 PRD 4.14.12。
+
+### 20.5 配置项（.env 新增）
+
+| 变量 | 说明 |
+| --- | --- |
+| DOUBAO_SPEECH_API_KEY | 火山豆包语音 key（语音技术控制台） |
+| DOUBAO_SPEECH_VOICE / RESOURCE_ID / BASE_URL | 音色/资源/端点 |
+| QUALITY_CHECK_API_KEY / BASE_URL / MODEL | DeepSeek 视觉质检（默认 vision-exp） |
+| EDGE_TTS_COMMAND / VOICE | 已废弃（edge-tts 移除，保留配置兼容） |

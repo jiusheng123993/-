@@ -640,3 +640,38 @@ Authorization: Bearer <accessToken>
 | 404 | 资源不存在 |
 | 409 | 资源冲突 |
 | 500 | 服务器错误 |
+---
+
+## 2026-08-22 变更与新增接口
+
+> 说明：本文档为早期版本，完整接口以代码为准（server/src/routes/*）。
+> 本节记录 2026-08-22 起的行为变更与新增/设计中的接口。
+
+### 行为变更
+
+| 接口 | 变更 |
+| --- | --- |
+| `POST /api/pets/:petId/checkins` | 打卡含异常项（has_anomaly/anomaly_items/risk_level）时，自动写健康事件记忆（异步，`recordHealthMemory`） |
+| `POST /api/pets/:petId/symptom-check` | 初筛提交后自动写医疗记忆（症状+评估+建议，异步） |
+
+### 回忆录 2.0（已实现，管线见 TECH_DESIGN 二十章）
+
+| 接口 | 说明 |
+| --- | --- |
+| `POST /api/pets/:petId/memoir` | 创建回忆录（含 script 分镜自动生成，状态含 script_ready） |
+
+### 设计中（剧本确认流程，待实现）
+
+| 接口 | 说明 |
+| --- | --- |
+| `POST /api/memoir/script-draft` | 生成剧本草稿（选模板，DeepSeek 文本 ~0.03 元） |
+| `GET /api/memoir/:id/script` | 读剧本预览 |
+| `POST /api/memoir/:id/script/confirm` | 确认剧本 → script_confirmed |
+| `POST /api/memoir/:id/script/regenerate` | 换模板/换记忆重生成 |
+| `POST /api/memoir/:id/script/edit` | 修改旁白/字幕 |
+
+### 设计中（体检报告识别 F8，待实现）
+
+| 接口 | 说明 |
+| --- | --- |
+| `POST /api/ai/health-report-recognize` | 上传体检报告图 → 结构化指标提取 → 存 health_reports + 写健康记忆 |

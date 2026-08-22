@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- **回忆录 2.0 生成管线**（2026-08-22）
+  - AI 分镜脚本生成（DeepSeek，CREST 叙事 + Anti-Subjective 规则，3 次重试 + 兜底模板）
+  - Seedance 2.5 十段提示词组装 + Locks 连续性锁（`promptTemplates.ts`）
+  - 多角色锚点（多宠物/多人/真人入境：anchors + characters_present，每镜只注入在场角色）
+  - 火山豆包语音旁白（SSE 流式，`doubaoSpeechTts.ts`）+ 时间轴拼接（`ttsService.ts`）
+  - ASS 中文字幕 + xfade 转场 + 分辨率归一化（`subtitles.ts` + `videoGenerationService.ts`）
+  - 全家福静态镜头（ffmpeg zoompan，零 AI 成本零漂移，`static_photo`）
+  - DeepSeek 视觉质检（抽帧评分，不合格自动重试，`qualityCheckService.ts`）
+  - 管线接入（memoirProcessor 自动分镜 + 质检 + 分镜持久化 jsonb_set）
+- **多宠上下文（Agent 认识全家）**（2026-08-22）
+  - 家庭宠物列表增强（年龄/性别/已故/最近状态）
+  - `find_pet_by_name` 工具 + 查询工具支持 `pet_id` 指定（问"小黑今天怎么样"可查）
+- **健康事件自动记忆**（2026-08-22）
+  - `recordHealthMemory`：打卡异常/症状初筛自动沉淀健康事件记忆（importance 7-10，当天一条 UPSERT）
+- **AI 对话支持关闭思考模式**（2026-08-22，`aiService.ts` ChatOptions.thinking，分镜生成必用）
+
+### Changed
+- 回忆录旁白 TTS 从 edge-tts 切换为**火山豆包语音**（云端、SSE 流式、合规）
+- 提示词库升级 v5.0（Seedance 2.5 十段 + Locks + 多角色锚点）
+
 ### Removed
 - **衣橱/换装功能**：因产品范围调整砍掉宠物换装（衣柜饰品 + AI 主题套装），
   同步移除小程序端 wardrobe 页面/组件/数据/资源，以及服务端 `/api/wardrobe` 路由、
