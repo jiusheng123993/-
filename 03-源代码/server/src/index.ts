@@ -12,7 +12,7 @@ import { config } from './config.js';
 import { errorHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { globalLimiter } from './middleware/rateLimit.js';
-import { authMiddleware } from './middleware/auth.js';
+import { authMiddleware, resolveUserId } from './middleware/auth.js';
 import authRoutes from './routes/auth.js';
 import petRoutes from './routes/pets.js';
 import checkinRoutes from './routes/checkins.js';
@@ -80,7 +80,14 @@ app.use(express.json({
 // 请求日志（脱敏记录）
 app.use(requestLogger);
 
-// 全局限流（60次/分钟兜底）
+// 信任第一跳代理（nginx）：修复 req.ip 恒为 127.0.0.1 导致全局限流 key 共享的问题（2026-08-23）
+// nginx 已转发 X-Forwarded-For；trust proxy=1 表示仅信任直连 nginx 这一跳
+app.set('trust proxy', 1);
+
+// 轻量身份解析（不拒绝请求）：让全局限流 key 能按真实用户区分，避免所有用户共享一个桶
+app.use('/api/', resolveUserId);
+
+// 全局限流（60次/分钟兜底，按 IP+用户 维度）
 app.use('/api/', globalLimiter);
 
 // 静态文件
