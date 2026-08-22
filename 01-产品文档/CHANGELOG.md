@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **健康事件自动记忆**（2026-08-22）
   - `recordHealthMemory`：打卡异常/症状初筛自动沉淀健康事件记忆（importance 7-10，当天一条 UPSERT）
 - **AI 对话支持关闭思考模式**（2026-08-22，`aiService.ts` ChatOptions.thinking，分镜生成必用）
+- **体检报告识别（Agent 识图）**（2026-08-22）
+  - `visionService` 统一视觉识别底座（DeepSeek vision-exp，thinking disabled）
+  - `healthReportService`：体检报告图 → 结构化指标 → `health_reports` 表 + 写健康事件记忆
+  - `POST /api/ai/health-report-recognize` + Agent 工具 `get_health_reports`
+- **记忆驱动回忆录**（2026-08-22）
+  - `agent_memories` 加 `tags`（回忆标签）+ `level`（core/flow 分层）
+  - 健康记忆自动打标（health/health_heal + core）
+  - `getMemoriesByTags`：回忆录按标签筛核心层记忆作素材；创建参数加 `tags`
+- **旧时光提醒**（2026-08-22）
+  - `GET /api/timeline/last-year`：查询"去年今天"的回忆（时光页展示 + 后续推送）
+- **已故纪念克制**（2026-08-22）
+  - 分镜生成对已故宠物加克制基调要求（不渲染痛苦、不假装活着、强调回忆与感激）
 
 ### Changed
 - 回忆录旁白 TTS 从 edge-tts 切换为**火山豆包语音**（云端、SSE 流式、合规）

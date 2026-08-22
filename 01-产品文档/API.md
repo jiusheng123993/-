@@ -658,7 +658,9 @@ Authorization: Bearer <accessToken>
 
 | 接口 | 说明 |
 | --- | --- |
-| `POST /api/pets/:petId/memoir` | 创建回忆录（含 script 分镜自动生成，状态含 script_ready） |
+| `POST /api/pets/:petId/memoir` | 创建回忆录（含 script 分镜自动生成；body 可带 tags 按标签筛记忆） |
+| `POST /api/ai/health-report-recognize` | 体检报告识别（multipart photo + petId）→ 指标提取 + 存 health_reports + 写健康记忆 |
+| `GET /api/timeline/last-year` | 旧时光提醒：去年今天的回忆列表 |
 
 ### 设计中（剧本确认流程，待实现）
 
@@ -669,9 +671,3 @@ Authorization: Bearer <accessToken>
 | `POST /api/memoir/:id/script/confirm` | 确认剧本 → script_confirmed |
 | `POST /api/memoir/:id/script/regenerate` | 换模板/换记忆重生成 |
 | `POST /api/memoir/:id/script/edit` | 修改旁白/字幕 |
-
-### 设计中（体检报告识别 F8，待实现）
-
-| 接口 | 说明 |
-| --- | --- |
-| `POST /api/ai/health-report-recognize` | 上传体检报告图 → 结构化指标提取 → 存 health_reports + 写健康记忆 |
