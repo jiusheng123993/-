@@ -180,6 +180,28 @@ export const aiSymptomAnalysisSchema = z.object({
   severity: z.string().max(20).optional(),
 });
 
+// ===== 知识图谱模块（Phase 3：热更新 + 用户纠错 + 管理端） =====
+
+/** 用户纠错反馈（小程序端提交） */
+export const knowledgeFeedbackSchema = z.object({
+  entity_type: z.enum(['disease', 'risk_level', 'advice', 'other'], { error: 'entity_type 不合法' }),
+  entity_name: z.string({ error: '请提供被纠错的内容' }).trim().min(1, '请提供被纠错的内容').max(100, '内容名称过长'),
+  suggestion: z.string({ error: '请填写纠错建议' }).trim().min(1, '请填写纠错建议').max(1000, '建议过长'),
+  check_id: z.string().max(100).optional(),
+  pet_id: z.string().max(100).optional(),
+});
+
+/** 管理端保存图谱（data 为图谱对象，含 riskRules/diseases 等，服务端合并版本） */
+export const adminKnowledgeSchema = z.object({
+  data: z.record(z.string(), z.unknown(), { error: 'data 必须为对象' }),
+});
+
+/** 管理端审核反馈 */
+export const adminReviewSchema = z.object({
+  action: z.enum(['approve', 'reject'], { error: 'action 必须为 approve/reject' }),
+  note: z.string().max(500).optional(),
+});
+
 // ===== 记忆模块 =====
 
 /** 记忆列表查询（可按宠物过滤） */

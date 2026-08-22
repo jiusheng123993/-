@@ -31,6 +31,7 @@ import {
   type AiDeepAnalysisResult,
 } from '../../services/symptomService'
 import { MEDICAL_GRAPH } from '../../data/petKnowledge/medicalGraph'
+import { syncKnowledgeGraph, submitKnowledgeFeedback } from '../../services/knowledgeService'
 import './index.scss'
 
 /** 原型常见症状（从后端症状库中按名称匹配展示） */
@@ -156,6 +157,11 @@ export default function PetSymptomCheck() {
   useEffect(() => {
     loadSymptomData()
   }, [loadSymptomData])
+
+  // Phase 3：启动时同步服务端最新知识图谱（热更新；失败静默走静态兜底，不阻塞页面）
+  useEffect(() => {
+    syncKnowledgeGraph().catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (error) {
@@ -305,6 +311,37 @@ export default function PetSymptomCheck() {
     } finally {
       setDeepLoading(false)
     }
+  }
+
+  /**
+   * 用户纠错反馈（Phase 3）：对当前分析结果提出异议 → 进 knowledge_feedback 表，管理后台人工审核
+   */
+  const handleFeedback = () => {
+    if (!currentResult) return
+    // Taro 3.6 类型未声明 editable/content，做类型收窄（运行时微信支持可编辑弹窗）
+    const modalOptions = {
+      title: '反馈问题',
+      editable: true,
+      placeholderText: '请描述你认为有误的地方（如排查方向、风险等级、建议）',
+      confirmText: '提交',
+      success: async (res: { confirm?: boolean; content?: string }) => {
+        if (res.confirm && res.content) {
+          try {
+            await submitKnowledgeFeedback({
+              entityType: 'other',
+              entityName: `风险等级 ${currentResult.riskLevel} 的分析结果`,
+              suggestion: res.content,
+              checkId: currentResult.id,
+              petId: currentPet?.id,
+            })
+            Taro.showToast({ title: '已收到反馈，感谢！', icon: 'success' })
+          } catch {
+            Taro.showToast({ title: '提交失败，请重试', icon: 'none' })
+          }
+        }
+      },
+    } as unknown as Parameters<typeof Taro.showModal>[0]
+    Taro.showModal(modalOptions)
   }
 
   const handleReset = () => {
@@ -574,6 +611,11 @@ export default function PetSymptomCheck() {
                 <Text className='pet-symptom-check__result-disclaimer-text'>
                   ⚠️ {disclaimerText}
                 </Text>
+              </View>
+
+              {/* Phase 3：纠错入口（反馈进知识库审核流程，人工核查后热更新） */}
+              <View className='pet-symptom-check__feedback' onClick={handleFeedback}>
+                <Text className='pet-symptom-check__feedback-text'>📮 认为结果有误？点此反馈</Text>
               </View>
 
               <View className='pet-symptom-check__result-actions-bar'>

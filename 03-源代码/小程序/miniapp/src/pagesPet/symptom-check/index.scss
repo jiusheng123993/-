@@ -917,3 +917,17 @@
   padding: 6rpx 0;
 }
 
+/* ===== 纠错反馈入口（Phase 3：结果有误 → 知识库审核流程） ===== */
+.pet-symptom-check__feedback {
+  margin-top: 16rpx;
+  padding: 14rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  background: rgba(74, 144, 217, 0.06);
+}
+
+.pet-symptom-check__feedback-text {
+  font-size: $font-size-sm;
+  color: #4A90D9;
+}
+

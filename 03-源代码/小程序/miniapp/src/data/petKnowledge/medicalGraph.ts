@@ -392,14 +392,45 @@ export const MEDICAL_GRAPH: MedicalKnowledgeGraph = {
 }
 
 /**
- * 按优先级预排序的规则列表。
- * buildRiskRules 本身按优先级构造（100→50），此处防御性排序，避免每次匹配重复 sort。
+ * 当前生效图谱（Phase 3 热更新）
+ * 默认 MEDICAL_GRAPH（打包静态兜底）；setActiveGraph 由外部（服务端下发）切换，
+ * 保证小程序无需发版即可使用审核后的最新知识
  */
-const RISK_RULES_BY_PRIORITY: RiskRuleEntity[] = [...MEDICAL_GRAPH.riskRules].sort((a, b) => b.priority - a.priority)
+let activeGraph: MedicalKnowledgeGraph = MEDICAL_GRAPH;
+
+/**
+ * 切换当前生效图谱（Phase 3：拉取 /api/knowledge/latest 成功后调用；结构不合法时忽略）
+ * 校验到条目级（审查项修复）：规则非空 + 每条规则含 id/level/sourceRef，
+ * 防止"空规则/缺来源"的坏数据上线导致紧急规则全灭或渲染崩溃
+ */
+export function setActiveGraph(graph: MedicalKnowledgeGraph): void {
+  if (
+    graph &&
+    Array.isArray(graph.riskRules) &&
+    graph.riskRules.length > 0 &&
+    Array.isArray(graph.diseases) &&
+    graph.riskRules.every(
+      (r) =>
+        r &&
+        typeof r.id === 'string' &&
+        typeof r.level === 'string' &&
+        r.sourceRef &&
+        typeof r.sourceRef.sourceId === 'string',
+    )
+  ) {
+    activeGraph = graph;
+  }
+}
+
+/** 获取当前生效图谱（评估/结论统一读这里，默认静态兜底） */
+export function getActiveGraph(): MedicalKnowledgeGraph {
+  return activeGraph;
+}
 
 /**
  * 获取可能相关的排查方向（保持原 CONDITION_MAP 的"症状→疾病"顺序）
  * 顺序 = symptomIds 逐项 + 每症状内疾病列表顺序，与原 generatePossibleConditions 完全一致（审查项修复）
+ * 注：Phase 3 MVP 中该映射仍来自打包静态表（保证顺序稳定），热更新的疾病数据影响结论生成与规则
  * @param symptomIds - 已选症状
  * @returns 去重后的疾病名列表（最多 5 项，仅供"提示排查"，不构成诊断）
  */
@@ -459,8 +490,12 @@ function ruleMatches(rule: RiskRuleEntity, symptomIds: string[], info?: SymptomA
  * 行为与原 calculateRiskLevel 完全一致（紧急 > 紧急组合 > 危险组合[带时长] > 条件 > 关注 > 正常）
  */
 function matchRules(symptomIds: string[], info?: SymptomAdditionalInfo): RuleMatchResult {
-  // 使用模块级预排序列表，避免每次匹配重复 sort（buildRiskRules 已按优先级构造）
-  for (const rule of RISK_RULES_BY_PRIORITY) {
+  // 过滤待审（draft）规则——设计文档 7.2 硬约束"draft 禁止进入正式输出"（审查项修复）；
+  // 按优先级排序当前生效图谱的规则（规则量小，逐次 sort 开销可忽略）
+  const sorted = activeGraph.riskRules
+    .filter((r) => r.sourceRef?.reviewStatus !== 'draft')
+    .sort((a, b) => b.priority - a.priority)
+  for (const rule of sorted) {
     if (ruleMatches(rule, symptomIds, info)) {
       return { rule, level: rule.level }
     }
@@ -518,14 +553,17 @@ export function buildConclusions(symptomIds: string[], info?: SymptomAdditionalI
       text: rule.name,
       basis: 'rule',
       confidence: deriveConfidence('rule', { ruleLevel: rule.level }),
-      evidence: `依据：${rule.sourceRef.title}`,
+      // sourceRef 缺失时（坏数据防御）不拼依据文案，避免崩溃（审查项修复）
+      evidence: rule.sourceRef ? `依据：${rule.sourceRef.title}` : undefined,
     })
   }
 
-  // 2. 图谱结论：症状→可能疾病（提示排查方向，非诊断）
+  // 2. 图谱结论：症状→可能疾病（提示排查方向，非诊断；读当前生效图谱，支持热更新；过滤 draft 条目）
   const conditionNames = new Set<string>()
   for (const id of symptomIds) {
-    const disease = MEDICAL_GRAPH.diseases.filter((d) => d.relatedSymptoms.some((r) => r.symptomId === id))
+    const disease = activeGraph.diseases.filter(
+      (d) => d.sourceRef?.reviewStatus !== 'draft' && d.relatedSymptoms.some((r) => r.symptomId === id)
+    )
     for (const d of disease) {
       conditionNames.add(d.name)
     }

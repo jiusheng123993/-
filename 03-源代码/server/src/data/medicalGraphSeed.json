@@ -1,0 +1,2497 @@
+{
+  "version": "2026-08-22.1",
+  "updatedAt": "2026-08-22",
+  "sources": [
+    {
+      "sourceId": "self_reviewed",
+      "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+      "authority": "internal",
+      "reviewedAt": "2026-08-22",
+      "reviewStatus": "reviewed"
+    }
+  ],
+  "symptoms": [
+    {
+      "id": "vomiting",
+      "name": "呕吐",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "digestive"
+    },
+    {
+      "id": "diarrhea",
+      "name": "腹泻",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "digestive"
+    },
+    {
+      "id": "constipation",
+      "name": "便秘",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "digestive"
+    },
+    {
+      "id": "appetite_loss",
+      "name": "食欲不振",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "digestive"
+    },
+    {
+      "id": "drooling",
+      "name": "流口水",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "digestive"
+    },
+    {
+      "id": "dysphagia",
+      "name": "吞咽困难",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "digestive"
+    },
+    {
+      "id": "cough",
+      "name": "咳嗽",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "respiratory"
+    },
+    {
+      "id": "sneeze",
+      "name": "打喷嚏",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "respiratory"
+    },
+    {
+      "id": "runny_nose",
+      "name": "流鼻涕",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "respiratory"
+    },
+    {
+      "id": "dyspnea",
+      "name": "呼吸困难",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "respiratory",
+      "urgencyHints": [
+        "疑似呼吸系统急症，请立即就医"
+      ]
+    },
+    {
+      "id": "wheezing",
+      "name": "喘息",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "respiratory"
+    },
+    {
+      "id": "itching",
+      "name": "瘙痒",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "skin"
+    },
+    {
+      "id": "hair_loss",
+      "name": "脱毛",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "skin"
+    },
+    {
+      "id": "rash",
+      "name": "红疹",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "skin"
+    },
+    {
+      "id": "dander",
+      "name": "皮屑",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "skin"
+    },
+    {
+      "id": "lump",
+      "name": "肿块",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "skin"
+    },
+    {
+      "id": "wound",
+      "name": "伤口",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "skin"
+    },
+    {
+      "id": "frequent_urination",
+      "name": "尿频",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "urinary"
+    },
+    {
+      "id": "hematuria",
+      "name": "尿血",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "urinary",
+      "urgencyHints": [
+        "尿血可能提示泌尿系统急症，请尽快就医"
+      ]
+    },
+    {
+      "id": "dysuria",
+      "name": "排尿困难",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "urinary"
+    },
+    {
+      "id": "incontinence",
+      "name": "尿失禁",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "urinary"
+    },
+    {
+      "id": "seizure",
+      "name": "抽搐",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "nervous",
+      "urgencyHints": [
+        "疑似神经系统急症，请立即就医"
+      ]
+    },
+    {
+      "id": "head_tilt",
+      "name": "歪头",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "nervous"
+    },
+    {
+      "id": "ataxia",
+      "name": "走路不稳",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "nervous"
+    },
+    {
+      "id": "nystagmus",
+      "name": "眼球震颤",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "nervous"
+    },
+    {
+      "id": "lethargy",
+      "name": "嗜睡",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "behavior"
+    },
+    {
+      "id": "anxiety",
+      "name": "焦躁",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "behavior"
+    },
+    {
+      "id": "aggression",
+      "name": "攻击性",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "behavior"
+    },
+    {
+      "id": "hiding",
+      "name": "躲藏",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "behavior"
+    },
+    {
+      "id": "excessive_licking",
+      "name": "过度舔舐",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "behavior"
+    },
+    {
+      "id": "eye_discharge",
+      "name": "眼屎增多",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "eye_ear_mouth"
+    },
+    {
+      "id": "tearing",
+      "name": "流泪",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "eye_ear_mouth"
+    },
+    {
+      "id": "ear_odor",
+      "name": "耳臭",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "eye_ear_mouth"
+    },
+    {
+      "id": "bad_breath",
+      "name": "口臭",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "eye_ear_mouth"
+    },
+    {
+      "id": "gum_swelling",
+      "name": "牙龈红肿",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "eye_ear_mouth"
+    },
+    {
+      "id": "unconsciousness",
+      "name": "昏迷",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "bodySystem": "nervous",
+      "urgencyHints": [
+        "意识丧失为危急情况，请立即送急诊"
+      ]
+    }
+  ],
+  "riskRules": [
+    {
+      "id": "rule_emergency_single_seizure",
+      "name": "紧急症状：抽搐 → 立即就医",
+      "level": "emergency",
+      "priority": 100,
+      "match": {
+        "type": "single",
+        "symptomIds": [
+          "seizure"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_emergency_single_dyspnea",
+      "name": "紧急症状：呼吸困难 → 立即就医",
+      "level": "emergency",
+      "priority": 100,
+      "match": {
+        "type": "single",
+        "symptomIds": [
+          "dyspnea"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_emergency_single_hematuria",
+      "name": "紧急症状：尿血 → 立即就医",
+      "level": "emergency",
+      "priority": 100,
+      "match": {
+        "type": "single",
+        "symptomIds": [
+          "hematuria"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_emergency_single_unconsciousness",
+      "name": "紧急症状：昏迷 → 立即就医",
+      "level": "emergency",
+      "priority": 100,
+      "match": {
+        "type": "single",
+        "symptomIds": [
+          "unconsciousness"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_emergency_combo_0",
+      "name": "紧急组合：呕吐+腹泻 → 立即就医",
+      "level": "emergency",
+      "priority": 90,
+      "match": {
+        "type": "combo",
+        "symptomIds": [
+          "vomiting",
+          "diarrhea"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_emergency_combo_1",
+      "name": "紧急组合：呕吐+嗜睡 → 立即就医",
+      "level": "emergency",
+      "priority": 90,
+      "match": {
+        "type": "combo",
+        "symptomIds": [
+          "vomiting",
+          "lethargy"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_emergency_combo_2",
+      "name": "紧急组合：呼吸困难+嗜睡 → 立即就医",
+      "level": "emergency",
+      "priority": 90,
+      "match": {
+        "type": "combo",
+        "symptomIds": [
+          "dyspnea",
+          "lethargy"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_warning_combo_0",
+      "name": "危险组合：呕吐+食欲不振 → 尽快就医",
+      "level": "warning",
+      "priority": 80,
+      "match": {
+        "type": "combo",
+        "symptomIds": [
+          "vomiting",
+          "appetite_loss"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_warning_combo_1",
+      "name": "危险组合：腹泻（持续2-3天/3天以上） → 尽快就医",
+      "level": "warning",
+      "priority": 80,
+      "match": {
+        "type": "combo",
+        "symptomIds": [
+          "diarrhea"
+        ],
+        "conditions": {
+          "durationIn": [
+            "2-3天",
+            "3天以上"
+          ]
+        }
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_warning_combo_2",
+      "name": "危险组合：尿频+尿血 → 尽快就医",
+      "level": "warning",
+      "priority": 80,
+      "match": {
+        "type": "combo",
+        "symptomIds": [
+          "frequent_urination",
+          "hematuria"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_warning_condition_0",
+      "name": "条件警告：呕吐 + 食欲下降 → 尽快就医",
+      "level": "warning",
+      "priority": 70,
+      "match": {
+        "type": "with_condition",
+        "symptomIds": [
+          "vomiting"
+        ],
+        "conditions": {
+          "appetite": "decreased"
+        }
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_warning_condition_1",
+      "name": "条件警告：腹泻 + 食欲下降 → 尽快就医",
+      "level": "warning",
+      "priority": 70,
+      "match": {
+        "type": "with_condition",
+        "symptomIds": [
+          "diarrhea"
+        ],
+        "conditions": {
+          "appetite": "decreased"
+        }
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_warning_condition_2",
+      "name": "条件警告：嗜睡 + 精神差 → 尽快就医",
+      "level": "warning",
+      "priority": 70,
+      "match": {
+        "type": "with_condition",
+        "symptomIds": [
+          "lethargy"
+        ],
+        "conditions": {
+          "energy": "low"
+        }
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_caution_single",
+      "name": "关注清单：任一关注症状 → 观察",
+      "level": "caution",
+      "priority": 60,
+      "match": {
+        "type": "single",
+        "symptomIds": [
+          "vomiting",
+          "diarrhea",
+          "appetite_loss",
+          "lethargy",
+          "cough",
+          "itching",
+          "hair_loss",
+          "constipation",
+          "drooling",
+          "sneeze",
+          "runny_nose",
+          "rash",
+          "dander",
+          "frequent_urination",
+          "dysuria",
+          "head_tilt",
+          "ataxia",
+          "anxiety",
+          "hiding",
+          "excessive_licking",
+          "eye_discharge",
+          "tearing",
+          "ear_odor",
+          "bad_breath",
+          "gum_swelling"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "rule_normal_single",
+      "name": "正常观察：未命中高风险规则 → 观察",
+      "level": "normal",
+      "priority": 50,
+      "match": {
+        "type": "single",
+        "symptomIds": [
+          "dysphagia",
+          "wheezing",
+          "lump",
+          "wound",
+          "incontinence",
+          "nystagmus",
+          "aggression"
+        ]
+      },
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    }
+  ],
+  "diseases": [
+    {
+      "id": "disease_胃炎",
+      "name": "胃炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "vomiting",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「胃炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_食物不耐受",
+      "name": "食物不耐受",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "vomiting",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「食物不耐受」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_肠道异物",
+      "name": "肠道异物",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "vomiting",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「肠道异物」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_肠炎",
+      "name": "肠炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "diarrhea",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「肠炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_寄生虫感染",
+      "name": "寄生虫感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "diarrhea",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「寄生虫感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_食物过敏",
+      "name": "食物过敏",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "diarrhea",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「食物过敏」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_脱水",
+      "name": "脱水",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "constipation",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「脱水」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_肠道梗阻",
+      "name": "肠道梗阻",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "constipation",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「肠道梗阻」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_饮食纤维不足",
+      "name": "饮食纤维不足",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "constipation",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「饮食纤维不足」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_感染",
+      "name": "感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "appetite_loss",
+          "weight": 3
+        },
+        {
+          "symptomId": "wound",
+          "weight": 2
+        },
+        {
+          "symptomId": "lethargy",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_口腔疾病",
+      "name": "口腔疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "appetite_loss",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「口腔疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_消化系统疾病",
+      "name": "消化系统疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "appetite_loss",
+          "weight": 2
+        },
+        {
+          "symptomId": "bad_breath",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「消化系统疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_口腔溃疡",
+      "name": "口腔溃疡",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "drooling",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「口腔溃疡」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_牙齿问题",
+      "name": "牙齿问题",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "drooling",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「牙齿问题」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_中毒",
+      "name": "中毒",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "drooling",
+          "weight": 2
+        },
+        {
+          "symptomId": "seizure",
+          "weight": 2
+        },
+        {
+          "symptomId": "ataxia",
+          "weight": 2
+        },
+        {
+          "symptomId": "nystagmus",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「中毒」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "emergency",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_咽喉炎",
+      "name": "咽喉炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dysphagia",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「咽喉炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_食道异物",
+      "name": "食道异物",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dysphagia",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「食道异物」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_神经系统疾病",
+      "name": "神经系统疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dysphagia",
+          "weight": 2
+        },
+        {
+          "symptomId": "incontinence",
+          "weight": 2
+        },
+        {
+          "symptomId": "aggression",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「神经系统疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_呼吸道感染",
+      "name": "呼吸道感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "cough",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「呼吸道感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_气管塌陷",
+      "name": "气管塌陷",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "cough",
+          "weight": 2
+        },
+        {
+          "symptomId": "dyspnea",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「气管塌陷」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_心脏病",
+      "name": "心脏病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "cough",
+          "weight": 2
+        },
+        {
+          "symptomId": "dyspnea",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「心脏病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_上呼吸道感染",
+      "name": "上呼吸道感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "sneeze",
+          "weight": 3
+        },
+        {
+          "symptomId": "runny_nose",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「上呼吸道感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_过敏性鼻炎",
+      "name": "过敏性鼻炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "sneeze",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「过敏性鼻炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_鼻腔异物",
+      "name": "鼻腔异物",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "sneeze",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「鼻腔异物」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_鼻炎",
+      "name": "鼻炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "runny_nose",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「鼻炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_过敏",
+      "name": "过敏",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "runny_nose",
+          "weight": 2
+        },
+        {
+          "symptomId": "wheezing",
+          "weight": 2
+        },
+        {
+          "symptomId": "itching",
+          "weight": 2
+        },
+        {
+          "symptomId": "excessive_licking",
+          "weight": 2
+        },
+        {
+          "symptomId": "tearing",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「过敏」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_肺炎",
+      "name": "肺炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dyspnea",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「肺炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_哮喘",
+      "name": "哮喘",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "wheezing",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「哮喘」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_支气管炎",
+      "name": "支气管炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "wheezing",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「支气管炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_皮肤病",
+      "name": "皮肤病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "itching",
+          "weight": 3
+        },
+        {
+          "symptomId": "excessive_licking",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「皮肤病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_寄生虫",
+      "name": "寄生虫",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "itching",
+          "weight": 2
+        },
+        {
+          "symptomId": "dander",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「寄生虫」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_真菌感染",
+      "name": "真菌感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "hair_loss",
+          "weight": 3
+        },
+        {
+          "symptomId": "ear_odor",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「真菌感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_内分泌失调",
+      "name": "内分泌失调",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "hair_loss",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「内分泌失调」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_营养不良",
+      "name": "营养不良",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "hair_loss",
+          "weight": 2
+        },
+        {
+          "symptomId": "dander",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「营养不良」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_过敏性皮炎",
+      "name": "过敏性皮炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "rash",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「过敏性皮炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_湿疹",
+      "name": "湿疹",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "rash",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「湿疹」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_寄生虫叮咬",
+      "name": "寄生虫叮咬",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "rash",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「寄生虫叮咬」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_皮肤干燥",
+      "name": "皮肤干燥",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dander",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「皮肤干燥」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_脂肪瘤",
+      "name": "脂肪瘤",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "lump",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「脂肪瘤」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_囊肿",
+      "name": "囊肿",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "lump",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「囊肿」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_肿瘤",
+      "name": "肿瘤",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "lump",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「肿瘤」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_外伤",
+      "name": "外伤",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "wound",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「外伤」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_自咬伤",
+      "name": "自咬伤",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "wound",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「自咬伤」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_尿路感染",
+      "name": "尿路感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "frequent_urination",
+          "weight": 3
+        },
+        {
+          "symptomId": "incontinence",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「尿路感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_糖尿病",
+      "name": "糖尿病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "frequent_urination",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「糖尿病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_肾脏疾病",
+      "name": "肾脏疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "frequent_urination",
+          "weight": 2
+        },
+        {
+          "symptomId": "hematuria",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「肾脏疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_尿路结石",
+      "name": "尿路结石",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "hematuria",
+          "weight": 3
+        },
+        {
+          "symptomId": "dysuria",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「尿路结石」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_膀胱炎",
+      "name": "膀胱炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "hematuria",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「膀胱炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_前列腺疾病",
+      "name": "前列腺疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dysuria",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「前列腺疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_尿道阻塞",
+      "name": "尿道阻塞",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "dysuria",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「尿道阻塞」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "emergency",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_尿道括约肌松弛",
+      "name": "尿道括约肌松弛",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "incontinence",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「尿道括约肌松弛」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_癫痫",
+      "name": "癫痫",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "seizure",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「癫痫」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_脑部疾病",
+      "name": "脑部疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "seizure",
+          "weight": 2
+        },
+        {
+          "symptomId": "head_tilt",
+          "weight": 2
+        },
+        {
+          "symptomId": "nystagmus",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「脑部疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "warning",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_中耳炎",
+      "name": "中耳炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "head_tilt",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「中耳炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_前庭疾病",
+      "name": "前庭疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "head_tilt",
+          "weight": 2
+        },
+        {
+          "symptomId": "ataxia",
+          "weight": 3
+        },
+        {
+          "symptomId": "nystagmus",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「前庭疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_脊髓疾病",
+      "name": "脊髓疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "ataxia",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「脊髓疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_贫血",
+      "name": "贫血",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "lethargy",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「贫血」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_代谢疾病",
+      "name": "代谢疾病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "lethargy",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「代谢疾病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_环境变化",
+      "name": "环境变化",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "anxiety",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「环境变化」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_疼痛",
+      "name": "疼痛",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "anxiety",
+          "weight": 2
+        },
+        {
+          "symptomId": "aggression",
+          "weight": 3
+        },
+        {
+          "symptomId": "hiding",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「疼痛」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_分离焦虑",
+      "name": "分离焦虑",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "anxiety",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「分离焦虑」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_恐惧",
+      "name": "恐惧",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "aggression",
+          "weight": 2
+        },
+        {
+          "symptomId": "hiding",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「恐惧」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_疾病不适",
+      "name": "疾病不适",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "hiding",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「疾病不适」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_焦虑",
+      "name": "焦虑",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "excessive_licking",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「焦虑」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_结膜炎",
+      "name": "结膜炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "eye_discharge",
+          "weight": 3
+        },
+        {
+          "symptomId": "tearing",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「结膜炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_泪管堵塞",
+      "name": "泪管堵塞",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "eye_discharge",
+          "weight": 2
+        },
+        {
+          "symptomId": "tearing",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「泪管堵塞」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_眼部感染",
+      "name": "眼部感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "eye_discharge",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「眼部感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_耳螨",
+      "name": "耳螨",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "ear_odor",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「耳螨」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_外耳炎",
+      "name": "外耳炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "ear_odor",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「外耳炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_牙结石",
+      "name": "牙结石",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "bad_breath",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「牙结石」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_口腔感染",
+      "name": "口腔感染",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "bad_breath",
+          "weight": 2
+        },
+        {
+          "symptomId": "gum_swelling",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「口腔感染」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_牙龈炎",
+      "name": "牙龈炎",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "gum_swelling",
+          "weight": 3
+        }
+      ],
+      "typicalText": "「牙龈炎」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "disease_牙周病",
+      "name": "牙周病",
+      "species": [
+        "cat",
+        "dog"
+      ],
+      "relatedSymptoms": [
+        {
+          "symptomId": "gum_swelling",
+          "weight": 2
+        }
+      ],
+      "typicalText": "「牙周病」为常见排查方向之一，具体请以兽医检查为准。",
+      "emergencyLevel": "normal",
+      "sourceRef": {
+        "sourceId": "self_reviewed",
+        "title": "内部自审（迁移自既有规则库，2026-08-22 复核）",
+        "authority": "internal",
+        "reviewedAt": "2026-08-22",
+        "reviewStatus": "reviewed"
+      }
+    }
+  ]
+}

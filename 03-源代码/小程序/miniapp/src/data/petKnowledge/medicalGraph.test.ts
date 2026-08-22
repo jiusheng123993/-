@@ -16,6 +16,8 @@ import {
   buildConclusions,
   enrichResultWithConfidence,
   getPossibleConditions,
+  setActiveGraph,
+  getActiveGraph,
 } from './medicalGraph'
 import type { SymptomCheckResult } from '../../services/symptomService'
 
@@ -234,5 +236,65 @@ describe('medicalGraph - 结论文案与排查方向（审查项修复）', () =
     expect(ruleConclusion!.confidence).toBe('high')
     // 无图谱结论（SYMPTOM_CONDITION_MAP 无 unconsciousness 条目）
     expect(conclusions.some((c) => c.basis === 'graph')).toBe(false)
+  })
+
+  it('Phase 3 审查修复：draft 条目不进入评估与结论（设计 7.2 硬约束）', () => {
+    // 构造：在静态规则之上叠加一条 draft 的"咳嗽→紧急"规则（优先级最高），应被过滤
+    const draftGraph = {
+      ...MEDICAL_GRAPH,
+      version: 'draft-test',
+      riskRules: [
+        {
+          id: 'draft-emergency-cough',
+          name: 'draft紧急规则：咳嗽→立即就医',
+          level: 'emergency' as const,
+          priority: 300,
+          match: { type: 'single' as const, symptomIds: ['cough'] },
+          sourceRef: { ...MEDICAL_GRAPH.sources[0], reviewStatus: 'draft' as const },
+        },
+        ...MEDICAL_GRAPH.riskRules,
+      ],
+    }
+    setActiveGraph(draftGraph)
+    // draft 规则被过滤 → cough 回落静态规则（关注清单 → caution），不因 draft 升级
+    expect(evaluateRiskLevel(['cough'])).toBe('caution')
+    const conclusions = buildConclusions(['cough'])
+    expect(conclusions.some((c) => c.text.includes('draft紧急规则'))).toBe(false)
+    setActiveGraph(MEDICAL_GRAPH)
+  })
+
+  it('Phase 3 热更新：setActiveGraph 后评估与结论使用新图谱（默认静态兜底）', () => {
+    // 1. 默认是打包静态图谱
+    expect(getActiveGraph().version).toBe(MEDICAL_GRAPH.version)
+    expect(evaluateRiskLevel(['cough'])).toBe('caution')
+
+    // 2. 切换为"审核后"的新图谱：把 cough 升级为紧急
+    const hotGraph = {
+      ...MEDICAL_GRAPH,
+      version: '2026-08-22.2',
+      riskRules: [
+        {
+          id: 'rule_hot_cough_emergency',
+          name: '热更新规则：咳嗽 → 立即就医',
+          level: 'emergency' as const,
+          priority: 200,
+          match: { type: 'single' as const, symptomIds: ['cough'] },
+          sourceRef: MEDICAL_GRAPH.sources[0],
+        },
+      ],
+    }
+    setActiveGraph(hotGraph)
+    expect(getActiveGraph().version).toBe('2026-08-22.2')
+    expect(evaluateRiskLevel(['cough'])).toBe('emergency')
+    const conclusions = buildConclusions(['cough'])
+    expect(conclusions[0].text).toContain('热更新规则')
+
+    // 3. 非法结构（缺 riskRules）不生效，保持当前图谱
+    setActiveGraph({} as never)
+    expect(getActiveGraph().version).toBe('2026-08-22.2')
+
+    // 4. 还原静态兜底，避免影响其它用例
+    setActiveGraph(MEDICAL_GRAPH)
+    expect(evaluateRiskLevel(['cough'])).toBe('caution')
   })
 })

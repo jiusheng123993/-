@@ -710,7 +710,7 @@ function calculateRecoveryDays(
 function findHistoricalSimilarEvents(
   petId: string,
   currentSymptomIds: string[],
-  petProfile?: PetProfile
+  _petProfile?: PetProfile // 暂未使用（后续记忆引擎接入后用于过滤），保留签名
 ): HistoricalEvent[] {
   const events: HistoricalEvent[] = []
   const now = new Date()
@@ -1035,7 +1035,7 @@ function generatePersonalizedInsights(
  */
 function findBreedAgeRiskInsights(
   petProfile: PetProfile,
-  symptomIds?: string[]
+  _symptomIds?: string[] // 暂未使用（后续按症状细化风险时接入），保留签名
 ): PersonalizedInsight[] {
   const insights: PersonalizedInsight[] = []
   if (!petProfile.breed || !petProfile.birthDate) return insights

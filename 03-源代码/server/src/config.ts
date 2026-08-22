@@ -73,6 +73,8 @@ export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/xinghechongji',
   jwtSecret: process.env.JWT_SECRET || '',
+  /** 知识图谱审核后台管理员令牌（Phase 3；未配置时管理接口一律 403，fail-closed；env() 已 trim 防尾随空格恒 403） */
+  adminToken: env('ADMIN_TOKEN'),
   ai: buildAiConfig(),
   pushplus: {
     token: process.env.PUSHPLUS_TOKEN || '',

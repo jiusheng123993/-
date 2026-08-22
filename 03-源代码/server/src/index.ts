@@ -41,6 +41,7 @@ import familyPhotosRoutes from './routes/familyPhotos.js';
 import agentRoutes from './routes/agentRouter.js';
 import memoryRoutes from './routes/memory.js';
 import feedbackRoutes from './routes/feedback.js';
+import knowledgeRoutes from './routes/knowledge.js';
 import analyticsRoutes from './routes/analytics.js';
 import inviteRoutes from './routes/invites.js';
 import { cleanStaleTasks } from './services/taskQueue.js';
@@ -85,6 +86,9 @@ app.use('/api/', globalLimiter);
 // 静态文件
 app.use('/uploads', express.static(path.resolve(__dirname, '..', config.uploadDir)));
 
+// 知识图谱审核后台（Phase 3 轻量管理页，Token 登录见 routes/knowledge.ts）
+app.use('/admin', express.static(path.resolve(__dirname, '..', 'public')));
+
 // ===== 健康检查 =====
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, message: '星河宠记服务运行中', timestamp: new Date().toISOString() });
@@ -126,6 +130,7 @@ app.use('/api/agent', agentRoutes);
 app.use('/api/memory', memoryRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api', knowledgeRoutes);
 app.use('/api', inviteRoutes);
 
 // ===== 全局错误处理 =====
