@@ -170,6 +170,18 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    name: 'get_health_reports',
+    description: '查询宠物的体检记录（指标/异常项）。当用户询问"体检结果""上次体检"或需要解读体检指标时使用。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number', description: '返回最近几条，默认 5，最多 10' },
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
+      required: [],
+    },
+  },
+  {
     name: 'record_feeding',
     description: '记录一次喂养。当用户说"喂了XX"、"吃了XX"时使用。',
     parameters: {

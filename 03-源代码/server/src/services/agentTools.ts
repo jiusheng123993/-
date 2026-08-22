@@ -10,6 +10,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db.js';
 import { registerTool, type ToolResult } from './toolRegistry.js';
+import { listHealthReports } from './healthReportService.js';
 
 type Context = { userId: string; petId?: string };
 
@@ -77,6 +78,36 @@ registerTool('find_pet_by_name', async (args, context): Promise<ToolResult> => {
         is_deceased: r.is_deceased,
       })),
       message: '找到以下宠物，后续查询请带上对应 pet_id',
+    },
+  };
+});
+
+// ========== 0b. get_health_reports（体检记录查询，F8） ==========
+
+registerTool('get_health_reports', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+
+  const reports = await listHealthReports(
+    petId,
+    context.userId,
+    Math.min(10, Math.max(1, (args.limit as number) || 5)),
+  );
+  if (reports.length === 0) {
+    return { success: true, data: { reports: [], message: '还没有体检记录，可让用户上传体检报告照片识别' } };
+  }
+
+  return {
+    success: true,
+    data: {
+      reports: reports.map((r) => ({
+        id: r.id,
+        report_date: r.report_date,
+        metrics: r.metrics,
+        created_at: r.created_at,
+      })),
     },
   };
 });
