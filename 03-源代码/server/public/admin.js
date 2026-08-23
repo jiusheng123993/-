@@ -133,7 +133,61 @@
     });
     document.getElementById('panel-graph').classList.toggle('hidden', name !== 'graph');
     document.getElementById('panel-feedback').classList.toggle('hidden', name !== 'feedback');
+    document.getElementById('panel-redeem').classList.toggle('hidden', name !== 'redeem');
     if (name === 'feedback') loadFeedback();
+    if (name === 'redeem') loadRedeemCodes();
+  }
+
+  // ===== 兑换码（2026-08-23） =====
+
+  /** 生成兑换码：POST /api/admin/redeem-codes，展示新码并刷新列表 */
+  async function generateRedeemCodes() {
+    const count = parseInt(document.getElementById('redeem-count').value, 10) || 1;
+    const days = parseInt(document.getElementById('redeem-days').value, 10) || 30;
+    const note = document.getElementById('redeem-note').value.trim();
+    try {
+      const r = await fetch(BASE + '/admin/redeem-codes', {
+        method: 'POST',
+        headers: headers(true),
+        body: JSON.stringify({ count, days, note: note || undefined }),
+      });
+      const body = await handle(r);
+      const codes = (body.data && body.data.codes) || [];
+      // 新码展示（可复制）；全部字段为服务端生成，无用户输入
+      document.getElementById('redeem-result').innerHTML =
+        '<div style="margin-top:12px;padding:12px;background:#F0F7FF;border-radius:8px;">' +
+        '生成成功（' + codes.length + ' 个，每个 ' + days + ' 天会员）：' +
+        codes.map((c) => '<div style="font-family:Consolas,monospace;font-size:14px;margin-top:6px;">' + c + '</div>').join('') +
+        '</div>';
+      toast('已生成 ' + codes.length + ' 个兑换码');
+      loadRedeemCodes();
+    } catch (e) {
+      toast('生成失败：' + e.message);
+    }
+  }
+
+  /** 加载兑换码列表：GET /api/admin/redeem-codes?status= */
+  async function loadRedeemCodes() {
+    const status = document.getElementById('redeem-status').value;
+    try {
+      const r = await fetch(BASE + '/admin/redeem-codes?status=' + encodeURIComponent(status), { headers: headers() });
+      const body = await handle(r);
+      const list = (body.data && body.data.list) || [];
+      const box = document.getElementById('redeem-list');
+      if (list.length === 0) { box.textContent = '暂无兑换码'; return; }
+      // note/used_by 为用户可控字段，必须 esc()（防存储型 XSS）
+      box.innerHTML = list.map((c) => (
+        '<div class="redeem-item">' +
+          '<span class="redeem-code">' + esc(c.code) + '</span>' +
+          '<span class="redeem-days">' + esc(c.days) + ' 天</span>' +
+          (c.note ? '<span class="redeem-note">' + esc(c.note) + '</span>' : '') +
+          '<span class="status ' + esc(c.status) + '">' + (c.status === 'used' ? '已使用' : '未使用') + '</span>' +
+          (c.used_by ? '<span class="redeem-by">使用人 ' + esc(c.used_by) + '</span>' : '') +
+        '</div>'
+      )).join('');
+    } catch (e) {
+      toast('加载失败：' + e.message);
+    }
   }
 
   // ===== 事件绑定（addEventListener，规避 CSP 内联事件限制） =====
@@ -143,6 +197,9 @@
   document.getElementById('btn-reload').addEventListener('click', loadGraph);
   document.getElementById('btn-refresh').addEventListener('click', loadFeedback);
   document.getElementById('fb-status').addEventListener('change', loadFeedback);
+  document.getElementById('btn-gen-codes').addEventListener('click', generateRedeemCodes);
+  document.getElementById('btn-refresh-codes').addEventListener('click', loadRedeemCodes);
+  document.getElementById('redeem-status').addEventListener('change', loadRedeemCodes);
   document.querySelectorAll('.tab').forEach((t) => {
     t.addEventListener('click', () => switchTab(t.dataset.tab));
   });

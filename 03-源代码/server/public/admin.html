@@ -21,6 +21,7 @@
     <div class="tabs">
       <div class="tab active" data-tab="graph">① 图谱查看/编辑</div>
       <div class="tab" data-tab="feedback">② 纠错反馈</div>
+      <div class="tab" data-tab="redeem">③ 兑换码</div>
     </div>
 
     <!-- Tab 1：图谱 -->
@@ -48,6 +49,36 @@
         </select>
         <button id="btn-refresh" class="secondary">刷新</button>
         <div id="fb-list"></div>
+      </div>
+    </div>
+
+    <!-- Tab 3：兑换码（2026-08-23） -->
+    <div id="panel-redeem" class="hidden">
+      <div class="card">
+        <label>生成兑换码</label>
+        <div class="redeem-form">
+          <label>数量
+            <input type="number" id="redeem-count" value="1" min="1" max="100" />
+          </label>
+          <label>会员天数
+            <input type="number" id="redeem-days" value="30" min="1" max="36500" />
+          </label>
+          <label>备注
+            <input type="text" id="redeem-note" placeholder="发给谁/用途" />
+          </label>
+        </div>
+        <button id="btn-gen-codes">生成兑换码</button>
+        <div id="redeem-result" class="redeem-result"></div>
+      </div>
+      <div class="card">
+        <label>兑换码列表</label>
+        <select id="redeem-status">
+          <option value="">全部</option>
+          <option value="unused" selected>未使用</option>
+          <option value="used">已使用</option>
+        </select>
+        <button id="btn-refresh-codes" class="secondary">刷新</button>
+        <div id="redeem-list"></div>
       </div>
     </div>
   </div>

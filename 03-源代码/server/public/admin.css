@@ -22,3 +22,15 @@ button.reject { background: #E5484D; }
 .status.approved { background: #D4EDDA; color: #155724; }
 .status.rejected { background: #F8D7DA; color: #721C24; }
 .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #FFF; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+
+/* ===== 兑换码（2026-08-23） ===== */
+.redeem-form { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.redeem-form label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #666; }
+.redeem-form input { width: 100px; padding: 8px; border: 1px solid #DDD; border-radius: 8px; }
+.redeem-form input[type=text] { width: 200px; }
+.redeem-result { margin-top: 12px; padding: 12px; background: #F0F7FF; border-radius: 8px; }
+.redeem-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0F0F0; flex-wrap: wrap; }
+.redeem-code { font-family: Consolas, monospace; font-size: 14px; font-weight: bold; color: #1F5FA8; }
+.redeem-days { font-size: 12px; color: #666; }
+.redeem-note { font-size: 12px; color: #999; }
+.redeem-by { font-size: 12px; color: #999; margin-left: auto; }
