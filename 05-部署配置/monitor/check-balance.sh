@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# DeepSeek AI 余额告警（2026-08-23 新增，P1）
-# 查询 DeepSeek 官方账户余额，不可用或低于 ¥10 时微信告警；恢复后自动解除
-# 说明：ARK/百炼/Seedream 余额需控制台账号密钥(AK/SK)才能查，本期仅覆盖 DeepSeek 官方(AI_API_KEY)
+# DeepSeek AI 余额告警（2026-08-23 新增，P1；2026-08-24 阈值 10→20）
+# 查询 DeepSeek 官方账户余额，不可用或低于 ¥20 时微信告警；恢复后自动解除
+# 说明：百炼/火山方舟/Seedream 余额需账号 AK/SK（API Key 仅能调模型、查不了余额），
+#       由 check-balance-cloud.sh 负责，本期若未配置 AK/SK 则记录跳过
 set -u
 ENV_FILE="/etc/aixu-monitor.env"
 [ -f "$ENV_FILE" ] && . "$ENV_FILE"
@@ -40,10 +41,10 @@ fi
 
 AVAILABLE=$(echo "$BALANCE" | grep -oE '"is_available":(true|false)' | head -1 | cut -d: -f2 | tr -d ' ')
 TOTAL=$(echo "$BALANCE" | grep -oE '"total_balance":"?[0-9.]+' | head -1 | grep -oE '[0-9.]+')
-THRESHOLD=10
+THRESHOLD=${DS_BALANCE_THRESHOLD:-20}   # 阈值可经 /etc/aixu-monitor.env 覆盖，默认 ¥20
 
 # 用 awk 做浮点比较（避免依赖 bc）
-BELOW=$(awk -v t="${TOTAL:-0}" 'BEGIN { print (t < 10) ? "1" : "0" }')
+BELOW=$(awk -v t="${TOTAL:-0}" -v th="$THRESHOLD" 'BEGIN { print (t < th) ? "1" : "0" }')
 
 if [ "$AVAILABLE" = "false" ]; then
   alert "ai-balance" "[ALERT] DeepSeek 余额不可用" "账户不可用，AI 对话将失败，请立即充值"
