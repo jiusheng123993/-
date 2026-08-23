@@ -70,4 +70,45 @@ describe('generatePetImageOptions 文字描述生成', () => {
     });
     expect(options).toBeNull();
   });
+
+  it('传 styleKey 时只生成该画风 1 张', async () => {
+    const options = await generatePetImageOptions({
+      petId: 'p1',
+      species: 'cat',
+      breed: '英短',
+      gender: '',
+      styleKey: 'q',
+    });
+    expect(options).not.toBeNull();
+    expect(options).toHaveLength(1);
+    expect(options![0].style).toBe('q');
+    expect(mockCallSeedream).toHaveBeenCalledTimes(1);
+  });
+
+  it('传表情时把表情提示词拼进每个画风（正向描述）', async () => {
+    await generatePetImageOptions({
+      petId: 'p1',
+      species: 'dog',
+      breed: '金毛',
+      gender: 'male',
+      styleKey: 'clay',
+      expression: 'happy',
+    });
+    expect(mockCallSeedream).toHaveBeenCalledTimes(1);
+    const prompt = mockCallSeedream.mock.calls[0][0] as string;
+    expect(prompt).toContain('开心的表情');
+    expect(prompt).toContain('一只公金毛狗狗');
+  });
+
+  it('未知画风 key 过滤后为空 → 返回 null（白名单由路由层把关）', async () => {
+    const options = await generatePetImageOptions({
+      petId: 'p1',
+      species: 'cat',
+      breed: '英短',
+      gender: '',
+      styleKey: 'not-exist',
+    });
+    expect(options).toBeNull();
+    expect(mockCallSeedream).not.toHaveBeenCalled();
+  });
 });

@@ -1,9 +1,10 @@
 /**
- * 宠物形象定制页面（按高保真原型 1:1 重构）
- * 当前形象展示 → 风格切换 → 表情系统 → 应用场景 → 生成新形象面板
- * 保留完整业务：2D/3D 生成任务、会员配额、照片上传、形象保存
+ * 宠物形象定制页面
+ * 当前形象展示 → 预设形象 → 生成新形象面板（文字/照片） → 形象库（分类保存）
+ * 说明：2026-08-24 移除冗余的"风格切换/表情系统"展示卡；文字生成改为
+ * 手动选择画风+表情+描述，参考提示词模板指引；新增形象库按风格/表情分类保存
  */
-import { View, Text, Image, Textarea } from '@tarojs/components'
+import { View, Text, Image, Textarea, ScrollView } from '@tarojs/components'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { useThemeClass } from '../../hooks/useThemeClass'
@@ -15,12 +16,10 @@ import PhotoUploader from '../../components/PetAvatar/PhotoUploader'
 import ImageGallery from '../../components/PetAvatar/ImageGallery'
 import Model3DViewer from '../../components/PetAvatar/Model3DViewer'
 import GenerationProgress from '../../components/PetAvatar/GenerationProgress'
-import { EXPRESSION_MAP, type PetExpression } from '../../engines/petAvatar'
 import { getPresetsBySpecies, type AvatarPreset } from './data/avatarPresets'
 import { getHomeStyleAvatarUrl } from '../../data/homeStyleAvatars'
 import PresetAvatar from './PresetAvatar'
 import {
-  generateAvatarImage,
   generateAvatarOptions,
   getAvatarCustomization,
   saveAvatarCustomization,
@@ -40,14 +39,17 @@ import {
   incrementPhotoOptionsCount,
   canGenerate3D,
   getAvatarQuota,
+  saveAvatarToLibrary,
+  getAvatarLibrary,
+  deleteAvatarLibraryItem,
   type AvatarStyleOption,
+  type AvatarLibraryItem,
 } from '../../services/avatarService'
-import type { AvatarCustomization } from '../../types/avatarTypes'
+import type { AvatarCustomization, ExpressionContext, PetSpecies, Avatar2DImage, AvatarQuota } from '../../types/avatarTypes'
 import type { PetProfile } from '../../services/petService'
 import { usePetStore } from '../../stores/petStore'
 import { useMembership } from '../../hooks/useMembership'
 import { useAnalytics } from '../../hooks/useAnalytics'
-import type { ExpressionContext, PetSpecies, Avatar2DImage, AvatarQuota } from '../../types/avatarTypes'
 import './index.scss'
 
 const STYLE_OPTIONS: Array<{ value: 'cartoon' | 'realistic'; label: string; desc: string }> = [
@@ -55,33 +57,35 @@ const STYLE_OPTIONS: Array<{ value: 'cartoon' | 'realistic'; label: string; desc
   { value: 'realistic', label: '写实风格', desc: '真实细腻' },
 ]
 
-const BASE_COLORS = [
-  { value: '#FFD93D', label: '暖阳金' },
-  { value: '#FF8C42', label: '活力橙' },
-  { value: '#6BCB77', label: '清新绿' },
-  { value: '#4D96FF', label: '天空蓝' },
-  { value: '#FF6B6B', label: '甜蜜粉' },
-  { value: '#9B8EC4', label: '梦幻紫' },
-  { value: '#FFF8E7', label: '奶白色' },
-  { value: '#2C3E50', label: '酷黑色' },
+// 生成画风（单选，key 与服务端 AVATAR_STYLE_OPTIONS 对齐）
+const GEN_STYLES: Array<{ key: string; label: string; icon: string }> = [
+  { key: 'q', label: 'Q版萌系', icon: '🐾' },
+  { key: 'japanese', label: '日系治愈', icon: '🌸' },
+  { key: 'american', label: '美式卡通', icon: '🎬' },
+  { key: 'watercolor', label: '水彩手绘', icon: '🎨' },
+  { key: 'clay', label: '黏土萌宠', icon: '🧸' },
 ]
 
-// 画风预览（原型 4 风格，纯展示交互）
-type StylePreviewKey = 'q' | 'watercolor' | 'pixel' | 'lineart'
-const STYLE_PREVIEWS: Array<{ key: StylePreviewKey; label: string; icon: string }> = [
-  { key: 'q', label: 'Q版', icon: '🐾' },
-  { key: 'watercolor', label: '水彩', icon: '🎨' },
-  { key: 'pixel', label: '像素', icon: '👾' },
-  { key: 'lineart', label: '线稿', icon: '✏️' },
+// 生成表情（单选，key 与服务端 EXPRESSION_PROMPTS 对齐，12 种）
+const GEN_EXPRESSIONS: Array<{ key: string; label: string; icon: string }> = [
+  { key: 'happy', label: '开心', icon: '😊' },
+  { key: 'excited', label: '兴奋', icon: '🤩' },
+  { key: 'love', label: '温柔', icon: '🥰' },
+  { key: 'cool', label: '得意', icon: '😎' },
+  { key: 'sleepy', label: '困倦', icon: '😴' },
+  { key: 'angry', label: '生气', icon: '😤' },
+  { key: 'thinking', label: '思考', icon: '🤔' },
+  { key: 'surprised', label: '惊讶', icon: '😱' },
+  { key: 'crying', label: '委屈', icon: '😭' },
+  { key: 'celebrate', label: '庆祝', icon: '🥳' },
+  { key: 'naughty', label: '调皮', icon: '😜' },
+  { key: 'sad', label: '难过', icon: '😢' },
 ]
 
-// 表情系统（原型 2x2，映射到表情引擎）
-const EXPR_OPTIONS: Array<{ key: PetExpression; label: string; desc: string; icon: string }> = [
-  { key: 'happy', label: '开心', desc: '尾巴翘起来啦', icon: '😊' },
-  { key: 'excited', label: '撒娇', desc: '蹭蹭求抱抱', icon: '🥰' },
-  { key: 'anxious', label: '生气', desc: '耳朵都竖起来', icon: '😤' },
-  { key: 'sleepy', label: '困倦', desc: '要睡觉觉了', icon: '😴' },
-]
+/** 画风 key → 中文名（形象库分类/参考模板用） */
+const GEN_STYLE_LABELS: Record<string, string> = Object.fromEntries(GEN_STYLES.map(s => [s.key, s.label]))
+/** 表情 key → 中文名（形象库分类/参考模板用） */
+const GEN_EXPR_LABELS: Record<string, string> = Object.fromEntries(GEN_EXPRESSIONS.map(e => [e.key, e.label]))
 
 type TabType = 'text' | 'photo'
 
@@ -106,8 +110,6 @@ export default function AvatarCustomizePage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('text')
   const [showPanel, setShowPanel] = useState(false)
-  const [previewStyle, setPreviewStyle] = useState<StylePreviewKey>('q')
-  const [selectedExpr, setSelectedExpr] = useState<PetExpression>('happy')
 
   const species = (currentPet?.species || 'dog') as PetSpecies
   const petName = currentPet?.name || '毛孩子'
@@ -121,11 +123,18 @@ export default function AvatarCustomizePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [genCount, setGenCount] = useState(getGenerationCount())
-  // 多风格候选形象（5 种画风选 1，猫狗各有专属提示词）
+  // 生成结果（styleKey 指定画风时只有 1 项）
   const [styleOptions, setStyleOptions] = useState<AvatarStyleOption[] | null>(null)
   const [selectedStyleIndex, setSelectedStyleIndex] = useState<number | null>(null)
   // 文字描述生成：用户输入的外貌描述（可选，拼进提示词参与生图）
   const [textDescription, setTextDescription] = useState('')
+  // 生成参数：手动选择画风 + 表情（对应服务端 AVATAR_STYLE_OPTIONS / EXPRESSION_PROMPTS）
+  const [genStyle, setGenStyle] = useState<string>('q')
+  const [genExpression, setGenExpression] = useState<string | null>(null)
+  // 形象库：按风格/表情分类保存的生成形象 + 筛选
+  const [library, setLibrary] = useState<AvatarLibraryItem[]>([])
+  const [libraryStyleFilter, setLibraryStyleFilter] = useState<string>('all')
+  const [libraryExprFilter, setLibraryExprFilter] = useState<string>('all')
   // 预设头像库（免费用户入口）：选中的预设 ID
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null)
 
@@ -432,22 +441,24 @@ export default function AvatarCustomizePage() {
 
   const handleTextGenerate = useCallback(async () => {
     if (!canGenerate || isGenerating) return
-    trackEvent('generate_avatar_options', { style: selectedStyle, species })
+    trackEvent('generate_avatar_options', { style: selectedStyle, species, genStyle, genExpression })
     setIsGenerating(true)
     setStyleOptions(null)
     setSelectedStyleIndex(null)
     try {
-      // 一次生成 5 种画风候选（Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠），供用户 5 选 1
+      // 按用户选择的画风+表情生成 1 张（styleKey 指定后服务端只生成该画风）
       // 用户描述（可选）拼进提示词参与生图
       const desc = textDescription.trim().slice(0, 100)
-      const options = await generateAvatarOptions(petId, undefined, selectedStyle, desc || undefined)
+      const options = await generateAvatarOptions(petId, undefined, selectedStyle, desc || undefined, genStyle, genExpression || undefined)
       if (options && options.length > 0) {
         setStyleOptions(options)
+        // 单选画风生成 1 张，默认选中它
+        setSelectedStyleIndex(0)
         incrementGenerationCount()
         setGenCount(getGenerationCount())
-        trackEvent('generate_avatar_options_success', { style: selectedStyle, count: options.length })
-        Taro.showToast({ title: '生成成功，请选择喜欢的形象', icon: 'none' })
-        // 候选列表在面板底部，生成后滚动到页面底部让用户一眼看到
+        trackEvent('generate_avatar_options_success', { style: selectedStyle, genStyle, count: options.length })
+        Taro.showToast({ title: '生成成功', icon: 'none' })
+        // 生成结果在面板底部，滚动到页面底部让用户一眼看到
         Taro.nextTick(() => {
           Taro.pageScrollTo({ scrollTop: 99999, duration: 300 })
         })
@@ -469,7 +480,93 @@ export default function AvatarCustomizePage() {
     } finally {
       setIsGenerating(false)
     }
-  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, textDescription, trackEvent])
+  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, textDescription, genStyle, genExpression, petId, trackEvent])
+
+  // ---- 形象库：按风格/表情分类保存的生成形象 ----
+
+  /** 按当前筛选（画风/表情）过滤形象库 */
+  const filteredLibrary = useMemo(() => {
+    return library.filter((item) => {
+      const styleOk = libraryStyleFilter === 'all' || item.style === libraryStyleFilter
+      const exprOk = libraryExprFilter === 'all' || (item.expression || '') === libraryExprFilter
+      return styleOk && exprOk
+    })
+  }, [library, libraryStyleFilter, libraryExprFilter])
+
+  /** 加载当前宠物的形象库 */
+  const loadLibrary = useCallback(async (targetPetId: string) => {
+    if (!targetPetId) return
+    const items = await getAvatarLibrary(targetPetId)
+    setLibrary(items)
+  }, [])
+
+  // 宠物切换/进入页面时加载形象库
+  useEffect(() => {
+    void loadLibrary(petId)
+  }, [petId, loadLibrary])
+
+  /** 把生成结果存入形象库（按所选风格/表情标记）
+   * @param targetOption - 指定候选（照片 Tab 5 选 1 时传选中的 option，用它的画风）；缺省用当前选中
+   */
+  const handleSaveToLibrary = useCallback(async (targetOption?: AvatarStyleOption) => {
+    const current = targetOption ?? (styleOptions && selectedStyleIndex != null ? styleOptions[selectedStyleIndex] : null)
+    if (!current || !petId) return
+    const ok = await saveAvatarToLibrary(
+      petId,
+      targetOption ? targetOption.style : genStyle,
+      targetOption ? null : genExpression,
+      current.url,
+    )
+    if (ok) {
+      Taro.showToast({ title: '已存入形象库', icon: 'success' })
+      await loadLibrary(petId)
+    } else {
+      Taro.showToast({ title: '存入失败，请重试', icon: 'none' })
+    }
+  }, [styleOptions, selectedStyleIndex, petId, genStyle, genExpression, loadLibrary])
+
+  /** 把形象库中的某个形象设为当前形象（写入 avatar_cartoon_url） */
+  const handleUseLibraryItem = useCallback(async (item: AvatarLibraryItem) => {
+    if (!petId) return
+    try {
+      const custom: AvatarCustomization = {
+        species,
+        style: 'cartoon',
+        styleVariant: item.style,
+        baseColor: '#FFD93D',
+        generatedAt: new Date().toISOString(),
+        cartoonUrl: item.imageUrl,
+      }
+      const updated = await saveAvatarCustomization(custom, petId)
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
+      Taro.showToast({ title: '已设为当前形象', icon: 'success' })
+    } catch {
+      Taro.showToast({ title: '设置失败，请重试', icon: 'none' })
+    }
+  }, [petId, species, handleSaved])
+
+  /** 删除形象库中的一条 */
+  const handleDeleteLibraryItem = useCallback(async (id: string) => {
+    Taro.showModal({
+      title: '删除这个形象？',
+      content: '删除后不可恢复',
+      confirmText: '删除',
+      confirmColor: '#E64340',
+      success: async (r) => {
+        if (!r.confirm) return
+        const ok = await deleteAvatarLibraryItem(id)
+        if (ok) {
+          Taro.showToast({ title: '已删除', icon: 'none' })
+          await loadLibrary(petId)
+        } else {
+          Taro.showToast({ title: '删除失败', icon: 'none' })
+        }
+      },
+    })
+  }, [petId, loadLibrary])
 
   /**
    * 照片生成多风格候选（带参考照片，保证形象像宠物本人）
@@ -563,27 +660,6 @@ export default function AvatarCustomizePage() {
     }
   }, [selectedPreset, species, petId, trackEvent, handleSaved])
 
-  const handleTextSave = useCallback(async () => {
-    if (!generatedUrl) return
-    trackEvent('save_avatar')
-    try {
-      const custom: AvatarCustomization = {
-        species,
-        style: selectedStyle,
-        baseColor: selectedColor,
-        generatedAt: new Date().toISOString(),
-        cartoonUrl: generatedUrl,
-      }
-      const updated = await saveAvatarCustomization(custom, petId)
-      const patch = updated
-        ? (updated as unknown as Record<string, unknown>)
-        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
-      await handleSaved(petId, patch)
-    } catch {
-      Taro.showToast({ title: '保存失败', icon: 'none' })
-    }
-  }, [generatedUrl, species, selectedStyle, selectedColor, petId, trackEvent, handleSaved])
-
   const handle2DRetry = useCallback(() => {
     task2D.reset()
     handleGenerate2D()
@@ -657,13 +733,13 @@ export default function AvatarCustomizePage() {
 
   return (
     <View className={`avatar-customize ${themeClass}`}>
-      {/* 1. 当前形象展示卡 */}
+      {/* 1. 当前形象展示卡（移除冗余的预览画风/表情切换，直接展示当前形象） */}
       <View className='xhh-card avatar-stage'>
         <View className='avatar-stage__head'>
           <Text className='avatar-stage__badge'>当前形象</Text>
-          <Text className='avatar-stage__style-tag'>Q版 · {petName}</Text>
+          <Text className='avatar-stage__style-tag'>{petName}</Text>
         </View>
-        <View className={`avatar-stage__img avatar-stage__frame--${previewStyle}`}>
+        <View className='avatar-stage__img'>
           {isGenerating ? (
             <View className='avatar-stage__loading'>
               <View className='avatar-stage__spinner' />
@@ -676,13 +752,80 @@ export default function AvatarCustomizePage() {
               species={species}
               petName={petName}
               expressionContext={expressionContext}
-              customExpression={EXPRESSION_MAP[selectedExpr]}
               size={230}
             />
           )}
         </View>
         <Text className='avatar-stage__name'>{petName}</Text>
         <Text className='avatar-stage__desc'>{petDesc}</Text>
+      </View>
+
+      {/* 1.6 形象库（多次生成的形象按风格/表情分类保存） */}
+      <View className='xhh-card avatar-library'>
+        <View className='avatar-library__head'>
+          <Text className='avatar-library__title'>📚 形象库</Text>
+          <Text className='avatar-library__hint'>生成后点「存入形象库」，按风格/表情分类保存</Text>
+        </View>
+
+        {/* 筛选：画风 + 表情 */}
+        <View className='avatar-library__filters'>
+          <ScrollView className='avatar-library__filter-row' scrollX enhanced showScrollbar={false}>
+            <View className='avatar-library__filter-inner'>
+              {['all', ...GEN_STYLES.map(s => s.key)].map(key => (
+                <View
+                  key={`s-${key}`}
+                  className={`avatar-library__filter-chip ${libraryStyleFilter === key ? 'avatar-library__filter-chip--active' : ''}`}
+                  onClick={() => setLibraryStyleFilter(key)}
+                >
+                  <Text>{key === 'all' ? '全部风格' : GEN_STYLE_LABELS[key]}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+          <ScrollView className='avatar-library__filter-row' scrollX enhanced showScrollbar={false}>
+            <View className='avatar-library__filter-inner'>
+              {['all', ...GEN_EXPRESSIONS.map(e => e.key)].map(key => (
+                <View
+                  key={`e-${key}`}
+                  className={`avatar-library__filter-chip ${libraryExprFilter === key ? 'avatar-library__filter-chip--active' : ''}`}
+                  onClick={() => setLibraryExprFilter(key)}
+                >
+                  <Text>{key === 'all' ? '全部表情' : GEN_EXPR_LABELS[key]}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* 形象网格（按筛选展示） */}
+        {filteredLibrary.length === 0 ? (
+          <View className='avatar-library__empty'>
+            <Text>还没有保存的形象</Text>
+            <Text className='avatar-library__empty-hint'>生成形象后点击「存入形象库」即可收藏分类</Text>
+          </View>
+        ) : (
+          <View className='avatar-library__grid'>
+            {filteredLibrary.map(item => (
+              <View key={item.id} className='avatar-library__card'>
+                <Image
+                  className='avatar-library__img'
+                  src={item.imageUrl}
+                  mode='aspectFill'
+                  lazyLoad
+                  onClick={() => handleUseLibraryItem(item)}
+                />
+                <View className='avatar-library__tags'>
+                  <Text className='avatar-library__tag'>{GEN_STYLE_LABELS[item.style] || item.style}</Text>
+                  {item.expression && <Text className='avatar-library__tag'>{GEN_EXPR_LABELS[item.expression] || item.expression}</Text>}
+                </View>
+                <View className='avatar-library__actions'>
+                  <Text className='avatar-library__use' onClick={() => handleUseLibraryItem(item)}>设为当前</Text>
+                  <Text className='avatar-library__del' onClick={() => handleDeleteLibraryItem(item.id)}>删除</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* 1.5 预设形象库（免费用户主入口：从现成的 10 款里选，无需 AI 生成） */}
@@ -723,49 +866,6 @@ export default function AvatarCustomizePage() {
           >
             <Text className='avatar-preset__btn-text'>保存所选形象</Text>
           </View>
-        </View>
-      </View>
-
-      {/* 2. 风格切换 */}
-      <View className='xhh-card avatar-style'>
-        <View className='avatar-style__head'>
-          <Text className='avatar-style__title'>风格</Text>
-          <Text className='avatar-style__hint'>换一种画风</Text>
-        </View>
-        <View className='avatar-style__grid'>
-          {STYLE_PREVIEWS.map(style => (
-            <View
-              key={style.key}
-              className={`avatar-style__chip ${previewStyle === style.key ? 'avatar-style__chip--active' : ''}`}
-              onClick={() => setPreviewStyle(style.key)}
-            >
-              <Text className='avatar-style__chip-icon'>{style.icon}</Text>
-              <Text className='avatar-style__chip-label'>{style.label}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* 3. 表情系统 2x2 */}
-      <View className='xhh-card avatar-expr'>
-        <View className='avatar-expr__head'>
-          <Text className='avatar-expr__title'>表情</Text>
-          <Text className='avatar-expr__hint'>点一点看变化</Text>
-        </View>
-        <View className='avatar-expr__grid'>
-          {EXPR_OPTIONS.map(expr => (
-            <View
-              key={expr.key}
-              className={`avatar-expr__card ${selectedExpr === expr.key ? 'avatar-expr__card--active' : ''}`}
-              onClick={() => setSelectedExpr(expr.key)}
-            >
-              <View className='avatar-expr__icon'>{expr.icon}</View>
-              <View className='avatar-expr__info'>
-                <Text className='avatar-expr__label'>{expr.label}</Text>
-                <Text className='avatar-expr__desc'>{expr.desc}</Text>
-              </View>
-            </View>
-          ))}
         </View>
       </View>
 
@@ -816,7 +916,7 @@ export default function AvatarCustomizePage() {
               <View className='avatar-customize__member-only'>
                 <Text className='avatar-customize__member-only-icon'>✨</Text>
                 <Text className='avatar-customize__member-only-title'>AI 形象生成 · 会员专享</Text>
-                <Text className='avatar-customize__member-only-desc'>AI 生成 5 种画风候选并挑选；免费用户可直接使用上方「预设形象」，或在「照片生成」Tab 上传真实照片作头像</Text>
+                <Text className='avatar-customize__member-only-desc'>AI 按你选的画风+表情生成专属形象；免费用户可直接使用上方「预设形象」，或在「照片生成」Tab 上传真实照片作头像</Text>
                 <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可使用 AI 生成专属形象（文字/照片）')}>
                   <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
                 </View>
@@ -837,50 +937,52 @@ export default function AvatarCustomizePage() {
                 <Text className='avatar-customize__desc-hint'>只写外貌特征，不要写宠物名字（避免被画成奇怪的东西）</Text>
               </View>
 
-              <View className='avatar-customize__preview'>
-                {isGenerating ? (
-                  <View className='avatar-customize__generating'>
-                    <View className='avatar-customize__generating-spinner' />
-                    <Text className='avatar-customize__generating-text'>AI 正在为你生成专属形象...</Text>
-                  </View>
-                ) : styleOptions && selectedStyleIndex != null && styleOptions[selectedStyleIndex] ? (
-                  <Image
-                    className='avatar-customize__generated-img'
-                    src={styleOptions[selectedStyleIndex].url}
-                    mode='aspectFit'
-                  />
-                ) : (
-                  <PetAvatar species={species} petName={petName} expressionContext={expressionContext} size={160} showLabel />
-                )}
+              {/* 参考提示词模板：指引用户按"外貌 + 表情 + 画风"组织描述 */}
+              <View className='avatar-customize__section avatar-customize__ref'>
+                <Text className='avatar-customize__section-title'>💡 参考提示词模板</Text>
+                <View className='avatar-customize__ref-box'>
+                  <Text className='avatar-customize__ref-text'>
+                    {`一只${currentPet?.breed || (species === 'cat' ? '猫咪' : '狗狗')}，${textDescription.trim() || '圆脸胖乎乎的'}，${genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情，` : ''}${GEN_STYLE_LABELS[genStyle]}风格`}
+                  </Text>
+                </View>
+                <Text className='avatar-customize__desc-hint'>按「外貌特征，表情，画风」来写，生成更准</Text>
               </View>
 
+              {/* 画风选择（单选，生成 1 张） */}
               <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>风格选择</Text>
-                <View className='avatar-customize__style-options'>
-                  {STYLE_OPTIONS.map(opt => (
+                <Text className='avatar-customize__section-title'>选择画风</Text>
+                <View className='avatar-customize__gen-options'>
+                  {GEN_STYLES.map(opt => (
                     <View
-                      key={opt.value}
-                      className={`avatar-customize__style-item ${selectedStyle === opt.value ? 'avatar-customize__style-item--active' : ''}`}
-                      onClick={() => setSelectedStyle(opt.value)}
+                      key={opt.key}
+                      className={`avatar-customize__gen-chip ${genStyle === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
+                      onClick={() => setGenStyle(opt.key)}
                     >
-                      <Text className='avatar-customize__style-label'>{opt.label}</Text>
-                      <Text className='avatar-customize__style-desc'>{opt.desc}</Text>
+                      <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
+                      <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
                     </View>
                   ))}
                 </View>
               </View>
 
+              {/* 表情选择（单选，可选"不选"） */}
               <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>基础配色</Text>
-                <View className='avatar-customize__color-options'>
-                  {BASE_COLORS.map(color => (
+                <Text className='avatar-customize__section-title'>选择表情</Text>
+                <View className='avatar-customize__gen-options avatar-customize__gen-options--expr'>
+                  <View
+                    className={`avatar-customize__gen-chip ${genExpression === null ? 'avatar-customize__gen-chip--active' : ''}`}
+                    onClick={() => setGenExpression(null)}
+                  >
+                    <Text className='avatar-customize__gen-chip-label'>无</Text>
+                  </View>
+                  {GEN_EXPRESSIONS.map(opt => (
                     <View
-                      key={color.value}
-                      className={`avatar-customize__color-item ${selectedColor === color.value ? 'avatar-customize__color-item--active' : ''}`}
-                      style={{ backgroundColor: color.value }}
-                      onClick={() => setSelectedColor(color.value)}
+                      key={opt.key}
+                      className={`avatar-customize__gen-chip ${genExpression === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
+                      onClick={() => setGenExpression(opt.key)}
                     >
-                      {selectedColor === color.value && <Text className='avatar-customize__color-check'>✓</Text>}
+                      <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
+                      <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
                     </View>
                   ))}
                 </View>
@@ -897,7 +999,7 @@ export default function AvatarCustomizePage() {
                   className={`avatar-customize__btn ${!canGenerate ? 'avatar-customize__btn--disabled' : ''}`}
                   onClick={handleTextGenerate}
                 >
-                  <Text className='avatar-customize__btn-text'>生成 5 种风格头像</Text>
+                  <Text className='avatar-customize__btn-text'>生成形象</Text>
                 </View>
               </View>
             </>
@@ -1035,44 +1137,77 @@ export default function AvatarCustomizePage() {
               )}
             </>
           )}
-          {/* 多风格候选：5 选 1（两个 Tab 共用） */}
+          {/* 生成结果：文字生成 = 单张（选画风+表情）+ 形象库操作；照片生成 = 5 选 1 */}
           {styleOptions && styleOptions.length > 0 && (
-            <View className='avatar-options'>
-              <View className='avatar-options__head'>
-                <Text className='avatar-options__title'>选择你喜欢的形象</Text>
-                <Text className='avatar-options__hint'>Q版萌系 / 日系治愈 / 美式卡通 / 水彩手绘 / 黏土萌宠</Text>
-              </View>
-              <View className='avatar-options__grid'>
-                {styleOptions.map((option, index) => (
-                  <View
-                    key={option.style}
-                    className={`avatar-options__card ${selectedStyleIndex === index ? 'avatar-options__card--active' : ''}`}
-                    onClick={() => setSelectedStyleIndex(index)}
-                  >
-                    <View className='avatar-options__img-wrap'>
-                      <Image className='avatar-options__img' src={option.url} mode='aspectFill' lazyLoad />
-                      {selectedStyleIndex === index && (
-                        <View className='avatar-options__check'>
-                          <Text className='avatar-options__check-text'>✓</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text className='avatar-options__label'>{option.label}</Text>
+            styleOptions.length === 1 ? (
+              <View className='avatar-options avatar-options--single'>
+                <View className='avatar-options__head'>
+                  <Text className='avatar-options__title'>生成结果</Text>
+                  <Text className='avatar-options__hint'>
+                    {GEN_STYLE_LABELS[genStyle] || styleOptions[0].label}
+                    {genExpression ? ` · ${GEN_EXPR_LABELS[genExpression]}` : ''}
+                  </Text>
+                </View>
+                <Image className='avatar-options__single-img' src={styleOptions[0].url} mode='aspectFit' lazyLoad />
+                <View className='avatar-options__actions'>
+                  <View className='avatar-options__btn avatar-options__btn--secondary' onClick={handleResetOptions}>
+                    <Text className='avatar-options__btn-text'>重新生成</Text>
                   </View>
-                ))}
-              </View>
-              <View className='avatar-options__actions'>
-                <View className='avatar-options__btn avatar-options__btn--secondary' onClick={handleResetOptions}>
-                  <Text className='avatar-options__btn-text'>重新生成</Text>
-                </View>
-                <View
-                  className={`avatar-options__btn ${selectedStyleIndex == null ? 'avatar-options__btn--disabled' : ''}`}
-                  onClick={handleSaveSelectedOption}
-                >
-                  <Text className='avatar-options__btn-text'>保存所选形象</Text>
+                  <View className='avatar-options__btn' onClick={() => handleSaveToLibrary()}>
+                    <Text className='avatar-options__btn-text'>📚 存入形象库</Text>
+                  </View>
+                  <View
+                    className={`avatar-options__btn ${selectedStyleIndex == null ? 'avatar-options__btn--disabled' : ''}`}
+                    onClick={handleSaveSelectedOption}
+                  >
+                    <Text className='avatar-options__btn-text'>设为当前形象</Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            ) : (
+              <View className='avatar-options'>
+                <View className='avatar-options__head'>
+                  <Text className='avatar-options__title'>选择你喜欢的形象</Text>
+                  <Text className='avatar-options__hint'>Q版萌系 / 日系治愈 / 美式卡通 / 水彩手绘 / 黏土萌宠</Text>
+                </View>
+                <View className='avatar-options__grid'>
+                  {styleOptions.map((option, index) => (
+                    <View
+                      key={option.style}
+                      className={`avatar-options__card ${selectedStyleIndex === index ? 'avatar-options__card--active' : ''}`}
+                      onClick={() => setSelectedStyleIndex(index)}
+                    >
+                      <View className='avatar-options__img-wrap'>
+                        <Image className='avatar-options__img' src={option.url} mode='aspectFill' lazyLoad />
+                        {selectedStyleIndex === index && (
+                          <View className='avatar-options__check'>
+                            <Text className='avatar-options__check-text'>✓</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className='avatar-options__label'>{option.label}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View className='avatar-options__actions'>
+                  <View className='avatar-options__btn avatar-options__btn--secondary' onClick={handleResetOptions}>
+                    <Text className='avatar-options__btn-text'>重新生成</Text>
+                  </View>
+                  <View
+                    className={`avatar-options__btn avatar-options__btn--secondary ${selectedStyleIndex == null ? 'avatar-options__btn--disabled' : ''}`}
+                    onClick={() => selectedStyleIndex != null && handleSaveToLibrary(styleOptions[selectedStyleIndex])}
+                  >
+                    <Text className='avatar-options__btn-text'>📚 存入形象库</Text>
+                  </View>
+                  <View
+                    className={`avatar-options__btn ${selectedStyleIndex == null ? 'avatar-options__btn--disabled' : ''}`}
+                    onClick={handleSaveSelectedOption}
+                  >
+                    <Text className='avatar-options__btn-text'>保存所选形象</Text>
+                  </View>
+                </View>
+              </View>
+            )
           )}
         </View>
       )}

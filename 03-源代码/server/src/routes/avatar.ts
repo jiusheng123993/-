@@ -7,7 +7,7 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
-import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS } from '../services/avatarService.js';
+import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS } from '../services/avatarService.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
 import { generate2DAvatarPack } from '../services/image2DService.js';
@@ -19,6 +19,7 @@ import {
   AvatarGenerationRepository,
   Avatar2DImageRepository,
   Avatar3DModelRepository,
+  AvatarLibraryRepository,
 } from '../repositories/avatarRepository.js';
 import { AvatarTaskRepository, type AvatarTaskType } from '../repositories/avatarTaskRepository.js';
 
@@ -30,6 +31,7 @@ const avatarGenerationRepository = new AvatarGenerationRepository();
 const avatar2DImageRepository = new Avatar2DImageRepository();
 const avatar3DModelRepository = new Avatar3DModelRepository();
 const avatarTaskRepository = new AvatarTaskRepository();
+const avatarLibraryRepository = new AvatarLibraryRepository();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -190,7 +192,7 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
 // 生成多风格候选形象（5 种画风：Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠）
 router.post('/generate-options', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
   try {
-    const { petId, referenceImageUrl, style, description } = req.body;
+    const { petId, referenceImageUrl, style, description, styleKey, expression } = req.body;
     const userId = req.userId!;
 
     if (!petId || typeof petId !== 'string') {
@@ -200,6 +202,13 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
 
     // 文字描述（可选）：必须是字符串，截断 100 字防超长
     const safeDescription = typeof description === 'string' ? description.trim().slice(0, 100) : '';
+
+    // 指定画风（可选）：必须是 AVATAR_STYLE_OPTIONS 里的 key，否则视为不指定（生成全部）
+    const validStyleKeys: string[] = AVATAR_STYLE_OPTIONS.map((i) => i.key);
+    const safeStyleKey = typeof styleKey === 'string' && validStyleKeys.includes(styleKey) ? styleKey : undefined;
+
+    // 表情（可选）：必须是 EXPRESSION_PROMPTS 里的 key，否则忽略
+    const safeExpression = typeof expression === 'string' && EXPRESSION_PROMPTS[expression] ? expression : undefined;
 
     // style 白名单校验（写实/卡通基础基调）
     const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
@@ -255,8 +264,11 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       id: generationId,
       user_id: userId,
       pet_id: petId,
-      prompt: `为${pet.breed}生成 ${AVATAR_STYLE_OPTIONS.length} 种风格候选形象（${AVATAR_STYLE_OPTIONS.map(i => i.label).join(' / ')}）${safeDescription ? `；用户描述：${safeDescription}` : ''}`,
-      style: `options-${safeStyle}`,
+      prompt: `为${pet.breed}生成${safeStyleKey ? ` ${safeStyleKey}画风` : ' 多种风格'}候选形象${safeDescription ? `；用户描述：${safeDescription}` : ''}${safeExpression ? `；表情：${safeExpression}` : ''}`,
+      // 配额口径：文字生成（单画风）与照片生成分开记 style——
+      // 文字 = options-<基调>-text-<画风>（不计入照片 3 次/月额度，countMonthlyOptionsByUser 排除 %-text-%）
+      // 照片 = options-<基调>-photo / 老格式 options-<基调>（计入照片额度）
+      style: `options-${safeStyle}${safeStyleKey ? `-text-${safeStyleKey}` : '-photo'}`,
     });
 
     const options = await generatePetImageOptions({
@@ -267,6 +279,8 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       photoUrl,
       style: safeStyle,
       description: safeDescription,
+      styleKey: safeStyleKey,
+      expression: safeExpression,
     });
 
     // 生成失败时明确报错，绝不返回丑陋占位图
@@ -288,6 +302,106 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
   } catch (error) {
     console.error('[Avatar generate-options] Error:', error);
     res.status(500).json({ success: false, message: '形象生成失败，请稍后重试' });
+  }
+});
+
+/**
+ * POST /api/avatar/library
+ * 保存一个形象到形象库（用户多次生成的收藏，按风格/表情分类）
+ */
+router.post('/library', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { petId, style, expression, imageUrl } = req.body;
+    const userId = req.userId!;
+
+    if (!petId || typeof petId !== 'string') {
+      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
+      return;
+    }
+    // 画风白名单 + 图片 URL 必须 http(s)（防存脏数据/外链探测）
+    const validStyleKeys: string[] = AVATAR_STYLE_OPTIONS.map((i) => i.key);
+    if (typeof style !== 'string' || !validStyleKeys.includes(style)) {
+      res.status(400).json({ success: false, message: 'style 参数不合法' });
+      return;
+    }
+    if (typeof imageUrl !== 'string' || !isValidHttpUrl(imageUrl)) {
+      res.status(400).json({ success: false, message: 'imageUrl 参数不合法' });
+      return;
+    }
+    // 表情白名单（与 generate-options 的 EXPRESSION_PROMPTS 口径一致），防脏数据破坏筛选
+    const safeExpression =
+      typeof expression === 'string' && EXPRESSION_PROMPTS[expression] ? expression : null;
+
+    // 校验宠物归属
+    const pet = await petRepository.findByIdAndUser(petId, userId);
+    if (!pet) {
+      res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
+      return;
+    }
+
+    const libraryId = uuidv4();
+    await avatarLibraryRepository.save({
+      id: libraryId,
+      petId,
+      userId,
+      style,
+      expression: safeExpression,
+      imageUrl,
+    });
+
+    res.json({ success: true, data: { id: libraryId } });
+  } catch (error) {
+    console.error('[Avatar library save] Error:', error);
+    res.status(500).json({ success: false, message: '保存形象失败，请稍后重试' });
+  }
+});
+
+/**
+ * GET /api/avatar/library?petId=xx
+ * 查询某宠物的形象库（时间倒序，最新在前）
+ */
+router.get('/library', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const petId = typeof req.query.petId === 'string' ? req.query.petId : '';
+    const userId = req.userId!;
+
+    if (!petId) {
+      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
+      return;
+    }
+
+    // 校验宠物归属
+    const pet = await petRepository.findByIdAndUser(petId, userId);
+    if (!pet) {
+      res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
+      return;
+    }
+
+    const items = await avatarLibraryRepository.findByPet(petId, userId);
+    res.json({ success: true, data: items });
+  } catch (error) {
+    console.error('[Avatar library list] Error:', error);
+    res.status(500).json({ success: false, message: '获取形象库失败' });
+  }
+});
+
+/**
+ * DELETE /api/avatar/library/:id
+ * 删除形象库中的一条（仅本人）
+ */
+router.delete('/library/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const userId = req.userId!;
+    const deleted = await avatarLibraryRepository.delete(id, userId);
+    if (!deleted) {
+      res.status(404).json({ success: false, message: '形象不存在或无权删除' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Avatar library delete] Error:', error);
+    res.status(500).json({ success: false, message: '删除形象失败' });
   }
 });
 

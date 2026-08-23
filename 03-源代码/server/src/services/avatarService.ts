@@ -81,7 +81,33 @@ export interface GeneratePetImageOptionsParams {
    * ⚠️ 清洗：截断 100 字 + 去换行；提醒用户不要写宠物名字（防「烧鸡」被画成鸡）
    */
   description?: string;
+  /**
+   * 指定画风 key（q / japanese / american / watercolor / clay）
+   * 传了则只生成该画风 1 张；不传生成全部 5 种候选
+   */
+  styleKey?: string;
+  /** 表情 key（happy / excited / ...，拼进提示词），可选 */
+  expression?: string;
 }
+
+/**
+ * 表情 key → 中文提示词片段（12 种，对齐 2D 表情包 EXPRESSIONS）
+ * 拼进生图提示词，让形象带上表情（文生图用正向描述）
+ */
+export const EXPRESSION_PROMPTS: Record<string, string> = {
+  happy: '开心的表情，嘴角上扬，眼睛弯弯',
+  sad: '难过的表情，耳朵微微下垂',
+  excited: '兴奋的表情，眼睛发亮，尾巴翘起',
+  sleepy: '困倦的表情，半眯着眼，懒洋洋',
+  love: '温柔的表情，眼神充满爱意',
+  cool: '得意的表情，嘴角微扬，酷酷的',
+  angry: '生气的表情，耳朵竖起，气鼓鼓',
+  thinking: '思考的表情，歪着头，若有所思',
+  surprised: '惊讶的表情，眼睛瞪大，嘴巴微张',
+  crying: '委屈的表情，眼角带泪，可怜巴巴',
+  celebrate: '庆祝的表情，咧嘴大笑，活力满满',
+  naughty: '调皮的表情，吐舌头，俏皮',
+};
 
 /** 单个风格候选结果 */
 export interface PetImageOption {
@@ -92,7 +118,8 @@ export interface PetImageOption {
 
 /**
  * 生成多风格候选形象（5 种画风，猫狗各一套提示词）
- * 并发调用 Seedream 生成全部候选；任一失败自动跳过，全部失败返回 null
+ * 默认并发生成全部 5 种画风；传 styleKey 则只生成指定画风 1 张
+ * 任一失败自动跳过，全部失败返回 null
  * @returns 候选列表；AI 服务不可用时返回 null（不返回丑陋占位图）
  */
 export async function generatePetImageOptions(
@@ -114,12 +141,22 @@ export async function generatePetImageOptions(
     ? `${subject}的头像，${userDesc}，高质量，细节丰富，干净背景`
     : `${subject}的头像，高质量，细节丰富，干净背景`;
 
-  // 5 种风格并发生成，互不阻塞；某个风格失败不影响其余候选
+  // 表情：拼进提示词（正向描述，如"开心的表情，嘴角上扬"）
+  const exprText = params.expression ? EXPRESSION_PROMPTS[params.expression] || '' : '';
+
+  // 画风范围：传 styleKey 只生成该画风（1 张），否则全部 5 种
+  const styleItems = params.styleKey
+    ? AVATAR_STYLE_OPTIONS.filter((item) => item.key === params.styleKey)
+    : AVATAR_STYLE_OPTIONS;
+
+  // 并发生成，互不阻塞；某个风格失败不影响其余
   const results = await Promise.allSettled(
-    AVATAR_STYLE_OPTIONS.map((item) =>
-      callSeedream(`${basePrompt}，${styleText}，${isDog ? item.dog : item.cat}，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`, params.photoUrl || '', apiKey).then((url) =>
-        url ? { style: item.key, label: item.label, url } : null,
-      ),
+    styleItems.map((item) =>
+      callSeedream(
+        `${basePrompt}，${exprText}，${styleText}，${isDog ? item.dog : item.cat}，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`.replace(/，+/g, '，'),
+        params.photoUrl || '',
+        apiKey,
+      ).then((url) => (url ? { style: item.key, label: item.label, url } : null)),
     ),
   );
 

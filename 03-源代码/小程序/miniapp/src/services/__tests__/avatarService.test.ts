@@ -3,13 +3,15 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { memoryStore, mockGeneratePetImage, mockApiPut, mockApiPost } = vi.hoisted(() => {
+const { memoryStore, mockGeneratePetImage, mockApiPut, mockApiPost, mockApiGet, mockApiDelete } = vi.hoisted(() => {
   const memoryStore = new Map<string, unknown>()
   return {
     memoryStore,
     mockGeneratePetImage: vi.fn(),
     mockApiPut: vi.fn(),
     mockApiPost: vi.fn(),
+    mockApiGet: vi.fn(),
+    mockApiDelete: vi.fn(),
   }
 })
 
@@ -27,6 +29,8 @@ vi.mock('../api', () => ({
   api: {
     put: mockApiPut,
     post: mockApiPost,
+    get: mockApiGet,
+    delete: mockApiDelete,
   },
   resolveAvatarUrl: (url: string) => url,
 }))
@@ -49,6 +53,9 @@ import {
   saveAvatarCustomization,
   generateAvatarImage,
   generateAvatarOptions,
+  saveAvatarToLibrary,
+  getAvatarLibrary,
+  deleteAvatarLibraryItem,
   getPetDiary,
   incrementGenerationCount,
 } from '../avatarService'
@@ -80,6 +87,8 @@ describe('avatarService', () => {
         referenceImageUrl: undefined,
         style: 'cartoon',
         description: '橘色英短，圆脸胖乎乎的',
+        styleKey: undefined,
+        expression: undefined,
       })
     })
 
@@ -90,6 +99,20 @@ describe('avatarService', () => {
         referenceImageUrl: undefined,
         style: 'cartoon',
         description: undefined,
+        styleKey: undefined,
+        expression: undefined,
+      })
+    })
+
+    it('传画风+表情时透传给后端（生成 1 张）', async () => {
+      await generateAvatarOptions('pet-1', undefined, 'cartoon', '圆脸', 'q', 'happy')
+      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
+        petId: 'pet-1',
+        referenceImageUrl: undefined,
+        style: 'cartoon',
+        description: '圆脸',
+        styleKey: 'q',
+        expression: 'happy',
       })
     })
 
@@ -98,6 +121,60 @@ describe('avatarService', () => {
       expect(await generateAvatarOptions('pet-1')).toBeNull()
       mockApiPost.mockRejectedValue(new Error('network'))
       expect(await generateAvatarOptions('pet-1')).toBeNull()
+    })
+  })
+
+  describe('形象库 API（保存/查询/删除）', () => {
+    beforeEach(() => {
+      mockApiPost.mockReset()
+      mockApiPost.mockResolvedValue({ id: 'lib-1' })
+    })
+
+    it('saveAvatarToLibrary 保存形象（带风格/表情标记）', async () => {
+      const ok = await saveAvatarToLibrary('pet-1', 'q', 'happy', 'https://cdn.example.com/q.png')
+      expect(ok).toBe(true)
+      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/library', {
+        petId: 'pet-1',
+        style: 'q',
+        expression: 'happy',
+        imageUrl: 'https://cdn.example.com/q.png',
+      })
+    })
+
+    it('saveAvatarToLibrary 失败返回 false', async () => {
+      mockApiPost.mockRejectedValue(new Error('network'))
+      expect(await saveAvatarToLibrary('pet-1', 'q', null, 'x')).toBe(false)
+    })
+
+    it('getAvatarLibrary 把服务端 snake_case 映射为 camelCase（契约回归：页面读 item.imageUrl）', async () => {
+      mockApiGet.mockResolvedValue([
+        {
+          id: 'lib-1',
+          pet_id: 'pet-1',
+          style: 'q',
+          expression: 'happy',
+          image_url: 'https://cdn.example.com/q.png',
+          created_at: '2026-08-24T00:00:00.000Z',
+        },
+      ])
+      const items = await getAvatarLibrary('pet-1')
+      expect(items).toHaveLength(1)
+      expect(items[0].imageUrl).toBe('https://cdn.example.com/q.png')
+      expect(items[0].petId).toBe('pet-1')
+      expect(items[0].createdAt).toBe('2026-08-24T00:00:00.000Z')
+    })
+
+    it('getAvatarLibrary 请求失败返回空数组（不抛错）', async () => {
+      mockApiGet.mockRejectedValue(new Error('network'))
+      expect(await getAvatarLibrary('pet-1')).toEqual([])
+    })
+
+    it('deleteAvatarLibraryItem 删除成功返回 true、失败返回 false', async () => {
+      mockApiDelete.mockResolvedValue({})
+      expect(await deleteAvatarLibraryItem('lib-1')).toBe(true)
+      expect(mockApiDelete).toHaveBeenCalledWith('/api/avatar/library/lib-1')
+      mockApiDelete.mockRejectedValue(new Error('network'))
+      expect(await deleteAvatarLibraryItem('lib-1')).toBe(false)
     })
   })
 

@@ -54,11 +54,13 @@ function getAuthHeaders(extra?: Record<string, string>): Record<string, string> 
 }
 
 /**
- * 生成多风格候选形象（后端一次生成 5 张画风候选，用户 5 选 1）
+ * 生成形象候选（后端按需生成）
  * @param petId - 宠物 ID
  * @param referenceImageUrl - 参考照片 URL（有则图生图保证像宠物本人）
  * @param style - 基础基调：cartoon（卡通）/ realistic（写实）
  * @param description - 用户文字描述（可选，拼进提示词参与生图）
+ * @param styleKey - 指定画风 key（q/japanese/american/watercolor/clay，传了只生成 1 张）
+ * @param expression - 表情 key（happy/excited/...，拼进提示词）
  * @returns 候选列表；失败返回 null（调用方提示重试，不回退丑陋占位图）
  */
 export async function generateAvatarOptions(
@@ -66,6 +68,8 @@ export async function generateAvatarOptions(
   referenceImageUrl?: string,
   style: 'cartoon' | 'realistic' = 'cartoon',
   description?: string,
+  styleKey?: string,
+  expression?: string,
 ): Promise<AvatarStyleOption[] | null> {
   try {
     const data = await api.post<{ options: AvatarStyleOption[] }>('/api/avatar/generate-options', {
@@ -73,10 +77,81 @@ export async function generateAvatarOptions(
       referenceImageUrl,
       style,
       description,
+      styleKey,
+      expression,
     })
     return data?.options?.length ? data.options : null
   } catch {
     return null
+  }
+}
+
+/** 形象库条目 */
+export interface AvatarLibraryItem {
+  id: string
+  petId: string
+  style: string
+  expression: string | null
+  imageUrl: string
+  createdAt: string
+}
+
+/**
+ * 保存形象到形象库（按风格/表情分类）
+ */
+export async function saveAvatarToLibrary(
+  petId: string,
+  style: string,
+  expression: string | null,
+  imageUrl: string,
+): Promise<boolean> {
+  try {
+    await api.post<{ id: string }>('/api/avatar/library', { petId, style, expression, imageUrl })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * 查询某宠物的形象库（时间倒序）
+ * 服务端返回 pg 原始行（snake_case：image_url/pet_id/created_at），这里统一映射为
+ * camelCase（AvatarLibraryItem），否则页面读 item.imageUrl 会是 undefined（图片空白、
+ * 设为当前形象传 undefined 清空照片——契约 bug 曾致此）
+ */
+export async function getAvatarLibrary(petId: string): Promise<AvatarLibraryItem[]> {
+  try {
+    const data = await api.get<Array<{
+      id: string
+      pet_id: string
+      style: string
+      expression: string | null
+      image_url: string
+      created_at: string
+    }>>('/api/avatar/library', { petId })
+    if (!Array.isArray(data)) return []
+    return data.map((row) => ({
+      id: row.id,
+      petId: row.pet_id,
+      style: row.style,
+      expression: row.expression,
+      imageUrl: row.image_url,
+      createdAt: row.created_at,
+    }))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * 删除形象库中的一条
+ */
+export async function deleteAvatarLibraryItem(id: string): Promise<boolean> {
+  try {
+    await api.delete(`/api/avatar/library/${id}`)
+    return true
+  } catch {
+    return false
   }
 }
 

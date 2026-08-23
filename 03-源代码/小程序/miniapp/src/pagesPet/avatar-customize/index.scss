@@ -104,31 +104,10 @@
     font-size: $font-size-sm;
     color: $color-text-tertiary;
   }
-
-  // 画风预览框（纯展示装饰）
-  &__frame--watercolor {
-    border: 8rpx solid rgba($color-gold, 0.25);
-    border-radius: $radius-xl;
-    background: linear-gradient(160deg, $color-gold-bg, $color-bg-secondary);
-  }
-
-  &__frame--pixel {
-    background-image:
-      linear-gradient(45deg, rgba($color-primary, 0.06) 25%, transparent 25%, transparent 75%, rgba($color-primary, 0.06) 75%),
-      linear-gradient(45deg, rgba($color-primary, 0.06) 25%, transparent 25%, transparent 75%, rgba($color-primary, 0.06) 75%);
-    background-size: 32rpx 32rpx;
-    background-position: 0 0, 16rpx 16rpx;
-  }
-
-  &__frame--lineart {
-    border: 4rpx solid $color-text-tertiary;
-    background: $color-bg-card;
-    filter: grayscale(0.9) contrast(1.1);
-  }
 }
 
-// —— 2. 风格切换 ——
-.avatar-style {
+// —— 2. 形象库（按风格/表情分类保存） ——
+.avatar-library {
   padding: $spacing-lg;
 
   &__head {
@@ -149,132 +128,163 @@
     color: $color-text-tertiary;
   }
 
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: $spacing-sm;
-  }
-
-  &__chip {
+  &__filters {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6rpx;
-    padding: $spacing-md 0;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+  }
+
+  &__filter-row {
+    width: 100%;
+    white-space: nowrap;
+  }
+
+  &__filter-inner {
+    display: inline-flex;
+    gap: $spacing-sm;
+    padding-bottom: 4rpx;
+  }
+
+  &__filter-chip {
+    flex-shrink: 0;
+    padding: 10rpx 24rpx;
     border-radius: $radius-round;
-    background: $color-bg-card;
-    color: $color-primary;
-    border: 2rpx solid $color-primary;
-    @include press-feedback;
+    background: $color-bg-secondary;
+    border: 1px solid $color-border;
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
 
     &--active {
-      background-image: linear-gradient(135deg, $color-primary-light, $color-primary);
+      background: $color-primary;
       color: $color-text-inverse;
       border-color: transparent;
-      box-shadow: $shadow-button;
     }
   }
 
-  &__chip-icon {
-    font-size: $font-size-lg;
-    line-height: 1;
-  }
-
-  &__chip-label {
-    font-size: $font-size-xs;
-    font-weight: $font-weight-semibold;
-  }
-}
-
-// —— 3. 表情系统 2x2 ——
-.avatar-expr {
-  padding: $spacing-lg;
-
-  &__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: $spacing-md;
-  }
-
-  &__title {
-    font-size: $font-size-md;
-    font-weight: $font-weight-semibold;
-    color: $color-text-primary;
-  }
-
-  &__hint {
-    font-size: $font-size-xs;
-    color: $color-text-tertiary;
-  }
-
   &__grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: $spacing-md;
   }
 
   &__card {
-    display: flex;
-    align-items: center;
-    gap: $spacing-md;
-    padding: $spacing-md;
     background: $color-bg-card;
     border: 1px solid $color-border;
-    border-radius: $radius-sm;
-    box-shadow: $shadow-xs;
-    transition: border-color $transition-fast, transform $transition-fast;
-
-    &--active {
-      border-color: $color-primary;
-      box-shadow: $shadow-sm;
-      transform: translateY(-4rpx);
-    }
+    border-radius: $radius-md;
+    overflow: hidden;
   }
 
-  &__icon {
-    width: 80rpx;
-    height: 80rpx;
-    border-radius: $radius-full;
+  &__img {
+    width: 100%;
+    height: 200rpx;
+    background: $color-bg-secondary;
+  }
+
+  &__tags {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40rpx;
+    flex-wrap: wrap;
+    gap: 6rpx;
+    padding: $spacing-sm $spacing-sm 0;
+  }
+
+  &__tag {
+    font-size: $font-size-xs;
+    color: $color-primary;
     background: $color-primary-bg;
-    flex-shrink: 0;
-
-    .avatar-expr__card:nth-child(2) & {
-      background: $color-primary-bg;
-    }
-
-    .avatar-expr__card:nth-child(3) & {
-      background: $color-danger-bg;
-    }
-
-    .avatar-expr__card:nth-child(4) & {
-      background: rgba($color-teal, 0.16);
-    }
+    border-radius: $radius-sm;
+    padding: 4rpx 10rpx;
   }
 
-  &__info {
-    min-width: 0;
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    padding: $spacing-sm;
   }
 
-  &__label {
-    display: block;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-semibold;
-    color: $color-text-primary;
+  &__use {
+    font-size: $font-size-xs;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
   }
 
-  &__desc {
-    display: block;
+  &__del {
     font-size: $font-size-xs;
     color: $color-text-tertiary;
-    margin-top: 4rpx;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8rpx;
+    padding: $spacing-xl 0;
+    color: $color-text-tertiary;
+    font-size: $font-size-sm;
+  }
+
+  &__empty-hint {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+  }
+}
+
+// —— 3. 生成选择器（画风/表情 chips） + 参考提示词模板 ——
+.avatar-customize__gen-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.avatar-customize__gen-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  border: 1px solid $color-border;
+  @include press-feedback;
+
+  &--active {
+    background: $color-primary;
+    border-color: transparent;
+    color: $color-text-inverse;
+  }
+}
+
+.avatar-customize__gen-chip-icon {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.avatar-customize__gen-chip-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.avatar-customize__ref-box {
+  padding: $spacing-md;
+  background: $color-bg-secondary;
+  border-radius: $radius-md;
+  border-left: 6rpx solid $color-primary;
+}
+
+.avatar-customize__ref-text {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+// 生成结果单张展示（文字生成）
+.avatar-options--single {
+  .avatar-options__single-img {
+    width: 100%;
+    height: 480rpx;
+    border-radius: $radius-md;
+    background: $color-bg-secondary;
+    margin-bottom: $spacing-md;
   }
 }
 
@@ -414,42 +424,6 @@
   }
 }
 
-.avatar-customize__preview {
-  @include flex-center;
-  padding: 40rpx 0;
-  @include card-base;
-  border-radius: $radius-xl;
-  margin-bottom: $spacing-xl;
-}
-
-.avatar-customize__generated-img {
-  width: 320rpx;
-  height: 320rpx;
-  display: block;
-  animation: fadeInScale $transition-slow;
-}
-
-.avatar-customize__generating {
-  @include flex-center;
-  flex-direction: column;
-  gap: $spacing-md;
-  padding: 60rpx 0;
-}
-
-.avatar-customize__generating-spinner {
-  width: 80rpx;
-  height: 80rpx;
-  border: 6rpx solid $color-border;
-  border-top-color: $color-primary;
-  border-radius: $radius-full;
-  animation: spin 0.8s linear infinite;
-}
-
-.avatar-customize__generating-text {
-  font-size: $font-size-md;
-  color: $color-text-secondary;
-}
-
 .avatar-customize__section {
   margin-bottom: $spacing-xl;
 }
@@ -495,35 +469,6 @@
   font-size: $font-size-xs;
   color: $color-text-tertiary;
   display: block;
-}
-
-.avatar-customize__color-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-md;
-}
-
-.avatar-customize__color-item {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: $radius-full;
-  @include flex-center;
-  border: 4rpx solid transparent;
-  transition: border-color $transition-fast, transform $transition-fast;
-  @include press-feedback;
-
-  &--active {
-    border-color: $color-primary;
-    transform: scale(1.15);
-    box-shadow: 0 0 0 4rpx $color-primary-bg;
-  }
-}
-
-.avatar-customize__color-check {
-  font-size: $font-size-md;
-  color: $color-text-inverse;
-  font-weight: $font-weight-bold;
-  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.3);
 }
 
 .avatar-customize__quota {

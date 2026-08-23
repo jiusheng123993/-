@@ -40,6 +40,27 @@ export interface Avatar3DModelRow extends QueryResultRow {
   created_at: string;
 }
 
+/** 形象库数据行（用户保存的多次生成形象，按风格/表情分类） */
+export interface AvatarLibraryRow extends QueryResultRow {
+  id: string;
+  pet_id: string;
+  user_id: string;
+  style: string;
+  expression: string | null;
+  image_url: string;
+  created_at: string;
+}
+
+/** 保存形象到形象库参数 */
+export interface SaveAvatarLibraryParams {
+  id: string;
+  petId: string;
+  userId: string;
+  style: string;
+  expression: string | null;
+  imageUrl: string;
+}
+
 /** 创建头像生成记录参数 */
 export interface CreateAvatarGenerationParams {
   id: string;
@@ -96,6 +117,8 @@ export class AvatarGenerationRepository extends BaseRepository<AvatarGenerationR
   /**
    * 统计用户本月已完成的多风格候选生成次数（用于照片生成会员额度）
    * 只统计 style 为 options-* 且成功完成的记录，AI 服务故障导致的失败不占用次数
+   * ⚠️ 口径：排除文字生成（style 含 -text-，如 options-cartoon-text-q），
+   * 文字生成 1 张/次且更频繁，不能占满"照片生成 3 次/月"额度
    * @param userId - 用户 ID
    * @param monthStart - 本月 1 号 0 点
    */
@@ -103,7 +126,8 @@ export class AvatarGenerationRepository extends BaseRepository<AvatarGenerationR
     const result = await this.rawQuery(
       `SELECT COUNT(*)::int AS count
        FROM ${this.tableName}
-       WHERE user_id = $1 AND style LIKE 'options-%' AND status = 'completed' AND created_at >= $2`,
+       WHERE user_id = $1 AND style LIKE 'options-%' AND style NOT LIKE '%-text-%'
+         AND status = 'completed' AND created_at >= $2`,
       [userId, monthStart],
     );
     return result.rows[0]?.count ?? 0;
@@ -153,5 +177,54 @@ export class Avatar3DModelRepository extends BaseRepository<Avatar3DModelRow> {
       [taskId],
     );
     return result.rows[0] ?? null;
+  }
+}
+
+/**
+ * 形象库仓库 - pet_avatar_library 表
+ * 用户多次生成的形象可保存入库，按风格/表情分类，随时切换当前形象
+ */
+export class AvatarLibraryRepository extends BaseRepository<AvatarLibraryRow> {
+  protected tableName = 'pet_avatar_library';
+  protected allowedSortFields = ['created_at'] as const;
+
+  /**
+   * 保存一个形象到形象库
+   */
+  async save(params: SaveAvatarLibraryParams): Promise<AvatarLibraryRow> {
+    return this.insert({
+      id: params.id,
+      pet_id: params.petId,
+      user_id: params.userId,
+      style: params.style,
+      expression: params.expression,
+      image_url: params.imageUrl,
+    });
+  }
+
+  /**
+   * 查询某宠物的形象库（时间倒序，最新在前）
+   */
+  async findByPet(petId: string, userId: string): Promise<AvatarLibraryRow[]> {
+    const result = await this.rawQuery<AvatarLibraryRow>(
+      `SELECT id, pet_id, user_id, style, expression, image_url, created_at
+       FROM ${this.tableName}
+       WHERE pet_id = $1 AND user_id = $2
+       ORDER BY created_at DESC`,
+      [petId, userId],
+    );
+    return result.rows;
+  }
+
+  /**
+   * 删除形象库中的一条（校验归属）
+   * @returns 是否删除成功（0 行 = 不存在或非本人）
+   */
+  async delete(id: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery(
+      `DELETE FROM ${this.tableName} WHERE id = $1 AND user_id = $2`,
+      [id, userId],
+    );
+    return (result.rowCount ?? 0) > 0;
   }
 }
