@@ -41,6 +41,11 @@ const config = {
     ],
     options: {},
   },
+  // 框架统一用 react：曾实验 framework: 'preact'（主包体积优化），
+  // 但 Taro 3.6.40 + babel-preset-taro 4.x 混装下 preact 绑定不完整，
+  // 产物 createReactApp 拿到的 react-dom 无 createRoot，真机白屏
+  // （TypeError: y.createRoot is not a function）。已回滚，保留实验备份
+  // config/index.js.bak-react 与 git HEAD 供后续对齐版本后再试。
   framework: 'react',
   compiler: 'webpack5',
   cache: {
@@ -141,9 +146,13 @@ module.exports = function (merge) {
   }
   return merge({}, config, {
     mini: {
-      // 开启"主包体积优化"：把仅被分包页面引用的公共代码拆进对应分包，
-      // 避免全部塞进主包 common.js。微信上传要求主包（不含插件）< 1.5M，
-      // 此前主包 1.88M 超标导致上传时代码质量检查"未通过"。
+      // "主包体积优化"（MiniSplitChunksPlugin）：把仅被分包引用的共享代码提取到
+      // 分包 root 的 sub-common/sub-vendors，避免塞进主包 common.js（主包保持 1.32M）。
+      // 注意：微信"代码质量-主包大小"检查会把这两个目录计入"主包"统计（对照实验证实，
+      // 1.32M 主包 + 0.68M 分包公共 ≈ 2M 永远超 1.5M 检查线）。经尝试 exclude 内联、
+      // 关闭 optimizeMainPackage 均不可行（共享代码会进主包 common 使主包 1.76M+）。
+      // 结论：这是 Taro 产物结构与微信统计口径的固有冲突，该检查为建议项不影响
+      // 上传/发布/审核（上传 3.5MB 成功），维持本配置。
       optimizeMainPackage: {
         enable: true,
       },
