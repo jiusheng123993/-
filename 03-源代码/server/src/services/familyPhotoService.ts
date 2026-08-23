@@ -7,6 +7,8 @@
 import { config } from '../config.js';
 import { pool } from '../db.js';
 import { delay } from '../utils/delay.js';
+// 宠物提示词公共模块：主体描述（品种兜底 + 绝不写名字）统一从这里取
+import { petSubjectText, petSpeciesLabel } from './petPrompt.js';
 
 const SEEDREAM_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 
@@ -22,29 +24,37 @@ export const FAMILY_PHOTO_STYLES = [
 
 export type FamilyPhotoStyle = (typeof FAMILY_PHOTO_STYLES)[number];
 
-/** 风格 → 提示词模板（参考项目提示词库各章节） */
+/**
+ * 风格 → 提示词模板
+ * 基于项目提示词库《宠物回忆录-提示词库.md》§六「通用视觉风格库」的官方风格关键词，
+ * 按「生图场景」裁剪并中英混排（pixar=§6.4 皮克斯 / ghibli=§6.3 吉卜力 / oil=§6.7 油画 /
+ * ink=§6.6 水墨 / nordic=§6.9 极简北欧 / cyberpunk=§6.1 赛博朋克），
+ * 不再使用此前硬编码的简版英文模板
+ */
 const STYLE_PROMPTS: Record<FamilyPhotoStyle, string> = {
   pixar:
-    'Pixar 3D animation style, a family portrait of {pets} sitting together in a warm sunlit living room, expressive eyes, joyful gathering, smooth rendering, subsurface scattering on fur, golden hour lighting, cozy atmosphere, group composition, 8k ultra detailed',
+    '皮克斯3D动画风格, Pixar style, Disney 3D animation, cartoon render, smooth textures, expressive eyes, exaggerated proportions, subsurface scattering',
   ghibli:
-    'Studio Ghibli animation style, {pets} together in a sunlit wildflower meadow under blue sky with fluffy clouds, hand-painted watercolor background, Hayao Miyazaki aesthetic, warm magical atmosphere, soft breeze moving grass and fur, nostalgic warmth',
+    '吉卜力动画风格, Studio Ghibli style, hand-drawn animation, soft watercolor backgrounds, cel-shaded, Hayao Miyazaki aesthetic',
   oil:
-    'Monet impressionist oil painting style, {pets} in a garden of flowers, soft dappled light, loose visible brush strokes, dreamy pastel palette of purples pinks and greens, peaceful garden atmosphere, canvas texture, group portrait',
+    '印象派油画风格, oil painting, impasto, thick brush strokes, canvas texture, Monet, impressionist, palette knife',
   ink:
-    'Chinese ink wash painting style, sumi-e brush strokes, {pets} sitting together in harmony, black ink on cream rice paper, splashing ink effects, zen minimalist, poetic atmosphere, delicate brush strokes forming fur texture',
+    '中国水墨画风格, Chinese ink wash painting, sumi-e, brush strokes, rice paper texture, zen aesthetic, black ink on cream paper',
   nordic:
-    'minimalist Scandinavian design, {pets} sitting together on a soft linen cushion, soft pastel color palette of blush pink and sage green, gentle morning light through sheer curtains, peaceful hygge atmosphere, clean lines, negative space, 4k cinematic',
+    '极简北欧风格, minimalist, Scandinavian design, clean lines, negative space, muted tones, geometric, zen',
   cyberpunk:
-    'cyberpunk aesthetic, {pets} standing together in a neon-lit futuristic alley, pink and cyan holographic reflections on sleek surfaces, volumetric fog, rain-slicked ground, cinematic low angle shot, purple and cyan palette, 8k ultra detailed',
+    '赛博朋克风格, cyberpunk, neon lights, rain-slicked streets, holographic, dystopian, LED, futuristic city, purple and cyan',
 };
 
 const MAX_429_RETRIES = 2;
 
-interface MemberInfo {
+/** 家庭成员宠物信息（导出供单测构造提示词用例） */
+export interface MemberInfo {
   petId: string;
   name: string;
   species: string;
-  breed: string;
+  /** 品种可能为空（档案未填），构建提示词时必须兜底，不能出现空串/undefined */
+  breed: string | null;
   photoUrl: string | null;
 }
 
@@ -55,22 +65,48 @@ interface GenerateFamilyPhotoParams {
 }
 
 /**
- * 构建全家福合成提示词
- * 从成员信息中提取品种描述，叠加风格模板
+ * 构建宠物列表描述与数量汇总
+ * ⚠️ 关键：绝不把宠物名字写进提示词！
+ * 名字对文生图模型是噪声甚至灾难——猫咪叫「烧鸡」就会被模型画成一只烧鸡，
+ * 且会把多张参考猫图全部覆盖成一只鸡。外貌一致性靠参考照片保证，
+ * 提示词只写「品种 + 物种」，名字只用于入库记录（member_names），不进 prompt。
  */
-function buildPrompt(members: MemberInfo[], style: FamilyPhotoStyle): string {
-  const petDescriptions = members.map((m) => {
-    const speciesName = m.species === 'dog' ? '狗狗' : '猫咪';
-    return `a ${m.breed} ${speciesName} named ${m.name}`;
-  });
+function buildPetList(members: MemberInfo[]): { list: string; summary: string } {
+  // 逐只描述：一只英短猫咪、一只美短猫咪……（主体描述统一走公共模块，含品种兜底）
+  const list = members.map((m) => petSubjectText(m.breed, m.species)).join('、');
 
-  const petList =
-    petDescriptions.length <= 3
-      ? petDescriptions.join(', ')
-      : `${petDescriptions.slice(0, -1).join(', ')} and ${petDescriptions[petDescriptions.length - 1]}`;
+  // 数量汇总：如「4只猫咪」或「3只猫咪和1只狗狗」，明确告诉模型画几只
+  const catCount = members.filter((m) => m.species !== 'dog').length;
+  const dogCount = members.length - catCount;
+  const parts: string[] = [];
+  if (catCount > 0) parts.push(`${catCount}只猫咪`);
+  if (dogCount > 0) parts.push(`${dogCount}只狗狗`);
 
-  const template = STYLE_PROMPTS[style];
-  return template.replace('{pets}', petList);
+  return { list, summary: parts.join('和') };
+}
+
+/**
+ * 构建全家福合成提示词
+ * 结构 = 风格（提示词库 §六） + 数量/物种 + 宠物列表 + 角色一致性 + 主体锁定
+ * 角色一致性与主体锁定对应提示词库 §0.6「全局角色锁定表」与 §四「角色一致性模板」：
+ * 多图合成时外观以参考照片为准，禁止模型自由发挥、增减数量或混入其他主体
+ */
+export function buildPrompt(members: MemberInfo[], style: FamilyPhotoStyle): string {
+  const { list, summary } = buildPetList(members);
+  const total = members.length;
+  // 有任一成员照片才声明"以参考照片为准"，否则提示词会"说谎"（无图可参考却要求完全一致）
+  const hasReference = members.some((m) => m.photoUrl);
+
+  const parts = [
+    STYLE_PROMPTS[style],
+    `一张温馨的全家福合影，画面中共有${summary}：${list}。`,
+    '所有宠物并排坐在一起，表情自然温馨，构图完整。',
+  ];
+  if (hasReference) {
+    parts.push('以参考照片为准：保持每只宠物的毛色、花纹、体型、五官与参考图完全一致，不改变外貌，不增减数量。');
+  }
+  parts.push(`画面中只出现这${total}只宠物，不要出现其他动物、人物或食物。`, '高质量，细节丰富。');
+  return parts.join(' ');
 }
 
 /**

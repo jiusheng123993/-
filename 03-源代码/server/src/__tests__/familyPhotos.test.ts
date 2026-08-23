@@ -159,10 +159,14 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
     mockPool.query.mockResolvedValueOnce(mockMembers);
     // INSERT INTO family_photos
     mockPool.query.mockResolvedValueOnce({ rowCount: 1 });
-    // Seedream API success
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }),
+    // Seedream API success：捕获请求体，验证提示词安全
+    let capturedBody: { prompt?: string; images?: string[] } = {};
+    mockFetch.mockImplementationOnce(async (_url: unknown, init?: { body?: string }) => {
+      capturedBody = JSON.parse(init?.body ?? '{}');
+      return {
+        ok: true,
+        json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }),
+      };
     });
     // UPDATE family_photos SET status = 'completed'
     mockPool.query.mockResolvedValueOnce({ rowCount: 1 });
@@ -175,21 +179,77 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.photoUrl).toBe('https://seedream.example.com/photo.png');
     expect(res.body.data.id).toBeDefined();
+
+    // 提示词安全：不包含宠物名字（旧模板会把名字拼进 prompt），明确数量与物种
+    expect(capturedBody.prompt).toBeDefined();
+    expect(capturedBody.prompt).not.toContain('小咪');
+    expect(capturedBody.prompt).not.toContain('旺财');
+    expect(capturedBody.prompt).not.toContain('named');
+    expect(capturedBody.prompt).toContain('2只');
+    // 多图一致性防线：参考图 URL 必须全部传给 Seedream（四只猫不能被画成一只的保障）
+    expect(capturedBody.images).toEqual([
+      'https://example.com/pet1.jpg',
+      'https://example.com/pet2.jpg',
+    ]);
   });
 
-  it('所有合法风格均可通过校验', async () => {
+  it('宠物名字叫「烧鸡」也不会被画成鸡（名字不进 Seedream 提示词）', async () => {
+    // 回归用例：用户家猫叫「烧鸡」，旧提示词 `a 猫咪 named 烧鸡` 会被模型画成一只烤鸡
+    const roastedMembers = {
+      rows: [
+        { petId: 'pet-001', name: '烧鸡', species: 'cat', breed: '英短', photoUrl: 'https://example.com/pet1.jpg' },
+        { petId: 'pet-002', name: '烧鸡二号', species: 'cat', breed: '美短', photoUrl: 'https://example.com/pet2.jpg' },
+      ],
+    };
+    let capturedBody: { prompt?: string; images?: string[] } = {};
+    mockPool.query.mockResolvedValueOnce(ownershipOk);                    // isOwner
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });      // hasActiveTask (no)
+    mockPool.query.mockResolvedValueOnce(roastedMembers);                 // collectMemberPhotos
+    mockPool.query.mockResolvedValueOnce({ rowCount: 1 });                // INSERT
+    mockFetch.mockImplementationOnce(async (_url: unknown, init?: { body?: string }) => {
+      capturedBody = JSON.parse(init?.body ?? '{}');
+      return { ok: true, json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }) };
+    });
+    mockPool.query.mockResolvedValueOnce({ rowCount: 1 });                // UPDATE completed
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({ style: 'pixar' });
+    expect(res.status).toBe(200);
+
+    // 「烧鸡」及一切鸡类词汇不得进入提示词；数量与物种必须明确
+    expect(capturedBody.prompt).toBeDefined();
+    expect(capturedBody.prompt).not.toContain('烧鸡');
+    expect(capturedBody.prompt).not.toContain('chicken');
+    expect(capturedBody.prompt).not.toContain('roast');
+    expect(capturedBody.prompt).not.toContain('named');
+    expect(capturedBody.prompt).toContain('2只猫咪');
+  });
+
+  it('所有合法风格均可走完整生成流程并返回 200', async () => {
     const styles = ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk'];
 
     for (const style of styles) {
       mockPool.query.mockReset();
-      mockPool.query.mockResolvedValueOnce(ownershipOk);
+      mockFetch.mockReset();
+      mockPool.query.mockResolvedValueOnce(ownershipOk);                // isOwner
+      mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });  // hasActiveTask (no)
+      mockPool.query.mockResolvedValueOnce(mockMembers);                // collectMemberPhotos
+      mockPool.query.mockResolvedValueOnce({ rowCount: 1 });            // INSERT
+      mockFetch.mockResolvedValueOnce({                                 // Seedream 成功
+        ok: true,
+        json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }),
+      });
+      mockPool.query.mockResolvedValueOnce({ rowCount: 1 });            // UPDATE completed
 
       const app = createApp();
       const res = await request(app)
         .post('/api/families/fam-001/photos')
         .send({ style });
-      // 不做完全生成流程，仅验证 style 校验通过（不会 400）
-      expect(res.status).not.toBe(400);
+      // 完整链路必须成功：风格校验通过 + 生成流程走通，不再依赖"恰好 500≠400"的脆弱断言
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
     }
   });
 });

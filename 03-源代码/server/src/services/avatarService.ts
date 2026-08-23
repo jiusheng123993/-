@@ -4,6 +4,8 @@
  */
 import { config } from '../config.js';
 import { callSeedream } from './image2DService.js';
+// 宠物提示词公共模块：统一按提示词库 §0.6/§四 规范构造（角色锁定 + 主体锁定 + 品种兜底）
+import { petSubjectText, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
 
 /** 宠物形象生成请求参数 */
 export interface GeneratePetImageParams {
@@ -96,14 +98,14 @@ export async function generatePetImageOptions(
   const style = params.style || DEFAULT_STYLE;
   const genderLabel = params.gender === 'male' ? '公' : params.gender === 'female' ? '母' : '';
   const isDog = params.species === 'dog';
-  const speciesName = isDog ? '狗狗' : '猫咪';
-  const basePrompt = `一只${genderLabel}${params.breed}${speciesName}的头像，高质量，细节丰富，干净背景`;
   const styleText = style === 'realistic' ? '写实风格，真实细腻' : '可爱卡通风格';
+  // 主体用公共模块（品种兜底 + 绝不写名字）；图生图时追加角色锁定与主体锁定
+  const subject = petSubjectText(params.breed, params.species, genderLabel);
 
   // 5 种风格并发生成，互不阻塞；某个风格失败不影响其余候选
   const results = await Promise.allSettled(
     AVATAR_STYLE_OPTIONS.map((item) =>
-      callSeedream(`${basePrompt}，${styleText}，${isDog ? item.dog : item.cat}`, params.photoUrl || '', apiKey).then((url) =>
+      callSeedream(`${subject}的头像，高质量，细节丰富，干净背景，${styleText}，${isDog ? item.dog : item.cat}，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`, params.photoUrl || '', apiKey).then((url) =>
         url ? { style: item.key, label: item.label, url } : null,
       ),
     ),
@@ -160,7 +162,9 @@ export async function generatePetImage(
   const style = params.style || DEFAULT_STYLE;
   const genderLabel = params.gender === 'male' ? '公' : params.gender === 'female' ? '母' : '';
 
-  const prompt = `一只可爱的${style}风格${genderLabel}${params.breed}${params.species === 'dog' ? '狗狗' : '猫咪'}头像，高质量，细节丰富，可爱温馨`;
+  // 纯文生图（无参考照片）：主体用公共模块，不追加"以参考照片为准"（无图可参考），
+  // 但保留主体锁定，防模型加戏/多画
+  const prompt = `${petSubjectText(params.breed, params.species, genderLabel)}的${style}风格头像，高质量，细节丰富，可爱温馨，${PET_ONLY_ONE}`;
 
   try {
     const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/images/generations', {

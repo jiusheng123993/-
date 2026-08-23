@@ -6,6 +6,8 @@ import { config } from '../config.js';
 import { pool } from '../db.js';
 import { updateTaskProgress, updateTaskStatus, updateTaskResult } from './taskQueue.js';
 import { delay } from '../utils/delay.js';
+// 宠物提示词公共模块：统一按提示词库 §0.6/§四 规范构造（角色锁定 + 主体锁定 + 品种兜底）
+import { petSubjectText, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
 
 const SEEDREAM_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 
@@ -67,20 +69,19 @@ export async function generate2DAvatarPack(params: Generate2DParams): Promise<vo
 
   await updateTaskStatus(taskId, 'processing');
 
-  const speciesName = species === 'dog' ? '狗' : '猫';
   const styleText = style === 'realistic' ? '写实风格' : '可爱卡通风格';
 
   try {
     // 第 1 批: 4 核心表情 × 6 角度 = 24 张
     const coreExpressions = EXPRESSIONS.slice(0, 4);
-    await generateBatch(taskId, coreExpressions, ANGLES, speciesName, breed, styleText, referencePhotoUrl, apiKey, 0, 25);
+    await generateBatch(taskId, coreExpressions, ANGLES, species, breed, styleText, referencePhotoUrl, apiKey, 0, 25);
 
     // 第 2 批: 8 扩展表情 × 6 角度 = 48 张
     const extExpressions = EXPRESSIONS.slice(4);
-    await generateBatch(taskId, extExpressions, ANGLES, speciesName, breed, styleText, referencePhotoUrl, apiKey, 25, 75);
+    await generateBatch(taskId, extExpressions, ANGLES, species, breed, styleText, referencePhotoUrl, apiKey, 25, 75);
 
     // 第 3 批: 8 动作 × 3 角度 = 24 张
-    await generateBatch(taskId, ACTIONS, ACTION_ANGLES, speciesName, breed, styleText, referencePhotoUrl, apiKey, 75, 100, true);
+    await generateBatch(taskId, ACTIONS, ACTION_ANGLES, species, breed, styleText, referencePhotoUrl, apiKey, 75, 100, true);
 
     await updateTaskResult(taskId, {
       expressions: EXPRESSIONS,
@@ -102,7 +103,7 @@ async function generateBatch(
   taskId: string,
   items: Array<{ key: string; label: string; emoji?: string }>,
   angleList: Array<{ key: string; label: string }>,
-  speciesName: string,
+  species: string,
   breed: string,
   styleText: string,
   referencePhotoUrl: string,
@@ -130,9 +131,12 @@ async function generateBatch(
     const batch = tasks.slice(batchStart, batchStart + CONCURRENCY);
     const results = await Promise.allSettled(
       batch.map(task => {
+        // 提示词规范：主体用公共模块（品种兜底 + 绝不写名字）+ 角色锁定 + 主体锁定
+        // 对应提示词库 §0.6 数量敏感角色声明 与 §四 角色一致性模板
+        const subject = petSubjectText(breed, species);
         const prompt = isAction
-          ? `一只${breed}${speciesName}，正在${task.itemLabel}，${task.angleLabel}视角，${styleText}，高质量，干净背景，参考照片中的宠物外貌`
-          : `一只${breed}${speciesName}，${task.itemLabel}的表情，${task.angleLabel}视角，${styleText}，高质量，干净背景，参考照片中的宠物外貌`;
+          ? `${subject}，正在${task.itemLabel}，${task.angleLabel}视角，${styleText}，高质量，干净背景，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`
+          : `${subject}，${task.itemLabel}的表情，${task.angleLabel}视角，${styleText}，高质量，干净背景，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`;
 
         return callSeedream(prompt, referencePhotoUrl, apiKey).then(imageUrl => {
           if (imageUrl) {
