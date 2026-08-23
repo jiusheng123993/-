@@ -111,6 +111,90 @@ describe('PetAvatar', () => {
     expect(screen.queryByText('🐶')).toBeNull()
   })
 
+  it('uses pet.avatarCartoonUrl as fallback when no imageUrl', () => {
+    render(
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        pet={{ avatarPhotoUrl: undefined, avatarCartoonUrl: 'https://cdn.example.com/cartoon.png' }}
+      />
+    )
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/cartoon.png')
+    expect(screen.queryByText('🐱')).toBeNull()
+  })
+
+  it('prefers pet.avatarPhotoUrl over pet.avatarCartoonUrl', () => {
+    render(
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        pet={{
+          avatarPhotoUrl: 'https://cdn.example.com/photo.png',
+          avatarCartoonUrl: 'https://cdn.example.com/cartoon.png',
+        }}
+      />
+    )
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/photo.png')
+  })
+
+  it('prefers explicit imageUrl over pet avatar', () => {
+    render(
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        imageUrl='https://cdn.example.com/explicit.png'
+        pet={{ avatarPhotoUrl: 'https://cdn.example.com/photo.png', avatarCartoonUrl: undefined }}
+      />
+    )
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/explicit.png')
+  })
+
+  it('falls back to emoji when pet has no avatar', () => {
+    render(
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        pet={{ avatarPhotoUrl: undefined, avatarCartoonUrl: undefined }}
+      />
+    )
+    expect(screen.getByText('🐱')).toBeDefined()
+    expect(screen.queryByRole('img')).toBeNull()
+  })
+
+  it('treats empty-string imageUrl as absent and falls back to pet avatar', () => {
+    render(
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        imageUrl=''
+        pet={{ avatarPhotoUrl: undefined, avatarCartoonUrl: 'https://cdn.example.com/cartoon.png' }}
+      />
+    )
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/cartoon.png')
+  })
+
+  it('treats null avatarPhotoUrl as absent and falls back to cartoon', () => {
+    render(
+      <PetAvatar
+        species='cat'
+        petName='咪咪'
+        expressionContext={defaultContext}
+        pet={{ avatarPhotoUrl: null, avatarCartoonUrl: 'https://cdn.example.com/cartoon.png' }}
+      />
+    )
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('src')).toBe('https://cdn.example.com/cartoon.png')
+  })
+
   it('does not show label by default', () => {
     render(
       <PetAvatar species='dog' petName='旺财' expressionContext={defaultContext} />

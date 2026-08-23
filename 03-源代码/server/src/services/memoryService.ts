@@ -213,16 +213,24 @@ async function upsertMemory(
   fact: ExtractedFact,
 ): Promise<void> {
   try {
+    // F4 分层：重要度 ≥7 的记忆自动进入核心层（回忆录素材库）；否则流水层（可衰减）
+    const level = fact.importance >= 7 ? 'core' : 'flow';
+    // 按分类映射回忆标签（medical/health → health_heal；其余暂空，后续 AI 辅助打标）
+    const tags = fact.category === 'medical' || fact.category === 'health'
+      ? ['health_heal']
+      : [];
     await pool.query(
       `INSERT INTO agent_memories
-         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta)
-       VALUES ($1,$2,$3,$4,$5,$6,0.8,'auto',$7,$8)
+         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta, tags, level)
+       VALUES ($1,$2,$3,$4,$5,$6,0.8,'auto',$7,$8,$9,$10)
        ON CONFLICT (user_id, pet_id, key)
        DO UPDATE SET
          content = EXCLUDED.content,
          importance = GREATEST(agent_memories.importance, EXCLUDED.importance),
          confidence = LEAST(1.0, agent_memories.confidence + 0.1),
          evidence = agent_memories.evidence || EXCLUDED.evidence,
+         tags = agent_memories.tags || EXCLUDED.tags,
+         level = CASE WHEN agent_memories.level = 'core' OR EXCLUDED.importance >= 7 THEN 'core' ELSE 'flow' END,
          updated_at = now()`,
       [
         userId,
@@ -233,6 +241,8 @@ async function upsertMemory(
         fact.importance,
         fact.evidence,
         JSON.stringify({ extractedAt: new Date().toISOString() }),
+        tags,
+        level,
       ],
     );
   } catch {
@@ -363,6 +373,46 @@ export async function getActiveMemories(
 
     return rows.map(rowToMemoryEntry);
   } catch {
+    return [];
+  }
+}
+
+/**
+ * 症状分析记忆召回（带闸门，见 设计方案-2026-08-22 第六章 6.3）
+ * 只召回：health/medical 类 + active + importance≥5 + 近90天 + 内容命中症状关键词
+ * 用途：AI 深度分析/症状初筛的"类人背景"，只作展示（basis='record'），不参与 riskLevel 推导
+ * @param userId - 用户 ID
+ * @param petId - 宠物 ID
+ * @param keywords - 召回关键词（症状中文名等）
+ * @param limit - 返回条数上限
+ * @returns 召回的记忆（含内容/重要度/分类/时间）
+ */
+export async function recallHealthMemories(
+  userId: string,
+  petId: string,
+  keywords: string[],
+  limit = 5,
+): Promise<Array<{ content: string; importance: number; category: string; created_at: string }>> {
+  try {
+    if (keywords.length === 0) return [];
+    // 转义 ILIKE 通配符（%/_），防止用户可控关键词（如 "100%"）变成宽匹配（审查项修复）
+    const escaped = keywords.map((k) => k.replace(/[\\%_]/g, (m) => '\\' + m));
+    const { rows } = await pool.query(
+      `SELECT content, importance, category, created_at
+       FROM agent_memories
+       WHERE user_id = $1 AND pet_id = $2
+         AND status = 'active'
+         AND category IN ('health', 'medical')
+         AND importance >= 5
+         AND created_at >= NOW() - INTERVAL '90 days'
+         AND content ILIKE ANY($3::text[])
+       ORDER BY importance DESC, created_at DESC
+       LIMIT $4`,
+      [userId, petId, escaped.map((k) => `%${k}%`), limit],
+    );
+    return rows;
+  } catch {
+    // 记忆召回失败不阻塞主流程（降级为无记忆）
     return [];
   }
 }
@@ -759,6 +809,115 @@ export async function summarizePetMemory(
   }
 
   return sections.join('\n\n');
+}
+
+/**
+ * 记录健康事件记忆（回忆录 2.0 F1：打卡异常/症状初筛自动沉淀）
+ * 宠物不舒服时自动写记忆（importance 高），后续 Agent 对话能"记得"生病历史，
+ * 回忆录也能从记忆里筛出健康时刻。
+ * 幂等：同类事件当天一条（UPSERT by user_id+pet_id+key），避免记忆膨胀。
+ * @param params - 健康事件参数
+ */
+export async function recordHealthMemory(params: {
+  userId: string;
+  petId: string;
+  /** medical=症状/就医；health=打卡异常/日常健康 */
+  category: 'medical' | 'health';
+  /** 记忆内容（含日期/异常项/建议，供 Agent 和回忆录使用） */
+  content: string;
+  /** 重要度 1-10（按紧急程度：emergency=10 → 一般=7） */
+  importance?: number;
+  /** 溯源（打卡/初筛记录 ID，可回溯） */
+  evidence?: string;
+  /**
+   * 事件子类后缀（可选）：拼进幂等 key（health_<category>_<日期>_<suffix>），
+   * 使"初筛记忆"与"恢复事件记忆"（同天）互不覆盖
+   */
+  keySuffix?: string;
+}): Promise<void> {
+  const importance = Math.min(10, Math.max(1, params.importance ?? 7));
+  // key：同类事件当天一条（当天多次异常覆盖为最新，防止逐条堆积）；keySuffix 区分子类事件
+  const key = `health_${params.category}_${new Date().toISOString().slice(0, 10)}${params.keySuffix ? `_${params.keySuffix}` : ''}`;
+  try {
+    await pool.query(
+      `INSERT INTO agent_memories
+         (user_id, pet_id, category, key, content, importance, confidence, source, evidence, meta, tags, level)
+       VALUES ($1,$2,$3,$4,$5,$6,0.9,'health_event',$7,$8, $9, 'core')
+       ON CONFLICT (user_id, pet_id, key)
+       DO UPDATE SET
+         content = EXCLUDED.content,
+         importance = GREATEST(agent_memories.importance, EXCLUDED.importance),
+         evidence = agent_memories.evidence || EXCLUDED.evidence,
+         tags = agent_memories.tags || EXCLUDED.tags,
+         level = 'core',
+         updated_at = now()`,
+      [
+        params.userId,
+        params.petId,
+        params.category,
+        key,
+        params.content,
+        importance,
+        // evidence 列是 TEXT[]（数组）：必须传数组，传字符串会 malformed array literal
+        params.evidence ? [params.evidence] : null,
+        JSON.stringify({ type: 'health_event', recordedAt: new Date().toISOString() }),
+        // 健康事件标签（回忆录"health_heal"维度）；medical 归入核心
+        [params.category === 'medical' ? 'health_heal' : 'health'],
+      ],
+    );
+  } catch (err) {
+    // 记忆失败不阻塞主流程（打卡/初筛已成功）
+    console.warn('[Memory] 健康事件记忆记录失败（不阻塞主流程）:', (err as Error).message);
+  }
+}
+
+/**
+ * 按回忆标签取记忆（回忆录 2.0 F4：素材自动备好）
+ * 回忆录创建时按用户选的标签筛选核心层记忆，作为分镜生成的素材上下文。
+ * @param params - 筛选参数
+ * @returns 记忆文本（按 importance 排序，可给分镜生成器）
+ */
+export async function getMemoriesByTags(params: {
+  userId: string;
+  petId: string;
+  /** 回忆标签（如 milestone/daily_joy/bonding/farewell）；空=全部核心层 */
+  tags?: string[];
+  /** 最多取多少条（默认 20） */
+  limit?: number;
+}): Promise<string> {
+  const limit = Math.min(50, Math.max(1, params.limit ?? 20));
+  try {
+    const tagClause = params.tags && params.tags.length > 0 ? 'AND tags && $4::text[]' : '';
+    const values: unknown[] = [params.userId, params.petId, limit];
+    if (params.tags && params.tags.length > 0) values.push(params.tags);
+
+    const { rows } = await pool.query(
+      `SELECT content, importance, tags, created_at
+       FROM agent_memories
+       WHERE user_id = $1 AND pet_id = $2
+         AND status = 'active'
+         AND level = 'core'
+         ${tagClause}
+       ORDER BY importance DESC, created_at DESC
+       LIMIT $3`,
+      values,
+    );
+
+    if (rows.length === 0) {
+      return `（${params.tags && params.tags.length > 0 ? `标签「${params.tags.join('、')}」暂无核心记忆` : '暂无核心记忆'}）`;
+    }
+
+    return rows
+      .map((r) => {
+        const date = new Date(r.created_at).toLocaleDateString('zh-CN');
+        const tags = Array.isArray(r.tags) && r.tags.length > 0 ? ` [${r.tags.join('/')}]` : '';
+        return `- ${date}：${r.content}（重要度:${r.importance}）${tags}`;
+      })
+      .join('\n');
+  } catch (err) {
+    console.warn('[Memory] 按标签取记忆失败:', (err as Error).message);
+    return '';
+  }
 }
 
 console.log('[MemoryService] memory-body 引擎已就绪');

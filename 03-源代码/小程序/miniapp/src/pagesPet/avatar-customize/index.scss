@@ -537,6 +537,11 @@
     border: 2rpx solid $color-primary;
     box-shadow: none;
   }
+
+  /* 直接用照片作头像：免费入口，金色渐变突出「免费可用」 */
+  &--photo-as-avatar {
+    background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%);
+  }
 }
 
 .avatar-customize__btn-text {
@@ -1031,6 +1036,20 @@
     display: block;
   }
 
+  /* 图片加载失败兜底：与图片同尺寸的圆形底 + 物种 emoji，避免"只有文字没有图片" */
+  &__fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: $color-primary-bg;
+    @include flex-center;
+
+    &-emoji {
+      font-size: 44rpx;
+      line-height: 1;
+    }
+  }
+
   &__check {
     position: absolute;
     top: 8rpx;
@@ -1095,7 +1114,7 @@
 }
 
 // ============================================
-// 预设形象库（免费用户入口：16 款现成形象选 1）
+// 预设形象库（免费用户入口：20 款现成形象选 1）
 // ============================================
 .avatar-preset {
   padding: $spacing-lg;
@@ -1125,8 +1144,8 @@
   }
 
   &__card {
-    // 一行 4 个，两行展示 8 款
-    flex: 1 1 calc(25% - #{$spacing-md});
+    // 一行 5 个，两行展示 10 款（品牌头像为圆形，5×2 网格更整齐）
+    flex: 1 1 calc(20% - #{$spacing-md});
     min-width: 0;
     position: relative;
     border-radius: $radius-sm;
@@ -1177,14 +1196,6 @@
     font-size: $font-size-xs;
     font-weight: $font-weight-semibold;
     color: $color-text-primary;
-  }
-
-  &__style {
-    display: block;
-    text-align: center;
-    padding-bottom: $spacing-xs;
-    font-size: 18rpx;
-    color: $color-text-tertiary;
   }
 
   &__actions {

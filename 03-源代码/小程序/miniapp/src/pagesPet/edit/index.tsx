@@ -12,6 +12,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { safeNavigateBack } from '../../utils/navigation'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
+import { uploadPetPhoto } from '../../services/avatarService'
+import type { PetProfile } from '../../services/petService'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import '../add/index.scss'
 
@@ -60,6 +62,11 @@ export default function EditPet() {
   const [submitting, setSubmitting] = useState(false)
   const [petId, setPetId] = useState('')
   const [selectedBreed, setSelectedBreed] = useState<BreedItem | null>(null)
+  // 新选头像的本地预览路径（上传成功前展示；上传完成后 formData.avatarUrl 存服务端真实 URL）
+  const [avatarDraft, setAvatarDraft] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  // 本次会话中新上传的照片 URL（仅当有值时提交 avatarPhotoUrl，避免卡通 URL 污染照片字段）
+  const [avatarUploadedUrl, setAvatarUploadedUrl] = useState<string | null>(null)
 
   useEffect(() => {
     trackPageView('edit_pet')
@@ -93,7 +100,8 @@ export default function EditPet() {
         medications: (pet.medications || []).join('、'),
         chronicConditions: (pet.chronicConditions || []).join('、'),
         notes: pet.notes || '',
-        avatarUrl: pet.avatarPhotoUrl || '',
+        // 展示优先真实照片，其次卡通/AI 形象（与全局展示优先级一致，避免纯卡通宠物显示占位符）
+        avatarUrl: pet.avatarPhotoUrl || pet.avatarCartoonUrl || '',
       })
       if (pet.breedId) {
         const breed = BREED_DATA.find(b => b.id === pet.breedId)
@@ -144,17 +152,51 @@ export default function EditPet() {
     updateField('birthDate', e.detail.value)
   }
 
-  const handleChooseAvatar = () => {
+  /**
+   * 选择宠物头像（相册/拍照）
+   * 坑点：微信返回的是 wxfile:// 临时路径，不能直接存进档案（图片无法加载）。
+   * 这里选择后立即调用服务端上传接口，拿到真实 URL 再写回表单。
+   */
+  const handleChooseAvatar = async () => {
     trackEvent('choose_avatar')
-    chooseImageWithPrivacy({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-    }).then((res) => {
-      updateField('avatarUrl', res.tempFilePaths[0])
-    }).catch((err) => {
+    try {
+      const res = await chooseImageWithPrivacy({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+      })
+      if (!res.tempFilePaths.length) return
+
+      const tempPath = res.tempFilePaths[0]
+      if (!petId) {
+        // 理论上编辑页必有 petId（无 id 时已提示返回）；兜底：不上传也不改表单，避免把临时路径写进档案
+        Taro.showToast({ title: '宠物信息缺失，无法上传头像', icon: 'none' })
+        return
+      }
+      // 先展示本地预览，提升交互反馈速度
+      setAvatarDraft(tempPath)
+
+      setUploadingAvatar(true)
+      try {
+        const result = await uploadPetPhoto(petId, tempPath)
+        if (result.success && result.data?.url) {
+          // avatarService 已把相对路径补全为绝对地址
+          updateField('avatarUrl', result.data.url)
+          setAvatarUploadedUrl(result.data.url)
+          Taro.showToast({ title: '头像已上传', icon: 'success' })
+        } else {
+          // 上传失败：保留原头像，不把临时路径写进档案
+          Taro.showToast({ title: result.message || '头像上传失败', icon: 'none' })
+        }
+      } catch {
+        Taro.showToast({ title: '头像上传失败，请重试', icon: 'none' })
+      } finally {
+        setUploadingAvatar(false)
+        setAvatarDraft(null)
+      }
+    } catch (err) {
       console.warn('[EditPet] chooseImage failed:', err)
-    })
+    }
   }
 
   const validate = (): boolean => {
@@ -187,7 +229,10 @@ export default function EditPet() {
 
     setSubmitting(true)
     try {
-      await updatePet(petId, {
+      // 头像/照片字段只在"本次新上传了照片"时才提交；
+      // formData.avatarUrl 可能回退自 avatarCartoonUrl（纯卡通宠物），
+      // 直接提交会把卡通 URL 污染进 avatarPhotoUrl（数据语义错误，展示优先级也会错乱）
+      const payload: Record<string, unknown> = {
         name: formData.name.trim(),
         species: formData.species as 'dog' | 'cat',
         breed: formData.breedName,
@@ -196,8 +241,6 @@ export default function EditPet() {
         birthDate: formData.birthDate,
         weight: formData.weight ? parseFloat(formData.weight) : 0,
         coatColor: formData.coatColor.trim(),
-        avatarPhotoUrl: formData.avatarUrl,
-        photos: formData.avatarUrl ? [formData.avatarUrl] : [],
         isNeutered: formData.isNeutered,
         microchipId: formData.microchipId.trim(),
         allergies: formData.allergies ? formData.allergies.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
@@ -205,7 +248,12 @@ export default function EditPet() {
         chronicConditions: formData.chronicConditions ? formData.chronicConditions.split(/[,，]/).map(s => s.trim()).filter(Boolean) : [],
         notes: formData.notes.trim(),
         userId,
-      })
+      }
+      if (avatarUploadedUrl) {
+        payload.avatarPhotoUrl = avatarUploadedUrl
+        payload.photos = [avatarUploadedUrl]
+      }
+      await updatePet(petId, payload as Partial<PetProfile>)
 
       trackEvent('edit_pet_success', { petId })
       Taro.showToast({ title: '保存成功', icon: 'success' })
@@ -437,13 +485,13 @@ export default function EditPet() {
 
         <View className='add-pet__form-item'>
           <Text className='add-pet__label'>头像</Text>
-          <View className='add-pet__photo-area' onClick={handleChooseAvatar}>
-            {formData.avatarUrl ? (
-              <Image className='add-pet__photo-preview' src={formData.avatarUrl} mode='aspectFill' lazyLoad />
+          <View className='add-pet__photo-area' onClick={uploadingAvatar ? undefined : handleChooseAvatar}>
+            {avatarDraft || formData.avatarUrl ? (
+              <Image className='add-pet__photo-preview' src={avatarDraft || formData.avatarUrl} mode='aspectFill' lazyLoad />
             ) : (
               <View className='add-pet__photo-placeholder'>
                 <Text className='add-pet__photo-icon'>📷</Text>
-                <Text>点击选择照片</Text>
+                <Text>{uploadingAvatar ? '上传中...' : '点击选择照片'}</Text>
               </View>
             )}
           </View>

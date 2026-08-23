@@ -90,4 +90,33 @@ export class SymptomRepository extends BaseRepository<SymptomRow> {
     );
     return result.rows;
   }
+
+  /**
+   * 查询近 N 天内的最近一条高风险同症状检查（恢复事件检测用，设计方案 6.2）
+   * 条件：同宠物同用户 + risk_level ∈ (warning, emergency) + 症状数组有交集 + 时间窗内
+   * @param petId - 宠物 ID
+   * @param userId - 用户 ID
+   * @param symptomIds - 当前症状（与历史症状做交集）
+   * @param days - 回溯天数（默认 14）
+   * @returns 最近一条高风险检查（无则 null）
+   */
+  async findRecentHighRiskCheck(
+    petId: string,
+    userId: string,
+    symptomIds: string[],
+    days = 14,
+  ): Promise<SymptomRow | null> {
+    if (symptomIds.length === 0) return null;
+    const result = await this.rawQuery<SymptomRow>(
+      `SELECT * FROM ${this.tableName}
+       WHERE pet_id = $1 AND user_id = $2
+         AND risk_level IN ('warning', 'emergency')
+         AND symptoms && $3::text[]
+         AND created_at >= NOW() - ($4 || ' days')::interval
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [petId, userId, symptomIds, days],
+    );
+    return result.rows[0] || null;
+  }
 }

@@ -153,7 +153,7 @@ describe('trendStore', () => {
       expect(state.summary!.period).toBe('month')
       expect(state.isLoading).toBe(false)
       expect(state.error).toBeNull()
-      expect(mockTrendService.getTrendSummary).toHaveBeenCalledWith('pet-001', 'month')
+      expect(mockTrendService.getTrendSummary).toHaveBeenCalledWith('pet-001', 'month', '')
     })
 
     it('should set error when fetch fails', async () => {
@@ -179,7 +179,7 @@ describe('trendStore', () => {
       expect(state.monthlyReport!.month).toBe('2024-01')
       expect(state.isLoading).toBe(false)
       expect(state.error).toBeNull()
-      expect(mockTrendService.getMonthlyReport).toHaveBeenCalledWith('pet-001', '2024-01')
+      expect(mockTrendService.getMonthlyReport).toHaveBeenCalledWith('pet-001', '2024-01', '')
     })
 
     it('should set error when fetch fails', async () => {
@@ -202,7 +202,7 @@ describe('trendStore', () => {
       const state = useTrendStore.getState()
       expect(state.trendData).toHaveLength(2)
       expect(state.isLoading).toBe(false)
-      expect(mockTrendService.getWeightTrend).toHaveBeenCalledWith('pet-001', 3)
+      expect(mockTrendService.getWeightTrend).toHaveBeenCalledWith('pet-001', 3, '')
     })
 
     it('should use default months value', async () => {
@@ -210,7 +210,7 @@ describe('trendStore', () => {
 
       await useTrendStore.getState().fetchWeightTrend('pet-001')
 
-      expect(mockTrendService.getWeightTrend).toHaveBeenCalledWith('pet-001', 3)
+      expect(mockTrendService.getWeightTrend).toHaveBeenCalledWith('pet-001', 3, '')
     })
 
     it('should set error when fetch fails', async () => {
@@ -232,7 +232,7 @@ describe('trendStore', () => {
 
       const state = useTrendStore.getState()
       expect(state.trendData).toHaveLength(1)
-      expect(mockTrendService.getAppetiteTrend).toHaveBeenCalledWith('pet-001', 6)
+      expect(mockTrendService.getAppetiteTrend).toHaveBeenCalledWith('pet-001', 6, '')
     })
 
     it('should set error when fetch fails', async () => {
@@ -254,7 +254,7 @@ describe('trendStore', () => {
 
       const state = useTrendStore.getState()
       expect(state.trendData).toHaveLength(1)
-      expect(mockTrendService.getStoolTrend).toHaveBeenCalledWith('pet-001', 3)
+      expect(mockTrendService.getStoolTrend).toHaveBeenCalledWith('pet-001', 3, '')
     })
 
     it('should set error when fetch fails', async () => {
@@ -277,7 +277,7 @@ describe('trendStore', () => {
       const state = useTrendStore.getState()
       expect(state.trendData).toHaveLength(1)
       expect(state.trendData[0].hasAbnormal).toBe(true)
-      expect(mockTrendService.getAbnormalDays).toHaveBeenCalledWith('pet-001', '2024-01-01', '2024-01-31')
+      expect(mockTrendService.getAbnormalDays).toHaveBeenCalledWith('pet-001', '2024-01-01', '2024-01-31', '')
     })
 
     it('should set error when fetch fails', async () => {

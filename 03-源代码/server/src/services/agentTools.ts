@@ -10,12 +10,31 @@
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db.js';
 import { registerTool, type ToolResult } from './toolRegistry.js';
+import { listHealthReports } from './healthReportService.js';
+// 图谱评估器（Phase 3 收尾：聊天路径 check_symptom 消费权威图谱，与症状初筛页判断一致）
+import { loadActiveGraph, mapSymptomTextToIds, evaluateSymptomLevel } from './graphEvaluator.js';
 
 type Context = { userId: string; petId?: string };
 
 // ========== 辅助函数 ==========
 
-async function getPetId(context: Context): Promise<string | null> {
+/**
+ * 解析目标宠物 ID（多宠上下文：支持按名字/ID 指定非当前宠物）
+ * 优先级：① 工具传入的 pet_id（已校验归属）→ ② context.petId（当前活跃宠物）→ ③ 用户第一只
+ * @param context - Agent 上下文
+ * @param petIdOverride - 工具显式指定的宠物 ID（来自 find_pet_by_name）
+ * @returns 宠物 ID 或 null
+ */
+async function getPetId(context: Context, petIdOverride?: string): Promise<string | null> {
+  // ① 工具显式指定（用户问"小黑今天怎么样"时，Agent 先用 find_pet_by_name 拿到小黑的 id 传进来）
+  if (petIdOverride) {
+    const { rows } = await pool.query(
+      'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
+      [petIdOverride, context.userId]
+    );
+    if (rows.length > 0) return petIdOverride;
+  }
+  // ② 当前活跃宠物
   if (context.petId) {
     const { rows } = await pool.query(
       'SELECT id FROM pet_profiles WHERE id = $1 AND user_id = $2',
@@ -23,7 +42,7 @@ async function getPetId(context: Context): Promise<string | null> {
     );
     if (rows.length > 0) return context.petId;
   }
-  // 自动获取用户第一只宠物
+  // ③ 自动获取用户第一只宠物
   const { rows } = await pool.query(
     'SELECT id FROM pet_profiles WHERE user_id = $1 ORDER BY created_at LIMIT 1',
     [context.userId]
@@ -31,10 +50,74 @@ async function getPetId(context: Context): Promise<string | null> {
   return rows.length > 0 ? rows[0].id : null;
 }
 
+// ========== 0. find_pet_by_name（多宠解析：名字 → 宠物 ID） ==========
+
+registerTool('find_pet_by_name', async (args, context): Promise<ToolResult> => {
+  const name = String(args.name || '').trim();
+  if (!name) {
+    return { success: false, message: '请提供宠物名字，如"小黑""豆豆"' };
+  }
+
+  const { rows } = await pool.query(
+    `SELECT id, name, species, breed, is_deceased FROM pet_profiles
+     WHERE user_id = $1 AND name ILIKE $2
+     ORDER BY created_at`,
+    [context.userId, `%${name}%`]
+  );
+
+  if (rows.length === 0) {
+    return { success: false, message: `没有找到叫"${name}"的宠物` };
+  }
+
+  return {
+    success: true,
+    data: {
+      pets: rows.map((r) => ({
+        pet_id: r.id,
+        name: r.name,
+        species: r.species,
+        breed: r.breed,
+        is_deceased: r.is_deceased,
+      })),
+      message: '找到以下宠物，后续查询请带上对应 pet_id',
+    },
+  };
+});
+
+// ========== 0b. get_health_reports（体检记录查询，F8） ==========
+
+registerTool('get_health_reports', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+
+  const reports = await listHealthReports(
+    petId,
+    context.userId,
+    Math.min(10, Math.max(1, (args.limit as number) || 5)),
+  );
+  if (reports.length === 0) {
+    return { success: true, data: { reports: [], message: '还没有体检记录，可让用户上传体检报告照片识别' } };
+  }
+
+  return {
+    success: true,
+    data: {
+      reports: reports.map((r) => ({
+        id: r.id,
+        report_date: r.report_date,
+        metrics: r.metrics,
+        created_at: r.created_at,
+      })),
+    },
+  };
+});
+
 // ========== 1. get_pet_profile ==========
 
 registerTool('get_pet_profile', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，请先在"宠物"页面添加' };
   }
@@ -84,7 +167,7 @@ registerTool('get_pet_profile', async (args, context): Promise<ToolResult> => {
 // ========== 2. get_pet_facts ==========
 
 registerTool('get_pet_facts', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -112,7 +195,7 @@ registerTool('get_pet_facts', async (args, context): Promise<ToolResult> => {
 // ========== 3. get_recent_checkins ==========
 
 registerTool('get_recent_checkins', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -163,10 +246,35 @@ registerTool('get_recent_checkins', async (args, context): Promise<ToolResult> =
 // ========== 4. record_health_checkin ==========
 
 registerTool('record_health_checkin', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，无法打卡' };
   }
+
+  // 中文枚举 → 数值（pet_health_entries 的 *_level 为 smallint：1-5）
+  // 精神/食欲/排便：1=很差 2=较差 3=正常 4=较好 5=很好；运动：1=较少 2=正常 3=充足
+  const SPIRIT_MAP: Record<string, number> = { '很好': 5, '正常': 3, '一般': 2, '不太好': 1 };
+  const APPETITE_MAP: Record<string, number> = { '很好': 5, '正常': 3, '一般': 2, '不太好': 1 };
+  const POOP_MAP: Record<string, number> = { '正常': 3, '偏软': 4, '偏硬': 2, '拉稀': 1, '未排便': 1 };
+  const EXERCISE_MAP: Record<string, number> = { '充足': 3, '正常': 2, '较少': 1, '未运动': 1 };
+
+  const spirit = (args.spirit as string) || '正常';
+  const appetite = (args.appetite as string) || '正常';
+  const poop = (args.poop as string) || '正常';
+  const exercise = (args.exercise as string) || '正常';
+  const weight = args.weight ? Number(args.weight) : null;
+  const note = (args.note as string) || null;
+
+  // 未知枚举值回退到正常（3），避免 LLM 传了不在映射里的词导致 500
+  const spiritLevel = SPIRIT_MAP[spirit] ?? 3;
+  const appetiteLevel = APPETITE_MAP[appetite] ?? 3;
+  const poopLevel = POOP_MAP[poop] ?? 3;
+  const exerciseLevel = EXERCISE_MAP[exercise] ?? 2;
+
+  // 判断是否有异常（精神/食欲≤2 或 排便异常），risk_level 用生产约束允许的枚举
+  // （pet_health_entries_risk_level_check: low/medium/high/emergency，不是 caution/normal）
+  const hasAnomaly = spiritLevel <= 2 || appetiteLevel <= 2 || poopLevel <= 2 || poop === '拉稀' || poop === '未排便';
+  const riskLevel = hasAnomaly ? 'high' : 'low';
 
   // 检查今天是否已经打卡
   const today = new Date().toISOString().split('T')[0];
@@ -177,23 +285,12 @@ registerTool('record_health_checkin', async (args, context): Promise<ToolResult>
   );
 
   const id = uuidv4();
-  const spirit = (args.spirit as string) || '正常';
-  const appetite = (args.appetite as string) || '正常';
-  const poop = (args.poop as string) || '正常';
-  const exercise = (args.exercise as string) || '正常';
-  const weight = args.weight ? Number(args.weight) : null;
-  const note = (args.note as string) || null;
-
-  // 判断是否有异常
-  const hasAnomaly = [spirit, appetite, poop].some((v) => v === '不太好' || v === '拉稀');
-  const riskLevel = hasAnomaly ? 'caution' : 'normal';
-
   await pool.query(
     `INSERT INTO pet_health_entries
       (id, pet_id, user_id, spirit_level, appetite_level, poop_level,
        exercise_level, weight, has_anomaly, risk_level, note)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-    [id, petId, context.userId, spirit, appetite, poop, exercise, weight, hasAnomaly, riskLevel, note]
+    [id, petId, context.userId, spiritLevel, appetiteLevel, poopLevel, exerciseLevel, weight, hasAnomaly, riskLevel, note]
   );
 
   const alreadyMsg = existing.length > 0 ? '（今天已有打卡记录，本次为追加记录）' : '';
@@ -288,7 +385,7 @@ registerTool('query_food_safety', async (args, context): Promise<ToolResult> => 
 // ========== 6. check_symptom ==========
 
 registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，无法进行症状分析' };
   }
@@ -296,7 +393,7 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
   const symptom = (args.symptom as string).trim();
   const duration = (args.duration as string) || '未知';
 
-  // 紧急关键词检测
+  // ===== 紧急关键词检测（安全底线：自由文本最可靠的紧急信号，保持不变） =====
   const emergencyKeywords = ['抽搐', '昏迷', '呼吸困难', '吐血', '中毒', '车祸', '坠落', '瘫痪', '大出血', '休克'];
   const isEmergency = emergencyKeywords.some((kw) => symptom.includes(kw));
 
@@ -312,9 +409,38 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
     };
   }
 
-  // 中高风险关键词
-  const warningKeywords = ['呕吐', '拉稀', '腹泻', '不吃', '发烧', '精神差', '便血', '尿血', '跛行', '肿胀'];
-  const isWarning = warningKeywords.some((kw) => symptom.includes(kw));
+  // ===== 图谱评估（设计 §8：聊天路径消费权威图谱，与症状初筛页判断一致） =====
+  // 文本能映射到已知症状名 → 用图谱规则定级；映射不上 → 回落关键词兜底
+  let riskLevel: 'warning' | 'caution' = 'caution';
+  let ruleName: string | undefined;
+  const graph = await loadActiveGraph();
+  const mappedIds = graph ? mapSymptomTextToIds(graph, symptom) : [];
+  if (graph && mappedIds.length > 0) {
+    const evaluated = evaluateSymptomLevel(graph, mappedIds, duration === '未知' ? undefined : duration);
+    if (evaluated.level === 'emergency') {
+      return {
+        success: true,
+        data: {
+          riskLevel: 'emergency',
+          message: '检测到高风险症状组合！请尽快就医检查。这不是诊断，请咨询专业兽医。',
+          needHospital: true,
+          emergency: true,
+        },
+      };
+    }
+    if (evaluated.level === 'warning') {
+      riskLevel = 'warning';
+      ruleName = evaluated.ruleName;
+    }
+  }
+
+  // ===== 关键词兜底（文本未映射到图谱症状时保持原逻辑） =====
+  if (mappedIds.length === 0) {
+    const warningKeywords = ['呕吐', '拉稀', '腹泻', '不吃', '发烧', '精神差', '便血', '尿血', '跛行', '肿胀'];
+    if (warningKeywords.some((kw) => symptom.includes(kw))) {
+      riskLevel = 'warning';
+    }
+  }
 
   // 记录症状检查
   const id = uuidv4();
@@ -325,11 +451,11 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
     [
       id, petId, context.userId,
       [symptom], duration,
-      isWarning ? 'warning' : 'caution',
-      isWarning
-        ? `根据症状"${symptom}"（持续${duration}），建议尽快就医检查。这不是诊断，请咨询专业兽医。`
+      riskLevel,
+      riskLevel === 'warning'
+        ? `根据症状"${symptom}"（持续${duration}），建议尽快就医检查。这不是诊断，请咨询专业兽医。${ruleName ? `（依据：${ruleName}）` : ''}`
         : `根据症状"${symptom}"（持续${duration}），建议密切观察。如果症状加重或持续超过24小时，请就医。`,
-      isWarning
+      riskLevel === 'warning'
         ? ['立即就医', '暂时禁食观察', '记录症状变化']
         : ['密切观察', '保持正常饮食', '如加重请就医'],
     ]
@@ -338,11 +464,11 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
   return {
     success: true,
     data: {
-      riskLevel: isWarning ? 'warning' : 'caution',
-      message: isWarning
+      riskLevel,
+      message: riskLevel === 'warning'
         ? '建议尽快就医检查，这不是诊断，请咨询专业兽医。'
         : '建议密切观察，如果症状加重请及时就医。',
-      needHospital: isWarning,
+      needHospital: riskLevel === 'warning',
       disclaimer: '以上为 AI 辅助分析，不替代兽医诊断。',
     },
   };
@@ -351,16 +477,18 @@ registerTool('check_symptom', async (args, context): Promise<ToolResult> => {
 // ========== 7. get_vaccine_calendar ==========
 
 registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
 
+  // 表名为 pet_vaccinations（对齐生产 schema；早期写成 pet_vaccines 导致表不存在）
+  // 注意：该表无 vaccine_name 字段，疫苗名在 type 列（如"猫三联""狂犬疫苗"），category 为分类
   const { rows } = await pool.query(
-    `SELECT vaccine_name, scheduled_date, status, notes
-     FROM pet_vaccines
+    `SELECT type, category, date, next_date, status, notes
+     FROM pet_vaccinations
      WHERE pet_id = $1 AND user_id = $2
-     ORDER BY scheduled_date ASC`,
+     ORDER BY date ASC NULLS LAST`,
     [petId, context.userId]
   );
 
@@ -369,22 +497,22 @@ registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> 
   }
 
   const now = new Date();
-  const upcoming = rows.filter((r) => new Date(r.scheduled_date) >= now);
-  const overdue = rows.filter((r) => new Date(r.scheduled_date) < now && r.status !== 'completed');
+  const upcoming = rows.filter((r) => r.next_date && new Date(r.next_date) >= now);
+  const overdue = rows.filter((r) => r.next_date && new Date(r.next_date) < now && r.status !== 'completed');
 
   return {
     success: true,
     data: {
       total: rows.length,
       upcoming: upcoming.map((r) => ({
-        name: r.vaccine_name,
-        date: new Date(r.scheduled_date).toLocaleDateString('zh-CN'),
+        name: r.type || r.category || '疫苗',
+        date: r.next_date,
         status: r.status,
         notes: r.notes,
       })),
       overdue: overdue.map((r) => ({
-        name: r.vaccine_name,
-        date: new Date(r.scheduled_date).toLocaleDateString('zh-CN'),
+        name: r.type || r.category || '疫苗',
+        date: r.next_date,
         status: r.status,
       })),
     },
@@ -394,7 +522,7 @@ registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> 
 // ========== 8. get_health_trends ==========
 
 registerTool('get_health_trends', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -471,10 +599,13 @@ registerTool('search_breed_info', async (args, context): Promise<ToolResult> => 
     return { success: false, message: '请提供品种名称' };
   }
 
-  // 从数据库查询品种信息
+  // 品种百科数据在前端静态资源（BREED_DATA），后端无 pet_breeds 表（早期迁移建表失败）。
+  // 这里返回用户宠物档案中的品种信息 + 引导，避免查询不存在的表导致 500。
   const { rows } = await pool.query(
-    `SELECT * FROM pet_breeds WHERE name ILIKE $1 LIMIT 1`,
-    [`%${breedName}%`]
+    `SELECT id, name, species, breed FROM pet_profiles
+     WHERE user_id = $1 AND breed ILIKE $2
+     ORDER BY created_at LIMIT 1`,
+    [context.userId, `%${breedName}%`]
   );
 
   if (rows.length === 0) {
@@ -483,7 +614,7 @@ registerTool('search_breed_info', async (args, context): Promise<ToolResult> => 
       data: {
         found: false,
         breed: breedName,
-        message: `未找到"${breedName}"的百科信息`,
+        message: `暂时无法提供"${breedName}"的详细百科（品种知识库建设中），但你可以问它的喂养、健康、性格相关问题，我会尽力解答。`,
       },
     };
   }
@@ -493,14 +624,9 @@ registerTool('search_breed_info', async (args, context): Promise<ToolResult> => 
     success: true,
     data: {
       found: true,
-      breed: b.name,
+      breed: b.breed,
       species: b.species,
-      size: b.size || '未知',
-      temperament: b.temperament || '',
-      lifespan: b.lifespan || '',
-      commonDiseases: b.common_diseases || [],
-      careNotes: b.care_notes || '',
-      feedingAdvice: b.feeding_advice || '',
+      message: `${b.name}的品种是${b.breed}。关于该品种的详细百科（体型/性格/寿命/常见病/喂养建议），可继续追问具体问题（如"${b.breed}容易得什么病"），我会结合常见品种知识解答。`,
     },
   };
 });
@@ -547,7 +673,7 @@ registerTool('get_family_pets', async (args, context): Promise<ToolResult> => {
 // ========== 11. record_feeding ==========
 
 registerTool('record_feeding', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物' };
   }
@@ -556,11 +682,11 @@ registerTool('record_feeding', async (args, context): Promise<ToolResult> => {
   const note = (args.note as string) || null;
 
   // 记录到 pet_facts 中（作为喂养记录）
-  const id = uuidv4();
+  // 注意：pet_facts.id 是 bigint 自增（nextval），不能传 uuid；省略 id 让序列自动生成
   await pool.query(
-    `INSERT INTO pet_facts (id, pet_id, user_id, category, fact)
-     VALUES ($1, $2, $3, 'feeding', $4)`,
-    [id, petId, context.userId, `${new Date().toLocaleDateString('zh-CN')} 喂了${food}${note ? `（${note}）` : ''}`]
+    `INSERT INTO pet_facts (pet_id, user_id, category, fact)
+     VALUES ($1, $2, 'feeding', $3)`,
+    [petId, context.userId, `${new Date().toLocaleDateString('zh-CN')} 喂了${food}${note ? `（${note}）` : ''}`]
   );
 
   return {
@@ -576,17 +702,14 @@ registerTool('record_feeding', async (args, context): Promise<ToolResult> => {
 registerTool('search_hospital', async (args, context): Promise<ToolResult> => {
   const isEmergency = args.emergency === true;
 
-  const { rows } = await pool.query(
-    `SELECT name, address, phone, rating, is_24h
-     FROM pet_hospitals ORDER BY rating DESC LIMIT 5`
-  );
-
-  if (rows.length === 0) {
+  // pet_hospitals 表在生产库不存在（早期迁移建表失败），医院数据为前端静态内容。
+  // 这里不查库，直接给出就医指引（紧急/非紧急两种话术），避免查询不存在的表导致 500。
+  if (isEmergency) {
     return {
       success: true,
       data: {
-        message: '暂未收录附近宠物医院信息，建议在地图搜索"宠物医院"',
-        emergency: isEmergency,
+        emergency: true,
+        message: '⚠️ 情况紧急，请立即带宠物前往最近的宠物医院或 24 小时急诊！可在微信或地图 App 搜索"宠物医院"，优先选择有急诊标注的。若宠物有中毒、大出血、抽搐等紧急情况，请直接联系就近医院并说明症状。',
       },
     };
   }
@@ -594,17 +717,8 @@ registerTool('search_hospital', async (args, context): Promise<ToolResult> => {
   return {
     success: true,
     data: {
-      emergency: isEmergency,
-      hospitals: rows.map((h) => ({
-        name: h.name,
-        address: h.address,
-        phone: h.phone,
-        rating: h.rating,
-        is24h: h.is_24h,
-      })),
-      message: isEmergency
-        ? '以下是附近宠物医院，建议立即前往最近的一家！'
-        : '以下是附近的宠物医院：',
+      emergency: false,
+      message: '可以在微信或地图 App 搜索"宠物医院"查看附近的医院与评分。建议优先选择：① 24 小时营业的急诊医院 ② 有宠物专科的医院 ③ 距你家近、口碑好的。需要我帮你查某类症状对应的科室建议吗？',
     },
   };
 });
@@ -632,7 +746,7 @@ registerTool('start_checkin', async (args, context): Promise<ToolResult> => {
 // ========== 15. record_memory ==========
 
 registerTool('record_memory', async (args, context): Promise<ToolResult> => {
-  const petId = await getPetId(context);
+  const petId = await getPetId(context, args.pet_id as string | undefined);
   if (!petId) {
     return { success: false, message: '还没有添加宠物，无法记录回忆' };
   }
@@ -677,4 +791,94 @@ registerTool('record_memory', async (args, context): Promise<ToolResult> => {
   };
 });
 
-console.log('[Agent Tools] 15 个工具已注册完成');
+// ========== 16. get_chronic_advice（AI 慢病管理建议，会员专属） ==========
+// 复用 chronicAiService.analyzeChronicAdvice：后端从 pet_chronic_records 权威读取慢病数据，
+// 注入宠物档案/打卡/记忆后生成管理建议。Agent 场景下由工具内部调用，无会员校验（聊天本身已登录）。
+
+registerTool('get_chronic_advice', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+  const { analyzeChronicAdvice } = await import('./chronicAiService.js');
+  try {
+    const result = await analyzeChronicAdvice(context.userId, petId, {
+      focus: (args.focus as string) || undefined,
+    });
+    if (result.unsafe) {
+      return { success: false, message: '本次分析未通过安全校验，请稍后再试' };
+    }
+    return { success: true, data: { aiAdvice: result.aiAdvice } };
+  } catch (err) {
+    return { success: false, message: `慢病管理建议生成失败：${err instanceof Error ? err.message : '未知错误'}` };
+  }
+});
+
+// ========== 17. get_feeding_advice（AI 个性化喂养建议，会员专属） ==========
+// 复用 feedingAiService.analyzeFeedingAdvice：注入宠物档案/喂养记录/记忆后生成喂食建议。
+
+registerTool('get_feeding_advice', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+
+  // 读取宠物档案（供前端画像 + 后端权威覆盖）
+  const { rows } = await pool.query(
+    'SELECT id, name, species, breed, birth_date, weight, is_neutered FROM pet_profiles WHERE id = $1 AND user_id = $2',
+    [petId, context.userId]
+  );
+  if (rows.length === 0) {
+    return { success: false, message: '宠物不存在' };
+  }
+  const pet = rows[0];
+
+  const { analyzeFeedingAdvice } = await import('./feedingAiService.js');
+  try {
+    const result = await analyzeFeedingAdvice(context.userId, petId, {
+      petName: pet.name || '',
+      species: pet.species === 'dog' ? 'dog' : 'cat',
+      breed: pet.breed || '',
+      ageMonths: pet.birth_date ? Math.max(0, Math.floor((Date.now() - new Date(pet.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30))) : 0,
+      weight: Number(pet.weight) || 0,
+      bodyCondition: 'normal',
+      isPuppyKitten: false,
+      isSenior: false,
+      isNeutered: Boolean(pet.is_neutered),
+      chronicConditions: [],
+      allergies: [],
+      currentAdvice: '',
+    });
+    if (result.unsafe) {
+      return { success: false, message: '本次分析未通过安全校验，请稍后再试' };
+    }
+    return { success: true, data: { aiAdvice: result.aiAdvice } };
+  } catch (err) {
+    return { success: false, message: `喂养建议生成失败：${err instanceof Error ? err.message : '未知错误'}` };
+  }
+});
+
+// ========== 18. scan_chronic_risk（慢病风险扫描，会员专属） ==========
+// 复用 chronicRiskService.scanChronicRisk：L2 规则预警 + L3 AI 疑似识别（仅疑似/建议排查）。
+
+registerTool('scan_chronic_risk', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+  const { scanChronicRisk } = await import('./chronicRiskService.js');
+  try {
+    const result = await scanChronicRisk(context.userId, petId);
+    if (result.unsafe) {
+      return { success: false, message: '本次风险分析未通过安全校验，请稍后再试' };
+    }
+    return {
+      success: true,
+      data: { signals: result.signals, aiInsight: result.aiInsight },
+    };
+  } catch (err) {
+    return { success: false, message: `风险扫描失败：${err instanceof Error ? err.message : '未知错误'}` };
+  }
+});
+
+console.log('[Agent Tools] 18 个工具已注册完成');

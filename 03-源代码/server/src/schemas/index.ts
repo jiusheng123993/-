@@ -157,6 +157,65 @@ export const symptomCheckSchema = z.object({
   knowledge_match: z.unknown().nullable().optional(),
 });
 
+/**
+ * AI 深度分析（会员专属，Phase 2）
+ * 请求体 = 前端本地初筛结论（规则+图谱依据） + 症状信息；服务端注入宠物档案/打卡/记忆召回
+ */
+export const aiSymptomAnalysisSchema = z.object({
+  symptoms: z.array(z.string().max(50), { error: '请提供症状列表' }).min(1, '请提供症状列表').max(20, '症状过多'),
+  symptom_names: z.array(z.string().max(50)).min(1).max(20),
+  risk_level: z.enum(['normal', 'caution', 'warning', 'emergency']),
+  possible_conditions: z.array(z.string().max(100)).max(10).optional(),
+  conclusions: z
+    .array(
+      z.object({
+        text: z.string().max(300),
+        basis: z.string().max(20),
+        confidence: z.enum(['high', 'medium', 'low']),
+      })
+    )
+    .max(10)
+    .optional(),
+  duration: z.string().max(100).optional(),
+  severity: z.string().max(20).optional(),
+});
+
+// ===== 知识图谱模块（Phase 3：热更新 + 用户纠错 + 管理端） =====
+
+/** 用户纠错反馈（小程序端提交） */
+export const knowledgeFeedbackSchema = z.object({
+  entity_type: z.enum(['disease', 'risk_level', 'advice', 'other'], { error: 'entity_type 不合法' }),
+  entity_name: z.string({ error: '请提供被纠错的内容' }).trim().min(1, '请提供被纠错的内容').max(100, '内容名称过长'),
+  suggestion: z.string({ error: '请填写纠错建议' }).trim().min(1, '请填写纠错建议').max(1000, '建议过长'),
+  check_id: z.string().max(100).optional(),
+  pet_id: z.string().max(100).optional(),
+});
+
+/** 管理端保存图谱（data 为图谱对象，含 riskRules/diseases 等，服务端合并版本） */
+export const adminKnowledgeSchema = z.object({
+  data: z.record(z.string(), z.unknown(), { error: 'data 必须为对象' }),
+});
+
+/** 管理端审核反馈 */
+export const adminReviewSchema = z.object({
+  action: z.enum(['approve', 'reject'], { error: 'action 必须为 approve/reject' }),
+  note: z.string().max(500).optional(),
+});
+
+// ===== 兑换码模块（2026-08-23） =====
+
+/** 用户兑换码（登录态提交） */
+export const redeemSchema = z.object({
+  code: z.string({ error: '请填写兑换码' }).trim().min(1, '请填写兑换码').max(50, '兑换码过长'),
+});
+
+/** 管理端生成兑换码 */
+export const adminRedeemGenerateSchema = z.object({
+  count: z.number().int().min(1).max(100).optional(),
+  days: z.number().int().min(1).max(36500),
+  note: z.string().max(200).optional(),
+});
+
 // ===== 记忆模块 =====
 
 /** 记忆列表查询（可按宠物过滤） */
@@ -209,6 +268,9 @@ export const createMembershipOrderSchema = z.object({
  *   3. 调微信支付下单，返回 JSAPI 支付参数
  *   4. 前端调起支付 → 微信回调 → 创建 memoir 任务
  */
+/** 回忆标签枚举（F4 记忆驱动回忆录：与记忆引擎回忆标签一致） */
+const MEMOIR_TAGS = ['milestone', 'daily_joy', 'bonding', 'special_day', 'family', 'health_heal', 'farewell', 'seasonal'] as const;
+
 export const createMemoirOrderSchema = z
   .object({
     pet_id: z.string({ error: 'pet_id 不能为空' }).min(1, 'pet_id 不能为空').max(100, 'pet_id 过长'),
@@ -222,6 +284,8 @@ export const createMemoirOrderSchema = z
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
     duration: z.number().int().min(5).max(180).optional(),
     style_preset: z.string().max(100).optional(),
+    // F4：回忆标签（与 createMemoirSchema 一致，走支付流程也透传）
+    tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
   })
   .superRefine((data, ctx) => {
     // 照片数量按产品线差异化校验（与 createMemoirSchema 一致）
@@ -271,7 +335,36 @@ export const createTimelineEventSchema = z.object({
   petId: z.string({ error: '请提供宠物ID' }).min(1, '请提供宠物ID').max(100, '宠物ID过长'),
   type: timelineMomentTypeSchema.optional(),
   content: z.record(z.string(), z.unknown()).optional(),
-  photos: z.array(z.string().min(1, '照片地址不能为空')).max(9, 'photos 最多 9 张').optional(),
+  /**
+   * 照片地址列表（最多 9 张）
+   * 格式约束：只允许站内相对路径（/uploads/...）或 http(s) 完整地址，
+   * 防止任意字符串/协议注入（与 createFeedSchema 的 url 校验口径一致）
+   */
+  photos: z
+    .array(
+      z
+        .string({ error: '照片地址不能为空' })
+        .min(1, '照片地址不能为空')
+        .refine((v) => /^(\/|https?:\/\/)/i.test(v), '照片地址必须是 /uploads 路径或 http(s) 地址'),
+    )
+    .max(9, 'photos 最多 9 张')
+    .optional(),
+  /**
+   * 回忆发生日期（补记支撑）：YYYY-MM-DD 纯日期，不传则默认今天
+   * refine 双重校验：①必须能解析为合法日期；②禁止未来日期（防污染时间线排序，
+   * 前端 Picker 已限 end=today，这里 API 兜底，容忍 24h 时钟偏差）
+   */
+  happenedAt: z
+    .string({ error: 'happenedAt 格式不正确' })
+    .max(32, 'happenedAt 过长')
+    .refine((v) => !Number.isNaN(new Date(v).getTime()), 'happenedAt 不是合法日期')
+    .refine((v) => new Date(v).getTime() <= Date.now() + 24 * 60 * 60 * 1000, 'happenedAt 不能是未来日期')
+    .optional(),
+});
+
+/** AI 润色回忆文案请求 */
+export const timelineAiPolishSchema = z.object({
+  text: z.string({ error: 'text 不能为空' }).trim().min(1, '文案不能为空').max(1000, '文案过长，最多 1000 字'),
 });
 
 // ===== 回忆录模块 =====
@@ -294,6 +387,8 @@ export const createMemoirSchema = z
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
     duration: z.number().int().min(5).max(180).optional(),
     style_preset: z.string().max(100).optional(),
+    // F4：回忆标签（用户选，分镜按标签筛核心层记忆）
+    tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
   })
   .superRefine((data, ctx) => {
     // 照片数量按产品线差异化校验
@@ -683,6 +778,18 @@ export const createChronicRecordSchema = z.object({
 /** 更新慢性病记录（全部字段可选） */
 export const updateChronicRecordSchema = createChronicRecordSchema.partial();
 
+/** 慢性病 AI 分析（会员专属）
+ * 请求体最小化：慢病数据从服务端 pet_chronic_records 权威读取，focus 仅用于 prompt 定制
+ */
+export const chronicAiAnalysisSchema = z.object({
+  focus: z.string().max(200, '关注点过长').optional(),
+});
+
+/** 慢性病风险扫描（会员专属）
+ * 无请求体参数：数据全部从服务端权威读取（打卡/档案/记忆）
+ */
+export const chronicRiskScanSchema = z.object({}).strict();
+
 // ===== 喂养记录模块 =====
 
 /** 创建喂养记录 */
@@ -701,6 +808,26 @@ export const createFeedingRecordSchema = z.object({
 
 /** 更新喂养记录（全部字段可选） */
 export const updateFeedingRecordSchema = createFeedingRecordSchema.partial();
+
+/** 喂养建议 AI 分析（会员专属）
+ * 请求体 = 前端规则引擎产出的喂养画像；服务端注入宠物档案/喂养记录/记忆召回后调 LLM
+ */
+export const feedingAiAnalysisSchema = z.object({
+  pet_name: z.string({ error: 'pet_name 不能为空' }).trim().min(1, 'pet_name 不能为空').max(30, 'pet_name 最长 30 字符'),
+  species: z.enum(['dog', 'cat'], { error: 'species 必须为 dog/cat' }),
+  breed: z.string().max(30, 'breed 最长 30 字符').optional().default(''),
+  age_months: z.number().int('age_months 必须为整数').min(0, 'age_months 不能为负').max(600, 'age_months 过大').optional().default(0),
+  weight: z.number().min(0, 'weight 不能为负').max(500, 'weight 过大').optional().default(0),
+  body_condition: z.enum(['underweight', 'normal', 'overweight'], { error: 'body_condition 不合法' }).optional().default('normal'),
+  is_puppy_kitten: z.boolean().optional().default(false),
+  is_senior: z.boolean().optional().default(false),
+  is_neutered: z.boolean().optional().default(false),
+  chronic_conditions: z.array(z.string().max(30, '慢病名过长')).max(10, '慢病过多').optional().default([]),
+  allergies: z.array(z.string().max(30, '过敏原过长')).max(10, '过敏原过多').optional().default([]),
+  recent_appetite: z.enum(['good', 'normal', 'poor']).nullable().optional(),
+  recent_stool: z.enum(['normal', 'loose', 'hard']).nullable().optional(),
+  current_advice: z.string().max(2000, '规则建议过长').optional().default(''),
+});
 
 // ===== AI 建议记录模块（效果追踪） =====
 

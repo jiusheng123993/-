@@ -6,13 +6,17 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
+import { uploadLimiter } from '../middleware/rateLimit.js';
 import { chatMessageSchema } from '../schemas/index.js';
 import { chat, guardCheck, guardCheckOutput, bailianChat, bailianASR } from '../services/aiService.js';
+import { recognizeHealthReport } from '../services/healthReportService.js';
 import { PetFactRepository } from '../repositories/petFactRepository.js';
+import { PetRepository } from '../repositories/petRepository.js';
 
 const router = Router();
 
 const petFactRepository = new PetFactRepository();
+const petRepository = new PetRepository();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -327,6 +331,62 @@ router.post('/breed-recognize', authMiddleware, upload.single('photo'), async (r
   } catch (error) {
     const message = error instanceof Error ? error.message : '品种识别服务异常';
     console.error('[BreedRecognize] 品种识别失败:', message);
+    res.status(500).json({ success: false, message });
+  }
+});
+
+/**
+ * 体检报告识别（回忆录 2.0 F8：Agent 识图能力）
+ * 上传体检报告照片 → DeepSeek 视觉提取指标 → 存 health_reports + 写健康事件记忆
+ * 安全：uploadLimiter 限流（视觉调用成本高）+ petId 归属校验（防越权写他人宠物）
+ */
+router.post('/health-report-recognize', authMiddleware, uploadLimiter, upload.single('photo'), async (req: Request, res: Response) => {
+  try {
+    const { petId } = req.body;
+    if (!petId || typeof petId !== 'string') {
+      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ success: false, message: '请上传体检报告照片' });
+      return;
+    }
+
+    // 归属校验（安全红线：不能对他人宠物写健康数据）
+    const isOwner = await petRepository.isOwner(petId, req.userId as string);
+    if (!isOwner) {
+      res.status(404).json({ success: false, message: '宠物不存在或无权操作' });
+      return;
+    }
+
+    // 图片 → data URL（visionService 支持）
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const imageDataUrl = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
+    const result = await recognizeHealthReport({
+      userId: req.userId as string,
+      petId,
+      imageDataUrl,
+      reportDate: typeof req.body.report_date === 'string' ? req.body.report_date : undefined,
+    });
+
+    if (!result) {
+      res.json({ success: false, message: '未能识别体检报告，请尝试更清晰的照片或手动录入' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: result.id,
+        metrics: result.metrics,
+        hasAbnormal: result.hasAbnormal,
+        rawText: result.rawText,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '体检报告识别服务异常';
+    console.error('[HealthReportRecognize] 识别失败:', message);
     res.status(500).json({ success: false, message });
   }
 });

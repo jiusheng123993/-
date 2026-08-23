@@ -25,7 +25,13 @@ import { AnalyticsEventName } from '../../types/analyticsTypes'
 import type { UrgencyLevel } from '../../engines/petSafety/PetSafetyHandler'
 import { getCrisisMessage } from '../../engines/emotion'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
-import type { SymptomItem } from '../../services/symptomService'
+import {
+  aiDeepAnalyze,
+  type SymptomItem,
+  type AiDeepAnalysisResult,
+} from '../../services/symptomService'
+import { MEDICAL_GRAPH } from '../../data/petKnowledge/medicalGraph'
+import { syncKnowledgeGraph, submitKnowledgeFeedback } from '../../services/knowledgeService'
 import './index.scss'
 
 /** 原型常见症状（从后端症状库中按名称匹配展示） */
@@ -61,6 +67,21 @@ const RISK_CONFIG: Record<string, { label: string; emoji: string; color: string 
   emergency: { label: '立即就医', emoji: '🚨', color: '#FF4D4F' },
 }
 
+/** 置信度展示文案（由代码按依据推导，见 medicalGraph） */
+const CONFIDENCE_LABEL: Record<string, string> = {
+  high: '高',
+  medium: '中',
+  low: '低',
+}
+
+/** 结论依据徽标文案（rule=规则 / graph=图谱 / record=记录 / llm=AI推测） */
+const BASIS_LABEL: Record<string, string> = {
+  rule: '规则',
+  graph: '图谱',
+  record: '记录',
+  llm: 'AI推测',
+}
+
 export default function PetSymptomCheck() {
   const { pets, currentPet, switchPet, isLoading: petLoading } = usePet()
   const {
@@ -85,6 +106,10 @@ export default function PetSymptomCheck() {
   const [paywallVisible, setPaywallVisible] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [showSymptomCrisisReferral, setShowSymptomCrisisReferral] = useState(false)
+  // AI 深度分析（Phase 2，会员）：结果文案 + 记忆召回 + 加载态
+  const [deepAdvice, setDeepAdvice] = useState('')
+  const [deepMemories, setDeepMemories] = useState<AiDeepAnalysisResult['memoriesUsed']>([])
+  const [deepLoading, setDeepLoading] = useState(false)
   const { anxietyState, checkSickAnxiety, dismissSickAnxiety } = useAnxietyDetection()
   const { showCrisisReferral, crisisSeverity, trackEvent: trackEmotion, dismissCrisisReferral, handleFollowUp } = useEmotionTracking(currentPet?.id || null)
   const { trackPageView, trackEvent } = useAnalytics()
@@ -132,6 +157,11 @@ export default function PetSymptomCheck() {
   useEffect(() => {
     loadSymptomData()
   }, [loadSymptomData])
+
+  // Phase 3：启动时同步服务端最新知识图谱（热更新；失败静默走静态兜底，不阻塞页面）
+  useEffect(() => {
+    syncKnowledgeGraph().catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (error) {
@@ -197,7 +227,7 @@ export default function PetSymptomCheck() {
           trackEvent('show_paywall', { feature: 'symptom_check' })
           setPaywallVisible(true)
         } else {
-          Taro.navigateTo({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pagesUser/member/index' })
         }
         return
       }
@@ -240,9 +270,85 @@ export default function PetSymptomCheck() {
     }
   }
 
+  /**
+   * 会员 AI 深度分析（Phase 2）
+   * 基于本地初筛结论调用服务端：注入宠物档案 + 近7天打卡 + 记忆闸门召回后由 LLM 组织话术
+   * 前端会员门仅为体验（服务端另有强制校验，非会员 403）
+   */
+  const handleDeepAnalyze = async () => {
+    if (!currentPet || !currentResult) return
+    if (!isMember) {
+      const showPaywall = await shouldShowPaywall('symptom_check')
+      if (showPaywall) {
+        await markPaywallShown('symptom_check')
+        setPaywallVisible(true)
+      } else {
+        Taro.navigateTo({ url: '/pagesUser/member/index' })
+      }
+      return
+    }
+    setDeepLoading(true)
+    try {
+      // 症状 ID → 中文名（供服务端记忆召回与 prompt）
+      const symptomNames = currentResult.symptoms.map((id) => {
+        const entity = MEDICAL_GRAPH.symptoms.find((s) => s.id === id)
+        return entity ? entity.name : id
+      })
+      const result = await aiDeepAnalyze(currentPet.id, {
+        symptoms: currentResult.symptoms,
+        symptomNames,
+        riskLevel: currentResult.riskLevel,
+        possibleConditions: currentResult.possibleConditions,
+        conclusions: currentResult.conclusions || [],
+        duration: currentResult.additionalInfo?.duration,
+        severity: currentResult.additionalInfo?.severity,
+      })
+      setDeepAdvice(result.aiAdvice)
+      setDeepMemories(result.memoriesUsed || [])
+      trackEvent('symptom_deep_analyze', { petId: currentPet.id, riskLevel: currentResult.riskLevel })
+    } catch {
+      Taro.showToast({ title: '深度分析失败，请重试', icon: 'none' })
+    } finally {
+      setDeepLoading(false)
+    }
+  }
+
+  /**
+   * 用户纠错反馈（Phase 3）：对当前分析结果提出异议 → 进 knowledge_feedback 表，管理后台人工审核
+   */
+  const handleFeedback = () => {
+    if (!currentResult) return
+    // Taro 3.6 类型未声明 editable/content，做类型收窄（运行时微信支持可编辑弹窗）
+    const modalOptions = {
+      title: '反馈问题',
+      editable: true,
+      placeholderText: '请描述你认为有误的地方（如排查方向、风险等级、建议）',
+      confirmText: '提交',
+      success: async (res: { confirm?: boolean; content?: string }) => {
+        if (res.confirm && res.content) {
+          try {
+            await submitKnowledgeFeedback({
+              entityType: 'other',
+              entityName: `风险等级 ${currentResult.riskLevel} 的分析结果`,
+              suggestion: res.content,
+              checkId: currentResult.id,
+              petId: currentPet?.id,
+            })
+            Taro.showToast({ title: '已收到反馈，感谢！', icon: 'success' })
+          } catch {
+            Taro.showToast({ title: '提交失败，请重试', icon: 'none' })
+          }
+        }
+      },
+    } as unknown as Parameters<typeof Taro.showModal>[0]
+    Taro.showModal(modalOptions)
+  }
+
   const handleReset = () => {
     clearSelection()
     setShowResult(false)
+    setDeepAdvice('')
+    setDeepMemories([])
   }
 
   const isLoading = petLoading || symptomLoading
@@ -416,6 +522,64 @@ export default function PetSymptomCheck() {
                 </Text>
               </View>
 
+              {/* ===== 置信度与依据（Phase 1：整体置信度 + 每条结论带依据徽标） ===== */}
+              {currentResult.conclusions && currentResult.conclusions.length > 0 && (
+                <View className='pet-symptom-check__confidence'>
+                  <View className='pet-symptom-check__confidence-head'>
+                    <Text className='pet-symptom-check__confidence-title'>分析置信度</Text>
+                    <Text className={`pet-symptom-check__confidence-badge pet-symptom-check__confidence-badge--${currentResult.confidence || 'low'}`}>
+                      {CONFIDENCE_LABEL[currentResult.confidence || 'low']}
+                    </Text>
+                  </View>
+                  {currentResult.conclusions.map((conclusion, index) => (
+                    <View key={index} className='pet-symptom-check__conclusion'>
+                      <Text className='pet-symptom-check__conclusion-text'>{conclusion.text}</Text>
+                      <Text className={`pet-symptom-check__conclusion-basis pet-symptom-check__conclusion-basis--${conclusion.basis}`}>
+                        {BASIS_LABEL[conclusion.basis] || conclusion.basis}
+                        {conclusion.confidence === 'low' ? ' 🤖' : ''}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* ===== AI 深度分析（Phase 2，会员专属：记忆召回 + LLM 话术） ===== */}
+              <View className='pet-symptom-check__deep'>
+                {deepAdvice ? (
+                  <>
+                    <View className='pet-symptom-check__deep-head'>
+                      <Text className='pet-symptom-check__deep-title'>🧠 AI 深度分析</Text>
+                    </View>
+                    <Text className='pet-symptom-check__deep-advice'>{deepAdvice}</Text>
+                    {deepMemories.length > 0 && (
+                      <View className='pet-symptom-check__deep-memories'>
+                        <Text className='pet-symptom-check__deep-memories-title'>📋 记忆里的它</Text>
+                        {deepMemories.map((m, index) => (
+                          <Text key={index} className='pet-symptom-check__deep-memory'>
+                            {m.content}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View
+                    className={`pet-symptom-check__deep-btn${
+                      deepLoading ? ' pet-symptom-check__deep-btn--loading' : ''
+                    }`}
+                    onClick={handleDeepAnalyze}
+                  >
+                    <Text className='pet-symptom-check__deep-btn-text'>
+                      {deepLoading
+                        ? '⏳ AI 分析中...'
+                        : isMember
+                          ? '✨ 开启 AI 深度分析'
+                          : '🔒 会员专享 · AI 深度分析'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
               {currentResult.possibleConditions.length > 0 && (
                 <View className='pet-symptom-check__result-section'>
                   <Text className='pet-symptom-check__result-section-title'>🔬 可能相关</Text>
@@ -447,6 +611,11 @@ export default function PetSymptomCheck() {
                 <Text className='pet-symptom-check__result-disclaimer-text'>
                   ⚠️ {disclaimerText}
                 </Text>
+              </View>
+
+              {/* Phase 3：纠错入口（反馈进知识库审核流程，人工核查后热更新） */}
+              <View className='pet-symptom-check__feedback' onClick={handleFeedback}>
+                <Text className='pet-symptom-check__feedback-text'>📮 认为结果有误？点此反馈</Text>
               </View>
 
               <View className='pet-symptom-check__result-actions-bar'>
@@ -542,7 +711,7 @@ export default function PetSymptomCheck() {
         visible={paywallVisible}
         featureName="AI症状初筛"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pagesUser/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 

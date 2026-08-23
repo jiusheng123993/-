@@ -477,7 +477,8 @@ export default function PetCheckin() {
   const monthlyCount = useMemo(() => {
     const now = new Date()
     const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    return checkins.filter(c => c.date.startsWith(yearMonth)).length
+    // 防御：历史/本地数据可能缺 date 字段（服务端契约修复见 api.normalizeCheckin）
+    return checkins.filter(c => (c.date || '').startsWith(yearMonth)).length
   }, [checkins])
 
   const totalCheckins = checkins.length
@@ -554,6 +555,7 @@ export default function PetCheckin() {
             species={currentPet.species as 'dog' | 'cat'}
             petName={currentPet.name}
             expressionContext={expressionContext}
+            pet={currentPet}
             size={100}
             showLabel
           />
@@ -600,6 +602,7 @@ export default function PetCheckin() {
                   species={currentPet.species as 'dog' | 'cat'}
                   petName={currentPet.name}
                   expressionContext={expressionContext!}
+                  pet={currentPet}
                   size={48}
                   showLabel={false}
                 />
@@ -910,7 +913,7 @@ export default function PetCheckin() {
       {showAchievementShare && achievement && currentPet && (
         <AchievementShareCard
           petName={currentPet.name}
-          petAvatar={currentPet.avatarPhotoUrl || ''}
+          petAvatar={currentPet.avatarPhotoUrl || currentPet.avatarCartoonUrl || ''}
           achievementType={achievement.type}
           achievementTitle={achievement.title}
           achievementSubtitle={achievement.subtitle}

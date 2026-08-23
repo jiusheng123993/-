@@ -150,7 +150,7 @@ export default function PetFoodQuery() {
           trackEvent('show_paywall', { feature: 'food_query' })
           setPaywallVisible(true)
         } else {
-          Taro.navigateTo({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pagesUser/member/index' })
         }
         return
       }
@@ -208,7 +208,7 @@ export default function PetFoodQuery() {
           await markPaywallShown('food_query')
           setPaywallVisible(true)
         } else {
-          Taro.navigateTo({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pagesUser/member/index' })
         }
         return
       }
@@ -284,6 +284,7 @@ export default function PetFoodQuery() {
             species={currentPet.species as 'dog' | 'cat'}
             petName={currentPet.name}
             expressionContext={expressionContext}
+            pet={currentPet}
             size={80}
             showLabel
           />
@@ -596,7 +597,7 @@ export default function PetFoodQuery() {
         visible={paywallVisible}
         featureName="食物查询"
         remainingFree={stats?.remainingFree ?? 0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pagesUser/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 

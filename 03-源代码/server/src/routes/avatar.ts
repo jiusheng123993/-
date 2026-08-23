@@ -124,6 +124,17 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
       return;
     }
 
+    // AI 形象生成（文字描述）为会员专享：服务端强制，不能只靠前端隐藏（与 generate-options 口径一致）
+    const { isMember } = await getUserMembership(userId);
+    if (!isMember) {
+      res.status(403).json({
+        success: false,
+        message: 'AI 形象生成仅限会员使用，请先开通会员',
+        code: 'MEMBER_ONLY',
+      });
+      return;
+    }
+
     const generationId = uuidv4();
 
     await avatarGenerationRepository.createGeneration({
@@ -197,6 +208,18 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       return;
     }
 
+    // AI 形象生成（文字/照片）均为会员专享：服务端强制，不能只靠前端隐藏。
+    // 放在参考照片处理之前，堵住"无照片路径绕过会员校验"的口子（此前无照片路径可被非会员白嫖）
+    const { isMember } = await getUserMembership(userId);
+    if (!isMember) {
+      res.status(403).json({
+        success: false,
+        message: 'AI 形象生成仅限会员使用，请先开通会员',
+        code: 'MEMBER_ONLY',
+      });
+      return;
+    }
+
     // 参考照片：仅当用户显式传入时才使用（照片生成是会员专享功能）。
     // 注意：不要自动回退到宠物档案里已存的照片，否则免费用户"文字生成"会被误判成照片生成
     let photoUrl: string | undefined;
@@ -208,18 +231,8 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       photoUrl = referenceImageUrl;
     }
 
-    // 参照自家宠物照片生成 = 会员专享 + 每月限次（服务端强制，不能只靠前端隐藏）
+    // 参照自家宠物照片生成 = 会员每月限次（服务端强制；会员校验已在上面统一完成）
     if (photoUrl) {
-      const { isMember } = await getUserMembership(userId);
-      if (!isMember) {
-        res.status(403).json({
-          success: false,
-          message: '参照宠物照片生成专属形象仅限会员使用，请先开通会员',
-          code: 'MEMBER_ONLY',
-        });
-        return;
-      }
-
       const monthStart = new Date();
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);

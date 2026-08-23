@@ -19,9 +19,11 @@ import { getTodayCheckin } from '../../services/checkinService'
 import type { CardData, Message, NamingDetail, PetInfo } from '../../types/chatTypes'
 import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
 import HomeSkeleton from '../../components/HomeSkeleton'
+import AiAvatar from './AiAvatar'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { uploadVoiceForTranscription } from '../../services/voiceService'
+import { getCachedRiskScan } from '../../services/chronicService'
 import './index.scss'
 
 function calcAge(birthDate: string): string {
@@ -89,6 +91,8 @@ export default function Index() {
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
   const [plusPanelOpen, setPlusPanelOpen] = useState(false)
   const [showGreetingQuickActions, setShowGreetingQuickActions] = useState(true)
+  // 慢性病风险角标：进入首页读取缓存的风险扫描结果，有风险信号时在快捷入口显示角标
+  const [chronicRiskCount, setChronicRiskCount] = useState(0)
   const [currentQuickActions, setCurrentQuickActions] = useState<QuickAction[]>([
     { action: 'checkin', label: '健康打卡', emoji: '💩' },
     { action: 'food', label: '食物查询', emoji: '🔍' },
@@ -116,6 +120,19 @@ export default function Index() {
       .then(entry => setTodayHealth(entry))
       .catch(() => setTodayHealth(null))
   }, [petInfo.activePet?.id, user?.id])
+
+  // 慢性病风险角标：读取缓存的风险扫描结果（慢性病页进入时自动扫描并写缓存）
+  useEffect(() => {
+    const activePet = petInfo.activePet
+    if (!activePet) {
+      setChronicRiskCount(0)
+      return
+    }
+    const cached = getCachedRiskScan(activePet.id)
+    // 仅统计需要关注的信号（warning/alert），info 级不打扰
+    const count = cached ? cached.signals.filter(s => s.level !== 'info').length : 0
+    setChronicRiskCount(count)
+  }, [petInfo.activePet?.id])
 
   const checkin = useCheckinFlow({
     addAiMsg: chat.addAiMsg,
@@ -645,7 +662,7 @@ export default function Index() {
         <View className='chat-top-left'>
           <View className='chat-top-brand'>
             <Text className='chat-pet-name'>星河宠记</Text>
-            <Text className='chat-pet-detail'>AI 宠物管家</Text>
+            <Text className='chat-pet-detail'>团团 · AI 宠物管家</Text>
           </View>
         </View>
         <View className='chat-top-right'>
@@ -670,7 +687,17 @@ export default function Index() {
         <View className='home-summary-card' onClick={() => checkin.startCheckin()}>
           <View className='home-summary-main'>
             <View className='home-summary-avatar'>
-              <Text>{petInfo.emoji || '🐾'}</Text>
+              {/* 头像与全局一致：真实照片/AI 形象优先，没有才回退物种 emoji */}
+              {petInfo.activePet?.avatarPhotoUrl || petInfo.activePet?.avatarCartoonUrl ? (
+                <Image
+                  className='home-summary-avatar-img'
+                  src={petInfo.activePet?.avatarPhotoUrl || petInfo.activePet?.avatarCartoonUrl || ''}
+                  mode='aspectFill'
+                  lazyLoad
+                />
+              ) : (
+                <Text>{petInfo.emoji || '🐾'}</Text>
+              )}
             </View>
             <View className='home-summary-info'>
               <Text className='home-summary-title'>今日健康摘要</Text>
@@ -718,11 +745,11 @@ export default function Index() {
 
         <View className='msg-row ai'>
           <View className='msg-avatar'>
-            <Text>🤖</Text>
+            <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
           </View>
           <View className='msg-bubble-wrap'>
             <View className='msg-bubble'>
-              <Text>你好呀～我是星河宠记的AI宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
+              <Text>你好呀～我是团团，你的 AI 宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
             </View>
             {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
@@ -739,7 +766,11 @@ export default function Index() {
         {chat.messages.map((msg, idx) => (
           <View key={msg.id} className={`msg-row ${msg.type}`}>
             <View className='msg-avatar'>
-              <Text>{msg.type === 'ai' ? '🤖' : '😊'}</Text>
+              {msg.type === 'ai' ? (
+                <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
+              ) : (
+                <Text>😊</Text>
+              )}
             </View>
             <View className='msg-bubble-wrap'>
               <View
@@ -839,7 +870,7 @@ export default function Index() {
         {agentToolStatus && (
           <View className='msg-row ai'>
             <View className='msg-avatar'>
-              <Text>🤖</Text>
+              <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
             </View>
             <View className='msg-bubble agent-status-bubble'>
               <Text className='agent-status-text'>{agentToolStatus}</Text>
@@ -850,7 +881,7 @@ export default function Index() {
         {chat.isTyping && (
           <View className='msg-row ai'>
             <View className='msg-avatar'>
-              <Text>🤖</Text>
+              <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />
             </View>
             <View className='msg-bubble typing-bubble'>
               <View className='typing-dots'>
@@ -895,6 +926,18 @@ export default function Index() {
               </View>
               <Text className='home-shortcut-label'>健康趋势</Text>
               <Text className='home-shortcut-desc'>看看成长变化</Text>
+            </View>
+            <View className='home-shortcut' onClick={() => Taro.navigateTo({ url: '/pagesPet/chronic-tracking/index' })} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--coral'>
+                <Text>🩺</Text>
+                {chronicRiskCount > 0 && (
+                  <View className='home-shortcut-badge'>
+                    <Text className='home-shortcut-badge-text'>{chronicRiskCount}</Text>
+                  </View>
+                )}
+              </View>
+              <Text className='home-shortcut-label'>慢性病追踪</Text>
+              <Text className='home-shortcut-desc'>自动扫描健康风险</Text>
             </View>
             <View className='home-shortcut' onClick={() => Taro.switchTab({ url: '/pages/family/index' })} hoverClass='home-shortcut--hover'>
               <View className='home-shortcut-icon home-shortcut-icon--coral'>

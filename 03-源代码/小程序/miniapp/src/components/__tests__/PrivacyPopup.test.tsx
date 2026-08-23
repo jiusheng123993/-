@@ -8,14 +8,29 @@ vi.mock('@tarojs/components', () => ({
   View: ({ children, className, style, onClick }: any) => (
     <div className={className} style={style} onClick={onClick}>{children}</div>
   ),
-  Text: ({ children, className, style }: any) => (
-    <span className={className} style={style}>{children}</span>
+  Text: ({ children, className, style, onClick }: any) => (
+    <span className={className} style={style} onClick={onClick}>{children}</span>
   ),
   Input: ({ className, placeholder, value, onInput, maxlength }: any) => (
     <input className={className} placeholder={placeholder} value={value} onChange={(e: any) => onInput?.({ detail: { value: e.target.value } })} maxLength={maxlength} />
   ),
-  Button: ({ children, className, onClick, disabled, loading }: any) => (
-    <button className={className} onClick={onClick} disabled={disabled} data-loading={loading}>{children}</button>
+  Button: ({ children, className, onClick, disabled, loading, openType, onAgreePrivacyAuthorization }: any) => (
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+      data-loading={loading}
+      data-opentype={openType}
+      onClickCapture={(e: any) => {
+        // 模拟微信 agreePrivacyAuthorization：点击同意按钮时若配置了该回调则触发它
+        if (openType === 'agreePrivacyAuthorization' && onAgreePrivacyAuthorization) {
+          e.stopPropagation()
+          onAgreePrivacyAuthorization()
+        }
+      }}
+    >
+      {children}
+    </button>
   ),
   Radio: ({ children, value, checked, color }: any) => (
     <label data-value={value} data-checked={checked} data-color={color}>{children}</label>
@@ -67,12 +82,11 @@ describe('PrivacyPopup', () => {
     expect(onReject).toHaveBeenCalledTimes(1)
   })
 
-  it('shows privacy text with links', () => {
+  it('shows privacy text with link', () => {
     const { getByText } = render(
       <PrivacyPopup visible={true} onAgree={vi.fn()} onReject={vi.fn()} />
     )
-    expect(getByText('《用户协议》')).toBeDefined()
-    expect(getByText('《隐私政策》')).toBeDefined()
+    expect(getByText('《用户隐私保护指引》')).toBeDefined()
   })
 
   it('re-render with visible=false hides popup', () => {

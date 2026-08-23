@@ -59,6 +59,25 @@
   @include breathe-glow;
 }
 
+/* 更换头像角标：悬浮在头像右下角，点击进入形象定制页 */
+.profile-hero-avatar-edit {
+  position: absolute;
+  right: -6rpx;
+  bottom: -6rpx;
+  padding: 8rpx 18rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, #FFB84D 0%, #FF8C42 100%);
+  box-shadow: $shadow-sm;
+  border: 4rpx solid $color-bg-card;
+  @include press-feedback;
+}
+
+.profile-hero-avatar-edit-text {
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: $font-weight-semibold;
+}
+
 .profile-hero-name-row {
   display: flex;
   align-items: center;
@@ -475,9 +494,12 @@
   align-items: center;
   gap: $spacing-xs;
   padding: 28rpx $spacing-sm;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
+  // 跟随主题：玻璃底 + 光晕描边（与全局 xhh-glow-card 一致，随主题换色）
+  background: $glass-bg;
+  border: 1px solid $glass-border;
   border-radius: $radius-md;
+  box-shadow: $glow-sm;
+  backdrop-filter: blur(20rpx);
   transition: all 0.2s ease;
 
   &:active {

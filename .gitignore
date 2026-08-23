@@ -78,3 +78,6 @@ graphify-out/
 03-源代码/小程序/miniapp/dist-h5/
 网站部署包/
 星寰海官网部署包.zip
+
+# 运行时上传目录（含用户上传文件与已部署的头像静态资源，不入 git）
+03-源代码/server/uploads/

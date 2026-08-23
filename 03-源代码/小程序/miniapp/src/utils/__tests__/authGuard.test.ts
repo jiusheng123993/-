@@ -139,7 +139,7 @@ describe('authGuard', () => {
     it('should navigate to login when not authenticated', () => {
       mockGetStorageSync.mockReturnValue('')
       expect(() => requireAuth()).toThrow(AuthenticationError)
-      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
+      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
     })
 
     it('should return userId and token when authenticated', () => {
@@ -160,7 +160,7 @@ describe('authGuard', () => {
       mockGetStorageSync.mockReturnValue('invalid-token')
       mockIsTokenFormatValid.mockReturnValue(false)
       await expect(requireAuthAsync()).rejects.toThrow(AuthenticationError)
-      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
+      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
     })
 
     it('should navigate to login when token valid but user info missing', async () => {

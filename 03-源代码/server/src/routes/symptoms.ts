@@ -6,14 +6,28 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import crypto from 'crypto';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { symptomCheckSchema, symptomHistoryQuerySchema } from '../schemas/index.js';
+import { symptomLimiter } from '../middleware/rateLimit.js';
+import { symptomCheckSchema, symptomHistoryQuerySchema, aiSymptomAnalysisSchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { SymptomRepository } from '../repositories/symptomRepository.js';
+import { MembershipRepository } from '../repositories/membershipRepository.js';
+import { recordHealthMemory } from '../services/memoryService.js';
+import { deepAnalyzeSymptom, formatDate } from '../services/symptomAiService.js';
 
 const router = Router();
 
 const petRepository = new PetRepository();
 const symptomRepository = new SymptomRepository();
+const membershipRepository = new MembershipRepository();
+
+/** 查询用户会员状态（AI 深度分析会员强制校验，不能只靠前端隐藏） */
+async function getUserMembership(userId: string): Promise<{ isMember: boolean; status: string }> {
+  const row = await membershipRepository.findTierAndStatus(userId);
+  if (!row) return { isMember: false, status: 'none' };
+  const isExpired = row.expires_at && new Date(row.expires_at) < new Date();
+  if (isExpired) return { isMember: false, status: 'expired' };
+  return { isMember: row.tier !== 'free' && row.status === 'active', status: row.status };
+}
 
 async function checkPetOwnership(req: Request, res: Response, next: NextFunction) {
   try {
@@ -33,7 +47,7 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
 
 // 注意：本路由已挂载在 app.use('/api/pets', ...) 下，这里使用相对路径，
 // 避免拼出 /api/pets/api/pets/... 导致 404
-router.post('/:petId/symptom-check', authMiddleware, validate({ body: symptomCheckSchema }), checkPetOwnership, async (req: Request, res: Response) => {
+router.post('/:petId/symptom-check', authMiddleware, symptomLimiter, validate({ body: symptomCheckSchema }), checkPetOwnership, async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
@@ -55,6 +69,58 @@ router.post('/:petId/symptom-check', authMiddleware, validate({ body: symptomChe
     });
 
     res.json({ success: true, data: row });
+
+    // 健康事件自动记忆（F1）：症状初筛 → 自动沉淀医疗记忆（异步，不影响主流程）
+    try {
+      const importance =
+        risk_level === 'emergency' ? 10 : risk_level === 'warning' ? 9 : risk_level === 'caution' ? 8 : 7;
+      const riskText: Record<string, string> = {
+        emergency: '紧急需就医',
+        warning: '需尽快就医',
+        caution: '需观察',
+        normal: '一般',
+      };
+      const symptomText = Array.isArray(symptoms) ? (symptoms as string[]).join('、') : String(symptoms ?? '');
+      const adviceText = req.body.ai_advice ? `，建议：${String(req.body.ai_advice).slice(0, 80)}` : '';
+      void recordHealthMemory({
+        userId,
+        petId,
+        category: 'medical',
+        content: `${new Date().toLocaleDateString('zh-CN')} 症状初筛：${symptomText}（${duration || '时长未知'}），评估：${riskText[risk_level || 'normal']}${adviceText}`,
+        importance,
+        evidence: `symptom:${id}`,
+      });
+    } catch (err) {
+      console.warn('[SymptomCheck] 健康事件记忆失败:', err);
+    }
+
+    // 恢复事件闭环（设计方案 6.2，Phase 1 遗留补齐）：
+    // 本次为低风险检查（normal/caution）且 14 天内存在"同症状 + 高风险(warning/emergency)"检查
+    // → 沉淀"XX症状已恢复"记忆（importance 6，key 带 recovery 后缀与初筛记忆隔离）
+    try {
+      const lowRisk = risk_level === 'normal' || risk_level === 'caution';
+      const symptomIds = Array.isArray(symptoms) ? (symptoms as string[]) : [];
+      if (lowRisk && symptomIds.length > 0) {
+        const prev = await symptomRepository.findRecentHighRiskCheck(petId, userId, symptomIds, 14);
+        if (prev && Array.isArray(prev.symptoms) && prev.symptoms.length > 0) {
+          const prevRiskText: Record<string, string> = { emergency: '紧急需就医', warning: '需尽快就医' };
+          // 用 formatDate 统一格式化（pg 的 TIMESTAMPTZ 是 Date 对象，String().slice 会产出 "Thu Aug 19"）
+          const prevDate = formatDate(prev.created_at);
+          void recordHealthMemory({
+            userId,
+            petId,
+            category: 'medical',
+            content: `${new Date().toLocaleDateString('zh-CN')} ${prev.symptoms.join('、')}症状已恢复（上次${prevDate}检查评估：${prevRiskText[prev.risk_level] || prev.risk_level}），持续观察中`,
+            importance: 6,
+            evidence: `symptom:${id}:recovery`,
+            keySuffix: 'recovery',
+          });
+        }
+      }
+    } catch (err) {
+      // 恢复事件检测失败不影响主流程（异步旁路）
+      console.warn('[SymptomCheck] 恢复事件记忆失败:', err);
+    }
   } catch (err) {
     console.error('[Symptom Check Error]', err);
     res.status(500).json({ success: false, message: '提交症状初筛失败' });
@@ -91,6 +157,38 @@ router.get('/:petId/symptom-check/history', authMiddleware, validate({ query: sy
   } catch (err) {
     console.error('[Symptom History Error]', err);
     res.status(500).json({ success: false, message: '获取初筛历史失败' });
+  }
+});
+
+/**
+ * POST /api/pets/:petId/symptom-check/ai-analysis
+ * AI 深度分析（会员专属，Phase 2）
+ * 请求体 = 前端本地初筛结论（规则+图谱依据），服务端注入宠物档案/打卡/记忆闸门召回后调 LLM
+ * 安全：auth + 症状限流(10次/分钟) + 宠物归属 + 会员强制 + zod 校验 + 输出安全检测（服务内）
+ */
+router.post('/:petId/symptom-check/ai-analysis', authMiddleware, symptomLimiter, validate({ body: aiSymptomAnalysisSchema }), checkPetOwnership, async (req: Request, res: Response) => {
+  try {
+    // 会员强制校验（服务端，不能只靠前端隐藏——LLM 调用有成本）
+    const { isMember } = await getUserMembership(req.userId!);
+    if (!isMember) {
+      res.status(403).json({ success: false, message: 'AI 深度分析仅限会员使用，请先开通会员' });
+      return;
+    }
+
+    const result = await deepAnalyzeSymptom(req.userId!, req.params.petId as string, {
+      symptoms: req.body.symptoms,
+      symptomNames: req.body.symptom_names,
+      riskLevel: req.body.risk_level,
+      possibleConditions: req.body.possible_conditions || [],
+      conclusions: req.body.conclusions || [],
+      duration: req.body.duration,
+      severity: req.body.severity,
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[Symptom AI Analysis Error]', err);
+    res.status(500).json({ success: false, message: 'AI 深度分析失败' });
   }
 });
 

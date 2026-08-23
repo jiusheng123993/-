@@ -21,6 +21,11 @@ vi.mock('../../utils/storage', () => ({
 describe('BehaviorAdapter', () => {
   let adapter: BehaviorAdapter
 
+  // 日期工具：用相对当前时间的动态日期，避免硬编码日期过期被检测窗口排除（2026-08-22 修复）
+  const today = () => new Date().toISOString().split('T')[0]
+  const daysAgo = (n: number) =>
+    new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
   beforeEach(() => {
     Object.keys(mockStorage).forEach(k => delete mockStorage[k])
     adapter = new BehaviorAdapter('test-user')
@@ -29,19 +34,19 @@ describe('BehaviorAdapter', () => {
 
   it('记录观察后可构建基线', () => {
     adapter.recordObservation('pet-1', {
-      date: '2026-07-28',
+      date: daysAgo(2),
       category: 'energy',
       description: '非常活跃，跑跳不停',
       severity: 'normal',
     })
     adapter.recordObservation('pet-1', {
-      date: '2026-07-29',
+      date: daysAgo(1),
       category: 'energy',
       description: '兴奋好动',
       severity: 'normal',
     })
     adapter.recordObservation('pet-1', {
-      date: '2026-07-30',
+      date: today(),
       category: 'energy',
       description: '活跃',
       severity: 'normal',
@@ -52,7 +57,7 @@ describe('BehaviorAdapter', () => {
 
   it('检测异常行为', () => {
     adapter.recordObservation('pet-1', {
-      date: '2026-07-30',
+      date: today(),
       category: 'appetite_behavior',
       description: '完全不吃东西',
       severity: 'concern',

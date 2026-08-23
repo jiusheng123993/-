@@ -1,0 +1,49 @@
+/* 星河宠记 · 知识图谱审核后台样式（Phase 3，外置以兼容 helmet CSP） */
+body { font-family: -apple-system, 'PingFang SC', sans-serif; margin: 0; background: #F5F7FA; color: #333; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 20px; }
+.card { background: #FFF; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+input[type=text], textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #DDD; border-radius: 8px; font-size: 13px; }
+textarea { min-height: 220px; font-family: Consolas, monospace; }
+button { padding: 10px 20px; border: none; border-radius: 8px; background: #4A90D9; color: #FFF; font-size: 14px; cursor: pointer; margin-right: 8px; }
+button.secondary { background: #EEE; color: #333; }
+button.reject { background: #E5484D; }
+.row { margin-top: 12px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; background: #E9EDF2; font-size: 14px; }
+.tab.active { background: #4A90D9; color: #FFF; }
+.hidden { display: none; }
+.fb-item { border-bottom: 1px solid #F0F0F0; padding: 12px 0; }
+.fb-item .meta { font-size: 12px; color: #999; margin-bottom: 6px; }
+.fb-item .sug { font-size: 14px; margin-bottom: 8px; }
+.status { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+.status.open { background: #FFF3CD; color: #856404; }
+.status.approved { background: #D4EDDA; color: #155724; }
+.status.rejected { background: #F8D7DA; color: #721C24; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #FFF; padding: 10px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 99; }
+
+/* ===== 兑换码（2026-08-23） ===== */
+.redeem-form { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.redeem-form label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #666; }
+.redeem-form input { width: 100px; padding: 8px; border: 1px solid #DDD; border-radius: 8px; }
+.redeem-form input[type=text] { width: 200px; }
+.redeem-result { margin-top: 12px; padding: 12px; background: #F0F7FF; border-radius: 8px; }
+.redeem-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0F0F0; flex-wrap: wrap; }
+.redeem-code { font-family: Consolas, monospace; font-size: 14px; font-weight: bold; color: #1F5FA8; }
+.redeem-days { font-size: 12px; color: #666; }
+.redeem-note { font-size: 12px; color: #999; }
+.redeem-by { font-size: 12px; color: #999; margin-left: auto; }
+
+/* ===== 令牌提示条（2026-08-23） ===== */
+.auth-warning {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #FFF3CD;
+  border: 1px solid #FFC107;
+  color: #856404;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.auth-warning code { background: #FFF; padding: 2px 6px; border-radius: 4px; font-size: 12px; }

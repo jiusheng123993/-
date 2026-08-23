@@ -64,6 +64,12 @@ function check3DQuota(isMember: boolean, usedCount: number): { allowed: boolean;
   return { allowed: true };
 }
 
+// 模拟 generate-options 会员校验（无照片路径同样强制会员，堵住绕过前端会员墙的白嫖口子）
+function checkGenerateOptionsMember(isMember: boolean): { allowed: boolean; reason?: string } {
+  if (!isMember) return { allowed: false, reason: 'MEMBER_ONLY' };
+  return { allowed: true };
+}
+
 beforeEach(() => {
   // 重置环境变量
   delete process.env.SUPABASE_URL;
@@ -194,6 +200,16 @@ describe('avatar.ts - 3D 配额校验', () => {
 
   it('会员超额应拒绝', () => {
     expect(check3DQuota(true, 10)).toEqual({ allowed: false, reason: 'QUOTA_EXCEEDED' });
+  });
+});
+
+describe('avatar.ts - generate-options 会员校验（无照片路径也强制，防白嫖）', () => {
+  it('非会员调用（无论是否带参考照片）应被拒绝 MEMBER_ONLY', () => {
+    expect(checkGenerateOptionsMember(false)).toEqual({ allowed: false, reason: 'MEMBER_ONLY' });
+  });
+
+  it('会员调用应放行', () => {
+    expect(checkGenerateOptionsMember(true)).toEqual({ allowed: true });
   });
 });
 

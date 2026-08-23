@@ -48,10 +48,18 @@ import {
   getStoolTrend,
   getAbnormalDays,
 } from '../trendService'
-import type { TrendDataPoint, TrendSummary, MonthlyReport } from '../trendService'
+import type { TrendDataPoint, TrendSummary } from '../trendService'
 import type { PetHealthEntry } from '../checkinService'
 
 const today = new Date().toISOString().split('T')[0]
+
+/**
+ * 生成 n 天前的 Date（用于构造"窗口内"的打卡数据，避开本地计算按日期过滤的坑）
+ * @param n - 距今的天数，0 表示今天
+ */
+function daysAgo(n: number): Date {
+  return new Date(Date.now() - n * 86400000)
+}
 
 function makeCheckinEntry(overrides: Partial<PetHealthEntry> = {}): PetHealthEntry {
   return {
@@ -86,34 +94,6 @@ function makeTrendDataPoint(overrides: Partial<TrendDataPoint> = {}): TrendDataP
   }
 }
 
-function makeTrendSummary(overrides: Partial<TrendSummary> = {}): TrendSummary {
-  return {
-    petId: 'pet-001',
-    period: 'month',
-    weightTrend: 'stable',
-    weightChange: 0,
-    weightChangePercent: 0,
-    appetiteStats: { normal: 10, decreased: 0, increased: 0, none: 0 },
-    stoolStats: { normal: 10, soft: 0, diarrhea: 0, constipation: 0, bloody: 0 },
-    abnormalDays: 0,
-    totalDays: 10,
-    aiAnalysis: '体重保持稳定，这是健康的好迹象。食欲整体正常，饮食状况良好。排便情况整体正常。整体健康状况良好，继续保持！',
-    ...overrides,
-  }
-}
-
-function makeMonthlyReport(overrides: Partial<MonthlyReport> = {}): MonthlyReport {
-  return {
-    petId: 'pet-001',
-    month: '2024-01',
-    summary: makeTrendSummary(),
-    highlights: ['体重保持稳定', '食欲整体良好', '排便情况正常'],
-    concerns: [],
-    recommendations: ['建议定期进行年度体检'],
-    ...overrides,
-  }
-}
-
 describe('trendService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -122,21 +102,8 @@ describe('trendService', () => {
   })
 
   describe('getTrendData', () => {
-    it('should return trend data from API', async () => {
-      const mockData = [makeTrendDataPoint(), makeTrendDataPoint({ date: '2024-01-02' })]
-      vi.mocked(api.get).mockResolvedValue(mockData)
-
-      const result = await getTrendData('pet-001', '2024-01-01', '2024-01-31')
-
-      expect(result).toHaveLength(2)
-      expect(result[0].date).toBe(today)
-      expect(api.get).toHaveBeenCalledWith(
-        '/api/pets/pet-001/trends?startDate=2024-01-01&endDate=2024-01-31'
-      )
-    })
-
-    it('should fallback to checkin data when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+    it('should return trend data from checkins (本地计算主路径)', async () => {
+      // 后端 /trends 契约不适配，趋势数据基于打卡记录接口（/checkins）本地映射
       const mockCheckins = [
         makeCheckinEntry(),
         makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-02T00:00:00.000Z'), weight: 11 }),
@@ -146,13 +113,16 @@ describe('trendService', () => {
       const result = await getTrendData('pet-001', '2024-01-01', '2024-01-31')
 
       expect(result).toHaveLength(2)
-      expect(result[0].hasAbnormal).toBe(false)
+      expect(result[0].date).toBe('2024-01-01')
       expect(result[0].weight).toBe(10)
       expect(mockGetCheckinsByDateRange).toHaveBeenCalledWith('pet-001', '', '2024-01-01', '2024-01-31')
+      // 不应再调用不适配的 /trends 接口
+      expect(api.get).not.toHaveBeenCalledWith(
+        '/api/pets/pet-001/trends?startDate=2024-01-01&endDate=2024-01-31'
+      )
     })
 
-    it('should fallback to local storage when both API and checkin fail', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+    it('should fallback to local storage when checkins fail', async () => {
       mockGetCheckinsByDateRange.mockRejectedValue(new Error('Checkin error'))
 
       const localData = [makeTrendDataPoint({ date: '2024-01-01' })]
@@ -165,7 +135,6 @@ describe('trendService', () => {
     })
 
     it('should return empty array when all sources fail with no local data', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       mockGetCheckinsByDateRange.mockRejectedValue(new Error('Checkin error'))
 
       const result = await getTrendData('pet-001', '2024-01-01', '2024-01-31')
@@ -175,23 +144,12 @@ describe('trendService', () => {
   })
 
   describe('getTrendSummary', () => {
-    it('should return trend summary from API', async () => {
-      const mockSummary = makeTrendSummary()
-      vi.mocked(api.get).mockResolvedValue(mockSummary)
-
-      const result = await getTrendSummary('pet-001', 'month')
-
-      expect(result.petId).toBe('pet-001')
-      expect(result.period).toBe('month')
-      expect(result.weightTrend).toBe('stable')
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet-001/trends/summary?period=month')
-    })
-
-    it('should build local summary when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+    it('should build trend summary from checkins (本地计算主路径)', async () => {
+      // 后端未实现 /trends/summary 接口，摘要统一由打卡数据本地计算
+      // 注意：窗口为最近一个月，mock 打卡日期须落在窗口内
       const mockCheckins = [
-        makeCheckinEntry(),
-        makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-02T00:00:00.000Z'), weight: 11 }),
+        makeCheckinEntry({ createdAt: daysAgo(1) }),
+        makeCheckinEntry({ id: 'checkin_002', createdAt: daysAgo(2), weight: 11 }),
       ]
       mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
 
@@ -200,11 +158,22 @@ describe('trendService', () => {
       expect(result.petId).toBe('pet-001')
       expect(result.period).toBe('month')
       expect(result.totalDays).toBe(2)
+      expect(result.weightTrend).toBeDefined()
       expect(result.aiAnalysis).toBeTruthy()
+      // 不应再调用不适配的 /trends/summary 接口
+      expect(api.get).not.toHaveBeenCalledWith('/api/pets/pet-001/trends/summary?period=month')
+    })
+
+    it('should handle empty checkins', async () => {
+      mockGetCheckinsByDateRange.mockResolvedValue([])
+
+      const result = await getTrendSummary('pet-001', 'month')
+
+      expect(result.totalDays).toBe(0)
+      expect(result.aiAnalysis).toContain('暂无足够数据')
     })
 
     it('should handle week period', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getTrendSummary('pet-001', 'week')
@@ -214,7 +183,6 @@ describe('trendService', () => {
     })
 
     it('should handle quarter period', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getTrendSummary('pet-001', 'quarter')
@@ -225,20 +193,8 @@ describe('trendService', () => {
   })
 
   describe('getMonthlyReport', () => {
-    it('should return monthly report from API', async () => {
-      const mockReport = makeMonthlyReport()
-      vi.mocked(api.get).mockResolvedValue(mockReport)
-
-      const result = await getMonthlyReport('pet-001', '2024-01')
-
-      expect(result.petId).toBe('pet-001')
-      expect(result.month).toBe('2024-01')
-      expect(result.highlights).toHaveLength(3)
-      expect(api.get).toHaveBeenCalledWith('/api/pets/pet-001/trends/report?month=2024-01')
-    })
-
-    it('should build local report when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+    it('should build monthly report from checkins (本地计算主路径)', async () => {
+      // 后端 /trends/report 参数契约不适配（year+month 数字），月报统一本地生成
       const mockCheckins = [
         makeCheckinEntry(),
         makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-15T00:00:00.000Z'), weight: 10.5 }),
@@ -253,10 +209,11 @@ describe('trendService', () => {
       expect(result.highlights).toBeDefined()
       expect(result.concerns).toBeDefined()
       expect(result.recommendations).toBeDefined()
+      // 不应再调用不适配的 /trends/report 接口
+      expect(api.get).not.toHaveBeenCalledWith('/api/pets/pet-001/trends/report?month=2024-01')
     })
 
     it('should handle month with 31 days', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getMonthlyReport('pet-001', '2024-01')
@@ -266,7 +223,6 @@ describe('trendService', () => {
     })
 
     it('should handle February', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getMonthlyReport('pet-001', '2024-02')
@@ -277,12 +233,13 @@ describe('trendService', () => {
 
   describe('getWeightTrend', () => {
     it('should return only data points with weight', async () => {
-      const mockData = [
-        makeTrendDataPoint({ weight: 10 }),
-        makeTrendDataPoint({ date: '2024-01-02', weight: undefined }),
-        makeTrendDataPoint({ date: '2024-01-03', weight: 11 }),
+      // 窗口为最近 3 个月，打卡日期用相对日期保证落在窗口内
+      const mockCheckins = [
+        makeCheckinEntry({ createdAt: daysAgo(3), weight: 10 }),
+        makeCheckinEntry({ id: 'checkin_002', createdAt: daysAgo(2), weight: undefined }),
+        makeCheckinEntry({ id: 'checkin_003', createdAt: daysAgo(1), weight: 11 }),
       ]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
 
       const result = await getWeightTrend('pet-001', 3)
 
@@ -292,38 +249,23 @@ describe('trendService', () => {
     })
 
     it('should return empty array when no weight data', async () => {
-      const mockData = [makeTrendDataPoint({ weight: undefined })]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue([
+        makeCheckinEntry({ createdAt: daysAgo(1), weight: undefined }),
+      ])
 
       const result = await getWeightTrend('pet-001', 3)
 
       expect(result).toEqual([])
     })
-
-    it('should fallback to checkin data when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-      const mockCheckins = [
-        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), weight: 10 }),
-        makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-02T00:00:00.000Z'), weight: 11 }),
-      ]
-      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
-
-      const result = await getWeightTrend('pet-001', 3)
-
-      expect(result).toHaveLength(2)
-      expect(result[0].weight).toBe(10)
-      expect(result[1].weight).toBe(11)
-    })
   })
 
   describe('getAppetiteTrend', () => {
     it('should return only data points with appetite', async () => {
-      const mockData = [
-        makeTrendDataPoint({ appetite: 'normal' }),
-        makeTrendDataPoint({ date: '2024-01-02', appetite: undefined }),
-        makeTrendDataPoint({ date: '2024-01-03', appetite: 'decreased' }),
+      const mockCheckins = [
+        makeCheckinEntry({ createdAt: daysAgo(2), appetiteLevel: 3 }),
+        makeCheckinEntry({ id: 'checkin_002', createdAt: daysAgo(1), appetiteLevel: 2 }),
       ]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
 
       const result = await getAppetiteTrend('pet-001', 3)
 
@@ -333,38 +275,21 @@ describe('trendService', () => {
     })
 
     it('should return empty array when no appetite data', async () => {
-      const mockData = [makeTrendDataPoint({ appetite: undefined })]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getAppetiteTrend('pet-001', 3)
 
       expect(result).toEqual([])
     })
-
-    it('should fallback to checkin data when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-      const mockCheckins = [
-        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), appetiteLevel: 3 }),
-        makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-02T00:00:00.000Z'), appetiteLevel: 2 }),
-      ]
-      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
-
-      const result = await getAppetiteTrend('pet-001', 3)
-
-      expect(result).toHaveLength(2)
-      expect(result[0].appetite).toBe('normal')
-      expect(result[1].appetite).toBe('decreased')
-    })
   })
 
   describe('getStoolTrend', () => {
     it('should return only data points with stool', async () => {
-      const mockData = [
-        makeTrendDataPoint({ stool: 'normal' }),
-        makeTrendDataPoint({ date: '2024-01-02', stool: undefined }),
-        makeTrendDataPoint({ date: '2024-01-03', stool: 'soft' }),
+      const mockCheckins = [
+        makeCheckinEntry({ createdAt: daysAgo(2), poopLevel: 3 }),
+        makeCheckinEntry({ id: 'checkin_002', createdAt: daysAgo(1), poopLevel: 4 }),
       ]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
 
       const result = await getStoolTrend('pet-001', 3)
 
@@ -374,38 +299,23 @@ describe('trendService', () => {
     })
 
     it('should return empty array when no stool data', async () => {
-      const mockData = [makeTrendDataPoint({ stool: undefined })]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getStoolTrend('pet-001', 3)
 
       expect(result).toEqual([])
     })
-
-    it('should fallback to checkin data when API fails', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-      const mockCheckins = [
-        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), poopLevel: 3 }),
-        makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-02T00:00:00.000Z'), poopLevel: 4 }),
-      ]
-      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
-
-      const result = await getStoolTrend('pet-001', 3)
-
-      expect(result).toHaveLength(2)
-      expect(result[0].stool).toBe('normal')
-      expect(result[1].stool).toBe('soft')
-    })
   })
 
   describe('getAbnormalDays', () => {
     it('should return only abnormal data points', async () => {
-      const mockData = [
-        makeTrendDataPoint({ hasAbnormal: false }),
-        makeTrendDataPoint({ date: '2024-01-02', hasAbnormal: true, riskLevel: 'high' }),
-        makeTrendDataPoint({ date: '2024-01-03', hasAbnormal: true, riskLevel: 'emergency' }),
+      // 窗口为 2024-01-01 ~ 2024-01-31，mock 打卡日期需落在窗口内
+      const mockCheckins = [
+        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), riskLevel: 'low' }),
+        makeCheckinEntry({ id: 'c2', createdAt: new Date('2024-01-02T00:00:00.000Z'), riskLevel: 'high' }),
+        makeCheckinEntry({ id: 'c3', createdAt: new Date('2024-01-03T00:00:00.000Z'), riskLevel: 'emergency' }),
       ]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
 
       const result = await getAbnormalDays('pet-001', '2024-01-01', '2024-01-31')
 
@@ -415,11 +325,11 @@ describe('trendService', () => {
     })
 
     it('should return empty array when no abnormal days', async () => {
-      const mockData = [
-        makeTrendDataPoint({ hasAbnormal: false }),
-        makeTrendDataPoint({ date: '2024-01-02', hasAbnormal: false }),
+      const mockCheckins = [
+        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), riskLevel: 'low' }),
+        makeCheckinEntry({ id: 'c2', createdAt: new Date('2024-01-02T00:00:00.000Z'), riskLevel: 'low' }),
       ]
-      vi.mocked(api.get).mockResolvedValue(mockData)
+      mockGetCheckinsByDateRange.mockResolvedValue(mockCheckins)
 
       const result = await getAbnormalDays('pet-001', '2024-01-01', '2024-01-31')
 
@@ -429,10 +339,10 @@ describe('trendService', () => {
 
   describe('AI analysis rules', () => {
     it('should detect weight increase > 20% as concern', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+      // 窗口为最近一个月，打卡日期用相对日期（daysAgo）保证落在窗口内
       const checkins = [
-        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), weight: 10 }),
-        makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-30T00:00:00.000Z'), weight: 13 }),
+        makeCheckinEntry({ createdAt: daysAgo(30), weight: 10 }),
+        makeCheckinEntry({ id: 'checkin_002', createdAt: daysAgo(1), weight: 13 }),
       ]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
@@ -444,10 +354,9 @@ describe('trendService', () => {
     })
 
     it('should detect weight decrease > 20% as concern', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       const checkins = [
-        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), weight: 10 }),
-        makeCheckinEntry({ id: 'checkin_002', createdAt: new Date('2024-01-30T00:00:00.000Z'), weight: 7 }),
+        makeCheckinEntry({ createdAt: daysAgo(30), weight: 10 }),
+        makeCheckinEntry({ id: 'checkin_002', createdAt: daysAgo(1), weight: 7 }),
       ]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
@@ -459,9 +368,8 @@ describe('trendService', () => {
     })
 
     it('should detect bloody stool as emergency', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       const checkins = [
-        makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z'), poopLevel: 1, riskLevel: 'emergency' }),
+        makeCheckinEntry({ createdAt: daysAgo(1), poopLevel: 1, riskLevel: 'emergency' }),
       ]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
@@ -473,11 +381,10 @@ describe('trendService', () => {
     })
 
     it('should detect consecutive appetite loss', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       const checkins = [
-        makeCheckinEntry({ id: 'c1', createdAt: new Date('2024-01-01T00:00:00.000Z'), appetiteLevel: 1, riskLevel: 'high' }),
-        makeCheckinEntry({ id: 'c2', createdAt: new Date('2024-01-02T00:00:00.000Z'), appetiteLevel: 1, riskLevel: 'high' }),
-        makeCheckinEntry({ id: 'c3', createdAt: new Date('2024-01-03T00:00:00.000Z'), appetiteLevel: 1, riskLevel: 'high' }),
+        makeCheckinEntry({ id: 'c1', createdAt: daysAgo(3), appetiteLevel: 1, riskLevel: 'high' }),
+        makeCheckinEntry({ id: 'c2', createdAt: daysAgo(2), appetiteLevel: 1, riskLevel: 'high' }),
+        makeCheckinEntry({ id: 'c3', createdAt: daysAgo(1), appetiteLevel: 1, riskLevel: 'high' }),
       ]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
@@ -487,7 +394,6 @@ describe('trendService', () => {
     })
 
     it('should handle empty data gracefully', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       mockGetCheckinsByDateRange.mockResolvedValue([])
 
       const result = await getTrendSummary('pet-001', 'month')
@@ -497,8 +403,7 @@ describe('trendService', () => {
     })
 
     it('should handle single data point', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-      const checkins = [makeCheckinEntry()]
+      const checkins = [makeCheckinEntry({ createdAt: daysAgo(1) })]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
       const result = await getTrendSummary('pet-001', 'month')
@@ -509,13 +414,12 @@ describe('trendService', () => {
     })
 
     it('should detect abnormal ratio > 30%', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       const checkins = [
-        makeCheckinEntry({ id: 'c1', createdAt: new Date('2024-01-01T00:00:00.000Z'), riskLevel: 'low' }),
-        makeCheckinEntry({ id: 'c2', createdAt: new Date('2024-01-02T00:00:00.000Z'), riskLevel: 'low' }),
-        makeCheckinEntry({ id: 'c3', createdAt: new Date('2024-01-03T00:00:00.000Z'), riskLevel: 'low' }),
-        makeCheckinEntry({ id: 'c4', createdAt: new Date('2024-01-04T00:00:00.000Z'), appetiteLevel: 1, riskLevel: 'high' }),
-        makeCheckinEntry({ id: 'c5', createdAt: new Date('2024-01-05T00:00:00.000Z'), poopLevel: 1, riskLevel: 'high' }),
+        makeCheckinEntry({ id: 'c1', createdAt: daysAgo(5), riskLevel: 'low' }),
+        makeCheckinEntry({ id: 'c2', createdAt: daysAgo(4), riskLevel: 'low' }),
+        makeCheckinEntry({ id: 'c3', createdAt: daysAgo(3), riskLevel: 'low' }),
+        makeCheckinEntry({ id: 'c4', createdAt: daysAgo(2), appetiteLevel: 1, riskLevel: 'high' }),
+        makeCheckinEntry({ id: 'c5', createdAt: daysAgo(1), poopLevel: 1, riskLevel: 'high' }),
       ]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
@@ -528,7 +432,7 @@ describe('trendService', () => {
 
   describe('monthly report generation', () => {
     it('should generate highlights for healthy pet', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
+      // getMonthlyReport('pet-001', '2024-01') 的窗口为 2024-01 整月，打卡日期落在窗口内
       const checkins = Array.from({ length: 10 }, (_, i) =>
         makeCheckinEntry({
           id: `c${i}`,
@@ -546,7 +450,6 @@ describe('trendService', () => {
     })
 
     it('should generate concerns for unhealthy pet', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
       const checkins = [
         makeCheckinEntry({ id: 'c1', createdAt: new Date('2024-01-01T00:00:00.000Z'), weight: 10 }),
         makeCheckinEntry({ id: 'c2', createdAt: new Date('2024-01-30T00:00:00.000Z'), weight: 13 }),
@@ -563,8 +466,7 @@ describe('trendService', () => {
     })
 
     it('should recommend more data when data is sparse', async () => {
-      vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
-      const checkins = [makeCheckinEntry()]
+      const checkins = [makeCheckinEntry({ createdAt: new Date('2024-01-01T00:00:00.000Z') })]
       mockGetCheckinsByDateRange.mockResolvedValue(checkins)
 
       const result = await getMonthlyReport('pet-001', '2024-01')

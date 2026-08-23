@@ -155,6 +155,25 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
   }
 
   /**
+   * 更新分镜脚本（回忆录 2.0）
+   * 在原有 narrative_structure 上叠加 script 字段（保留 music_style/duration 等旧字段，兼容）
+   * @param taskId - 任务 ID
+   * @param script - 分镜脚本对象（存 JSONB）
+   */
+  async updateScript(taskId: string, script: Record<string, unknown>): Promise<void> {
+    await this.rawQuery(
+      `UPDATE ${this.tableName}
+       SET narrative_structure = jsonb_set(
+             COALESCE(narrative_structure, '{}'::jsonb),
+             '{script}',
+             $1::jsonb
+           )
+       WHERE id = $2`,
+      [JSON.stringify(script), taskId],
+    );
+  }
+
+  /**
    * 重置任务为 pending（用于审核失败重试）
    */
   async resetToPending(taskId: string): Promise<void> {

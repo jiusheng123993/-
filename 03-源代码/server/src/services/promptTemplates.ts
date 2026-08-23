@@ -1,0 +1,186 @@
+/**
+ * 回忆录提示词模板库（回忆录 2.0 M2 模块）
+ * 职责：把分镜脚本组装成最终发给 Seedance 的提示词
+ * 这是"方法论固化"的执行层——用户在小程序里的每次生成，
+ * 最终 prompt 都经过本模块按 Seedance 2.5 prompt contract 强制组装。
+ *
+ * 方法论来源（已吸收最新版）：
+ * - OpenMontage Seedance 2.5 技能：十段结构（GLOBAL STYLE→SCENE→CHARACTERS→
+ *   LOCATION→FIRST FRAME→Shots→OPTICS→PHYSICS→LIGHTING→AUDIO）
+ * - Locks 连续性锁：COUNT LOCK（只出现一只）、SCREEN DIRECTION（方向不反转）、
+ *   IDENTITY LOCK（与参考照片一致）
+ *
+ * 关键设计：
+ * - LLM 生成的 seedance_prompt 可能缺段/缺身份锚点，本模块做"补全 + 强制注入"：
+ *   1. 身份锚点强制注入（即使 LLM 没写，也会加进 CHARACTERS 段）
+ *   2. 缺失的十段用默认值补齐（保证 Seedance 2.5 的"跳段会坏在可预期的地方"不出现）
+ *   3. Locks 追加到 prompt 尾部（COUNT LOCK 防多出猫/狗）
+ */
+import type { MemoirSegmentScript } from '../schemas/memoirScript.js';
+
+/** 十段结构段落名（Seedance 2.5 prompt contract） */
+const SECTION_KEYS = [
+  'GLOBAL STYLE',
+  'SCENE',
+  'CHARACTERS',
+  'LOCATION',
+  'FIRST FRAME',
+  'Shot',
+  'OPTICS',
+  'PHYSICS',
+  'LIGHTING',
+  'AUDIO',
+] as const;
+
+/** 默认段落（LLM 输出缺段时补齐） */
+const DEFAULT_SECTIONS: Record<string, string> = {
+  'GLOBAL STYLE': '写实风格，柔和暖调；画面只出现这一只宠物，无其他动物/人物/文字/水印。',
+  'SCENE': '宠物日常的一瞬，安静自然。',
+  'CHARACTERS': '角色=参考图1（与原始照片一致的宠物）。',
+  'LOCATION': '日常熟悉的环境（窗边或沙发一角）。',
+  'FIRST FRAME': '主体位于画面中央偏下，静止，朝向镜头方向。',
+  'Shot 1': '缓慢推镜，画面自然流畅，保持主体清晰。',
+  'OPTICS': '47°焦段，机位与宠物视线同高。',
+  'PHYSICS': '毛发柔软，随微风轻微浮动；动作自然不僵直。',
+  'LIGHTING': '温暖自然光，单一光源。',
+  'AUDIO': '安静的室内环境声；无音乐。',
+};
+
+/** 角色锚点输入（多宠物/多人场景：每个在场角色一个锚点） */
+export interface CharacterAnchorInput {
+  /** 角色唯一 id（对应 segments.characters_present） */
+  id: string;
+  /** 角色类型：宠物 / 人 */
+  type: 'pet' | 'human';
+  /** 物理特征描述（3-6 个特征，全片逐字重复） */
+  desc: string;
+}
+
+/** 组装参数 */
+export interface BuildPromptParams {
+  /** 单镜脚本（LLM 生成） */
+  segment: MemoirSegmentScript;
+  /** 全部角色锚点（多宠物/多人；每镜只注入 characters_present 声明的在场角色） */
+  anchors: CharacterAnchorInput[];
+  /** 兼容旧单锚点（旧脚本无 anchors 时兜底） */
+  identityAnchor?: string;
+  /** 屏幕方向锁定：'right' | 'left'（默认 right，保证多镜方向一致） */
+  screenDirection?: 'right' | 'left';
+}
+
+/**
+ * 检查 prompt 是否包含指定段落标记（段首为段落名）
+ * @param prompt - 待检查的 prompt
+ * @param key - 段落名
+ * @returns 是否包含
+ */
+function hasSection(prompt: string, key: string): boolean {
+  // 段落名出现在行首（允许前面有空白）；Shot 段允许 "Shot 1:" 格式
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern =
+    key === 'Shot'
+      ? `(^|\\n)\\s*Shot(\\s+\\d+)?\\s*[:：]`
+      : `(^|\\n)\\s*${escaped}\\s*[:：]`;
+  return new RegExp(pattern, 'i').test(prompt);
+}
+
+/**
+ * 补全缺失的十段段落
+ * Seedance 2.5 的特性：跳段不会整体变差，但会在"可预期的特定方式"上坏掉，
+ * 所以缺失段必须补齐，保证结构完整。
+ * @param prompt - LLM 生成的 seedance_prompt
+ * @returns 补全后的 prompt（保持原有内容顺序，缺失段追加在尾部对应位置）
+ */
+export function completeSections(prompt: string): string {
+  let result = prompt.trim();
+  const missing = SECTION_KEYS.filter((key) => !hasSection(result, key));
+
+  // 缺失段按十段顺序追加到末尾（保持段落间有空行）
+  if (missing.length > 0) {
+    const tail = missing.map((key) => `${key}: ${DEFAULT_SECTIONS[key] ?? ''}`).join('\n\n');
+    result = `${result}\n\n${tail}`;
+  }
+  return result;
+}
+
+/**
+ * 强制注入角色锚点（多宠物/多人场景：每镜只注入 characters_present 声明的在场角色）
+ * 策略：检查 CHARACTERS 段是否存在，存在则在段尾追加锚点；不存在则整段补上。
+ * @param prompt - 补全后的 prompt
+ * @param charactersText - 本镜在场角色的锚点文本（已拼好）
+ * @returns 注入锚点后的 prompt
+ */
+export function injectCharacters(prompt: string, charactersText: string): string {
+  if (!charactersText.trim()) return prompt;
+  if (hasSection(prompt, 'CHARACTERS')) {
+    // 在 CHARACTERS 段内追加锚点（段尾）
+    return prompt.replace(
+      /((?:^|\n)\s*CHARACTERS\s*[:：][^\n]*\n)([\s\S]*?)(?=\n\s*(?:LOCATION|Shot|OPTICS|PHYSICS|LIGHTING|AUDIO)\s*[:：])/i,
+      `$1${charactersText}\n$2`,
+    );
+  }
+  // 无 CHARACTERS 段：在 GLOBAL STYLE 后插入
+  return prompt.replace(
+    /((?:^|\n)\s*GLOBAL STYLE\s*[:：][^\n]*\n)/i,
+    `$1\nCHARACTERS: ${charactersText}\n`,
+  );
+}
+
+/**
+ * 追加连续性锁（Locks）
+ * - COUNT LOCK：只出现照片中已有的角色（多宠物/多人通用），防多余动物/人物/镜面倒影
+ * - SCREEN DIRECTION：方向锁定，防多镜拼接方向漂移
+ * - IDENTITY LOCK：无 logo/文字/水印
+ * @param prompt - 注入锚点后的 prompt
+ * @param screenDirection - 屏幕方向
+ * @returns 追加锁后的 prompt
+ */
+export function appendLocks(
+  prompt: string,
+  screenDirection: 'right' | 'left' = 'right',
+): string {
+  const locks = [
+    'COUNT LOCK：画面只出现照片中已有的宠物与人，不出现额外动物、人物，无镜面/玻璃倒影出现第二个。',
+    `SCREEN DIRECTION：主体始终朝向画面${screenDirection === 'right' ? '右侧' : '左侧'}，永不反转。`,
+    'IDENTITY LOCK：无 logo、无可读文字、无字幕、无水印。',
+  ];
+  return `${prompt}\n\n${locks.join('\n')}`;
+}
+
+/**
+ * 组装最终 Seedance 提示词（M2 主入口）
+ * 三步：补全十段 → 注入本镜在场角色锚点（多宠物/多人）→ 追加 Locks
+ * 锚点逻辑：优先 anchors + segments.characters_present（每镜只注入在场角色）；
+ * 旧脚本（无 anchors）用 identityAnchor 兜底。
+ * @param params - 组装参数
+ * @returns 最终提示词
+ */
+export function buildFinalSegmentPrompt(params: BuildPromptParams): string {
+  const { segment, anchors, identityAnchor, screenDirection } = params;
+
+  // 计算本镜在场角色锚点文本
+  let charactersText = '';
+  if (Array.isArray(anchors) && anchors.length > 0) {
+    // 每镜只注入 characters_present 声明的角色；未声明则全部在场
+    const presentIds = segment.characters_present?.length
+      ? segment.characters_present
+      : anchors.map((a) => a.id);
+    const present = anchors.filter((a) => presentIds.includes(a.id));
+    charactersText = present
+      .map((a) => {
+        const label = a.type === 'human' ? '人物' : '宠物';
+        return `${label}=参考图（${a.desc}）。保持与参考照片完全一致，不改变${a.type === 'human' ? '容貌、发型、体型' : '毛色、体型、五官'}。`;
+      })
+      .join('\n');
+  } else if (identityAnchor) {
+    // 旧脚本兜底（单锚点）
+    charactersText = `角色=参考图1（${identityAnchor}）。保持与原始照片完全一致，不改变毛色、体型、五官。`;
+  }
+
+  const base = completeSections(segment.seedance_prompt);
+  const anchored = injectCharacters(base, charactersText);
+  return appendLocks(anchored, screenDirection);
+}
+
+// 导出内部函数供单测覆盖
+export { hasSection, DEFAULT_SECTIONS, SECTION_KEYS };

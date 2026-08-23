@@ -118,6 +118,14 @@
   font-size: 24rpx;
 }
 
+/* 宠物选择器里的小动物头像图片：胶囊内小方形圆角 */
+.lineage-selector-avatar-img {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .lineage-selector-name {
   font-size: 24rpx;
   color: $color-text-primary;
@@ -310,6 +318,14 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* 关系卡片的小动物头像图片：铺满圆形容器 */
+.lineage-card-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .lineage-card-emoji {
@@ -555,6 +571,14 @@
   justify-content: center;
   flex-shrink: 0;
   border: 2px solid $color-primary-light;
+  overflow: hidden;
+}
+
+/* 选中宠物自己的小动物头像图片：铺满圆形容器 */
+.lineage-self-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .lineage-self-emoji {
@@ -691,6 +715,14 @@
 
 .lineage-available-emoji {
   font-size: 40rpx;
+}
+
+/* 可选宠物列表里的小动物头像图片：方形圆角 */
+.lineage-available-avatar-img {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .lineage-available-info {
@@ -880,6 +912,14 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4rpx 12rpx rgba($color-primary, 0.15);
+  overflow: hidden;
+}
+
+/* 家族图谱节点的小动物头像图片：铺满圆形容器 */
+.graph-node-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .graph-node-avatar--owner {

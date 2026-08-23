@@ -1,0 +1,309 @@
+/**
+ * 会员中心页面
+ * 会员状态卡 + 三档价格卡 + 权益清单 + 常见问题
+ */
+import { View, Text, ScrollView, Input } from '@tarojs/components'
+import Taro from '@tarojs/taro'
+import { useEffect, useState } from 'react'
+// 会员中心页迁入 pagesUser 分包（主包瘦身）；分包页与主包页同深度，仍用 ../../ 访问 src 根
+import { useAuthStore } from '../../stores/authStore'
+import { useMembershipStore } from '../../stores/membershipStore'
+import { api } from '../../services/api'
+import PageLoading from '../../components/PageLoading'
+import './index.scss'
+
+/** 套餐价格（PRD：会员 9.9 元/月） */
+const PLANS = [
+  { key: 'monthly', name: '月卡', price: '¥9.9', period: '/月', note: '按月续费', tag: '' },
+  { key: 'quarterly', name: '季卡', price: '¥26.9', period: '/季', note: '省 ¥2.8', tag: '' },
+  { key: 'yearly', name: '年卡', price: '¥99', period: '/年', note: '省 ¥19.8', tag: '推荐' },
+]
+
+const BENEFITS = [
+  { icon: '✨', title: 'AI 取名', value: '20次/月', color: 'coral' },
+  { icon: '✅', title: '回忆录', value: '8折', color: 'gold' },
+  { icon: '♾️', title: '健康打卡报告', value: '无限', color: 'green' },
+  { icon: '💬', title: '专属客服', value: '在线服务', color: 'blue' },
+  { icon: '💕', title: '全家共享', value: '5人', color: 'deep' },
+]
+
+const FAQS = [
+  {
+    q: '如何开通会员？',
+    a: '点击上方价格卡或"立即开通"按钮，选择套餐后通过微信支付完成支付，开通后权益立即生效。',
+  },
+  {
+    q: '自动续费如何管理？',
+    a: '开通时默认不开启自动续费。可在"我的 - 会员中心 - 续费管理"中随时开启或关闭，扣款前会提前通知。',
+  },
+  {
+    q: '会员可以退款吗？',
+    a: '购买后 7 天内未使用任何付费权益可申请全额退款；已使用的会员按剩余有效期比例退回。',
+  },
+]
+
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '—'
+  return dateStr.slice(0, 10)
+}
+
+function remainingDays(endDate: string): number {
+  if (!endDate) return 0
+  const end = new Date(endDate)
+  if (isNaN(end.getTime())) return 0
+  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000))
+}
+
+export default function Member() {
+  const user = useAuthStore(state => state.user)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const isInitialized = useAuthStore(state => state.isInitialized)
+  const { membership, fetchMembership, subscribePlan } = useMembershipStore()
+  const [pageReady, setPageReady] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('yearly')
+  const [subscribing, setSubscribing] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
+  // 兑换码（2026-08-23）：输入兑换码兑换会员
+  const [redeemCode, setRedeemCode] = useState('')
+  const [redeeming, setRedeeming] = useState(false)
+
+  const handleSubscribe = async () => {
+    if (subscribing || !user) return
+    if (selectedPlan === 'quarterly') {
+      Taro.showToast({ title: '季卡即将上线，请选择月卡或年卡', icon: 'none' })
+      return
+    }
+    setSubscribing(true)
+    try {
+      const result = await subscribePlan(selectedPlan as 'monthly' | 'yearly')
+      if (result.success) {
+        Taro.showToast({ title: '开通成功', icon: 'success' })
+        await fetchMembership(user.id)
+      } else {
+        Taro.showToast({ title: result.error || '开通失败', icon: 'none' })
+      }
+    } catch {
+      Taro.showToast({ title: '开通失败，请重试', icon: 'none' })
+    } finally {
+      setSubscribing(false)
+    }
+  }
+
+  /** 兑换码兑换会员（2026-08-23）：POST /api/redeem → 成功后刷新会员状态 */
+  const handleRedeem = async () => {
+    const code = redeemCode.trim()
+    if (!code) {
+      Taro.showToast({ title: '请输入兑换码', icon: 'none' })
+      return
+    }
+    if (redeeming) return
+    setRedeeming(true)
+    try {
+      const res = await api.post<{ message: string }>('/redeem', { code })
+      Taro.showToast({ title: res?.message || '兑换成功', icon: 'success' })
+      setRedeemCode('')
+      if (user?.id) await fetchMembership(user.id)
+    } catch {
+      Taro.showToast({ title: '兑换失败，请检查兑换码', icon: 'none' })
+    } finally {
+      setRedeeming(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!isInitialized) return
+    if (!isAuthenticated || !user) {
+      Taro.reLaunch({ url: '/pagesUser/login/index' })
+      return
+    }
+    const loadData = async () => {
+      try {
+        await fetchMembership(user.id)
+      } catch {
+        // 静默处理错误
+      }
+      setPageReady(true)
+    }
+    loadData()
+  }, [isInitialized, isAuthenticated, user])
+
+  if (!pageReady) {
+    return <PageLoading />
+  }
+
+  const isVip = membership?.level !== 'free'
+  const vipLevel = isVip && membership?.level
+    ? `${membership.level.toUpperCase()}会员`
+    : '体验会员'
+  const days = remainingDays(membership?.endDate || '')
+  const endDateText = membership?.endDate ? formatDate(membership.endDate) : '—'
+
+  return (
+    <View className='member-page'>
+      {/* 全屏动态背景层 */}
+      <View className='xhh-bg-layer'>
+        <View className='xhh-blob xhh-blob-a' />
+        <View className='xhh-blob xhh-blob-b' />
+        <View className='xhh-blob xhh-blob-c' />
+        <View className='xhh-blob xhh-blob-d' />
+        <View className='xhh-bg-glow' />
+      </View>
+
+      <ScrollView className='member-page__content' scrollY>
+        {/* ===== 会员状态卡 ===== */}
+        <View className='member-status'>
+          <View className='member-status__head'>
+            <View className='member-status__icon'>
+              <Text className='member-status__icon-text'>👑</Text>
+            </View>
+            <View className='member-status__info'>
+              <Text className='member-status__label'>当前状态</Text>
+              <Text className='member-status__level'>{vipLevel}</Text>
+            </View>
+            {isVip && days > 0 ? (
+              <View className='member-status__badge'>
+                <Text className='member-status__badge-icon'>⭐</Text>
+                <Text className='member-status__badge-text'>剩余 {days} 天</Text>
+              </View>
+            ) : (
+              <View className='member-status__badge member-status__badge--muted'>
+                <Text className='member-status__badge-text'>未开通</Text>
+              </View>
+            )}
+          </View>
+
+          <View className='member-status__grid'>
+            <View className='member-status__cell'>
+              <Text className='member-status__cell-label'>到期时间</Text>
+              <Text className='member-status__cell-value'>{endDateText}</Text>
+            </View>
+            <View className='member-status__cell'>
+              <Text className='member-status__cell-label'>会员状态</Text>
+              <Text className='member-status__cell-value'>{isVip ? '已开通' : '未开通'}</Text>
+            </View>
+          </View>
+
+          <View className='member-status__btn' onClick={handleSubscribe}>
+            <Text className='member-status__btn-icon'>👑</Text>
+            <Text className='member-status__btn-text'>{subscribing ? '开通中...' : '立即开通'}</Text>
+          </View>
+        </View>
+
+        {/* ===== 兑换码（2026-08-23） ===== */}
+        <View className='member-redeem'>
+          <View className='member-redeem__head'>
+            <Text className='member-redeem__title'>🎟️ 兑换码兑换</Text>
+            <Text className='member-redeem__hint'>输入兑换码，开通或延长会员</Text>
+          </View>
+          <View className='member-redeem__row'>
+            <Input
+              className='member-redeem__input'
+              placeholder='如 XHH-XXXX-XXXX-XXXX'
+              value={redeemCode}
+              onInput={(e) => setRedeemCode(e.detail.value)}
+            />
+            <View
+              className={`member-redeem__btn${redeeming ? ' member-redeem__btn--loading' : ''}`}
+              onClick={handleRedeem}
+            >
+              <Text className='member-redeem__btn-text'>{redeeming ? '兑换中...' : '兑换'}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ===== 三档价格卡 ===== */}
+        <View className='member-card'>
+          <View className='member-card__head'>
+            <View className='member-card__title-wrap'>
+              <Text className='member-card__icon'>🏅</Text>
+              <Text className='member-card__title'>开通会员</Text>
+            </View>
+            <Text className='member-card__meta'>一次开通 · 全家共享</Text>
+          </View>
+
+          <View className='member-plans'>
+            {PLANS.map(plan => {
+              const selected = selectedPlan === plan.key
+              return (
+                <View
+                  key={plan.key}
+                  className={`member-plan${selected ? ' member-plan--selected' : ''}`}
+                  onClick={() => setSelectedPlan(plan.key)}
+                >
+                  {plan.tag && (
+                    <View className='member-plan__tag'>
+                      <Text className='member-plan__tag-text'>⭐ {plan.tag}</Text>
+                    </View>
+                  )}
+                  <Text className='member-plan__name'>{plan.name}</Text>
+                  <View className='member-plan__price-row'>
+                    <Text className='member-plan__price'>{plan.price}</Text>
+                    <Text className='member-plan__period'>{plan.period}</Text>
+                  </View>
+                  <Text className='member-plan__note'>{plan.note}</Text>
+                </View>
+              )
+            })}
+          </View>
+
+          <View className='member-card__tip'>
+            <Text className='member-card__tip-icon'>ℹ️</Text>
+            <Text className='member-card__tip-text'>会员到期后自动恢复免费权益，历史打卡数据永久保留。</Text>
+          </View>
+        </View>
+
+        {/* ===== 权益清单卡 ===== */}
+        <View className='member-card'>
+          <View className='member-card__head'>
+            <View className='member-card__title-wrap'>
+              <Text className='member-card__icon'>✨</Text>
+              <Text className='member-card__title'>会员权益</Text>
+            </View>
+          </View>
+          <View className='member-benefits'>
+            {BENEFITS.map(b => (
+              <View key={b.title} className='member-benefit'>
+                <View className={`member-benefit__icon member-benefit__icon--${b.color}`}>
+                  <Text className='member-benefit__icon-text'>{b.icon}</Text>
+                </View>
+                <Text className='member-benefit__title'>{b.title}</Text>
+                <Text className={`member-benefit__value member-benefit__value--${b.color}`}>{b.value}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* ===== 常见问题卡 ===== */}
+        <View className='member-card'>
+          <View className='member-card__head'>
+            <View className='member-card__title-wrap'>
+              <Text className='member-card__icon'>❓</Text>
+              <Text className='member-card__title'>常见问题</Text>
+            </View>
+          </View>
+          <View className='member-faqs'>
+            {FAQS.map((faq, index) => {
+              const open = openFaq === index
+              return (
+                <View key={index} className='member-faq'>
+                  <View
+                    className='member-faq__q'
+                    onClick={() => setOpenFaq(open ? null : index)}
+                  >
+                    <Text className='member-faq__q-text'>{faq.q}</Text>
+                    <Text className='member-faq__arrow'>{open ? '▲' : '▼'}</Text>
+                  </View>
+                  {open && (
+                    <Text className='member-faq__a'>{faq.a}</Text>
+                  )}
+                </View>
+              )
+            })}
+          </View>
+        </View>
+
+        <View style={{ height: '40rpx' }} />
+      </ScrollView>
+    </View>
+  )
+}

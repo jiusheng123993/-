@@ -584,7 +584,8 @@ CREATE TABLE IF NOT EXISTS pet_moments (
   content     JSONB NOT NULL,
   photos      TEXT[],
   ai_summary  TEXT,
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  happened_at DATE DEFAULT CURRENT_DATE
 );
 
 CREATE INDEX IF NOT EXISTS idx_moments_family ON pet_moments(family_id, created_at DESC);
@@ -678,6 +679,10 @@ CREATE INDEX IF NOT EXISTS idx_agent_mem_user ON agent_memories(user_id, pet_id)
 CREATE INDEX IF NOT EXISTS idx_agent_mem_category ON agent_memories(pet_id, category);
 CREATE INDEX IF NOT EXISTS idx_agent_mem_importance ON agent_memories(pet_id, importance DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_mem_recall ON agent_memories(pet_id, last_recalled DESC NULLS LAST);
+-- F4 回忆标签与层级（migration 019 兼容：全新部署建表后补列；生产库已由 019 增加，幂等无碍）
+ALTER TABLE agent_memories ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE agent_memories ADD COLUMN IF NOT EXISTS level TEXT NOT NULL DEFAULT 'flow';
+CREATE INDEX IF NOT EXISTS idx_agent_memories_tags ON agent_memories USING GIN (tags);
 
 -- ============================================================
 -- 初始化知识库版本记录

@@ -40,3 +40,20 @@ declare const process: {
     NODE_ENV: 'development' | 'production' | 'test'
   }
 }
+
+/**
+ * 自定义原生组件类型声明（Taro JSX）
+ * wechat-profile 是微信原生组件（chooseAvatar + nickname 能力），
+ * Taro 3.6 编译层不支持这两个属性，故用原生组件 + usingComponents 引入。
+ * 事件名用小驼峰对应原生 bind:chooseavatar / bind:input。
+ */
+declare namespace JSX {
+  interface IntrinsicElements {
+    'wechat-profile': {
+      nickname?: string
+      avatar?: string
+      onChooseavatar?: (e: any) => void
+      onNickchange?: (e: any) => void
+    }
+  }
+}

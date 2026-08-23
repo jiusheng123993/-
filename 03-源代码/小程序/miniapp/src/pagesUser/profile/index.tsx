@@ -61,7 +61,7 @@ export default function Profile() {
   /** 未登录时点击头像跳转登录页 */
   const handleAvatarClick = () => {
     if (!isAuthenticated) {
-      Taro.navigateTo({ url: '/pages/login/index' });
+      Taro.navigateTo({ url: '/pagesUser/login/index' });
     }
   };
 
@@ -80,6 +80,15 @@ export default function Profile() {
         if (res.tempFilePaths.length) setAvatarDraft(res.tempFilePaths[0])
       })
       .catch(() => {})
+  }
+
+  /**
+   * 原生组件昵称变更回调（wechat-profile 组件 triggerEvent 传回）
+   * @param e - { detail: { value: string } }
+   */
+  const handleNicknameChange = (e?: any) => {
+    const value = e?.detail?.value
+    if (typeof value === 'string') setNicknameDraft(value)
   }
 
   /** 保存资料：先上传新头像（如有），再更新昵称与头像 */
@@ -253,31 +262,41 @@ export default function Profile() {
         <View className='profile-edit-card ink-item' style={{ animationDelay: '0.2s' }}>
           <View className='profile-edit-title'>头像与昵称（跟随微信）</View>
           <View className='profile-edit-row'>
-            {/* 头像按钮：微信端走 chooseAvatar 自动带出微信头像 */}
-            <Button
-              className='avatar-pick-btn'
-              openType={isWeapp() ? 'chooseAvatar' : undefined}
-              onChooseAvatar={handleChooseAvatar}
-              onClick={isWeapp() ? undefined : handleChooseAvatar}
-            >
-              {avatarDraft ? (
-                <Image className='avatar-pick-img' src={avatarDraft} mode='aspectFill' />
-              ) : user?.avatar ? (
-                <Image className='avatar-pick-img' src={user.avatar} mode='aspectFill' />
-              ) : (
-                <View className='avatar-pick-placeholder'>
-                  <Text className='avatar-pick-icon'>👤</Text>
-                </View>
-              )}
-            </Button>
-            {/* 昵称输入框：type=nickname 时微信会带出微信昵称建议 */}
-            <Input
-              className='nickname-input'
-              type='nickname'
-              value={nicknameDraft}
-              placeholder='输入昵称（可带出微信昵称）'
-              onInput={(e) => setNicknameDraft(e.detail.value)}
-            />
+            {/* 微信端：用原生组件（chooseAvatar + nickname），Taro 3.6 不支持这两个属性
+                必须原生组件才能跟随微信头像/昵称（否则 errno 112 / 属性被模板丢弃） */}
+            {isWeapp() ? (
+              <wechat-profile
+                nickname={nicknameDraft}
+                avatar={avatarDraft || user?.avatar || ''}
+                onChooseavatar={handleChooseAvatar}
+                onNickchange={handleNicknameChange}
+              />
+            ) : (
+              <>
+                {/* 非微信端：头像按钮走相册选择 */}
+                <Button
+                  className='avatar-pick-btn'
+                  onClick={handleChooseAvatar}
+                >
+                  {avatarDraft ? (
+                    <Image className='avatar-pick-img' src={avatarDraft} mode='aspectFill' />
+                  ) : user?.avatar ? (
+                    <Image className='avatar-pick-img' src={user.avatar} mode='aspectFill' />
+                  ) : (
+                    <View className='avatar-pick-placeholder'>
+                      <Text className='avatar-pick-icon'>👤</Text>
+                    </View>
+                  )}
+                </Button>
+                {/* 非微信端：普通昵称输入 */}
+                <Input
+                  className='nickname-input'
+                  value={nicknameDraft}
+                  placeholder='输入昵称'
+                  onInput={(e) => setNicknameDraft(e.detail.value)}
+                />
+              </>
+            )}
           </View>
           <View className='profile-edit-tip'>头像与昵称跟随微信，保存后全局同步展示</View>
           <Button

@@ -43,30 +43,46 @@ export type ToolExecutor = (
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
-    name: 'get_pet_profile',
-    description: '获取当前宠物的完整档案，包括品种、年龄、体重、绝育状态、照片等。当用户询问宠物基本信息或需要了解宠物情况时使用。',
+    name: 'find_pet_by_name',
+    description: '按名字查找用户家的宠物，返回宠物 ID。当用户提到"家里的某只宠物"（如"小黑""豆豆"）但不确定是哪只、或需要查询非当前宠物的信息时，先调用本工具拿到 pet_id，再传给其他查询工具（get_pet_profile/get_recent_checkins 等的 pet_id 参数）。',
     parameters: {
       type: 'object',
-      properties: {},
+      properties: {
+        name: { type: 'string', description: '宠物名字，如"小黑""豆豆"' },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    name: 'get_pet_profile',
+    description: '获取宠物的完整档案，包括品种、年龄、体重、绝育状态、照片等。当用户询问宠物基本信息或需要了解宠物情况时使用。可通过 pet_id 指定宠物（先用 find_pet_by_name 获取），不传则查当前活跃宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
       required: [],
     },
   },
   {
     name: 'get_pet_facts',
-    description: '获取 AI 记住的宠物特征、喜好、习惯、性格信息。包括喜欢/讨厌的食物、行为习惯、性格特点等。当需要个性化回复时使用。',
+    description: '获取 AI 记住的宠物特征、喜好、习惯、性格信息。包括喜欢/讨厌的食物、行为习惯、性格特点等。当需要个性化回复时使用。可通过 pet_id 指定宠物。',
     parameters: {
       type: 'object',
-      properties: {},
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
       required: [],
     },
   },
   {
     name: 'get_recent_checkins',
-    description: '查询宠物最近 N 天的健康打卡记录，包括精神状态、食欲、排便、运动等维度。当用户询问宠物最近状态或需要健康趋势分析时使用。',
+    description: '查询宠物最近 N 天的健康打卡记录，包括精神状态、食欲、排便、运动等维度。当用户询问宠物最近状态或需要健康趋势分析时使用。可通过 pet_id 指定宠物（如用户问"小黑最近怎么样"）。',
     parameters: {
       type: 'object',
       properties: {
         days: { type: 'number', description: '查询最近多少天，默认 7 天' },
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
       },
       required: [],
     },
@@ -112,20 +128,23 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   },
   {
     name: 'get_vaccine_calendar',
-    description: '查询宠物的疫苗日历，包括已接种和即将到期的疫苗。当用户询问疫苗相关问题时使用。',
+    description: '查询宠物的疫苗日历，包括已接种和即将到期的疫苗。当用户询问疫苗相关问题时使用。可通过 pet_id 指定宠物。',
     parameters: {
       type: 'object',
-      properties: {},
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
       required: [],
     },
   },
   {
     name: 'get_health_trends',
-    description: '查询宠物健康趋势数据，包括体重变化、打卡趋势等。当用户询问"最近胖了没"、"趋势怎么样"时使用。',
+    description: '查询宠物健康趋势数据，包括体重变化、打卡趋势等。当用户询问"最近胖了没"、"趋势怎么样"时使用。可通过 pet_id 指定宠物。',
     parameters: {
       type: 'object',
       properties: {
         days: { type: 'number', description: '查询最近多少天，默认 30 天' },
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
       },
       required: [],
     },
@@ -147,6 +166,18 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     parameters: {
       type: 'object',
       properties: {},
+      required: [],
+    },
+  },
+  {
+    name: 'get_health_reports',
+    description: '查询宠物的体检记录（指标/异常项）。当用户询问"体检结果""上次体检"或需要解读体检指标时使用。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number', description: '返回最近几条，默认 5，最多 10' },
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
       required: [],
     },
   },
@@ -198,6 +229,40 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
       type: 'object',
       properties: {
         content: { type: 'string', description: '回忆内容描述。用户已在消息中提供回忆内容时传入，例如"豆豆今天追逗猫棒玩疯了""今天带它去公园散步，遇到一只小狗"' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_chronic_advice',
+    description: '生成宠物的慢性病 AI 管理建议（日常护理/复查提醒/就医触发条件）。当用户询问"慢性病怎么护理""糖尿病要注意什么""肾病怎么管理"等慢病管理问题时使用。注意：不诊断，只给管理建议。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+        focus: { type: 'string', description: '用户关注方向，如"复查提醒""饮食注意"，可选' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_feeding_advice',
+    description: '生成宠物的 AI 个性化喂养建议（结合宠物档案/喂养记录/历史记忆）。当用户询问"怎么喂""吃多少""推荐什么食物""喂养建议"等喂食相关问题时使用。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'scan_chronic_risk',
+    description: '扫描宠物的慢性病风险（基于近 90 天打卡：高风险频率/体重趋势/持续异常 + AI 疑似识别）。当用户询问"有没有慢性病风险""健康有没有隐患""帮我看看有没有问题"等风险筛查问题时使用。只输出疑似/建议排查，不诊断。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
       },
       required: [],
     },

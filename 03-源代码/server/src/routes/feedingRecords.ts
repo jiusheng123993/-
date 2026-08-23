@@ -6,15 +6,27 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { v4 as uuidv4 } from 'uuid';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createFeedingRecordSchema, updateFeedingRecordSchema } from '../schemas/index.js';
+import { createFeedingRecordSchema, updateFeedingRecordSchema, feedingAiAnalysisSchema } from '../schemas/index.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { FeedingRecordRepository } from '../repositories/feedingRecordRepository.js';
+import { MembershipRepository } from '../repositories/membershipRepository.js';
+import { analyzeFeedingAdvice } from '../services/feedingAiService.js';
 
 const router = Router();
 router.use(authMiddleware);
 
 const petRepository = new PetRepository();
 const feedingRecordRepository = new FeedingRecordRepository();
+const membershipRepository = new MembershipRepository();
+
+/** 查询用户会员状态（AI 分析会员强制校验，不能只靠前端隐藏——LLM 调用有成本） */
+async function getUserMembership(userId: string): Promise<{ isMember: boolean; status: string }> {
+  const row = await membershipRepository.findTierAndStatus(userId);
+  if (!row) return { isMember: false, status: 'none' };
+  const isExpired = row.expires_at && new Date(row.expires_at) < new Date();
+  if (isExpired) return { isMember: false, status: 'expired' };
+  return { isMember: row.tier !== 'free' && row.status === 'active', status: row.status };
+}
 
 function toCamelCase(obj: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -139,6 +151,45 @@ router.delete('/:petId/feeding-records/:recordId', checkPetOwnership, async (req
   } catch (err) {
     console.error('[Feeding Delete Error]', err);
     res.status(500).json({ success: false, message: '服务器内部错误' });
+  }
+});
+
+/**
+ * POST /api/pets/:petId/feeding-records/ai-analysis
+ * AI 个性化喂食建议（会员专属）
+ * 请求体 = 前端规则引擎产出的喂养画像；服务端注入宠物档案/喂养记录/记忆召回后调 LLM
+ * 安全：auth + 会员强制 + 宠物归属 + zod 校验 + 输出安全检测（服务内 fail-closed）
+ */
+router.post('/:petId/feeding-records/ai-analysis', checkPetOwnership, validate({ body: feedingAiAnalysisSchema }), async (req: Request, res: Response) => {
+  try {
+    // 会员强制校验（LLM 调用有成本，不能只靠前端隐藏）
+    const { isMember } = await getUserMembership(req.userId!);
+    if (!isMember) {
+      res.status(403).json({ success: false, message: 'AI 喂养建议仅限会员使用，请先开通会员' });
+      return;
+    }
+
+    const result = await analyzeFeedingAdvice(req.userId!, req.params.petId as string, {
+      petName: req.body.pet_name,
+      species: req.body.species,
+      breed: req.body.breed || '',
+      ageMonths: req.body.age_months ?? 0,
+      weight: req.body.weight ?? 0,
+      bodyCondition: req.body.body_condition || 'normal',
+      isPuppyKitten: req.body.is_puppy_kitten ?? false,
+      isSenior: req.body.is_senior ?? false,
+      isNeutered: req.body.is_neutered ?? false,
+      chronicConditions: req.body.chronic_conditions || [],
+      allergies: req.body.allergies || [],
+      recentAppetite: req.body.recent_appetite || undefined,
+      recentStool: req.body.recent_stool || undefined,
+      currentAdvice: req.body.current_advice || '',
+    });
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[Feeding AI Analysis Error]', err);
+    res.status(500).json({ success: false, message: 'AI 喂养建议生成失败' });
   }
 });
 

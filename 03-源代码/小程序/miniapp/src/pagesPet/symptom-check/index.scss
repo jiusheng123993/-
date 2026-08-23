@@ -758,3 +758,176 @@
 .pet-symptom-check__btn-text--white {
   color: #FFFFFF;
 }
+
+/* ===== 置信度与依据展示（Phase 1：见 设计方案-2026-08-22 第五章，单位统一 rpx） ===== */
+.pet-symptom-check__confidence {
+  margin-top: 40rpx;
+  padding: 40rpx;
+  background: #F7F9FC;
+  border-radius: 32rpx;
+}
+
+.pet-symptom-check__confidence-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.pet-symptom-check__confidence-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+/* 置信度徽标：高=绿 / 中=橙 / 低=灰，颜色与风险语义弱绑定，避免与风险等级混淆 */
+.pet-symptom-check__confidence-badge {
+  padding: 8rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+}
+
+.pet-symptom-check__confidence-badge--high {
+  background: #2FC98E;
+}
+
+.pet-symptom-check__confidence-badge--medium {
+  background: #FFB020;
+}
+
+.pet-symptom-check__confidence-badge--low {
+  background: #B0B7C3;
+}
+
+/* 单条结论：文案 + 依据徽标 */
+.pet-symptom-check__conclusion {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 20rpx 0;
+  border-top: 1px solid #EEF1F5;
+
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.pet-symptom-check__conclusion-text {
+  flex: 1;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-text-secondary;
+}
+
+.pet-symptom-check__conclusion-basis {
+  flex-shrink: 0;
+  padding: 4rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: $font-size-xs;
+  color: #FFFFFF;
+}
+
+/* 依据类型配色：规则=蓝 / 图谱=紫 / 记录=青 / AI推测=灰 */
+.pet-symptom-check__conclusion-basis--rule {
+  background: #4A90D9;
+}
+
+.pet-symptom-check__conclusion-basis--graph {
+  background: #8B5CF6;
+}
+
+.pet-symptom-check__conclusion-basis--record {
+  background: #0EA5A0;
+}
+
+.pet-symptom-check__conclusion-basis--llm {
+  background: #9AA4B2;
+}
+
+/* ===== AI 深度分析区块（Phase 2，会员专属） ===== */
+.pet-symptom-check__deep {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, rgba(138, 92, 246, 0.08), rgba(74, 144, 217, 0.06));
+  border: 1px solid rgba(138, 92, 246, 0.18);
+}
+
+/* 触发按钮（未分析时展示） */
+.pet-symptom-check__deep-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #8B5CF6, #4A90D9);
+}
+
+.pet-symptom-check__deep-btn--loading {
+  opacity: 0.7;
+}
+
+.pet-symptom-check__deep-btn-text {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: #FFFFFF;
+}
+
+/* 分析结果 */
+.pet-symptom-check__deep-head {
+  margin-bottom: 16rpx;
+}
+
+.pet-symptom-check__deep-title {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: #6D3FD9;
+}
+
+.pet-symptom-check__deep-advice {
+  display: block;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  color: $color-text-primary;
+}
+
+/* 记忆召回（basis='record'，只作背景展示） */
+.pet-symptom-check__deep-memories {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1px dashed rgba(138, 92, 246, 0.25);
+}
+
+.pet-symptom-check__deep-memories-title {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: #8B5CF6;
+  margin-bottom: 10rpx;
+}
+
+.pet-symptom-check__deep-memory {
+  display: block;
+  font-size: $font-size-sm;
+  line-height: 1.5;
+  color: $color-text-secondary;
+  padding: 6rpx 0;
+}
+
+/* ===== 纠错反馈入口（Phase 3：结果有误 → 知识库审核流程） ===== */
+.pet-symptom-check__feedback {
+  margin-top: 16rpx;
+  padding: 14rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  background: rgba(74, 144, 217, 0.06);
+}
+
+.pet-symptom-check__feedback-text {
+  font-size: $font-size-sm;
+  color: #4A90D9;
+}
+

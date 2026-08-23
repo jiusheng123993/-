@@ -218,6 +218,20 @@
 .msg-row.ai .msg-avatar {
   background: $gradient-warm;
   box-shadow: 0 0 16rpx rgba($color-primary, 0.3);
+  overflow: hidden;
+}
+
+/* AI 管家头像图片：铺满圆形 */
+.msg-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* AI 管家头像加载失败回退 emoji */
+.msg-avatar-emoji {
+  font-size: 32rpx;
+  line-height: 1;
 }
 
 .msg-row.user .msg-avatar {
@@ -455,8 +469,10 @@
     padding: 24rpx 80rpx;
     border-radius: $radius-full;
     background: $gradient-gold;
-    transition: all 0.2s ease;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, box-shadow 0.3s ease;
     @include press-feedback;
+    /* 可见动效：主按钮呼吸光晕 */
+    animation: xhh-breathe 2.4s ease-in-out infinite;
 
     .chat-empty-btn-text {
       font-size: 30rpx;
@@ -1556,7 +1572,7 @@
   background: $color-bg-card;
   border-radius: $radius-lg;
   border: 1rpx solid $color-border;
-  box-shadow: $shadow-card;
+  box-shadow: $shadow-card, $glow-sm;
   padding: 28rpx 32rpx;
   margin-bottom: 20rpx;
   @include press-feedback;
@@ -1580,7 +1596,15 @@
   justify-content: center;
   font-size: 56rpx;
   flex-shrink: 0;
-  box-shadow: 0 0 24rpx rgba($color-primary, 0.3);
+  overflow: hidden;
+  box-shadow: 0 0 24rpx rgba($color-primary, 0.3), 0 0 60rpx rgba($color-primary, 0.18), 0 0 110rpx rgba($color-gold, 0.12);
+}
+
+/* 宠物真实头像（与档案页一致）：圆角裁切 */
+.home-summary-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .home-summary-info {
@@ -1613,6 +1637,8 @@
 
   &--coral {
     color: $color-primary;
+    // 沉浸光感：暖色统计数字辉光
+    text-shadow: 0 0 12rpx rgba(var(--primary-rgb), 0.35), 0 0 34rpx rgba(255, 176, 32, 0.18);
   }
 
   &--success {
@@ -1676,13 +1702,25 @@
   border-radius: $radius-lg;
   padding: 28rpx 32rpx;
   margin-bottom: 28rpx;
-  box-shadow: $shadow-button;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  position: relative;
+  box-shadow: $shadow-button, 0 0 30rpx rgba($color-primary, 0.35), 0 0 80rpx rgba($color-gold, 0.2);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, box-shadow 0.3s ease;
 
   &--hover {
     transform: scale(0.97);
     opacity: 0.92;
   }
+}
+
+// 扩散光晕环（仿鸿蒙"充电光晕"脉冲）：渐变主按钮自带呼吸辉光
+.home-checkin-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  animation: xhh-pulse-ring 3.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  pointer-events: none;
 }
 
 .home-checkin-cta-left {
@@ -1754,13 +1792,13 @@
 }
 
 .home-shortcut {
-  width: calc((100% - 20rpx) / 2);
+  width: calc((100% - 40rpx) / 3);
   background: $color-bg-card;
   border-radius: $radius-lg;
   border: 1rpx solid $color-border;
-  box-shadow: $shadow-card;
+  box-shadow: $shadow-card, $glow-sm;
   padding: 24rpx;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
   @include press-feedback;
 
   &--hover {
@@ -1771,6 +1809,7 @@
 }
 
 .home-shortcut-icon {
+  position: relative;
   width: 76rpx;
   height: 76rpx;
   border-radius: 50%;
@@ -1784,6 +1823,28 @@
   &--gold { background: rgba($color-gold-deep, 0.14); }
   &--sage { background: rgba($color-sage, 0.14); }
   &--teal { background: rgba($color-teal, 0.14); }
+}
+
+/* 慢性病风险角标（红色数字徽标，右上角） */
+.home-shortcut-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 16rpx;
+  background: $color-danger;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #fff;
+}
+
+.home-shortcut-badge-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: $font-weight-semibold;
 }
 
 .home-shortcut-label {

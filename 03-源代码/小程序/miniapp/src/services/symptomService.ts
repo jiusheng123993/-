@@ -5,11 +5,13 @@
  */
 import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
-import { queueSync } from './syncHelper'
 import type { PetHealthEntry } from './checkinService'
 import type { PetProfile } from './petService'
 import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes'
 import { BREED_DATA } from '../data/petKnowledge/breeds'
+// 医学知识图谱：规则/疾病数据已外置，风险等级评估与置信度推导统一走图谱（见 设计方案-2026-08-22）
+import { evaluateRiskLevel, enrichResultWithConfidence, getPossibleConditions } from '../data/petKnowledge/medicalGraph'
+import type { Confidence, AnalysisConclusion } from '../data/petKnowledge/medicalGraph'
 
 function entryDateStr(entry: PetHealthEntry): string {
   if (entry.createdAt instanceof Date) {
@@ -53,6 +55,10 @@ export interface SymptomCheckResult {
   aiAdvice: string
   recommendedActions: string[]
   personalizedInsights?: PersonalizedInsight[]
+  /** 整体置信度（Phase 1：代码按依据推导，历史记录可能缺失该字段） */
+  confidence?: Confidence
+  /** 分析结论列表（每条带依据类型与置信度；历史记录可能缺失） */
+  conclusions?: AnalysisConclusion[]
   createdAt: string
 }
 
@@ -157,84 +163,10 @@ const BUILTIN_CATEGORIES: SymptomCategory[] = [
   },
 ]
 
-const EMERGENCY_SYMPTOMS = new Set([
-  'seizure',
-  'dyspnea',
-  'hematuria',
-  'unconsciousness',
-])
-
-const WARNING_SYMPTOM_COMBOS: { symptoms: string[]; extra?: string[] }[] = [
-  { symptoms: ['vomiting', 'appetite_loss'] },
-  { symptoms: ['diarrhea'], extra: ['diarrhea'] },
-  { symptoms: ['frequent_urination', 'hematuria'] },
-]
-
-const CAUTION_SYMPTOMS = new Set([
-  'vomiting',
-  'diarrhea',
-  'appetite_loss',
-  'lethargy',
-  'cough',
-  'itching',
-  'hair_loss',
-  'constipation',
-  'drooling',
-  'sneeze',
-  'runny_nose',
-  'rash',
-  'dander',
-  'frequent_urination',
-  'dysuria',
-  'head_tilt',
-  'ataxia',
-  'anxiety',
-  'hiding',
-  'excessive_licking',
-  'eye_discharge',
-  'tearing',
-  'ear_odor',
-  'bad_breath',
-  'gum_swelling',
-])
-
-const CONDITION_MAP: Record<string, string[]> = {
-  vomiting: ['胃炎', '食物不耐受', '肠道异物'],
-  diarrhea: ['肠炎', '寄生虫感染', '食物过敏'],
-  constipation: ['脱水', '肠道梗阻', '饮食纤维不足'],
-  appetite_loss: ['感染', '口腔疾病', '消化系统疾病'],
-  drooling: ['口腔溃疡', '牙齿问题', '中毒'],
-  dysphagia: ['咽喉炎', '食道异物', '神经系统疾病'],
-  cough: ['呼吸道感染', '气管塌陷', '心脏病'],
-  sneeze: ['上呼吸道感染', '过敏性鼻炎', '鼻腔异物'],
-  runny_nose: ['鼻炎', '上呼吸道感染', '过敏'],
-  dyspnea: ['肺炎', '心脏病', '气管塌陷'],
-  wheezing: ['哮喘', '支气管炎', '过敏'],
-  itching: ['皮肤病', '寄生虫', '过敏'],
-  hair_loss: ['真菌感染', '内分泌失调', '营养不良'],
-  rash: ['过敏性皮炎', '湿疹', '寄生虫叮咬'],
-  dander: ['皮肤干燥', '营养不良', '寄生虫'],
-  lump: ['脂肪瘤', '囊肿', '肿瘤'],
-  wound: ['外伤', '感染', '自咬伤'],
-  frequent_urination: ['尿路感染', '糖尿病', '肾脏疾病'],
-  hematuria: ['尿路结石', '膀胱炎', '肾脏疾病'],
-  dysuria: ['尿路结石', '前列腺疾病', '尿道阻塞'],
-  incontinence: ['尿道括约肌松弛', '神经系统疾病', '尿路感染'],
-  seizure: ['癫痫', '中毒', '脑部疾病'],
-  head_tilt: ['中耳炎', '前庭疾病', '脑部疾病'],
-  ataxia: ['前庭疾病', '脊髓疾病', '中毒'],
-  nystagmus: ['前庭疾病', '脑部疾病', '中毒'],
-  lethargy: ['感染', '贫血', '代谢疾病'],
-  anxiety: ['环境变化', '疼痛', '分离焦虑'],
-  aggression: ['疼痛', '恐惧', '神经系统疾病'],
-  hiding: ['疼痛', '恐惧', '疾病不适'],
-  excessive_licking: ['皮肤病', '过敏', '焦虑'],
-  eye_discharge: ['结膜炎', '泪管堵塞', '眼部感染'],
-  tearing: ['结膜炎', '过敏', '泪管堵塞'],
-  ear_odor: ['耳螨', '外耳炎', '真菌感染'],
-  bad_breath: ['牙结石', '口腔感染', '消化系统疾病'],
-  gum_swelling: ['牙龈炎', '牙周病', '口腔感染'],
-}
+// ===== 规则引擎数据已外置到医学知识图谱（data/petKnowledge/medicalGraph.ts） =====
+// 原 EMERGENCY_SYMPTOMS / WARNING_SYMPTOM_COMBOS / CAUTION_SYMPTOMS / CONDITION_MAP
+// 已迁移为 MEDICAL_GRAPH.riskRules / diseases（带来源与审核状态），本文件不再重复维护。
+// 评估入口统一走 evaluateRiskLevel，行为与原实现完全一致（纯重构）。
 
 const SYMPTOM_DISEASE_ASSOCIATION: Record<string, string[]> = {
   vomiting: ['肠胃', '肾', '肝'],
@@ -306,56 +238,8 @@ function calculateRiskLevel(
   symptomIds: string[],
   additionalInfo?: SymptomCheckResult['additionalInfo']
 ): SymptomCheckResult['riskLevel'] {
-  const hasEmergency = symptomIds.some((id) => EMERGENCY_SYMPTOMS.has(id))
-
-  if (hasEmergency) {
-    return 'emergency'
-  }
-
-  if (symptomIds.includes('vomiting') && symptomIds.includes('diarrhea')) {
-    return 'emergency'
-  }
-
-  if (symptomIds.includes('vomiting') && symptomIds.includes('lethargy')) {
-    return 'emergency'
-  }
-
-  if (symptomIds.includes('dyspnea') && symptomIds.includes('lethargy')) {
-    return 'emergency'
-  }
-
-  for (const combo of WARNING_SYMPTOM_COMBOS) {
-    const allMatch = combo.symptoms.every((s) => symptomIds.includes(s))
-    if (allMatch) {
-      if (combo.extra) {
-        const duration = additionalInfo?.duration
-        if (duration && (duration === '2-3天' || duration === '3天以上')) {
-          return 'warning'
-        }
-        continue
-      }
-      return 'warning'
-    }
-  }
-
-  if (symptomIds.includes('vomiting') && additionalInfo?.appetite === 'decreased') {
-    return 'warning'
-  }
-
-  if (symptomIds.includes('diarrhea') && additionalInfo?.appetite === 'decreased') {
-    return 'warning'
-  }
-
-  if (symptomIds.includes('lethargy') && additionalInfo?.energy === 'low') {
-    return 'warning'
-  }
-
-  const hasCaution = symptomIds.some((id) => CAUTION_SYMPTOMS.has(id))
-  if (hasCaution) {
-    return 'caution'
-  }
-
-  return 'normal'
+  // 规则引擎已外置到医学知识图谱：evaluateRiskLevel 与原逻辑逐条等价（紧急 > 组合 > 条件 > 关注 > 正常）
+  return evaluateRiskLevel(symptomIds, additionalInfo)
 }
 
 function generateAiAdvice(
@@ -388,16 +272,8 @@ function generateAiAdvice(
 }
 
 function generatePossibleConditions(symptomIds: string[]): string[] {
-  const conditions = new Set<string>()
-  for (const id of symptomIds) {
-    const mapped = CONDITION_MAP[id]
-    if (mapped) {
-      for (const c of mapped) {
-        conditions.add(c)
-      }
-    }
-  }
-  return Array.from(conditions).slice(0, 5)
+  // 委托图谱模块：保持原"症状→疾病"顺序（审查项：避免按全局疾病实体序打乱 top-5）
+  return getPossibleConditions(symptomIds)
 }
 
 function generateRecommendedActions(riskLevel: SymptomCheckResult['riskLevel']): string[] {
@@ -834,7 +710,7 @@ function calculateRecoveryDays(
 function findHistoricalSimilarEvents(
   petId: string,
   currentSymptomIds: string[],
-  petProfile?: PetProfile
+  _petProfile?: PetProfile // 暂未使用（后续记忆引擎接入后用于过滤），保留签名
 ): HistoricalEvent[] {
   const events: HistoricalEvent[] = []
   const now = new Date()
@@ -1159,7 +1035,7 @@ function generatePersonalizedInsights(
  */
 function findBreedAgeRiskInsights(
   petProfile: PetProfile,
-  symptomIds?: string[]
+  _symptomIds?: string[] // 暂未使用（后续按症状细化风险时接入），保留签名
 ): PersonalizedInsight[] {
   const insights: PersonalizedInsight[] = []
   if (!petProfile.breed || !petProfile.birthDate) return insights
@@ -1354,6 +1230,9 @@ export async function analyzeSymptoms(
     createdAt: new Date().toISOString(),
   }
 
+  // 附加置信度与结论（Phase 1：规则+图谱依据，置信度由代码推导，见 medicalGraph）
+  const enriched = enrichResultWithConfidence(result)
+
   try {
     // 后端 symptomCheckSchema 使用 snake_case，路径为单数 symptom-check
     const apiResult = await api.post<SymptomCheckResult>(
@@ -1369,15 +1248,21 @@ export async function analyzeSymptoms(
         recommended_actions: result.recommendedActions,
       }
     )
+    // 服务端暂不存储置信度字段，返回时与本地计算结果合并，避免前端展示丢失
+    const merged: SymptomCheckResult = {
+      ...apiResult,
+      confidence: enriched.confidence,
+      conclusions: enriched.conclusions,
+    }
     const local = getLocalResults(petId)
-    local.unshift(apiResult)
+    local.unshift(merged)
     saveLocalResults(petId, local)
-    return apiResult
+    return merged
   } catch (error) {
     const local = getLocalResults(petId)
-    local.unshift(result)
+    local.unshift(enriched)
     saveLocalResults(petId, local)
-    return result
+    return enriched
   }
 }
 
@@ -1409,4 +1294,51 @@ export async function deleteCheckResult(id: string): Promise<void> {
     await api.delete(`/api/symptom-checks/${id}`)
   } catch (error) {
   }
+}
+
+// ===== AI 深度分析（Phase 2，会员专属） =====
+
+/** 记忆召回条目（服务端返回，basis='record' 只作背景展示） */
+export interface AiRecalledMemory {
+  content: string
+  importance: number
+  category: string
+}
+
+/** AI 深度分析结果 */
+export interface AiDeepAnalysisResult {
+  aiAdvice: string               // AI 组织后的建议（含免责声明）
+  memoriesUsed: AiRecalledMemory[] // 记忆召回（历史健康/医疗背景）
+  unsafe: boolean                // 输出安全检测是否拦截（true 时 aiAdvice 为兜底文案）
+  degraded?: boolean             // LLM 调用失败降级（true 时 aiAdvice 为"稍后再试"文案，可选）
+}
+
+/**
+ * 请求会员 AI 深度分析
+ * 入参 = 本地初筛结论（规则+图谱依据），服务端注入宠物档案/打卡/记忆闸门召回后调 LLM
+ * @param petId - 宠物 ID
+ * @param payload - 本地初筛上下文
+ * @returns AI 建议 + 记忆召回（非会员由服务端 403 拒绝）
+ */
+export async function aiDeepAnalyze(
+  petId: string,
+  payload: {
+    symptoms: string[]
+    symptomNames: string[]
+    riskLevel: SymptomCheckResult['riskLevel']
+    possibleConditions: string[]
+    conclusions: AnalysisConclusion[]
+    duration?: string
+    severity?: string
+  }
+): Promise<AiDeepAnalysisResult> {
+  return api.post<AiDeepAnalysisResult>(`/api/pets/${petId}/symptom-check/ai-analysis`, {
+    symptoms: payload.symptoms,
+    symptom_names: payload.symptomNames,
+    risk_level: payload.riskLevel,
+    possible_conditions: payload.possibleConditions,
+    conclusions: payload.conclusions,
+    duration: payload.duration,
+    severity: payload.severity,
+  })
 }

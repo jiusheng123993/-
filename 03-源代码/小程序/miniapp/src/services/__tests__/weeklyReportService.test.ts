@@ -8,6 +8,8 @@ import {
   getMoodEmoji,
   getMoodLabel,
   getOverallMood,
+  mapBackendReportRowToView,
+  isoWeekDateRange,
 } from '../weeklyReportService'
 import type { WeeklyReport, WeeklyReportData } from '../weeklyReportService'
 
@@ -328,6 +330,90 @@ describe('weeklyReportService', () => {
       const result = generateFamilyWeeklySummary(reports, 1)
       // When no excellent pets, highlights should have fallback
       expect(result.highlights.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('mapBackendReportRowToView（后端行结构 → 视图结构映射，修复 AI 周报点击崩溃）', () => {
+    // 构造后端返回的原始行结构（与 server WeeklyReportRow 对齐）
+    function makeRow(overrides: Partial<import('../weeklyReportService').BackendReportRow> = {}): import('../weeklyReportService').BackendReportRow {
+      return {
+        id: 'report-001',
+        family_id: 'family-001',
+        week_number: 32,
+        year: 2026,
+        report_data: {
+          health: { checkin_count: 7, avg_poop: 3, avg_appetite: 4, avg_spirit: 4, anomaly_count: 1, best_day: '2026-08-05' },
+          activities: { symptom_checks: 2, food_queries: 3, new_moments: 1, new_milestones: 0 },
+          family: { feed_count: 1, new_events: 0, active_pets: 1 },
+        },
+        ai_insight: '这周毛孩子状态不错，继续保持。',
+        share_card_url: null,
+        created_at: '2026-08-06T15:28:36.713Z',
+        ...overrides,
+      }
+    }
+
+    it('正常数据：映射出页面需要的视图字段（日期/寄语/亮点/关注）', () => {
+      const view = mapBackendReportRowToView(makeRow())
+      expect(view.reportDate).toBe('2026-08-03') // ISO 周周一
+      expect(view.weekStart).toBe('2026-08-03')
+      expect(view.weekEnd).toBe('2026-08-09')
+      expect(view.summary).toBe('这周毛孩子状态不错，继续保持。')
+      expect(view.highlights).toContain('本周健康打卡 7 次')
+      expect(view.highlights).toContain('最佳打卡日 2026-08-05')
+      expect(view.highlights).toContain('新增 1 条家庭动态')
+      expect(view.concerns).toContain('本周有 1 天异常记录，请留意毛孩子状态')
+      expect(view.overallMood).toBe('fair')
+      expect(view.petReports).toEqual([]) // 后端暂无 per-pet 明细
+      expect(view.reportData.health.checkin_count).toBe(7)
+    })
+
+    it('全 0 空数据：不崩溃且有兜底文案', () => {
+      const row = makeRow({
+        report_data: {
+          health: { checkin_count: 0, avg_poop: 0, avg_appetite: 0, avg_spirit: 0, anomaly_count: 0, best_day: null },
+          activities: { symptom_checks: 0, food_queries: 0, new_moments: 0, new_milestones: 0 },
+          family: { feed_count: 0, new_events: 0, active_pets: 0 },
+        },
+        ai_insight: null,
+      })
+      const view = mapBackendReportRowToView(row)
+      expect(view.highlights.length).toBeGreaterThan(0) // 兜底亮点文案
+      expect(view.concerns).toContain('本周没有健康打卡，建议恢复每日记录')
+      expect(view.summary).toBe('')
+      expect(view.overallMood).toBe('good')
+    })
+
+    it('异常天数多 → concerning；打卡多且无异常 → excellent', () => {
+      const bad = mapBackendReportRowToView(makeRow({
+        report_data: {
+          ...makeRow().report_data!,
+          health: { ...makeRow().report_data!.health, anomaly_count: 4, checkin_count: 3 },
+        },
+      }))
+      expect(bad.overallMood).toBe('concerning')
+
+      const good = mapBackendReportRowToView(makeRow({
+        report_data: {
+          ...makeRow().report_data!,
+          health: { ...makeRow().report_data!.health, anomaly_count: 0, checkin_count: 6 },
+        },
+      }))
+      expect(good.overallMood).toBe('excellent')
+    })
+
+    it('report_data 缺失时容错为全 0 结构，不抛异常', () => {
+      const row = makeRow({ report_data: undefined as unknown as import('../weeklyReportService').ReportData })
+      expect(() => mapBackendReportRowToView(row)).not.toThrow()
+      const view = mapBackendReportRowToView(row)
+      expect(view.reportData.health.checkin_count).toBe(0)
+      expect(view.highlights.length).toBeGreaterThan(0)
+    })
+
+    it('isoWeekDateRange 跨年正确（2026 年第 1 周起点为 2025-12-29）', () => {
+      const r = isoWeekDateRange(2026, 1)
+      expect(r.weekStart).toBe('2025-12-29')
+      expect(r.weekEnd).toBe('2026-01-04')
     })
   })
 })

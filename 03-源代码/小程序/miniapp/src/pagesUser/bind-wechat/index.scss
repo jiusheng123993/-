@@ -1,0 +1,148 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// 绑定微信头像昵称引导页样式（登录后引导，与登录页同一套温馨氛围）
+.bind-page {
+  min-height: 100vh;
+  background: $gradient-page;
+  position: relative;
+  overflow: hidden;
+  animation: pageEnter 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+// 内容区：垂直居中，避免顶部贴边
+.bind-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 96rpx 40rpx 60rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+// ===== 标题区 =====
+.bind-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48rpx;
+
+  &__emoji {
+    font-size: 72rpx;
+    margin-bottom: 16rpx;
+  }
+
+  &__title {
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    margin-bottom: 12rpx;
+  }
+
+  &__sub {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+  }
+}
+
+// ===== 头像 + 昵称卡片 =====
+.bind-card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: 40rpx 32rpx;
+  box-shadow: $shadow-card;
+  margin-bottom: 48rpx;
+
+  &__label {
+    display: block;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+
+  &__hint {
+    display: block;
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    margin-top: 8rpx;
+    margin-bottom: 24rpx;
+  }
+}
+
+// ===== 保存按钮（渐变 + 光晕，项目主按钮风格） =====
+.bind-save-btn {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: $radius-round;
+  background: $gradient-warm;
+  color: $color-text-inverse;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  border: none;
+  box-shadow: $shadow-button;
+
+  &::after {
+    border: none;
+  }
+}
+
+// ===== 暂不绑定 =====
+.bind-skip {
+  margin-top: 32rpx;
+  text-align: center;
+  padding: 16rpx;
+
+  &__text {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+    text-decoration: underline;
+  }
+}
+
+// ===== 非微信端防御分支的输入样式（与个人资料页保持一致） =====
+.bind-avatar-btn {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-primary-bg;
+  border: none;
+  overflow: hidden;
+
+  &::after {
+    border: none;
+  }
+}
+
+.bind-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.bind-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bind-avatar-icon {
+  font-size: 64rpx;
+}
+
+.bind-nickname-input {
+  margin-top: 24rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 24rpx;
+  border-radius: $radius-md;
+  background: $color-bg-secondary;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+}

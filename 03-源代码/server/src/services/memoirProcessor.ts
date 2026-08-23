@@ -15,16 +15,30 @@
  *   - 日志脱敏：不记录照片 URL、用户文案
  */
 import { MemoirRepository, type MemoirRecordRow } from '../repositories/memoirRepository.js';
+import { PetRepository } from '../repositories/petRepository.js';
 import {
   generateMemoirVideo,
   mapMemoirTypeToProductLine,
   type VideoGenerationResult,
 } from './videoGenerationService.js';
+import { generateMemoirScript } from './memoirScriptService.js';
+import { buildMemoryContext, getMemoriesByTags } from './memoryService.js';
+import { checkVideoQuality } from './qualityCheckService.js';
+import { cleanupNarration } from './ttsService.js';
+import { cleanupDoubaoSpeech } from './doubaoSpeechTts.js';
+import type { MemoirScript } from '../schemas/memoirScript.js';
 import { moderateVideo } from './videoModerationService.js';
 import { sendToUser } from './websocketService.js';
 import { postMemoirCompletedFeed } from './autoFeedService.js';
 import { postMemoirTimelineMoment } from './autoFeedService.js';
 import { sanitizeError } from '../utils/sanitize.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { config } from '../config.js';
+
+/** 服务器工作目录（上传/生成产物根目录，质检抽帧用） */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOAD_DIR = path.resolve(__dirname, '..', config.uploadDir);
 
 /** 最大重试次数（审核失败时） */
 const MAX_RETRY_COUNT = 2;
@@ -36,6 +50,7 @@ const BATCH_SIZE = 5;
 const POLL_INTERVAL_MS = 30_000;
 
 const memoirRepository = new MemoirRepository();
+const petRepository = new PetRepository();
 
 /** 任务处理状态（用于 in-memory 重试计数） */
 const retryCountMap = new Map<string, number>();
@@ -138,7 +153,10 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     // 3. 映射产品线
     const productLine = mapMemoirTypeToProductLine(task.memoir_type);
 
-    // 4. 调用视频生成服务
+    // 4. 回忆录 2.0：确保分镜脚本存在（无则调用 M1 生成并持久化）
+    const script = await ensureMemoirScript(task, narrative, productLine);
+
+    // 5. 调用视频生成服务（分镜驱动新管线）
     const result = await generateMemoirVideo({
       taskId: task.id,
       productLine,
@@ -147,9 +165,33 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
       duration: typeof narrative.duration === 'number' ? narrative.duration : null,
       stylePreset: typeof narrative.style_preset === 'string' ? narrative.style_preset : null,
+      script,
     });
 
-    // 5. 内容审核
+    // 6. 质量质检（回忆录 2.0 M5：DeepSeek 视觉抽帧评分）
+    //    degraded=true（质检不可用）时放行；不合格时整条重试
+    const localFinalPath = path.join(UPLOAD_DIR, 'memoir', task.id, 'final.mp4');
+    const quality = await checkVideoQuality({
+      videoPath: localFinalPath,
+      identityAnchor: script?.identity_anchor,
+    });
+    if (!quality.passed && !quality.degraded) {
+      const retried = await handleRetry(task.id, `质量质检未通过: ${quality.defects.join('；') || '低分'}`);
+      if (retried) {
+        console.warn(`[MemoirProcessor] Task ${task.id}: Quality check failed, retrying`);
+        return false;
+      }
+      await memoirRepository.markFailed(task.id, '质量质检未通过');
+      await notifyUser(task.user_id, {
+        type: 'memoir_failed',
+        taskId: task.id,
+        reason: '视频质量未达标',
+      });
+      console.warn(`[MemoirProcessor] Task ${task.id}: Quality check failed, max retries exceeded`);
+      return false;
+    }
+
+    // 7. 内容审核
     const moderationResult = await moderateVideo(result.videoUrl);
 
     if (moderationResult === 'block') {
@@ -182,6 +224,9 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     // 回忆录生成完成 → 写入时光线（pet_moments）
     void postMemoirTimelineMoment(task.user_id, task.pet_id, task.memoir_type, result.videoUrl, result.previewUrl);
 
+    // 清理 TTS 临时文件（旁白中间产物，防磁盘泄漏）
+    void cleanupTaskTempFiles(task.id);
+
     // 7. 清理重试计数
     retryCountMap.delete(task.id);
 
@@ -211,9 +256,109 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       taskId: task.id,
       reason: '视频生成失败',
     });
+    // 清理 TTS 临时文件
+    void cleanupTaskTempFiles(task.id);
 
     console.error(`[MemoirProcessor] Task ${task.id}: Failed after max retries:`, errorMessage);
     return false;
+  }
+}
+
+/**
+ * 清理任务相关的 TTS 临时文件（旁白中间产物）
+ * @param taskId - 任务 ID
+ */
+function cleanupTaskTempFiles(taskId: string): void {
+  void cleanupNarration(taskId).catch(() => {});
+  void cleanupDoubaoSpeech(taskId).catch(() => {});
+}
+
+/**
+ * 确保任务有分镜脚本（回忆录 2.0）
+ * 1. narrative_structure.script 已存在 → 直接返回（重试场景复用）
+ * 2. 不存在 → 查宠物档案 + 记忆摘要 → 调用 M1 分镜生成 → 持久化到任务
+ * 降级：分镜生成失败返回 undefined（走旧管线），不阻断生成
+ * @param task - 回忆录任务
+ * @param narrative - 解析后的叙事结构（含旧字段 music_style/duration/style_preset）
+ * @param productLine - 产品线
+ * @returns 分镜脚本（失败/旧任务返回 undefined）
+ */
+async function ensureMemoirScript(
+  task: MemoirRecordRow,
+  narrative: Record<string, unknown>,
+  productLine: 'daily' | 'memorial',
+): Promise<MemoirScript | undefined> {
+  // 已有分镜（重试任务）直接复用
+  const existing = narrative.script;
+  if (existing && typeof existing === 'object') {
+    return existing as MemoirScript;
+  }
+
+  try {
+    // 查宠物档案（失败用兜底档案，不阻断）
+    const pet = await petRepository.findByIdAndUser(task.pet_id, task.user_id);
+
+    // 记忆摘要（F4：按回忆标签筛核心层记忆作素材；失败不影响分镜生成）
+    let memorySummary: string | undefined;
+    try {
+      const tags = Array.isArray(narrative.tags) ? (narrative.tags as string[]) : undefined;
+      if (tags && tags.length > 0) {
+        // 用户选了标签 → 按标签取核心层记忆（记忆驱动）
+        memorySummary = await getMemoriesByTags({
+          userId: task.user_id,
+          petId: task.pet_id,
+          tags,
+          limit: 20,
+        });
+      } else {
+        // 未选标签 → 用完整记忆上下文
+        const ctx = await buildMemoryContext(
+          task.user_id,
+          task.pet_id,
+          task.source_text || '为宠物生成回忆录分镜',
+        );
+        memorySummary = ctx.memories || undefined;
+      }
+    } catch {
+      // 记忆摘要失败忽略
+    }
+
+    const script = await generateMemoirScript({
+      petProfile: pet
+        ? {
+            name: pet.name,
+            species: pet.species,
+            breed: pet.breed,
+            gender: pet.gender,
+            birth_date: pet.birth_date,
+            notes: pet.notes,
+            is_deceased: pet.is_deceased,
+          }
+        : { name: '宝贝', species: 'cat', breed: '宠物' },
+      memorySummary,
+      photoCount: task.source_photos.length,
+      productLine,
+      targetDuration:
+        typeof narrative.duration === 'number'
+          ? narrative.duration
+          : productLine === 'memorial'
+            ? 75
+            : 15,
+      sourceText: task.source_text,
+      musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
+    });
+
+    // 持久化分镜（失败仅记录，不影响本任务生成）
+    try {
+      await memoirRepository.updateScript(task.id, script as unknown as Record<string, unknown>);
+    } catch (err) {
+      console.warn('[MemoirProcessor] 分镜持久化失败（不影响生成）:', sanitizeError(err));
+    }
+    return script;
+  } catch (err) {
+    // 分镜生成失败 → 回退旧管线（功能可用，质量降级）
+    console.warn('[MemoirProcessor] 分镜生成失败，回退旧管线:', sanitizeError(err));
+    return undefined;
   }
 }
 

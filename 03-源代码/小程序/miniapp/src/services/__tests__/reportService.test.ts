@@ -513,7 +513,7 @@ describe('reportService', () => {
       expect(text).toContain('中风险: 0次')
       expect(text).toContain('低风险: 0次')
       expect(text).toContain('趋势: 稳定')
-      expect(text).toContain('星河宠记 AI宠物管家')
+      expect(text).toContain('团团 · 星河宠记 AI 宠物管家')
     })
 
     it('should display anomaly records when present', () => {

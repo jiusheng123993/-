@@ -279,7 +279,7 @@ export function formatReportAsText(report: HealthReport): string {
 ${report.anomalies.length > 0 ? `🔍 异常记录\n${report.anomalies.map((a) => `  ${a.date}: ${a.items.join('、')} (${a.riskLevel})`).join('\n')}\n` : ''}
 ${report.vaccines.length > 0 ? `💉 疫苗记录\n${report.vaccines.map((v) => `  ${v.name}: ${v.date} (${v.status})${v.nextDue ? ` → 下次: ${v.nextDue}` : ''}`).join('\n')}\n` : ''}
 ═══════════════════════════
-  星河宠记 AI宠物管家
+   🐱 团团 · 星河宠记 AI 宠物管家
   报告生成时间: ${formatDate(new Date(report.generatedAt))}
 ═══════════════════════════`
 }

@@ -17,6 +17,8 @@ import Model3DViewer from '../../components/PetAvatar/Model3DViewer'
 import GenerationProgress from '../../components/PetAvatar/GenerationProgress'
 import { EXPRESSION_MAP, type PetExpression } from '../../engines/petAvatar'
 import { getPresetsBySpecies, type AvatarPreset } from './data/avatarPresets'
+import { getHomeStyleAvatarUrl } from '../../data/homeStyleAvatars'
+import PresetAvatar from './PresetAvatar'
 import {
   generateAvatarImage,
   generateAvatarOptions,
@@ -26,6 +28,7 @@ import {
   getGenerationCount,
   incrementGenerationCount,
   uploadPetPhoto,
+  setPetPhotoAsAvatar,
   generate2DAvatar,
   generate3DAvatar,
   getAvatar2DImages,
@@ -39,6 +42,8 @@ import {
   getAvatarQuota,
   type AvatarStyleOption,
 } from '../../services/avatarService'
+import type { AvatarCustomization } from '../../types/avatarTypes'
+import type { PetProfile } from '../../services/petService'
 import { usePetStore } from '../../stores/petStore'
 import { useMembership } from '../../hooks/useMembership'
 import { useAnalytics } from '../../hooks/useAnalytics'
@@ -128,7 +133,7 @@ export default function AvatarCustomizePage() {
   const [photoStyle, setPhotoStyle] = useState<'cartoon' | 'realistic'>('cartoon')
   const [serverQuota, setServerQuota] = useState<AvatarQuota | null>(null)
 
-  // 当前宠物物种对应的 8 张预设头像
+  // 当前宠物物种对应的 10 张预设形象
   const presetList = useMemo(() => getPresetsBySpecies(species), [species])
   const selectedPreset = useMemo(
     () => presetList.find((item) => item.id === selectedPresetId) || null,
@@ -151,7 +156,7 @@ export default function AvatarCustomizePage() {
     isDeceased: false,
   }), [])
 
-  // 当前展示形象（优先生成结果 → 已保存形象 → 默认卡通脸）
+  // 当前展示形象（优先交互中的选择 → 宠物档案已保存的头像 → 本地缓存兜底 → 默认品牌头像）
   const previewUrl = useMemo(() => {
     if (isGenerating) return null
     if (styleOptions && selectedStyleIndex != null && styleOptions[selectedStyleIndex]) {
@@ -159,9 +164,15 @@ export default function AvatarCustomizePage() {
     }
     if (selectedPreset) return selectedPreset.image
     if (generatedUrl) return generatedUrl
-    const custom = getAvatarCustomization()
-    return custom?.cartoonUrl || null
-  }, [isGenerating, generatedUrl, styleOptions, selectedStyleIndex, selectedPreset])
+    // 宠物档案是权威数据：真实照片优先于卡通/AI 形象，避免多宠物互相串头像
+    if (currentPet?.avatarPhotoUrl) return currentPet.avatarPhotoUrl
+    if (currentPet?.avatarCartoonUrl) return currentPet.avatarCartoonUrl
+    const custom = getAvatarCustomization(petId)
+    if (custom?.cartoonUrl) return custom.cartoonUrl
+    // 默认形象：没有自定义头像时按品种匹配品牌小动物头像，与家庭页头像保持一致（同图同源）
+    if (currentPet) return getHomeStyleAvatarUrl(currentPet)
+    return null
+  }, [isGenerating, generatedUrl, styleOptions, selectedStyleIndex, selectedPreset, currentPet, petId])
 
   // 形象卡副标题：品种 · 年龄 · 状态
   const petDesc = useMemo(() => {
@@ -255,10 +266,76 @@ export default function AvatarCustomizePage() {
       confirmText: '去开通',
       cancelText: '取消',
       success: (res) => {
-        if (res.confirm) Taro.navigateTo({ url: '/pages/member/index' })
+        if (res.confirm) Taro.navigateTo({ url: '/pagesUser/member/index' })
       },
     })
   }, [])
+
+  /**
+   * 把某只宠物在 petStore 里的头像字段即时合并（patch）
+   * 不用 fetchPets 回读的原因：离线时 fetchPets 会从本地缓存拉旧数据覆盖 store，
+   * 把刚设置的本地头像变更冲掉；在线时服务端 PUT 已返回最新档案，直接合并即可。
+   * 坑点：null 值表示"清空该字段"（如保存卡通形象时清 avatarPhotoUrl）——
+   * 必须删除键而不是保留旧值，否则展示优先级 photo > cartoon 会一直显示旧照片，
+   * 导致"保存了卡通头像但到处还是旧照片"的不一致。
+   * @param targetPetId - 宠物 ID
+   * @param patch - 要合并进宠物对象的字段；null 值表示清空该字段（删除键）
+   */
+  const patchStorePet = useCallback((targetPetId: string, patch: Record<string, unknown>) => {
+    usePetStore.setState((state) => {
+      const applyPatch = (pet: PetProfile) => {
+        if (pet.id !== targetPetId) return pet
+        const merged: Record<string, unknown> = { ...pet }
+        for (const [key, value] of Object.entries(patch)) {
+          if (value === null) {
+            delete merged[key]
+          } else {
+            merged[key] = value
+          }
+        }
+        return merged as unknown as PetProfile
+      }
+      return {
+        pets: state.pets.map(applyPatch),
+        currentPet: state.currentPet ? applyPatch(state.currentPet) : state.currentPet,
+      }
+    })
+  }, [])
+
+  /**
+   * 保存成功后的统一收尾：把最新头像合并进 petStore，再提示并返回
+   * @param targetPetId - 宠物 ID
+   * @param patch - 服务端返回的最新档案，或本地构造的头像字段补丁
+   */
+  const handleSaved = useCallback(async (targetPetId: string, patch: Record<string, unknown>) => {
+    if (!targetPetId) {
+      Taro.showToast({ title: '宠物信息缺失，保存失败', icon: 'none' })
+      return
+    }
+    patchStorePet(targetPetId, patch)
+    Taro.showToast({ title: '保存成功', icon: 'success' })
+    setTimeout(() => safeNavigateBack(), 1500)
+  }, [patchStorePet])
+
+  /**
+   * 直接把上传/拍摄的照片设为头像（所有用户可用，免费，不消耗 AI 配额）
+   */
+  const handleUsePhotoAsAvatar = useCallback(async () => {
+    if (!uploadedPhotoUrl) return
+    trackEvent('use_photo_as_avatar', { petId })
+    try {
+      const result = await setPetPhotoAsAvatar(petId, uploadedPhotoUrl)
+      if (result.success) {
+        // 在线：服务端返回最新档案直接合并；离线：用补全后的照片地址本地合并
+        const patch = result.pet ? (result.pet as unknown as Record<string, unknown>) : { avatarPhotoUrl: result.photoUrl }
+        await handleSaved(petId, patch)
+      } else {
+        Taro.showToast({ title: '设置失败，请重试', icon: 'none' })
+      }
+    } catch {
+      Taro.showToast({ title: '设置失败，请重试', icon: 'none' })
+    }
+  }, [uploadedPhotoUrl, petId, trackEvent, handleSaved])
 
   const handlePhotoChange = useCallback(async (path: string) => {
     setPhotoUrl(path)
@@ -333,19 +410,23 @@ export default function AvatarCustomizePage() {
   const handleSaveAsAvatar = useCallback(async (image: Avatar2DImage) => {
     trackEvent('save_photo_avatar')
     try {
-      await saveAvatarCustomization({
+      const custom: AvatarCustomization = {
         species,
         style: photoStyle,
         baseColor: '#FFD93D',
         generatedAt: new Date().toISOString(),
         cartoonUrl: image.imageUrl,
-      })
-      Taro.showToast({ title: '保存成功', icon: 'success' })
-      setTimeout(() => safeNavigateBack(), 1500)
+      }
+      const updated = await saveAvatarCustomization(custom, petId)
+      // 在线用服务端最新档案合并；离线用本地定制构造补丁（同时清照片保证卡通可见）
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
     } catch {
       Taro.showToast({ title: '保存失败', icon: 'none' })
     }
-  }, [species, photoStyle, trackEvent])
+  }, [species, photoStyle, petId, trackEvent, handleSaved])
 
   const handleTextGenerate = useCallback(async () => {
     if (!canGenerate || isGenerating) return
@@ -368,7 +449,7 @@ export default function AvatarCustomizePage() {
           content: '免费用户仅可生成1次，开通会员可无限生成',
           confirmText: '开通会员',
           success: (res) => {
-            if (res.confirm) Taro.navigateTo({ url: '/pages/member/index' })
+            if (res.confirm) Taro.navigateTo({ url: '/pagesUser/member/index' })
           },
         })
       } else {
@@ -424,20 +505,23 @@ export default function AvatarCustomizePage() {
     const option = styleOptions[selectedStyleIndex]
     trackEvent('save_avatar_option', { style: option.style })
     try {
-      await saveAvatarCustomization({
+      const custom: AvatarCustomization = {
         species,
         style: selectedStyle,
         styleVariant: option.style,
         baseColor: selectedColor,
         generatedAt: new Date().toISOString(),
         cartoonUrl: option.url,
-      })
-      Taro.showToast({ title: '保存成功', icon: 'success' })
-      setTimeout(() => safeNavigateBack(), 1500)
+      }
+      const updated = await saveAvatarCustomization(custom, petId)
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
     } catch {
       Taro.showToast({ title: '保存失败', icon: 'none' })
     }
-  }, [selectedStyleIndex, styleOptions, species, selectedStyle, selectedColor, trackEvent])
+  }, [selectedStyleIndex, styleOptions, species, selectedStyle, selectedColor, petId, trackEvent, handleSaved])
 
   /** 清空候选，允许重新生成 */
   const handleResetOptions = useCallback(() => {
@@ -453,71 +537,82 @@ export default function AvatarCustomizePage() {
     }
     trackEvent('save_preset_avatar', { presetId: selectedPreset.id })
     try {
-      await saveAvatarCustomization({
+      const custom: AvatarCustomization = {
         species,
         style: 'cartoon',
         styleVariant: selectedPreset.id,
         baseColor: '#FFD93D',
         generatedAt: new Date().toISOString(),
         cartoonUrl: selectedPreset.image,
-      })
-      Taro.showToast({ title: '保存成功', icon: 'success' })
-      setTimeout(() => safeNavigateBack(), 1500)
+      }
+      const updated = await saveAvatarCustomization(custom, petId)
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
     } catch {
       Taro.showToast({ title: '保存失败', icon: 'none' })
     }
-  }, [selectedPreset, species, trackEvent])
+  }, [selectedPreset, species, petId, trackEvent, handleSaved])
 
   const handleTextSave = useCallback(async () => {
     if (!generatedUrl) return
     trackEvent('save_avatar')
     try {
-      await saveAvatarCustomization({
+      const custom: AvatarCustomization = {
         species,
         style: selectedStyle,
         baseColor: selectedColor,
         generatedAt: new Date().toISOString(),
         cartoonUrl: generatedUrl,
-      })
-      Taro.showToast({ title: '保存成功', icon: 'success' })
-      setTimeout(() => safeNavigateBack(), 1500)
+      }
+      const updated = await saveAvatarCustomization(custom, petId)
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
     } catch {
       Taro.showToast({ title: '保存失败', icon: 'none' })
     }
-  }, [generatedUrl, species, selectedStyle, selectedColor, trackEvent])
+  }, [generatedUrl, species, selectedStyle, selectedColor, petId, trackEvent, handleSaved])
 
   const handle2DRetry = useCallback(() => {
     task2D.reset()
     handleGenerate2D()
   }, [task2D, handleGenerate2D])
 
-  const existingCustom = useMemo(() => getAvatarCustomization(), [])
+  const existingCustom = useMemo(() => getAvatarCustomization(petId), [petId])
 
   /** 应用场景：保存为头像 */
   const handleApplyAvatar = useCallback(() => {
-    const url = generatedUrl || existingCustom?.cartoonUrl
+    // 只用"生成面板里的形象"或"已保存的卡通/AI 形象"，
+    // 不能回退到本地缓存 cartoonUrl——它可能存的是照片 URL，会误写进服务端 avatarCartoonUrl
+    const url = generatedUrl || currentPet?.avatarCartoonUrl
     if (!url) {
       Taro.showToast({ title: '请先生成形象', icon: 'none' })
       return
     }
     trackEvent('apply_avatar')
-    saveAvatarCustomization({
+    const custom: AvatarCustomization = {
       species,
       style: selectedStyle,
       baseColor: selectedColor,
       generatedAt: new Date().toISOString(),
       cartoonUrl: url,
-    }).then(() => {
-      Taro.showToast({ title: '已设为头像', icon: 'success' })
-      setTimeout(() => safeNavigateBack(), 1200)
+    }
+    saveAvatarCustomization(custom, petId).then(async (updated) => {
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
     }).catch(() => {
       Taro.showToast({ title: '保存失败', icon: 'none' })
     })
-  }, [generatedUrl, existingCustom, species, selectedStyle, selectedColor, trackEvent])
+  }, [generatedUrl, currentPet, species, selectedStyle, selectedColor, petId, trackEvent, handleSaved])
 
   /** 应用场景：保存聊天贴纸到相册 */
   const handleSaveSticker = useCallback(() => {
-    const url = generatedUrl || existingCustom?.cartoonUrl
+    const url = generatedUrl || currentPet?.avatarCartoonUrl
     if (!url) {
       Taro.showToast({ title: '请先生成形象', icon: 'none' })
       return
@@ -545,7 +640,7 @@ export default function AvatarCustomizePage() {
       },
       fail: () => Taro.showToast({ title: '贴纸保存失败', icon: 'none' }),
     })
-  }, [generatedUrl, existingCustom, trackEvent])
+  }, [generatedUrl, currentPet, trackEvent])
 
   /** 应用场景：跳转分享卡片 */
   const handleGoShareCard = useCallback(() => {
@@ -582,11 +677,11 @@ export default function AvatarCustomizePage() {
         <Text className='avatar-stage__desc'>{petDesc}</Text>
       </View>
 
-      {/* 1.5 预设形象库（免费用户主入口：从现成的 8 款里选，无需 AI 生成） */}
+      {/* 1.5 预设形象库（免费用户主入口：从现成的 10 款里选，无需 AI 生成） */}
       <View className='xhh-card avatar-preset'>
         <View className='avatar-preset__head'>
           <Text className='avatar-preset__title'>预设形象 · 免费</Text>
-          <Text className='avatar-preset__hint'>{species === 'cat' ? '8 款猫咪' : '8 款狗狗'}，选一个直接用</Text>
+          <Text className='avatar-preset__hint'>{species === 'cat' ? '10 款猫咪' : '10 款狗狗'}，选一个直接用</Text>
         </View>
         <View className='avatar-preset__grid'>
           {presetList.map((preset) => (
@@ -596,7 +691,12 @@ export default function AvatarCustomizePage() {
               onClick={() => setSelectedPresetId(preset.id)}
             >
               <View className='avatar-preset__img-wrap'>
-                <Image className='avatar-preset__img' src={preset.image} mode='aspectFill' lazyLoad />
+                <PresetAvatar
+                  src={preset.image}
+                  species={preset.species}
+                  imgClass='avatar-preset__img'
+                  fallbackClass='avatar-preset__fallback'
+                />
                 {selectedPresetId === preset.id && (
                   <View className='avatar-preset__check'>
                     <Text className='avatar-preset__check-text'>✓</Text>
@@ -604,7 +704,6 @@ export default function AvatarCustomizePage() {
                 )}
               </View>
               <Text className='avatar-preset__label'>{preset.breed}</Text>
-              <Text className='avatar-preset__style'>{preset.styleLabel}</Text>
             </View>
           ))}
         </View>
@@ -781,121 +880,138 @@ export default function AvatarCustomizePage() {
             </>
             ))}
 
-          {/* Tab 2: 照片生成 */}
+          {/* Tab 2: 照片生成（上传/直接用照片作头像对所有用户开放，AI 生成会员专享） */}
           {activeTab === 'photo' && (
-            !isMember ? (
-              <View className='avatar-customize__member-only'>
-                <Text className='avatar-customize__member-only-icon'>🔒</Text>
-                <Text className='avatar-customize__member-only-title'>照片专属形象 · 会员专享</Text>
-                <Text className='avatar-customize__member-only-desc'>上传自家宠物照片，AI 生成专属风格形象，每月限 3 次</Text>
-                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可上传宠物照片生成专属形象，每月 3 次')}>
-                  <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
-                </View>
-              </View>
-            ) : (
-              <>
+            <>
               <View className='avatar-customize__section'>
                 <Text className='avatar-customize__section-title'>上传宠物照片</Text>
                 <PhotoUploader value={photoUrl} onChange={handlePhotoChange} disabled={isUploading} />
               </View>
 
-              <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>风格选择</Text>
-                <View className='avatar-customize__style-options'>
-                  {STYLE_OPTIONS.map(opt => (
+              {/* 直接把照片设为头像：免费、所有用户可用（不消耗 AI 配额） */}
+              {uploadedPhotoUrl && (
+                <View className='avatar-customize__section'>
+                  <View className='avatar-customize__actions'>
                     <View
-                      key={opt.value}
-                      className={`avatar-customize__style-item ${photoStyle === opt.value ? 'avatar-customize__style-item--active' : ''}`}
-                      onClick={() => setPhotoStyle(opt.value)}
+                      className='avatar-customize__btn avatar-customize__btn--photo-as-avatar'
+                      onClick={handleUsePhotoAsAvatar}
                     >
-                      <Text className='avatar-customize__style-label'>{opt.label}</Text>
-                      <Text className='avatar-customize__style-desc'>{opt.desc}</Text>
+                      <Text className='avatar-customize__btn-text'>📸 直接用此照片作头像</Text>
                     </View>
-                  ))}
-                </View>
-              </View>
-
-              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
-                <View className='avatar-customize__quota'>
-                  <Text className='avatar-customize__quota-text'>
-                    {photoQuotaText}
-                  </Text>
-                </View>
-              )}
-
-              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
-                <View className='avatar-customize__actions'>
-                  <View
-                    className={`avatar-customize__btn ${(!uploadedPhotoUrl || !canGenPhoto) ? 'avatar-customize__btn--disabled' : ''}`}
-                    onClick={handleGenerate2D}
-                  >
-                    <Text className='avatar-customize__btn-text'>生成 2D 形象包</Text>
                   </View>
                 </View>
               )}
 
-              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
-                <View className='avatar-customize__actions avatar-customize__actions--spaced'>
-                  <View
-                    className={`avatar-customize__btn avatar-customize__btn--secondary ${(!uploadedPhotoUrl || !canGenPhotoOptions || isGenerating) ? 'avatar-customize__btn--disabled' : ''}`}
-                    onClick={() => uploadedPhotoUrl && handleGeneratePhotoOptions(uploadedPhotoUrl)}
-                  >
-                    <Text className='avatar-customize__btn-text'>生成 5 种风格头像</Text>
+              {/* AI 照片生成：会员专享（服务端同样强制校验会员，不能只靠前端隐藏） */}
+              {isMember ? (
+                <>
+                <View className='avatar-customize__section'>
+                  <Text className='avatar-customize__section-title'>风格选择</Text>
+                  <View className='avatar-customize__style-options'>
+                    {STYLE_OPTIONS.map(opt => (
+                      <View
+                        key={opt.value}
+                        className={`avatar-customize__style-item ${photoStyle === opt.value ? 'avatar-customize__style-item--active' : ''}`}
+                        onClick={() => setPhotoStyle(opt.value)}
+                      >
+                        <Text className='avatar-customize__style-label'>{opt.label}</Text>
+                        <Text className='avatar-customize__style-desc'>{opt.desc}</Text>
+                      </View>
+                    ))}
                   </View>
                 </View>
-              )}
 
-              {(task2D.isProcessing || task2D.isFailed) && (
-                <GenerationProgress
-                  progress={task2D.progress}
-                  status={task2D.status === 'pending' ? 'processing' : task2D.status}
-                  type='2d'
-                  error={task2D.error}
-                  onRetry={task2D.isFailed ? handle2DRetry : undefined}
-                />
-              )}
+                {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                  <View className='avatar-customize__quota'>
+                    <Text className='avatar-customize__quota-text'>
+                      {photoQuotaText}
+                    </Text>
+                  </View>
+                )}
 
-              {task2D.isComplete && task2D.pack.images.length > 0 && (
-                <ImageGallery
-                  images={task2D.pack.images}
-                  onSaveAsAvatar={handleSaveAsAvatar}
-                  onGenerate3D={handleGenerate3D}
-                  isGenerating3D={task3D.isGenerating}
-                  canGenerate3D={canGen3D}
-                />
-              )}
+                {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                  <View className='avatar-customize__actions'>
+                    <View
+                      className={`avatar-customize__btn ${(!uploadedPhotoUrl || !canGenPhoto) ? 'avatar-customize__btn--disabled' : ''}`}
+                      onClick={handleGenerate2D}
+                    >
+                      <Text className='avatar-customize__btn-text'>生成 2D 形象包</Text>
+                    </View>
+                  </View>
+                )}
 
-              {(task3D.isProcessing || task3D.isFailed) && (
-                <GenerationProgress
-                  progress={task3D.progress}
-                  status={task3D.status === 'pending' ? 'processing' : task3D.status}
-                  type='3d'
-                  error={task3D.error}
-                  onRetry={task3D.isFailed ? () => task3D.retry(petId, task2D.taskId!) : undefined}
-                />
-              )}
+                {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                  <View className='avatar-customize__actions avatar-customize__actions--spaced'>
+                    <View
+                      className={`avatar-customize__btn avatar-customize__btn--secondary ${(!uploadedPhotoUrl || !canGenPhotoOptions || isGenerating) ? 'avatar-customize__btn--disabled' : ''}`}
+                      onClick={() => uploadedPhotoUrl && handleGeneratePhotoOptions(uploadedPhotoUrl)}
+                    >
+                      <Text className='avatar-customize__btn-text'>生成 5 种风格头像</Text>
+                    </View>
+                  </View>
+                )}
 
-              {task3D.isComplete && task3D.result.model && (
-                <Model3DViewer
-                  modelUrl={task3D.result.model.modelUrl}
-                  thumbnailUrl={task3D.result.model.thumbnailUrl}
-                />
-              )}
-
-              {existingCustom && !task2D.isComplete && !task3D.isComplete && !task2D.isProcessing && !task3D.isProcessing && (
-                <View className='avatar-customize__existing'>
-                  <Text className='avatar-customize__existing-label'>当前头像</Text>
-                  <Image
-                    className='avatar-customize__existing-img'
-                    src={existingCustom.cartoonUrl || ''}
-                    mode='aspectFit'
-                    lazyLoad
+                {(task2D.isProcessing || task2D.isFailed) && (
+                  <GenerationProgress
+                    progress={task2D.progress}
+                    status={task2D.status === 'pending' ? 'processing' : task2D.status}
+                    type='2d'
+                    error={task2D.error}
+                    onRetry={task2D.isFailed ? handle2DRetry : undefined}
                   />
+                )}
+
+                {task2D.isComplete && task2D.pack.images.length > 0 && (
+                  <ImageGallery
+                    images={task2D.pack.images}
+                    onSaveAsAvatar={handleSaveAsAvatar}
+                    onGenerate3D={handleGenerate3D}
+                    isGenerating3D={task3D.isGenerating}
+                    canGenerate3D={canGen3D}
+                  />
+                )}
+
+                {(task3D.isProcessing || task3D.isFailed) && (
+                  <GenerationProgress
+                    progress={task3D.progress}
+                    status={task3D.status === 'pending' ? 'processing' : task3D.status}
+                    type='3d'
+                    error={task3D.error}
+                    onRetry={task3D.isFailed ? () => task3D.retry(petId, task2D.taskId!) : undefined}
+                  />
+                )}
+
+                {task3D.isComplete && task3D.result.model && (
+                  <Model3DViewer
+                    modelUrl={task3D.result.model.modelUrl}
+                    thumbnailUrl={task3D.result.model.thumbnailUrl}
+                  />
+                )}
+
+                {existingCustom && !task2D.isComplete && !task3D.isComplete && !task2D.isProcessing && !task3D.isProcessing && (
+                  <View className='avatar-customize__existing'>
+                    <Text className='avatar-customize__existing-label'>当前头像</Text>
+                    <Image
+                      className='avatar-customize__existing-img'
+                      src={currentPet?.avatarPhotoUrl || currentPet?.avatarCartoonUrl || existingCustom.cartoonUrl || ''}
+                      mode='aspectFit'
+                      lazyLoad
+                    />
+                  </View>
+                )}
+              </>
+              ) : (
+                <View className='avatar-customize__member-only'>
+                  <Text className='avatar-customize__member-only-icon'>✨</Text>
+                  <Text className='avatar-customize__member-only-title'>AI 照片生成 · 会员专享</Text>
+                  <Text className='avatar-customize__member-only-desc'>上传宠物照片后，AI 生成专属风格形象（2D 形象包 / 5 种画风），会员每月限 3 次；免费用户可直接用上方照片作头像</Text>
+                  <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可用宠物照片生成专属形象，每月 3 次')}>
+                    <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
+                  </View>
                 </View>
               )}
             </>
-            ))}
-
+          )}
           {/* 多风格候选：5 选 1（两个 Tab 共用） */}
           {styleOptions && styleOptions.length > 0 && (
             <View className='avatar-options'>

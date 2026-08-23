@@ -48,12 +48,16 @@ vi.mock('./api', () => ({
     upload: vi.fn(),
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
   },
+  // 与真实 resolveAvatarUrl 行为一致：相对路径补全为绝对地址
+  resolveAvatarUrl: (url: string) => (url.startsWith('http') ? url : `https://api.example.com${url}`),
 }));
 
 vi.mock('../config', () => ({
   CONFIG: {
     apiBaseUrl: 'https://mock-api.example.com',
+    API_BASE_URL: 'https://mock-api.example.com',
   },
 }));
 
@@ -67,7 +71,11 @@ import {
   get3DGenerationCount,
   canGenerate3D,
   increment3DGenerationCount,
+  getAvatarCustomization,
+  saveAvatarCustomization,
+  setPetPhotoAsAvatar,
 } from './avatarService';
+import { api } from './api';
 import { AVATAR_PHOTO_FREE_COUNT, AVATAR_PHOTO_MEMBER_MONTHLY_LIMIT, AVATAR_3D_MONTHLY_LIMIT } from '../constants';
 
 beforeEach(() => {
@@ -245,5 +253,92 @@ describe('avatarService - 配额一致性验证', () => {
 
   it('AVATAR_3D_MONTHLY_LIMIT 应为 3（会员每月 3 次 3D）', () => {
     expect(AVATAR_3D_MONTHLY_LIMIT).toBe(3);
+  });
+});
+
+describe('avatarService - 头像定制缓存（按宠物隔离）', () => {
+  it('无 petId 时写入历史全局 key（兼容老版本）', async () => {
+    const custom = { species: 'dog' as const, style: 'cartoon' as const, baseColor: '#FFD93D' };
+    await saveAvatarCustomization(custom);
+    expect(mockTaro.setStorageSync).toHaveBeenCalledWith('xhh_avatar_custom', custom);
+  });
+
+  it('传入 petId 时按宠物隔离存储，多宠物互不覆盖', async () => {
+    const customA = { species: 'dog' as const, style: 'cartoon' as const, baseColor: '#FFD93D' };
+    const customB = { species: 'cat' as const, style: 'cartoon' as const, baseColor: '#6BCB77' };
+    await saveAvatarCustomization(customA, 'pet-a');
+    await saveAvatarCustomization(customB, 'pet-b');
+    expect(mockTaro.setStorageSync).toHaveBeenCalledWith('xhh_avatar_custom_pet-a', customA);
+    expect(mockTaro.setStorageSync).toHaveBeenCalledWith('xhh_avatar_custom_pet-b', customB);
+  });
+
+  it('saveAvatarCustomization 同步服务端 snake_case 契约并清空 avatar_photo_url', async () => {
+    (api.put as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'pet-1' });
+    const custom = { species: 'dog' as const, style: 'realistic' as const, baseColor: '#4D96FF', cartoonUrl: 'https://cdn.example.com/a.png', generatedAt: '2026-08-08T00:00:00.000Z' };
+    await saveAvatarCustomization(custom, 'pet-1');
+    // 服务端 PUT /api/pets/:id 只认 snake_case（zod 剥离 camelCase 键）；
+    // avatar_photo_url 置 null 避免"设过照片后保存卡通形象不显示"（展示优先级 photo > cartoon）
+    expect(api.put).toHaveBeenCalledWith('/api/pets/pet-1', {
+      avatar_style: 'realistic',
+      avatar_cartoon_url: 'https://cdn.example.com/a.png',
+      avatar_photo_url: null,
+    });
+  });
+
+  it('getAvatarCustomization(petId) 读取对应宠物的缓存', () => {
+    const custom = { species: 'cat' as const, style: 'realistic' as const, baseColor: '#4D96FF' };
+    mockTaro.getStorageSync.mockImplementation((key: string) => (key === 'xhh_avatar_custom_pet-1' ? custom : null));
+    expect(getAvatarCustomization('pet-1')).toEqual(custom);
+  });
+
+  it('getAvatarCustomization(petId) 新 key 不存在时回退历史全局 key', () => {
+    const legacy = { species: 'dog' as const, style: 'cartoon' as const, baseColor: '#FFD93D' };
+    mockTaro.getStorageSync.mockImplementation((key: string) => (key === 'xhh_avatar_custom' ? legacy : null));
+    expect(getAvatarCustomization('pet-1')).toEqual(legacy);
+  });
+});
+
+describe('avatarService - setPetPhotoAsAvatar（照片直接设为头像）', () => {
+  it('相对路径上传结果应补全为绝对地址并同步服务端 avatar_photo_url（snake_case）', async () => {
+    mockTaro.getStorageSync.mockReturnValue(null);
+    (api.put as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'pet-1', avatarPhotoUrl: 'https://api.example.com/uploads/pet-photos/u/pet-1/a.jpg' });
+
+    const result = await setPetPhotoAsAvatar('pet-1', '/uploads/pet-photos/u/pet-1/a.jpg');
+
+    expect(result.success).toBe(true);
+    expect(result.pet?.avatarPhotoUrl).toBe('https://api.example.com/uploads/pet-photos/u/pet-1/a.jpg');
+    // 本地缓存按宠物 key 记录，并保存补全后的绝对地址
+    expect(mockTaro.setStorageSync).toHaveBeenCalledWith(
+      'xhh_avatar_custom_pet-1',
+      expect.objectContaining({ cartoonUrl: 'https://api.example.com/uploads/pet-photos/u/pet-1/a.jpg' }),
+    );
+    expect(api.put).toHaveBeenCalledWith('/api/pets/pet-1', {
+      avatar_photo_url: 'https://api.example.com/uploads/pet-photos/u/pet-1/a.jpg',
+    });
+  });
+
+  it('已上传的照片（绝对地址）不应被二次拼接', async () => {
+    mockTaro.getStorageSync.mockReturnValue(null);
+    (api.put as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'pet-1' });
+
+    const result = await setPetPhotoAsAvatar('pet-1', 'https://cdn.example.com/photo.jpg');
+
+    expect(result.success).toBe(true);
+    expect(api.put).toHaveBeenCalledWith('/api/pets/pet-1', {
+      avatar_photo_url: 'https://cdn.example.com/photo.jpg',
+    });
+  });
+
+  it('服务端更新失败时本地缓存仍生效（离线兜底）', async () => {
+    mockTaro.getStorageSync.mockReturnValue(null);
+    (api.put as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network'));
+
+    const result = await setPetPhotoAsAvatar('pet-1', '/uploads/pet-photos/u/pet-1/a.jpg');
+
+    expect(result.success).toBe(true);
+    expect(mockTaro.setStorageSync).toHaveBeenCalledWith(
+      'xhh_avatar_custom_pet-1',
+      expect.objectContaining({ cartoonUrl: 'https://api.example.com/uploads/pet-photos/u/pet-1/a.jpg' }),
+    );
   });
 });

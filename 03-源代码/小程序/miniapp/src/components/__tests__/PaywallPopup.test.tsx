@@ -95,7 +95,7 @@ describe('PaywallPopup', () => {
     const upgradeBtn = container.querySelector('.paywall-popup__btn--upgrade')!
     fireEvent.click(upgradeBtn)
     expect(onClose).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(Taro.navigateTo)).toHaveBeenCalledWith({ url: '/pages/member/index' })
+    expect(vi.mocked(Taro.navigateTo)).toHaveBeenCalledWith({ url: '/pagesUser/member/index' })
   })
 
   it('shows plan options with prices', () => {

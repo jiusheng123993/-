@@ -7,7 +7,8 @@ import { View, Text, Textarea, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { submitNpsFeedback } from '../../services/feedbackService'
 import { useThemeClass } from '../../hooks/useThemeClass'
-import contactQr from '../../assets/contact-qr.jpg'
+// 客服二维码图片迁入分包目录（原在主包 assets，仅本分包页使用，占主包 72KB）
+import contactQr from './assets/contact-qr.jpg'
 import './index.scss'
 
 const SCORE_LABELS = ['极差', '很差', '较差', '一般', '还行', '不错', '满意', '很好', '非常好', '极好', '完美']

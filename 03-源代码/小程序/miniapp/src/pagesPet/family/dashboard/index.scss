@@ -170,11 +170,25 @@
   @include flex-center;
   font-size: 32rpx;
   border: 2rpx solid $color-border;
+  overflow: hidden;
 
   &--checked {
     border-color: rgba($color-sage, 0.4);
     background: rgba($color-sage, 0.1);
   }
+}
+
+/* 宠物小动物头像图片：铺满圆形容器（容器自身已圆角裁剪） */
+.fd-health-member-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-full;
+}
+
+/* 宠物小动物头像加载失败回退 emoji */
+.fd-health-member-avatar-emoji {
+  font-size: 32rpx;
+  line-height: 1;
 }
 
 .fd-health-member-name {
@@ -244,6 +258,20 @@
   @include flex-center;
   font-size: 36rpx;
   border: 2rpx solid $color-border;
+  overflow: hidden;
+}
+
+/* 宠物小动物头像图片：铺满圆形容器 */
+.fd-member-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-full;
+}
+
+/* 宠物小动物头像加载失败回退 emoji */
+.fd-member-avatar-emoji {
+  font-size: 36rpx;
+  line-height: 1;
 }
 
 .fd-member-role-btn {
@@ -326,6 +354,20 @@
   font-size: 28rpx;
   flex-shrink: 0;
   border: 2rpx solid $color-border;
+  overflow: hidden;
+}
+
+/* 宠物小动物头像图片：铺满圆形容器 */
+.fd-invite-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-full;
+}
+
+/* 宠物小动物头像加载失败回退 emoji */
+.fd-invite-avatar-emoji {
+  font-size: 28rpx;
+  line-height: 1;
 }
 
 .fd-invite-info {
@@ -467,6 +509,20 @@
   @include flex-center;
   font-size: 28rpx;
   z-index: 1;
+  overflow: hidden;
+}
+
+/* 全家福预览里的宠物小动物头像图片 */
+.fd-photo-generate-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-full;
+}
+
+/* 全家福预览里加载失败回退 emoji */
+.fd-photo-generate-avatar-emoji {
+  font-size: 28rpx;
+  line-height: 1;
 }
 
 .fd-photo-generate-info {

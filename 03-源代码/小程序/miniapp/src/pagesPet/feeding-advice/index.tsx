@@ -12,6 +12,7 @@ import {
   buildFeedingProfile,
   generatePersonalizedAdvice,
   getMealPlan,
+  getAiFeedingAdvice,
   type PersonalizedFeedingAdvice,
   type FeedingProfile,
 } from '../../services/feedingService'
@@ -42,14 +43,18 @@ export default function FeedingAdvicePage() {
   const [profile, setProfile] = useState<FeedingProfile | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [activeTab, setActiveTab] = useState<'advice' | 'records' | 'plan'>('advice')
+  // AI 深度分析状态：loading / 结果 / 失败
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null)
+  const [aiError, setAiError] = useState('')
 
   const pet = currentPet || pets[0]
 
   // 会员门槛：个性化喂养建议 为会员权益，非会员展示开通引导（PRD 7.3）
+  // ⚠️ 注意：useMemberGate 的 allowed 初始为 null，异步判断后变为 true/false。
+  // 若在这里（其他 hooks 之前）条件 return，allowed 变化会导致 hooks 数量不一致，
+  // 触发 React error #300。因此会员门槛 return 统一放在组件底部所有 hooks 之后。
   const { allowed: memberAllowed } = useMemberGate('feeding_advice')
-  if (memberAllowed === false) {
-    return <MemberGate featureName='个性化喂养建议' />
-  }
 
   useDidShow(() => {
     if (user && !pets.length) {
@@ -78,6 +83,36 @@ export default function FeedingAdvicePage() {
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  /**
+   * AI 个性化喂养分析：把规则引擎画像 + 最新食欲/便便发给后端，
+   * 后端注入宠物档案/喂养记录/记忆后生成自然语言建议（会员专属）
+   */
+  const handleAiAnalyze = useCallback(async () => {
+    if (!pet || !profile || aiLoading) return
+    setAiLoading(true)
+    setAiError('')
+    try {
+      const latestRecord = records[0]
+      const result = await getAiFeedingAdvice(
+        pet.id,
+        profile,
+        latestRecord?.appetite,
+        latestRecord?.stool
+      )
+      if (!result) {
+        setAiError('AI 分析暂时不可用，请稍后再试')
+      } else if (result.unsafe) {
+        setAiError('本次分析未通过安全校验，请稍后再试')
+      } else {
+        setAiAdvice(result.aiAdvice)
+      }
+    } catch {
+      setAiError('AI 分析失败，请稍后再试')
+    } finally {
+      setAiLoading(false)
+    }
+  }, [pet, profile, records, aiLoading])
 
   const handleAdd = async (data: Omit<FeedingRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => {
     const newRecord = await addFeedingRecord(pet!.id, data)
@@ -121,6 +156,13 @@ export default function FeedingAdvicePage() {
         }
       },
     })
+  }
+
+  // ===== 以下均为条件渲染（所有 hooks 之后，保证 hooks 数量恒定） =====
+
+  // 会员门槛：非会员展示开通引导（须在全部 hooks 之后 return，见上方注释）
+  if (memberAllowed === false) {
+    return <MemberGate featureName='个性化喂养建议' />
   }
 
   if (!pet) {
@@ -180,6 +222,34 @@ export default function FeedingAdvicePage() {
 
       {activeTab === 'advice' && (
         <View className='feeding-content'>
+          {/* ===== AI 个性化喂养分析卡片（会员专属，后端注入档案/喂养记录/记忆） ===== */}
+          <View className='feeding-ai-card'>
+            <View className='feeding-ai-head'>
+              <View className='feeding-ai-icon'>✨</View>
+              <View className='feeding-ai-titles'>
+                <Text className='feeding-ai-title'>AI 个性化喂养分析</Text>
+                <Text className='feeding-ai-sub'>结合宠物档案、喂养记录与历史记忆生成</Text>
+              </View>
+            </View>
+            {aiAdvice ? (
+              <Text className='feeding-ai-text'>{aiAdvice}</Text>
+            ) : aiLoading ? (
+              <Text className='feeding-ai-text feeding-ai-text--muted'>AI 正在分析 {pet?.name} 的喂养情况…</Text>
+            ) : aiError ? (
+              <Text className='feeding-ai-text feeding-ai-text--error'>{aiError}</Text>
+            ) : (
+              <Text className='feeding-ai-text feeding-ai-text--muted'>
+                点击下方按钮，AI 将结合规则建议与喂养记录给出更个性化的喂食方案。
+              </Text>
+            )}
+            <View
+              className={`feeding-ai-btn${aiLoading ? ' feeding-ai-btn--disabled' : ''}`}
+              onClick={handleAiAnalyze}
+            >
+              <Text>{aiLoading ? '生成中…' : aiAdvice ? '重新生成' : '生成 AI 喂养建议'}</Text>
+            </View>
+          </View>
+
           {advice.length === 0 && (
             <View className='feeding-empty-state'>
               <Text className='feeding-empty-icon'>💡</Text>

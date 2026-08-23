@@ -75,7 +75,7 @@ vi.mock('../api', () => {
         } else if (res.statusCode === 401) {
           mockRemoveStorage('xhh_token')
           mockRemoveStorage('xhh_refresh_token')
-          mockNavigateTo({ url: '/pages/login/index' })
+          mockNavigateTo({ url: '/pagesUser/login/index' })
           throw new Error('未授权，请重新登录')
         } else if (res.statusCode === 429) {
           throw new Error('请求过于频繁，请稍后再试')
@@ -190,7 +190,7 @@ describe('api', () => {
       await expect(api.get('/secure')).rejects.toThrow('未授权，请重新登录')
       expect(mockRemoveStorage).toHaveBeenCalledWith('xhh_token')
       expect(mockRemoveStorage).toHaveBeenCalledWith('xhh_refresh_token')
-      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
+      expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
     })
 
     it('throws on 429 with rate limit message', async () => {

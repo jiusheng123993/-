@@ -186,6 +186,8 @@ export interface PetMoment {
   photos?: string[]
   aiSummary?: string
   createdAt: string
+  /** 回忆发生日期（补记支撑），未补记时等于 createdAt */
+  happenedAt?: string
 }
 
 /** 宠物里程碑 */
