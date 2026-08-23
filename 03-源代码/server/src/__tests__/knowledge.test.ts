@@ -51,10 +51,13 @@ function createApp() {
 }
 
 // 最新图谱行（version 动态取今日 UTC 日期，与 saveGraph 基准日一致，避免 UTC 跨日后断言必红，审查项修复）
+// 注意：version 是动态的（${今日UTC}.1），下方断言必须用同一动态变量，不能写死日期
+const EXPECTED_GRAPH_VERSION = `${new Date().toISOString().slice(0, 10)}.1`;
+
 const mockGraphRow = {
   id: 1,
-  version: `${new Date().toISOString().slice(0, 10)}.1`,
-  data: { version: '2026-08-22.1', riskRules: [{ id: 'r1' }], diseases: [] },
+  version: EXPECTED_GRAPH_VERSION,
+  data: { version: EXPECTED_GRAPH_VERSION, riskRules: [{ id: 'r1' }], diseases: [] },
   created_at: '2026-08-22T00:00:00Z',
 };
 
@@ -83,7 +86,7 @@ describe('GET /api/knowledge/latest - 图谱下发', () => {
     const res = await request(createApp()).get('/api/knowledge/latest');
 
     expect(res.status).toBe(200);
-    expect(res.body.data.version).toBe('2026-08-22.1');
+    expect(res.body.data.version).toBe(EXPECTED_GRAPH_VERSION);
     expect(res.body.data.data.riskRules).toHaveLength(1);
   });
 
@@ -91,8 +94,8 @@ describe('GET /api/knowledge/latest - 图谱下发', () => {
     // 播种流程：SELECT 最新（空）→ INSERT ON CONFLICT → 重查取权威行（审查项修复后多一次查询）
     const seededRow = {
       id: 1,
-      version: '2026-08-22.1',
-      data: { version: '2026-08-22.1', riskRules: [{ id: 'seed-rule' }], diseases: [{ id: 'seed-disease' }] },
+      version: EXPECTED_GRAPH_VERSION,
+      data: { version: EXPECTED_GRAPH_VERSION, riskRules: [{ id: 'seed-rule' }], diseases: [{ id: 'seed-disease' }] },
       created_at: '2026-08-22T00:00:00Z',
     };
     mockPool.query
@@ -103,7 +106,7 @@ describe('GET /api/knowledge/latest - 图谱下发', () => {
     const res = await request(createApp()).get('/api/knowledge/latest');
 
     expect(res.status).toBe(200);
-    expect(res.body.data.version).toBe('2026-08-22.1');
+    expect(res.body.data.version).toBe(EXPECTED_GRAPH_VERSION);
     expect(res.body.data.data.riskRules).toHaveLength(1);
   });
 });
@@ -150,7 +153,7 @@ describe('管理端 Token 鉴权', () => {
       .set('x-admin-token', 'test-admin-token');
 
     expect(res.status).toBe(200);
-    expect(res.body.data.version).toBe('2026-08-22.1');
+    expect(res.body.data.version).toBe(EXPECTED_GRAPH_VERSION);
   });
 
   it('PUT 保存图谱（版本自动递增）', async () => {

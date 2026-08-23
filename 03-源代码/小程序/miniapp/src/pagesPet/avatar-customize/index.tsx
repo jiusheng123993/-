@@ -266,7 +266,7 @@ export default function AvatarCustomizePage() {
       confirmText: '去开通',
       cancelText: '取消',
       success: (res) => {
-        if (res.confirm) Taro.navigateTo({ url: '/pages/member/index' })
+        if (res.confirm) Taro.navigateTo({ url: '/pagesUser/member/index' })
       },
     })
   }, [])
@@ -449,7 +449,7 @@ export default function AvatarCustomizePage() {
           content: '免费用户仅可生成1次，开通会员可无限生成',
           confirmText: '开通会员',
           success: (res) => {
-            if (res.confirm) Taro.navigateTo({ url: '/pages/member/index' })
+            if (res.confirm) Taro.navigateTo({ url: '/pagesUser/member/index' })
           },
         })
       } else {

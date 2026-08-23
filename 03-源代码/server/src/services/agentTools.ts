@@ -789,4 +789,94 @@ registerTool('record_memory', async (args, context): Promise<ToolResult> => {
   };
 });
 
-console.log('[Agent Tools] 15 个工具已注册完成');
+// ========== 16. get_chronic_advice（AI 慢病管理建议，会员专属） ==========
+// 复用 chronicAiService.analyzeChronicAdvice：后端从 pet_chronic_records 权威读取慢病数据，
+// 注入宠物档案/打卡/记忆后生成管理建议。Agent 场景下由工具内部调用，无会员校验（聊天本身已登录）。
+
+registerTool('get_chronic_advice', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+  const { analyzeChronicAdvice } = await import('./chronicAiService.js');
+  try {
+    const result = await analyzeChronicAdvice(context.userId, petId, {
+      focus: (args.focus as string) || undefined,
+    });
+    if (result.unsafe) {
+      return { success: false, message: '本次分析未通过安全校验，请稍后再试' };
+    }
+    return { success: true, data: { aiAdvice: result.aiAdvice } };
+  } catch (err) {
+    return { success: false, message: `慢病管理建议生成失败：${err instanceof Error ? err.message : '未知错误'}` };
+  }
+});
+
+// ========== 17. get_feeding_advice（AI 个性化喂养建议，会员专属） ==========
+// 复用 feedingAiService.analyzeFeedingAdvice：注入宠物档案/喂养记录/记忆后生成喂食建议。
+
+registerTool('get_feeding_advice', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+
+  // 读取宠物档案（供前端画像 + 后端权威覆盖）
+  const { rows } = await pool.query(
+    'SELECT id, name, species, breed, birth_date, weight, is_neutered FROM pet_profiles WHERE id = $1 AND user_id = $2',
+    [petId, context.userId]
+  );
+  if (rows.length === 0) {
+    return { success: false, message: '宠物不存在' };
+  }
+  const pet = rows[0];
+
+  const { analyzeFeedingAdvice } = await import('./feedingAiService.js');
+  try {
+    const result = await analyzeFeedingAdvice(context.userId, petId, {
+      petName: pet.name || '',
+      species: pet.species === 'dog' ? 'dog' : 'cat',
+      breed: pet.breed || '',
+      ageMonths: pet.birth_date ? Math.max(0, Math.floor((Date.now() - new Date(pet.birth_date).getTime()) / (1000 * 60 * 60 * 24 * 30))) : 0,
+      weight: Number(pet.weight) || 0,
+      bodyCondition: 'normal',
+      isPuppyKitten: false,
+      isSenior: false,
+      isNeutered: Boolean(pet.is_neutered),
+      chronicConditions: [],
+      allergies: [],
+      currentAdvice: '',
+    });
+    if (result.unsafe) {
+      return { success: false, message: '本次分析未通过安全校验，请稍后再试' };
+    }
+    return { success: true, data: { aiAdvice: result.aiAdvice } };
+  } catch (err) {
+    return { success: false, message: `喂养建议生成失败：${err instanceof Error ? err.message : '未知错误'}` };
+  }
+});
+
+// ========== 18. scan_chronic_risk（慢病风险扫描，会员专属） ==========
+// 复用 chronicRiskService.scanChronicRisk：L2 规则预警 + L3 AI 疑似识别（仅疑似/建议排查）。
+
+registerTool('scan_chronic_risk', async (args, context): Promise<ToolResult> => {
+  const petId = await getPetId(context, args.pet_id as string | undefined);
+  if (!petId) {
+    return { success: false, message: '还没有添加宠物' };
+  }
+  const { scanChronicRisk } = await import('./chronicRiskService.js');
+  try {
+    const result = await scanChronicRisk(context.userId, petId);
+    if (result.unsafe) {
+      return { success: false, message: '本次风险分析未通过安全校验，请稍后再试' };
+    }
+    return {
+      success: true,
+      data: { signals: result.signals, aiInsight: result.aiInsight },
+    };
+  } catch (err) {
+    return { success: false, message: `风险扫描失败：${err instanceof Error ? err.message : '未知错误'}` };
+  }
+});
+
+console.log('[Agent Tools] 18 个工具已注册完成');

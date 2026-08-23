@@ -279,7 +279,7 @@ export default function SettingsPage() {
         if (res.confirm) {
           trackEvent('logout')
           await logout()
-          Taro.reLaunch({ url: '/pages/login/index' })
+          Taro.reLaunch({ url: '/pagesUser/login/index' })
         }
       },
     })

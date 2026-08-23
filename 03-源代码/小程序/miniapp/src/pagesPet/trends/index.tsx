@@ -756,6 +756,8 @@ export default function PetTrendsPage() {
       </View>
 
       <ScrollView scrollY className='pet-trends__content' enhanced showScrollbar={false}>
+        {/* 主题化：滚动内容统一加内边距包裹层（webview 渲染模式 scroll-view 不支持 padding，内边距放在内部容器上，见 index.scss） */}
+        <View className='pet-trends__content-inner'>
         {storeLoading ? (
           <PageLoading text='加载健康数据中...' />
         ) : error ? (
@@ -874,13 +876,14 @@ export default function PetTrendsPage() {
             </View>
           </View>
         )}
+        </View>
       </ScrollView>
 
       <PaywallPopup
         visible={paywallVisible}
         featureName="健康趋势"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pagesUser/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 

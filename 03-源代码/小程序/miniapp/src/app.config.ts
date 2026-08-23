@@ -5,8 +5,6 @@ export default defineAppConfig({
     'pages/timeline/index',
     'pages/family/index',
     'pages/mine/index',
-    'pages/member/index',
-    'pages/login/index',
   ],
   window: {
     navigationBarBackgroundColor: '#FFF6EE',
@@ -99,8 +97,14 @@ export default defineAppConfig({
         'effect-tracking/index',
         'memory/index',
         'feedback/index',
+        // 主包瘦身：登录页/会员中心页原在主包，迁入分包后主包体积降至 1.5M 以下（微信上传代码质量要求）
+        'member/index',
+        'login/index',
       ],
     },
   ],
+  // 开启"组件按需注入"：微信代码质量检查要求主包启用 lazyCodeLoading，
+  // 否则上传时该项"未通过"。开启后页面组件按需加载，也能顺带减小首包体积。
+  lazyCodeLoading: 'requiredComponents',
   __usePrivacyCheck__: true,
 })

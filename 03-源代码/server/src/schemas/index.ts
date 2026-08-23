@@ -778,6 +778,18 @@ export const createChronicRecordSchema = z.object({
 /** 更新慢性病记录（全部字段可选） */
 export const updateChronicRecordSchema = createChronicRecordSchema.partial();
 
+/** 慢性病 AI 分析（会员专属）
+ * 请求体最小化：慢病数据从服务端 pet_chronic_records 权威读取，focus 仅用于 prompt 定制
+ */
+export const chronicAiAnalysisSchema = z.object({
+  focus: z.string().max(200, '关注点过长').optional(),
+});
+
+/** 慢性病风险扫描（会员专属）
+ * 无请求体参数：数据全部从服务端权威读取（打卡/档案/记忆）
+ */
+export const chronicRiskScanSchema = z.object({}).strict();
+
 // ===== 喂养记录模块 =====
 
 /** 创建喂养记录 */
@@ -796,6 +808,26 @@ export const createFeedingRecordSchema = z.object({
 
 /** 更新喂养记录（全部字段可选） */
 export const updateFeedingRecordSchema = createFeedingRecordSchema.partial();
+
+/** 喂养建议 AI 分析（会员专属）
+ * 请求体 = 前端规则引擎产出的喂养画像；服务端注入宠物档案/喂养记录/记忆召回后调 LLM
+ */
+export const feedingAiAnalysisSchema = z.object({
+  pet_name: z.string({ error: 'pet_name 不能为空' }).trim().min(1, 'pet_name 不能为空').max(30, 'pet_name 最长 30 字符'),
+  species: z.enum(['dog', 'cat'], { error: 'species 必须为 dog/cat' }),
+  breed: z.string().max(30, 'breed 最长 30 字符').optional().default(''),
+  age_months: z.number().int('age_months 必须为整数').min(0, 'age_months 不能为负').max(600, 'age_months 过大').optional().default(0),
+  weight: z.number().min(0, 'weight 不能为负').max(500, 'weight 过大').optional().default(0),
+  body_condition: z.enum(['underweight', 'normal', 'overweight'], { error: 'body_condition 不合法' }).optional().default('normal'),
+  is_puppy_kitten: z.boolean().optional().default(false),
+  is_senior: z.boolean().optional().default(false),
+  is_neutered: z.boolean().optional().default(false),
+  chronic_conditions: z.array(z.string().max(30, '慢病名过长')).max(10, '慢病过多').optional().default([]),
+  allergies: z.array(z.string().max(30, '过敏原过长')).max(10, '过敏原过多').optional().default([]),
+  recent_appetite: z.enum(['good', 'normal', 'poor']).nullable().optional(),
+  recent_stool: z.enum(['normal', 'loose', 'hard']).nullable().optional(),
+  current_advice: z.string().max(2000, '规则建议过长').optional().default(''),
+});
 
 // ===== AI 建议记录模块（效果追踪） =====
 

@@ -265,19 +265,63 @@ export { getMoodEmoji, getMoodLabel, getOverallMood }
 export type { WeeklyReport, WeeklyReportData }
 
 // ==================== 后端 API 调用 ====================
+// 后端接口返回的是 pet_family_weekly_reports 表的"行结构"（report_data JSONB + ai_insight 等），
+// 与页面需要的"视图结构"字段名/层级完全不同（此前页面按视图结构直接消费行结构，
+// 导致 report.highlights 等为 undefined，点击进入周报页即崩溃）。
+// 因此在 service 层统一做"行结构 → 视图结构"映射，页面只消费映射后的结构。
 
-/** 后端返回的周报数据结构 */
+/** 后端返回的周报原始行结构（与 server WeeklyReportRow 对齐，勿改字段名）
+ *  report_data 标记为可选：运行时空值由 mapBackendReportRowToView 兜底为全 0 结构
+ */
+export interface BackendReportRow {
+  id: string
+  family_id: string
+  week_number: number
+  year: number
+  report_data?: ReportData
+  ai_insight: string | null
+  share_card_url: string | null
+  created_at: string
+}
+
+/** 周报聚合数据（report_data JSONB 的内容结构） */
+export interface ReportData {
+  health: {
+    checkin_count: number
+    avg_poop: number
+    avg_appetite: number
+    avg_spirit: number
+    anomaly_count: number
+    best_day: string | null
+  }
+  activities: {
+    symptom_checks: number
+    food_queries: number
+    new_moments: number
+    new_milestones: number
+  }
+  family: {
+    feed_count: number
+    new_events: number
+    active_pets: number
+  }
+}
+
+/** 页面消费的周报视图结构（由行结构映射而来） */
 export interface BackendWeeklyReport {
   id: string
   familyId: string
+  /** 该周周一（YYYY-MM-DD，日期横幅用） */
   weekStart: string
+  /** 该周周日（YYYY-MM-DD） */
   weekEnd: string
-  totalPets: number
-  healthyPets: number
+  /** 兼容旧字段名：即 weekStart */
+  reportDate: string
   overallMood: 'excellent' | 'good' | 'fair' | 'concerning'
   summary: string
   highlights: string[]
   concerns: string[]
+  /** 每只宠物明细：后端聚合暂未存 per-pet 数据，映射后为空数组，后续扩展后填充 */
   petReports: Array<{
     petId: string
     petName: string
@@ -291,47 +335,113 @@ export interface BackendWeeklyReport {
     mood: string
     summary: string
   }>
+  /** 后端真实聚合数据（页面 2x2 数据等直接取这里） */
+  reportData: ReportData
   aiInsight: string | null
   shareCardUrl: string | null
   createdAt: string
 }
 
-/** 获取最新周报 */
+/**
+ * 由 ISO 年+周数计算该周起止日期（YYYY-MM-DD）
+ * 与服务端 getWeekDateRange 同算法：1月4日所在周为第 1 周，周一起始
+ */
+export function isoWeekDateRange(year: number, weekNumber: number): { weekStart: string; weekEnd: string } {
+  const jan4 = new Date(Date.UTC(year, 0, 4))
+  const jan4Day = jan4.getUTCDay() || 7 // 周日(0) → 7
+  // 第 1 周周一 = 1月4日 - (jan4Day - 1) 天
+  const week1Monday = new Date(jan4)
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1))
+  const weekStart = new Date(week1Monday)
+  weekStart.setUTCDate(week1Monday.getUTCDate() + (weekNumber - 1) * 7)
+  const weekEnd = new Date(weekStart)
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 6)
+  const fmt = (d: Date) =>
+    `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+  return { weekStart: fmt(weekStart), weekEnd: fmt(weekEnd) }
+}
+
+/** 由聚合数据估算本周整体状态（无 per-pet 数据，用家庭级健康聚合近似） */
+function moodFromReportData(rd: ReportData): BackendWeeklyReport['overallMood'] {
+  const { checkin_count, anomaly_count } = rd.health
+  if (anomaly_count >= 3) return 'concerning'
+  if (anomaly_count >= 1) return 'fair'
+  if (checkin_count >= 5) return 'excellent'
+  return 'good'
+}
+
+/** 由聚合数据生成本周亮点文案 */
+function highlightsFromReportData(rd: ReportData): string[] {
+  const out: string[] = []
+  if (rd.health.checkin_count > 0) out.push(`本周健康打卡 ${rd.health.checkin_count} 次`)
+  if (rd.health.checkin_count > 0 && rd.health.anomaly_count === 0) out.push('本周无异常记录，状态稳定')
+  if (rd.health.best_day) out.push(`最佳打卡日 ${rd.health.best_day}`)
+  if (rd.activities.new_moments > 0) out.push(`新增 ${rd.activities.new_moments} 条家庭动态`)
+  if (rd.activities.new_milestones > 0) out.push(`达成 ${rd.activities.new_milestones} 个成就`)
+  if (rd.family.active_pets > 0) out.push(`${rd.family.active_pets} 只宠物本周活跃`)
+  if (out.length === 0) out.push('本周暂无打卡记录，下周记得坚持记录哦')
+  return out
+}
+
+/** 由聚合数据生成需关注事项文案 */
+function concernsFromReportData(rd: ReportData): string[] {
+  const out: string[] = []
+  if (rd.health.anomaly_count > 0) out.push(`本周有 ${rd.health.anomaly_count} 天异常记录，请留意毛孩子状态`)
+  if (rd.health.checkin_count === 0) out.push('本周没有健康打卡，建议恢复每日记录')
+  return out
+}
+
+/** 后端行结构 → 页面视图结构（含对缺失 report_data 的容错） */
+export function mapBackendReportRowToView(row: BackendReportRow): BackendWeeklyReport {
+  // report_data 缺失时兜底为全 0 结构，避免页面访问 undefined 崩溃
+  const rd: ReportData = row.report_data ?? {
+    health: { checkin_count: 0, avg_poop: 0, avg_appetite: 0, avg_spirit: 0, anomaly_count: 0, best_day: null },
+    activities: { symptom_checks: 0, food_queries: 0, new_moments: 0, new_milestones: 0 },
+    family: { feed_count: 0, new_events: 0, active_pets: 0 },
+  }
+  const { weekStart, weekEnd } = isoWeekDateRange(row.year, row.week_number)
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    weekStart,
+    weekEnd,
+    reportDate: weekStart,
+    overallMood: moodFromReportData(rd),
+    summary: row.ai_insight || '',
+    highlights: highlightsFromReportData(rd),
+    concerns: concernsFromReportData(rd),
+    petReports: [], // 后端聚合暂未存 per-pet 明细，空数组由页面隐藏"成员小结"区块
+    reportData: rd,
+    aiInsight: row.ai_insight,
+    shareCardUrl: row.share_card_url,
+    createdAt: row.created_at,
+  }
+}
+
+/** 获取最新周报（返回映射后的视图结构；无周报或请求失败返回 null） */
 export async function getLatestWeeklyReport(familyId: string): Promise<BackendWeeklyReport | null> {
   try {
-    const res = await api.get<{ success: boolean; data: BackendWeeklyReport }>(
+    const res = await api.get<BackendReportRow>(
       `/api/families/${familyId}/weekly-reports/latest`
     )
-    return res.data
+    return res ? mapBackendReportRowToView(res) : null
   } catch {
     return null
   }
 }
 
-/** 手动生成周报 */
-export async function generateWeeklyReportRequest(familyId: string): Promise<BackendWeeklyReport | null> {
-  try {
-    const res = await api.post<{ success: boolean; data: BackendWeeklyReport }>(
-      `/api/families/${familyId}/weekly-reports/generate`
-    )
-    return res.data
-  } catch {
-    return null
-  }
-}
-
-/** 获取周报列表 */
+/** 获取周报列表（每项均映射为视图结构） */
 export async function getWeeklyReportList(
   familyId: string,
   page: number = 1,
   pageSize: number = 10,
 ): Promise<{ items: BackendWeeklyReport[]; total: number }> {
   try {
-    const res = await api.get<{ success: boolean; data: { items: BackendWeeklyReport[]; total: number; page: number; pageSize: number } }>(
+    const res = await api.get<{ items: BackendReportRow[]; total: number; page: number; page_size: number }>(
       `/api/families/${familyId}/weekly-reports`,
       { page: String(page), page_size: String(pageSize) }
     )
-    return { items: res.data.items || [], total: res.data.total || 0 }
+    return { items: (res?.items ?? []).map(mapBackendReportRowToView), total: res?.total ?? 0 }
   } catch {
     return { items: [], total: 0 }
   }

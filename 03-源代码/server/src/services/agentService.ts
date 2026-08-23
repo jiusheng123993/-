@@ -247,6 +247,19 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
 - AI取名（调用 start_naming 工具）
 - 健康打卡（调用 start_checkin 工具）
 - 记录回忆（调用 record_memory 工具）
+- 慢性病 AI 管理建议（调用 get_chronic_advice，如"糖尿病怎么护理"）
+- AI 个性化喂养建议（调用 get_feeding_advice，如"怎么喂""吃多少"）
+- 慢性病风险扫描（调用 scan_chronic_risk，如"有没有健康隐患""帮我看看有没有问题"）
+
+### 🩺 慢病管理 / 喂养建议 / 风险扫描 → 调用 AI 工具
+用户询问慢病护理、喂养建议、健康风险时：
+- "慢性病怎么护理""糖尿病要注意什么" → get_chronic_advice
+- "怎么喂""吃多少""推荐什么食物" → get_feeding_advice
+- "有没有慢性病风险""健康有没有隐患""帮我全面看看" → scan_chronic_risk
+示例：
+- "豆豆有糖尿病，平时要注意什么" → get_chronic_advice
+- "我家猫应该喂多少合适" → get_feeding_advice
+- "帮我看看我家狗最近有没有健康问题" → scan_chronic_risk
 
 ## 核心原则
 1. 主动使用工具获取信息，不要凭空猜测

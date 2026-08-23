@@ -207,18 +207,18 @@ describe('网络异常处理', () => {
   // ═════════════════════════════════════════════════════════════════════════
 
   describe('请求超时', () => {
-    it('API 请求超时后应回退到 checkinService', async () => {
-      mockApi.get.mockRejectedValue(new Error('请求超时，请重试'))
-
-      // getTrendData 内部会 catch API 错误并回退到 checkinService
-      // 如果 checkinService 也失败，返回空数组
+    it('checkinService 失败时应回退到本地缓存', async () => {
+      // 趋势数据现在直接基于 checkinService 获取（不再请求不适配的 /trends 接口）
       mockGetCheckinsByDateRange.mockRejectedValue(new Error('离线'))
 
       const result = await getTrendData('pet-001', '2024-01-01', '2024-01-31')
 
       // getTrendData 内部处理了错误，应返回空数组
       expect(result).toEqual([])
-      expect(mockApi.get).toHaveBeenCalled()
+      // 不再调用不适配的 /trends 接口
+      expect(mockApi.get).not.toHaveBeenCalledWith(
+        '/api/pets/pet-001/trends?startDate=2024-01-01&endDate=2024-01-31'
+      )
       expect(mockGetCheckinsByDateRange).toHaveBeenCalled()
     })
 
@@ -291,18 +291,19 @@ describe('网络异常处理', () => {
       expect(result[1].hasAbnormal).toBe(true)
     })
 
-    it('网络错误消息应包含网络异常提示', async () => {
-      mockApi.get.mockRejectedValue(new Error('request:fail'))
+    it('checkinService 失败时 getTrendData 不应抛出', async () => {
+      mockGetCheckinsByDateRange.mockRejectedValue(new Error('无法连接'))
 
       try {
-        mockGetCheckinsByDateRange.mockRejectedValue(new Error('无法连接'))
         await getTrendData('pet-001', '2024-01-01', '2024-01-31')
       } catch {
         // 预期抛出
       }
 
-      // 确认 API 被调用过
-      expect(mockApi.get).toHaveBeenCalled()
+      // 不再调用不适配的 /trends 接口（API 层仅由 checkinService 内部使用）
+      expect(mockApi.get).not.toHaveBeenCalledWith(
+        '/api/pets/pet-001/trends?startDate=2024-01-01&endDate=2024-01-31'
+      )
     })
 
     it('所有数据源均不可用时应优雅降级为空数组', async () => {
@@ -351,11 +352,8 @@ describe('网络异常处理', () => {
   // ═════════════════════════════════════════════════════════════════════════
 
   describe('多级降级链', () => {
-    it('API → checkin → local 三级降级应正常工作', async () => {
-      // 第一级：API 失败
-      mockApi.get.mockRejectedValue(new Error('网络异常，请检查网络连接'))
-
-      // 第二级：checkin 成功
+    it('checkin → local 两级降级应正常工作', async () => {
+      // 趋势数据不再请求不适配的 /trends 接口，降级链为 checkinService → 本地缓存
       mockGetCheckinsByDateRange.mockResolvedValue([
         {
           id: 'c1', petId: 'pet-001', userId: 'user-001',
@@ -369,7 +367,6 @@ describe('网络异常处理', () => {
 
       expect(result).toHaveLength(1)
       expect(result[0].weight).toBe(30)
-      expect(mockApi.get).toHaveBeenCalledTimes(1)
       expect(mockGetCheckinsByDateRange).toHaveBeenCalledTimes(1)
     })
 

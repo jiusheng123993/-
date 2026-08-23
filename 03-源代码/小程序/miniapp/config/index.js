@@ -34,7 +34,11 @@ const config = {
     ENABLE_TEMPLATE_CONTENT: JSON.stringify(false),
   },
   copy: {
-    patterns: [],
+    patterns: [
+      // 微信原生组件（chooseAvatar/nickname 能力，Taro 编译层不支持这两个属性，
+      // 用原生 wxml/js 实现并通过 usingComponents 引入，这里显式拷贝进 dist）
+      { from: 'src/components/WechatProfile', to: 'dist/components/WechatProfile' },
+    ],
     options: {},
   },
   framework: 'react',
@@ -137,8 +141,11 @@ module.exports = function (merge) {
   }
   return merge({}, config, {
     mini: {
+      // 开启"主包体积优化"：把仅被分包页面引用的公共代码拆进对应分包，
+      // 避免全部塞进主包 common.js。微信上传要求主包（不含插件）< 1.5M，
+      // 此前主包 1.88M 超标导致上传时代码质量检查"未通过"。
       optimizeMainPackage: {
-        enable: false,
+        enable: true,
       },
     },
   })

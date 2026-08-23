@@ -23,6 +23,7 @@ import AiAvatar from './AiAvatar'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { uploadVoiceForTranscription } from '../../services/voiceService'
+import { getCachedRiskScan } from '../../services/chronicService'
 import './index.scss'
 
 function calcAge(birthDate: string): string {
@@ -90,6 +91,8 @@ export default function Index() {
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
   const [plusPanelOpen, setPlusPanelOpen] = useState(false)
   const [showGreetingQuickActions, setShowGreetingQuickActions] = useState(true)
+  // 慢性病风险角标：进入首页读取缓存的风险扫描结果，有风险信号时在快捷入口显示角标
+  const [chronicRiskCount, setChronicRiskCount] = useState(0)
   const [currentQuickActions, setCurrentQuickActions] = useState<QuickAction[]>([
     { action: 'checkin', label: '健康打卡', emoji: '💩' },
     { action: 'food', label: '食物查询', emoji: '🔍' },
@@ -117,6 +120,19 @@ export default function Index() {
       .then(entry => setTodayHealth(entry))
       .catch(() => setTodayHealth(null))
   }, [petInfo.activePet?.id, user?.id])
+
+  // 慢性病风险角标：读取缓存的风险扫描结果（慢性病页进入时自动扫描并写缓存）
+  useEffect(() => {
+    const activePet = petInfo.activePet
+    if (!activePet) {
+      setChronicRiskCount(0)
+      return
+    }
+    const cached = getCachedRiskScan(activePet.id)
+    // 仅统计需要关注的信号（warning/alert），info 级不打扰
+    const count = cached ? cached.signals.filter(s => s.level !== 'info').length : 0
+    setChronicRiskCount(count)
+  }, [petInfo.activePet?.id])
 
   const checkin = useCheckinFlow({
     addAiMsg: chat.addAiMsg,
@@ -910,6 +926,18 @@ export default function Index() {
               </View>
               <Text className='home-shortcut-label'>健康趋势</Text>
               <Text className='home-shortcut-desc'>看看成长变化</Text>
+            </View>
+            <View className='home-shortcut' onClick={() => Taro.navigateTo({ url: '/pagesPet/chronic-tracking/index' })} hoverClass='home-shortcut--hover'>
+              <View className='home-shortcut-icon home-shortcut-icon--coral'>
+                <Text>🩺</Text>
+                {chronicRiskCount > 0 && (
+                  <View className='home-shortcut-badge'>
+                    <Text className='home-shortcut-badge-text'>{chronicRiskCount}</Text>
+                  </View>
+                )}
+              </View>
+              <Text className='home-shortcut-label'>慢性病追踪</Text>
+              <Text className='home-shortcut-desc'>自动扫描健康风险</Text>
             </View>
             <View className='home-shortcut' onClick={() => Taro.switchTab({ url: '/pages/family/index' })} hoverClass='home-shortcut--hover'>
               <View className='home-shortcut-icon home-shortcut-icon--coral'>

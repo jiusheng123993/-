@@ -494,9 +494,12 @@
   align-items: center;
   gap: $spacing-xs;
   padding: 28rpx $spacing-sm;
-  background: $color-bg-card;
-  border: 1px solid $color-border;
+  // 跟随主题：玻璃底 + 光晕描边（与全局 xhh-glow-card 一致，随主题换色）
+  background: $glass-bg;
+  border: 1px solid $glass-border;
   border-radius: $radius-md;
+  box-shadow: $glow-sm;
+  backdrop-filter: blur(20rpx);
   transition: all 0.2s ease;
 
   &:active {

@@ -43,7 +43,7 @@ const MENU_GROUPS: { title: string; items: { icon: string; label: string; url: s
     items: [
       { icon: '📄', label: '健康报告', url: '/pagesPet/trends/index' },
       { icon: '💉', label: '疫苗日历', url: '/pagesPet/vaccine/index' },
-      { icon: '👑', label: '会员中心', url: '/pages/member/index' },
+      { icon: '👑', label: '会员中心', url: '/pagesUser/member/index' },
       { icon: '🏆', label: '成就墙', url: '/pagesPet/achievement/index' },
     ],
   },
@@ -89,8 +89,8 @@ export default function Mine() {
     if (!isAuthenticated || !user) {
       const pages = Taro.getCurrentPages()
       const currentPage = pages[pages.length - 1]
-      if (currentPage && currentPage.route !== 'pages/login/index') {
-        Taro.reLaunch({ url: '/pages/login/index' })
+      if (currentPage && currentPage.route !== 'pagesUser/login/index') {
+        Taro.reLaunch({ url: '/pagesUser/login/index' })
       }
       return
     }
@@ -139,7 +139,7 @@ export default function Mine() {
       success: (res) => {
         if (res.confirm) {
           logout()
-          Taro.reLaunch({ url: '/pages/login/index' })
+          Taro.reLaunch({ url: '/pagesUser/login/index' })
         }
       },
     })

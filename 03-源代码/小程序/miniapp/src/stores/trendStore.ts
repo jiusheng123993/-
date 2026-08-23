@@ -81,7 +81,7 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   fetchSummary: async (petId: string, period: 'week' | 'month' | 'quarter') => {
     set({ isLoading: true, error: null })
     try {
-      const summary = await getTrendSummary(petId, period)
+      const summary = await getTrendSummary(petId, period, get().userId)
       set({ summary, isLoading: false })
     } catch (err) {
       set({
@@ -99,7 +99,7 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   fetchMonthlyReport: async (petId: string, month: string) => {
     set({ isLoading: true, error: null })
     try {
-      const monthlyReport = await getMonthlyReport(petId, month)
+      const monthlyReport = await getMonthlyReport(petId, month, get().userId)
       set({ monthlyReport, isLoading: false })
     } catch (err) {
       set({
@@ -117,7 +117,7 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   fetchWeightTrend: async (petId: string, months: number = 3) => {
     set({ isLoading: true, error: null })
     try {
-      const trendData = await getWeightTrend(petId, months)
+      const trendData = await getWeightTrend(petId, months, get().userId)
       set({ trendData, isLoading: false })
     } catch (err) {
       set({
@@ -135,7 +135,7 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   fetchAppetiteTrend: async (petId: string, months: number = 3) => {
     set({ isLoading: true, error: null })
     try {
-      const trendData = await getAppetiteTrend(petId, months)
+      const trendData = await getAppetiteTrend(petId, months, get().userId)
       set({ trendData, isLoading: false })
     } catch (err) {
       set({
@@ -153,7 +153,7 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   fetchStoolTrend: async (petId: string, months: number = 3) => {
     set({ isLoading: true, error: null })
     try {
-      const trendData = await getStoolTrend(petId, months)
+      const trendData = await getStoolTrend(petId, months, get().userId)
       set({ trendData, isLoading: false })
     } catch (err) {
       set({
@@ -172,7 +172,7 @@ export const useTrendStore = create<TrendStoreState>((set, get) => ({
   fetchAbnormalDays: async (petId: string, startDate: string, endDate: string) => {
     set({ isLoading: true, error: null })
     try {
-      const trendData = await getAbnormalDays(petId, startDate, endDate)
+      const trendData = await getAbnormalDays(petId, startDate, endDate, get().userId)
       set({ trendData, isLoading: false })
     } catch (err) {
       set({

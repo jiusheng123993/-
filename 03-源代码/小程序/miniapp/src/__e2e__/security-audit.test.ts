@@ -478,7 +478,7 @@ describe('安全审计', () => {
     describe('requireAuth', () => {
       it('未认证时应导航到登录页并抛出', () => {
         expect(() => requireAuth()).toThrow(AuthenticationError)
-        expect(Taro.navigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
+        expect(Taro.navigateTo).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
       })
 
       it('token 仅一段（非 JWT 格式）应被拒绝', () => {
@@ -512,7 +512,7 @@ describe('安全审计', () => {
       it('token 无效时应导航到登录页', async () => {
         mockStorage['xhh_token'] = 'bad-token'
         await expect(requireAuthAsync()).rejects.toThrow(AuthenticationError)
-        expect(Taro.navigateTo).toHaveBeenCalledWith({ url: '/pages/login/index' })
+        expect(Taro.navigateTo).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
       })
 
       it('正常认证应返回 userId 和 token', async () => {

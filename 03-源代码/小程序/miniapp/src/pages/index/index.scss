@@ -1792,7 +1792,7 @@
 }
 
 .home-shortcut {
-  width: calc((100% - 20rpx) / 2);
+  width: calc((100% - 40rpx) / 3);
   background: $color-bg-card;
   border-radius: $radius-lg;
   border: 1rpx solid $color-border;
@@ -1809,6 +1809,7 @@
 }
 
 .home-shortcut-icon {
+  position: relative;
   width: 76rpx;
   height: 76rpx;
   border-radius: 50%;
@@ -1822,6 +1823,28 @@
   &--gold { background: rgba($color-gold-deep, 0.14); }
   &--sage { background: rgba($color-sage, 0.14); }
   &--teal { background: rgba($color-teal, 0.14); }
+}
+
+/* 慢性病风险角标（红色数字徽标，右上角） */
+.home-shortcut-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 16rpx;
+  background: $color-danger;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #fff;
+}
+
+.home-shortcut-badge-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: $font-weight-semibold;
 }
 
 .home-shortcut-label {

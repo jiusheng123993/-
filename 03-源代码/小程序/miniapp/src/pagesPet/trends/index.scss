@@ -5,7 +5,8 @@
   background: $gradient-page;
   padding-bottom: 160rpx;
   position: relative;
-  z-index: 1;
+  // 注意：容器不设 z-index，避免把 fixed 的 .xhh-bg-layer 光斑背景层盖住
+  // （与 mine-page / chat-home-page 保持一致，blob 才能正常显示并跟随主题）
 }
 
 .pet-trends__time-range {
@@ -82,6 +83,10 @@
   position: relative;
   z-index: 2;
   flex: 1;
+  // 注意：webview 渲染模式不支持 scroll-view 的 padding，内边距放在内部容器上
+}
+
+.pet-trends__content-inner {
   padding: 20rpx 32rpx;
 }
 
@@ -867,50 +872,73 @@
 .export-section {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: 16rpx;
   padding: 16rpx;
   margin-top: 24rpx;
 
+  // 统一按钮规格：3+2 布局（第一行 3 个、第二行 2 个），每行内等宽、行间对齐，
+  // 避免此前 2+2+1 时"分享趋势"单独成行、宽度与其他按钮不一致的失衡观感。
+  // 尺寸对齐项目惯例（mine 页按钮 88rpx 高/28rpx 字号），此前 44px/15px 偏小。
   .preview-btn,
   .export-btn,
   .csv-btn,
   .vet-btn,
   .share-btn {
-    flex: 1;
-    min-width: calc(50% - 12rpx);
-    height: 44px;
-    line-height: 44px;
-    border-radius: 22px;
-    font-size: 15px;
+    height: 88rpx;
+    line-height: 88rpx;
+    border-radius: 44rpx;
+    font-size: 28rpx;
     font-weight: $font-weight-medium;
     text-align: center;
     border: none;
     @include press-feedback;
   }
 
+  // 第一行 3 个：各占 (100% - 2×gap) / 3
+  .preview-btn,
+  .export-btn,
+  .csv-btn {
+    flex: 1 1 calc((100% - 32rpx) / 3);
+    min-width: calc((100% - 32rpx) / 3);
+  }
+
+  // 第二行 2 个：各占 (100% - gap) / 2
+  .vet-btn,
+  .share-btn {
+    flex: 1 1 calc((100% - 16rpx) / 2);
+    min-width: calc((100% - 16rpx) / 2);
+  }
+
+  // 全部跟随主题变量（themeClass 切换时自动换色），避免硬编码五色杂乱
+
   .preview-btn {
     background: $color-primary-bg;
-    color: $color-text-secondary;
+    color: $color-primary;
+    border: 1px solid rgba($color-primary, 0.18);
   }
 
   .export-btn {
-    background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+    background: $gradient-gold;
     color: #FFFFFF;
+    box-shadow: $glow-sm;
   }
 
   .csv-btn {
-    background: $color-success;
-    color: #FFFFFF;
+    background: $color-bg-card;
+    color: $color-sage;
+    border: 1px solid rgba($color-sage, 0.35);
   }
 
   .vet-btn {
-    background: $color-primary;
-    color: #FFFFFF;
+    background: $color-primary-bg;
+    color: $color-primary-dark;
+    border: 1px solid rgba($color-primary, 0.18);
   }
 
   .share-btn {
-    background: $color-teal;
+    background: $gradient-warm;
     color: #FFFFFF;
+    box-shadow: $glow-md;
   }
 }
 

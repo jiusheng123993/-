@@ -51,7 +51,7 @@ export async function requireAuthAsync(): Promise<{ userId: string; token: strin
     Taro.removeStorageSync(TOKEN)
     Taro.removeStorageSync(REFRESH_TOKEN)
     Taro.removeStorageSync(USER)
-    Taro.navigateTo({ url: '/pages/login/index' })
+    Taro.navigateTo({ url: '/pagesUser/login/index' })
     throw new AuthenticationError('登录已过期，请重新登录')
   }
 
@@ -65,7 +65,7 @@ export function requireAuth(): { userId: string; token: string } {
     Taro.removeStorageSync(TOKEN)
     Taro.removeStorageSync(REFRESH_TOKEN)
     Taro.removeStorageSync(USER)
-    Taro.navigateTo({ url: '/pages/login/index' })
+    Taro.navigateTo({ url: '/pagesUser/login/index' })
     throw new AuthenticationError('登录已过期，请重新登录')
   }
 

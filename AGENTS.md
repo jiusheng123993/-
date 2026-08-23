@@ -51,3 +51,10 @@ Rules:
 - **恢复演练已验证**：备份还原临时库成功（56 表 + 关键表数据完整）。
 - 运维脚本唯一事实源：`05-部署配置/monitor/`（git 管理），服务器 `/srv/ops/` 为生产副本。
 - 待补：恢复演练已做一次（建议定期复演）；ARK/百炼/Seedream 余额告警需控制台 AK/SK；**root 密码曾暴露于聊天记录，建议尽快改密**。
+
+### 2026-08-23 · 修复"点击 AI 周报报错"（前后端契约不匹配）
+
+- **根因**：后端 `/api/families/:id/weekly-reports/latest` 等返回表行结构 `{id, family_id, week_number, year, report_data(JSONB), ai_insight, share_card_url, created_at}`，而周报详情页 `pagesPet/weekly-report/index.tsx` 此前按扁平视图结构 `{report_date, overall_mood, summary, highlights, concerns, pet_summaries}` 消费，`report.highlights.length` 访问 undefined → 前端渲染 TypeError，点击入口白屏。线上佐证：接口 200/304 无 500（库内 1 条周报，family 5f7f693d…，2026 第 32 周）。
+- **修复（纯前端）**：`services/weeklyReportService.ts` 新增 `BackendReportRow` 接口 + `mapBackendReportRowToView()` 映射（ISO 周计算与后端同算法；highlights/concerns/overallMood 由 report_data 生成；缺 report_data 容错全 0），三个 service API 内部统一映射；周报页改用映射后结构，2x2 取后端真实聚合，成员小结卡空时隐藏；补 5 单测。
+- **验证**：小程序 typecheck ✅、周报 46 测试 ✅、全量 2330 passed（仅余既有 avatarPresets 无关失败）✅、eslint 0 error ✅。改动未提交。
+- **遗留建议**：后端聚合扩展 per-pet 明细（report_data 加 pets 数组）后前端自动显示"成员健康小结"；首页 family 周报预览 state 未渲染可后续接入。

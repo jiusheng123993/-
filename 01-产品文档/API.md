@@ -662,6 +662,22 @@ Authorization: Bearer <accessToken>
 | `POST /api/ai/health-report-recognize` | 体检报告识别（multipart photo + petId）→ 指标提取 + 存 health_reports + 写健康记忆 |
 | `GET /api/timeline/last-year` | 旧时光提醒：去年今天的回忆列表 |
 
+### 时光引擎 · 回忆管理（2026-08-22 升级）
+
+| 接口 | 说明 |
+| --- | --- |
+| `GET /api/timeline/moments` | 回忆列表（按宠物/家庭/用户；按 happened_at 倒序） |
+| `POST /api/timeline/moments` | 创建回忆（body 支持 `happenedAt` 补记任意日期，不传默认当前时间） |
+| `POST /api/timeline/photo/upload` | 上传回忆照片（单张，multipart，10MB 上限） |
+| `POST /api/timeline/ai-describe` | AI 生成照片描述（multipart photo，视觉模型，uploadLimiter 10 次/分钟） |
+| `POST /api/timeline/ai-polish` | AI 润色回忆文案（body `text`，chatLimiter 30 次/分钟） |
+| `DELETE /api/timeline/moments/:id` | 删除回忆（归属校验，只能删自己的） |
+
+> 行为变更：`pet_moments` 表新增 `happened_at`（发生日期，DATE 类型，migration 020/021）列，
+> 查询/旧时光提醒均按 happened_at 排序/匹配，老数据由迁移回填为 created_at；
+> 创建回忆不传 `happenedAt` 时由 COALESCE 兜底为当前日期（不会落 NULL）；
+> 按家庭查询回忆需家庭归属校验（防 IDOR）。
+
 ### 设计中（剧本确认流程，待实现）
 
 | 接口 | 说明 |

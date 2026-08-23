@@ -584,7 +584,8 @@ CREATE TABLE IF NOT EXISTS pet_moments (
   content     JSONB NOT NULL,
   photos      TEXT[],
   ai_summary  TEXT,
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  happened_at DATE DEFAULT CURRENT_DATE
 );
 
 CREATE INDEX IF NOT EXISTS idx_moments_family ON pet_moments(family_id, created_at DESC);

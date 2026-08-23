@@ -1,0 +1,27 @@
+<!-- 微信原生组件模板：头像按钮（chooseAvatar）+ 昵称输入（type=nickname + showNicknameAccessory） -->
+<view class="wechat-profile">
+  <!-- 头像选择：open-type="chooseAvatar" 是微信原生能力，点击弹出微信头像选择 -->
+  <button
+    class="wechat-profile__avatar-btn"
+    open-type="chooseAvatar"
+    bind:chooseavatar="onChooseAvatar"
+  >
+    <image
+      wx:if="{{avatar}}"
+      class="wechat-profile__avatar-img"
+      src="{{avatar}}"
+      mode="aspectFill"
+    />
+    <view wx:else class="wechat-profile__avatar-placeholder">👤</view>
+  </button>
+
+  <!-- 昵称输入：type="nickname" + show-nickname-accessory 让键盘上方显示"微信昵称"填充按钮 -->
+  <input
+    class="wechat-profile__nickname-input"
+    type="nickname"
+    show-nickname-accessory="{{true}}"
+    value="{{nickname}}"
+    placeholder="输入昵称（可带出微信昵称）"
+    bind:input="onNickInput"
+  />
+</view>

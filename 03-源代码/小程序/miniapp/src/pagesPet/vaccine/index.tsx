@@ -343,6 +343,7 @@ export default function PetVaccine() {
             species={currentPet.species as 'dog' | 'cat'}
             petName={currentPet.name}
             expressionContext={expressionContext}
+            pet={currentPet}
             size={80}
             showLabel
           />

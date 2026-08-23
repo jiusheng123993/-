@@ -1,0 +1,44 @@
+/* 微信原生组件样式：头像选择按钮 + 昵称输入框（跟随微信） */
+.wechat-profile {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  width: 100%;
+}
+
+.wechat-profile__avatar-btn {
+  flex-shrink: 0;
+  width: 120rpx;
+  height: 120rpx;
+  padding: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff5ee;
+  border: none;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wechat-profile__avatar-btn::after {
+  border: none;
+}
+
+.wechat-profile__avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.wechat-profile__avatar-placeholder {
+  font-size: 56rpx;
+}
+
+.wechat-profile__nickname-input {
+  flex: 1;
+  height: 88rpx;
+  padding: 0 24rpx;
+  background: #fff5ee;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+}

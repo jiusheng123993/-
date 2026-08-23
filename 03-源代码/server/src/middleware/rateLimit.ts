@@ -12,13 +12,13 @@ function keyGenerator(req: Request): string {
   return `${ipKeyGenerator(req.ip || '')}:${userId}`;
 }
 
-/** 通用限流：60次/分钟 */
+/** 通用限流：120次/分钟（兜底防刷） */
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 60,
+  max: 120,
   keyGenerator,
   // 豁免埋点上报：analytics 路由自带 120 次/分钟专用防刷限流，
-  // 全局限流 60 次/分钟会先拦截导致埋点 429（点换头像连续上报即触发），
+  // 全局限流会先拦截导致埋点 429（点换头像连续上报即触发），
   // 且埋点失败不应影响用户正常操作（如头像切换）
   // 注意：限流器挂在 /api/ 子路径下，req.path 不含 /api 前缀（是 /analytics/events），
   //       必须用 req.originalUrl（含完整路径）判断，否则豁免不生效

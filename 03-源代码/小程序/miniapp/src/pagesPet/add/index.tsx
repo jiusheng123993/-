@@ -199,7 +199,7 @@ export default function AddPet() {
       cancelText: '暂不',
       success: (res) => {
         if (res.confirm) {
-          Taro.navigateTo({ url: '/pages/login/index' })
+          Taro.navigateTo({ url: '/pagesUser/login/index' })
         }
       },
     })

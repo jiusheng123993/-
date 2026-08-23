@@ -114,8 +114,8 @@ export default function FamilyPage() {
     if (!isAuthenticated || !user) {
       const pages = Taro.getCurrentPages()
       const currentPage = pages[pages.length - 1]
-      if (currentPage && currentPage.route !== 'pages/login/index') {
-        Taro.reLaunch({ url: '/pages/login/index' })
+      if (currentPage && currentPage.route !== 'pagesUser/login/index') {
+        Taro.reLaunch({ url: '/pagesUser/login/index' })
       }
       return
     }

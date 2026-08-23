@@ -89,8 +89,8 @@ export default function PetProfile() {
     if (!isAuthenticated || !user) {
       const pages = Taro.getCurrentPages()
       const currentPage = pages[pages.length - 1]
-      if (currentPage && currentPage.route !== 'pages/login/index') {
-        Taro.reLaunch({ url: '/pages/login/index' })
+      if (currentPage && currentPage.route !== 'pagesUser/login/index') {
+        Taro.reLaunch({ url: '/pagesUser/login/index' })
       }
       return
     }
@@ -259,8 +259,8 @@ export default function PetProfile() {
             species={activePet.species}
             petName={activePet.name}
             expressionContext={defaultExpressionContext}
-            // 优先展示真实照片，其次 AI 卡通形象；都没有时走渐变 emoji 兜底
-            imageUrl={activePet.avatarPhotoUrl || activePet.avatarCartoonUrl || undefined}
+            // 传入宠物档案：组件内部自动优先真实照片、其次 AI 卡通形象；都没有时走渐变 emoji 兜底
+            pet={activePet}
             size={80}
           />
           {/* 更换头像入口：点击进入形象定制页（上传/拍照、预设、AI 生成三途径） */}

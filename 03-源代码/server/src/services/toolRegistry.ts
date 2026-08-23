@@ -233,6 +233,40 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
       required: [],
     },
   },
+  {
+    name: 'get_chronic_advice',
+    description: '生成宠物的慢性病 AI 管理建议（日常护理/复查提醒/就医触发条件）。当用户询问"慢性病怎么护理""糖尿病要注意什么""肾病怎么管理"等慢病管理问题时使用。注意：不诊断，只给管理建议。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+        focus: { type: 'string', description: '用户关注方向，如"复查提醒""饮食注意"，可选' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'get_feeding_advice',
+    description: '生成宠物的 AI 个性化喂养建议（结合宠物档案/喂养记录/历史记忆）。当用户询问"怎么喂""吃多少""推荐什么食物""喂养建议"等喂食相关问题时使用。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'scan_chronic_risk',
+    description: '扫描宠物的慢性病风险（基于近 90 天打卡：高风险频率/体重趋势/持续异常 + AI 疑似识别）。当用户询问"有没有慢性病风险""健康有没有隐患""帮我看看有没有问题"等风险筛查问题时使用。只输出疑似/建议排查，不诊断。可通过 pet_id 指定宠物。',
+    parameters: {
+      type: 'object',
+      properties: {
+        pet_id: { type: 'string', description: '宠物 ID（来自 find_pet_by_name）；不传则查当前活跃宠物' },
+      },
+      required: [],
+    },
+  },
 ];
 
 // ========== 工具执行器注册 ==========

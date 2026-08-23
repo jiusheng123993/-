@@ -2,8 +2,13 @@
  * 健康趋势服务
  *
  * 宠物健康趋势数据查询（体重/食欲/排便/异常天），月报生成
+ *
+ * 说明：后端 /api/pets/:petId/trends 系列接口的契约（type/days 单指标序列、report 用 year+month）
+ * 与本模块需要的前端多维数据点结构不一致，且 /summary 接口后端未实现。
+ * 因此本模块统一基于打卡记录接口（/checkins，契约一致）拉取原始数据，在前端完成
+ * 趋势点映射、摘要与月报计算（buildLocalTrendSummary 等），避免 404/400。
+ * 待后端补齐 /summary 并调整 report 契约后可切回 API 主路径。
  */
-import { api } from './api'
 import { getStorage, setStorage } from '../utils/storage'
 import type { PetHealthEntry } from './checkinService'
 import type { AppetiteLevel, SpiritLevel, PoopLevel, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes'
@@ -85,7 +90,10 @@ function getTrendStorageKey(petId: string): string {
 }
 
 function getLocalTrendData(petId: string): TrendDataPoint[] {
-  return getStorage<TrendDataPoint[]>(getTrendStorageKey(petId)) || []
+  const raw = getStorage<TrendDataPoint[]>(getTrendStorageKey(petId))
+  // 防御：旧版本曾把后端返回的对象（{type,days,points,trend}）误存进本地缓存，
+  // 若读到非数组数据直接视为空，避免后续 .filter() 崩溃
+  return Array.isArray(raw) ? raw : []
 }
 
 function saveLocalTrendData(petId: string, data: TrendDataPoint[]): void {
@@ -381,27 +389,28 @@ export async function getTrendData(
   userId?: string
 ): Promise<TrendDataPoint[]> {
   try {
-    const result = await api.get<TrendDataPoint[]>(
-      `/api/pets/${petId}/trends?startDate=${startDate}&endDate=${endDate}`
-    )
-    saveLocalTrendData(petId, result)
-    return result
+    // 后端 /trends 接口只返回单指标序列（type/days），且需要 userId 归属校验，
+    // 无法一次给出体重/食欲/便便等多维数据点。这里直接基于打卡记录接口
+    // （/checkins，契约一致且可用）获取原始数据再本地映射，保证数据完整。
+    // 注意：后端 /checkins 只识别 days 参数，startDate/endDate 会被剥离，
+    // 云端可能返回窗口外数据，这里映射后按日期范围再过滤一次。
+    const checkins = await getCheckinsByDateRange(petId, userId || '', startDate, endDate)
+    const trendData = checkins
+      .map(checkinToTrendDataPoint)
+      .filter((d) => d.date >= startDate && d.date <= endDate)
+    saveLocalTrendData(petId, trendData)
+    return trendData
   } catch (error) {
-    try {
-      const checkins = await getCheckinsByDateRange(petId, userId || '', startDate, endDate)
-      const trendData = checkins.map(checkinToTrendDataPoint)
-      saveLocalTrendData(petId, trendData)
-      return trendData
-    } catch {
-      const local = getLocalTrendData(petId)
-      return local.filter((d) => d.date >= startDate && d.date <= endDate)
-    }
+    // 云端/本地打卡均不可用时，回退到趋势本地缓存（按日期过滤）
+    const local = getLocalTrendData(petId)
+    return local.filter((d) => d.date >= startDate && d.date <= endDate)
   }
 }
 
 export async function getTrendSummary(
   petId: string,
-  period: 'week' | 'month' | 'quarter'
+  period: 'week' | 'month' | 'quarter',
+  userId?: string
 ): Promise<TrendSummary> {
   const now = new Date()
   let startDate: Date
@@ -424,15 +433,10 @@ export async function getTrendSummary(
   const startStr = startDate.toISOString().slice(0, 10)
   const endStr = now.toISOString().slice(0, 10)
 
-  try {
-    const result = await api.get<TrendSummary>(
-      `/api/pets/${petId}/trends/summary?period=${period}`
-    )
-    return result
-  } catch (error) {
-    const dataPoints = await getTrendData(petId, startStr, endStr)
-    return buildLocalTrendSummary(petId, period, dataPoints)
-  }
+  // 后端未实现 /trends/summary 接口（404），统一走本地计算：
+  // 基于打卡数据生成趋势摘要，避免请求失败报错
+  const dataPoints = await getTrendData(petId, startStr, endStr, userId)
+  return buildLocalTrendSummary(petId, period, dataPoints)
 }
 
 function buildLocalTrendSummary(
@@ -471,40 +475,37 @@ function buildLocalTrendSummary(
 
 export async function getMonthlyReport(
   petId: string,
-  month: string
+  month: string,
+  userId?: string
 ): Promise<MonthlyReport> {
-  try {
-    const result = await api.get<MonthlyReport>(
-      `/api/pets/${petId}/trends/report?month=${month}`
-    )
-    return result
-  } catch (error) {
-    const [year, monthNum] = month.split('-').map(Number)
-    const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`
-    const lastDay = new Date(year, monthNum, 0).getDate()
-    const endDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+  // 后端 /trends/report 使用 year+month 数字参数（month=2026-08 会 400），
+  // 且返回结构与前端 MonthlyReport 契约不符，统一走本地生成
+  const [year, monthNum] = month.split('-').map(Number)
+  const startDate = `${year}-${String(monthNum).padStart(2, '0')}-01`
+  const lastDay = new Date(year, monthNum, 0).getDate()
+  const endDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
-    const dataPoints = await getTrendData(petId, startDate, endDate)
-    const summary = buildLocalTrendSummary(petId, 'month', dataPoints)
+  const dataPoints = await getTrendData(petId, startDate, endDate, userId)
+  const summary = buildLocalTrendSummary(petId, 'month', dataPoints)
 
-    const weightResult = calculateWeightTrend(dataPoints)
-    const appetiteStats = calculateAppetiteStats(dataPoints)
-    const stoolStats = calculateStoolStats(dataPoints)
+  const weightResult = calculateWeightTrend(dataPoints)
+  const appetiteStats = calculateAppetiteStats(dataPoints)
+  const stoolStats = calculateStoolStats(dataPoints)
 
-    return {
-      petId,
-      month,
-      summary,
-      highlights: generateHighlights(dataPoints, weightResult, appetiteStats, stoolStats),
-      concerns: generateConcerns(dataPoints, weightResult, appetiteStats, stoolStats),
-      recommendations: generateRecommendations(dataPoints, weightResult, appetiteStats, stoolStats),
-    }
+  return {
+    petId,
+    month,
+    summary,
+    highlights: generateHighlights(dataPoints, weightResult, appetiteStats, stoolStats),
+    concerns: generateConcerns(dataPoints, weightResult, appetiteStats, stoolStats),
+    recommendations: generateRecommendations(dataPoints, weightResult, appetiteStats, stoolStats),
   }
 }
 
 export async function getWeightTrend(
   petId: string,
-  months: number = 3
+  months: number = 3,
+  userId?: string
 ): Promise<TrendDataPoint[]> {
   const endDate = new Date()
   const startDate = new Date()
@@ -513,13 +514,14 @@ export async function getWeightTrend(
   const startStr = startDate.toISOString().slice(0, 10)
   const endStr = endDate.toISOString().slice(0, 10)
 
-  const allData = await getTrendData(petId, startStr, endStr)
+  const allData = await getTrendData(petId, startStr, endStr, userId)
   return allData.filter((d) => d.weight !== undefined && d.weight !== null)
 }
 
 export async function getAppetiteTrend(
   petId: string,
-  months: number = 3
+  months: number = 3,
+  userId?: string
 ): Promise<TrendDataPoint[]> {
   const endDate = new Date()
   const startDate = new Date()
@@ -528,13 +530,14 @@ export async function getAppetiteTrend(
   const startStr = startDate.toISOString().slice(0, 10)
   const endStr = endDate.toISOString().slice(0, 10)
 
-  const allData = await getTrendData(petId, startStr, endStr)
+  const allData = await getTrendData(petId, startStr, endStr, userId)
   return allData.filter((d) => d.appetite !== undefined)
 }
 
 export async function getStoolTrend(
   petId: string,
-  months: number = 3
+  months: number = 3,
+  userId?: string
 ): Promise<TrendDataPoint[]> {
   const endDate = new Date()
   const startDate = new Date()
@@ -543,15 +546,16 @@ export async function getStoolTrend(
   const startStr = startDate.toISOString().slice(0, 10)
   const endStr = endDate.toISOString().slice(0, 10)
 
-  const allData = await getTrendData(petId, startStr, endStr)
+  const allData = await getTrendData(petId, startStr, endStr, userId)
   return allData.filter((d) => d.stool !== undefined)
 }
 
 export async function getAbnormalDays(
   petId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  userId?: string
 ): Promise<TrendDataPoint[]> {
-  const allData = await getTrendData(petId, startDate, endDate)
+  const allData = await getTrendData(petId, startDate, endDate, userId)
   return allData.filter((d) => d.hasAbnormal)
 }

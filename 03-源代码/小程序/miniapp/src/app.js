@@ -15,6 +15,7 @@ import { wsClient } from './services/wsClient'
 import { PENDING_INVITE_CODE_KEY } from './services/shareService'
 import { isWeapp } from './platform'
 import LogoLoading from './components/LogoLoading'
+import PrivacyPopup from './components/PrivacyPopup'
 import './app.scss'
 
 let ready = false
@@ -36,6 +37,10 @@ function AppContent({ children }) {
 export default function App({ children }) {
   // 品牌缓冲页开关：启动初始化完成后隐藏（至少展示 800ms，避免闪屏）
   const [splashVisible, setSplashVisible] = useState(true)
+  // 微信隐私授权弹窗：onNeedPrivacyAuthorization 触发时展示
+  const [privacyVisible, setPrivacyVisible] = useState(false)
+  // 微信隐私授权 resolve 回调（用户同意/拒绝后调用，放行/拒绝隐私接口）
+  const privacyResolveRef = React.useRef(null)
 
   useLaunch(() => {
     if (ready) return
@@ -50,25 +55,14 @@ export default function App({ children }) {
     }
     try {
       // 处理微信隐私授权事件（仅小程序，基础库 2.32.3+）
+      // 官方机制：隐私接口（chooseAvatar/昵称填写/chooseImage 等）被调用时触发本监听，
+      // 必须用 openType="agreePrivacyAuthorization" 的 Button 弹窗让用户同意，
+      // 完成后 resolve({ buttonId, event: 'agree' }) 才会放行隐私接口。
+      // 若用普通 showModal 的「同意」按钮，微信不会视为完成隐私授权 → errno 112。
       if (isWeapp() && typeof Taro.onNeedPrivacyAuthorization === 'function') {
         Taro.onNeedPrivacyAuthorization((resolve) => {
-          Taro.showModal({
-            title: '隐私保护提示',
-            content: '在使用该功能前，请仔细阅读《用户协议》和《隐私政策》。如你同意，请点击"同意"开始使用。',
-            confirmText: '同意',
-            cancelText: '拒绝',
-            success: (modalRes) => {
-              if (modalRes.confirm) {
-                resolve({ event: 'agree', buttonId: 'agree' })
-              } else {
-                resolve({ event: 'disagree' })
-              }
-            },
-            fail: () => {
-              // 弹窗失败时默认拒绝，保护用户隐私
-              resolve({ event: 'disagree' })
-            },
-          })
+          privacyResolveRef.current = resolve
+          setPrivacyVisible(true)
         })
       }
 
@@ -108,6 +102,26 @@ export default function App({ children }) {
     null,
     children,
     // 启动缓冲层：盖在首屏之上，初始化完成后淡出
-    splashVisible && React.createElement(LogoLoading, null)
+    splashVisible && React.createElement(LogoLoading, null),
+    // 微信隐私授权弹窗（全局）：用户同意/拒绝后放行对应隐私接口
+    React.createElement(PrivacyPopup, {
+      visible: privacyVisible,
+      onAgree: () => {
+        const resolve = privacyResolveRef.current
+        if (resolve) {
+          resolve({ event: 'agree', buttonId: 'agree' })
+          privacyResolveRef.current = null
+        }
+        setPrivacyVisible(false)
+      },
+      onReject: () => {
+        const resolve = privacyResolveRef.current
+        if (resolve) {
+          resolve({ event: 'disagree' })
+          privacyResolveRef.current = null
+        }
+        setPrivacyVisible(false)
+      },
+    })
   )
 }

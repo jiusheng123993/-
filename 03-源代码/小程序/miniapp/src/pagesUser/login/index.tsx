@@ -5,10 +5,12 @@
 import { View, Text, Button, Input, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'
+// 登录页迁入 pagesUser 分包（主包瘦身）；分包页与主包页同深度，仍用 ../../ 访问 src 根
 import { useAuthStore } from '../../stores/authStore'
 import { isWeapp, sendSmsCode, isApp, API_BASE_URL } from '../../platform'
-import loginHero from '../../assets/login-hero.webp'
-// 品牌 logo：猫狗大头像（定稿方案 1，圆角图标版，WebP 压缩）
+// 登录主视觉图片随页面一起迁入分包，避免占用主包体积
+import loginHero from './assets/login-hero.webp'
+// 品牌 logo：猫狗大头像（定稿方案 1，圆角图标版，WebP 压缩），多处共用故留在主包 assets
 import brandLogo from '../../assets/logo-catdog-01.webp'
 import './index.scss'
 

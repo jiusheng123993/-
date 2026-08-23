@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- **时光页回忆功能升级**（2026-08-22）
+  - 修 Bug：时光页原来只加载健康打卡数据、漏加载用户手动添加的回忆（pet_moments），
+    导致"添加的回忆不显示/打不开"；现在真实回忆与打卡事件合并展示，点击回忆打开详情弹窗
+  - 回忆补记：`pet_moments` 新增 `happened_at` 列（migration 020），创建回忆可传
+    `happenedAt` 选择任意日期，时间线/旧时光提醒均按发生日期排序匹配
+  - 新增回忆弹窗升级：日期选择器（补记）、多张照片（最多 9 张、可删单张）、AI 辅助
+  - AI 接入：`POST /api/timeline/ai-describe`（照片 → 视觉模型生成温暖描述）、
+    `POST /api/timeline/ai-polish`（文字 → AI 润色扩写），均为生成后可编辑再保存
+  - 时间线照片真图展示（原为占位符），支持点击大图预览（多张轮播）
+  - `DELETE /api/timeline/moments/:id`：删除回忆（归属校验）
+  - 双 Agent 审查修复：`happened_at` 改 DATE 类型（杜绝时区往返差一天）、
+    不传 `happenedAt` 用 COALESCE 兜底当前日期（杜绝 NULL 落库导致排序/旧时光回归）、
+    禁止未来日期、AI 润色拦截未配置占位文案、家庭查询加归属校验（防 IDOR）
 - **回忆录 2.0 生成管线**（2026-08-22）
   - AI 分镜脚本生成（DeepSeek，CREST 叙事 + Anti-Subjective 规则，3 次重试 + 兜底模板）
   - Seedance 2.5 十段提示词组装 + Locks 连续性锁（`promptTemplates.ts`）

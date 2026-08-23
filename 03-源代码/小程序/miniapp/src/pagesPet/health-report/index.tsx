@@ -64,10 +64,10 @@ export default function HealthReportPage() {
   const petId = currentPet?.id || ''
 
   // 会员门槛：健康报告导出 为会员权益，非会员展示开通引导（PRD 7.3）
+  // ⚠️ 注意：useMemberGate 的 allowed 初始为 null，异步判断后变为 true/false。
+  // 若在这里（其他 hooks 之前）条件 return，allowed 变化会导致 hooks 数量不一致，
+  // 触发 React error #300。因此会员门槛 return 统一放在组件底部所有 hooks 之后。
   const { allowed: memberAllowed } = useMemberGate('health_report')
-  if (memberAllowed === false) {
-    return <MemberGate featureName='健康报告导出' />
-  }
 
   useEffect(() => {
     if (!user?.id || !petId) {
@@ -168,6 +168,13 @@ export default function HealthReportPage() {
     const age = calcAge(birthDate)
     return `${breed || '未知品种'} · ${age} · ${weight ? `${weight}kg` : '体重未知'}`
   }, [report])
+
+  // ===== 以下均为条件渲染（所有 hooks 之后，保证 hooks 数量恒定） =====
+
+  // 会员门槛：非会员展示开通引导（须在全部 hooks 之后 return，见上方注释）
+  if (memberAllowed === false) {
+    return <MemberGate featureName='健康报告导出' />
+  }
 
   return (
     <View className={`health-report ${themeClass}`}>

@@ -227,7 +227,7 @@ export default function PetSymptomCheck() {
           trackEvent('show_paywall', { feature: 'symptom_check' })
           setPaywallVisible(true)
         } else {
-          Taro.navigateTo({ url: '/pages/member/index' })
+          Taro.navigateTo({ url: '/pagesUser/member/index' })
         }
         return
       }
@@ -283,7 +283,7 @@ export default function PetSymptomCheck() {
         await markPaywallShown('symptom_check')
         setPaywallVisible(true)
       } else {
-        Taro.navigateTo({ url: '/pages/member/index' })
+        Taro.navigateTo({ url: '/pagesUser/member/index' })
       }
       return
     }
@@ -711,7 +711,7 @@ export default function PetSymptomCheck() {
         visible={paywallVisible}
         featureName="AI症状初筛"
         remainingFree={0}
-        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pages/member/index' }) }}
+        onUpgrade={() => { setPaywallVisible(false); Taro.navigateTo({ url: '/pagesUser/member/index' }) }}
         onClose={() => setPaywallVisible(false)}
       />
 
