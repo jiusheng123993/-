@@ -16,7 +16,12 @@ import {
   getChronicStats,
   getUpcomingCheckups,
   getChronicTrendData,
+  getAiChronicAdvice,
+  scanChronicRisk,
+  getCachedRiskScan,
+  saveCachedRiskScan,
   generateChronicReminderPayload,
+  type ChronicRiskSignal,
 } from '../../services/chronicService'
 import { getSyncService } from '../../services/syncService'
 import type { ChronicRecord, ChronicStats, ChronicTrendPoint, CheckupReminder } from '../../types/chronicTypes'
@@ -38,14 +43,23 @@ export default function ChronicTrackingPage() {
   const [activeTab, setActiveTab] = useState<'list' | 'trend' | 'reminders'>('list')
   const [syncing, setSyncing] = useState(false)
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle')
+  // AI 慢病管理分析状态
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null)
+  const [aiError, setAiError] = useState('')
+  // 慢病风险扫描状态（L2 规则预警 + L3 AI 疑似识别）
+  const [riskScanning, setRiskScanning] = useState(false)
+  const [riskSignals, setRiskSignals] = useState<ChronicRiskSignal[]>([])
+  const [riskAiInsight, setRiskAiInsight] = useState('')
+  const [riskError, setRiskError] = useState('')
 
   const pet = currentPet || pets[0]
 
   // 会员门槛：慢性病追踪 为会员权益，非会员展示开通引导（PRD 7.3）
+  // ⚠️ 注意：useMemberGate 的 allowed 初始为 null，异步判断后变为 true/false。
+  // 若在这里（其他 hooks 之前）条件 return，allowed 变化会导致 hooks 数量不一致，
+  // 触发 React error #300。因此会员门槛 return 统一放在组件底部所有 hooks 之后。
   const { allowed: memberAllowed } = useMemberGate('chronic_tracking')
-  if (memberAllowed === false) {
-    return <MemberGate featureName='慢性病追踪' />
-  }
 
   const loadData = useCallback(async () => {
     if (!pet || !user) return
@@ -84,6 +98,74 @@ export default function ChronicTrackingPage() {
     }
   }
 
+  /**
+   * AI 慢病管理分析：后端从 pet_chronic_records 权威读取慢病数据，
+   * 注入宠物档案/打卡/记忆后生成管理建议（会员专属）
+   */
+  const handleAiAnalyze = useCallback(async () => {
+    if (!pet || aiLoading) return
+    setAiLoading(true)
+    setAiError('')
+    try {
+      const result = await getAiChronicAdvice(pet.id)
+      if (!result) {
+        setAiError('AI 分析暂时不可用，请稍后再试')
+      } else if (result.unsafe) {
+        setAiError('本次分析未通过安全校验，请稍后再试')
+      } else {
+        setAiAdvice(result.aiAdvice)
+      }
+    } catch {
+      setAiError('AI 分析失败，请稍后再试')
+    } finally {
+      setAiLoading(false)
+    }
+  }, [pet, aiLoading])
+
+  /**
+   * 慢病风险扫描：L2 规则预警（打卡数据确定性规则）+ L3 AI 疑似识别。
+   * 用于"发现"慢性病风险——从打卡数据主动提示疑似信号，仅"疑似/建议排查"。
+   * @param silent - 自动扫描模式：使用缓存结果优先，失败静默不打扰
+   */
+  const handleRiskScan = useCallback(async (silent = false) => {
+    if (!pet || riskScanning) return
+    // 自动模式：有未过期缓存直接显示（避免每次进页面重复调 LLM）
+    if (silent) {
+      const cached = getCachedRiskScan(pet.id)
+      if (cached) {
+        setRiskSignals(cached.signals)
+        setRiskAiInsight(cached.aiInsight)
+        return
+      }
+    }
+    setRiskScanning(true)
+    if (!silent) setRiskError('')
+    try {
+      const result = await scanChronicRisk(pet.id)
+      if (!result) {
+        if (!silent) setRiskError('风险扫描暂时不可用，请稍后再试')
+      } else if (result.unsafe) {
+        if (!silent) setRiskError('本次风险分析未通过安全校验，请稍后再试')
+      } else {
+        setRiskSignals(result.signals)
+        setRiskAiInsight(result.aiInsight)
+        saveCachedRiskScan(pet.id, result)
+      }
+    } catch {
+      if (!silent) setRiskError('风险扫描失败，请稍后再试')
+    } finally {
+      setRiskScanning(false)
+    }
+  }, [pet, riskScanning])
+
+  // 自动追踪：进入页面自动扫描一次（有缓存直接显示；无缓存静默拉取）
+  useEffect(() => {
+    if (pet && memberAllowed !== false) {
+      handleRiskScan(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pet?.id, memberAllowed])
+
   const handleAdd = async (data: Omit<ChronicRecord, 'id' | 'petId' | 'createdAt' | 'updatedAt'>) => {
     if (!pet || !user) return
     await addChronicRecord(pet.id, user.id, data)
@@ -112,6 +194,13 @@ export default function ChronicTrackingPage() {
         }
       },
     })
+  }
+
+  // ===== 以下均为条件渲染（所有 hooks 之后，保证 hooks 数量恒定） =====
+
+  // 会员门槛：非会员展示开通引导（须在全部 hooks 之后 return，见上方注释）
+  if (memberAllowed === false) {
+    return <MemberGate featureName='慢性病追踪' />
   }
 
   if (!pet) {
@@ -165,6 +254,92 @@ export default function ChronicTrackingPage() {
           </Text>
         </View>
       )}
+
+      {/* ===== 慢病风险扫描卡片（L2 规则预警 + L3 AI 疑似识别，会员专属） ===== */}
+      <View className='chronic-risk-card'>
+        <View className='chronic-risk-head'>
+          <View className='chronic-risk-icon'>🔍</View>
+          <View className='chronic-risk-titles'>
+            <Text className='chronic-risk-title'>
+              慢病风险扫描
+              {riskSignals.length > 0 && (
+                <Text className='chronic-risk-alert-badge'>
+                  {riskSignals.filter(s => s.level === 'alert').length > 0 ? '发现风险' : '有提示'}
+                </Text>
+              )}
+            </Text>
+            <Text className='chronic-risk-sub'>进入页面自动扫描，基于近 90 天打卡数据主动发现疑似风险</Text>
+          </View>
+        </View>
+
+        {riskSignals.length > 0 && (
+          <View className='chronic-risk-signals'>
+            {riskSignals.map((signal, idx) => (
+              <View key={idx} className={`chronic-risk-signal chronic-risk-signal--${signal.level}`}>
+                <View className='chronic-risk-signal-head'>
+                  <Text className='chronic-risk-signal-title'>
+                    {signal.level === 'alert' ? '🚨' : signal.level === 'warning' ? '⚠️' : 'ℹ️'} {signal.title}
+                  </Text>
+                  <Text className='chronic-risk-signal-badge'>
+                    {signal.level === 'alert' ? '需重视' : signal.level === 'warning' ? '建议关注' : '提示'}
+                  </Text>
+                </View>
+                <Text className='chronic-risk-signal-detail'>{signal.detail}</Text>
+                {signal.suggestedCondition && (
+                  <Text className='chronic-risk-signal-suggest'>{signal.suggestedCondition}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {riskAiInsight ? (
+          <Text className='chronic-risk-ai'>{riskAiInsight}</Text>
+        ) : riskScanning ? (
+          <Text className='chronic-risk-ai chronic-risk-ai--muted'>正在分析 {pet.name} 近 90 天的健康数据…</Text>
+        ) : riskError ? (
+          <Text className='chronic-risk-ai chronic-risk-ai--error'>{riskError}</Text>
+        ) : (
+          <Text className='chronic-risk-ai chronic-risk-ai--muted'>
+            扫描打卡记录中的高风险频率、体重趋势与持续异常，AI 辅助判断是否疑似慢性病方向（仅提示，不诊断）。
+          </Text>
+        )}
+
+        <View
+          className={`chronic-risk-btn${riskScanning ? ' chronic-risk-btn--disabled' : ''}`}
+          onClick={() => handleRiskScan(false)}
+        >
+          <Text>{riskScanning ? '扫描中…' : riskSignals.length > 0 || riskAiInsight ? '重新扫描' : '立即扫描'}</Text>
+        </View>
+      </View>
+
+      {/* ===== AI 慢病管理分析卡片（会员专属，后端注入档案/打卡/记忆） ===== */}
+      <View className='chronic-ai-card'>
+        <View className='chronic-ai-head'>
+          <View className='chronic-ai-icon'>✨</View>
+          <View className='chronic-ai-titles'>
+            <Text className='chronic-ai-title'>AI 慢病管理建议</Text>
+            <Text className='chronic-ai-sub'>结合慢病记录、健康打卡与历史记忆生成</Text>
+          </View>
+        </View>
+        {aiAdvice ? (
+          <Text className='chronic-ai-text'>{aiAdvice}</Text>
+        ) : aiLoading ? (
+          <Text className='chronic-ai-text chronic-ai-text--muted'>AI 正在分析 {pet.name} 的慢病管理情况…</Text>
+        ) : aiError ? (
+          <Text className='chronic-ai-text chronic-ai-text--error'>{aiError}</Text>
+        ) : (
+          <Text className='chronic-ai-text chronic-ai-text--muted'>
+            点击下方按钮，AI 将结合慢性病记录与近期打卡给出日常护理、复查提醒等管理建议。
+          </Text>
+        )}
+        <View
+          className={`chronic-ai-btn${aiLoading ? ' chronic-ai-btn--disabled' : ''}`}
+          onClick={handleAiAnalyze}
+        >
+          <Text>{aiLoading ? '生成中…' : aiAdvice ? '重新生成' : '生成 AI 管理建议'}</Text>
+        </View>
+      </View>
 
       <View className='chronic-tabs'>
         {(['list', 'trend', 'reminders'] as const).map(tab => (

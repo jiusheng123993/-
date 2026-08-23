@@ -2,10 +2,12 @@
  * 宠物喂养个性化建议服务
  *
  * 根据宠物档案、慢病记录和品种特征生成喂养建议
+ * 规则引擎（generatePersonalizedAdvice）+ AI 深度分析（getAiFeedingAdvice，会员专属）
  */
 import type { PetProfile } from './petService'
 import type { ChronicRecord } from '../types/chronicTypes'
 import { getChronicRecords } from './chronicService'
+import { api } from './api'
 
 export interface PersonalizedFeedingAdvice {
   type: 'daily_amount' | 'meal_frequency' | 'food_type' | 'supplement' | 'warning' | 'allergy' | 'chronic' | 'breed_specific'
@@ -333,4 +335,53 @@ export function getMealPlan(profile: FeedingProfile): Array<{ time: string; labe
     { time: '08:00', label: '早餐', ratio: '40%' },
     { time: '18:00', label: '晚餐', ratio: '60%' },
   ]
+}
+
+/** AI 喂养建议结果 */
+export interface AiFeedingAdviceResult {
+  aiAdvice: string
+  memoriesUsed: Array<{ content: string; importance: number; category: string }>
+  unsafe: boolean
+  degraded?: boolean
+}
+
+/**
+ * 调用后端 AI 个性化喂食建议（会员专属，后端强制校验）
+ * @param petId - 宠物 ID
+ * @param profile - 规则引擎产出的喂养画像（后端会再注入宠物档案/喂养记录/记忆）
+ * @param recentAppetite - 最近食欲（可选）
+ * @param recentStool - 最近便便（可选）
+ * @returns AI 建议结果；失败返回 null（由调用方展示降级提示）
+ */
+export async function getAiFeedingAdvice(
+  petId: string,
+  profile: FeedingProfile,
+  recentAppetite?: 'good' | 'normal' | 'poor',
+  recentStool?: 'normal' | 'loose' | 'hard'
+): Promise<AiFeedingAdviceResult | null> {
+  try {
+    // 规则引擎当前建议文本，供 AI 参考增强（不重写硬结论）
+    const ruleAdvice = generatePersonalizedAdvice(profile, recentAppetite, recentStool)
+      .map((a) => `${a.title}：${a.content}`)
+      .join('\n')
+
+    return await api.post<AiFeedingAdviceResult>(`/api/pets/${petId}/feeding-records/ai-analysis`, {
+      pet_name: profile.pet.name,
+      species: profile.pet.species,
+      breed: profile.pet.breed || '',
+      age_months: profile.ageMonths,
+      weight: profile.weight,
+      body_condition: profile.bodyCondition,
+      is_puppy_kitten: profile.isPuppyKitten,
+      is_senior: profile.isSenior,
+      is_neutered: profile.isNeutered,
+      chronic_conditions: profile.chronicConditions.map((c) => c.condition),
+      allergies: profile.allergies,
+      recent_appetite: recentAppetite || null,
+      recent_stool: recentStool || null,
+      current_advice: ruleAdvice.slice(0, 2000),
+    })
+  } catch {
+    return null
+  }
 }

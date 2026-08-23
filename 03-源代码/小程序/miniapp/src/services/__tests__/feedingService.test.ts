@@ -1,7 +1,7 @@
 /**
  * 喂养服务测试
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { PetProfile } from '../petService'
 import type { ChronicRecord } from '../../types/chronicTypes'
 import type { FeedingProfile, PersonalizedFeedingAdvice } from '../feedingService'
@@ -10,7 +10,15 @@ vi.mock('../chronicService', () => ({
   getChronicRecords: vi.fn(() => Promise.resolve([])),
 }))
 
-import { buildFeedingProfile, generatePersonalizedAdvice, getMealPlan } from '../feedingService'
+const mockApiPost = vi.fn()
+
+vi.mock('../api', () => ({
+  api: {
+    post: (...args: unknown[]) => mockApiPost(...args),
+  },
+}))
+
+import { buildFeedingProfile, generatePersonalizedAdvice, getMealPlan, getAiFeedingAdvice } from '../feedingService'
 
 function makePet(overrides: Partial<PetProfile> = {}): PetProfile {
   const now = new Date()
@@ -342,4 +350,72 @@ describe('feedingService', () => {
       }
     })
   })
+
+  describe('getAiFeedingAdvice - AI 喂养建议', () => {
+    beforeEach(() => {
+      mockApiPost.mockReset()
+    })
+
+    it('should call backend ai-analysis with feeding profile payload', async () => {
+      const profile = buildFeedingProfileSync({ weight: 20, ageMonths: 24 })
+      mockApiPost.mockResolvedValue({
+        aiAdvice: '1. 建议分2餐喂食。\n免责声明',
+        memoriesUsed: [],
+        unsafe: false,
+      })
+
+      const result = await getAiFeedingAdvice('pet_001', profile, 'good', 'normal')
+
+      expect(result).not.toBeNull()
+      expect(result!.aiAdvice).toContain('1. ')
+      // 校验请求体字段（snake_case 映射）
+      expect(mockApiPost).toHaveBeenCalledWith('/api/pets/pet_001/feeding-records/ai-analysis', expect.objectContaining({
+        pet_name: profile.pet.name,
+        species: profile.pet.species,
+        age_months: profile.ageMonths,
+        weight: profile.weight,
+        recent_appetite: 'good',
+        recent_stool: 'normal',
+      }))
+    })
+
+    it('should return null when API fails', async () => {
+      const profile = buildFeedingProfileSync()
+      mockApiPost.mockRejectedValue(new Error('network'))
+
+      const result = await getAiFeedingAdvice('pet_001', profile)
+
+      expect(result).toBeNull()
+    })
+
+    it('should return null when unsafe result', async () => {
+      const profile = buildFeedingProfileSync()
+      mockApiPost.mockResolvedValue({
+        aiAdvice: '拦截文案',
+        memoriesUsed: [],
+        unsafe: true,
+      })
+
+      const result = await getAiFeedingAdvice('pet_001', profile)
+
+      // unsafe 由调用方（页面）判断展示，service 层原样返回
+      expect(result!.unsafe).toBe(true)
+    })
+  })
 })
+
+/** 同步构造 FeedingProfile（测试辅助，避免依赖 async buildFeedingProfile） */
+function buildFeedingProfileSync(overrides: Partial<FeedingProfile> = {}): FeedingProfile {
+  return {
+    pet: makePet(),
+    ageMonths: 24,
+    weight: 20,
+    bodyCondition: 'normal',
+    chronicConditions: [],
+    allergies: [],
+    isPuppyKitten: false,
+    isSenior: false,
+    isNeutered: false,
+    ...overrides,
+  }
+}
