@@ -96,6 +96,10 @@ app.use('/uploads', express.static(path.resolve(__dirname, '..', config.uploadDi
 
 // 知识图谱审核后台（Phase 3 轻量管理页，Token 登录见 routes/knowledge.ts）
 app.use('/admin', express.static(path.resolve(__dirname, '..', 'public')));
+// /admin 与 /admin/（带斜杠）显式指向 admin.html（public/ 无 index.html，静态服务不会自动目录索引）
+app.get(['/admin', '/admin/'], (_req, res) => {
+  res.sendFile(path.resolve(__dirname, '..', 'public', 'admin.html'));
+});
 
 // ===== 健康检查 =====
 app.get('/api/health', (_req, res) => {
