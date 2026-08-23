@@ -10,6 +10,7 @@ import { PageLoading, PageError } from '../../components'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useCheckinStore } from '../../stores/checkinStore'
+import { useThemeClass } from '../../hooks/useThemeClass'
 import { generateDiaryFromEntries, type DiaryRecord } from '../../services/diaryService'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
@@ -79,6 +80,8 @@ export default function PetDiaryPage() {
   const { pets, currentPet, fetchPets, switchPet } = usePetStore()
   const user = useAuthStore(s => s.user)
   const { checkins, fetchCheckins, isLoading: checkinLoading, initUser } = useCheckinStore()
+  // 主题跟随：挂 themeClass 使页面 CSS 变量随主题切换（此前缺失导致换主题页不变色）
+  const themeClass = useThemeClass()
 
   const [diaryRecords, setDiaryRecords] = useState<DiaryRecord[]>([])
   const [toneFilter, setToneFilter] = useState('all')
@@ -112,14 +115,18 @@ export default function PetDiaryPage() {
       }
       await initUser(user.id)
       await fetchCheckins(currentPet.id)
-      const records = generateDiaryFromEntries(checkins as any, currentPet.birthDate || null)
+      // 注意：不能依赖 checkins（fetchCheckins 每次返回新数组引用会触发本函数重建 → useEffect 无限循环 → 页面频闪）。
+      // 改为 fetch 后从 store 读最新值（依赖数组不含 checkins，引用稳定）
+      const latestCheckins = useCheckinStore.getState().checkins
+      // 与原实现一致：Checkin 结构可映射为 PetHealthEntry（字段命名差异，业务层兼容）
+      const records = generateDiaryFromEntries(latestCheckins as any, currentPet.birthDate || null)
       setDiaryRecords(records)
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载失败，请重试')
     } finally {
       setIsLoading(false)
     }
-  }, [currentPet?.id, user?.id, checkins, initUser, fetchCheckins])
+  }, [currentPet?.id, user?.id, initUser, fetchCheckins])
 
   useEffect(() => {
     if (currentPet?.id && user?.id) {
@@ -148,7 +155,7 @@ export default function PetDiaryPage() {
 
   if (isLoading && pets.length === 0) {
     return (
-      <View className='pet-diary'>
+      <View className={`pet-diary ${themeClass}`}>
         <PageLoading />
       </View>
     )
@@ -156,7 +163,7 @@ export default function PetDiaryPage() {
 
   if (error && pets.length === 0) {
     return (
-      <View className='pet-diary'>
+      <View className={`pet-diary ${themeClass}`}>
         <PageError message={error} onRetry={loadDiaryData} />
       </View>
     )
@@ -167,7 +174,7 @@ export default function PetDiaryPage() {
   const breedText = currentPet?.breed || (currentPet?.species === 'cat' ? '猫咪' : '狗狗')
 
   return (
-    <View className='pet-diary'>
+    <View className={`pet-diary ${themeClass}`}>
       {/* 全屏动态背景层 */}
       <View className='xhh-bg-layer'>
         <View className='xhh-blob xhh-blob-a' />
