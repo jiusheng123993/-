@@ -277,6 +277,52 @@
   line-height: 1.6;
 }
 
+// 参考提示词模板：公式字段说明 + 一键填入
+.avatar-customize__ref-formula {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: $spacing-md;
+  background: $color-bg-card;
+  border: 1px dashed $color-border;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+}
+
+.avatar-customize__ref-formula-line {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
+.avatar-customize__ref-tag {
+  display: inline-block;
+  padding: 2rpx 12rpx;
+  margin-right: 8rpx;
+  background: $color-primary-bg;
+  color: $color-primary;
+  border-radius: $radius-sm;
+  font-weight: $font-weight-medium;
+}
+
+.avatar-customize__ref-actions {
+  margin-top: $spacing-sm;
+}
+
+.avatar-customize__ref-fill {
+  display: inline-flex;
+  padding: 10rpx 28rpx;
+  background: $color-primary;
+  border-radius: $radius-round;
+  @include press-feedback;
+}
+
+.avatar-customize__ref-fill-text {
+  font-size: $font-size-xs;
+  color: $color-text-inverse;
+  font-weight: $font-weight-medium;
+}
+
 // 生成结果单张展示（文字生成）
 .avatar-options--single {
   .avatar-options__single-img {

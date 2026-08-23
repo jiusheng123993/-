@@ -57,13 +57,24 @@ const STYLE_OPTIONS: Array<{ value: 'cartoon' | 'realistic'; label: string; desc
   { value: 'realistic', label: '写实风格', desc: '真实细腻' },
 ]
 
-// 生成画风（单选，key 与服务端 AVATAR_STYLE_OPTIONS 对齐）
+// 生成画风（单选，key 与服务端 AVATAR_STYLE_OPTIONS 对齐，15 种）
+// 来源：现有 5 种 + 项目提示词库《宠物回忆录-提示词库.md》§6/§7.1 通用视觉风格库
 const GEN_STYLES: Array<{ key: string; label: string; icon: string }> = [
   { key: 'q', label: 'Q版萌系', icon: '🐾' },
   { key: 'japanese', label: '日系治愈', icon: '🌸' },
   { key: 'american', label: '美式卡通', icon: '🎬' },
   { key: 'watercolor', label: '水彩手绘', icon: '🎨' },
   { key: 'clay', label: '黏土萌宠', icon: '🧸' },
+  { key: 'ghibli', label: '吉卜力动画', icon: '🍃' },
+  { key: 'pixar', label: '皮克斯3D', icon: '🎈' },
+  { key: 'pixel', label: '像素艺术', icon: '👾' },
+  { key: 'ink', label: '水墨国风', icon: '🖌️' },
+  { key: 'oil', label: '油画印象派', icon: '🖼️' },
+  { key: 'cyberpunk', label: '赛博朋克', icon: '🌆' },
+  { key: 'nordic', label: '极简北欧', icon: '🤍' },
+  { key: 'lowpoly', label: '低多边形', icon: '🔷' },
+  { key: 'lineart', label: '线稿素描', icon: '✏️' },
+  { key: 'dark', label: '暗黑奇幻', icon: '🌙' },
 ]
 
 // 生成表情（单选，key 与服务端 EXPRESSION_PROMPTS 对齐，12 种）
@@ -86,6 +97,25 @@ const GEN_EXPRESSIONS: Array<{ key: string; label: string; icon: string }> = [
 const GEN_STYLE_LABELS: Record<string, string> = Object.fromEntries(GEN_STYLES.map(s => [s.key, s.label]))
 /** 表情 key → 中文名（形象库分类/参考模板用） */
 const GEN_EXPR_LABELS: Record<string, string> = Object.fromEntries(GEN_EXPRESSIONS.map(e => [e.key, e.label]))
+
+/** 画风 key → 光影/氛围词（参考提示词模板拼接用，对齐提示词库各风格关键词） */
+const GEN_STYLE_ATMOS: Record<string, string> = {
+  q: '萌系贴纸质感，柔和暖光，明亮干净背景',
+  japanese: '奶油色柔和渐变，水彩晕染，温馨治愈氛围',
+  american: '高饱和撞色，夸张生动，活力满满',
+  watercolor: '透明水彩晕染，纸张纹理，淡雅清新',
+  clay: '软陶立体，手作质感，柔和影棚光',
+  ghibli: '手绘水彩背景，宫崎骏式温暖治愈，柔和光线',
+  pixar: '光滑立体渲染，大眼睛高光，温暖光线，次表面散射毛发',
+  pixel: '16-bit 复古像素，色彩分明，俏皮可爱',
+  ink: '水墨宣纸质感，留白意境，禅意宁静',
+  oil: '厚涂笔触，油画布纹理，浓郁艺术感',
+  cyberpunk: '霓虹灯光，雨夜反光，紫青色调，未来都市氛围',
+  nordic: '低饱和莫兰迪色，极简构图，宁静高级',
+  lowpoly: '几何切面，扁平着色，简洁现代',
+  lineart: '铅笔线稿，排线阴影，艺术手绘感',
+  dark: '哥特月光，神秘雾气，戏剧性光影',
+}
 
 type TabType = 'text' | 'photo'
 
@@ -937,15 +967,31 @@ export default function AvatarCustomizePage() {
                 <Text className='avatar-customize__desc-hint'>只写外貌特征，不要写宠物名字（避免被画成奇怪的东西）</Text>
               </View>
 
-              {/* 参考提示词模板：指引用户按"外貌 + 表情 + 画风"组织描述 */}
+              {/* 参考提示词模板：按提示词库公式组织（主体+外貌+表情+画风+光影氛围+画质），实时示例可一键填入 */}
               <View className='avatar-customize__section avatar-customize__ref'>
                 <Text className='avatar-customize__section-title'>💡 参考提示词模板</Text>
+                <View className='avatar-customize__ref-formula'>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>主体</Text>一只{species === 'cat' ? '猫咪' : '狗狗'}（档案自动带上品种）</Text>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>外貌</Text>毛色 / 体型 / 脸型等特征（你在上方输入）</Text>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>表情</Text>{genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情` : '自然神态'}（下方选择）</Text>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>画风</Text>{GEN_STYLE_LABELS[genStyle]}（下方选择）</Text>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>氛围</Text>光影 / 质感 / 背景（自动配好）</Text>
+                </View>
                 <View className='avatar-customize__ref-box'>
                   <Text className='avatar-customize__ref-text'>
-                    {`一只${currentPet?.breed || (species === 'cat' ? '猫咪' : '狗狗')}，${textDescription.trim() || '圆脸胖乎乎的'}，${genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情，` : ''}${GEN_STYLE_LABELS[genStyle]}风格`}
+                    {`一只${currentPet?.breed || (species === 'cat' ? '猫咪' : '狗狗')}的头像，${textDescription.trim() || '圆脸胖乎乎的，毛发柔软'}，${genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情，嘴角微扬` : '神态自然'}，${GEN_STYLE_LABELS[genStyle]}风格：${GEN_STYLE_ATMOS[genStyle]}，高质量，细节丰富，干净背景`}
                   </Text>
                 </View>
-                <Text className='avatar-customize__desc-hint'>按「外貌特征，表情，画风」来写，生成更准</Text>
+                <View className='avatar-customize__ref-actions'>
+                  <View className='avatar-customize__ref-fill' onClick={() => {
+                    // 一键填入"外貌+表情"部分（画风/表情由下方选择器控制，避免重复）
+                    const desc = `${textDescription.trim() || '圆脸胖乎乎的，毛发柔软'}${genExpression ? `，${GEN_EXPR_LABELS[genExpression]}的表情` : ''}`
+                    setTextDescription(desc.slice(0, 100))
+                  }}>
+                    <Text className='avatar-customize__ref-fill-text'>填入外貌+表情</Text>
+                  </View>
+                </View>
+                <Text className='avatar-customize__desc-hint'>按「外貌特征，表情，画风」组织描述，生成更准；也可先点「填入」再微调</Text>
               </View>
 
               {/* 画风选择（单选，生成 1 张） */}

@@ -26,11 +26,22 @@ export interface GeneratePetImageResult {
 const DEFAULT_STYLE = 'cartoon';
 
 /**
- * 多风格候选定义（5 种画风 × 猫/狗各一套描述）
+ * 默认生成画风池（不传 styleKey 时的候选集，保持原 5 种）
+ * AVATAR_STYLE_OPTIONS 扩充到 15 种后，照片生成等"批量候选"场景不应因此
+ * 变成 15 张（成本与体验）；单画风选择（文字生成）才用完整 15 种池
+ */
+export const DEFAULT_STYLE_KEYS = ['q', 'japanese', 'american', 'watercolor', 'clay'] as const;
+
+/**
+ * 多风格候选定义（15 种画风 × 猫/狗各一套描述）
  * - 多宠家庭里猫狗可能同时存在，所以每种画风都要有猫、狗专属提示词，
  *   避免把猫咪生成成狗狗脸、或狗狗生成成猫咪脸
  * - 提示词必须把各画风写得很"极端"且互相排斥，否则带参考照片图生图时
  *   所有图都会往参考照片写实方向收敛，看起来几乎一样
+ * - 画风来源：现有 5 种（q/japanese/american/watercolor/clay）+ 项目提示词库
+ *   《宠物回忆录-提示词库.md》§6/§7.1 通用视觉风格库（吉卜力/皮克斯3D/像素/水墨/
+ *   油画/赛博朋克/极简北欧/低多边形/线稿/暗黑奇幻，共 10 种）；
+ *   VHS 复古与故障艺术对宠物头像效果难保证，暂不收录（需要可再加）
  */
 export const AVATAR_STYLE_OPTIONS = [
   {
@@ -62,6 +73,66 @@ export const AVATAR_STYLE_OPTIONS = [
     label: '黏土萌宠',
     dog: '黏土玩偶质感狗狗，软陶立体，手作质感，圆润可爱，柔和影棚光',
     cat: '黏土玩偶质感猫咪，软陶立体，手作质感，圆润可爱，柔和影棚光',
+  },
+  {
+    key: 'ghibli',
+    label: '吉卜力动画',
+    dog: '吉卜力动画风格狗狗头像，Studio Ghibli style, hand-painted watercolor, Hayao Miyazaki aesthetic，手绘水彩背景，软绒质感，宫崎骏式温暖治愈，柔和光线，微风拂动毛发，梦幻色调',
+    cat: '吉卜力动画风格猫咪头像，Studio Ghibli style, hand-painted watercolor, Hayao Miyazaki aesthetic，手绘水彩背景，软绒质感，宫崎骏式温暖治愈，柔和光线，微风拂动皮毛，梦幻色调',
+  },
+  {
+    key: 'pixar',
+    label: '皮克斯3D',
+    dog: '皮克斯3D动画风格狗狗头像，Pixar style, Disney 3D animation, smooth rendering, expressive eyes, subsurface scattering，光滑材质，立体渲染，大眼睛高光，次表面散射透光毛发，表情生动，细节丰富',
+    cat: '皮克斯3D动画风格猫咪头像，Pixar style, Disney 3D animation, smooth rendering, expressive eyes, subsurface scattering，光滑材质，立体渲染，大眼睛高光，次表面散射透光皮毛，表情生动，细节丰富',
+  },
+  {
+    key: 'pixel',
+    label: '像素艺术',
+    dog: '像素艺术风格狗狗头像，16-bit pixel art, SNES game aesthetic, sprite animation, chiptune，块状像素边缘，复古游戏质感，色彩分明，俏皮可爱',
+    cat: '像素艺术风格猫咪头像，16-bit pixel art, SNES game aesthetic, sprite animation, chiptune，块状像素边缘，复古游戏质感，色彩分明，俏皮可爱',
+  },
+  {
+    key: 'ink',
+    label: '水墨国风',
+    dog: '中国水墨画风格狗狗头像，Chinese ink wash painting, sumi-e brush strokes, rice paper texture, zen，浓淡干湿墨韵，宣纸纹理，留白意境，禅意，墨色勾勒毛流感',
+    cat: '中国水墨画风格猫咪头像，Chinese ink wash painting, sumi-e brush strokes, rice paper texture, zen，浓淡干湿墨韵，宣纸纹理，留白意境，禅意，墨色勾勒毛流感',
+  },
+  {
+    key: 'oil',
+    label: '油画印象派',
+    dog: '印象派油画风格狗狗头像，oil painting, impasto, thick brush strokes, canvas texture, Monet, Van Gogh，厚涂笔触，油画布纹理，色彩浓郁，笔触可见，艺术感',
+    cat: '印象派油画风格猫咪头像，oil painting, impasto, thick brush strokes, canvas texture, Monet, Van Gogh，厚涂笔触，油画布纹理，色彩浓郁，笔触可见，艺术感',
+  },
+  {
+    key: 'cyberpunk',
+    label: '赛博朋克',
+    dog: '赛博朋克风格狗狗头像，cyberpunk, neon lights, rain-slicked streets, holographic, purple and cyan palette，霓虹灯光，雨夜反光，紫色青色色调，全息投影元素，未来都市氛围，酷炫',
+    cat: '赛博朋克风格猫咪头像，cyberpunk, neon lights, rain-slicked streets, holographic, purple and cyan palette，霓虹灯光，雨夜反光，紫色青色色调，全息投影元素，未来都市氛围，酷炫',
+  },
+  {
+    key: 'nordic',
+    label: '极简北欧',
+    dog: '极简北欧风格狗狗头像，minimalist Scandinavian design, clean lines, negative space, muted tones，低饱和莫兰迪色，几何构图，大量留白，高级宁静',
+    cat: '极简北欧风格猫咪头像，minimalist Scandinavian design, clean lines, negative space, muted tones，低饱和莫兰迪色，几何构图，大量留白，高级宁静',
+  },
+  {
+    key: 'lowpoly',
+    label: '低多边形',
+    dog: '低多边形风格狗狗头像，low poly 3D, geometric faceted, flat shading, indie game aesthetic，几何切面，扁平着色，多面体轮廓，游戏质感，简洁现代',
+    cat: '低多边形风格猫咪头像，low poly 3D, geometric faceted, flat shading, indie game aesthetic，几何切面，扁平着色，多面体轮廓，游戏质感，简洁现代',
+  },
+  {
+    key: 'lineart',
+    label: '线稿素描',
+    dog: '线稿素描风格狗狗头像，line art sketch, charcoal drawing, ink illustration, cross-hatching，铅笔线稿，炭笔质感，排线阴影，留白画纸，艺术手绘感',
+    cat: '线稿素描风格猫咪头像，line art sketch, charcoal drawing, ink illustration, cross-hatching，铅笔线稿，炭笔质感，排线阴影，留白画纸，艺术手绘感',
+  },
+  {
+    key: 'dark',
+    label: '暗黑奇幻',
+    dog: '暗黑奇幻风格狗狗头像，dark fantasy, gothic moonlight, mysterious fog, Tim Burton style，哥特月光，神秘雾气，戏剧性光影，深沉神秘氛围',
+    cat: '暗黑奇幻风格猫咪头像，dark fantasy, gothic moonlight, mysterious fog, Tim Burton style，哥特月光，神秘雾气，戏剧性光影，深沉神秘氛围',
   },
 ] as const;
 
@@ -144,10 +215,10 @@ export async function generatePetImageOptions(
   // 表情：拼进提示词（正向描述，如"开心的表情，嘴角上扬"）
   const exprText = params.expression ? EXPRESSION_PROMPTS[params.expression] || '' : '';
 
-  // 画风范围：传 styleKey 只生成该画风（1 张），否则全部 5 种
+  // 画风范围：传 styleKey 只生成该画风（1 张，15 种可选）；不传生成默认池 5 种（照片生成批量候选）
   const styleItems = params.styleKey
     ? AVATAR_STYLE_OPTIONS.filter((item) => item.key === params.styleKey)
-    : AVATAR_STYLE_OPTIONS;
+    : AVATAR_STYLE_OPTIONS.filter((item) => (DEFAULT_STYLE_KEYS as readonly string[]).includes(item.key));
 
   // 并发生成，互不阻塞；某个风格失败不影响其余
   const results = await Promise.allSettled(
