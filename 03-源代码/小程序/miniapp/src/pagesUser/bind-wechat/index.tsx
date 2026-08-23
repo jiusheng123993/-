@@ -137,7 +137,8 @@ export default function BindWechat() {
         <View className='bind-card'>
           <Text className='bind-card__label'>我的头像与昵称</Text>
           <Text className='bind-card__hint'>
-            点左侧头像选微信头像（第一项即微信头像），点键盘上方微信昵称一键填入
+            点左侧头像选微信头像（第一项即微信头像），或点下方「从相册选自定义图」；
+            昵称可直接输入，也可点键盘上方微信昵称一键填入
           </Text>
 
           {/* 微信端：用原生组件（chooseAvatar + nickname），Taro 3.6 不支持这两个属性

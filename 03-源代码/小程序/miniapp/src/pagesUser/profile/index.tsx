@@ -260,7 +260,7 @@ export default function Profile() {
 
       {isAuthenticated && (
         <View className='profile-edit-card ink-item' style={{ animationDelay: '0.2s' }}>
-          <View className='profile-edit-title'>头像与昵称（跟随微信）</View>
+          <View className='profile-edit-title'>头像与昵称（可跟随微信，也可自定义）</View>
           <View className='profile-edit-row'>
             {/* 微信端：用原生组件（chooseAvatar + nickname），Taro 3.6 不支持这两个属性
                 必须原生组件才能跟随微信头像/昵称（否则 errno 112 / 属性被模板丢弃） */}
@@ -298,7 +298,7 @@ export default function Profile() {
               </>
             )}
           </View>
-          <View className='profile-edit-tip'>头像与昵称跟随微信，保存后全局同步展示</View>
+          <View className='profile-edit-tip'>头像昵称可跟随微信，也可自定义；保存后全局同步展示</View>
           <Button
             className='profile-save-btn'
             loading={saving}

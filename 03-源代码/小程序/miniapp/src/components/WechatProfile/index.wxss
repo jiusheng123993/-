@@ -1,4 +1,4 @@
-/* 微信原生组件样式：头像选择按钮 + 昵称输入框（跟随微信） */
+/* 微信原生组件样式：头像选择按钮 + 相册自定义入口 + 昵称输入框（跟随微信） */
 .wechat-profile {
   display: flex;
   align-items: center;
@@ -6,8 +6,15 @@
   width: 100%;
 }
 
-.wechat-profile__avatar-btn {
+/* 头像列：微信头像按钮 + "从相册选自定义图"入口 纵向排列 */
+.wechat-profile__avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex-shrink: 0;
+}
+
+.wechat-profile__avatar-btn {
   width: 120rpx;
   height: 120rpx;
   padding: 0;
@@ -32,6 +39,14 @@
 
 .wechat-profile__avatar-placeholder {
   font-size: 56rpx;
+}
+
+/* 从相册选自定义图：微信 chooseAvatar 面板不能选相册图，此为自定义头像入口 */
+.wechat-profile__album-btn {
+  margin-top: 8rpx;
+  padding: 4rpx 12rpx;
+  font-size: 22rpx;
+  color: #ff6b3d;
 }
 
 .wechat-profile__nickname-input {

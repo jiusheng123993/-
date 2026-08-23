@@ -1,27 +1,32 @@
-<!-- 微信原生组件模板：头像按钮（chooseAvatar）+ 昵称输入（type=nickname + showNicknameAccessory） -->
+<!-- 微信原生组件模板：头像（chooseAvatar + 相册自定义）+ 昵称输入（type=nickname + showNicknameAccessory） -->
 <view class="wechat-profile">
-  <!-- 头像选择：open-type="chooseAvatar" 是微信原生能力，点击弹出微信头像选择 -->
-  <button
-    class="wechat-profile__avatar-btn"
-    open-type="chooseAvatar"
-    bind:chooseavatar="onChooseAvatar"
-  >
-    <image
-      wx:if="{{avatar}}"
-      class="wechat-profile__avatar-img"
-      src="{{avatar}}"
-      mode="aspectFill"
-    />
-    <view wx:else class="wechat-profile__avatar-placeholder">👤</view>
-  </button>
+  <!-- 头像列：微信头像按钮 + 相册自定义入口 -->
+  <view class="wechat-profile__avatar-col">
+    <!-- 头像选择：open-type="chooseAvatar" 是微信原生能力，点击弹出微信头像选择（只能选微信头像） -->
+    <button
+      class="wechat-profile__avatar-btn"
+      open-type="chooseAvatar"
+      bind:chooseavatar="onChooseAvatar"
+    >
+      <image
+        wx:if="{{avatar}}"
+        class="wechat-profile__avatar-img"
+        src="{{avatar}}"
+        mode="aspectFill"
+      />
+      <view wx:else class="wechat-profile__avatar-placeholder">👤</view>
+    </button>
+    <!-- 自定义头像：从手机相册选图（微信不允许 chooseAvatar 面板选相册图，需单独入口） -->
+    <view class="wechat-profile__album-btn" bindtap="onChooseFromAlbum">从相册选自定义图</view>
+  </view>
 
-  <!-- 昵称输入：type="nickname" + show-nickname-accessory 让键盘上方显示"微信昵称"填充按钮 -->
+  <!-- 昵称输入：type="nickname" 可直接输入自定义昵称，键盘上方会显示"微信昵称"快捷填充按钮 -->
   <input
     class="wechat-profile__nickname-input"
     type="nickname"
     show-nickname-accessory="{{true}}"
     value="{{nickname}}"
-    placeholder="输入昵称（可带出微信昵称）"
+    placeholder="输入昵称（可直接自定义，或点键盘上方微信昵称）"
     bind:input="onNickInput"
   />
 </view>
