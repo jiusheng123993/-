@@ -156,8 +156,13 @@ export default function AddPet() {
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
     }).then((res) => {
+      // 极端情况下微信可能返回空数组，此时不更新表单，避免写入 undefined 临时路径
+      if (!res.tempFilePaths || res.tempFilePaths.length === 0) return
       updateField('avatarUrl', res.tempFilePaths[0])
     }).catch((err) => {
+      // 失败反馈（errno 112 / 拒绝隐私授权 / 其他失败）已由
+      // chooseImageWithPrivacy 内部统一 toast/modal 提示（用户取消除外），
+      // 这里仅保留日志便于排查，不再重复弹提示
       console.warn('[AddPet] chooseImage failed:', err)
     })
   }
