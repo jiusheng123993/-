@@ -61,7 +61,7 @@ beforeEach(() => {
 describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
   it('正常获取体重趋势（默认 30 天）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockHealthEntry, mockHealthEntry2], rowCount: 2 });
 
     const res = await request(createApp())
@@ -81,7 +81,7 @@ describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
 
   it('type 参数不传时默认使用 weight', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockHealthEntry], rowCount: 1 });
 
     const res = await request(createApp())
@@ -92,7 +92,7 @@ describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
   });
 
   it('type 参数无效，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .get('/api/pets/pet-001/trends?type=invalid');
@@ -104,7 +104,7 @@ describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
 
   it('自定义 days 参数（边界值 1）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -132,7 +132,7 @@ describe('GET /api/pets/:petId/trends - 获取趋势数据', () => {
 
   it('无数据时返回空趋势', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -180,7 +180,7 @@ describe('GET /api/pets/:petId/trends/report - 获取月度报告', () => {
       anomaly_count: '1',
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockReportRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ weight: '12.5' }], rowCount: 1 });
 
@@ -209,7 +209,7 @@ describe('GET /api/pets/:petId/trends/report - 获取月度报告', () => {
       anomaly_count: '0',
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockReportRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ weight: '12.5' }], rowCount: 1 });
 
@@ -233,7 +233,7 @@ describe('GET /api/pets/:petId/trends/report - 获取月度报告', () => {
       anomaly_count: '0',
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [emptyReport], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 

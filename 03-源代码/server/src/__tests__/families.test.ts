@@ -83,7 +83,9 @@ beforeEach(() => {
 
 describe('POST /api/families - 创建家庭', () => {
   it('正常创建家庭', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [mockFamily], rowCount: 1 });
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [mockFamily], rowCount: 1 })                                                          // insert family
+      .mockResolvedValueOnce({ rows: [{ id: 'fu-1', family_id: 'family-001', user_id: 'test-user-id', role: 'owner' }], rowCount: 1 }); // 创建者自动成为 owner 成员
 
     const res = await request(createApp())
       .post('/api/families')
@@ -126,7 +128,9 @@ describe('POST /api/families - 创建家庭', () => {
 
   it('name 前后空格自动 trim', async () => {
     const trimmedFamily = { ...mockFamily, name: '我的毛孩子' };
-    mockPool.query.mockResolvedValueOnce({ rows: [trimmedFamily], rowCount: 1 });
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [trimmedFamily], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'fu-1', family_id: 'family-001', user_id: 'test-user-id', role: 'owner' }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/api/families')
@@ -186,10 +190,12 @@ describe('GET /api/families - 获取家庭列表', () => {
 });
 
 describe('GET /api/families/:id - 获取家庭详情', () => {
-  it('正常获取家庭详情（含成员列表）', async () => {
+  it('正常获取家庭详情（含宠物成员 + 人成员列表）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [mockFamily], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [mockMember], rowCount: 1 });
+      .mockResolvedValueOnce({ rows: [mockFamily], rowCount: 1 })            // isOwner（主人）
+      .mockResolvedValueOnce({ rows: [mockFamily], rowCount: 1 })            // findById
+      .mockResolvedValueOnce({ rows: [mockMember], rowCount: 1 })            // findDetailsByFamilyId（宠物成员）
+      .mockResolvedValueOnce({ rows: [{ id: 'fu-1', family_id: 'family-001', user_id: 'test-user-id', role: 'owner', nickname: '主人', avatar_url: '' }], rowCount: 1 }); // findUsersByFamilyId（人成员）
 
     const res = await request(createApp())
       .get('/api/families/family-001');
@@ -200,10 +206,14 @@ describe('GET /api/families/:id - 获取家庭详情', () => {
     expect(res.body.data.members).toBeInstanceOf(Array);
     expect(res.body.data.members).toHaveLength(1);
     expect(res.body.data.members[0].petName).toBe('小旺');
+    expect(res.body.data.users).toHaveLength(1);
+    expect(res.body.data.users[0].role).toBe('owner');
   });
 
   it('家庭不存在，返回 404', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // isOwner（非主人）
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });  // isFamilyUser（非成员）
 
     const res = await request(createApp())
       .get('/api/families/nonexistent');
@@ -214,7 +224,9 @@ describe('GET /api/families/:id - 获取家庭详情', () => {
   });
 
   it('按 user_id 隔离（横向越权防护）', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })   // isOwner（非主人）
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });  // isFamilyUser（非成员）
 
     const res = await request(createApp())
       .get('/api/families/other-family');

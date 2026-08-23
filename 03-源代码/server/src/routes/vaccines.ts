@@ -20,7 +20,7 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
@@ -39,13 +39,13 @@ router.get('/:petId/vaccines', authMiddleware, async (req: Request, res: Respons
     const petId = req.params.petId as string;
     const userId = req.userId!;
 
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
     }
 
-    const rows = await vaccineRepository.findByPetAndUser(petId, userId);
+    const rows = await vaccineRepository.findByPet(petId);
 
     res.json({ success: true, data: rows });
   } catch (err) {
@@ -97,13 +97,14 @@ router.put('/:petId/vaccines/:vaccineId/complete', authMiddleware, async (req: R
     const vaccineId = req.params.vaccineId as string;
     const userId = req.userId!;
 
-    const isOwner = await vaccineRepository.isOwner(vaccineId, userId);
+    // 多成员共同养宠：疫苗是宠物维度管理，记录所属宠物可被主人或家庭成员访问
+    const isOwner = await vaccineRepository.canAccess(vaccineId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此记录' });
       return;
     }
 
-    const row = await vaccineRepository.markCompleted(vaccineId, userId);
+    const row = await vaccineRepository.markCompleted(vaccineId);
 
     if (!row) {
       res.status(404).json({ success: false, message: '记录不存在' });
@@ -122,7 +123,8 @@ router.put('/:petId/vaccines/:vaccineId/reminder', authMiddleware, validate({ bo
     const vaccineId = req.params.vaccineId as string;
     const userId = req.userId!;
 
-    const isOwner = await vaccineRepository.isOwner(vaccineId, userId);
+    // 多成员共同养宠：疫苗记录宠物维度管理
+    const isOwner = await vaccineRepository.canAccess(vaccineId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此记录' });
       return;
@@ -130,7 +132,7 @@ router.put('/:petId/vaccines/:vaccineId/reminder', authMiddleware, validate({ bo
 
     const { reminder_enabled } = req.body;
 
-    const row = await vaccineRepository.updateReminder(vaccineId, userId, reminder_enabled);
+    const row = await vaccineRepository.updateReminder(vaccineId, reminder_enabled);
 
     if (!row) {
       res.status(404).json({ success: false, message: '记录不存在' });

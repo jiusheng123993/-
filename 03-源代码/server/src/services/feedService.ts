@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 家庭动态墙业务服务层 - 编排家庭动态的核心业务逻辑
  * 职责：家庭归属校验、宠物归属校验、动态发布、编辑、删除、分页列表、精选动态
  * 所有操作前先验证 family_id 属于当前用户，防止跨用户越权
@@ -8,7 +8,7 @@ import {
   type FeedRow,
   type FeedWithPetRow,
 } from '../repositories/feedRepository.js';
-import { FamilyRepository } from '../repositories/familyRepository.js';
+import { FamilyRepository, FamilyUserRepository } from '../repositories/familyRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
 
 /** 创建动态请求参数 */
@@ -54,6 +54,7 @@ export class FeedError extends Error {
 
 const feedRepository = new FeedRepository();
 const familyRepository = new FamilyRepository();
+const familyUserRepository = new FamilyUserRepository();
 const petRepository = new PetRepository();
 
 /**
@@ -66,7 +67,7 @@ export async function listFeeds(
   familyId: string,
   query: FeedQueryInput,
 ): Promise<FeedListResponse> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new FeedError(403, '无权查看此家庭');
   }
@@ -101,13 +102,13 @@ export async function createFeed(
   familyId: string,
   data: CreateFeedInput,
 ): Promise<FeedRow> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new FeedError(403, '无权操作此家庭');
   }
 
   if (data.pet_id) {
-    const ownsPet = await petRepository.isOwner(data.pet_id, userId);
+    const ownsPet = await petRepository.canAccess(data.pet_id, userId);
     if (!ownsPet) {
       throw new FeedError(403, '只能关联自己的宠物');
     }
@@ -143,7 +144,7 @@ export async function updateFeed(
     throw new FeedError(400, '没有需要更新的字段');
   }
 
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new FeedError(403, '无权操作此家庭');
   }
@@ -185,7 +186,7 @@ export async function deleteFeed(
   familyId: string,
   feedId: string,
 ): Promise<void> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new FeedError(403, '无权操作此家庭');
   }
@@ -213,7 +214,7 @@ export async function listHighlights(
   userId: string,
   familyId: string,
 ): Promise<FeedWithPetRow[]> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new FeedError(403, '无权查看此家庭');
   }

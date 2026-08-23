@@ -562,6 +562,22 @@ CREATE TABLE IF NOT EXISTS pet_family_members (
 );
 
 -- ============================================================
+-- 32b. pet_family_users（家庭成员-人，多成员共同养宠，2026-08-24）
+-- 家庭 ←→ 用户 关联：支撑情侣/家庭共同养宠（宠物访问权 = 主人 OR 家庭成员）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pet_family_users (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  family_id  UUID NOT NULL REFERENCES pet_families(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role       TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'member')),
+  joined_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(family_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_family_users_user ON pet_family_users(user_id);
+CREATE INDEX IF NOT EXISTS idx_family_users_family ON pet_family_users(family_id);
+
+-- ============================================================
 -- 33. pet_lineage（血统关系）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS pet_lineage (

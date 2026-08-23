@@ -124,7 +124,7 @@ beforeEach(() => {
 describe('POST /api/pets/:petId/symptom-check/ai-analysis', () => {
   it('非会员 → 403（服务端强制会员校验）', async () => {
     // 宠物归属校验通过
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValueOnce({ tier: 'free', status: 'active', expires_at: null });
 
     const res = await request(createApp())
@@ -138,7 +138,7 @@ describe('POST /api/pets/:petId/symptom-check/ai-analysis', () => {
   });
 
   it('会员已过期 → 403', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValueOnce({ tier: 'member', status: 'active', expires_at: '2020-01-01T00:00:00Z' });
 
     const res = await request(createApp())
@@ -149,9 +149,9 @@ describe('POST /api/pets/:petId/symptom-check/ai-analysis', () => {
   });
 
   it('会员 + 正常分析 → 200，返回 AI 建议（含免责声明）+ 记忆召回', async () => {
-    // 调用顺序：checkPetOwnership(isOwner) → findByIdAndUser → 近7天打卡查询
+    // 调用顺序：canAccess → findByIdAndUser → 近7天打卡查询
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockPetRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
     mockFindTierAndStatus.mockResolvedValueOnce({ tier: 'member', status: 'active', expires_at: '2026-12-31T00:00:00Z' });
@@ -188,7 +188,7 @@ describe('POST /api/pets/:petId/symptom-check/ai-analysis', () => {
 
   it('输出安全检测拦截 → unsafe=true，aiAdvice 为兜底文案', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockPetRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
     mockFindTierAndStatus.mockResolvedValueOnce({ tier: 'member', status: 'active', expires_at: '2026-12-31T00:00:00Z' });
@@ -227,7 +227,7 @@ describe('POST /api/pets/:petId/symptom-check/ai-analysis', () => {
 
   it('打卡日期格式化为 YYYY-MM-DD（TIMESTAMPTZ Date 不产出乱码）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockPetRow], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
@@ -252,7 +252,7 @@ describe('POST /api/pets/:petId/symptom-check/ai-analysis', () => {
 
   it('LLM 调用失败 → 降级返回（fail-safe，不抛 500，守卫不再执行）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockPetRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
     mockFindTierAndStatus.mockResolvedValueOnce({ tier: 'member', status: 'active', expires_at: '2026-12-31T00:00:00Z' });

@@ -100,9 +100,9 @@ beforeEach(() => {
 
 describe('恢复事件记忆闭环', () => {
   it('低风险检查 + 14天内同症状高风险检查 → 沉淀"已恢复"记忆', async () => {
-    // pool.query 调用顺序：isOwner → createSymptomCheck → findRecentHighRiskCheck
+    // pool.query 调用顺序：canAccess → createSymptomCheck → findRecentHighRiskCheck
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCheckRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockPrevHighRisk], rowCount: 1 });
 
@@ -122,7 +122,7 @@ describe('恢复事件记忆闭环', () => {
 
   it('高风险检查（warning）→ 只记初筛记忆，不触发恢复', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ ...mockCheckRow, risk_level: 'warning' }], rowCount: 1 });
 
     await request(createApp())
@@ -135,7 +135,7 @@ describe('恢复事件记忆闭环', () => {
 
   it('低风险但无历史高风险检查 → 不触发恢复', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCheckRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 }); // 无历史高风险
 
@@ -148,7 +148,7 @@ describe('恢复事件记忆闭环', () => {
 
   it('边界：历史高风险检查症状无交集 → 不触发恢复（findRecentHighRiskCheck 返回 null）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCheckRow], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 

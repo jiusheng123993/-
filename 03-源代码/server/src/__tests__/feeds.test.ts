@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 家庭动态墙模块集成测试
  * 覆盖：发布动态、编辑、删除、分页列表、精选动态
  * 重点验证：家庭归属校验、宠物归属校验、内容校验、照片数量校验、越权防护
@@ -45,7 +45,7 @@ function createApp() {
 }
 
 /** 模拟归属校验通过的结果（SELECT 1 FROM ... 返回） */
-const ownershipOk = { rows: [{ '?column?': 1 }], rowCount: 1 };
+const ownershipOk = { rows: [{ ok: true }], rowCount: 1 };
 
 /** 模拟归属校验失败的结果 */
 const ownershipFail = { rows: [], rowCount: 0 };

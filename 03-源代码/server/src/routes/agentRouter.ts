@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI Agent 路由 - 智能对话和工具调用
  * 支持 SSE 流式对话、对话历史加载、工具列表查询
  */
@@ -51,7 +51,7 @@ router.post('/chat', authMiddleware, validate({ body: agentChatSchema }), async 
   let validPetId: string | undefined;
   if (petId && typeof petId === 'string') {
     try {
-      const isOwner = await petRepository.isOwner(petId, userId);
+      const isOwner = await petRepository.canAccess(petId, userId);
       if (isOwner) {
         validPetId = petId;
       }

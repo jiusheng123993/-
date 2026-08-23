@@ -77,7 +77,7 @@ beforeEach(() => {
 describe('POST /pets/:petId/checkins - 创建打卡', () => {
   it('正常创建打卡记录，返回 201', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCheckin], rowCount: 1 });
 
     const res = await request(createApp())
@@ -100,7 +100,7 @@ describe('POST /pets/:petId/checkins - 创建打卡', () => {
   });
 
   it('参数校验：缺少 poop_level，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/checkins')
@@ -117,7 +117,7 @@ describe('POST /pets/:petId/checkins - 创建打卡', () => {
   });
 
   it('参数校验：缺少 risk_level，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/checkins')
@@ -159,7 +159,7 @@ describe('POST /pets/:petId/checkins - 创建打卡', () => {
       note: '早上吐了',
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [anomalyCheckin], rowCount: 1 });
 
     const res = await request(createApp())
@@ -202,7 +202,7 @@ describe('POST /pets/:petId/checkins - 创建打卡', () => {
 describe('GET /pets/:petId/checkins - 获取打卡历史', () => {
   it('正常获取打卡历史（默认 30 天）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCheckin], rowCount: 1 });
 
     const res = await request(createApp())
@@ -216,7 +216,7 @@ describe('GET /pets/:petId/checkins - 获取打卡历史', () => {
 
   it('自定义 days 参数', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -247,7 +247,7 @@ describe('GET /pets/:petId/checkins - 获取打卡历史', () => {
 describe('GET /pets/:petId/checkins/today - 获取今日打卡', () => {
   it('今日已有打卡，返回打卡记录', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCheckin], rowCount: 1 });
 
     const res = await request(createApp())
@@ -261,7 +261,7 @@ describe('GET /pets/:petId/checkins/today - 获取今日打卡', () => {
 
   it('今日没有打卡，返回 null', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -284,7 +284,7 @@ describe('GET /pets/:petId/checkins/today - 获取今日打卡', () => {
   it('同一天可创建多条打卡记录（取最新一条）', async () => {
     const checkin2 = { ...mockCheckin, id: 'checkin-002', poop_level: 5 };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [checkin2], rowCount: 1 });
 
     const res = await request(createApp())

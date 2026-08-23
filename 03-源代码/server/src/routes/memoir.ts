@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 回忆录路由 - 宠物回忆录视频生成任务管理
  * 提供创建、状态查询、列表、删除、预览接口
  * 所有接口需登录认证，均做宠物归属校验防越权
@@ -133,7 +133,7 @@ router.get('/:petId/membership', async (req: Request, res: Response) => {
     const userId = req.userId!;
     const petId = req.params.petId as string;
 
-    const owns = await petRepo.isOwner(petId, userId);
+    const owns = await petRepo.canAccess(petId, userId);
     if (!owns) {
       res.status(404).json({ success: false, message: '宠物不存在' });
       return;

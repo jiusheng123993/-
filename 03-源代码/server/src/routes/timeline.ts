@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 回忆时间线路由 - 宠物回忆/日记的管理
  * 创建和查询回忆记录（按宠物/家庭/用户），上传回忆照片
  * 补充：回忆补记（happenedAt）、AI 生成/润色回忆文案、删除回忆
@@ -51,7 +51,7 @@ router.post('/moments', authMiddleware, validate({ body: createTimelineEventSche
     const { petId, type, content, photos, happenedAt } = req.body;
 
     // 校验宠物归属
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;

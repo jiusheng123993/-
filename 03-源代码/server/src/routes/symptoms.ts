@@ -33,7 +33,8 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
   try {
     const petId = req.params.petId as string;
     const userId = req.userId!;
-    const isOwner = await petRepository.isOwner(petId, userId);
+    // 多成员共同养宠：主人或家庭成员均可对共享宠物做症状初筛
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
@@ -132,7 +133,7 @@ router.get('/:petId/symptom-check/history', authMiddleware, validate({ query: sy
     const petId = req.params.petId as string;
     const userId = req.userId!;
 
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;

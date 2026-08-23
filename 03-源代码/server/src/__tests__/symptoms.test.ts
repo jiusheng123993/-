@@ -75,7 +75,7 @@ beforeEach(() => {
 describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
   it('正常提交症状初筛', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockSymptomCheck], rowCount: 1 });
 
     const res = await request(createApp())
@@ -161,7 +161,7 @@ describe('POST /api/pets/:petId/symptom-check - 提交症状初筛', () => {
 describe('GET /api/pets/:petId/symptom-check/history - 获取初筛历史', () => {
   it('正常获取初筛历史（分页）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ count: '1' }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockSymptomCheck], rowCount: 1 });
 
@@ -179,7 +179,7 @@ describe('GET /api/pets/:petId/symptom-check/history - 获取初筛历史', () =
 
   it('无历史记录时返回空列表', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ count: '0' }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
@@ -194,7 +194,7 @@ describe('GET /api/pets/:petId/symptom-check/history - 获取初筛历史', () =
 
   it('自定义分页参数', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ count: '5' }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 

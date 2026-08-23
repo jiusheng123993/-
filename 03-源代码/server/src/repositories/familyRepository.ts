@@ -275,3 +275,166 @@ export class FamilyMemberRepository extends BaseRepository<FamilyMemberRow> {
     return result.rows;
   }
 }
+
+/** 家庭成员（人）数据行 - pet_family_users 表 */
+export interface FamilyUserRow extends QueryResultRow {
+  id: string;
+  family_id: string;
+  user_id: string;
+  role: 'owner' | 'member';
+  joined_at: string;
+}
+
+/** 家庭成员详情行（JOIN users 带昵称头像） */
+export interface FamilyUserDetailRow extends QueryResultRow {
+  id: string;
+  family_id: string;
+  user_id: string;
+  role: 'owner' | 'member';
+  joined_at: string;
+  nickname: string;
+  avatar_url: string | null;
+}
+
+/**
+ * 家庭成员（人）仓库 - pet_family_users 表
+ * 多成员共同养宠的核心支撑：家庭 ←→ 用户 关联
+ */
+export class FamilyUserRepository extends BaseRepository<FamilyUserRow> {
+  protected tableName = 'pet_family_users';
+  protected allowedSortFields = ['joined_at'] as const;
+
+  /**
+   * 添加家庭成员（owner 邀请）
+   * @param familyId - 家庭 ID
+   * @param userId - 被邀请用户 ID
+   * @param role - 角色（默认 member；owner 仅在创建家庭时使用）
+   */
+  async addUser(familyId: string, userId: string, role: 'owner' | 'member' = 'member'): Promise<FamilyUserRow | null> {
+    return this.insert({ family_id: familyId, user_id: userId, role });
+  }
+
+  /**
+   * 移除家庭成员
+   * @returns true=移除成功；false=该用户不在家庭中
+   */
+  async removeUser(familyId: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery(
+      'DELETE FROM pet_family_users WHERE family_id = $1 AND user_id = $2 RETURNING *',
+      [familyId, userId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /**
+   * 查询家庭成员列表（JOIN users 带昵称头像，用于前端展示）
+   */
+  async findUsersByFamilyId(familyId: string): Promise<FamilyUserDetailRow[]> {
+    const result = await this.rawQuery<FamilyUserDetailRow>(
+      `SELECT u.id, u.family_id, u.user_id, u.role, u.joined_at,
+              COALESCE(users.nickname, '') AS nickname,
+              COALESCE(users.avatar_url, '') AS avatar_url
+       FROM pet_family_users u
+       JOIN users ON users.id = u.user_id
+       WHERE u.family_id = $1
+       ORDER BY (u.role = 'owner') DESC, u.joined_at ASC`,
+      [familyId],
+    );
+    return result.rows;
+  }
+
+  /**
+   * 查询用户加入的所有家庭（含"我创建的家庭"）
+   */
+  async findFamiliesByUser(userId: string): Promise<FamilyRow[]> {
+    const result = await this.rawQuery<FamilyRow>(
+      `SELECT f.id, f.user_id, f.name, f.avatar_url, f.created_at, f.updated_at
+       FROM pet_families f
+       JOIN pet_family_users u ON u.family_id = f.id
+       WHERE u.user_id = $1
+       ORDER BY f.created_at DESC`,
+      [userId],
+    );
+    return result.rows;
+  }
+
+  /**
+   * 检查用户是否家庭成员（用于宠物访问/家庭读权限）
+   */
+  async isFamilyUser(familyId: string, userId: string): Promise<boolean> {
+    const row = await this.findOneWhere('family_id = $1 AND user_id = $2', [familyId, userId]);
+    return row !== null;
+  }
+
+  /**
+   * 检查用户是否为家庭 owner（用于邀请/移除成员等高危管理操作）
+   */
+  async isFamilyOwner(familyId: string, userId: string): Promise<boolean> {
+    const row = await this.findOneWhere('family_id = $1 AND user_id = $2 AND role = $3', [familyId, userId, 'owner']);
+    return row !== null;
+  }
+}
+
+/** 家庭邀请码数据行 - pet_family_invites 表 */
+export interface FamilyInviteRow extends QueryResultRow {
+  id: string;
+  family_id: string;
+  code: string;
+  created_by: string;
+  expires_at: string;
+  used_by: string | null;
+  used_at: string | null;
+  created_at: string;
+}
+
+/**
+ * 家庭邀请码仓库 - pet_family_invites 表
+ * owner 生成邀请码 → 对方凭码加入家庭（多成员共同养宠，2026-08-24）
+ */
+export class FamilyInviteRepository extends BaseRepository<FamilyInviteRow> {
+  protected tableName = 'pet_family_invites';
+  protected allowedSortFields = ['created_at'] as const;
+
+  /**
+   * 创建邀请码
+   * @param familyId - 家庭 ID
+   * @param createdBy - 邀请人（owner）
+   * @param code - 邀请码（6 位去混淆字符）
+   * @param expiresAt - 过期时间
+   */
+  async createInvite(
+    familyId: string,
+    createdBy: string,
+    code: string,
+    expiresAt: string,
+  ): Promise<FamilyInviteRow> {
+    return this.insert({ family_id: familyId, created_by: createdBy, code, expires_at: expiresAt });
+  }
+
+  /**
+   * 按邀请码查询有效邀请（未使用且未过期）
+   * 用于加入家庭校验
+   */
+  async findValidByCode(code: string): Promise<FamilyInviteRow | null> {
+    const result = await this.rawQuery<FamilyInviteRow>(
+      `SELECT * FROM ${this.tableName}
+       WHERE code = $1 AND used_by IS NULL AND expires_at > NOW()
+       LIMIT 1`,
+      [code],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /**
+   * 标记邀请码已使用（防止重复加入）
+   */
+  async markUsed(code: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery(
+      `UPDATE ${this.tableName}
+       SET used_by = $2, used_at = NOW()
+       WHERE code = $1 AND used_by IS NULL`,
+      [code, userId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+}

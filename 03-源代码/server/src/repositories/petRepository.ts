@@ -75,6 +75,45 @@ export class PetRepository extends BaseRepository<PetRow> {
   }
 
   /**
+   * 校验宠物访问权（多成员共同养宠，2026-08-24）
+   * ① 宠物主人（pet_profiles.user_id）→ 完全权限
+   * ② 家庭成员：宠物所在家庭（pet_family_members）里，我是成员（pet_family_users）
+   * ③ 其他 → 无权限
+   * 用于打卡/疫苗/症状/回忆等"成员可操作"的路由归属校验；
+   * 删除宠物等"仅主人"操作仍用 isOwner。
+   */
+  async canAccess(petId: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery<{ ok: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM pet_profiles p WHERE p.id = $1 AND p.user_id = $2
+         UNION ALL
+         SELECT 1 FROM pet_family_members m
+         JOIN pet_family_users u ON u.family_id = m.family_id
+         WHERE m.pet_id = $1 AND u.user_id = $2
+       ) AS ok`,
+      [petId, userId],
+    );
+    return result.rows[0]?.ok ?? false;
+  }
+
+  /**
+   * 查询用户可访问的宠物 ID 列表（本人创建 + 家庭成员共享）
+   * 家庭成员视角：用于"我共管的宠物"接口与首页宠物列表聚合
+   */
+  async findAccessiblePetIds(userId: string): Promise<string[]> {
+    const result = await this.rawQuery<{ id: string }>(
+      `SELECT DISTINCT p.id
+       FROM pet_profiles p
+       LEFT JOIN pet_family_members m ON m.pet_id = p.id
+       LEFT JOIN pet_family_users u ON u.family_id = m.family_id AND u.user_id = $1
+       WHERE p.user_id = $1 OR u.user_id = $1
+       ORDER BY p.id`,
+      [userId],
+    );
+    return result.rows.map((r) => r.id);
+  }
+
+  /**
    * 按 ID + 用户 ID 查询宠物（带归属校验）
    */
   async findByIdAndUser(petId: string, userId: string): Promise<PetRow | null> {

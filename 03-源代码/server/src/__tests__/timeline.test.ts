@@ -111,8 +111,8 @@ beforeEach(() => {
 // ===== 1. POST /moments - 创建回忆 =====
 describe('POST /api/timeline/moments - 创建回忆', () => {
   it('成功创建（带补记日期 happenedAt）', async () => {
-    // isOwner 校验通过 + 插入成功
-    mockPool.query.mockResolvedValueOnce({ rows: [{ exists: true }], rowCount: 1 });
+    // canAccess 校验通过 + 插入成功
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockPool.query.mockResolvedValueOnce({ rows: [mockMomentRow], rowCount: 1 });
 
     const res = await request(createApp())
@@ -135,7 +135,7 @@ describe('POST /api/timeline/moments - 创建回忆', () => {
   });
 
   it('不传 happenedAt 时由 COALESCE 兜底为 CURRENT_DATE（不落 NULL）', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ exists: true }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockPool.query.mockResolvedValueOnce({ rows: [mockMomentRow], rowCount: 1 });
 
     await request(createApp())
@@ -152,7 +152,7 @@ describe('POST /api/timeline/moments - 创建回忆', () => {
   });
 
   it('非宠物主人返回 403', async () => {
-    // isOwner 返回 false
+    // canAccess 返回 false
     mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -218,7 +218,7 @@ describe('GET /api/timeline/moments - 查询回忆', () => {
   });
 
   it('按家庭查询且非家庭成员时返回 403（防 IDOR）', async () => {
-    // isOwner 校验失败（findOneWhere 返回空行）
+    // canAccess 校验失败（EXISTS 返回 false）
     mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp()).get('/api/timeline/moments?family_id=family-999');

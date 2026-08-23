@@ -70,7 +70,7 @@ beforeEach(() => {
 
 describe('POST /pets/:petId/chronic/scan-risk - 慢病风险扫描', () => {
   it('会员 + 归属校验通过 → 200 返回风险信号与 AI 洞察', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockScanChronicRisk.mockResolvedValue({
       signals: [{ type: 'high_risk_frequency', title: '高风险打卡频繁', detail: '近30天有10天高风险', level: 'alert', relatedDates: [] }],
@@ -91,7 +91,7 @@ describe('POST /pets/:petId/chronic/scan-risk - 慢病风险扫描', () => {
   });
 
   it('非会员 → 403 拦截', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'free', status: 'active', expires_at: null });
 
     const res = await request(createApp())
@@ -113,7 +113,7 @@ describe('POST /pets/:petId/chronic/scan-risk - 慢病风险扫描', () => {
   });
 
   it('schema 校验：携带未知字段（strict）→ 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/chronic/scan-risk')
@@ -123,7 +123,7 @@ describe('POST /pets/:petId/chronic/scan-risk - 慢病风险扫描', () => {
   });
 
   it('service 降级（LLM 不可用）→ 200 且 degraded=true', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockScanChronicRisk.mockResolvedValue({
       signals: [],
@@ -142,7 +142,7 @@ describe('POST /pets/:petId/chronic/scan-risk - 慢病风险扫描', () => {
   });
 
   it('service 抛异常 → 500', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockScanChronicRisk.mockRejectedValue(new Error('DB crash'));
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 健康趋势路由 - 宠物健康数据分析
  * 提供趋势图数据和月度健康报告
  */
@@ -21,7 +21,7 @@ router.get('/:petId/trends', authMiddleware, validate({ query: trendQuerySchema 
     const petId = req.params.petId as string;
     const userId = req.userId!;
 
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;
@@ -85,7 +85,7 @@ router.get('/:petId/trends/report', authMiddleware, validate({ query: trendRepor
     const petId = req.params.petId as string;
     const userId = req.userId!;
 
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权操作此宠物' });
       return;

@@ -84,7 +84,7 @@ beforeEach(() => {
 describe('GET /api/pets/:petId/vaccines - 获取疫苗计划', () => {
   it('正常获取疫苗计划列表', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockVaccine, mockVaccine2], rowCount: 2 });
 
     const res = await request(createApp())
@@ -99,7 +99,7 @@ describe('GET /api/pets/:petId/vaccines - 获取疫苗计划', () => {
 
   it('无疫苗计划时返回空数组', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -135,7 +135,7 @@ describe('GET /api/pets/:petId/vaccines - 获取疫苗计划', () => {
 describe('POST /api/pets/:petId/vaccines - 添加疫苗记录', () => {
   it('正常添加疫苗记录', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockVaccine], rowCount: 1 });
 
     const res = await request(createApp())
@@ -158,7 +158,7 @@ describe('POST /api/pets/:petId/vaccines - 添加疫苗记录', () => {
   });
 
   it('参数校验：type 不是 vaccine 或 deworm，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/api/pets/pet-001/vaccines')
@@ -175,7 +175,7 @@ describe('POST /api/pets/:petId/vaccines - 添加疫苗记录', () => {
   });
 
   it('参数校验：缺少 category，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/api/pets/pet-001/vaccines')
@@ -191,7 +191,7 @@ describe('POST /api/pets/:petId/vaccines - 添加疫苗记录', () => {
   });
 
   it('参数校验：缺少 date 和 next_date，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/api/pets/pet-001/vaccines')
@@ -207,7 +207,7 @@ describe('POST /api/pets/:petId/vaccines - 添加疫苗记录', () => {
 
   it('status 白名单校验：无效值回退为 pending', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ ...mockVaccine, status: 'pending' }], rowCount: 1 });
 
     const res = await request(createApp())
@@ -227,7 +227,7 @@ describe('POST /api/pets/:petId/vaccines - 添加疫苗记录', () => {
   it('添加驱虫记录（type=deworm）', async () => {
     const dewormRecord = { ...mockVaccine, type: 'deworm', category: '体内驱虫' };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [dewormRecord], rowCount: 1 });
 
     const res = await request(createApp())
@@ -263,7 +263,7 @@ describe('PUT /api/pets/:petId/vaccines/:vaccineId/complete - 标记完成', () 
   it('正常标记疫苗为已完成', async () => {
     const completedVaccine = { ...mockVaccine, status: 'completed' };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'vaccine-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [completedVaccine], rowCount: 1 });
 
     const res = await request(createApp())
@@ -289,7 +289,7 @@ describe('PUT /api/pets/:petId/vaccines/:vaccineId/complete - 标记完成', () 
 
   it('记录不存在，返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'vaccine-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())

@@ -40,12 +40,12 @@ export class WeeklyReportError extends Error {
 const weeklyReportRepository = new WeeklyReportRepository();
 
 /**
- * 校验家庭归属权 - 防横向越权
- * 直接 SQL 查询，与 feedService.ts 一致
+ * 校验家庭访问权 - 防横向越权（多成员共同养宠：家庭成员可查看家庭周报）
+ * 直接 SQL 查询 pet_family_users（owner 和 member 均可）
  */
 async function verifyFamilyOwnership(familyId: string, userId: string): Promise<boolean> {
   const result = await pool.query(
-    'SELECT 1 FROM pet_families WHERE id = $1 AND user_id = $2',
+    'SELECT 1 FROM pet_family_users WHERE family_id = $1 AND user_id = $2',
     [familyId, userId],
   );
   return (result.rowCount ?? 0) > 0;
@@ -144,8 +144,8 @@ async function buildRealReportData(
 ): Promise<Record<string, unknown>> {
   const { weekStart, weekEnd } = getWeekDateRange(year, weekNumber);
 
-  // 5 个聚合查询并行执行（Promise.all 内部按数组顺序同步发起 query 调用，mock 顺序确定）
-  const [healthAgg, symptomAgg, foodAgg, feedAgg, bestDayAgg] = await Promise.all([
+  // 6 个聚合查询并行执行（Promise.all 内部按数组顺序同步发起 query 调用，mock 顺序确定）
+  const [healthAgg, symptomAgg, foodAgg, feedAgg, bestDayAgg, memberAgg] = await Promise.all([
     // 1. 健康打卡聚合：COUNT + AVG + 异常计数
     pool.query(
       `SELECT
@@ -196,6 +196,22 @@ async function buildRealReportData(
        GROUP BY day ORDER BY cnt DESC LIMIT 1`,
       [familyId, weekStart, weekEnd],
     ),
+    // 6. 成员维度（多成员共同养宠，2026-08-24）：本周每位家庭成员的打卡贡献
+    pool.query(
+      `SELECT u.user_id, u.role,
+              COALESCE(users.nickname, '') AS nickname,
+              COUNT(h.id) AS checkin_count
+       FROM pet_family_users u
+       LEFT JOIN pet_health_entries h
+         ON h.user_id = u.user_id AND h.created_at BETWEEN $2 AND $3
+         AND EXISTS (SELECT 1 FROM pet_family_members m
+                     WHERE m.family_id = u.family_id AND m.pet_id = h.pet_id)
+       LEFT JOIN users ON users.id = u.user_id
+       WHERE u.family_id = $1
+       GROUP BY u.user_id, u.role, users.nickname
+       ORDER BY checkin_count DESC`,
+      [familyId, weekStart, weekEnd],
+    ),
   ]);
 
   const healthRow = healthAgg.rows[0] ?? {};
@@ -203,6 +219,7 @@ async function buildRealReportData(
   const foodRow = foodAgg.rows[0] ?? {};
   const feedRow = feedAgg.rows[0] ?? {};
   const bestDayRow = bestDayAgg.rows[0];
+  const memberRows = memberAgg.rows ?? [];
 
   return {
     health: {
@@ -212,6 +229,13 @@ async function buildRealReportData(
       avg_spirit: Number(healthRow.avg_spirit ?? 0),
       anomaly_count: Number(healthRow.anomaly_count ?? 0),
       best_day: bestDayRow ? String(bestDayRow.day) : null,
+      // 成员维度：本周每位家庭成员的打卡数（AI 总结"我们一起照顾了 TA"）
+      members: memberRows.map((r) => ({
+        userId: String(r.user_id ?? ''),
+        role: String(r.role ?? 'member'),
+        nickname: String(r.nickname ?? ''),
+        checkinCount: Number(r.checkin_count ?? 0),
+      })),
     },
     activities: {
       symptom_checks: Number(symptomRow.count ?? 0),
@@ -247,9 +271,10 @@ async function buildAiInsight(
 1. 语气温和、积极、有温度，像朋友间的关心
 2. 不超过 200 字
 3. 简要概括本周健康状况和活跃度
-4. 结尾给出 1 条可执行的下周建议（如饮食、运动、观察重点）
-5. 不要使用 markdown 格式，纯文本即可
-6. 不要提及具体数字背后的技术字段名，用自然语言描述`;
+4. 若数据中有 health.members（本周每位家庭成员的打卡数），请自然提及家庭成员的共同参与（如"这周你们一起照顾了 X 次"、"TA 也参与记录"），体现共同养宠的温度；若只有一人参与则不必强调
+5. 结尾给出 1 条可执行的下周建议（如饮食、运动、观察重点）
+6. 不要使用 markdown 格式，纯文本即可
+7. 不要提及具体数字背后的技术字段名，用自然语言描述`;
 
   const userPrompt = `本周家庭周报数据：
 ${JSON.stringify(reportData, null, 2)}

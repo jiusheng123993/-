@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 年度回忆图集业务服务层 - 编排年度回忆的核心业务逻辑
  * 职责：归属校验、年份唯一性检查、创建草稿、查询详情、列表分页、更新、视频生成
  * 视频生成采用异步队列模式：提交任务后置 generating_video，异步调用视频生成服务，
@@ -183,7 +183,7 @@ export async function createYearlyReview(
   petId: string,
   data: CreateYearlyReviewInput,
 ): Promise<YearlyReviewDetailResponse> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new YearlyReviewError(404, '宠物不存在');
   }
@@ -232,7 +232,7 @@ export async function getYearlyReviewByYear(
   petId: string,
   year: number,
 ): Promise<YearlyReviewDetailResponse> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new YearlyReviewError(404, '宠物不存在');
   }
@@ -254,7 +254,7 @@ export async function listYearlyReviews(
   page: number,
   pageSize: number,
 ): Promise<{ items: YearlyReviewListItem[]; total: number; page: number; page_size: number }> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new YearlyReviewError(404, '宠物不存在');
   }
@@ -282,7 +282,7 @@ export async function updateYearlyReview(
   reviewId: string,
   data: UpdateYearlyReviewInput,
 ): Promise<YearlyReviewDetailResponse> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new YearlyReviewError(404, '宠物不存在');
   }
@@ -334,7 +334,7 @@ export async function generateYearlyVideo(
   petId: string,
   reviewId: string,
 ): Promise<{ id: string; status: string; message: string }> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new YearlyReviewError(404, '宠物不存在');
   }

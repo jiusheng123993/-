@@ -74,7 +74,7 @@ beforeEach(() => {
 describe('POST /pets/:petId/suggestions - 创建建议记录', () => {
   it('正常创建记录，返回 201 且字段转为 camelCase', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockSuggestion], rowCount: 1 });
 
     const res = await request(createApp())
@@ -94,7 +94,7 @@ describe('POST /pets/:petId/suggestions - 创建建议记录', () => {
   });
 
   it('参数校验：type 非法值，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/suggestions')
@@ -104,7 +104,7 @@ describe('POST /pets/:petId/suggestions - 创建建议记录', () => {
   });
 
   it('参数校验：title 为空，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/suggestions')
@@ -114,7 +114,7 @@ describe('POST /pets/:petId/suggestions - 创建建议记录', () => {
   });
 
   it('参数校验：content 超长，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/suggestions')
@@ -136,7 +136,7 @@ describe('POST /pets/:petId/suggestions - 创建建议记录', () => {
 
   it('服务端错误：数据库异常，返回 500', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockRejectedValueOnce(new Error('DB down'));
 
     const res = await request(createApp())
@@ -150,7 +150,7 @@ describe('POST /pets/:petId/suggestions - 创建建议记录', () => {
 describe('GET /pets/:petId/suggestions - 查询建议记录列表', () => {
   it('正常返回列表（camelCase 字段）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockSuggestion], rowCount: 1 });
 
     const res = await request(createApp()).get('/pets/pet-001/suggestions');
@@ -175,7 +175,7 @@ describe('PATCH /pets/:petId/suggestions/:recordId/adoption - 更新采纳状态
   it('正常采纳建议', async () => {
     const adopted = { ...mockSuggestion, adopted: true, adopted_at: '2026-07-25T09:00:00Z' };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [adopted], rowCount: 1 });
 
     const res = await request(createApp())
@@ -191,7 +191,7 @@ describe('PATCH /pets/:petId/suggestions/:recordId/adoption - 更新采纳状态
   it('正常取消采纳', async () => {
     const cancelled = { ...mockSuggestion, adopted: false, adopted_at: null };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [cancelled], rowCount: 1 });
 
     const res = await request(createApp())
@@ -205,7 +205,7 @@ describe('PATCH /pets/:petId/suggestions/:recordId/adoption - 更新采纳状态
 
   it('记录不存在（或不属于当前用户），返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -217,7 +217,7 @@ describe('PATCH /pets/:petId/suggestions/:recordId/adoption - 更新采纳状态
   });
 
   it('参数校验：adopted 非布尔值，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .patch('/pets/pet-001/suggestions/suggestion-001/adoption')
@@ -230,7 +230,7 @@ describe('PATCH /pets/:petId/suggestions/:recordId/adoption - 更新采纳状态
 describe('DELETE /pets/:petId/suggestions/:recordId - 删除建议记录', () => {
   it('正常删除记录', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 1 });
 
     const res = await request(createApp()).delete('/pets/pet-001/suggestions/suggestion-001');
@@ -241,7 +241,7 @@ describe('DELETE /pets/:petId/suggestions/:recordId - 删除建议记录', () =>
 
   it('记录不存在，返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 0 });
 
     const res = await request(createApp()).delete('/pets/pet-001/suggestions/suggestion-999');

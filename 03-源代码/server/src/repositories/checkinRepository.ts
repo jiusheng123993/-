@@ -68,28 +68,29 @@ export class CheckinRepository extends BaseRepository<CheckinRow> {
   }
 
   /**
-   * 查询指定天数内的打卡历史（按创建时间倒序）
+   * 查询指定天数内的打卡历史（pet 维度，多成员共同养宠：家庭成员可见共享宠物全部记录）
+   * 返回值含 user_id，前端可标注"谁记录的"；老用户无家庭时（单 owner）等价于只看自己的
    */
-  async findHistoryByDays(petId: string, userId: string, since: string): Promise<CheckinRow[]> {
+  async findHistoryByDays(petId: string, since: string): Promise<CheckinRow[]> {
     const result = await this.rawQuery<CheckinRow>(
       `SELECT * FROM ${this.tableName}
-       WHERE pet_id = $1 AND user_id = $2 AND created_at >= $3
+       WHERE pet_id = $1 AND created_at >= $2
        ORDER BY created_at DESC`,
-      [petId, userId, since],
+      [petId, since],
     );
     return result.rows;
   }
 
   /**
-   * 查询今日打卡记录（按日期匹配，返回最新一条）
+   * 查询今日打卡记录（pet 维度：任一成员打卡即视为今日已打卡，返回最新一条）
    */
-  async findTodayCheckin(petId: string, userId: string, today: string): Promise<CheckinRow | null> {
+  async findTodayCheckin(petId: string, today: string): Promise<CheckinRow | null> {
     const result = await this.rawQuery<CheckinRow>(
       `SELECT * FROM ${this.tableName}
-       WHERE pet_id = $1 AND user_id = $2 AND created_at::date = $3
+       WHERE pet_id = $1 AND created_at::date = $2
        ORDER BY created_at DESC
        LIMIT 1`,
-      [petId, userId, today],
+      [petId, today],
     );
     return result.rows[0] ?? null;
   }

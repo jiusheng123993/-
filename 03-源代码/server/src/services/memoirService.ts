@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 回忆录业务服务层 - 编排回忆录任务的核心业务逻辑
  * 职责：
  *   1. 归属校验（防越权）
@@ -230,7 +230,7 @@ export async function createMemoir(
   data: CreateMemoirInput,
 ): Promise<MemoirTaskResponse> {
   // 1. 归属校验
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new MemoirError(404, '宠物不存在');
   }
@@ -302,7 +302,7 @@ export async function createMemoirFromPayment(
   data: CreateMemoirInput,
 ): Promise<MemoirTaskResponse> {
   // 1. 归属校验（回调上下文已带 userId，但仍需校验 petId 归属）
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new MemoirError(404, '宠物不存在');
   }
@@ -353,7 +353,7 @@ export async function getStatus(
   userId: string,
   petId: string,
 ): Promise<MemoirTaskResponse> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new MemoirError(404, '宠物不存在');
   }
@@ -375,7 +375,7 @@ export async function listMemoirs(
   page: number,
   pageSize: number,
 ): Promise<{ list: MemoirRecordRow[]; total: number; page: number; page_size: number }> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new MemoirError(404, '宠物不存在');
   }
@@ -398,7 +398,7 @@ export async function deleteMemoir(
   petId: string,
   memoirId: string,
 ): Promise<void> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new MemoirError(404, '宠物不存在');
   }
@@ -423,7 +423,7 @@ export async function previewMemoir(
   petId: string,
   memoirId: string,
 ): Promise<{ preview_url: string }> {
-  const owns = await petRepository.isOwner(petId, userId);
+  const owns = await petRepository.canAccess(petId, userId);
   if (!owns) {
     throw new MemoirError(404, '宠物不存在');
   }

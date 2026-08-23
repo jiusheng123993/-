@@ -70,7 +70,7 @@ beforeEach(() => {
 
 describe('POST /pets/:petId/chronic/ai-analysis - AI 慢病管理建议', () => {
   it('会员 + 归属校验通过 → 200 返回 AI 建议', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockAnalyzeChronicAdvice.mockResolvedValue({
       aiAdvice: '1. 按时复查。\n2. 注意饮食。\n\n免责声明',
@@ -89,7 +89,7 @@ describe('POST /pets/:petId/chronic/ai-analysis - AI 慢病管理建议', () => 
   });
 
   it('非会员 → 403 拦截', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'free', status: 'active', expires_at: null });
 
     const res = await request(createApp())
@@ -111,7 +111,7 @@ describe('POST /pets/:petId/chronic/ai-analysis - AI 慢病管理建议', () => 
   });
 
   it('focus 超过 200 字符 → 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/chronic/ai-analysis')
@@ -121,7 +121,7 @@ describe('POST /pets/:petId/chronic/ai-analysis - AI 慢病管理建议', () => 
   });
 
   it('service 降级 → 200 且 degraded=true', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockAnalyzeChronicAdvice.mockResolvedValue({
       aiAdvice: 'AI 慢病管理建议暂时不可用，请稍后再试。免责声明',
@@ -139,7 +139,7 @@ describe('POST /pets/:petId/chronic/ai-analysis - AI 慢病管理建议', () => 
   });
 
   it('service 抛异常 → 500', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockAnalyzeChronicAdvice.mockRejectedValue(new Error('LLM crash'));
 

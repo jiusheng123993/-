@@ -104,6 +104,15 @@ export const updateFamilyMemberRoleSchema = z.object({
   role: z.string({ error: '角色不能为空' }).trim().min(1, '角色不能为空').max(50, '角色最长 50 字符'),
 });
 
+/** 凭家庭邀请码加入家庭（多成员共同养宠，2026-08-24） */
+export const joinFamilySchema = z.object({
+  code: z
+    .string({ error: '邀请码不能为空' })
+    .trim()
+    .min(1, '邀请码不能为空')
+    .max(32, '邀请码格式不正确'),
+});
+
 /** 上传/保存全家福（用户上传或 Canvas 降级生成） */
 export const uploadFamilyPhotoSchema = z.object({
   photoUrl: z.string({ error: 'photoUrl 不能为空' }).trim().min(1, 'photoUrl 不能为空').max(2048, 'photoUrl 过长'),

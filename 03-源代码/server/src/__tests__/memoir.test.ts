@@ -101,7 +101,7 @@ beforeEach(() => {
 describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
   it('会员创建日常回忆录（配额内）返回 201，status=pending', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 })      // membership: active member
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })         // monthly quota: 0 used
@@ -183,7 +183,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 
   it('已有 pending/processing 任务返回 409', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [mockProcessingRecord], rowCount: 1 }); // active task exists
 
     const res = await request(createApp())
@@ -198,7 +198,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 
   it('非会员创建日常回忆录返回 402（需付费）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });                   // membership: not found → free
 
@@ -215,7 +215,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 
   it('会员创建纪念Vlog返回 402（需付费 99 元）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 });     // membership: active member
 
@@ -232,7 +232,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 
   it('非会员创建纪念Vlog返回 402（需付费 149 元）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });                   // membership: not found → free
 
@@ -249,7 +249,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 
   it('会员日常回忆录配额用完返回 402（需付费 9.9 元）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 })      // membership: active member
       .mockResolvedValueOnce({ rows: [{ count: 3 }], rowCount: 1 });        // monthly quota: 3 used (limit)
@@ -272,7 +272,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
       expires_at: '2020-01-01T00:00:00.000Z', // 已过期
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
       .mockResolvedValueOnce({ rows: [expiredMemberRow], rowCount: 1 });   // membership: expired
 
@@ -321,7 +321,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 describe('GET /api/pets/:petId/memoir/status - 查询状态', () => {
   it('正常返回最新任务状态', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });    // findLatestByPetId
 
     const res = await request(createApp())
@@ -335,7 +335,7 @@ describe('GET /api/pets/:petId/memoir/status - 查询状态', () => {
 
   it('无任务返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });                   // no task found
 
     const res = await request(createApp())
@@ -362,7 +362,7 @@ describe('GET /api/pets/:petId/memoir/status - 查询状态', () => {
 describe('GET /api/pets/:petId/memoir/list - 获取列表', () => {
   it('正常返回列表', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })      // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })      // ownership OK
       .mockResolvedValueOnce({ rows: [mockMemoirRecord, mockCompletedRecord], rowCount: 2 }) // findByPetId
       .mockResolvedValueOnce({ rows: [{ count: 2 }], rowCount: 1 });           // countByPetId
 
@@ -378,7 +378,7 @@ describe('GET /api/pets/:petId/memoir/list - 获取列表', () => {
 
   it('分页参数正确传递', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // findByPetId
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 });       // countByPetId
 
@@ -409,7 +409,7 @@ describe('GET /api/pets/:petId/memoir/list - 获取列表', () => {
 describe('DELETE /api/pets/:petId/memoir/:memoirId - 删除回忆录', () => {
   it('正常删除已完成任务', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 })  // findByIdAndUser
       .mockResolvedValueOnce({ rows: [], rowCount: 1 });                    // deleteById
 
@@ -423,7 +423,7 @@ describe('DELETE /api/pets/:petId/memoir/:memoirId - 删除回忆录', () => {
 
   it('删除 pending 任务返回 409', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });   // findByIdAndUser (pending)
 
     const res = await request(createApp())
@@ -436,7 +436,7 @@ describe('DELETE /api/pets/:petId/memoir/:memoirId - 删除回忆录', () => {
 
   it('回忆录不存在返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });                   // findByIdAndUser (not found)
 
     const res = await request(createApp())
@@ -463,7 +463,7 @@ describe('DELETE /api/pets/:petId/memoir/:memoirId - 删除回忆录', () => {
 describe('POST /api/pets/:petId/memoir/preview - 获取预览', () => {
   it('正常返回 preview_url', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 }); // findByIdAndUser
 
     const res = await request(createApp())
@@ -477,7 +477,7 @@ describe('POST /api/pets/:petId/memoir/preview - 获取预览', () => {
 
   it('回忆录不存在返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });                   // findByIdAndUser (not found)
 
     const res = await request(createApp())
@@ -508,7 +508,7 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
 
   it('会员用户返回会员价格', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{
         id: 'mem-001', tier: 'monthly', plan: 'monthly', status: 'active',
         price: 990, expires_at: '2026-09-01T00:00:00Z', started_at: '2026-08-01T00:00:00Z',
@@ -527,7 +527,7 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
 
   it('非会员用户返回非会员价格', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -554,7 +554,7 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
   it('会员已过期，返回非会员价格', async () => {
     const pastDate = '2024-01-01T00:00:00Z';
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{
         id: 'mem-002', tier: 'monthly', plan: 'monthly', status: 'active',
         price: 990, expires_at: pastDate, started_at: '2023-12-01T00:00:00Z',

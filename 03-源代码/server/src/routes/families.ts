@@ -7,10 +7,12 @@ import { Router, type Request, type Response } from 'express';
 import crypto from 'crypto';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createFamilySchema, updateFamilySchema, addFamilyMemberSchema, updateFamilyMemberRoleSchema, familyMomentsQuerySchema, familyNewMomentsQuerySchema } from '../schemas/index.js';
+import { createFamilySchema, updateFamilySchema, addFamilyMemberSchema, updateFamilyMemberRoleSchema, familyMomentsQuerySchema, familyNewMomentsQuerySchema, joinFamilySchema } from '../schemas/index.js';
 import {
   FamilyRepository,
   FamilyMemberRepository,
+  FamilyUserRepository,
+  FamilyInviteRepository,
 } from '../repositories/familyRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { postMemberJoinedFeed } from '../services/autoFeedService.js';
@@ -19,6 +21,8 @@ const router = Router();
 
 const familyRepository = new FamilyRepository();
 const familyMemberRepository = new FamilyMemberRepository();
+const familyUserRepository = new FamilyUserRepository();
+const familyInviteRepository = new FamilyInviteRepository();
 const petRepository = new PetRepository();
 
 /** 将 snake_case 数据库字段转换为 camelCase（与其他路由保持一致） */
@@ -48,6 +52,9 @@ router.post('/', authMiddleware, validate({ body: createFamilySchema }), async (
       avatar_url: avatarUrl || null,
     });
 
+    // 多成员共同养宠：创建者自动成为家庭 owner 成员（pet_family_users）
+    await familyUserRepository.addUser(id, userId, 'owner');
+
     res.json({ success: true, data: toCamelCase(family as unknown as Record<string, unknown>) });
   } catch (err) {
     console.error('[Families Create Error]', err);
@@ -71,19 +78,30 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
     const id = req.params.id as string;
     const userId = req.userId!;
 
-    const family = await familyRepository.findByIdAndUser(id, userId);
+    // 多成员共同养宠：主人或家庭成员均可查看家庭详情
+    const isOwner = await familyRepository.isOwner(id, userId);
+    const isMember = isOwner || (await familyUserRepository.isFamilyUser(id, userId));
+    if (!isMember) {
+      res.status(404).json({ success: false, message: '家庭不存在' });
+      return;
+    }
+
+    const family = await familyRepository.findById(id);
     if (!family) {
       res.status(404).json({ success: false, message: '家庭不存在' });
       return;
     }
 
     const members = await familyMemberRepository.findDetailsByFamilyId(id);
+    // 多成员共同养宠：返回"人"成员列表（含角色，前端展示头像昵称）
+    const users = await familyUserRepository.findUsersByFamilyId(id);
 
     res.json({
       success: true,
       data: {
         ...toCamelCase(family as unknown as Record<string, unknown>),
         members: toCamelCaseArray(members as unknown as Record<string, unknown>[]),
+        users: toCamelCaseArray(users as unknown as Record<string, unknown>[]),
       },
     });
   } catch (err) {
@@ -301,7 +319,8 @@ router.get('/:id/moments/new', authMiddleware, validate({ query: familyNewMoment
     const userId = req.userId!;
     const since = req.query.since as string;
 
-    const isOwner = await familyRepository.isOwner(familyId, userId);
+    // 多成员共同养宠：家庭成员可查看家庭动态
+    const isOwner = await familyUserRepository.isFamilyUser(familyId, userId);
     if (!isOwner) {
       res.status(403).json({ success: false, message: '无权查看此家庭' });
       return;
@@ -318,6 +337,127 @@ router.get('/:id/moments/new', authMiddleware, validate({ query: familyNewMoment
   } catch (err) {
     console.error('[Families NewMoments Error]', err);
     res.status(500).json({ success: false, message: '获取新动态失败' });
+  }
+});
+
+// ============ 多成员共同养宠：家庭成员（人）管理（2026-08-24） ============
+
+/** 生成 6 位邀请码（去除易混淆字符 0O1lI） */
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[crypto.randomInt(chars.length)];
+  }
+  return code;
+}
+
+/**
+ * 生成家庭邀请码（仅 owner）
+ * 对方凭码 POST /join 加入家庭
+ */
+router.post('/:id/invites', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const userId = req.userId!;
+
+    const isOwner = await familyUserRepository.isFamilyOwner(familyId, userId);
+    if (!isOwner) {
+      res.status(403).json({ success: false, message: '仅家庭创建者可邀请成员' });
+      return;
+    }
+
+    const code = generateInviteCode();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 天有效
+    const invite = await familyInviteRepository.createInvite(familyId, userId, code, expiresAt);
+
+    res.status(201).json({ success: true, data: toCamelCase(invite as unknown as Record<string, unknown>) });
+  } catch (err) {
+    console.error('[Families Invite Error]', err);
+    res.status(500).json({ success: false, message: '生成邀请码失败' });
+  }
+});
+
+/**
+ * 凭邀请码加入家庭
+ * 校验邀请码有效（未使用未过期）→ 加入 pet_family_users（member）→ 标记码已用
+ */
+router.post('/join', authMiddleware, validate({ body: joinFamilySchema }), async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { code } = req.body;
+
+    const invite = await familyInviteRepository.findValidByCode(code.trim().toUpperCase());
+    if (!invite) {
+      res.status(400).json({ success: false, message: '邀请码无效或已过期' });
+      return;
+    }
+
+    // 已在家庭中（幂等，不重复添加）
+    const alreadyMember = await familyUserRepository.isFamilyUser(invite.family_id, userId);
+    if (!alreadyMember) {
+      await familyUserRepository.addUser(invite.family_id, userId, 'member');
+    }
+    await familyInviteRepository.markUsed(code.trim().toUpperCase(), userId);
+
+    res.json({ success: true, data: { familyId: invite.family_id } });
+  } catch (err) {
+    console.error('[Families Join Error]', err);
+    res.status(500).json({ success: false, message: '加入家庭失败' });
+  }
+});
+
+/**
+ * 家庭成员（人）列表（主人或成员可读）
+ */
+router.get('/:id/users', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const userId = req.userId!;
+
+    const isMember = await familyUserRepository.isFamilyUser(familyId, userId);
+    if (!isMember) {
+      res.status(403).json({ success: false, message: '无权查看此家庭' });
+      return;
+    }
+
+    const users = await familyUserRepository.findUsersByFamilyId(familyId);
+    res.json({ success: true, data: toCamelCaseArray(users as unknown as Record<string, unknown>[]) });
+  } catch (err) {
+    console.error('[Families Users Error]', err);
+    res.status(500).json({ success: false, message: '获取成员列表失败' });
+  }
+});
+
+/**
+ * 移除家庭成员（仅 owner；不能移除 owner 本人）
+ */
+router.delete('/:id/users/:userId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const operatorId = req.userId!;
+    const targetUserId = req.params.userId as string;
+
+    const isOwner = await familyUserRepository.isFamilyOwner(familyId, operatorId);
+    if (!isOwner) {
+      res.status(403).json({ success: false, message: '仅家庭创建者可移除成员' });
+      return;
+    }
+    if (targetUserId === operatorId) {
+      res.status(400).json({ success: false, message: '不能移除自己' });
+      return;
+    }
+
+    const removed = await familyUserRepository.removeUser(familyId, targetUserId);
+    if (!removed) {
+      res.status(404).json({ success: false, message: '该用户不是家庭成员' });
+      return;
+    }
+
+    res.json({ success: true, data: null });
+  } catch (err) {
+    console.error('[Families RemoveUser Error]', err);
+    res.status(500).json({ success: false, message: '移除成员失败' });
   }
 });
 

@@ -41,46 +41,66 @@ export class VaccineRepository extends BaseRepository<VaccineRow> {
   }
 
   /**
-   * 查询宠物的所有疫苗/驱虫记录（按日期倒序，再按创建时间倒序）
+   * 校验疫苗记录访问权（多成员共同养宠，2026-08-24）
+   * 疫苗是宠物维度管理：记录所属宠物可被主人或家庭成员访问
    */
-  async findByPetAndUser(petId: string, userId: string): Promise<VaccineRow[]> {
+  async canAccess(vaccineId: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery<{ ok: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM pet_vaccinations v
+         WHERE v.id = $1 AND (
+           EXISTS (SELECT 1 FROM pet_profiles p WHERE p.id = v.pet_id AND p.user_id = $2)
+           UNION ALL
+           EXISTS (SELECT 1 FROM pet_family_members m
+                   JOIN pet_family_users u ON u.family_id = m.family_id
+                   WHERE m.pet_id = v.pet_id AND u.user_id = $2)
+         )
+       ) AS ok`,
+      [vaccineId, userId],
+    );
+    return result.rows[0]?.ok ?? false;
+  }
+
+  /**
+   * 查询宠物的所有疫苗/驱虫记录（pet 维度，多成员共享：返回家庭成员的共同记录）
+   */
+  async findByPet(petId: string): Promise<VaccineRow[]> {
     const result = await this.rawQuery<VaccineRow>(
       `SELECT * FROM ${this.tableName}
-       WHERE pet_id = $1 AND user_id = $2
+       WHERE pet_id = $1
        ORDER BY date DESC, created_at DESC`,
-      [petId, userId],
+      [petId],
     );
     return result.rows;
   }
 
   /**
-   * 标记记录为已完成
+   * 标记记录为已完成（权限已在路由层 canAccess 校验，不再按 user_id 过滤）
    */
-  async markCompleted(vaccineId: string, userId: string): Promise<VaccineRow | null> {
+  async markCompleted(vaccineId: string): Promise<VaccineRow | null> {
     const result = await this.rawQuery<VaccineRow>(
       `UPDATE ${this.tableName}
        SET status = 'completed', updated_at = NOW()
-       WHERE id = $1 AND user_id = $2
+       WHERE id = $1
        RETURNING *`,
-      [vaccineId, userId],
+      [vaccineId],
     );
     return result.rows[0] ?? null;
   }
 
   /**
-   * 更新提醒开关
+   * 更新提醒开关（权限已在路由层 canAccess 校验，不再按 user_id 过滤）
    */
   async updateReminder(
     vaccineId: string,
-    userId: string,
     reminderEnabled: boolean,
   ): Promise<VaccineRow | null> {
     const result = await this.rawQuery<VaccineRow>(
       `UPDATE ${this.tableName}
        SET reminder_enabled = $1, updated_at = NOW()
-       WHERE id = $2 AND user_id = $3
+       WHERE id = $2
        RETURNING *`,
-      [reminderEnabled, vaccineId, userId],
+      [reminderEnabled, vaccineId],
     );
     return result.rows[0] ?? null;
   }

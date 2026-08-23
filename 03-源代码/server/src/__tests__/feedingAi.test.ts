@@ -88,8 +88,8 @@ beforeEach(() => {
 
 describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () => {
   it('会员 + 归属校验通过 → 200 返回 AI 建议', async () => {
-    // 归属校验：isOwner 查询返回 1 行
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    // 归属校验：canAccess 查询返回 ok=true
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockAnalyzeFeedingAdvice.mockResolvedValue({
       aiAdvice: '1. 建议分3-4餐喂食。\n2. 保持水分。\n\n免责声明',
@@ -108,7 +108,7 @@ describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () =
   });
 
   it('非会员 → 403 拦截（服务端强制，不能只靠前端隐藏）', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'free', status: 'active', expires_at: null });
 
     const res = await request(createApp())
@@ -121,7 +121,7 @@ describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () =
   });
 
   it('会员过期 → 403 拦截', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: '2020-01-01T00:00:00Z' });
 
     const res = await request(createApp())
@@ -142,7 +142,7 @@ describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () =
   });
 
   it('schema 校验：缺 pet_name → 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     const { pet_name, ...rest } = validBody;
 
     const res = await request(createApp())
@@ -153,7 +153,7 @@ describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () =
   });
 
   it('schema 校验：species 非法 → 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/feeding-records/ai-analysis')
@@ -163,7 +163,7 @@ describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () =
   });
 
   it('service 降级（LLM 不可用）→ 200 且 degraded=true（fail-safe 不抛 500）', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockAnalyzeFeedingAdvice.mockResolvedValue({
       aiAdvice: 'AI 喂养建议暂时不可用，请稍后再试。免责声明',
@@ -181,7 +181,7 @@ describe('POST /pets/:petId/feeding-records/ai-analysis - AI 喂养建议', () =
   });
 
   it('service 抛异常 → 500', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
     mockFindTierAndStatus.mockResolvedValue({ tier: 'premium', status: 'active', expires_at: null });
     mockAnalyzeFeedingAdvice.mockRejectedValue(new Error('LLM crash'));
 

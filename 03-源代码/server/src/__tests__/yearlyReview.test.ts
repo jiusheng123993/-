@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 年度回忆图集模块集成测试
  * 覆盖：创建、查询详情、列表分页、更新、视频生成
  * 重点验证：归属校验、年份唯一性、草稿/完成状态约束、参数校验
@@ -132,7 +132,7 @@ beforeEach(() => {
 describe('POST /api/pets/:petId/yearly-review - 创建年度回忆', () => {
   it('正常创建（返回 201，status=draft）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership OK
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })      // not exists
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 });   // insert
 
@@ -150,7 +150,7 @@ describe('POST /api/pets/:petId/yearly-review - 创建年度回忆', () => {
 
   it('带自定义照片和标题创建', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 });
 
@@ -216,7 +216,7 @@ describe('POST /api/pets/:petId/yearly-review - 创建年度回忆', () => {
 
   it('同年已存在返回 409', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership OK
       .mockResolvedValueOnce({ rows: [{ count: 1 }], rowCount: 1 });     // exists
 
     const res = await request(createApp())
@@ -229,7 +229,7 @@ describe('POST /api/pets/:petId/yearly-review - 创建年度回忆', () => {
 
   it('数据库异常返回 500', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })
       .mockRejectedValueOnce(new Error('DB error'));
 
@@ -246,7 +246,7 @@ describe('POST /api/pets/:petId/yearly-review - 创建年度回忆', () => {
 describe('GET /api/pets/:petId/yearly-review/list - 列表', () => {
   it('正常返回列表', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership
       .mockResolvedValueOnce({ rows: [mockDraftRecord, mockCompletedRecord], rowCount: 2 }) // list
       .mockResolvedValueOnce({ rows: [{ count: 2 }], rowCount: 1 });      // count
 
@@ -272,7 +272,7 @@ describe('GET /api/pets/:petId/yearly-review/list - 列表', () => {
 
   it('分页参数生效', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ count: 5 }], rowCount: 1 });
 
@@ -290,7 +290,7 @@ describe('GET /api/pets/:petId/yearly-review/list - 列表', () => {
 describe('GET /api/pets/:petId/yearly-review/:year - 详情', () => {
   it('正常返回详情', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 });   // find by year
 
     const res = await request(createApp())
@@ -319,7 +319,7 @@ describe('GET /api/pets/:petId/yearly-review/:year - 详情', () => {
 
   it('年度回忆不存在返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -348,7 +348,7 @@ describe('PUT /api/pets/:petId/yearly-review/:reviewId - 更新', () => {
       review_data: { ...mockDraftRecord.review_data, title: '新标题' },
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 })    // find by id
       .mockResolvedValueOnce({ rows: [updated], rowCount: 1 });           // update
 
@@ -363,7 +363,7 @@ describe('PUT /api/pets/:petId/yearly-review/:reviewId - 更新', () => {
   it('更新封面成功', async () => {
     const updated = { ...mockDraftRecord, cover_url: 'https://example.com/new.jpg' };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [updated], rowCount: 1 });
 
@@ -386,7 +386,7 @@ describe('PUT /api/pets/:petId/yearly-review/:reviewId - 更新', () => {
       },
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [updated], rowCount: 1 });
 
@@ -428,7 +428,7 @@ describe('PUT /api/pets/:petId/yearly-review/:reviewId - 更新', () => {
 
   it('年度回忆不存在返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -455,7 +455,7 @@ describe('PUT /api/pets/:petId/yearly-review/:reviewId - 更新', () => {
 describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成视频', () => {
   it('completed 状态可生成视频（异步生成 + 审核通过 → video_ready）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 }) // find
       .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 }) // update
       .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'video_ready', video_url: 'https://example.com/video.mp4' }], rowCount: 1 }); // async update
@@ -489,7 +489,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
       review_data: { ...mockDraftRecord.review_data }, // 无 sections / custom_photos
     };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [recordNoPhotos], rowCount: 1 });
 
     const res = await request(createApp())
@@ -503,7 +503,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
   it('内容审核拒绝时自动重试，最终标记失败并通知', async () => {
     mockModerateVideo.mockResolvedValue('block');
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 }) // ownership
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 }) // ownership
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 }) // find
       .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 }) // update
       .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'failed' }], rowCount: 1 }); // async failed update
@@ -527,7 +527,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
   it('视频生成失败时自动重试，最终标记失败', async () => {
     mockGenerateMemoirVideo.mockRejectedValue(new Error('Seedance API error'));
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'generating_video' }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 'review-002', status: 'failed' }], rowCount: 1 });
@@ -548,7 +548,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
 
   it('draft 状态无法生成视频返回 400', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockDraftRecord], rowCount: 1 });
 
     const res = await request(createApp())
@@ -560,7 +560,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
 
   it('generating_video 状态重复触发返回 409', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockGeneratingRecord], rowCount: 1 });
 
     const res = await request(createApp())
@@ -572,7 +572,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
 
   it('年度回忆不存在返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -594,7 +594,7 @@ describe('POST /api/pets/:petId/yearly-review/:reviewId/generate-video - 生成�
 
   it('数据库异常返回 500', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 })
       .mockRejectedValueOnce(new Error('DB error'));
 

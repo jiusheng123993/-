@@ -31,10 +31,11 @@ function toCamelCaseArray(arr: Record<string, unknown>[]): Record<string, unknow
   return arr.map(toCamelCase);
 }
 
-async function checkPetOwnership(req: Request, res: Response, next: NextFunction) {
+async function checkPetAccess(req: Request, res: Response, next: NextFunction) {
   try {
     const petId = req.params.petId as string;
-    const owns = await petRepository.isOwner(petId, req.userId!);
+    // 多成员共同养宠：主人或家庭成员均可对共享宠物打卡
+    const owns = await petRepository.canAccess(petId, req.userId!);
     if (!owns) {
       res.status(404).json({ success: false, message: '宠物不存在' });
       return;
@@ -46,7 +47,7 @@ async function checkPetOwnership(req: Request, res: Response, next: NextFunction
   }
 }
 
-router.post('/:petId/checkins', checkPetOwnership, validate({ body: createCheckinSchema }), async (req: Request, res: Response) => {
+router.post('/:petId/checkins', checkPetAccess, validate({ body: createCheckinSchema }), async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
 
@@ -108,7 +109,8 @@ router.post('/:petId/checkins', checkPetOwnership, validate({ body: createChecki
 router.get('/:petId/checkins', validate({ query: checkinHistoryQuerySchema }), async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
-    const owns = await petRepository.isOwner(petId, req.userId!);
+    // 多成员共同养宠：家庭成员可查看共享宠物的全部打卡记录
+    const owns = await petRepository.canAccess(petId, req.userId!);
     if (!owns) {
       res.status(404).json({ success: false, message: '宠物不存在' });
       return;
@@ -118,7 +120,7 @@ router.get('/:petId/checkins', validate({ query: checkinHistoryQuerySchema }), a
     const since = new Date();
     since.setDate(since.getDate() - days);
 
-    const rows = await checkinRepository.findHistoryByDays(petId, req.userId!, since.toISOString());
+    const rows = await checkinRepository.findHistoryByDays(petId, since.toISOString());
 
     res.json({ success: true, data: toCamelCaseArray(rows as unknown as Record<string, unknown>[]) });
   } catch (err) {
@@ -130,7 +132,8 @@ router.get('/:petId/checkins', validate({ query: checkinHistoryQuerySchema }), a
 router.get('/:petId/checkins/today', async (req: Request, res: Response) => {
   try {
     const petId = req.params.petId as string;
-    const owns = await petRepository.isOwner(petId, req.userId!);
+    // 多成员共同养宠：任一成员今日打卡即视为已打卡
+    const owns = await petRepository.canAccess(petId, req.userId!);
     if (!owns) {
       res.status(404).json({ success: false, message: '宠物不存在' });
       return;
@@ -138,7 +141,7 @@ router.get('/:petId/checkins/today', async (req: Request, res: Response) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const row = await checkinRepository.findTodayCheckin(petId, req.userId!, today);
+    const row = await checkinRepository.findTodayCheckin(petId, today);
 
     res.json({ success: true, data: row ? toCamelCase(row as unknown as Record<string, unknown>) : null });
   } catch (err) {

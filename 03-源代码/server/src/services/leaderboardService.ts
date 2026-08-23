@@ -13,7 +13,7 @@ import {
   LeaderboardSnapshotRepository,
   type RoleRow,
 } from '../repositories/leaderboardRepository.js';
-import { FamilyRepository, FamilyMemberRepository } from '../repositories/familyRepository.js';
+import { FamilyRepository, FamilyMemberRepository, FamilyUserRepository } from '../repositories/familyRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
 
 /** 排行榜项 */
@@ -76,6 +76,7 @@ export class LeaderboardError extends Error {
 const roleRepository = new RoleRepository();
 const snapshotRepository = new LeaderboardSnapshotRepository();
 const familyRepository = new FamilyRepository();
+const familyUserRepository = new FamilyUserRepository();
 const familyMemberRepository = new FamilyMemberRepository();
 const petRepository = new PetRepository();
 
@@ -255,7 +256,7 @@ export async function refreshLeaderboard(
   familyId: string,
   period: 'weekly' | 'monthly' | 'all_time',
 ): Promise<LeaderboardResponse> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new LeaderboardError(404, '家庭不存在');
   }
@@ -284,7 +285,7 @@ export async function getLeaderboard(
   familyId: string,
   period: 'weekly' | 'monthly' | 'all_time',
 ): Promise<LeaderboardResponse> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new LeaderboardError(404, '家庭不存在');
   }
@@ -325,7 +326,7 @@ export async function listRoles(
   userId: string,
   familyId: string,
 ): Promise<FamilyRolesResponse> {
-  const owns = await familyRepository.isOwner(familyId, userId);
+  const owns = await familyUserRepository.isFamilyUser(familyId, userId);
   if (!owns) {
     throw new LeaderboardError(404, '家庭不存在');
   }

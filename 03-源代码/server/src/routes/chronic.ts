@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 慢性病追踪路由 - 宠物慢性病记录 CRUD
  * 支持创建、列表、更新、删除，均校验宠物归属，杜绝越权
  */
@@ -46,7 +46,7 @@ function toCamelCaseArray(arr: Record<string, unknown>[]): Record<string, unknow
 async function checkPetOwnership(req: Request, res: Response, next: NextFunction) {
   try {
     const petId = req.params.petId as string;
-    const owns = await petRepository.isOwner(petId, req.userId!);
+    const owns = await petRepository.canAccess(petId, req.userId!);
     if (!owns) {
       res.status(404).json({ success: false, message: '宠物不存在' });
       return;

@@ -78,7 +78,7 @@ beforeEach(() => {
 describe('POST /pets/:petId/feeding-records - 创建喂养记录', () => {
   it('正常创建记录，返回 201 且字段转为 camelCase', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockFeedingRecord], rowCount: 1 });
 
     const res = await request(createApp())
@@ -105,7 +105,7 @@ describe('POST /pets/:petId/feeding-records - 创建喂养记录', () => {
   });
 
   it('参数校验：food_type 为空，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/feeding-records')
@@ -115,7 +115,7 @@ describe('POST /pets/:petId/feeding-records - 创建喂养记录', () => {
   });
 
   it('参数校验：date 格式错误，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/feeding-records')
@@ -125,7 +125,7 @@ describe('POST /pets/:petId/feeding-records - 创建喂养记录', () => {
   });
 
   it('参数校验：appetite 非法值，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/pets/pet-001/feeding-records')
@@ -147,7 +147,7 @@ describe('POST /pets/:petId/feeding-records - 创建喂养记录', () => {
 
   it('服务端错误：数据库异常，返回 500', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockRejectedValueOnce(new Error('DB down'));
 
     const res = await request(createApp())
@@ -161,7 +161,7 @@ describe('POST /pets/:petId/feeding-records - 创建喂养记录', () => {
 describe('GET /pets/:petId/feeding-records - 查询喂养记录列表', () => {
   it('正常返回列表（camelCase 字段）', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [mockFeedingRecord], rowCount: 1 });
 
     const res = await request(createApp()).get('/pets/pet-001/feeding-records');
@@ -186,7 +186,7 @@ describe('PUT /pets/:petId/feeding-records/:recordId - 更新喂养记录', () =
   it('正常更新记录', async () => {
     const updated = { ...mockFeedingRecord, appetite: 'poor', notes: '食欲下降' };
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [updated], rowCount: 1 });
 
     const res = await request(createApp())
@@ -200,7 +200,7 @@ describe('PUT /pets/:petId/feeding-records/:recordId - 更新喂养记录', () =
 
   it('记录不存在（或不属于当前用户），返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
     const res = await request(createApp())
@@ -212,7 +212,7 @@ describe('PUT /pets/:petId/feeding-records/:recordId - 更新喂养记录', () =
   });
 
   it('参数校验：food_type 超长，返回 400', async () => {
-    mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 });
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });
 
     const res = await request(createApp())
       .put('/pets/pet-001/feeding-records/feeding-001')
@@ -225,7 +225,7 @@ describe('PUT /pets/:petId/feeding-records/:recordId - 更新喂养记录', () =
 describe('DELETE /pets/:petId/feeding-records/:recordId - 删除喂养记录', () => {
   it('正常删除记录', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 1 });
 
     const res = await request(createApp()).delete('/pets/pet-001/feeding-records/feeding-001');
@@ -236,7 +236,7 @@ describe('DELETE /pets/:petId/feeding-records/:recordId - 删除喂养记录', (
 
   it('记录不存在，返回 404', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ id: 'pet-001' }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 0 });
 
     const res = await request(createApp()).delete('/pets/pet-001/feeding-records/feeding-999');

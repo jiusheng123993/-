@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 宠物形象生成路由 - AI 生成宠物头像、2D/3D 形象
  * 支持头像生成、照片上传、2D 形象包生成、3D 模型生成、任务进度查询
  * 通过 PetRepository、MembershipRepository、AvatarGenerationRepository 等访问数据库
@@ -299,7 +299,7 @@ router.post('/photo/upload', authMiddleware, photoUploadLimiter, upload.single('
     }
 
     // 校验宠物归属
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
       return;
@@ -449,7 +449,7 @@ router.post('/generate-3d', authMiddleware, generateLimiter, async (req: Request
     }
 
     // 校验 petId 归属
-    const isOwner = await petRepository.isOwner(petId, userId);
+    const isOwner = await petRepository.canAccess(petId, userId);
     if (!isOwner) {
       res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
       return;

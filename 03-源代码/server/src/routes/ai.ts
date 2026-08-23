@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI 服务路由 - 对话、安全检测、取名、语音识别、品种识别
  * 集成 DeepSeek 和阿里云百炼 AI 服务
  */
@@ -353,7 +353,7 @@ router.post('/health-report-recognize', authMiddleware, uploadLimiter, upload.si
     }
 
     // 归属校验（安全红线：不能对他人宠物写健康数据）
-    const isOwner = await petRepository.isOwner(petId, req.userId as string);
+    const isOwner = await petRepository.canAccess(petId, req.userId as string);
     if (!isOwner) {
       res.status(404).json({ success: false, message: '宠物不存在或无权操作' });
       return;

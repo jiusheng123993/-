@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 支付模块集成测试
  *
  * 覆盖：
@@ -175,12 +175,12 @@ beforeEach(() => {
 describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
   it('会员日常回忆录配额内：直接创建任务，返回 need_payment=false', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [mockMembershipRow], rowCount: 1 })    // tier: member
       .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })         // monthly quota: 0 used
       // createMemoirFromPayment 内部：归属校验 + 并发校验 + insert
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK (二次)
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK (二次)
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task (二次)
       .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });    // insert
 
@@ -201,7 +201,7 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
   it('非会员日常回忆录：创建支付订单，返回 need_payment=true', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // tier: free (无会员记录)
       .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid-001' }], rowCount: 1 }) // user
@@ -226,7 +226,7 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
   it('非会员纪念Vlog：返回 149 元订单', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // tier: free
       .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid-001' }], rowCount: 1 }) // user
@@ -247,7 +247,7 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
   it('会员纪念Vlog：返回 99 元订单', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [mockMembershipRow], rowCount: 1 })    // tier: member
       .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid-001' }], rowCount: 1 }) // user
@@ -284,7 +284,7 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
   it('已有进行中任务返回 409', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });   // active task exists
 
     const res = await request(createApp())
@@ -380,7 +380,7 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
       // markPaidByCallback: UPDATE ... RETURNING id
       .mockResolvedValueOnce({ rows: [{ id: orderId }], rowCount: 1 })
       // createMemoirFromPayment 内部：
-      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }], rowCount: 1 })  // ownership OK
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
       .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });   // insert
 
