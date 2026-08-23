@@ -209,10 +209,12 @@ export function getHomeStyleAvatarKey(pet: Pick<PetProfile, 'species' | 'breed' 
 /**
  * 获取宠物的小动物头像绝对 URL（用于家庭页 <Image> src）
  * 走服务器 /uploads 静态托管，resolveAvatarUrl 负责拼接 API_BASE_URL
- * 注意：服务器文件按物种分子目录存放（home-style/cat/*.webp、home-style/dog/*.webp），
+ * 注意：服务器文件按物种分子目录存放（home-style/cat/*.png、home-style/dog/*.png），
  *       URL 必须带上 species 子目录，否则 404。
+ * 2026-08-24：文件后缀由 .webp 改为 .png——微信安卓真机对 webp（尤其 VP8X 带透明）
+ *      解码兼容性差（模拟器正常、真机不显示），服务器已同步上传 PNG 版本。
  * @param pet - 宠物档案
- * @returns 完整 URL，如 https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.webp
+ * @returns 完整 URL，如 https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.png
  */
 export function getHomeStyleAvatarUrl(pet: Pick<PetProfile, 'species' | 'breed' | 'breedId'>): string {
   const key = getHomeStyleAvatarKey(pet)
@@ -224,8 +226,8 @@ export function getHomeStyleAvatarUrl(pet: Pick<PetProfile, 'species' | 'breed' 
  * 与 getHomeStyleAvatarUrl 同源，保证「预设形象」与「家庭页头像」引用同一张图。
  * @param key - 头像文件名（不含扩展名），如 cat-01-orange-tabby
  * @param species - 物种（决定 URL 子目录）
- * @returns 完整 URL，如 https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.webp
+ * @returns 完整 URL，如 https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.png
  */
 export function getHomeStyleAvatarUrlByKey(key: string, species: 'dog' | 'cat'): string {
-  return resolveAvatarUrl(`/uploads/avatars/home-style/${species}/${key}.webp`)
+  return resolveAvatarUrl(`/uploads/avatars/home-style/${species}/${key}.png`)
 }

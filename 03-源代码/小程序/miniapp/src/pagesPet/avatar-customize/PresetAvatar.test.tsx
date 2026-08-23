@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PresetAvatar 预设形象头像组件测试
  * 覆盖：正常显示图片、图片加载失败回退物种 emoji、切换图片后失败状态重置
  */
@@ -25,7 +25,7 @@ describe('PresetAvatar', () => {
   it('正常渲染品牌头像图片（带 lazyLoad）', () => {
     render(
       <PresetAvatar
-        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01.webp'
+        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01.png'
         species='cat'
         imgClass='avatar-preset__img'
         fallbackClass='avatar-preset__fallback'
@@ -33,7 +33,7 @@ describe('PresetAvatar', () => {
     )
     const img = document.querySelector('.avatar-preset__img') as HTMLImageElement
     expect(img).toBeDefined()
-    expect(img.src).toContain('/uploads/avatars/home-style/cat/cat-01.webp')
+    expect(img.src).toContain('/uploads/avatars/home-style/cat/cat-01.png')
     expect(img.getAttribute('data-lazy')).toBe('true')
     // 未失败时不应显示 fallback
     expect(document.querySelector('.avatar-preset__fallback')).toBeNull()
@@ -42,7 +42,7 @@ describe('PresetAvatar', () => {
   it('图片加载失败：猫回退 🐱 emoji', () => {
     render(
       <PresetAvatar
-        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01.webp'
+        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01.png'
         species='cat'
         imgClass='avatar-preset__img'
         fallbackClass='avatar-preset__fallback'
@@ -57,7 +57,7 @@ describe('PresetAvatar', () => {
   it('图片加载失败：狗回退 🐶 emoji', () => {
     render(
       <PresetAvatar
-        src='https://api.xinghuanhai.com/uploads/avatars/home-style/dog/dog-01.webp'
+        src='https://api.xinghuanhai.com/uploads/avatars/home-style/dog/dog-01.png'
         species='dog'
         imgClass='avatar-preset__img'
         fallbackClass='avatar-preset__fallback'
@@ -71,7 +71,7 @@ describe('PresetAvatar', () => {
   it('切换 src 后失败状态重置（不再卡在 emoji）', () => {
     const { rerender } = render(
       <PresetAvatar
-        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01.webp'
+        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01.png'
         species='cat'
         imgClass='avatar-preset__img'
         fallbackClass='avatar-preset__fallback'
@@ -82,7 +82,7 @@ describe('PresetAvatar', () => {
     // 切换另一张图（src 变化）→ 应重新显示 Image
     rerender(
       <PresetAvatar
-        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-02.webp'
+        src='https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-02.png'
         species='cat'
         imgClass='avatar-preset__img'
         fallbackClass='avatar-preset__fallback'

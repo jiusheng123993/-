@@ -32,13 +32,15 @@ describe('预设形象库', () => {
     }
   })
 
-  it('与家庭页头像同源：每个预设 key 都存在于品牌头像库，URL 指向 home-style 目录', () => {
+  it('与家庭页头像同源：每个预设 key 都存在于品牌头像库，图片为分包内本地资源', () => {
     const homeKeys = new Set(HOME_STYLE_AVATARS.map((item) => item.key))
     for (const item of AVATAR_PRESETS) {
       // 预设 ID = 品牌头像 key，保证"形象"与"头像"是同一张图
       expect(homeKeys.has(item.id)).toBe(true)
-      // 图片为服务端静态托管的绝对地址，且带物种子目录（形象与头像同源）
-      expect(item.image).toMatch(/^https?:\/\/.+\/uploads\/avatars\/home-style\/(dog|cat)\/[a-z0-9-]+\.webp$/)
+      // 2026-08-24：预设形象已改为分包内本地打包资源（见 data/avatarPresets.ts 注释，
+      // 避免依赖 downloadFile 域名；原断言服务端 https URL 已随实现变更修正），
+      // 这里验证图片来自本地 preset-home 目录且为 PNG（与服务器 home-style 同源同批图）
+      expect(item.image).toMatch(/preset-home\/(dog|cat)\/[a-z0-9-]+\.png$/)
     }
   })
 

@@ -11,10 +11,12 @@ import { isWeapp, sendSmsCode, isApp, API_BASE_URL } from '../../platform'
 // 登录后是否引导绑定微信头像昵称的判断 + 跳过标记 key 构造（纯函数，见 guide.ts 单测；
 // 用裸 Taro 存储，utils/storage 带 userId 前缀会与绑定页写入时机错位）
 import { shouldGuideWechatBind, bindSkippedKey } from '../bind-wechat/guide'
-// 登录主视觉图片随页面一起迁入分包，避免占用主包体积
-import loginHero from './assets/login-hero.webp'
-// 品牌 logo：猫狗大头像（定稿方案 1，圆角图标版，WebP 压缩），多处共用故留在主包 assets
-import brandLogo from '../../assets/logo-catdog-01.webp'
+// 登录主视觉图片随页面一起迁入分包，避免占用主包体积。
+// 原为 webp，微信安卓真机对 webp（尤其 VP8X+ALPH 带透明通道）解码兼容性差，
+// 真机/体验版不显示（模拟器正常），已统一转 PNG 保证全端稳定显示。
+import loginHero from './assets/login-hero.png'
+// 品牌 logo：猫狗大头像（定稿方案 1，圆角图标版），原 webp 转 PNG（同上兼容性原因）
+import brandLogo from '../../assets/logo-catdog-01.png'
 import './index.scss'
 
 const FEATURES = [

@@ -110,13 +110,13 @@ describe('家庭页小动物头像映射', () => {
     expect(getHomeStyleAvatarKey(makePet({ species: 'cat' }))).toBe('cat-01-orange-tabby')
   })
 
-  it('URL 契约：含 species 子目录 + .webp 后缀（服务器文件真实布局）', () => {
+  it('URL 契约：含 species 子目录 + .png 后缀（服务器文件真实布局）', () => {
     // 猫：ragdoll → cat 子目录
     expect(getHomeStyleAvatarUrl(makePet({ species: 'cat', breedId: 'ragdoll' })))
-      .toBe('https://mock-api.example.com/uploads/avatars/home-style/cat/cat-08-ragdoll.webp')
+      .toBe('https://mock-api.example.com/uploads/avatars/home-style/cat/cat-08-ragdoll.png')
     // 狗：golden_retriever → dog 子目录
     expect(getHomeStyleAvatarUrl(makePet({ species: 'dog', breedId: 'golden_retriever' })))
-      .toBe('https://mock-api.example.com/uploads/avatars/home-style/dog/dog-01-golden.webp')
+      .toBe('https://mock-api.example.com/uploads/avatars/home-style/dog/dog-01-golden.png')
   })
 
   it('关键词匹配不跨物种：猫的"金毛"关键词不会命中狗的 dog-01', () => {
@@ -137,13 +137,13 @@ describe('家庭页小动物头像映射', () => {
     expect(key).toBe('dog-10-poodle')
   })
 
-  it('URL 按 key 直拼：getHomeStyleAvatarUrlByKey 带物种子目录 + .webp 后缀', () => {
+  it('URL 按 key 直拼：getHomeStyleAvatarUrlByKey 带物种子目录 + .png 后缀', () => {
     // 猫：cat-08 → cat 子目录
     expect(getHomeStyleAvatarUrlByKey('cat-08-ragdoll', 'cat'))
-      .toBe('https://mock-api.example.com/uploads/avatars/home-style/cat/cat-08-ragdoll.webp')
+      .toBe('https://mock-api.example.com/uploads/avatars/home-style/cat/cat-08-ragdoll.png')
     // 狗：dog-01 → dog 子目录
     expect(getHomeStyleAvatarUrlByKey('dog-01-golden', 'dog'))
-      .toBe('https://mock-api.example.com/uploads/avatars/home-style/dog/dog-01-golden.webp')
+      .toBe('https://mock-api.example.com/uploads/avatars/home-style/dog/dog-01-golden.png')
   })
 
   it('getHomeStyleAvatarUrl 与 getHomeStyleAvatarUrlByKey 输出一致（同源不漂移）', () => {

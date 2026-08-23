@@ -7,30 +7,32 @@
  * 为什么用本地资源（而非远程 URL）：
  * - 之前用服务端 /uploads 远程 URL，微信开发者工具下若 downloadFile 域名校验拦截，
  *   图片加载失败且 onError 可能不触发，导致「预设形象区只有文字没有图片」；
- * - 本页位于 pagesPet 分包（总包仅 3.1MB / 限 20MB），20 张 256px WebP 约 206KB
- *   直接打进分包，彻底不依赖网络/域名，开发工具与线上都能稳定显示；
+ * - 本页位于 pagesPet 分包，20 张 256px 图片直接打进分包，彻底不依赖网络/域名，
+ *   开发工具与线上都能稳定显示；
  * - 与家庭页头像保持同源（同一批生成图的压缩版），风格完全一致。
+ * 注：原为 WebP，微信安卓真机对 webp（尤其 VP8X+ALPH 带透明通道）解码兼容性差，
+ *     真机/体验版不显示（模拟器正常），已统一转 PNG 保证全端稳定显示。
  */
-import cat01 from '../assets/preset-home/cat/cat-01-orange-tabby.webp'
-import cat02 from '../assets/preset-home/cat/cat-02-british-blue.webp'
-import cat03 from '../assets/preset-home/cat/cat-03-cow.webp'
-import cat04 from '../assets/preset-home/cat/cat-04-calico.webp'
-import cat05 from '../assets/preset-home/cat/cat-05-black.webp'
-import cat06 from '../assets/preset-home/cat/cat-06-white-blue-eye.webp'
-import cat07 from '../assets/preset-home/cat/cat-07-siamese.webp'
-import cat08 from '../assets/preset-home/cat/cat-08-ragdoll.webp'
-import cat09 from '../assets/preset-home/cat/cat-09-chinese-tabby.webp'
-import cat10 from '../assets/preset-home/cat/cat-10-american-shorthair.webp'
-import dog01 from '../assets/preset-home/dog/dog-01-golden.webp'
-import dog02 from '../assets/preset-home/dog/dog-02-shiba.webp'
-import dog03 from '../assets/preset-home/dog/dog-03-corgi.webp'
-import dog04 from '../assets/preset-home/dog/dog-04-husky.webp'
-import dog05 from '../assets/preset-home/dog/dog-05-samoyed.webp'
-import dog06 from '../assets/preset-home/dog/dog-06-french-bulldog.webp'
-import dog07 from '../assets/preset-home/dog/dog-07-bichon.webp'
-import dog08 from '../assets/preset-home/dog/dog-08-border-collie.webp'
-import dog09 from '../assets/preset-home/dog/dog-09-labrador.webp'
-import dog10 from '../assets/preset-home/dog/dog-10-poodle.webp'
+import cat01 from '../assets/preset-home/cat/cat-01-orange-tabby.png'
+import cat02 from '../assets/preset-home/cat/cat-02-british-blue.png'
+import cat03 from '../assets/preset-home/cat/cat-03-cow.png'
+import cat04 from '../assets/preset-home/cat/cat-04-calico.png'
+import cat05 from '../assets/preset-home/cat/cat-05-black.png'
+import cat06 from '../assets/preset-home/cat/cat-06-white-blue-eye.png'
+import cat07 from '../assets/preset-home/cat/cat-07-siamese.png'
+import cat08 from '../assets/preset-home/cat/cat-08-ragdoll.png'
+import cat09 from '../assets/preset-home/cat/cat-09-chinese-tabby.png'
+import cat10 from '../assets/preset-home/cat/cat-10-american-shorthair.png'
+import dog01 from '../assets/preset-home/dog/dog-01-golden.png'
+import dog02 from '../assets/preset-home/dog/dog-02-shiba.png'
+import dog03 from '../assets/preset-home/dog/dog-03-corgi.png'
+import dog04 from '../assets/preset-home/dog/dog-04-husky.png'
+import dog05 from '../assets/preset-home/dog/dog-05-samoyed.png'
+import dog06 from '../assets/preset-home/dog/dog-06-french-bulldog.png'
+import dog07 from '../assets/preset-home/dog/dog-07-bichon.png'
+import dog08 from '../assets/preset-home/dog/dog-08-border-collie.png'
+import dog09 from '../assets/preset-home/dog/dog-09-labrador.png'
+import dog10 from '../assets/preset-home/dog/dog-10-poodle.png'
 
 /** 预设形象条目 */
 export interface AvatarPreset {

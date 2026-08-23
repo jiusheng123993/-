@@ -9,7 +9,9 @@
  * - 提供 prefers-reduced-motion 降级：保留淡入，去掉位移动画
  */
 import { View, Text, Image } from '@tarojs/components'
-import logoCatdog from '../assets/logo-catdog-01.webp'
+// 品牌 logo 原为 WebP，微信安卓真机对 webp 解码兼容性差（真机不显示、模拟器正常），
+// 已转 PNG 保证全端稳定显示
+import logoCatdog from '../assets/logo-catdog-01.png'
 import './LogoLoading.scss'
 
 export default function LogoLoading() {
