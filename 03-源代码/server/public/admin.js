@@ -29,10 +29,16 @@
     return h;
   }
 
-  /** 统一响应处理：非 2xx 抛错 */
+  /** 显示/隐藏令牌提示条（403 或未输入时显示，让用户知道要做什么） */
+  function showAuthWarning(show) {
+    document.getElementById('auth-warning').classList.toggle('hidden', !show);
+  }
+
+  /** 统一响应处理：非 2xx 抛错；403 时额外提示令牌问题 */
   async function handle(r) {
     let body = {};
     try { body = await r.json(); } catch (e) { /* 非 JSON 响应 */ }
+    if (r.status === 403) showAuthWarning(true);
     if (!r.ok) throw new Error(body.message || ('HTTP ' + r.status));
     return body;
   }
@@ -204,7 +210,8 @@
     t.addEventListener('click', () => switchTab(t.dataset.tab));
   });
 
-  // 初始化：回填本地令牌并加载图谱
+  // 初始化：回填本地令牌并加载图谱；未存令牌时显示提示条
   document.getElementById('token').value = localStorage.getItem('adminToken') || '';
+  if (!getToken()) showAuthWarning(true);
   loadGraph();
 })();

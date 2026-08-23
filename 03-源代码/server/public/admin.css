@@ -34,3 +34,16 @@ button.reject { background: #E5484D; }
 .redeem-days { font-size: 12px; color: #666; }
 .redeem-note { font-size: 12px; color: #999; }
 .redeem-by { font-size: 12px; color: #999; margin-left: auto; }
+
+/* ===== 令牌提示条（2026-08-23） ===== */
+.auth-warning {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #FFF3CD;
+  border: 1px solid #FFC107;
+  color: #856404;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.auth-warning code { background: #FFF; padding: 2px 6px; border-radius: 4px; font-size: 12px; }

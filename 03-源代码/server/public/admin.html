@@ -6,15 +6,22 @@
   <title>星河宠记 · 知识图谱审核后台</title>
   <!-- 外置 CSS/JS：helmet 默认 CSP(script-src 'self') 禁止内联脚本与内联事件，管理页必须外置（审查项 S1 修复）
        ?v= 版本号强制刷新浏览器缓存（改 admin.js/css 后记得递增） -->
-  <link rel="stylesheet" href="/admin/admin.css?v=3" />
+  <link rel="stylesheet" href="/admin/admin.css?v=4" />
 </head>
 <body>
   <div class="wrap">
     <h1>🐾 星河宠记 · 知识图谱审核后台</h1>
 
+    <!-- 令牌提示条（403/未输入时显示，2026-08-23） -->
+    <div id="auth-warning" class="auth-warning hidden">
+      ⚠️ <b>管理员令牌无效或未输入</b>：请在下方输入 ADMIN_TOKEN（服务器 .env 中
+      <code>grep '^ADMIN_TOKEN=' /opt/xinghuanhai/server/.env</code> 等号后的 64 位字符），
+      然后点「保存令牌」。
+    </div>
+
     <div class="card">
       <label>管理员令牌（x-admin-token，存于浏览器本地）</label>
-      <input type="text" id="token" placeholder="输入 ADMIN_TOKEN" />
+      <input type="text" id="token" placeholder="输入 ADMIN_TOKEN（仅等号后的 64 位字符）" />
       <button id="btn-save-token">保存令牌</button>
       <button id="btn-test" class="secondary">测试连接</button>
     </div>
@@ -86,6 +93,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="/admin/admin.js?v=3"></script>
+  <script src="/admin/admin.js?v=4"></script>
 </body>
 </html>
