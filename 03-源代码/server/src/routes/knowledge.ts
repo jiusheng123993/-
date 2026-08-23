@@ -7,30 +7,17 @@
  * 5. GET  /api/admin/feedback          - 管理端：反馈列表（Token）
  * 6. POST /api/admin/feedback/:id/review - 管理端：审核 approve/reject（Token）
  */
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
+import { adminAuth } from '../middleware/adminAuth.js';
 import { validate } from '../middleware/validate.js';
 import { knowledgeFeedbackSchema, adminKnowledgeSchema, adminReviewSchema } from '../schemas/index.js';
 import { KnowledgeGraphRepository, KnowledgeFeedbackRepository } from '../repositories/knowledgeRepository.js';
-import { config } from '../config.js';
 
 const router = Router();
 
 const graphRepository = new KnowledgeGraphRepository();
 const feedbackRepository = new KnowledgeFeedbackRepository();
-
-/**
- * 管理端 Token 校验（fail-closed：未配置 ADMIN_TOKEN 或令牌不匹配一律 403）
- * 密钥只存在于 .env（ADMIN_TOKEN），不写入代码
- */
-function adminAuth(req: Request, res: Response, next: NextFunction): void {
-  const token = String(req.headers['x-admin-token'] || '').trim();
-  if (!config.adminToken || token !== config.adminToken) {
-    res.status(403).json({ success: false, message: '管理员令牌无效' });
-    return;
-  }
-  next();
-}
 
 /**
  * 图谱结构最小校验（审查项修复）

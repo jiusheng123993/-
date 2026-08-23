@@ -202,6 +202,20 @@ export const adminReviewSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
+// ===== 兑换码模块（2026-08-23） =====
+
+/** 用户兑换码（登录态提交） */
+export const redeemSchema = z.object({
+  code: z.string({ error: '请填写兑换码' }).trim().min(1, '请填写兑换码').max(50, '兑换码过长'),
+});
+
+/** 管理端生成兑换码 */
+export const adminRedeemGenerateSchema = z.object({
+  count: z.number().int().min(1).max(100).optional(),
+  days: z.number().int().min(1).max(36500),
+  note: z.string().max(200).optional(),
+});
+
 // ===== 记忆模块 =====
 
 /** 记忆列表查询（可按宠物过滤） */
