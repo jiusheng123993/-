@@ -100,6 +100,8 @@ export default defineAppConfig({
         // 主包瘦身：登录页/会员中心页原在主包，迁入分包后主包体积降至 1.5M 以下（微信上传代码质量要求）
         'member/index',
         'login/index',
+        // 登录后引导绑定微信头像昵称页（chooseAvatar + nickname 官方能力）
+        'bind-wechat/index',
       ],
     },
   ],

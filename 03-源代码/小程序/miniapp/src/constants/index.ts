@@ -91,4 +91,6 @@ export const STORAGE_KEYS = {
   AVATAR_PHOTO_COUNT: 'xhh_avatar_photo_count',
   AVATAR_3D_COUNT: 'xhh_avatar_3d_count',
   AVATAR_3D_COUNT_DATE: 'xhh_avatar_3d_count_date',
+  // 微信头像昵称绑定引导：用户点过"暂不绑定"后记录，避免每次登录都打断
+  WECHAT_BIND_SKIPPED: 'xhh_wechat_bind_skipped',
 } as const;
