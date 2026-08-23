@@ -55,7 +55,30 @@ export interface MemberInfo {
   species: string;
   /** 品种可能为空（档案未填），构建提示词时必须兜底，不能出现空串/undefined */
   breed: string | null;
+  /**
+   * 全家福参考图 URL（仅真实形象：用户上传的真实照片 或 基于照片生成的 AI 形象）
+   * 品牌默认头像（预设/家庭页兜底图）已在此字段置 null，不会进参考图
+   */
   photoUrl: string | null;
+  /**
+   * 是否有真实形象（真实照片 / AI 生成形象）；false = 只有默认头像或无头像
+   * 由 collectMemberPhotos 填充；直接手造成员（如单测 buildPrompt）可省略（undefined 视为无真实形象）
+   */
+  hasRealImage?: boolean;
+}
+
+/**
+ * 品牌默认头像判定
+ * 预设形象库 / 家庭页兜底头像（home-style 系列）只是"默认图"，不是小猫的真实样子，
+ * 绝不能作为全家福参考图（否则生成的"全家福"是默认卡通图而非真实宠物）。
+ * 品牌头像两个来源：
+ * - 服务端 `/uploads/avatars/home-style/`（家庭页按品种兜底展示）
+ * - 本地预设资源 `preset-home`（形象定制页"预设形象"保存进 avatar_cartoon_url）
+ */
+export function isBrandPresetUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  // 按路径段匹配（带斜杠），避免用户真实照片 URL 恰好含该子串被误杀
+  return url.includes('/home-style/') || url.includes('/preset-home/');
 }
 
 interface GenerateFamilyPhotoParams {
@@ -112,6 +135,8 @@ export function buildPrompt(members: MemberInfo[], style: FamilyPhotoStyle): str
 /**
  * 收集家庭成员宠物照片URL
  * 从 pet_family_members JOIN pet_profiles 获取成员信息和照片
+ * 分级：photoUrl 只保留"真实形象"（真实照片/AI 生成形象），
+ * 品牌默认头像（home-style 预设/兜底图）一律视为无真实形象
  */
 async function collectMemberPhotos(familyId: string, userId: string): Promise<MemberInfo[]> {
   const result = await pool.query(
@@ -128,7 +153,11 @@ async function collectMemberPhotos(familyId: string, userId: string): Promise<Me
      ORDER BY m.joined_at ASC`,
     [familyId, userId],
   );
-  return result.rows;
+  // 真实形象判定：URL 非空且不是品牌默认头像
+  return result.rows.map((r) => {
+    const real = !!r.photoUrl && !isBrandPresetUrl(r.photoUrl);
+    return { ...r, photoUrl: real ? r.photoUrl : null, hasRealImage: real };
+  });
 }
 
 /**
@@ -202,6 +231,10 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
   photoId?: string;
   photoUrl?: string;
   message?: string;
+  /** 业务错误码（前端据此做引导，如 MEMBER_NO_REAL_IMAGE） */
+  code?: string;
+  /** 缺少真实形象的成员（引导前端跳转生成形象） */
+  missingMembers?: Array<{ petId: string; name: string }>;
 }> {
   const { familyId, userId, style } = params;
   const apiKey = config.seedream.apiKey;
@@ -222,6 +255,20 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
   }
   if (members.length < 2) {
     return { success: false, message: '全家福需要至少2位家庭成员' };
+  }
+
+  // 分级校验：全家福参考图必须是"真实形象"（真实照片 / AI 生成形象）。
+  // 只有品牌默认头像或无头像的成员，先引导生成形象，不硬生成——
+  // 否则生成的是"默认卡通图全家福"，不是真实的小猫（用户明确要求）
+  const missingReal = members.filter((m) => !m.hasRealImage);
+  if (missingReal.length > 0) {
+    const names = missingReal.map((m) => m.name).join('、');
+    return {
+      success: false,
+      code: 'MEMBER_NO_REAL_IMAGE',
+      message: `「${names}」还没有真实形象，请先为它上传照片或生成专属形象，再生成全家福`,
+      missingMembers: missingReal.map((m) => ({ petId: m.petId, name: m.name })),
+    };
   }
 
   const memberNames = members.map((m) => m.name);

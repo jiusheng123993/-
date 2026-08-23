@@ -42,7 +42,7 @@ function getTodayStr(): string {
 
 export default function FamilyDashboard() {
   const { currentFamily, members, photos, photosLoading, fetchFamilies, createFamily, removeMember, updateMemberRole, fetchPhotos, savePhoto, deletePhoto, generateAiPhoto } = useFamilyStore()
-  const { pets, fetchPets } = usePetStore()
+  const { pets, fetchPets, switchPet } = usePetStore()
   const user = useAuthStore(s => s.user)
   const [creating, setCreating] = useState(false)
   const [todayStatus, setTodayStatus] = useState<Record<string, { checked: boolean; mood?: string }>>({})
@@ -242,6 +242,36 @@ export default function FamilyDashboard() {
         return
       }
 
+      // 分级引导：成员只有"默认头像/无真实形象"时，AI 全家福不能按真实样子生成——
+      // 引导用户先去上传照片/生成专属形象，不降级 Canvas（手绘占位不是真实全家福）
+      // 注：progressTimer 已在 await generateAiPhoto 后统一清理，这里无需重复 clear
+      if (result.code === 'MEMBER_NO_REAL_IMAGE') {
+        setAiGenerating(false)
+        setPhotoGenerating(false)
+        setAiProgressText('')
+        const names = (result.missingMembers || []).map((m) => m.name).join('、')
+        Taro.showModal({
+          title: '先为毛孩子生成真实形象',
+          content: `「${names}」还没有真实形象。上传照片或生成专属形象后，全家福才能用它的真实样子。现在去生成？`,
+          confirmText: '去生成形象',
+          cancelText: '稍后再说',
+          success: (r) => {
+            if (!r.confirm) return
+            // 切到第一只缺形象的宠物，形象定制页默认用它（无需用户手动切换）
+            // switchPet 是网络调用，失败静默（页面仍可手动切宠物），不让未处理拒绝冒泡
+            const firstMissing = result.missingMembers?.[0]
+            if (firstMissing) {
+              const targetPet = familyPets.find((fp) => fp.member.petId === firstMissing.petId)?.pet
+              if (targetPet) {
+                void switchPet(targetPet.id).catch(() => {})
+              }
+            }
+            Taro.navigateTo({ url: '/pagesPet/avatar-customize/index' })
+          },
+        })
+        return
+      }
+
       // AI 失败，提示用户并降级到 Canvas
       Taro.showToast({ title: result.message || 'AI 生成失败，切换为手绘风格', icon: 'none', duration: 2000 })
     } catch {
@@ -275,7 +305,7 @@ export default function FamilyDashboard() {
       setPhotoGenerating(false)
       setCanvasVisible(false)
     }
-  }, [currentFamily, familyPets, members, generateAiPhoto])
+  }, [currentFamily, familyPets, members, generateAiPhoto, switchPet])
 
   const handleSavePhoto = useCallback(async () => {
     if (!photoUrl) return

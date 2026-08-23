@@ -129,10 +129,15 @@ async function request<T>(path: string, options?: { method?: string; data?: any;
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
-    const body = res.data as ApiResponse<T> & { success?: boolean }
+    const body = res.data as ApiResponse<T> & { success?: boolean; code?: unknown; missingMembers?: unknown }
     if (body.success) return body.data as T
     if (body.code === 0) return body.data
-    throw new Error(body.message || '请求失败')
+    // 业务错误：把后端业务错误码（如 MEMBER_NO_REAL_IMAGE）与附加数据挂到 Error 上，
+    // 供调用方（如全家福引导）做差异化处理；message 保持原样
+    const err = new Error(body.message || '请求失败') as Error & { code?: string; missingMembers?: unknown }
+    if (body.code && typeof body.code === 'string') err.code = body.code
+    if (body.missingMembers) err.missingMembers = body.missingMembers
+    throw err
   } catch (err: any) {
     if (err.message === 'request:fail') {
       throw new Error('网络异常，请检查网络连接')

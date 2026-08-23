@@ -684,7 +684,7 @@ export default function AvatarCustomizePage() {
           <Text className='avatar-preset__hint'>{species === 'cat' ? '10 款猫咪' : '10 款狗狗'}，选一个直接用</Text>
         </View>
         <View className='avatar-preset__grid'>
-          {presetList.map((preset) => (
+          {presetList.map((preset, idx) => (
             <View
               key={preset.id}
               className={`avatar-preset__card ${selectedPresetId === preset.id ? 'avatar-preset__card--active' : ''}`}
@@ -703,7 +703,8 @@ export default function AvatarCustomizePage() {
                   </View>
                 )}
               </View>
-              <Text className='avatar-preset__label'>{preset.breed}</Text>
+              {/* 预设只是"默认头像"，不标品种名——避免用户误以为这就是自家小猫的品种形象 */}
+              <Text className='avatar-preset__label'>预设 {idx + 1}</Text>
             </View>
           ))}
         </View>

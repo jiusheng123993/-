@@ -23,7 +23,7 @@ vi.mock('../config.js', () => ({
   },
 }));
 
-import { buildPrompt, FAMILY_PHOTO_STYLES, type MemberInfo } from './familyPhotoService.js';
+import { buildPrompt, FAMILY_PHOTO_STYLES, isBrandPresetUrl, type MemberInfo } from './familyPhotoService.js';
 
 /** 模拟用户家的四只猫（其中一只叫「烧鸡」——名字绝不能进入提示词） */
 const fourCats: MemberInfo[] = [
@@ -93,6 +93,28 @@ describe('buildPrompt 提示词安全', () => {
     expect(prompt).toContain('完全一致');
     expect(prompt).toContain('不增减数量');
     expect(prompt).toContain('不要出现其他动物、人物或食物');
+  });
+});
+
+describe('isBrandPresetUrl 品牌默认头像判定', () => {
+  it('服务端 home-style 品牌头像判定为默认（不是真实形象）', () => {
+    expect(isBrandPresetUrl('https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.png')).toBe(true);
+    expect(isBrandPresetUrl('/uploads/avatars/home-style/dog/dog-01-golden.png')).toBe(true);
+  });
+
+  it('本地预设资源 preset-home 判定为默认', () => {
+    expect(isBrandPresetUrl('https://example.com/assets/preset-home/cat/cat-02-british-blue.png')).toBe(true);
+  });
+
+  it('真实照片 / AI 生成形象判定为非默认', () => {
+    expect(isBrandPresetUrl('https://api.xinghuanhai.com/uploads/pet-photos/u/pet-1/a.jpg')).toBe(false);
+    expect(isBrandPresetUrl('https://cdn.seedream.example.com/abcdef.png')).toBe(false);
+  });
+
+  it('空值判定为 false', () => {
+    expect(isBrandPresetUrl(null)).toBe(false);
+    expect(isBrandPresetUrl(undefined)).toBe(false);
+    expect(isBrandPresetUrl('')).toBe(false);
   });
 });
 

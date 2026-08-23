@@ -194,6 +194,7 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
   });
 
   it('宠物名字叫「烧鸡」也不会被画成鸡（名字不进 Seedream 提示词）', async () => {
+
     // 回归用例：用户家猫叫「烧鸡」，旧提示词 `a 猫咪 named 烧鸡` 会被模型画成一只烤鸡
     const roastedMembers = {
       rows: [
@@ -251,6 +252,52 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     }
+  });
+
+  it('成员只有品牌默认头像应返回 400 + MEMBER_NO_REAL_IMAGE（不调用 Seedream）', async () => {
+    // 分级场景：全家福参考图必须是"真实形象"，品牌预设/兜底头像（home-style）不是真实小猫
+    const brandMembers = {
+      rows: [
+        { petId: 'pet-001', name: '烧鸡', species: 'cat', breed: '英短', photoUrl: 'https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-02-british-blue.png' },
+        { petId: 'pet-002', name: '奶茶', species: 'cat', breed: '美短', photoUrl: 'https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-10-american-shorthair.png' },
+      ],
+    };
+    mockPool.query.mockResolvedValueOnce(ownershipOk);                // isOwner
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });  // hasActiveTask (no)
+    mockPool.query.mockResolvedValueOnce(brandMembers);               // collectMemberPhotos
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({ style: 'pixar' });
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.code).toBe('MEMBER_NO_REAL_IMAGE');
+    expect(res.body.message).toContain('真实形象');
+    expect(res.body.missingMembers).toHaveLength(2);
+    expect(res.body.missingMembers[0].name).toBe('烧鸡');
+    expect(mockFetch).not.toHaveBeenCalled();  // 未发起 Seedream 调用，不浪费配额
+  });
+
+  it('成员没有照片也没有形象应返回 400 + MEMBER_NO_REAL_IMAGE', async () => {
+    const noPhotoMembers = {
+      rows: [
+        { petId: 'pet-001', name: '烧鸡', species: 'cat', breed: '英短', photoUrl: null },
+        { petId: 'pet-002', name: '奶茶', species: 'cat', breed: '美短', photoUrl: 'https://api.xinghuanhai.com/uploads/avatars/home-style/cat/cat-01-orange-tabby.png' },
+      ],
+    };
+    mockPool.query.mockResolvedValueOnce(ownershipOk);                // isOwner
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });  // hasActiveTask (no)
+    mockPool.query.mockResolvedValueOnce(noPhotoMembers);             // collectMemberPhotos
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({ style: 'ghibli' });
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('MEMBER_NO_REAL_IMAGE');
+    expect(res.body.missingMembers).toHaveLength(2);
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });
 

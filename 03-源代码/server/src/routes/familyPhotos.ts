@@ -45,7 +45,13 @@ router.post(
       });
 
       if (!result.success) {
-        res.status(400).json({ success: false, message: result.message });
+        // 透传业务错误码与缺失真实形象的成员（前端据此引导用户先生成形象）
+        res.status(400).json({
+          success: false,
+          message: result.message,
+          ...(result.code ? { code: result.code } : {}),
+          ...(result.missingMembers ? { missingMembers: result.missingMembers } : {}),
+        });
         return;
       }
 
