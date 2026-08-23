@@ -42,6 +42,36 @@ function normalizeUser(raw: any): User {
 }
 
 /**
+ * 服务端打卡记录统一映射（2026-08-23 前后端契约修复）
+ * 服务端 pet_health_entries 返回 createdAt + spiritLevel/appetiteLevel/poopLevel 等 level 字段，
+ * 前端 Checkin 类型使用 date/mood/appetite/stool —— 在此按 level 语义映射：
+ *   - date    = createdAt 的 YYYY-MM-DD
+ *   - mood    = spiritLevel ≤2 → 'sad'（精神差），否则 'happy'
+ *   - appetite= appetiteLevel ≤2 → 'poor'，否则 'good'
+ *   - stool   = poopLevel ≤2 → 'loose'（软便），≥4 → 'hard'（硬便），否则 'normal'
+ * 保留服务端原始字段（riskLevel/hasAnomaly/anomalyItems 等）供扩展使用
+ */
+/** 服务端打卡记录归一化（导出供单测；见函数注释契约说明） */
+export function normalizeCheckin(raw: any): Checkin {
+  const createdAt = String(raw.createdAt || '')
+  const spirit = Number(raw.spiritLevel)
+  const appetite = Number(raw.appetiteLevel)
+  const poop = Number(raw.poopLevel)
+  return {
+    ...raw,                        // 保留原始字段（riskLevel/hasAnomaly/levels 等）
+    id: String(raw.id || ''),
+    petId: String(raw.petId || ''),
+    userId: String(raw.userId || ''),
+    date: createdAt.slice(0, 10),  // 服务端无 date 字段，由 created_at 派生
+    mood: spirit <= 2 ? 'sad' : 'happy',
+    appetite: appetite <= 2 ? 'poor' : 'good',
+    stool: poop <= 2 ? 'loose' : poop >= 4 ? 'hard' : 'normal',
+    weight: raw.weight != null && raw.weight !== '' ? Number(raw.weight) : undefined,
+    createdAt,
+  } as Checkin
+}
+
+/**
  * 通用请求方法
  * @param path - API 路径
  * @param options - 请求配置（方法/数据/查询参数）
@@ -210,15 +240,17 @@ export const api = {
     if (useMock()) return mockApi.deletePet(petId)
     return request<void>(`/pets/${petId}`, { method: 'DELETE' })
   },
-  /** 获取宠物的打卡列表 */
+  /** 获取宠物的打卡列表（归一化为前端 Checkin 结构） */
   getCheckins: async (petId: string): Promise<Checkin[]> => {
     if (useMock()) return mockApi.getCheckins(petId)
-    return request<Checkin[]>(`/api/pets/${petId}/checkins`)
+    const rows = await request<Checkin[]>(`/api/pets/${petId}/checkins`)
+    return rows.map(normalizeCheckin)
   },
-  /** 创建打卡记录 */
+  /** 创建打卡记录（返回归一化结构） */
   createCheckin: async (data: Partial<Checkin>): Promise<Checkin> => {
     if (useMock()) return mockApi.createCheckin(data)
-    return request<Checkin>(`/api/pets/${data.petId}/checkins`, { method: 'POST', data })
+    const row = await request<Checkin>(`/api/pets/${data.petId}/checkins`, { method: 'POST', data })
+    return normalizeCheckin(row)
   },
   /** 获取用户的会员信息 */
   getMembership: async (userId: string): Promise<Membership | null> => {
