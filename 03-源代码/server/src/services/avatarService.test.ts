@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockCallSeedream = vi.hoisted(() => vi.fn());
+const mockAnalyzeImage = vi.hoisted(() => vi.fn());
 
 vi.mock('../config.js', () => ({
   config: {
@@ -17,7 +18,11 @@ vi.mock('./image2DService.js', () => ({
   callSeedream: mockCallSeedream,
 }));
 
-import { generatePetImageOptions } from './avatarService.js';
+vi.mock('./visionService.js', () => ({
+  analyzeImage: mockAnalyzeImage,
+}));
+
+import { generatePetImageOptions, extractPetAppearance } from './avatarService.js';
 
 describe('generatePetImageOptions 文字描述生成', () => {
   beforeEach(() => {
@@ -110,5 +115,31 @@ describe('generatePetImageOptions 文字描述生成', () => {
     });
     expect(options).toBeNull();
     expect(mockCallSeedream).not.toHaveBeenCalled();
+  });
+});
+
+describe('extractPetAppearance 照片自动提取外貌', () => {
+  beforeEach(() => {
+    mockAnalyzeImage.mockReset();
+  });
+
+  it('正常提取并清洗（去换行/截断 100 字）', async () => {
+    mockAnalyzeImage.mockResolvedValue(`橘色虎斑英短\n橙底深棕条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头，白下巴胸毛，四肢粗短胖乎乎的，毛色层次分明`);
+    const result = await extractPetAppearance('https://e.com/photo.jpg');
+    expect(result).toContain('橘色虎斑英短 橙底深棕条纹');
+    expect(result).not.toContain('\n');
+    expect(mockAnalyzeImage).toHaveBeenCalledWith(
+      expect.objectContaining({ imageUrl: 'https://e.com/photo.jpg' }),
+    );
+  });
+
+  it('视觉返回 null（未配置 key）时返回 null（调用方降级）', async () => {
+    mockAnalyzeImage.mockResolvedValue(null);
+    expect(await extractPetAppearance('https://e.com/photo.jpg')).toBeNull();
+  });
+
+  it('视觉抛错时向上抛（由路由层兜底降级，不影响生成）', async () => {
+    mockAnalyzeImage.mockRejectedValue(new Error('network'));
+    await expect(extractPetAppearance('https://e.com/photo.jpg')).rejects.toThrow('network');
   });
 });

@@ -7,7 +7,7 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
-import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS } from '../services/avatarService.js';
+import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS, extractPetAppearance } from '../services/avatarService.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
 import { generate2DAvatarPack } from '../services/image2DService.js';
@@ -260,11 +260,26 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
     }
 
     const generationId = uuidv4();
+
+    // 用户未写描述时，尝试从宠物真实照片自动提取详细外貌（DeepSeek 视觉），
+    // 让提示词包含"具体样貌"（毛色/花纹/眼睛/特殊标记，对应提示词库 §0.9 细节描写）。
+    // 注意：这只是"读照片描述外貌"，不是图生图——参考照片仍不传，
+    // 不触发照片生成的会员配额（文字生成口径保持不变）
+    let effectiveDescription = safeDescription;
+    if (!effectiveDescription && pet.avatar_photo_url) {
+      try {
+        const appearance = await extractPetAppearance(pet.avatar_photo_url);
+        if (appearance) effectiveDescription = appearance;
+      } catch {
+        // 视觉提取失败不影响生成，回退档案品种描述
+      }
+    }
+
     await avatarGenerationRepository.createGeneration({
       id: generationId,
       user_id: userId,
       pet_id: petId,
-      prompt: `为${pet.breed}生成${safeStyleKey ? ` ${safeStyleKey}画风` : ' 多种风格'}候选形象${safeDescription ? `；用户描述：${safeDescription}` : ''}${safeExpression ? `；表情：${safeExpression}` : ''}`,
+      prompt: `为${pet.breed}生成${safeStyleKey ? ` ${safeStyleKey}画风` : ' 多种风格'}候选形象${effectiveDescription ? `；外貌描述：${effectiveDescription}` : ''}${safeExpression ? `；表情：${safeExpression}` : ''}`,
       // 配额口径：文字生成（单画风）与照片生成分开记 style——
       // 文字 = options-<基调>-text-<画风>（不计入照片 3 次/月额度，countMonthlyOptionsByUser 排除 %-text-%）
       // 照片 = options-<基调>-photo / 老格式 options-<基调>（计入照片额度）
@@ -278,7 +293,7 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       gender: pet.gender ?? '',
       photoUrl,
       style: safeStyle,
-      description: safeDescription,
+      description: effectiveDescription,
       styleKey: safeStyleKey,
       expression: safeExpression,
     });

@@ -4,6 +4,7 @@
  */
 import { config } from '../config.js';
 import { callSeedream } from './image2DService.js';
+import { analyzeImage } from './visionService.js';
 // 宠物提示词公共模块：统一按提示词库 §0.6/§四 规范构造（角色锁定 + 主体锁定 + 品种兜底）
 import { petSubjectText, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
 
@@ -242,6 +243,26 @@ export async function generatePetImageOptions(
 
   // 至少成功 1 张才算可用；全部失败视为服务不可用
   return options.length > 0 ? options : null;
+}
+
+/**
+ * 宠物照片 → 详细外貌描述（DeepSeek 视觉模型提取）
+ * 对应提示词库 §0.9「细节描写清单」：毛色/花纹/体型/脸型/眼睛/鼻子/胡须/特殊标记，
+ * 让生图提示词包含"具体样貌"而不是只有品种名
+ * @param photoUrl - 宠物真实照片 URL
+ * @returns 外貌描述（清洗换行/截断 100 字）；无 key/失败返回 null（调用方降级）
+ */
+export async function extractPetAppearance(photoUrl: string): Promise<string | null> {
+  const raw = await analyzeImage({
+    imageUrl: photoUrl,
+    prompt:
+      '你是宠物外貌描述专家。请仔细观察这张宠物照片，用中文描述它的外貌特征，用于AI生成它的卡通头像。' +
+      '必须包含：毛色（主色与层次）、花纹图案、体型胖瘦、脸型、眼睛颜色、鼻子颜色、胡须、耳朵形状、特殊标记（如白下巴/白手套/异色瞳）。' +
+      '只描述外貌，不要提背景、环境、照片质量；控制在60字以内。',
+    maxTokens: 200,
+  });
+  if (!raw) return null;
+  return raw.replace(/[\r\n\t]+/g, ' ').trim().slice(0, 100);
 }
 
 function generateSvgPlaceholder(params: GeneratePetImageParams): string {

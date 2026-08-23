@@ -7,11 +7,13 @@ import request from 'supertest';
 import express from 'express';
 
 // ---- mock 所有 avatar.ts 的外部依赖（避免真实 DB/外部服务） ----
-const { mockFindByIdAndUser, mockLibrarySave, mockLibraryFind, mockLibraryDelete } = vi.hoisted(() => ({
+const { mockFindByIdAndUser, mockLibrarySave, mockLibraryFind, mockLibraryDelete, mockGenerateOptions, mockExtractAppearance } = vi.hoisted(() => ({
   mockFindByIdAndUser: vi.fn(),
   mockLibrarySave: vi.fn(),
   mockLibraryFind: vi.fn(),
   mockLibraryDelete: vi.fn(),
+  mockGenerateOptions: vi.fn().mockResolvedValue([{ style: 'q', label: 'Q版萌系', url: 'https://cdn.example.com/q.png' }]),
+  mockExtractAppearance: vi.fn().mockResolvedValue('橘色虎斑英短，橙底深棕条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头'),
 }));
 
 vi.mock('../db.js', () => ({ pool: { query: vi.fn() } }));
@@ -35,7 +37,9 @@ vi.mock('../repositories/petRepository.js', () => ({
   },
 }));
 vi.mock('../repositories/membershipRepository.js', () => ({
-  MembershipRepository: class {},
+  MembershipRepository: class {
+    findTierAndStatus = vi.fn().mockResolvedValue({ tier: 'member', status: 'active' });
+  },
 }));
 vi.mock('../repositories/avatarRepository.js', () => ({
   AvatarGenerationRepository: class {
@@ -57,7 +61,8 @@ vi.mock('../repositories/avatarTaskRepository.js', () => ({
 }));
 vi.mock('../services/avatarService.js', () => ({
   generatePetImage: vi.fn(),
-  generatePetImageOptions: vi.fn(),
+  generatePetImageOptions: mockGenerateOptions,
+  extractPetAppearance: mockExtractAppearance,
   AVATAR_STYLE_OPTIONS: [
     { key: 'q', label: 'Q版萌系' },
     { key: 'japanese', label: '日系治愈' },
@@ -89,6 +94,64 @@ function createApp() {
 }
 
 const ownedPet = { id: 'pet-1', species: 'cat', breed: '英短', gender: '', user_id: 'test-user' };
+
+describe('POST /api/avatar/generate-options — 文字生成自动提取外貌', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFindByIdAndUser.mockResolvedValue({
+      id: 'pet-1',
+      species: 'cat',
+      breed: '英短',
+      gender: '',
+      avatar_photo_url: 'https://e.com/photo.jpg',
+    });
+    mockGenerateOptions.mockResolvedValue([{ style: 'q', label: 'Q版萌系', url: 'https://cdn.example.com/q.png' }]);
+  });
+
+  it('描述为空且有真实照片时，自动提取外貌并拼进生成', async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/generate-options')
+      .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q', expression: 'happy' });
+    expect(res.status).toBe(200);
+    expect(mockExtractAppearance).toHaveBeenCalledWith('https://e.com/photo.jpg');
+    expect(mockGenerateOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ description: '橘色虎斑英短，橙底深棕条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头' }),
+    );
+  });
+
+  it('用户已写描述时不再自动提取（用户描述优先）', async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/generate-options')
+      .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q', description: '用户自己写的详细描述' });
+    expect(res.status).toBe(200);
+    expect(mockExtractAppearance).not.toHaveBeenCalled();
+    expect(mockGenerateOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ description: '用户自己写的详细描述' }),
+    );
+  });
+
+  it('无照片时跳过自动提取（不调用视觉，回退档案描述）', async () => {
+    mockFindByIdAndUser.mockResolvedValue({ id: 'pet-1', species: 'cat', breed: '英短', gender: '', avatar_photo_url: null });
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/generate-options')
+      .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q' });
+    expect(res.status).toBe(200);
+    expect(mockExtractAppearance).not.toHaveBeenCalled();
+  });
+
+  it('视觉提取失败时降级（不影响生成）', async () => {
+    mockExtractAppearance.mockRejectedValue(new Error('vision down'));
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/generate-options')
+      .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q' });
+    expect(res.status).toBe(200);
+    expect(mockGenerateOptions).toHaveBeenCalled();
+  });
+});
 
 describe('POST /api/avatar/library — 保存形象到形象库', () => {
   beforeEach(() => {

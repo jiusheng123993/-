@@ -960,11 +960,11 @@ export default function AvatarCustomizePage() {
                   className='avatar-customize__desc-input'
                   value={textDescription}
                   onInput={(e) => setTextDescription(e.detail.value)}
-                  placeholder='例如：橘色英短，圆脸胖乎乎的，性格粘人（不填则按档案品种生成）'
+                  placeholder='例如：橘色虎斑英短，橙底深棕条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头，白色下巴胸毛（写得越具体越像；有真实照片留空也能自动提取）'
                   maxlength={100}
                   autoHeight
                 />
-                <Text className='avatar-customize__desc-hint'>只写外貌特征，不要写宠物名字（避免被画成奇怪的东西）</Text>
+                <Text className='avatar-customize__desc-hint'>外貌写得越具体生成越像：毛色、花纹、体型、脸型、眼睛颜色、特殊标记；不要写宠物名字</Text>
               </View>
 
               {/* 参考提示词模板：按提示词库公式组织（主体+外貌+表情+画风+光影氛围+画质），实时示例可一键填入 */}
@@ -972,26 +972,26 @@ export default function AvatarCustomizePage() {
                 <Text className='avatar-customize__section-title'>💡 参考提示词模板</Text>
                 <View className='avatar-customize__ref-formula'>
                   <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>主体</Text>一只{species === 'cat' ? '猫咪' : '狗狗'}（档案自动带上品种）</Text>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>外貌</Text>毛色 / 体型 / 脸型等特征（你在上方输入）</Text>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>外貌</Text>毛色 / 花纹 / 体型 / 脸型 / 眼睛颜色 / 特殊标记（写得越具体越像；有真实照片留空自动提取）</Text>
                   <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>表情</Text>{genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情` : '自然神态'}（下方选择）</Text>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>画风</Text>{GEN_STYLE_LABELS[genStyle]}（下方选择）</Text>
+                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>画风</Text>{GEN_STYLE_LABELS[genStyle]}（下方选择，15 种）</Text>
                   <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>氛围</Text>光影 / 质感 / 背景（自动配好）</Text>
                 </View>
                 <View className='avatar-customize__ref-box'>
                   <Text className='avatar-customize__ref-text'>
-                    {`一只${currentPet?.breed || (species === 'cat' ? '猫咪' : '狗狗')}的头像，${textDescription.trim() || '圆脸胖乎乎的，毛发柔软'}，${genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情，嘴角微扬` : '神态自然'}，${GEN_STYLE_LABELS[genStyle]}风格：${GEN_STYLE_ATMOS[genStyle]}，高质量，细节丰富，干净背景`}
+                    {`一只${currentPet?.breed || (species === 'cat' ? '猫咪' : '狗狗')}的头像，${textDescription.trim() || '毛色层次分明，橘色底色配深棕色虎斑条纹，额头有M形纹，圆脸，琥珀色大眼睛水汪汪，粉色鼻头，白色下巴和胸毛，四肢粗短胖乎乎的'}，${genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情，嘴角微扬，眼睛弯弯` : '神态自然'}，${GEN_STYLE_LABELS[genStyle]}风格：${GEN_STYLE_ATMOS[genStyle]}，高质量，细节丰富，干净背景`}
                   </Text>
                 </View>
                 <View className='avatar-customize__ref-actions'>
                   <View className='avatar-customize__ref-fill' onClick={() => {
                     // 一键填入"外貌+表情"部分（画风/表情由下方选择器控制，避免重复）
-                    const desc = `${textDescription.trim() || '圆脸胖乎乎的，毛发柔软'}${genExpression ? `，${GEN_EXPR_LABELS[genExpression]}的表情` : ''}`
+                    const desc = `${textDescription.trim() || '毛色层次分明，橘色底色配深棕色虎斑条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头，白下巴胸毛'}${genExpression ? `，${GEN_EXPR_LABELS[genExpression]}的表情` : ''}`
                     setTextDescription(desc.slice(0, 100))
                   }}>
                     <Text className='avatar-customize__ref-fill-text'>填入外貌+表情</Text>
                   </View>
                 </View>
-                <Text className='avatar-customize__desc-hint'>按「外貌特征，表情，画风」组织描述，生成更准；也可先点「填入」再微调</Text>
+                <Text className='avatar-customize__desc-hint'>按「外貌特征，表情，画风」组织描述；有真实照片时描述留空，生成时也会自动提取你家宠物的真实外貌</Text>
               </View>
 
               {/* 画风选择（单选，生成 1 张） */}
