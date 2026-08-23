@@ -3,7 +3,7 @@
  * 当前形象展示 → 风格切换 → 表情系统 → 应用场景 → 生成新形象面板
  * 保留完整业务：2D/3D 生成任务、会员配额、照片上传、形象保存
  */
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text, Image, Textarea } from '@tarojs/components'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { useThemeClass } from '../../hooks/useThemeClass'
@@ -124,6 +124,8 @@ export default function AvatarCustomizePage() {
   // 多风格候选形象（5 种画风选 1，猫狗各有专属提示词）
   const [styleOptions, setStyleOptions] = useState<AvatarStyleOption[] | null>(null)
   const [selectedStyleIndex, setSelectedStyleIndex] = useState<number | null>(null)
+  // 文字描述生成：用户输入的外貌描述（可选，拼进提示词参与生图）
+  const [textDescription, setTextDescription] = useState('')
   // 预设头像库（免费用户入口）：选中的预设 ID
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null)
 
@@ -436,13 +438,19 @@ export default function AvatarCustomizePage() {
     setSelectedStyleIndex(null)
     try {
       // 一次生成 5 种画风候选（Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠），供用户 5 选 1
-      const options = await generateAvatarOptions(petId, undefined, selectedStyle)
+      // 用户描述（可选）拼进提示词参与生图
+      const desc = textDescription.trim().slice(0, 100)
+      const options = await generateAvatarOptions(petId, undefined, selectedStyle, desc || undefined)
       if (options && options.length > 0) {
         setStyleOptions(options)
         incrementGenerationCount()
         setGenCount(getGenerationCount())
         trackEvent('generate_avatar_options_success', { style: selectedStyle, count: options.length })
         Taro.showToast({ title: '生成成功，请选择喜欢的形象', icon: 'none' })
+        // 候选列表在面板底部，生成后滚动到页面底部让用户一眼看到
+        Taro.nextTick(() => {
+          Taro.pageScrollTo({ scrollTop: 99999, duration: 300 })
+        })
       } else if (!canGenerateAvatar(isMember)) {
         Taro.showModal({
           title: '生成次数已用完',
@@ -461,7 +469,7 @@ export default function AvatarCustomizePage() {
     } finally {
       setIsGenerating(false)
     }
-  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, trackEvent])
+  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, textDescription, trackEvent])
 
   /**
    * 照片生成多风格候选（带参考照片，保证形象像宠物本人）
@@ -808,13 +816,27 @@ export default function AvatarCustomizePage() {
               <View className='avatar-customize__member-only'>
                 <Text className='avatar-customize__member-only-icon'>✨</Text>
                 <Text className='avatar-customize__member-only-title'>AI 形象生成 · 会员专享</Text>
-                <Text className='avatar-customize__member-only-desc'>AI 生成 5 种画风候选并挑选；免费用户可直接使用上方"预设形象"</Text>
+                <Text className='avatar-customize__member-only-desc'>AI 生成 5 种画风候选并挑选；免费用户可直接使用上方「预设形象」，或在「照片生成」Tab 上传真实照片作头像</Text>
                 <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可使用 AI 生成专属形象（文字/照片）')}>
                   <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
                 </View>
               </View>
             ) : (
               <>
+              {/* 文字描述输入：让"文字描述生成"名副其实（此前没有输入框，用户无法输入描述） */}
+              <View className='avatar-customize__section'>
+                <Text className='avatar-customize__section-title'>描述你的宠物</Text>
+                <Textarea
+                  className='avatar-customize__desc-input'
+                  value={textDescription}
+                  onInput={(e) => setTextDescription(e.detail.value)}
+                  placeholder='例如：橘色英短，圆脸胖乎乎的，性格粘人（不填则按档案品种生成）'
+                  maxlength={100}
+                  autoHeight
+                />
+                <Text className='avatar-customize__desc-hint'>只写外貌特征，不要写宠物名字（避免被画成奇怪的东西）</Text>
+              </View>
+
               <View className='avatar-customize__preview'>
                 {isGenerating ? (
                   <View className='avatar-customize__generating'>

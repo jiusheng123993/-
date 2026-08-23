@@ -58,18 +58,21 @@ function getAuthHeaders(extra?: Record<string, string>): Record<string, string> 
  * @param petId - 宠物 ID
  * @param referenceImageUrl - 参考照片 URL（有则图生图保证像宠物本人）
  * @param style - 基础基调：cartoon（卡通）/ realistic（写实）
+ * @param description - 用户文字描述（可选，拼进提示词参与生图）
  * @returns 候选列表；失败返回 null（调用方提示重试，不回退丑陋占位图）
  */
 export async function generateAvatarOptions(
   petId: string,
   referenceImageUrl?: string,
   style: 'cartoon' | 'realistic' = 'cartoon',
+  description?: string,
 ): Promise<AvatarStyleOption[] | null> {
   try {
     const data = await api.post<{ options: AvatarStyleOption[] }>('/api/avatar/generate-options', {
       petId,
       referenceImageUrl,
       style,
+      description,
     })
     return data?.options?.length ? data.options : null
   } catch {

@@ -361,6 +361,27 @@
 // ============================================
 // 生成面板内组件样式（保留原业务）
 // ============================================
+// 文字描述输入框（"文字描述生成"Tab 的描述入口）
+.avatar-customize__desc-input {
+  width: 100%;
+  min-height: 120rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: 1.6;
+}
+
+.avatar-customize__desc-hint {
+  display: block;
+  margin-top: 10rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
 .avatar-customize__tabs {
   display: flex;
   background: $color-bg-secondary;

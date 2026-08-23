@@ -3,12 +3,13 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { memoryStore, mockGeneratePetImage, mockApiPut } = vi.hoisted(() => {
+const { memoryStore, mockGeneratePetImage, mockApiPut, mockApiPost } = vi.hoisted(() => {
   const memoryStore = new Map<string, unknown>()
   return {
     memoryStore,
     mockGeneratePetImage: vi.fn(),
     mockApiPut: vi.fn(),
+    mockApiPost: vi.fn(),
   }
 })
 
@@ -25,6 +26,7 @@ vi.mock('@tarojs/taro', () => ({
 vi.mock('../api', () => ({
   api: {
     put: mockApiPut,
+    post: mockApiPost,
   },
   resolveAvatarUrl: (url: string) => url,
 }))
@@ -46,6 +48,7 @@ import {
   getAvatarCustomization,
   saveAvatarCustomization,
   generateAvatarImage,
+  generateAvatarOptions,
   getPetDiary,
   incrementGenerationCount,
 } from '../avatarService'
@@ -56,6 +59,46 @@ describe('avatarService', () => {
     vi.clearAllMocks()
     mockApiPut.mockResolvedValue({})
     mockGeneratePetImage.mockResolvedValue({ success: false, error: 'stub' })
+  })
+
+  describe('generateAvatarOptions 文字描述透传', () => {
+    beforeEach(() => {
+      mockApiPost.mockReset()
+      mockApiPost.mockResolvedValue({
+        options: [
+          { style: 'q', label: 'Q版萌系', url: 'https://cdn.example.com/q.png' },
+          { style: 'japanese', label: '日系治愈', url: 'https://cdn.example.com/j.png' },
+        ],
+      })
+    })
+
+    it('把用户文字描述透传给后端 /generate-options', async () => {
+      const options = await generateAvatarOptions('pet-1', undefined, 'cartoon', '橘色英短，圆脸胖乎乎的')
+      expect(options).toHaveLength(2)
+      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
+        petId: 'pet-1',
+        referenceImageUrl: undefined,
+        style: 'cartoon',
+        description: '橘色英短，圆脸胖乎乎的',
+      })
+    })
+
+    it('不传描述时 description 为 undefined（后端自动用档案描述）', async () => {
+      await generateAvatarOptions('pet-1')
+      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
+        petId: 'pet-1',
+        referenceImageUrl: undefined,
+        style: 'cartoon',
+        description: undefined,
+      })
+    })
+
+    it('后端无候选/报错时返回 null（不回退占位图）', async () => {
+      mockApiPost.mockResolvedValue({ options: [] })
+      expect(await generateAvatarOptions('pet-1')).toBeNull()
+      mockApiPost.mockRejectedValue(new Error('network'))
+      expect(await generateAvatarOptions('pet-1')).toBeNull()
+    })
   })
 
   describe('getGenerationCount', () => {

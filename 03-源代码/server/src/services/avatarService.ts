@@ -75,6 +75,12 @@ export interface GeneratePetImageOptionsParams {
   photoUrl?: string;
   /** 基础基调：cartoon（卡通）/ realistic（写实） */
   style?: string;
+  /**
+   * 用户文字描述（可选，如"橘色英短、圆脸胖乎乎的"）
+   * 描述会拼进提示词参与生图；空则只用宠物档案自动描述。
+   * ⚠️ 清洗：截断 100 字 + 去换行；提醒用户不要写宠物名字（防「烧鸡」被画成鸡）
+   */
+  description?: string;
 }
 
 /** 单个风格候选结果 */
@@ -102,10 +108,16 @@ export async function generatePetImageOptions(
   // 主体用公共模块（品种兜底 + 绝不写名字）；图生图时追加角色锁定与主体锁定
   const subject = petSubjectText(params.breed, params.species, genderLabel);
 
+  // 用户文字描述：清洗换行/控制字符 + 截断 100 字，拼进提示词（空则只用档案自动描述）
+  const userDesc = (params.description || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 100);
+  const basePrompt = userDesc
+    ? `${subject}的头像，${userDesc}，高质量，细节丰富，干净背景`
+    : `${subject}的头像，高质量，细节丰富，干净背景`;
+
   // 5 种风格并发生成，互不阻塞；某个风格失败不影响其余候选
   const results = await Promise.allSettled(
     AVATAR_STYLE_OPTIONS.map((item) =>
-      callSeedream(`${subject}的头像，高质量，细节丰富，干净背景，${styleText}，${isDog ? item.dog : item.cat}，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`, params.photoUrl || '', apiKey).then((url) =>
+      callSeedream(`${basePrompt}，${styleText}，${isDog ? item.dog : item.cat}，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`, params.photoUrl || '', apiKey).then((url) =>
         url ? { style: item.key, label: item.label, url } : null,
       ),
     ),

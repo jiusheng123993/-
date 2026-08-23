@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 宠物形象生成路由 - AI 生成宠物头像、2D/3D 形象
  * 支持头像生成、照片上传、2D 形象包生成、3D 模型生成、任务进度查询
  * 通过 PetRepository、MembershipRepository、AvatarGenerationRepository 等访问数据库
@@ -190,13 +190,16 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
 // 生成多风格候选形象（5 种画风：Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠）
 router.post('/generate-options', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
   try {
-    const { petId, referenceImageUrl, style } = req.body;
+    const { petId, referenceImageUrl, style, description } = req.body;
     const userId = req.userId!;
 
     if (!petId || typeof petId !== 'string') {
       res.status(400).json({ success: false, message: 'petId 参数不能为空' });
       return;
     }
+
+    // 文字描述（可选）：必须是字符串，截断 100 字防超长
+    const safeDescription = typeof description === 'string' ? description.trim().slice(0, 100) : '';
 
     // style 白名单校验（写实/卡通基础基调）
     const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
@@ -252,7 +255,7 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       id: generationId,
       user_id: userId,
       pet_id: petId,
-      prompt: `为${pet.breed}生成 ${AVATAR_STYLE_OPTIONS.length} 种风格候选形象（${AVATAR_STYLE_OPTIONS.map(i => i.label).join(' / ')}）`,
+      prompt: `为${pet.breed}生成 ${AVATAR_STYLE_OPTIONS.length} 种风格候选形象（${AVATAR_STYLE_OPTIONS.map(i => i.label).join(' / ')}）${safeDescription ? `；用户描述：${safeDescription}` : ''}`,
       style: `options-${safeStyle}`,
     });
 
@@ -263,6 +266,7 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       gender: pet.gender ?? '',
       photoUrl,
       style: safeStyle,
+      description: safeDescription,
     });
 
     // 生成失败时明确报错，绝不返回丑陋占位图
