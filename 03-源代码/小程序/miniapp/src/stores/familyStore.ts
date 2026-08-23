@@ -3,7 +3,7 @@
  * 管理宠物家庭成员、家庭相册和家庭切换
  */
 import create from 'zustand'
-import type { PetFamily, PetFamilyMember, FamilyPhoto } from '../types/familyTypes'
+import type { PetFamily, PetFamilyMember, FamilyUser, FamilyPhoto } from '../types/familyTypes'
 import { familyService } from '../services/familyService'
 
 /** 宠物家庭状态定义 */
@@ -11,6 +11,8 @@ interface FamilyState {
   families: PetFamily[]
   currentFamily: PetFamily | null
   members: PetFamilyMember[]
+  /** 家庭成员（人）：owner/member，多成员共同养宠（2026-08-24） */
+  users: FamilyUser[]
   photos: FamilyPhoto[]
   photosLoading: boolean
   loading: boolean
@@ -21,6 +23,10 @@ interface FamilyState {
   addMember: (petId: string, role?: string) => Promise<void>
   removeMember: (memberId: string) => Promise<void>
   updateMemberRole: (memberId: string, role: string) => Promise<void>
+  fetchUsers: () => Promise<void>
+  createInvite: () => Promise<string>
+  joinFamily: (code: string) => Promise<void>
+  removeUser: (userId: string) => Promise<void>
   fetchPhotos: () => Promise<void>
   savePhoto: (photoUrl: string, memberCount: number, memberNames: string[], photoType?: 'generated' | 'uploaded', description?: string) => Promise<void>
   deletePhoto: (photoId: string) => Promise<void>
@@ -31,6 +37,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   families: [],
   currentFamily: null,
   members: [],
+  users: [],
   photos: [],
   photosLoading: false,
   loading: false,
@@ -147,6 +154,61 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       }))
     } catch (err) {
       set({ error: '更新角色失败' })
+    }
+  },
+
+  /** 获取家庭成员（人）列表（多成员共同养宠） */
+  fetchUsers: async () => {
+    const family = get().currentFamily
+    if (!family) return
+    set({ error: null })
+    try {
+      const users = await familyService.getUsers(family.id)
+      set({ users })
+    } catch (err) {
+      // 老后端无 users 接口时静默（不阻塞家庭页）
+      set({ users: [] })
+    }
+  },
+
+  /** 生成家庭邀请码（仅 owner），返回邀请码 */
+  createInvite: async () => {
+    const family = get().currentFamily
+    if (!family) throw new Error('未选择家庭')
+    const result = await familyService.createInvite(family.id)
+    return result.code
+  },
+
+  /** 凭邀请码加入家庭 */
+  joinFamily: async (code) => {
+    set({ error: null })
+    try {
+      const { familyId } = await familyService.joinFamily(code)
+      await get().fetchFamilies()
+      // 切换到新加入的家庭并加载成员
+      const joined = get().families.find((f) => f.id === familyId)
+      if (joined) await get().setCurrentFamily(joined)
+    } catch (err) {
+      const message = (err as { message?: string }).message || '加入失败，请检查邀请码'
+      set({ error: message })
+      throw err
+    }
+  },
+
+  /** 移除家庭成员（仅 owner） */
+  removeUser: async (userId) => {
+    const family = get().currentFamily
+    if (!family) return
+    set({ error: null })
+    try {
+      await familyService.removeUser(family.id, userId)
+      set((state) => ({
+        users: state.users.filter((u) => u.userId !== userId),
+      }))
+    } catch (err) {
+      const message = (err as { message?: string }).message || '移除成员失败'
+      set({ error: message })
+      throw err
     }
   },
 

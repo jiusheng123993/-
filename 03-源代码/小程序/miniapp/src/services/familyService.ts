@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 宠物家庭服务
  *
  * 宠物家庭的创建/成员管理/血缘追踪/合照管理，含本地缓存与云同步
@@ -7,9 +7,10 @@ import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'
 import { mockApi } from './mock'
 import { CONFIG } from '../config'
-import type { PetFamily, PetFamilyMember, PetLineage, LineageResponse, LineageChild, LineageMate, FamilyPhoto, FamilyOverviewResponse } from '../types/familyTypes'
+import type { PetFamily, PetFamilyMember, FamilyUser, PetLineage, LineageResponse, LineageChild, LineageMate, FamilyPhoto, FamilyOverviewResponse } from '../types/familyTypes'
 
-const useMock = () => CONFIG.USE_MOCK
+// useMock 以 use 开头会被 react-hooks 规则误判为 Hook，改名 isMockMode（2026-08-24 修复既有 lint error）
+const isMockMode = () => CONFIG.USE_MOCK
 
 /** 将 snake_case 键名转换为 camelCase（兼容后端未部署 toCamelCase 的情况） */
 function snakeToCamel(obj: Record<string, unknown>): Record<string, unknown> {
@@ -123,7 +124,7 @@ function saveLocalPhotos(photos: FamilyPhoto[]): void {
 
 export const familyService = {
   async getFamilies(): Promise<PetFamily[]> {
-    if (useMock()) return mockApi.getFamilies()
+    if (isMockMode()) return mockApi.getFamilies()
     const data = await api.get<Record<string, unknown>[]>('/api/families')
     return (data || []).map((raw) => {
       const f = snakeToCamel(raw)
@@ -140,7 +141,7 @@ export const familyService = {
   },
 
   async createFamily(name: string): Promise<PetFamily> {
-    if (useMock()) return mockApi.createFamily(name)
+    if (isMockMode()) return mockApi.createFamily(name)
     const raw = await api.post<Record<string, unknown>>('/api/families', { name })
     const f = snakeToCamel(raw)
     return {
@@ -155,7 +156,7 @@ export const familyService = {
   },
 
   async getMembers(familyId: string): Promise<PetFamilyMember[]> {
-    if (useMock()) return mockApi.getMembers(familyId)
+    if (isMockMode()) return mockApi.getMembers(familyId)
     // 后端成员通过 GET /api/families/:id 详情响应返回（含 members 字段）
     // 服务端可能返回 snake_case，前端统一转为 camelCase
     const data = await api.get<{ members?: Record<string, unknown>[] }>(`/api/families/${familyId}`)
@@ -163,24 +164,64 @@ export const familyService = {
   },
 
   async addMember(familyId: string, petId: string, role?: string): Promise<void> {
-    if (useMock()) return mockApi.addMember(familyId, petId, role)
+    if (isMockMode()) return mockApi.addMember(familyId, petId, role)
     // 后端 addFamilyMemberSchema 字段为 camelCase petId
     await api.post(`/api/families/${familyId}/members`, { petId, role })
   },
 
   async removeMember(familyId: string, memberId: string): Promise<void> {
-    if (useMock()) return mockApi.removeMember(familyId, memberId)
+    if (isMockMode()) return mockApi.removeMember(familyId, memberId)
     await api.delete(`/api/families/${familyId}/members/by-id/${memberId}`)
   },
 
   async updateMemberRole(familyId: string, memberId: string, role: string): Promise<void> {
-    if (useMock()) return mockApi.updateMemberRole(familyId, memberId, role)
+    if (isMockMode()) return mockApi.updateMemberRole(familyId, memberId, role)
     await api.patch(`/api/families/${familyId}/members/${memberId}/role`, { role })
+  },
+
+  // ============ 多成员共同养宠：家庭成员（人）接口（2026-08-24） ============
+
+  /** 家庭成员（人）列表（owner/member） */
+  async getUsers(familyId: string): Promise<FamilyUser[]> {
+    if (isMockMode()) return []
+    const data = await api.get<Record<string, unknown>[]>(`/api/families/${familyId}/users`)
+    return (data || []).map((raw) => {
+      const u = snakeToCamel(raw)
+      return {
+        id: String(u.id || ''),
+        familyId: String(u.familyId || ''),
+        userId: String(u.userId || ''),
+        role: (u.role as 'owner' | 'member') || 'member',
+        nickname: (u.nickname as string) || '',
+        avatarUrl: (u.avatarUrl as string) || '',
+        joinedAt: (u.joinedAt as string) || '',
+      } as FamilyUser
+    })
+  },
+
+  /** 生成家庭邀请码（仅 owner） */
+  async createInvite(familyId: string): Promise<{ code: string }> {
+    if (isMockMode()) return { code: 'MOCK66' }
+    const data = await api.post<{ code: string }>(`/api/families/${familyId}/invites`)
+    return data
+  },
+
+  /** 凭邀请码加入家庭 */
+  async joinFamily(code: string): Promise<{ familyId: string }> {
+    if (isMockMode()) return { familyId: 'mock-family' }
+    const data = await api.post<{ familyId: string }>('/api/families/join', { code })
+    return data
+  },
+
+  /** 移除家庭成员（仅 owner） */
+  async removeUser(familyId: string, userId: string): Promise<void> {
+    if (isMockMode()) return
+    await api.delete(`/api/families/${familyId}/users/${userId}`)
   },
 
   /** 获取家庭关系总览（所有成员 + 所有关系） */
   async getOverview(familyId: string): Promise<FamilyOverviewResponse> {
-    if (useMock()) {
+    if (isMockMode()) {
       return { members: [], lineages: [], relationships: [] }
     }
     const raw = await api.get<Record<string, unknown>>(`/api/families/${familyId}/overview`)
@@ -232,7 +273,7 @@ export const familyService = {
     petId: string,
     familyId: string,
   ): Promise<LineageResponse> {
-    if (useMock()) return mockApi.getLineage(petId)
+    if (isMockMode()) return mockApi.getLineage(petId)
     const raw = await api.get<Record<string, unknown>>(
       `/api/families/${familyId}/lineage/${petId}`
     )
@@ -256,7 +297,7 @@ export const familyService = {
     familyId: string,
     litterDate?: string,
   ): Promise<void> {
-    if (useMock()) return mockApi.addLineage(parentId, childId, litterDate)
+    if (isMockMode()) return mockApi.addLineage(parentId, childId, litterDate)
     await api.post(`/api/families/${familyId}/lineage`, {
       parent_id: parentId,
       child_id: childId,
@@ -265,13 +306,13 @@ export const familyService = {
   },
 
   async removeLineage(lineageId: string, familyId: string): Promise<void> {
-    if (useMock()) return mockApi.removeLineage(lineageId)
+    if (isMockMode()) return mockApi.removeLineage(lineageId)
     await api.delete(`/api/families/${familyId}/lineage/${lineageId}`)
   },
 
   /** 添加配偶关系（relation_type=mate） */
   async addMate(familyId: string, petIdA: string, petIdB: string, labelA?: string, labelB?: string): Promise<void> {
-    if (useMock()) return mockApi.createRelationship()
+    if (isMockMode()) return mockApi.createRelationship()
     await api.post(`/api/families/${familyId}/relationships`, {
       pet_id_a: petIdA,
       pet_id_b: petIdB,
@@ -283,13 +324,13 @@ export const familyService = {
 
   /** 删除配偶关系 */
   async removeMate(familyId: string, relationshipId: string): Promise<void> {
-    if (useMock()) return mockApi.deleteRelationship(relationshipId)
+    if (isMockMode()) return mockApi.deleteRelationship(relationshipId)
     await api.delete(`/api/families/${familyId}/relationships/${relationshipId}`)
   },
 
   /** 添加兄弟姐妹关系（relation_type=sibling） */
   async addSibling(familyId: string, petIdA: string, petIdB: string): Promise<void> {
-    if (useMock()) return mockApi.createRelationship()
+    if (isMockMode()) return mockApi.createRelationship()
     await api.post(`/api/families/${familyId}/relationships`, {
       pet_id_a: petIdA,
       pet_id_b: petIdB,
@@ -299,12 +340,12 @@ export const familyService = {
 
   /** 删除兄弟姐妹关系 */
   async removeSibling(familyId: string, relationshipId: string): Promise<void> {
-    if (useMock()) return mockApi.deleteRelationship(relationshipId)
+    if (isMockMode()) return mockApi.deleteRelationship(relationshipId)
     await api.delete(`/api/families/${familyId}/relationships/${relationshipId}`)
   },
 
   async getFamilyPhotos(familyId: string): Promise<FamilyPhoto[]> {
-    if (useMock()) return mockApi.getFamilyPhotos(familyId)
+    if (isMockMode()) return mockApi.getFamilyPhotos(familyId)
     try {
       const data = await api.get<FamilyPhoto[]>(`/api/families/${familyId}/photos`)
       if (data && data.length > 0) return data
@@ -316,7 +357,7 @@ export const familyService = {
 
   /** 发起 AI 全家福生成 */
   async generateFamilyPhoto(familyId: string, style: string): Promise<{ id: string; photoUrl: string }> {
-    if (useMock()) {
+    if (isMockMode()) {
       const mockPhoto = await mockApi.saveFamilyPhoto(familyId, '', 0, [], 'generated')
       return { id: mockPhoto.id, photoUrl: mockPhoto.photoUrl }
     }
@@ -325,7 +366,7 @@ export const familyService = {
   },
 
   async deleteFamilyPhoto(familyId: string, photoId: string): Promise<void> {
-    if (useMock()) return mockApi.deleteFamilyPhoto(photoId)
+    if (isMockMode()) return mockApi.deleteFamilyPhoto(photoId)
     try {
       await api.delete(`/api/families/${familyId}/photos/${photoId}`)
       return
@@ -347,7 +388,7 @@ export const familyService = {
       description?: string
     },
   ): Promise<{ id: string }> {
-    if (useMock()) {
+    if (isMockMode()) {
       const mockPhoto = await mockApi.saveFamilyPhoto(familyId, data.photoUrl, data.memberCount, data.memberNames, data.photoType || 'generated')
       return { id: mockPhoto.id }
     }

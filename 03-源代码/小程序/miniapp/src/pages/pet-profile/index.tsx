@@ -8,6 +8,7 @@ import Taro from '@tarojs/taro'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { usePetStore } from '../../stores/petStore'
+import { useFamilyStore } from '../../stores/familyStore'
 import PageLoading from '../../components/PageLoading'
 import PetAvatar from '../../components/PetAvatar'
 import { useThemeClass } from '../../hooks/useThemeClass'
@@ -84,6 +85,10 @@ export default function PetProfile() {
   const [streakDays, setStreakDays] = useState(0)
   const [vaccineCoverage, setVaccineCoverage] = useState<number | null>(null)
   const [weekTrend, setWeekTrend] = useState('暂无')
+  // 多成员共同养宠：家庭成员（人）列表（hook 必须在所有 early return 之前调用）
+  const familyUsers = useFamilyStore((s) => s.users)
+  // 家庭成员多于 1 人时宠物视为"家庭共养"（展示标识）
+  const isCoCared = familyUsers.length > 1
 
   const pet = currentPet || (pets.length > 0 ? pets[0] : undefined)
 
@@ -100,6 +105,10 @@ export default function PetProfile() {
     const loadData = async () => {
       try {
         await fetchPets(user.id)
+        // 多成员共同养宠：若已加入家庭，加载家庭成员（人）列表用于"共同养宠"标识
+        if (useFamilyStore.getState().currentFamily) {
+          await useFamilyStore.getState().fetchUsers()
+        }
       } catch (err) {
         // 静默处理错误，页面有错误状态展示
       }
@@ -273,6 +282,13 @@ export default function PetProfile() {
         </View>
         <View className='profile-hero-name-row'>
           <Text className='profile-hero-name'>{activePet.name}</Text>
+          {/* 多成员共同养宠：家庭有 2 人以上成员时显示共养标识 */}
+          {isCoCared && (
+            <View className='profile-co-care-badge'>
+              <Text className='profile-co-care-icon'>👥</Text>
+              <Text className='profile-co-care-text'>家庭共养</Text>
+            </View>
+          )}
           {activePet.isDeceased && (
             <View className='profile-deceased-badge'>
               <Text className='profile-deceased-icon'>🕊️</Text>

@@ -15,6 +15,7 @@ import { useMemoryFlow } from '../../hooks/useMemoryFlow'
 import { useVoiceInput } from '../../hooks/useVoiceInput'
 import { usePetStore } from '../../stores/petStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useFamilyStore } from '../../stores/familyStore'
 import { getTodayCheckin } from '../../services/checkinService'
 import type { CardData, Message, NamingDetail, PetInfo } from '../../types/chatTypes'
 import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
@@ -49,7 +50,8 @@ const SPIRIT_LABEL: Record<number, string> = { 1: '萎靡', 2: '低落', 3: '正
 /** 格式化打卡时间 → "08:32" */
 function formatCheckinTime(value: Date | string): string {
   const d = value instanceof Date ? value : new Date(value)
-  if (isNaN(d.getTime())) return ''
+  // Number.isNaN 替代全局 isNaN（eslint no-restricted-globals 要求）
+  if (Number.isNaN(d.getTime())) return ''
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')
   return `${hh}:${mm}`
@@ -98,6 +100,16 @@ export default function Index() {
     { action: 'food', label: '食物查询', emoji: '🔍' },
     { action: 'symptom', label: '症状初筛', emoji: '💊' },
   ])
+  // 多成员共同养宠：家庭成员（人）列表 + 引导横幅开关（情侣引导 2026-08-24）
+  const familyUsers = useFamilyStore((s) => s.users)
+  const [showCoCareTip, setShowCoCareTip] = useState(true)
+
+  // 进入首页若有家庭，加载家庭成员（人）列表（用于"邀请 TA 一起养宠"引导判断）
+  useEffect(() => {
+    if (useFamilyStore.getState().currentFamily) {
+      useFamilyStore.getState().fetchUsers().catch(() => {})
+    }
+  }, [])
 
   const chat = useChatCore({
     petInfo,
@@ -672,6 +684,15 @@ export default function Index() {
           </View>
         </View>
       </View>
+
+      {/* 多成员共同养宠：情侣引导横幅（有宠物但家庭仅自己时提示邀请 TA，2026-08-24） */}
+      {showCoCareTip && petInfo.hasPet && familyUsers.length <= 1 && (
+        <View className='home-co-care-tip' onClick={() => Taro.switchTab({ url: '/pages/family/index' })}>
+          <Text className='home-co-care-tip__icon'>👥</Text>
+          <Text className='home-co-care-tip__text'>邀请 TA 一起养宠，共同记录毛孩子的每一天</Text>
+          <Text className='home-co-care-tip__close' onClick={(e) => { e.stopPropagation(); setShowCoCareTip(false) }}>✕</Text>
+        </View>
+      )}
 
       <ScrollView
         className='chat-msg-list'

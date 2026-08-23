@@ -114,6 +114,28 @@
   font-weight: $font-weight-medium;
 }
 
+// 多成员共同养宠：家庭共养标识（2026-08-24）
+.profile-co-care-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: $color-primary-bg;
+  border: 1rpx solid rgba($color-primary, 0.3);
+  flex-shrink: 0;
+}
+
+.profile-co-care-icon {
+  font-size: 22rpx;
+}
+
+.profile-co-care-text {
+  font-size: 22rpx;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
 .profile-hero-breed-pill {
   display: inline-flex;
   align-items: center;

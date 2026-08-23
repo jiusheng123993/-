@@ -262,6 +262,111 @@
   color: $color-primary;
 }
 
+// ===== 2.5 共同养宠（人成员，多成员共同养宠 2026-08-24） =====
+.family-co-care {
+  margin-top: 8rpx;
+  padding: 24rpx 0 8rpx;
+}
+
+.family-user-strip {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.family-user-strip__inner {
+  display: flex;
+  gap: 20rpx;
+  padding: 8rpx 4rpx 16rpx;
+}
+
+.family-user-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 120rpx;
+  padding: 16rpx 8rpx;
+  background: $color-bg-card;
+  border-radius: 24rpx;
+  box-shadow: $shadow-card;
+  transition: transform $transition-fast;
+}
+
+.family-user-card:active {
+  transform: scale(0.95);
+}
+
+.family-user-card__avatar-wrap {
+  position: relative;
+}
+
+.family-user-card__avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 4rpx solid $color-primary;
+  overflow: hidden;
+  @include flex-center;
+  background: $color-primary-bg;
+
+  &--fallback {
+    background: $gradient-card;
+  }
+
+  &--add {
+    border-color: $color-border;
+    background: $color-bg-secondary;
+  }
+}
+
+.family-user-card__avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.family-user-card__avatar-emoji {
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+.family-user-card__name {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-top: 10rpx;
+  max-width: 120rpx;
+  @include text-ellipsis;
+}
+
+.family-user-card__role {
+  display: block;
+  font-size: 20rpx;
+  margin-top: 4rpx;
+
+  &--owner {
+    color: $color-gold-deep;
+    font-weight: $font-weight-semibold;
+  }
+
+  &--member {
+    color: $color-text-tertiary;
+  }
+}
+
+.family-user-card__remove {
+  margin-top: 8rpx;
+  padding: 2rpx 16rpx;
+  border-radius: 999rpx;
+  background: $color-danger-bg;
+}
+
+.family-user-card__remove-text {
+  font-size: 20rpx;
+  color: $color-danger;
+}
+
 // ===== 通用卡片 =====
 .family-card {
   @include card-base;

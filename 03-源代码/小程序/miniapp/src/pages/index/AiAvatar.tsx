@@ -2,12 +2,12 @@
  * 首页 AI 宠物管家头像组件
  *
  * 品牌专属形象：戴金色星冠的橘猫管家（Seedream 生成，与 20 张品牌小动物头像同风格），
- * 本地打包进主包（128px WebP 仅 2KB），不依赖网络。
- * 兜底：图片加载失败（极不可能，本地资源）回退 🤖 emoji，保证头像位始终有内容。
+ * 本地打包进主包。原 WebP 在微信安卓真机兼容性差（真机不显示、模拟器正常），
+ * 已转 PNG 保证全端稳定显示。
  */
 import { useState, useEffect } from 'react'
 import { Image, Text } from '@tarojs/components'
-import aiManager from '../../assets/ai-avatar/ai-manager.webp'
+import aiManager from '../../assets/ai-avatar/ai-manager.png'
 
 interface AiAvatarProps {
   /** 图片样式类（圆形裁剪铺满） */

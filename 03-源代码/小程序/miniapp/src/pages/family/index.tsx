@@ -2,7 +2,7 @@
  * 家庭页面
  * 家庭头部 + 成员横滑 + 今日健康摘要 + 家族图谱 + 家庭日历 + 家庭周报 + 家庭动态预览
  */
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { usePetStore } from '../../stores/petStore'
@@ -89,7 +89,7 @@ function getMomentText(moment: PetMoment): string {
 
 export default function FamilyPage() {
   const { pets, fetchPets, switchPet } = usePetStore()
-  const { currentFamily, members, fetchFamilies, createFamily, loading: familyLoading } = useFamilyStore()
+  const { currentFamily, members, users, fetchFamilies, createFamily, loading: familyLoading } = useFamilyStore()
   const user = useAuthStore(s => s.user)
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   const isInitialized = useAuthStore(s => s.isInitialized)
@@ -121,6 +121,8 @@ export default function FamilyPage() {
     }
     const loadData = async () => {
       await fetchFamilies()
+      // 多成员共同养宠：加载家庭成员（人）列表
+      await useFamilyStore.getState().fetchUsers()
       await fetchPets(user.id)
       const fetchedPets = usePetStore.getState().pets
 
@@ -362,6 +364,50 @@ export default function FamilyPage() {
     return map
   }, [members])
 
+  // ===== 多成员共同养宠：人成员管理（2026-08-24） =====
+  /** 当前用户是否为家庭创建者（owner） */
+  const isFamilyOwner = !!users.find((u) => u.userId === user?.id && u.role === 'owner')
+
+  /** 生成邀请码并弹窗展示（仅 owner），可复制发给 TA */
+  const handleInvite = async () => {
+    try {
+      const code = await useFamilyStore.getState().createInvite()
+      Taro.showModal({
+        title: '邀请 TA 一起养宠',
+        content: `邀请码：${code}\n7 天内有效，复制发给 TA，TA 在小程序「家庭」页输入即可加入`,
+        confirmText: '复制邀请码',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.setClipboardData({ data: code })
+          }
+        },
+      })
+    } catch (err) {
+      const error = err as { message?: string }
+      Taro.showToast({ title: error.message || '生成邀请码失败', icon: 'none' })
+    }
+  }
+
+  /** 移除家庭成员（仅 owner） */
+  const handleRemoveUser = (userId: string, nickname: string) => {
+    Taro.showModal({
+      title: '移除成员',
+      content: `确定移除 ${nickname || '该成员'} 吗？移除后 TA 将无法查看家庭宠物与记录`,
+      confirmText: '移除',
+      confirmColor: '#FF5A5F',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await useFamilyStore.getState().removeUser(userId)
+          Taro.showToast({ title: '已移除', icon: 'success' })
+        } catch {
+          Taro.showToast({ title: '移除失败，请重试', icon: 'none' })
+        }
+      },
+    })
+  }
+
   const checkedCount = useMemo(
     () => Object.values(todayCheckins).filter((c) => !!c).length,
     [todayCheckins]
@@ -509,6 +555,54 @@ export default function FamilyPage() {
             </View>
           </View>
         </ScrollView>
+
+        {/* ===== 2.5 共同养宠（人成员，多成员共同养宠 2026-08-24） ===== */}
+        <View className='family-co-care'>
+          <View className='family-card__head'>
+            <View className='family-card__title-wrap'>
+              <Text className='family-card__icon'>👥</Text>
+              <Text className='family-card__title'>共同养宠</Text>
+            </View>
+            <Text className='family-card__meta'>{users.length} 位家人</Text>
+          </View>
+          <ScrollView scrollX className='family-user-strip' enhanced showScrollbar={false}>
+            <View className='family-user-strip__inner'>
+              {users.map((u) => (
+                <View key={u.userId} className='family-user-card'>
+                  <View className='family-user-card__avatar-wrap'>
+                    {u.avatarUrl ? (
+                      <Image className='family-user-card__avatar' src={u.avatarUrl} mode='aspectFill' />
+                    ) : (
+                      <View className='family-user-card__avatar family-user-card__avatar--fallback'>
+                        <Text className='family-user-card__avatar-emoji'>🐾</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text className='family-user-card__name'>{u.nickname || (u.role === 'owner' ? '我' : '家人')}</Text>
+                  <Text className={`family-user-card__role family-user-card__role--${u.role}`}>
+                    {u.role === 'owner' ? '创建者' : '成员'}
+                  </Text>
+                  {isFamilyOwner && u.role !== 'owner' && (
+                    <View className='family-user-card__remove' onClick={() => handleRemoveUser(u.userId, u.nickname || '')}>
+                      <Text className='family-user-card__remove-text'>移除</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+              {isFamilyOwner && (
+                <View className='family-user-card' onClick={handleInvite}>
+                  <View className='family-user-card__avatar-wrap'>
+                    <View className='family-user-card__avatar family-user-card__avatar--add'>
+                      <Text className='family-user-card__avatar-emoji'>＋</Text>
+                    </View>
+                  </View>
+                  <Text className='family-user-card__name'>邀请 TA</Text>
+                  <Text className='family-user-card__role family-user-card__role--member'>一起养宠</Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </View>
 
         {/* ===== 3. 今日健康摘要卡 ===== */}
         <View className='family-card'>

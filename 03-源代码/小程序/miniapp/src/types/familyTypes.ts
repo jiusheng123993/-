@@ -17,6 +17,20 @@ export interface PetFamilyMember {
   joinedAt: string
 }
 
+/**
+ * 家庭成员（人） - 多成员共同养宠（2026-08-24）
+ * 对应后端 pet_family_users：家庭 ←→ 用户 关联（owner/member）
+ */
+export interface FamilyUser {
+  id: string
+  familyId: string
+  userId: string
+  role: 'owner' | 'member'
+  nickname?: string
+  avatarUrl?: string
+  joinedAt?: string
+}
+
 export interface PetLineage {
   id: string
   familyId: string | null
