@@ -8,7 +8,9 @@ import { getStorage, setStorage } from '../utils/storage'
 import type { PetHealthEntry } from './checkinService'
 import type { PetProfile } from './petService'
 import type { PetFoodQuery } from '../memory-body/types/memoryBodyTypes'
-import { BREED_DATA } from '../data/petKnowledge/breeds'
+// 主包体积优化：本服务仅用品种的常见病/遗传病/平均寿命字段做风险分析，
+// 引用精简版 breedsLight 而非全量 breeds（148KB），避免品种全量数据被打进主包
+import { BREED_LIGHT } from '../data/petKnowledge/breedsLight'
 // 医学知识图谱：规则/疾病数据已外置，风险等级评估与置信度推导统一走图谱（见 设计方案-2026-08-22）
 import { evaluateRiskLevel, enrichResultWithConfidence, getPossibleConditions } from '../data/petKnowledge/medicalGraph'
 import type { Confidence, AnalysisConclusion } from '../data/petKnowledge/medicalGraph'
@@ -500,7 +502,7 @@ function getRecentFoodQueries(petId: string, days: number = 7): PetFoodQuery[] {
 
 function findBreedDiseases(breed: string, species: 'dog' | 'cat'): string[] {
   if (!breed) return []
-  const matched = BREED_DATA.find(
+  const matched = BREED_LIGHT.find(
     (b) => b.species === species && (b.name === breed || b.aliases.includes(breed) || b.id === breed)
   )
   return matched ? matched.commonDiseases.slice(0, 3) : []
@@ -512,7 +514,7 @@ function findGeneticDiseaseInsights(
 ): PersonalizedInsight[] {
   if (!petProfile.breed) return []
 
-  const matched = BREED_DATA.find(
+  const matched = BREED_LIGHT.find(
     (b) => b.species === petProfile.species && (b.name === petProfile.breed || b.aliases.includes(petProfile.breed) || b.id === petProfile.breed)
   )
   if (!matched || matched.geneticDiseases.length === 0) return []
@@ -1040,7 +1042,7 @@ function findBreedAgeRiskInsights(
   const insights: PersonalizedInsight[] = []
   if (!petProfile.breed || !petProfile.birthDate) return insights
 
-  const breed = BREED_DATA.find(
+  const breed = BREED_LIGHT.find(
     (b) => b.species === petProfile.species && (b.name === petProfile.breed || b.aliases.includes(petProfile.breed) || b.id === petProfile.breed)
   )
   if (!breed) return insights

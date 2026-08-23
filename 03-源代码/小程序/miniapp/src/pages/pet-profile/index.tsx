@@ -14,7 +14,9 @@ import { useThemeClass } from '../../hooks/useThemeClass'
 import { getPetFacts, type PetFact } from '../../services/petService'
 import { getCheckinStats, getCheckinsByDateRange, getLatestCheckin } from '../../services/checkinService'
 import { getVaccineRecords } from '../../services/vaccineService'
-import { BREED_DATA } from '../../data/petKnowledge/breeds'
+// 主包体积优化：pet-profile 是主包 tab 页，只用品种的 3 项特征（遗传病/体重/饮食禁忌），
+// 引用精简版 breedsLight（45KB）而非全量 breeds（148KB），避免拖爆主包体积
+import { BREED_LIGHT } from '../../data/petKnowledge/breedsLight'
 import type { ExpressionContext } from '../../types/avatarTypes'
 import './index.scss'
 
@@ -42,7 +44,8 @@ const FACT_ICONS: Record<string, string> = {
 function formatDate(value: string): string {
   if (!value) return '未设置'
   const d = new Date(value)
-  if (isNaN(d.getTime())) return value.slice(0, 10)
+  // Number.isNaN 替代全局 isNaN（eslint no-restricted-globals 要求，避免隐式类型转换误判）
+  if (Number.isNaN(d.getTime())) return value.slice(0, 10)
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
@@ -214,7 +217,7 @@ export default function PetProfile() {
   // 根据宠物品种匹配品种特征（遗传病 / 体重范围 / 饮食禁忌）
   const breedInfo = useMemo(() => {
     if (!pet?.breed) return null
-    const matched = BREED_DATA.find(
+    const matched = BREED_LIGHT.find(
       b => b.name === pet.breed || b.aliases.includes(pet.breed) || pet.breed.includes(b.name)
     )
     return matched ?? null

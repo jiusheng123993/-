@@ -9,9 +9,11 @@ import { getStorage, setStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
 import { generateAutoVaccineSchedule, generateDewormingSchedule } from '../engines/vaccineScheduler';
 import { BREED_VACCINE_RECOMMENDATIONS } from '../data/petKnowledge/vaccineSchedule';
-import { BREED_DATA } from '../data/petKnowledge/breeds';
+// 主包体积优化：本服务只需按 breedId 判断品种是否存在（后续用独立推荐表），
+// 引用精简版 breedsLight 而非全量 breeds（148KB），避免品种全量数据被打进主包
+import { BREED_LIGHT } from '../data/petKnowledge/breedsLight';
 import type { BreedVaccineRecommendation } from '../data/petKnowledge/vaccineSchedule';
-import type { BreedItem } from '../data/petKnowledge/breeds';
+import type { LightBreedItem } from '../data/petKnowledge/breedsLight';
 
 export interface VaccineRecord {
   id: string;
@@ -310,7 +312,7 @@ function getBreedRecommendations(breedId: string | undefined, species: 'dog' | '
 
   if (!breedId) return result
 
-  const breed: BreedItem | undefined = BREED_DATA.find((b: BreedItem) => b.id === breedId)
+  const breed: LightBreedItem | undefined = BREED_LIGHT.find((b: LightBreedItem) => b.id === breedId)
   if (!breed) return result
 
   const matched: BreedVaccineRecommendation[] = BREED_VACCINE_RECOMMENDATIONS.filter(
