@@ -251,6 +251,31 @@ registerTool('record_health_checkin', async (args, context): Promise<ToolResult>
     return { success: false, message: '还没有添加宠物，无法打卡' };
   }
 
+  // 中文枚举 → 数值（pet_health_entries 的 *_level 为 smallint：1-5）
+  // 精神/食欲/排便：1=很差 2=较差 3=正常 4=较好 5=很好；运动：1=较少 2=正常 3=充足
+  const SPIRIT_MAP: Record<string, number> = { '很好': 5, '正常': 3, '一般': 2, '不太好': 1 };
+  const APPETITE_MAP: Record<string, number> = { '很好': 5, '正常': 3, '一般': 2, '不太好': 1 };
+  const POOP_MAP: Record<string, number> = { '正常': 3, '偏软': 4, '偏硬': 2, '拉稀': 1, '未排便': 1 };
+  const EXERCISE_MAP: Record<string, number> = { '充足': 3, '正常': 2, '较少': 1, '未运动': 1 };
+
+  const spirit = (args.spirit as string) || '正常';
+  const appetite = (args.appetite as string) || '正常';
+  const poop = (args.poop as string) || '正常';
+  const exercise = (args.exercise as string) || '正常';
+  const weight = args.weight ? Number(args.weight) : null;
+  const note = (args.note as string) || null;
+
+  // 未知枚举值回退到正常（3），避免 LLM 传了不在映射里的词导致 500
+  const spiritLevel = SPIRIT_MAP[spirit] ?? 3;
+  const appetiteLevel = APPETITE_MAP[appetite] ?? 3;
+  const poopLevel = POOP_MAP[poop] ?? 3;
+  const exerciseLevel = EXERCISE_MAP[exercise] ?? 2;
+
+  // 判断是否有异常（精神/食欲≤2 或 排便异常），risk_level 用生产约束允许的枚举
+  // （pet_health_entries_risk_level_check: low/medium/high/emergency，不是 caution/normal）
+  const hasAnomaly = spiritLevel <= 2 || appetiteLevel <= 2 || poopLevel <= 2 || poop === '拉稀' || poop === '未排便';
+  const riskLevel = hasAnomaly ? 'high' : 'low';
+
   // 检查今天是否已经打卡
   const today = new Date().toISOString().split('T')[0];
   const { rows: existing } = await pool.query(
@@ -260,23 +285,12 @@ registerTool('record_health_checkin', async (args, context): Promise<ToolResult>
   );
 
   const id = uuidv4();
-  const spirit = (args.spirit as string) || '正常';
-  const appetite = (args.appetite as string) || '正常';
-  const poop = (args.poop as string) || '正常';
-  const exercise = (args.exercise as string) || '正常';
-  const weight = args.weight ? Number(args.weight) : null;
-  const note = (args.note as string) || null;
-
-  // 判断是否有异常
-  const hasAnomaly = [spirit, appetite, poop].some((v) => v === '不太好' || v === '拉稀');
-  const riskLevel = hasAnomaly ? 'caution' : 'normal';
-
   await pool.query(
     `INSERT INTO pet_health_entries
       (id, pet_id, user_id, spirit_level, appetite_level, poop_level,
        exercise_level, weight, has_anomaly, risk_level, note)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-    [id, petId, context.userId, spirit, appetite, poop, exercise, weight, hasAnomaly, riskLevel, note]
+    [id, petId, context.userId, spiritLevel, appetiteLevel, poopLevel, exerciseLevel, weight, hasAnomaly, riskLevel, note]
   );
 
   const alreadyMsg = existing.length > 0 ? '（今天已有打卡记录，本次为追加记录）' : '';
@@ -468,11 +482,13 @@ registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> 
     return { success: false, message: '还没有添加宠物' };
   }
 
+  // 表名为 pet_vaccinations（对齐生产 schema；早期写成 pet_vaccines 导致表不存在）
+  // 注意：该表无 vaccine_name 字段，疫苗名在 type 列（如"猫三联""狂犬疫苗"），category 为分类
   const { rows } = await pool.query(
-    `SELECT vaccine_name, scheduled_date, status, notes
-     FROM pet_vaccines
+    `SELECT type, category, date, next_date, status, notes
+     FROM pet_vaccinations
      WHERE pet_id = $1 AND user_id = $2
-     ORDER BY scheduled_date ASC`,
+     ORDER BY date ASC NULLS LAST`,
     [petId, context.userId]
   );
 
@@ -481,22 +497,22 @@ registerTool('get_vaccine_calendar', async (args, context): Promise<ToolResult> 
   }
 
   const now = new Date();
-  const upcoming = rows.filter((r) => new Date(r.scheduled_date) >= now);
-  const overdue = rows.filter((r) => new Date(r.scheduled_date) < now && r.status !== 'completed');
+  const upcoming = rows.filter((r) => r.next_date && new Date(r.next_date) >= now);
+  const overdue = rows.filter((r) => r.next_date && new Date(r.next_date) < now && r.status !== 'completed');
 
   return {
     success: true,
     data: {
       total: rows.length,
       upcoming: upcoming.map((r) => ({
-        name: r.vaccine_name,
-        date: new Date(r.scheduled_date).toLocaleDateString('zh-CN'),
+        name: r.type || r.category || '疫苗',
+        date: r.next_date,
         status: r.status,
         notes: r.notes,
       })),
       overdue: overdue.map((r) => ({
-        name: r.vaccine_name,
-        date: new Date(r.scheduled_date).toLocaleDateString('zh-CN'),
+        name: r.type || r.category || '疫苗',
+        date: r.next_date,
         status: r.status,
       })),
     },
@@ -583,10 +599,13 @@ registerTool('search_breed_info', async (args, context): Promise<ToolResult> => 
     return { success: false, message: '请提供品种名称' };
   }
 
-  // 从数据库查询品种信息
+  // 品种百科数据在前端静态资源（BREED_DATA），后端无 pet_breeds 表（早期迁移建表失败）。
+  // 这里返回用户宠物档案中的品种信息 + 引导，避免查询不存在的表导致 500。
   const { rows } = await pool.query(
-    `SELECT * FROM pet_breeds WHERE name ILIKE $1 LIMIT 1`,
-    [`%${breedName}%`]
+    `SELECT id, name, species, breed FROM pet_profiles
+     WHERE user_id = $1 AND breed ILIKE $2
+     ORDER BY created_at LIMIT 1`,
+    [context.userId, `%${breedName}%`]
   );
 
   if (rows.length === 0) {
@@ -595,7 +614,7 @@ registerTool('search_breed_info', async (args, context): Promise<ToolResult> => 
       data: {
         found: false,
         breed: breedName,
-        message: `未找到"${breedName}"的百科信息`,
+        message: `暂时无法提供"${breedName}"的详细百科（品种知识库建设中），但你可以问它的喂养、健康、性格相关问题，我会尽力解答。`,
       },
     };
   }
@@ -605,14 +624,9 @@ registerTool('search_breed_info', async (args, context): Promise<ToolResult> => 
     success: true,
     data: {
       found: true,
-      breed: b.name,
+      breed: b.breed,
       species: b.species,
-      size: b.size || '未知',
-      temperament: b.temperament || '',
-      lifespan: b.lifespan || '',
-      commonDiseases: b.common_diseases || [],
-      careNotes: b.care_notes || '',
-      feedingAdvice: b.feeding_advice || '',
+      message: `${b.name}的品种是${b.breed}。关于该品种的详细百科（体型/性格/寿命/常见病/喂养建议），可继续追问具体问题（如"${b.breed}容易得什么病"），我会结合常见品种知识解答。`,
     },
   };
 });
@@ -668,11 +682,11 @@ registerTool('record_feeding', async (args, context): Promise<ToolResult> => {
   const note = (args.note as string) || null;
 
   // 记录到 pet_facts 中（作为喂养记录）
-  const id = uuidv4();
+  // 注意：pet_facts.id 是 bigint 自增（nextval），不能传 uuid；省略 id 让序列自动生成
   await pool.query(
-    `INSERT INTO pet_facts (id, pet_id, user_id, category, fact)
-     VALUES ($1, $2, $3, 'feeding', $4)`,
-    [id, petId, context.userId, `${new Date().toLocaleDateString('zh-CN')} 喂了${food}${note ? `（${note}）` : ''}`]
+    `INSERT INTO pet_facts (pet_id, user_id, category, fact)
+     VALUES ($1, $2, 'feeding', $3)`,
+    [petId, context.userId, `${new Date().toLocaleDateString('zh-CN')} 喂了${food}${note ? `（${note}）` : ''}`]
   );
 
   return {
@@ -688,17 +702,14 @@ registerTool('record_feeding', async (args, context): Promise<ToolResult> => {
 registerTool('search_hospital', async (args, context): Promise<ToolResult> => {
   const isEmergency = args.emergency === true;
 
-  const { rows } = await pool.query(
-    `SELECT name, address, phone, rating, is_24h
-     FROM pet_hospitals ORDER BY rating DESC LIMIT 5`
-  );
-
-  if (rows.length === 0) {
+  // pet_hospitals 表在生产库不存在（早期迁移建表失败），医院数据为前端静态内容。
+  // 这里不查库，直接给出就医指引（紧急/非紧急两种话术），避免查询不存在的表导致 500。
+  if (isEmergency) {
     return {
       success: true,
       data: {
-        message: '暂未收录附近宠物医院信息，建议在地图搜索"宠物医院"',
-        emergency: isEmergency,
+        emergency: true,
+        message: '⚠️ 情况紧急，请立即带宠物前往最近的宠物医院或 24 小时急诊！可在微信或地图 App 搜索"宠物医院"，优先选择有急诊标注的。若宠物有中毒、大出血、抽搐等紧急情况，请直接联系就近医院并说明症状。',
       },
     };
   }
@@ -706,17 +717,8 @@ registerTool('search_hospital', async (args, context): Promise<ToolResult> => {
   return {
     success: true,
     data: {
-      emergency: isEmergency,
-      hospitals: rows.map((h) => ({
-        name: h.name,
-        address: h.address,
-        phone: h.phone,
-        rating: h.rating,
-        is24h: h.is_24h,
-      })),
-      message: isEmergency
-        ? '以下是附近宠物医院，建议立即前往最近的一家！'
-        : '以下是附近的宠物医院：',
+      emergency: false,
+      message: '可以在微信或地图 App 搜索"宠物医院"查看附近的医院与评分。建议优先选择：① 24 小时营业的急诊医院 ② 有宠物专科的医院 ③ 距你家近、口碑好的。需要我帮你查某类症状对应的科室建议吗？',
     },
   };
 });
