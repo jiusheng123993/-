@@ -9,9 +9,10 @@
 
   const BASE = '/api';
 
-  /** 读取令牌：输入框优先，回退 localStorage */
+  /** 读取令牌：输入框优先，回退 localStorage；自动清理可能的 "ADMIN_TOKEN=" 前缀/引号（2026-08-23 容错） */
   function getToken() {
-    return document.getElementById('token').value.trim() || localStorage.getItem('adminToken') || '';
+    const raw = document.getElementById('token').value.trim() || localStorage.getItem('adminToken') || '';
+    return raw.replace(/^['"]?ADMIN_TOKEN=['"]?/i, '').trim();
   }
 
   /** 轻提示 */
@@ -51,8 +52,14 @@
   }
 
   function saveToken() {
-    localStorage.setItem('adminToken', document.getElementById('token').value.trim());
-    toast('令牌已保存');
+    // 容错：自动去掉可能复制进来的 "ADMIN_TOKEN=" 前缀与引号，再保存
+    const raw = document.getElementById('token').value.trim();
+    const clean = raw.replace(/^['"]?ADMIN_TOKEN=['"]?/i, '').trim();
+    localStorage.setItem('adminToken', clean);
+    document.getElementById('token').value = clean;
+    showAuthWarning(!clean);
+    toast(clean ? '令牌已保存' : '令牌为空，请粘贴 ADMIN_TOKEN');
+    loadGraph();
   }
 
   async function loadGraph() {
