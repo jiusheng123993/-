@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>星河宠记 · 知识图谱审核后台</title>
-  <!-- 外置 CSS/JS：helmet 默认 CSP(script-src 'self') 禁止内联脚本与内联事件，管理页必须外置（审查项 S1 修复） -->
-  <link rel="stylesheet" href="/admin/admin.css" />
+  <!-- 外置 CSS/JS：helmet 默认 CSP(script-src 'self') 禁止内联脚本与内联事件，管理页必须外置（审查项 S1 修复）
+       ?v= 版本号强制刷新浏览器缓存（改 admin.js/css 后记得递增） -->
+  <link rel="stylesheet" href="/admin/admin.css?v=3" />
 </head>
 <body>
   <div class="wrap">
@@ -85,6 +86,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="/admin/admin.js"></script>
+  <script src="/admin/admin.js?v=3"></script>
 </body>
 </html>
