@@ -100,6 +100,19 @@
   color: #FFFFFF;
 }
 
+// 凭邀请码加入：空态次级入口（弱化样式，主 CTA 是创建家庭）
+.family-join-btn {
+  width: 100%;
+  height: 88rpx;
+  margin-top: 20rpx;
+  border-radius: 44rpx;
+  background: transparent;
+  border: 2rpx solid rgba($color-primary, 0.45);
+  @include flex-center;
+  font-size: $font-size-md;
+  color: $color-primary;
+}
+
 // ===== 1. 家庭头部 =====
 .family-head {
   display: flex;

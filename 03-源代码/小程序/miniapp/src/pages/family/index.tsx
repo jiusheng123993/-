@@ -355,6 +355,47 @@ export default function FamilyPage() {
     }
   }
 
+  /** 加入中状态标记：防止输入弹窗重复拉起/重复提交 */
+  const [joining, setJoining] = useState(false)
+
+  /**
+   * 凭邀请码加入家庭（被邀请方入口，补全"生成邀请码 → 对方凭码加入"闭环）
+   * 流程：官方 editable 输入框（基础库 2.17.1+，免自建弹层）→ store.joinFamily
+   * （内部已刷新家庭列表、选中新家庭、拉宠物成员）→ 补拉人成员列表 → toast 反馈；
+   * 失败透传服务端原因（如「邀请码无效或已过期」），不静默。
+   */
+  const handleJoinByCode = async () => {
+    if (joining) return
+    try {
+      // editable 输入框为微信原生能力（基础库 2.17.1+），但 Taro 3.6 类型表未收录
+      // editable/placeholderText/content（同 showNicknameAccessory 先例），展开透传绕过
+      const res = await Taro.showModal({
+        title: '凭邀请码加入',
+        ...({ editable: true, placeholderText: '输入 TA 发给你的 6 位邀请码' } as object),
+        confirmText: '加入',
+        cancelText: '取消',
+      } as Taro.showModal.Option)
+      if (!res.confirm) return
+      // 邀请码服务端统一按大写比对（generateInviteCode 只出大写），这里归一化容错小写输入
+      const code = ((res as { content?: string }).content || '').trim().toUpperCase()
+      if (!code) {
+        Taro.showToast({ title: '请先输入邀请码', icon: 'none' })
+        return
+      }
+      setJoining(true)
+      await useFamilyStore.getState().joinFamily(code)
+      // joinFamily 未覆盖人成员列表（共同养宠区展示用），单独补拉；失败不打扰主流程
+      await useFamilyStore.getState().fetchUsers().catch(() => {})
+      Taro.showToast({ title: '加入成功', icon: 'success' })
+    } catch (err) {
+      const error = err as { message?: string }
+      console.error('[Family] 凭邀请码加入失败:', err)
+      Taro.showToast({ title: error.message || '加入失败，请检查邀请码', icon: 'none' })
+    } finally {
+      setJoining(false)
+    }
+  }
+
   /** 成员角色映射（petId -> role） */
   const memberRoleMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -368,23 +409,48 @@ export default function FamilyPage() {
   /** 当前用户是否为家庭创建者（owner） */
   const isFamilyOwner = !!users.find((u) => u.userId === user?.id && u.role === 'owner')
 
+  /**
+   * 复制邀请码到剪贴板（统一入口，成功/失败都有用户可见反馈）
+   * 坑点：剪贴板属微信隐私接口，后台《用户隐私保护指引》未声明时真机/体验版
+   * 会 fail errno 112（开发者工具不校验）——失败禁止静默，引导用户长按弹窗里的邀请码手动复制。
+   * @param code 邀请码文本
+   */
+  const copyInviteCode = (code: string) => {
+    Taro.setClipboardData({
+      data: code,
+      success: () => Taro.showToast({ title: '邀请码已复制', icon: 'success' }),
+      fail: (e) => {
+        // errno 112 = 隐私协议未声明「剪贴板」权限；弹窗 content 已含完整邀请码，手动复制也能完成流程
+        console.error('[Family] 复制邀请码到剪贴板失败:', e)
+        Taro.showToast({ title: '自动复制失败，请长按邀请码手动复制', icon: 'none' })
+      },
+    })
+  }
+
   /** 生成邀请码并弹窗展示（仅 owner），可复制发给 TA */
   const handleInvite = async () => {
     try {
       const code = await useFamilyStore.getState().createInvite()
+      console.log('[Family] 邀请码生成成功:', code)
       Taro.showModal({
         title: '邀请 TA 一起养宠',
-        content: `邀请码：${code}\n7 天内有效，复制发给 TA，TA 在小程序「家庭」页输入即可加入`,
-        confirmText: '复制邀请码',
+        // 指引写明具体入口位置，避免对方拿到码后找不到输入处
+        content: `邀请码：${code}，7 天内有效。发给 TA 后，TA 在「家庭」页「共同养宠」区点「凭码加入」输入即可`,
+        // 坑点：微信 showModal 按钮文案上限 4 个字符，超长直接 fail 且弹窗不渲染
+        // （此前「复制邀请码」5 字 → 点邀请卡完全无反应的根因，2026-08-24 修复）
+        confirmText: '复制',
         cancelText: '取消',
+        // 弹窗展示失败时降级：尝试自动复制邀请码，保证用户一定有反馈
+        fail: () => copyInviteCode(code),
         success: (res) => {
           if (res.confirm) {
-            Taro.setClipboardData({ data: code })
+            copyInviteCode(code)
           }
         },
       })
     } catch (err) {
       const error = err as { message?: string }
+      console.error('[Family] 生成邀请码失败:', err)
       Taro.showToast({ title: error.message || '生成邀请码失败', icon: 'none' })
     }
   }
@@ -479,6 +545,10 @@ export default function FamilyPage() {
             onClick={handleCreateFamily}
           >
             <Text>{creating ? '创建中...' : '✨ 创建我的家庭'}</Text>
+          </View>
+          {/* 次级入口：被邀请方凭 TA 发的邀请码加入家庭（补全邀请闭环 2026-08-24） */}
+          <View className='family-join-btn' onClick={handleJoinByCode}>
+            <Text>🎟️ 凭邀请码加入</Text>
           </View>
         </View>
       </View>
@@ -589,6 +659,16 @@ export default function FamilyPage() {
                   )}
                 </View>
               ))}
+              {/* 凭码加入：手里有别的家庭发的邀请码时，从这里输入加入（全员可见，2026-08-24） */}
+              <View className='family-user-card' onClick={handleJoinByCode}>
+                <View className='family-user-card__avatar-wrap'>
+                  <View className='family-user-card__avatar family-user-card__avatar--add'>
+                    <Text className='family-user-card__avatar-emoji'>🎟️</Text>
+                  </View>
+                </View>
+                <Text className='family-user-card__name'>凭码加入</Text>
+                <Text className='family-user-card__role family-user-card__role--member'>输邀请码</Text>
+              </View>
               {isFamilyOwner && (
                 <View className='family-user-card' onClick={handleInvite}>
                   <View className='family-user-card__avatar-wrap'>
