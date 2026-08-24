@@ -53,6 +53,7 @@ import {
   saveAvatarCustomization,
   generateAvatarImage,
   generateAvatarOptions,
+  backgroundSwap,
   saveAvatarToLibrary,
   getAvatarLibrary,
   deleteAvatarLibraryItem,
@@ -90,6 +91,7 @@ describe('avatarService', () => {
         description: '橘色英短，圆脸胖乎乎的',
         styleKey: undefined,
         expression: undefined,
+        background: undefined,
       })
     })
 
@@ -102,6 +104,7 @@ describe('avatarService', () => {
         description: undefined,
         styleKey: undefined,
         expression: undefined,
+        background: undefined,
       })
     })
 
@@ -114,6 +117,45 @@ describe('avatarService', () => {
         description: '圆脸',
         styleKey: 'q',
         expression: 'happy',
+        background: undefined,
+      })
+    })
+
+    it('传背景 key 时透传给后端（文生图换景）', async () => {
+      await generateAvatarOptions('pet-1', undefined, 'cartoon', undefined, undefined, undefined, 'sakura')
+      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
+        petId: 'pet-1',
+        referenceImageUrl: undefined,
+        style: 'cartoon',
+        description: undefined,
+        styleKey: undefined,
+        expression: undefined,
+        background: 'sakura',
+      })
+    })
+
+    it('真·背景替换：POST /background-swap 透传源图+背景，返回新图 URL；失败返回 null', async () => {
+      mockApiPost.mockResolvedValueOnce({ url: 'https://cdn.example.com/swapped.png' })
+      const url = await backgroundSwap('pet-1', 'https://e.com/source.png', 'sakura')
+      expect(url).toBe('https://cdn.example.com/swapped.png')
+      expect(mockApiPost).toHaveBeenLastCalledWith('/api/avatar/background-swap', {
+        petId: 'pet-1',
+        imageUrl: 'https://e.com/source.png',
+        background: 'sakura',
+      })
+      mockApiPost.mockRejectedValueOnce(new Error('network'))
+      expect(await backgroundSwap('pet-1', 'https://e.com/source.png', 'sakura')).toBeNull()
+    })
+
+    it('真·背景替换：自定义描述作为 customBackground 透传（预设可缺省）', async () => {
+      mockApiPost.mockResolvedValueOnce({ url: 'https://cdn.example.com/custom.png' })
+      const url = await backgroundSwap('pet-1', 'https://e.com/source.png', undefined, '雪夜壁炉旁的木地板')
+      expect(url).toBe('https://cdn.example.com/custom.png')
+      expect(mockApiPost).toHaveBeenLastCalledWith('/api/avatar/background-swap', {
+        petId: 'pet-1',
+        imageUrl: 'https://e.com/source.png',
+        background: undefined,
+        customBackground: '雪夜壁炉旁的木地板',
       })
     })
 

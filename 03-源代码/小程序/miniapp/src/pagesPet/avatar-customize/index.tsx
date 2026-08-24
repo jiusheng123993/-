@@ -45,6 +45,7 @@ import {
   getAvatarLibrary,
   deleteAvatarLibraryItem,
   setMultiviewAsCurrent,
+  backgroundSwap,
   type AvatarStyleOption,
   type AvatarLibraryItem,
 } from '../../services/avatarService'
@@ -105,8 +106,11 @@ const GEN_BACKGROUNDS: Array<{ key: string; label: string; icon: string }> = [
   { key: 'cozy', label: '奶油毛毯', icon: '🧶' },
 ]
 
-/** 画风 key → 中文名（形象库分类/参考模板用） */
-const GEN_STYLE_LABELS: Record<string, string> = Object.fromEntries(GEN_STYLES.map(s => [s.key, s.label]))
+/** 画风 key → 中文名（形象库分类/参考模板用）；'bgswap'=真·背景替换产物的库内归类（非画风生成，服务端 /library style 白名单同步收） */
+const GEN_STYLE_LABELS: Record<string, string> = {
+  ...Object.fromEntries(GEN_STYLES.map(s => [s.key, s.label])),
+  bgswap: '换背景',
+}
 /** 表情 key → 中文名（形象库分类/参考模板用） */
 const GEN_EXPR_LABELS: Record<string, string> = Object.fromEntries(GEN_EXPRESSIONS.map(e => [e.key, e.label]))
 
@@ -129,7 +133,7 @@ const GEN_STYLE_ATMOS: Record<string, string> = {
   dark: '哥特月光，神秘雾气，戏剧性光影',
 }
 
-type TabType = 'text' | 'photo'
+type TabType = 'text' | 'photo' | 'bgswap'
 
 /** 计算年龄（岁/月） */
 function calcAge(birthDate?: string): string {
@@ -173,6 +177,14 @@ export default function AvatarCustomizePage() {
   // 生成参数：手动选择画风 + 表情（对应服务端 AVATAR_STYLE_OPTIONS / EXPRESSION_PROMPTS）
   const [genStyle, setGenStyle] = useState<string>('q')
   const [genExpression, setGenExpression] = useState<string | null>(null)
+  // 文字 Tab 背景选择（'' = 默认干净背景；key 与服务端 AVATAR_BACKGROUND_OPTIONS 对齐）
+  const [genBackground, setGenBackground] = useState<string>('')
+  // 真·背景替换：源形象 URL（当前形象/形象库条目）+ 新背景 key + 自定义描述（优先于预设）+ 结果
+  const [bgSourceUrl, setBgSourceUrl] = useState<string | null>(null)
+  const [bgSwapBg, setBgSwapBg] = useState<string>('')
+  const [bgCustom, setBgCustom] = useState<string>('')
+  const [bgSwapResult, setBgSwapResult] = useState<string | null>(null)
+  const [isBgSwapping, setIsBgSwapping] = useState(false)
   // 形象库：按风格/表情/类型分类保存的生成形象 + 筛选
   const [library, setLibrary] = useState<AvatarLibraryItem[]>([])
   const [libraryStyleFilter, setLibraryStyleFilter] = useState<string>('all')
@@ -495,9 +507,9 @@ export default function AvatarCustomizePage() {
     setSelectedStyleIndex(null)
     try {
       // 按用户选择的画风+表情生成 1 张（styleKey 指定后服务端只生成该画风）
-      // 用户描述（可选）拼进提示词参与生图
+      // 用户描述（可选）拼进提示词参与生图；背景（可选）替换"干净背景"实现换景
       const desc = textDescription.trim().slice(0, 100)
-      const options = await generateAvatarOptions(petId, undefined, selectedStyle, desc || undefined, genStyle, genExpression || undefined)
+      const options = await generateAvatarOptions(petId, undefined, selectedStyle, desc || undefined, genStyle, genExpression || undefined, genBackground || undefined)
       if (options && options.length > 0) {
         setStyleOptions(options)
         // 单选画风生成 1 张，默认选中它
@@ -528,7 +540,7 @@ export default function AvatarCustomizePage() {
     } finally {
       setIsGenerating(false)
     }
-  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, textDescription, genStyle, genExpression, petId, trackEvent])
+  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, textDescription, genStyle, genExpression, genBackground, petId, trackEvent])
 
   // ---- 形象库：按风格/表情/类型分类保存的生成形象 ----
 
@@ -627,9 +639,66 @@ export default function AvatarCustomizePage() {
     }
   }, [petId, species, handleSaved])
 
+  /** 真·背景替换：源形象 + 新背景（预设或自定义描述，自定义优先）→ 保角色换景新图 */
+  const handleBackgroundSwap = useCallback(async () => {
+    const customTrimmed = bgCustom.trim()
+    if (!petId || !bgSourceUrl || (!bgSwapBg && !customTrimmed) || isBgSwapping) return
+    setIsBgSwapping(true)
+    setBgSwapResult(null)
+    trackEvent('bg_swap_start', { background: bgSwapBg || 'custom' })
+    try {
+      const url = await backgroundSwap(petId, bgSourceUrl, bgSwapBg || undefined, customTrimmed || undefined)
+      if (url) {
+        setBgSwapResult(url)
+        Taro.showToast({ title: '换背景成功', icon: 'success' })
+        Taro.nextTick(() => {
+          Taro.pageScrollTo({ scrollTop: 99999, duration: 300 })
+        })
+      } else {
+        Taro.showToast({ title: '换背景失败，请重试', icon: 'none' })
+      }
+    } finally {
+      setIsBgSwapping(false)
+    }
+  }, [petId, bgSourceUrl, bgSwapBg, bgCustom, isBgSwapping, trackEvent])
+
+  /** 换背景结果 → 存入形象库（style='bgswap' 单独归类） */
+  const handleSaveBgResult = useCallback(async () => {
+    if (!petId || !bgSwapResult) return
+    const ok = await saveAvatarToLibrary(petId, 'bgswap', null, bgSwapResult, 'headshot')
+    if (ok) {
+      Taro.showToast({ title: '已存入形象库', icon: 'success' })
+      await loadLibrary(petId)
+    } else {
+      Taro.showToast({ title: '存入失败，请重试', icon: 'none' })
+    }
+  }, [petId, bgSwapResult, loadLibrary])
+
+  /** 换背景结果 → 设为当前形象（同形象库头像条目的 cartoon 流程） */
+  const handleUseBgResult = useCallback(async () => {
+    if (!petId || !bgSwapResult) return
+    try {
+      const custom: AvatarCustomization = {
+        species,
+        style: 'cartoon',
+        styleVariant: 'bgswap',
+        baseColor: '#FFD93D',
+        generatedAt: new Date().toISOString(),
+        cartoonUrl: bgSwapResult,
+      }
+      const updated = await saveAvatarCustomization(custom, petId)
+      const patch = updated
+        ? (updated as unknown as Record<string, unknown>)
+        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
+      await handleSaved(petId, patch)
+      Taro.showToast({ title: '已设为当前形象', icon: 'success' })
+    } catch {
+      Taro.showToast({ title: '设置失败，请重试', icon: 'none' })
+    }
+  }, [petId, species, bgSwapResult, handleSaved])
+
   /** 删除形象库中的一条 */
-  const handleDeleteLibraryItem = useCallback(async (id: string) => {
-    Taro.showModal({
+  const handleDeleteLibraryItem = useCallback(async (id: string) => {    Taro.showModal({
       title: '删除这个形象？',
       content: '删除后不可恢复',
       confirmText: '删除',
@@ -948,6 +1017,12 @@ export default function AvatarCustomizePage() {
             >
               <Text className='avatar-customize__tab-text'>照片生成</Text>
             </View>
+            <View
+              className={`avatar-customize__tab ${activeTab === 'bgswap' ? 'avatar-customize__tab--active' : ''}`}
+              onClick={() => setActiveTab('bgswap')}
+            >
+              <Text className='avatar-customize__tab-text'>换背景</Text>
+            </View>
           </View>
 
           {/* Tab 1: 文字描述生成 */}
@@ -1255,6 +1330,108 @@ export default function AvatarCustomizePage() {
                 </View>
               )}
             </>
+          )}
+
+          {/* Tab 3: 真·背景替换（图生图保角色换景，会员专享） */}
+          {activeTab === 'bgswap' && (
+            !isMember ? (
+              <View className='avatar-customize__member-only'>
+                <Text className='avatar-customize__member-only-icon'>🌈</Text>
+                <Text className='avatar-customize__member-only-title'>背景替换 · 会员专享</Text>
+                <Text className='avatar-customize__member-only-desc'>选一张已有形象，AI 保持宠物完全不变、只把背景换成你想要的场景；可先在「照片生成」Tab 生成专属形象再来换景</Text>
+                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可使用 AI 背景替换')}>
+                  <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
+                </View>
+              </View>
+            ) : (
+              <>
+              {/* 第一步：选源形象（当前形象 + 形象库条目） */}
+              <View className='avatar-customize__section'>
+                <Text className='avatar-customize__section-title'>1️⃣ 选一张形象</Text>
+                <ScrollView className='avatar-bgsrc' scrollX enhanced showScrollbar={false}>
+                  {currentPet?.avatarCartoonUrl && (
+                    <View
+                      className={`avatar-bgsrc__card ${bgSourceUrl === currentPet.avatarCartoonUrl ? 'avatar-bgsrc__card--active' : ''}`}
+                      onClick={() => setBgSourceUrl(currentPet.avatarCartoonUrl!)}
+                    >
+                      <Image className='avatar-bgsrc__img' src={currentPet.avatarCartoonUrl} mode='aspectFill' lazyLoad />
+                      <Text className='avatar-bgsrc__label'>当前形象</Text>
+                    </View>
+                  )}
+                  {library.map(item => (
+                    <View
+                      key={item.id}
+                      className={`avatar-bgsrc__card ${bgSourceUrl === item.imageUrl ? 'avatar-bgsrc__card--active' : ''}`}
+                      onClick={() => setBgSourceUrl(item.imageUrl)}
+                    >
+                      <Image className='avatar-bgsrc__img' src={item.imageUrl} mode='aspectFill' lazyLoad />
+                      <Text className='avatar-bgsrc__label'>{GEN_STYLE_LABELS[item.style] || item.style}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+                {!currentPet?.avatarCartoonUrl && library.length === 0 && (
+                  <Text className='avatar-bgsrc__empty'>还没有可用的形象：先在上方「文字描述生成 / 照片生成」生成并保存到形象库</Text>
+                )}
+                {bgSourceUrl && <Text className='avatar-bgsrc__hint'>已选择 ✓ AI 会保持这只宠物完全不变，只更换背景</Text>}
+              </View>
+
+              {/* 第二步：选新背景（预设 chips 或自定义描述） */}
+              <View className='avatar-customize__section'>
+                <Text className='avatar-customize__section-title'>2️⃣ 选择新背景</Text>
+                <View className='avatar-customize__gen-options avatar-customize__gen-options--expr'>
+                  {GEN_BACKGROUNDS.map(opt => (
+                    <View
+                      key={opt.key}
+                      className={`avatar-customize__gen-chip ${bgSwapBg === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
+                      onClick={() => setBgSwapBg(opt.key)}
+                    >
+                      <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
+                      <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
+                    </View>
+                  ))}
+                </View>
+                {/* 自定义背景：自由写场景，角色锁定由服务端提示词保证；清洗截断 60 字在服务端做 */}
+                <Text className='avatar-customize__desc-hint'>✏️ 或自己写一个背景（只描述场景即可，宠物会保持不变；不要写宠物名字）</Text>
+                <Textarea
+                  className='avatar-customize__desc-input'
+                  value={bgCustom}
+                  onInput={(e) => setBgCustom(e.detail.value)}
+                  placeholder='例如：铺满落叶的秋日森林小径，午后暖阳穿过树叶洒下光斑'
+                  maxlength={60}
+                  autoHeight
+                />
+                {!!bgCustom.trim() && (
+                  <Text className='avatar-bgsrc__hint'>将使用你的自定义背景（优先于上方所选预设）</Text>
+                )}
+              </View>
+
+              {/* 生成 */}
+              <View className='avatar-customize__actions'>
+                <View
+                  className={`avatar-customize__btn ${(!bgSourceUrl || (!bgSwapBg && !bgCustom.trim()) || isBgSwapping) ? 'avatar-customize__btn--disabled' : ''}`}
+                  onClick={handleBackgroundSwap}
+                >
+                  <Text className='avatar-customize__btn-text'>{isBgSwapping ? '换背景中…' : '🌈 开始换背景'}</Text>
+                </View>
+              </View>
+
+              {/* 结果：存入形象库 / 设为当前 */}
+              {bgSwapResult && (
+                <View className='avatar-bgres'>
+                  <Image className='avatar-bgres__img' src={bgSwapResult} mode='aspectFit' lazyLoad />
+                  <View className='avatar-bgres__actions'>
+                    <View className='avatar-customize__btn avatar-customize__btn--secondary' onClick={handleSaveBgResult}>
+                      <Text className='avatar-customize__btn-text'>💾 存入形象库</Text>
+                    </View>
+                    <View className='avatar-customize__btn' onClick={handleUseBgResult}>
+                      <Text className='avatar-customize__btn-text'>✅ 设为当前形象</Text>
+                    </View>
+                  </View>
+                  <Text className='avatar-bgres__hint'>不满意？换个背景再点一次「开始换背景」即可</Text>
+                </View>
+              )}
+              </>
+            )
           )}
           {/* 生成结果：一套 = 头像 + 全方位设定图。单张结果走单卡（文字流指定画风 / 照片流按所选画风，
               两者生成成功都会 setSelectedStyleIndex(0)，单卡内保存/设当前均显式用下标 0，无死按钮）；

@@ -65,8 +65,9 @@ function getAuthHeaders(extra?: Record<string, string>): Record<string, string> 
  * @param referenceImageUrl - 参考照片 URL（有则图生图保证像宠物本人）
  * @param style - 基础基调：cartoon（卡通）/ realistic（写实）
  * @param description - 用户文字描述（可选，拼进提示词参与生图）
- * @param styleKey - 指定画风 key（q/japanese/american/watercolor/clay，传了只生成 1 张）
+ * @param styleKey - 指定画风 key（q/japanese/...，传了只生成该画风）
  * @param expression - 表情 key（happy/excited/...，拼进提示词）
+ * @param background - 背景 key（sky/sakura/...，文生图换景：替换提示词"干净背景"，可选）
  * @returns 候选列表；失败返回 null（调用方提示重试，不回退丑陋占位图）
  */
 export async function generateAvatarOptions(
@@ -76,6 +77,7 @@ export async function generateAvatarOptions(
   description?: string,
   styleKey?: string,
   expression?: string,
+  background?: string,
 ): Promise<AvatarStyleOption[] | null> {
   try {
     const data = await api.post<{ options: AvatarStyleOption[] }>('/api/avatar/generate-options', {
@@ -85,8 +87,29 @@ export async function generateAvatarOptions(
       description,
       styleKey,
       expression,
+      background,
     })
     return data?.options?.length ? data.options : null
+  } catch {
+    return null
+  }
+}
+
+/** 真·背景替换结果：保角色仅换景的新图 URL（background=预设 key / customBackground=自定义描述，至少一项） */
+export async function backgroundSwap(
+  petId: string,
+  imageUrl: string,
+  background?: string,
+  customBackground?: string,
+): Promise<string | null> {
+  try {
+    const data = await api.post<{ url: string }>('/api/avatar/background-swap', {
+      petId,
+      imageUrl,
+      background,
+      customBackground,
+    })
+    return data?.url || null
   } catch {
     return null
   }
