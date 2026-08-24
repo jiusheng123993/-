@@ -355,6 +355,54 @@ export async function generatePetImageOptions(
 }
 
 /**
+ * 清洗自定义背景描述（对齐全家福 cleanCustomScene 口径）：
+ * 换行/制表符→空格、压缩连续空白、截断 60 字；纯空白返回空串（视同未填）
+ */
+export function cleanCustomBackground(raw: string): string {
+  return raw.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+}
+
+/**
+ * 真·背景替换（图生图局部语义编辑）：以用户已有形象图为参考，
+ * 保持宠物本身完全不变，仅把背景更换为所选场景
+ * - 参考图 = 用户选定的形象/照片 URL（callSeedream 传 image 字段走图生图，身份锚点）
+ * - 背景 = 预设 key（AVATAR_BACKGROUND_OPTIONS 白名单）或用户自定义描述（清洗截断 60 字，优先于预设）
+ * - 提示词按技能 §角色锁定：以参考照片为准（有图才写）+ 只出现这一只 + 边缘干净自然
+ * - 水印/角标由 callSeedream 统一处理（watermark:false + 自有品牌角标）
+ * @returns 新图 URL；无 key/背景为空/生成失败返回 null（调用方明确报错）
+ */
+export async function generateBackgroundSwap(params: {
+  petId: string;
+  species: string;
+  breed: string;
+  /** 用户选定的源形象 URL（当前形象或形象库条目） */
+  imageUrl: string;
+  /** 背景 key（AVATAR_BACKGROUND_OPTIONS 白名单内），与 customBackground 二选一 */
+  background?: string;
+  /** 用户自定义背景描述（自由文本，服务端清洗截断 60 字），优先于 background */
+  customBackground?: string;
+}): Promise<string | null> {
+  const apiKey = config.seedream.apiKey;
+  if (!apiKey) return null;
+  const customText = params.customBackground ? cleanCustomBackground(params.customBackground) : '';
+  // 自定义优先，其次预设；两者皆空不发请求（路由已校验，双保险）
+  const bgText = customText || (params.background ? AVATAR_BACKGROUND_PROMPTS[params.background] : '') || '';
+  if (!bgText) return null;
+  const subject = petSubjectText(params.breed, params.species, '');
+  const prompt = [
+    `以这张${subject}的照片为准，进行背景替换`,
+    '保持这只宠物完全不变：毛色、花纹、体型、五官、姿态与参考图完全一致，不改变外貌，不增减数量',
+    `仅将背景更换为：${bgText}`,
+    '宠物轮廓边缘干净自然，与背景融合真实',
+    '画面中只出现这一只宠物，不要出现其他动物、人物、文字、水印',
+    '高质量，细节丰富',
+  ]
+    .join('，')
+    .replace(/，+/g, '，');
+  return callSeedream(prompt, params.imageUrl, apiKey);
+}
+
+/**
  * 宠物照片 → 详细外貌描述（DeepSeek 视觉模型提取）
  * 对应提示词库 §0.9「细节描写清单」：毛色/花纹/体型/脸型/眼睛/鼻子/胡须/特殊标记，
  * 让生图提示词包含"具体样貌"而不是只有品种名

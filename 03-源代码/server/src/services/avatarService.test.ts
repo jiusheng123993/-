@@ -22,7 +22,7 @@ vi.mock('./visionService.js', () => ({
   analyzeImage: mockAnalyzeImage,
 }));
 
-import { generatePetImageOptions, extractPetAppearance } from './avatarService.js';
+import { generatePetImageOptions, generateBackgroundSwap, extractPetAppearance } from './avatarService.js';
 
 /** 从 mock 调用里按类型拆分提示词：头像调用含"的头像"，设定图调用含"角色设定图" */
 function splitCalls(): { headPrompts: string[]; sheetPrompts: string[] } {
@@ -78,6 +78,97 @@ describe('generatePetImageOptions 一套两张（头像 + 全方位设定图）'
     expect(headPrompts[0]).toContain('一只英短猫咪的头像');
     // 名字绝不进提示词
     expect(headPrompts[0]).not.toContain('烧鸡');
+  });
+
+  it('背景 key 拼进头像提示词替换"干净背景"（文生图换景）；非法/未选回退默认', async () => {
+    // 选了樱花背景：场景描写替换干净背景
+    await generatePetImageOptions({
+      petId: 'p1',
+      species: 'cat',
+      breed: '英短',
+      gender: '',
+      styleKey: 'q',
+      background: 'sakura',
+    });
+    const first = splitCalls().headPrompts[0];
+    expect(first).toContain('春日樱花树下粉色花瓣飘落的背景');
+    expect(first).not.toContain('干净背景');
+    // 非法 key（路由白名单漏网兜底）：回退默认干净背景
+    mockCallSeedream.mockClear();
+    await generatePetImageOptions({
+      petId: 'p1',
+      species: 'cat',
+      breed: '英短',
+      gender: '',
+      styleKey: 'q',
+      background: 'hacker-injection',
+    });
+    expect(splitCalls().headPrompts[0]).toContain('干净背景');
+  });
+
+  it('真·背景替换：以源形象为参考图，保角色锁定 + 只换景；非法背景不发请求', async () => {
+    mockCallSeedream.mockResolvedValue('https://cdn.example.com/swapped.png');
+    const url = await generateBackgroundSwap({
+      petId: 'p1',
+      species: 'cat',
+      breed: '英短',
+      imageUrl: 'https://e.com/source.png',
+      background: 'christmas',
+    });
+    expect(url).toBe('https://cdn.example.com/swapped.png');
+    expect(mockCallSeedream).toHaveBeenCalledTimes(1);
+    const [prompt, reference] = mockCallSeedream.mock.calls[0];
+    // 参考图 = 用户选定的源形象（图生图身份锚点）
+    expect(reference).toBe('https://e.com/source.png');
+    // 角色锁定（金科玉律 #4：有参考图才写"以...为准"）+ 数量锁定 + 仅换景
+    expect(prompt).toContain('一只英短猫咪的照片为准');
+    expect(prompt).toContain('不改变外貌，不增减数量');
+    expect(prompt).toContain('仅将背景更换为：圣诞壁炉、彩灯与松枝装饰的温暖背景');
+    expect(prompt).toContain('只出现这一只宠物');
+    // 名字绝不进提示词
+    expect(prompt).not.toContain('烧鸡');
+
+    // 非法背景 key：不发请求返回 null（路由白名单漏网的双保险）
+    mockCallSeedream.mockClear();
+    const bad = await generateBackgroundSwap({
+      petId: 'p1',
+      species: 'cat',
+      breed: '英短',
+      imageUrl: 'https://e.com/source.png',
+      background: '<script>',
+    });
+    expect(bad).toBeNull();
+    expect(mockCallSeedream).not.toHaveBeenCalled();
+  });
+
+  it('真·背景替换：自定义描述清洗截断 60 字进提示词，且优先于预设；两者皆空不发请求', async () => {
+    mockCallSeedream.mockResolvedValue('https://cdn.example.com/custom-bg.png');
+    // 自定义 + 换行 + 超长：清洗为单行空格、截断 60 字，并覆盖预设
+    await generateBackgroundSwap({
+      petId: 'p1',
+      species: 'dog',
+      breed: '金毛',
+      imageUrl: 'https://e.com/source.png',
+      background: 'sakura',
+      customBackground: `铺满落叶的秋日森林小径\n午后暖阳${'景'.repeat(100)}`,
+    });
+    const [prompt, reference] = mockCallSeedream.mock.calls[0];
+    expect(prompt).toContain('仅将背景更换为：铺满落叶的秋日森林小径 午后暖阳');
+    expect(prompt).not.toContain('\n');
+    expect(prompt).not.toContain('春日樱花树下'); // 自定义优先，预设被覆盖
+    expect(reference).toBe('https://e.com/source.png');
+
+    // 两者皆空（自定义纯空白 + 无预设）：不发请求
+    mockCallSeedream.mockClear();
+    const empty = await generateBackgroundSwap({
+      petId: 'p1',
+      species: 'dog',
+      breed: '金毛',
+      imageUrl: 'https://e.com/source.png',
+      customBackground: '   \n\t ',
+    });
+    expect(empty).toBeNull();
+    expect(mockCallSeedream).not.toHaveBeenCalled();
   });
 
   it('设定图提示词含四视图版式与"同一只"主体锁定（防画成四只宠物）', async () => {
