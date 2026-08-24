@@ -59,3 +59,48 @@ export const PET_IDENTITY_KEEP =
  */
 export const PET_ONLY_ONE =
   '画面中只出现这一只宠物，不要出现其他动物、人物或食物';
+
+/** 中文序数（左起第一只 / 第二只…；超过十只用阿拉伯数字兜底，实际全家福成员远达不到） */
+const CN_ORDINALS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+
+/**
+ * 名字 → 外貌指代 转译器：允许用户用自己的话提到宠物名字，但名字绝不进提示词
+ *
+ * 用户心智模型是「烧鸡在左边追蝴蝶」，而生图模型听到「烧鸡」就会画一只烧鸡
+ * （2026-08-24 真实事故）。本函数在服务端清洗阶段把已知宠物名替换为
+ * 「那只英短猫咪」（单只）/「左起第二只橘猫」（多只，配合全家福排位顺序）
+ * 式的外貌指代——用户零学习成本，模型收到的是纯外貌语言。
+ *
+ * @param raw - 用户自由文本（应已过基础清洗）
+ * @param pets - 已知宠物集合（名字是有限集合，来自档案）；多只时数组顺序=画面从左到右顺序
+ * @returns 转译后的文本；无命中原样返回
+ */
+export function translatePetNames(
+  raw: string,
+  pets: Array<{ name?: string | null; breed?: string | null; species?: string | null }>,
+): string {
+  if (!raw) return raw;
+  // 收集有效名字（去空白、限长、按名字去重），并记录序号用于多宠方位前缀
+  const nameMap = new Map<string, { breed: string | null; species: string; ordinal: number }>();
+  let ordinal = 0;
+  for (const p of pets) {
+    const name = (p.name || '').trim();
+    if (!name || name.length > 20 || nameMap.has(name)) continue;
+    ordinal += 1;
+    nameMap.set(name, { breed: p.breed ?? null, species: p.species ?? '', ordinal });
+  }
+  if (nameMap.size === 0) return raw;
+
+  const multi = nameMap.size > 1;
+  // 长名字优先替换，避免短名是长名子串时误伤（如「小猫」⊂「小猫咪」）
+  const names = [...nameMap.keys()].sort((a, b) => b.length - a.length);
+  let out = raw;
+  for (const name of names) {
+    const info = nameMap.get(name)!;
+    // 外貌指代复用主体描述模块（含品种兜底与「不确定品种」防污染），去掉「一只」前缀拼方位词
+    const subject = petSubjectText(info.breed, info.species).replace(/^一只/, '');
+    const prefix = multi ? `左起第${CN_ORDINALS[info.ordinal - 1] ?? info.ordinal}只` : '那只';
+    out = out.split(name).join(`${prefix}${subject}`);
+  }
+  return out;
+}

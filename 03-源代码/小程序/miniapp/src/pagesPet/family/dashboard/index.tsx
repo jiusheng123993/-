@@ -3,7 +3,7 @@
  * 宠物家庭聚合看板、健康总览
  */
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
-import { View, Text, Canvas, Textarea } from '@tarojs/components'
+import { View, Text, Canvas, Textarea, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useFamilyStore } from '../../../stores/familyStore'
 import { usePetStore } from '../../../stores/petStore'
@@ -114,6 +114,24 @@ export default function FamilyDashboard() {
       }))
       .filter((item: { member: PetFamilyMember; pet: PetProfile | undefined }) => item.pet)
   }, [members, pets])
+
+  // ===== 成员排位：用户用名字沟通座次（"烧鸡在左边"），系统翻译成画面从左到右的顺序 =====
+  // memberOrder = petId 有序数组，随 familyPets 变化重置为默认顺序；生成时透传后端写"从左到右依次是…"
+  const [memberOrder, setMemberOrder] = useState<string[]>([])
+  useEffect(() => {
+    setMemberOrder(familyPets.map((fp: { member: PetFamilyMember }) => fp.member.petId))
+  }, [familyPets])
+  /** 排位交换：dir=-1 左移一位 / +1 右移一位（名字只在 UI 显示，不进提示词） */
+  const moveMember = useCallback((petId: string, dir: -1 | 1) => {
+    setMemberOrder((prev) => {
+      const next = [...prev]
+      const i = next.indexOf(petId)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= next.length) return prev
+      ;[next[i], next[j]] = [next[j], next[i]]
+      return next
+    })
+  }, [])
 
   const unassignedPets = useMemo(() => {
     const assignedIds = new Set(members.map((m: PetFamilyMember) => m.petId))
@@ -260,6 +278,8 @@ export default function FamilyDashboard() {
         style,
         selectedScene === 'custom' ? undefined : selectedScene,
         selectedScene === 'custom' ? customSceneText.trim() : undefined,
+        // 成员排位：按用户排的左右座次生成（后端翻译成"从左到右依次是"的外貌列表）
+        memberOrder.length > 1 ? memberOrder : undefined,
       )
       clearInterval(progressTimer)
 
@@ -336,7 +356,7 @@ export default function FamilyDashboard() {
       setPhotoGenerating(false)
       setCanvasVisible(false)
     }
-  }, [currentFamily, familyPets, members, generateAiPhoto, switchPet, selectedScene, customSceneText])
+  }, [currentFamily, familyPets, members, generateAiPhoto, switchPet, selectedScene, customSceneText, memberOrder])
 
   // 每次渲染把最新版生成函数写入 ref，供 handleGeneratePhoto 的弹窗回调使用（见上方注释）
   generateWithStyleRef.current = handleGenerateWithStyle
@@ -559,6 +579,40 @@ export default function FamilyDashboard() {
                   选好场景和画风，AI 为您合成一张精美的全家福
                 </Text>
               </View>
+              {/* ===== 成员排位：排在前面的=画面里靠左边（名字只在这里显示，不进 AI 提示词） ===== */}
+              {familyPets.length > 1 && (
+                <View className='fd-order'>
+                  <Text className='fd-order__title'>🪑 排个座次</Text>
+                  <Text className='fd-order__hint'>排在前面 = 合影里靠左边；名字不会发给 AI，AI 认毛色</Text>
+                  <View className='fd-order__row'>
+                    {memberOrder.map((petId, idx) => {
+                      const fp = familyPets.find((f: { member: PetFamilyMember }) => f.member.petId === petId)
+                      if (!fp?.pet) return null
+                      return (
+                        <View key={petId} className='fd-order__item'>
+                          <Text className='fd-order__pos'>{idx + 1}</Text>
+                          <Image className='fd-order__avatar' src={fp.pet.avatarPhotoUrl || fp.pet.avatarCartoonUrl || ''} mode='aspectFill' lazyLoad />
+                          <Text className='fd-order__name'>{fp.pet.name}</Text>
+                          <View className='fd-order__btns'>
+                            <View
+                              className={`fd-order__btn ${idx === 0 ? 'fd-order__btn--disabled' : ''}`}
+                              onClick={() => moveMember(petId, -1)}
+                            >
+                              <Text className='fd-order__btn-text'>‹</Text>
+                            </View>
+                            <View
+                              className={`fd-order__btn ${idx === memberOrder.length - 1 ? 'fd-order__btn--disabled' : ''}`}
+                              onClick={() => moveMember(petId, 1)}
+                            >
+                              <Text className='fd-order__btn-text'>›</Text>
+                            </View>
+                          </View>
+                        </View>
+                      )
+                    })}
+                  </View>
+                </View>
+              )}
               {/* ===== 场景选择：五大主题分组宫格 + 自定义场景输入 ===== */}
               <View className='fd-scene-picker'>
                 <View className='fd-scene-tabs'>

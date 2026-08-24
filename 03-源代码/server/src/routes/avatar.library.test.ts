@@ -7,7 +7,7 @@ import request from 'supertest';
 import express from 'express';
 
 // ---- mock 所有 avatar.ts 的外部依赖（避免真实 DB/外部服务） ----
-const { mockFindByIdAndUser, mockLibrarySave, mockLibraryFind, mockLibraryDelete, mockGenerateOptions, mockExtractAppearance, mockCreateGeneration, mockMarkCompleted } = vi.hoisted(() => ({
+const { mockFindByIdAndUser, mockLibrarySave, mockLibraryFind, mockLibraryDelete, mockGenerateOptions, mockExtractAppearance, mockCreateGeneration, mockMarkCompleted, mockBackgroundSwap } = vi.hoisted(() => ({
   mockFindByIdAndUser: vi.fn(),
   mockLibrarySave: vi.fn(),
   mockLibraryFind: vi.fn(),
@@ -16,6 +16,7 @@ const { mockFindByIdAndUser, mockLibrarySave, mockLibraryFind, mockLibraryDelete
   mockExtractAppearance: vi.fn().mockResolvedValue('橘色虎斑英短，橙底深棕条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头'),
   mockCreateGeneration: vi.fn().mockResolvedValue({ id: 'gen-1' }),
   mockMarkCompleted: vi.fn().mockResolvedValue({}),
+  mockBackgroundSwap: vi.fn().mockResolvedValue('https://cdn.example.com/swapped.png'),
 }));
 
 vi.mock('../db.js', () => ({ pool: { query: vi.fn() } }));
@@ -64,6 +65,7 @@ vi.mock('../repositories/avatarTaskRepository.js', () => ({
 vi.mock('../services/avatarService.js', () => ({
   generatePetImage: vi.fn(),
   generatePetImageOptions: mockGenerateOptions,
+  generateBackgroundSwap: mockBackgroundSwap,
   extractPetAppearance: mockExtractAppearance,
   AVATAR_STYLE_OPTIONS: [
     { key: 'q', label: 'Q版萌系' },
@@ -73,6 +75,9 @@ vi.mock('../services/avatarService.js', () => ({
     { key: 'clay', label: '黏土萌宠' },
   ],
   EXPRESSION_PROMPTS: { happy: '开心的表情' },
+  AVATAR_BACKGROUND_PROMPTS: { sakura: '春日樱花树下粉色花瓣飘落的背景，柔和逆光，浪漫温柔，浅景深虚化' },
+  // 清洗逻辑与真实实现保持一致（路由直接调用该导出）
+  cleanCustomBackground: (raw: string) => raw.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60),
 }));
 vi.mock('../services/photoUploadService.js', () => ({ uploadPetPhoto: vi.fn() }));
 vi.mock('../services/taskQueue.js', () => ({
@@ -166,6 +171,22 @@ describe('POST /api/avatar/generate-options — 文字生成自动提取外貌',
     );
   });
 
+  it('背景 key 白名单透传；非法 key 归 undefined（文生图换景）', async () => {
+    const app = createApp();
+    const ok = await request(app)
+      .post('/api/avatar/generate-options')
+      .set('X-Forwarded-For', '203.0.113.12')
+      .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q', background: 'sakura' });
+    expect(ok.status).toBe(200);
+    expect(mockGenerateOptions).toHaveBeenCalledWith(expect.objectContaining({ background: 'sakura' }));
+    const bad = await request(app)
+      .post('/api/avatar/generate-options')
+      .set('X-Forwarded-For', '203.0.113.13')
+      .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q', background: '<script>' });
+    expect(bad.status).toBe(200);
+    expect(mockGenerateOptions).toHaveBeenCalledWith(expect.objectContaining({ background: undefined }));
+  });
+
   it('无照片时跳过自动提取（不调用视觉，回退档案描述）', async () => {
     mockFindByIdAndUser.mockResolvedValue({ id: 'pet-1', species: 'cat', breed: '英短', gender: '', avatar_photo_url: null });
     const app = createApp();
@@ -184,6 +205,92 @@ describe('POST /api/avatar/generate-options — 文字生成自动提取外貌',
       .send({ petId: 'pet-1', style: 'cartoon', styleKey: 'q' });
     expect(res.status).toBe(200);
     expect(mockGenerateOptions).toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/avatar/background-swap — 真·背景替换', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFindByIdAndUser.mockResolvedValue(ownedPet);
+  });
+
+  it('正常换背景：透传源图与背景，返回新图 URL 并记录生成', async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.20')
+      .send({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', background: 'sakura' });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.url).toBe('https://cdn.example.com/swapped.png');
+    expect(mockBackgroundSwap).toHaveBeenCalledWith(
+      expect.objectContaining({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', background: 'sakura' }),
+    );
+    // 配额口径：单次调用记 -text-bgswap，不占照片月限
+    expect(mockCreateGeneration).toHaveBeenCalledWith(
+      expect.objectContaining({ style: 'options-cartoon-text-bgswap' }),
+    );
+    expect(mockMarkCompleted).toHaveBeenCalledWith(expect.any(String), 'https://cdn.example.com/swapped.png');
+  });
+
+  it('背景非法 / 源图非 http(s) 返回 400 且不调服务', async () => {
+    const app = createApp();
+    const badBg = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.21')
+      .send({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', background: '<script>' });
+    expect(badBg.status).toBe(400);
+    const badUrl = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.22')
+      .send({ petId: 'pet-1', imageUrl: 'javascript:alert(1)', background: 'sakura' });
+    expect(badUrl.status).toBe(400);
+    expect(mockBackgroundSwap).not.toHaveBeenCalled();
+  });
+
+  it('自定义背景：清洗后透传 customBackground；预设与自定义均缺省返回 400', async () => {
+    const app = createApp();
+    const ok = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.24')
+      .send({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', customBackground: `雪夜壁炉旁的木地板\n${'景'.repeat(100)}` });
+    expect(ok.status).toBe(200);
+    expect(mockBackgroundSwap).toHaveBeenCalledWith(
+      expect.objectContaining({ customBackground: `雪夜壁炉旁的木地板 ${'景'.repeat(50)}`, background: undefined }),
+    );
+    // 纯空白自定义 + 无预设 → 400
+    const empty = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.25')
+      .send({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', customBackground: '   ' });
+    expect(empty.status).toBe(400);
+    expect(mockBackgroundSwap).toHaveBeenCalledTimes(1); // 仅上面成功那一次
+  });
+
+  it('生成失败时 markFailed + 503（明确报错不静默）', async () => {
+    mockBackgroundSwap.mockResolvedValue(null);
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.23')
+      .send({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', background: 'sakura' });
+    expect(res.status).toBe(503);
+  });
+
+  it('自定义背景里的宠物名自动转译为外貌指代（名字不进提示词）', async () => {
+    // 宠物档案带名字：用户写"烧鸡在雪地里"，服务端替换为"那只英短猫咪在雪地里"
+    // （上一用例把 mock 返回改成了 null，clearAllMocks 不清实现，这里显式恢复）
+    mockBackgroundSwap.mockResolvedValue('https://cdn.example.com/swapped.png');
+    mockFindByIdAndUser.mockResolvedValue({ ...ownedPet, name: '烧鸡' });
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/background-swap')
+      .set('X-Forwarded-For', '203.0.113.26')
+      .send({ petId: 'pet-1', imageUrl: 'https://e.com/source.png', customBackground: '烧鸡在雪地里' });
+    expect(res.status).toBe(200);
+    expect(mockBackgroundSwap).toHaveBeenCalledWith(
+      expect.objectContaining({ customBackground: '那只英短猫咪在雪地里' }),
+    );
   });
 });
 
@@ -214,6 +321,17 @@ describe('POST /api/avatar/library — 保存形象到形象库', () => {
       .send({ petId: 'pet-1', style: 'evil_style', imageUrl: 'https://cdn.example.com/a.png' });
     expect(res.status).toBe(400);
     expect(mockLibrarySave).not.toHaveBeenCalled();
+  });
+
+  it("style='bgswap'（真·背景替换产物）在白名单内可入库", async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/avatar/library')
+      .send({ petId: 'pet-1', style: 'bgswap', imageUrl: 'https://cdn.example.com/swapped.png' });
+    expect(res.status).toBe(200);
+    expect(mockLibrarySave).toHaveBeenCalledWith(
+      expect.objectContaining({ style: 'bgswap' }),
+    );
   });
 
   it('expression 不在白名单时存 null（不拒绝，防脏数据破坏筛选）', async () => {

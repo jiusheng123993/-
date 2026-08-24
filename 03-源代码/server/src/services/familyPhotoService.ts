@@ -8,7 +8,7 @@ import { config } from '../config.js';
 import { pool } from '../db.js';
 import { delay } from '../utils/delay.js';
 // 宠物提示词公共模块：主体描述（品种兜底 + 绝不写名字）统一从这里取
-import { petSubjectText, petSpeciesLabel } from './petPrompt.js';
+import { petSubjectText, petSpeciesLabel, translatePetNames } from './petPrompt.js';
 // AI 生图统一角标（水印 B 方案：去平台水印 + 自有品牌角标，见 imageBadge 模块注释）
 import { addAiBadge } from './imageBadge.js';
 
@@ -176,6 +176,12 @@ interface GenerateFamilyPhotoParams {
    * 服务端清洗（去换行/控制字符、截断 60 字）后拼进提示词，并存入 description 字段供相册展示
    */
   customScene?: string;
+  /**
+   * 成员排位（petId 有序数组）：前端全家福面板让用户排左右座次，
+   * 提示词按此顺序写"从左到右依次是…"，参考图顺序同步对应。
+   * 缺省/含未知 id 时：排位内的按给定顺序靠前，其余保持原顺序追加
+   */
+  memberOrder?: string[];
 }
 
 /**
@@ -238,13 +244,23 @@ export function buildPrompt(
   // 用户自定义场景描述：清洗后自然拼在预设场景之后，作为环境补充
   const customText = cleanCustomScene(customScene);
 
+  // 多只时显式声明"从左到右依次是"——成员数组顺序=排位顺序=参考图数组顺序，
+  // 把用户的座次意图翻译成模型可执行的方位语言（名字不出现，靠外貌+顺序区分）
+  const introText =
+    total > 1
+      ? `画面中共有${summary}，从左到右依次是：${list}。`
+      : `画面中共有${summary}：${list}。`;
+
   const parts = [
     STYLE_PROMPTS[style],
-    `一张温馨的全家福合影，${sceneText}${customText ? `，${customText}` : ''}，画面中共有${summary}：${list}。`,
+    `一张温馨的全家福合影，${sceneText}${customText ? `，${customText}` : ''}，${introText}`,
     '所有宠物并排坐在一起，表情自然温馨，构图完整。',
   ];
   if (hasReference) {
     parts.push('以参考照片为准：保持每只宠物的毛色、花纹、体型、五官与参考图完全一致，不改变外貌，不增减数量。');
+    if (total > 1) {
+      parts.push('参考照片的顺序与画面从左到右的宠物顺序一一对应。');
+    }
   }
   parts.push(`画面中只出现这${total}只宠物，不要出现其他动物、人物或食物。`, '高质量，细节丰富。');
   return parts.join(' ');
@@ -359,7 +375,7 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
   /** 缺少真实形象的成员（引导前端跳转生成形象） */
   missingMembers?: Array<{ petId: string; name: string }>;
 }> {
-  const { familyId, userId, style, scene, customScene } = params;
+  const { familyId, userId, style, scene, customScene, memberOrder } = params;
   // 自定义场景清洗一次复用：拼提示词 + 入库 description（相册展示用户当时写的场景描述）
   const cleanedCustomScene = cleanCustomScene(customScene);
   const apiKey = config.seedream.apiKey;
@@ -396,8 +412,28 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
     };
   }
 
+  // 成员排位：按前端传的 petId 有序数组重排（稳定排序，未提及的成员保持原顺序追加在后）。
+  // 排位决定提示词"从左到右依次是…"与参考图数组的对应关系——用户用名字沟通座次，
+  // 模型收到的是顺序化的外貌列表（名字依然不进提示词）。
+  // ⚠️ 必须在 memberNames/photoUrls 取值之前执行，否则参考图数组还是旧顺序
+  if (memberOrder && memberOrder.length > 0) {
+    const orderIdx = new Map(memberOrder.map((id) => [id, memberOrder.indexOf(id)]));
+    members.sort(
+      (a, b) =>
+        (orderIdx.get(a.petId) ?? Number.MAX_SAFE_INTEGER) -
+        (orderIdx.get(b.petId) ?? Number.MAX_SAFE_INTEGER),
+    );
+  }
+
   const memberNames = members.map((m) => m.name);
   const photoUrls = members.map((m) => m.photoUrl).filter(Boolean) as string[];
+
+  // 自定义场景里的宠物名 → 外貌指代转译：用户会自然写「烧鸡戴着生日帽」，
+  // 名字进提示词会被画成烧鸡（金科玉律 #1），这里替换为「左起第一只英短猫咪」式指代。
+  // ⚠️ 仅替换提示词用的文本；入库 description 仍存用户原文（相册给人看）
+  const promptCustomScene = cleanedCustomScene
+    ? translatePetNames(cleanedCustomScene, members)
+    : undefined;
 
   // 创建 processing 记录（scene 记录所用场景、description 记录自定义场景描述，相册据此展示）
   const photoId = crypto.randomUUID();
@@ -407,8 +443,8 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
     [photoId, familyId, userId, style, scene ?? DEFAULT_FAMILY_PHOTO_SCENE, cleanedCustomScene, members.length, memberNames],
   );
 
-  // 构建提示词（⚠️ 必须把 scene/customScene 传进去：此前漏传导致场景定义形同虚设，选了也白选）
-  const prompt = buildPrompt(members, style, scene, customScene);
+  // 构建提示词（⚠️ 必须把 scene/转译后的自定义场景传进去：此前漏传导致场景定义形同虚设，选了也白选）
+  const prompt = buildPrompt(members, style, scene, promptCustomScene);
 
   // 调用 Seedream 多图合成（Seedream 4.0 内置安全过滤）
   const generatedUrl = await callSeedreamMulti(prompt, photoUrls, apiKey);

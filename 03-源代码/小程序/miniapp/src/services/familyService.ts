@@ -414,22 +414,26 @@ export const familyService = {
    * 发起 AI 全家福生成
    * @param scene 预设场景 key（不传时后端用默认温馨客厅）
    * @param customScene 用户自定义场景描述（与 scene 可同时传，后端清洗截断 60 字）
+   * @param memberOrder 成员排位（petId 有序数组，顺序=画面从左到右；后端按此写"从左到右依次是"）
    */
   async generateFamilyPhoto(
     familyId: string,
     style: string,
     scene?: string,
     customScene?: string,
+    memberOrder?: string[],
   ): Promise<{ id: string; photoUrl: string }> {
     if (isMockMode()) {
       const mockPhoto = await mockApi.saveFamilyPhoto(familyId, '', 0, [])
       return { id: mockPhoto.id, photoUrl: mockPhoto.photoUrl }
     }
-    // 场景参数按需携带，避免发空字符串给 schema 白名单校验找麻烦
+    // 场景/排位参数按需携带；⚠️ 键名与后端 schema 对齐用驼峰 memberOrder
+    // （zod 默认剥离未知键，发 snake_case 会被静默丢弃导致排位失效）
     const data = await api.post<{ id: string; photoUrl: string }>(`/api/families/${familyId}/photos`, {
       style,
       ...(scene ? { scene } : {}),
       ...(customScene ? { customScene } : {}),
+      ...(memberOrder && memberOrder.length > 1 ? { memberOrder } : {}),
     })
     return data
   },

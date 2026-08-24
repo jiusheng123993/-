@@ -39,6 +39,8 @@ interface FamilyState {
     style: string,
     scene?: string,
     customScene?: string,
+    /** 成员排位（petId 有序数组，顺序=画面从左到右座次） */
+    memberOrder?: string[],
   ) => Promise<{
     success: boolean
     photoId?: string
@@ -349,14 +351,14 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   /**
    * AI 全家福生成
    * 调用后端 Seedream API 合成全家福，失败时返回 success:false
-   * @param style 画风 key；scene 预设场景 key；customScene 自定义场景描述（均可选）
+   * @param style 画风 key；scene 预设场景 key；customScene 自定义场景描述；memberOrder 成员排位（均可选）
    */
-  generateAiPhoto: async (style, scene?, customScene?) => {
+  generateAiPhoto: async (style, scene?, customScene?, memberOrder?) => {
     const family = get().currentFamily
     if (!family) return { success: false, message: '未选择家庭' }
     set({ error: null })
     try {
-      const result = await familyService.generateFamilyPhoto(family.id, style, scene, customScene)
+      const result = await familyService.generateFamilyPhoto(family.id, style, scene, customScene, memberOrder)
       if (result && result.photoUrl) {
         const memberNames = get().members.map((m) => m.petName || '').filter(Boolean)
         const photo: FamilyPhoto = {

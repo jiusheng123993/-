@@ -30,11 +30,13 @@ router.post(
       const userId = req.userId!;
       const familyId = req.params.familyId as string;
       // scene 为可选场景（温馨客厅/海边/圣诞树等），customScene 为用户自定义场景描述，
-      // 两者均经 schema 白名单/长度校验
-      const { style, scene, customScene } = req.body as {
+      // memberOrder 为成员排位（petId 有序数组，顺序=画面从左到右），
+      // 均经 schema 白名单/长度校验
+      const { style, scene, customScene, memberOrder } = req.body as {
         style: string;
         scene?: string;
         customScene?: string;
+        memberOrder?: string[];
       };
 
       // 家庭归属校验
@@ -52,6 +54,8 @@ router.post(
         scene: scene as Parameters<typeof generateFamilyPhoto>[0]['scene'],
         // 自定义场景描述原样透传，清洗在服务层统一做（单测可覆盖）
         customScene,
+        // 成员排位透传：服务层据此重排成员并写"从左到右依次是…"（名字不进提示词）
+        memberOrder,
       });
 
       if (!result.success) {

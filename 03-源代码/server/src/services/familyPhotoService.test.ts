@@ -104,6 +104,20 @@ describe('buildPrompt 提示词安全', () => {
     expect(prompt).toContain('不增减数量');
     expect(prompt).toContain('不要出现其他动物、人物或食物');
   });
+
+  it('多只时声明"从左到右依次是"且顺序=成员数组顺序（排位→方位的翻译层）', () => {
+    const members: MemberInfo[] = [
+      { petId: 'p1', name: '烧鸡', species: 'cat', breed: '英短', photoUrl: 'https://e.com/1.png' },
+      { petId: 'p2', name: '烧鸭', species: 'cat', breed: '布偶', photoUrl: 'https://e.com/2.png' },
+    ];
+    const prompt = buildPrompt(members, 'pixar');
+    expect(prompt).toContain('从左到右依次是：一只英短猫咪、一只布偶猫咪');
+    // 参考图顺序对应句（多只+有参考图才出现）
+    expect(prompt).toContain('参考照片的顺序与画面从左到右的宠物顺序一一对应');
+    // 单只时不出现方位话术
+    const single = buildPrompt([members[0]], 'pixar');
+    expect(single).not.toContain('从左到右依次是');
+  });
 });
 
 describe('isBrandPresetUrl 品牌默认头像判定', () => {

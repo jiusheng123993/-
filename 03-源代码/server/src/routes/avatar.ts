@@ -7,7 +7,8 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
-import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS, AVATAR_BACKGROUND_PROMPTS, extractPetAppearance } from '../services/avatarService.js';
+import { generatePetImage, generatePetImageOptions, generateBackgroundSwap, cleanCustomBackground, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS, AVATAR_BACKGROUND_PROMPTS, extractPetAppearance } from '../services/avatarService.js';
+import { translatePetNames } from '../services/petPrompt.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
 import { generate2DAvatarPack } from '../services/image2DService.js';
@@ -276,7 +277,11 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
     // 让提示词包含"具体样貌"（毛色/花纹/眼睛/特殊标记，对应提示词库 §0.9 细节描写）。
     // 注意：这只是"读照片描述外貌"，不是图生图——参考照片仍不传，
     // 不触发照片生成的会员配额（文字生成口径保持不变）
-    let effectiveDescription = safeDescription;
+    // 名字→外貌指代转译：用户会用名字描述自家宠物（"烧鸡戴着生日帽"），
+    // 名字绝不能进提示词（金科玉律 #1），这里把当前宠物名替换为"那只英短猫咪"式指代
+    let effectiveDescription = safeDescription
+      ? translatePetNames(safeDescription, [{ name: pet.name, breed: pet.breed, species: pet.species }])
+      : '';
     if (!effectiveDescription && pet.avatar_photo_url) {
       try {
         const appearance = await extractPetAppearance(pet.avatar_photo_url);
@@ -336,6 +341,86 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
 });
 
 /**
+ * POST /api/avatar/background-swap
+ * 真·背景替换：以用户已有形象图为参考（图生图），保角色仅换背景
+ * 配额口径：单次调用成本同文字流，style 记 -text-bgswap 不占照片月限（countMonthlyOptionsByUser 排除 %-text-%）
+ */
+router.post('/background-swap', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { petId, imageUrl, background, customBackground } = req.body;
+    const userId = req.userId!;
+
+    if (!petId || typeof petId !== 'string') {
+      res.status(400).json({ success: false, message: 'petId 参数不能为空' });
+      return;
+    }
+    // 源图必须 http(s)（前端从"当前形象/形象库"选取后传 URL）
+    if (typeof imageUrl !== 'string' || !isValidHttpUrl(imageUrl)) {
+      res.status(400).json({ success: false, message: 'imageUrl 参数不合法' });
+      return;
+    }
+    // 背景：预设 key 白名单 或 自定义描述（清洗截断 60，纯空白视同未填）；至少一项
+    const hasPreset = typeof background === 'string' && !!AVATAR_BACKGROUND_PROMPTS[background];
+    const safeCustom = typeof customBackground === 'string' ? cleanCustomBackground(customBackground) : '';
+    if (!hasPreset && !safeCustom) {
+      res.status(400).json({ success: false, message: '请选择预设背景或填写自定义背景描述' });
+      return;
+    }
+
+    const pet = await petRepository.findByIdAndUser(petId, userId);
+    if (!pet) {
+      res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
+      return;
+    }
+
+    // AI 生成为会员专享：服务端强制校验（与 generate-options 同口径）
+    const { isMember } = await getUserMembership(userId);
+    if (!isMember) {
+      res.status(403).json({
+        success: false,
+        message: 'AI 形象生成仅限会员使用，请先开通会员',
+        code: 'MEMBER_ONLY',
+      });
+      return;
+    }
+
+    const generationId = uuidv4();
+    // 自定义背景同样做名字→外貌指代转译（用户可能写"烧鸡在雪地里"）
+    const promptCustom = safeCustom
+      ? translatePetNames(safeCustom, [{ name: pet.name, breed: pet.breed, species: pet.species }])
+      : '';
+    await avatarGenerationRepository.createGeneration({
+      id: generationId,
+      user_id: userId,
+      pet_id: petId,
+      prompt: `背景替换（${pet.breed}）：以已有形象为参考保角色换景；背景：${promptCustom ? `自定义-${promptCustom}` : background}`,
+      style: 'options-cartoon-text-bgswap',
+    });
+
+    const url = await generateBackgroundSwap({
+      petId: pet.id,
+      species: pet.species,
+      breed: pet.breed,
+      imageUrl,
+      background: hasPreset ? (background as string) : undefined,
+      customBackground: promptCustom || undefined,
+    });
+
+    if (!url) {
+      await avatarGenerationRepository.markFailed(generationId, 'Image generation service unavailable');
+      res.status(503).json({ success: false, message: 'AI 换背景服务暂不可用，请稍后重试' });
+      return;
+    }
+
+    await avatarGenerationRepository.markCompleted(generationId, url);
+    res.json({ success: true, data: { url } });
+  } catch (error) {
+    console.error('[Avatar background-swap] Error:', error);
+    res.status(500).json({ success: false, message: '背景替换失败，请稍后重试' });
+  }
+});
+
+/**
  * POST /api/avatar/library
  * 保存一个形象到形象库（用户多次生成的收藏，按风格/表情分类）
  */
@@ -349,7 +434,8 @@ router.post('/library', authMiddleware, async (req: Request, res: Response) => {
       return;
     }
     // 画风白名单 + 图片 URL 必须 http(s)（防存脏数据/外链探测）
-    const validStyleKeys: string[] = AVATAR_STYLE_OPTIONS.map((i) => i.key);
+    // 'bgswap' = 真·背景替换产物（非画风生成，入库单独归类便于筛选）
+    const validStyleKeys: string[] = [...AVATAR_STYLE_OPTIONS.map((i) => i.key), 'bgswap'];
     if (typeof style !== 'string' || !validStyleKeys.includes(style)) {
       res.status(400).json({ success: false, message: 'style 参数不合法' });
       return;

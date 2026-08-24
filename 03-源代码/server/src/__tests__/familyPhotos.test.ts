@@ -57,8 +57,9 @@ const ownershipFail = { rows: [], rowCount: 0 };
 
 const mockMembers = {
   rows: [
-    { petId: 'pet-001', name: '小咪', species: 'cat', breed: '英短', photoUrl: 'https://example.com/pet1.jpg' },
-    { petId: 'pet-002', name: '旺财', species: 'dog', breed: '金毛', photoUrl: 'https://example.com/pet2.jpg' },
+    // petId 用合法 UUID：schema 对 member_order 元素做 uuid 校验，测试夹具与生产格式对齐
+    { petId: '11111111-1111-4111-8111-111111111101', name: '小咪', species: 'cat', breed: '英短', photoUrl: 'https://example.com/pet1.jpg' },
+    { petId: '22222222-2222-4222-8222-222222222202', name: '旺财', species: 'dog', breed: '金毛', photoUrl: 'https://example.com/pet2.jpg' },
   ],
 };
 
@@ -242,6 +243,80 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
     expect(insertSql).toContain('scene');
     expect(insertParams).toContain('seaside');
     expect(insertParams).toContain('在我家的院子里 阳光很好');
+  });
+
+  it('memberOrder 排位：重排成员顺序，提示词"从左到右依次是"与参考图数组同步对应', async () => {
+    mockPool.query.mockResolvedValueOnce(ownershipOk);               // isOwner
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // hasActiveTask (no)
+    mockPool.query.mockResolvedValueOnce(mockMembers);               // collectMemberPhotos（默认顺序：小咪→旺财）
+    mockPool.query.mockResolvedValueOnce({ rowCount: 1 });           // INSERT
+
+    let capturedBody: { prompt?: string; images?: string[] } = {};
+    mockFetch.mockImplementationOnce(async (_url: unknown, init?: { body?: string }) => {
+      capturedBody = JSON.parse(init?.body ?? '{}');
+      return {
+        ok: true,
+        json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }),
+      };
+    });
+    mockPool.query.mockResolvedValueOnce({ rowCount: 1 });           // UPDATE completed
+
+    const app = createApp();
+    // 用户把旺财排到第一位（画面最左）：名字只是 UI 沟通，发出去的是顺序化外貌列表
+    // ⚠️ 键名为驼峰 memberOrder（与后端 schema 一致；zod 默认剥离未知键，发蛇形会被静默丢弃）
+    const res = await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({
+        style: 'pixar',
+        memberOrder: ['22222222-2222-4222-8222-222222222202', '11111111-1111-4111-8111-111111111101'],
+      });
+    expect(res.status).toBe(200);
+
+    // 参考图数组顺序 = 排位顺序（模型按图序对应从左到右）
+    expect(capturedBody.images).toEqual([
+      'https://example.com/pet2.jpg',
+      'https://example.com/pet1.jpg',
+    ]);
+    // 提示词按排位后的成员顺序写方位句
+    expect(capturedBody.prompt).toContain('从左到右依次是：一只金毛狗狗、一只英短猫咪');
+    expect(capturedBody.prompt).toContain('参考照片的顺序与画面从左到右的宠物顺序一一对应');
+  });
+
+  it('自定义场景里的宠物名自动转译为外貌指代（用户用名字说话，名字不进提示词）', async () => {
+    mockPool.query.mockResolvedValueOnce(ownershipOk);
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+    mockPool.query.mockResolvedValueOnce(mockMembers);
+    // 注意：INSERT 用 implementationOnce 捕获参数，不能再额外排一个 resolvedValueOnce
+    // （once 队列按注册顺序消费，多排一个会把捕获槽挤到后面的角标 UPDATE 上）
+
+    let insertParams: unknown[] = [];
+    let capturedBody: { prompt?: string } = {};
+    // INSERT 捕获（校验落库存用户原文）
+    mockPool.query.mockImplementationOnce(async (_sql: string, params?: unknown[]) => {
+      insertParams = params ?? [];
+      return { rowCount: 1 };
+    });
+    mockFetch.mockImplementationOnce(async (_url: unknown, init?: { body?: string }) => {
+      capturedBody = JSON.parse(init?.body ?? '{}');
+      return {
+        ok: true,
+        json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }),
+      };
+    });
+    mockPool.query.mockResolvedValueOnce({ rowCount: 1 });
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({ style: 'pixar', customScene: '小咪追着旺财跑' });
+    expect(res.status).toBe(200);
+
+    // 提示词里名字→"左起第N只{品种}{物种}"指代（多只时带方位序号）
+    expect(capturedBody.prompt).not.toContain('小咪');
+    expect(capturedBody.prompt).not.toContain('旺财');
+    expect(capturedBody.prompt).toContain('左起第一只英短猫咪追着左起第二只金毛狗狗跑');
+    // 入库 description 仍存用户原文（相册给人看）
+    expect(insertParams).toContain('小咪追着旺财跑');
   });
 
   it('参考图优先级契约：真实照片 > 全方位设定图 > 卡通头像（迁移 030）', async () => {

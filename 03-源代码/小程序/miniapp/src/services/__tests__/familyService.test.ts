@@ -347,6 +347,20 @@ describe('familyService', () => {
       expect(result.photoUrl).toBe('https://example.com/ai-photo.jpg')
     })
 
+    it('成员排位透传 memberOrder（顺序=画面从左到右）；单人不发排位字段', async () => {
+      vi.mocked(api.post).mockResolvedValue({ id: 'photo-new', photoUrl: 'https://example.com/ai-photo.jpg' })
+
+      await familyService.generateFamilyPhoto('family-001', 'pixar', undefined, undefined, ['pet-b', 'pet-a'])
+      expect(api.post).toHaveBeenLastCalledWith('/api/families/family-001/photos', {
+        style: 'pixar',
+        memberOrder: ['pet-b', 'pet-a'],
+      })
+
+      // 排位数组长度 ≤1 视为无意义，不携带
+      await familyService.generateFamilyPhoto('family-001', 'pixar', undefined, undefined, ['pet-a'])
+      expect(api.post).toHaveBeenLastCalledWith('/api/families/family-001/photos', { style: 'pixar' })
+    })
+
     it('falls back to local storage when API fails', async () => {
       vi.mocked(api.get).mockRejectedValue(new Error('Network error'))
 

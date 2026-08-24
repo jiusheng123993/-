@@ -232,6 +232,11 @@ export const adminReviewSchema = z.object({
   note: z.string().max(500).optional(),
 });
 
+/** 管理端保存品种知识库（data 含 breeds 数组等，服务端合并版本；细粒度结构校验在路由层做） */
+export const adminBreedSchema = z.object({
+  data: z.record(z.string(), z.unknown(), { error: 'data 必须为对象' }),
+});
+
 // ===== 兑换码模块（2026-08-23） =====
 
 /** 用户兑换码（登录态提交） */
@@ -794,6 +799,12 @@ export const generateFamilyPhotoSchema = z.object({
     .trim()
     .min(1, '自定义场景不能为空')
     .max(60, '自定义场景最长 60 字')
+    .optional(),
+  // 成员排位（可选）：petId 有序数组，顺序=画面从左到右座次；
+  // 服务端按此重排成员并写"从左到右依次是…"，未知 id 静默忽略（稳定排序追加在后）
+  memberOrder: z
+    .array(z.string().uuid('memberOrder 内必须是合法宠物 id'))
+    .max(20, 'memberOrder 最多 20 个成员')
     .optional(),
 });
 

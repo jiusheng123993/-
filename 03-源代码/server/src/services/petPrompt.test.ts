@@ -6,7 +6,7 @@
  * 3. 性别前缀与物种中文名正确
  */
 import { describe, it, expect } from 'vitest';
-import { petSpeciesLabel, petSubjectText, PET_BREED_FALLBACK, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
+import { petSpeciesLabel, petSubjectText, translatePetNames, PET_BREED_FALLBACK, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
 
 describe('petSpeciesLabel 物种中文名', () => {
   it('dog → 狗狗，cat → 猫咪，未知物种兜底为猫咪', () => {
@@ -59,5 +59,47 @@ describe('约束常量（对应提示词库 §0.6/§四）', () => {
   it('主体锁定禁止出现其他动物/人物/食物', () => {
     expect(PET_ONLY_ONE).toContain('只出现这一只宠物');
     expect(PET_ONLY_ONE).toContain('不要出现其他动物');
+  });
+});
+
+describe('translatePetNames 名字→外貌指代转译（用户用名字说话，模型收到外貌语言）', () => {
+  const twoPets = [
+    { name: '烧鸡', breed: '英短', species: 'cat' },
+    { name: '烧鸭', breed: '田园白猫', species: 'cat' },
+  ];
+
+  it('单只宠物：「烧鸡戴生日帽」→「那只英短猫咪戴生日帽」，名字不残留', () => {
+    const out = translatePetNames('烧鸡戴着生日帽', [twoPets[0]]);
+    expect(out).toBe('那只英短猫咪戴着生日帽');
+    expect(out).not.toContain('烧鸡');
+  });
+
+  it('多只宠物：按数组顺序生成「左起第一只/第二只」方位指代（配合全家福排位）', () => {
+    const out = translatePetNames('烧鸡追着烧鸭跑', twoPets);
+    expect(out).toBe('左起第一只英短猫咪追着左起第二只田园白猫猫咪跑');
+    expect(out).not.toContain('烧鸡');
+    expect(out).not.toContain('烧鸭');
+  });
+
+  it('名字集合外的词一律不动；未命中时原样返回', () => {
+    expect(translatePetNames('铺满落叶的秋日森林小径', twoPets)).toBe('铺满落叶的秋日森林小径');
+    expect(translatePetNames('', twoPets)).toBe('');
+  });
+
+  it('空名/超长名跳过；重名去重不产生序号空洞；长名优先替换防子串误伤', () => {
+    // 空名与 >20 字名不参与转译
+    const weird = [
+      { name: '  ', breed: '英短', species: 'cat' },
+      { name: 'x'.repeat(21), breed: '英短', species: 'cat' },
+      { name: '咪咪', breed: '', species: 'cat' },
+    ];
+    expect(translatePetNames('咪咪在睡觉', weird)).toBe(`那只${PET_BREED_FALLBACK}猫咪在睡觉`);
+    // 「小猫咪」包含「小猫」：长名先替换，剩余文本再替换短名
+    const pair = [
+      { name: '小猫', breed: '橘猫', species: 'cat' },
+      { name: '小猫咪', breed: '蓝猫', species: 'cat' },
+    ];
+    const out = translatePetNames('小猫咪和小猫在玩', [...pair].reverse());
+    expect(out).not.toContain('小猫咪和小猫');
   });
 });

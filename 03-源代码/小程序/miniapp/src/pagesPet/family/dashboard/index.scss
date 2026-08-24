@@ -543,6 +543,91 @@
   color: $color-text-tertiary;
 }
 
+// ===== 成员排位（排在前面的=画面里靠左边） =====
+.fd-order {
+  margin-bottom: 28rpx;
+
+  &__title {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $color-text-primary;
+    margin-bottom: 8rpx;
+  }
+
+  &__hint {
+    display: block;
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+    margin-bottom: 16rpx;
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8rpx;
+    padding: 16rpx 20rpx;
+    background: rgba(255, 253, 246, 0.9);
+    border: 2rpx solid rgba(230, 179, 34, 0.35);
+    border-radius: $radius-md;
+    min-width: 128rpx;
+  }
+
+  &__pos {
+    font-size: $font-size-xs;
+    color: $color-primary;
+    font-weight: 600;
+  }
+
+  &__avatar {
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 50%;
+    background: #f5f0e6;
+  }
+
+  &__name {
+    max-width: 140rpx;
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__btns {
+    display: flex;
+    gap: 12rpx;
+  }
+
+  &__btn {
+    width: 48rpx;
+    height: 44rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    background: rgba(230, 179, 34, 0.15);
+
+    &--disabled {
+      opacity: 0.3;
+    }
+  }
+
+  &__btn-text {
+    font-size: 28rpx;
+    line-height: 1;
+    color: $color-text-primary;
+  }
+}
+
 // ===== 场景选择器（五大主题分组宫格 + 自定义场景输入） =====
 .fd-scene-picker {
   margin-bottom: 28rpx;
