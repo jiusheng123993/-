@@ -99,12 +99,21 @@ export default function Member() {
     if (redeeming) return
     setRedeeming(true)
     try {
-      const res = await api.post<{ message: string }>('/redeem', { code })
+      // 坑点：服务端所有业务路由挂在 /api 前缀下（app.use('/api', redeemRoutes)），
+      // 路径必须写 /api/redeem。曾误写 /redeem → 生产 404（nginx 层 HTML 404），
+      // 被 catch 吞成"兑换失败，请检查兑换码"，掩盖真实原因
+      const res = await api.post<{ message: string }>('/api/redeem', { code })
       Taro.showToast({ title: res?.message || '兑换成功', icon: 'success' })
       setRedeemCode('')
       if (user?.id) await fetchMembership(user.id)
-    } catch {
-      Taro.showToast({ title: '兑换失败，请检查兑换码', icon: 'none' })
+    } catch (err) {
+      // 透传服务端错误信息（如"兑换码不存在或已被使用"/"兑换码已被使用"），
+      // 便于用户/运营区分原因；网络类错误用通用文案
+      const message = err instanceof Error ? err.message : ''
+      Taro.showToast({
+        title: message && !message.includes('网络异常') ? message : '兑换失败，请检查兑换码',
+        icon: 'none',
+      })
     } finally {
       setRedeeming(false)
     }
