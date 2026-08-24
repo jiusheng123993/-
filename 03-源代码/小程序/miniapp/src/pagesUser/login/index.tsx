@@ -70,9 +70,14 @@ export default function Login() {
         // 跳过标记 key 带 userId（与绑定页写入一致，见 guide.bindSkippedKey）
         skipped: Taro.getStorageSync(bindSkippedKey(user?.id)),
       })
-      Taro.reLaunch({
-        url: needBind ? '/pagesUser/bind-wechat/index' : '/pages/index/index',
-      })
+      if (needBind) {
+        // 用 navigateTo 而非 reLaunch：bind-wechat 与登录页同属 pagesUser 分包，
+        // 分包已加载时导航无懒加载竞态（reLaunch 到分包页在 lazyCodeLoading 下偶发
+        // "routeDone with a webviewId not found" 路由错误）；保存/跳过均 switchTab 首页清栈
+        Taro.navigateTo({ url: '/pagesUser/bind-wechat/index' })
+      } else {
+        Taro.reLaunch({ url: '/pages/index/index' })
+      }
     } catch (err: any) {
       setError(err.message || '登录失败，请重试')
     } finally {
