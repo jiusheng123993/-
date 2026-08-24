@@ -503,18 +503,11 @@ export default function TimelinePage() {
     }
   }
 
-  /** 点击时间线条目：真实回忆打开详情弹窗，其他类型维持原提示 */
+  /** 点击时间线条目：统一点开详情弹窗——生日/体重/日常记录等系统生成条目同样有完整
+   * 标题/日期/描述，此前只弹"查看"toast 是打不开的死胡同；删除按钮仅对有 sourceId
+   * 的真实回忆显示（归属校验在 handleDeleteMoment 内），查看权限与删除权限分离 */
   const handleEventClick = (event: TimelineEvent) => {
-    if (event.type === 'flashback') {
-      Taro.showToast({ title: `回顾${event.flashbackYear || ''}年前的记忆`, icon: 'none' })
-      return
-    }
-    // 只有真实回忆（有 sourceId）才可打开详情
-    if (event.sourceId) {
-      setDetailEvent(event)
-      return
-    }
-    Taro.showToast({ title: `查看：${event.title}`, icon: 'none' })
+    setDetailEvent(event)
   }
 
   /** 预览大图：支持单张/多张轮播 */

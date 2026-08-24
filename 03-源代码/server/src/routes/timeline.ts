@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 回忆时间线路由 - 宠物回忆/日记的管理
  * 创建和查询回忆记录（按宠物/家庭/用户），上传回忆照片
  * 补充：回忆补记（happenedAt）、AI 生成/润色回忆文案、删除回忆
@@ -137,12 +137,16 @@ router.post('/ai-polish', authMiddleware, chatLimiter, validate({ body: timeline
 3. 不要用"AI""生成"等字眼，不要加引号、标题、列表
 4. 直接输出润色后的文字`;
 
+    // 关闭思考模式（thinking disabled）：润色是简单改写任务，不需要推理；
+    // deepseek-v4-flash 思考默认开启，曾出现思考吃光 max_tokens=400 预算导致
+    // 正文为空串 → 路由 503「AI 润色失败」的生产事故（生产复现 finish=length，
+    // reasoning 独占 400 tokens）。关闭后 max_tokens 全部给正文，并留足余量。
     const result = await chat(
       [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: text },
       ],
-      { temperature: 0.7, max_tokens: 400 },
+      { temperature: 0.7, max_tokens: 800, thinking: 'disabled' },
     );
 
     // 拦截未配置降级：aiService 无 key 时 chat 返回非空占位串（非 null），

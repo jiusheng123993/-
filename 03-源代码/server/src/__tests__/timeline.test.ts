@@ -348,4 +348,16 @@ describe('POST /api/timeline/ai-polish - AI 润色文案', () => {
     expect(res.body.success).toBe(false);
     expect(res.body.message).toContain('暂未配置');
   });
+
+  it('润色调用必须关闭思考模式（回归锁：思考吃光 token 预算曾致正文空串 → 生产 503）', async () => {
+    mockChat.mockResolvedValueOnce('润色结果');
+
+    const res = await request(createApp())
+      .post('/api/timeline/ai-polish')
+      .send({ text: '今天带它去公园玩' });
+
+    expect(res.status).toBe(200);
+    // thinking disabled 保证 max_tokens 全部给正文（与 visionService 等新服务口径一致）
+    expect(mockChat).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ thinking: 'disabled', max_tokens: 800 }));
+  });
 });
