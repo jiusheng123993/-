@@ -19,6 +19,8 @@ export interface PetRow extends QueryResultRow {
   weight: number | null;
   avatar_photo_url: string | null;
   avatar_cartoon_url: string | null;
+  /** 全方位角色设定图（迁移 030）：四视图全身参考图，全家福/回忆录参考优先级仅次于真实照片 */
+  avatar_multiview_url: string | null;
   avatar_style: string | null;
   photos: string[];
   is_neutered: boolean;
@@ -165,7 +167,7 @@ export class PetRepository extends BaseRepository<PetRow> {
   ): Promise<PetRow | null> {
     const allowedFields: readonly string[] = [
       'name', 'species', 'breed', 'breed_id', 'gender', 'birth_date', 'weight',
-      'avatar_photo_url', 'avatar_cartoon_url', 'avatar_style', 'photos',
+      'avatar_photo_url', 'avatar_cartoon_url', 'avatar_multiview_url', 'avatar_style', 'photos',
       'is_neutered', 'microchip_id', 'notes',
     ];
 

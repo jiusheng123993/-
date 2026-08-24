@@ -8,6 +8,8 @@ import { updateTaskProgress, updateTaskStatus, updateTaskResult } from './taskQu
 import { delay } from '../utils/delay.js';
 // 宠物提示词公共模块：统一按提示词库 §0.6/§四 规范构造（角色锁定 + 主体锁定 + 品种兜底）
 import { petSubjectText, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
+// AI 生图统一角标（水印 B 方案：去平台水印 + 自有品牌角标，见 imageBadge 模块注释）
+import { addAiBadge } from './imageBadge.js';
 
 const SEEDREAM_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 
@@ -69,7 +71,29 @@ export async function generate2DAvatarPack(params: Generate2DParams): Promise<vo
 
   await updateTaskStatus(taskId, 'processing');
 
-  const styleText = style === 'realistic' ? '写实风格' : '可爱卡通风格';
+  // 画风 key → 提示词风格短语：与前端 GEN_STYLES / 服务端 AVATAR_STYLE_OPTIONS 的 15 种画风对齐
+  //（关键词取自提示词库《宠物回忆录-提示词库.md》§六，与 avatarService 各风格描述同一来源）；
+  // legacy cartoon/realistic 及未知值兜底"可爱卡通风格"
+  const STYLE_TEXT_2D: Record<string, string> = {
+    cartoon: '可爱卡通风格',
+    realistic: '写实风格，真实细腻',
+    q: 'Q版萌系贴纸质感，柔和暖光，明亮干净背景',
+    japanese: '日系治愈画风，奶油色柔和渐变，水彩晕染',
+    american: '美式卡通，高饱和撞色，夸张生动',
+    watercolor: '透明水彩手绘，纸张纹理，淡雅清新',
+    clay: '黏土质感，软陶立体，柔和影棚光',
+    ghibli: '吉卜力动画风，手绘水彩背景，温暖治愈光线',
+    pixar: '皮克斯式 3D 渲染，大眼睛高光，次表面散射毛发',
+    pixel: '16-bit 复古像素艺术，色彩分明',
+    ink: '水墨国风，宣纸质感，留白意境',
+    oil: '油画厚涂笔触，画布纹理，浓郁艺术感',
+    cyberpunk: '赛博朋克，霓虹灯光，未来都市氛围',
+    nordic: '极简北欧插画，低饱和莫兰迪色，宁静高级',
+    lowpoly: '低多边形几何切面，扁平着色',
+    lineart: '线稿素描，铅笔排线阴影',
+    dark: '暗黑奇幻，哥特月光，戏剧性光影',
+  };
+  const styleText = STYLE_TEXT_2D[style] || '可爱卡通风格';
 
   try {
     // 第 1 批: 4 核心表情 × 6 角度 = 24 张
@@ -199,6 +223,8 @@ export async function callSeedream(prompt: string, referenceImageUrl: string, ap
       n: 1,
       // 仅当传了参考照片时带 image 字段，走图生图；否则为纯文生图
       ...(referenceImageUrl ? { image: referenceImageUrl } : {}),
+      // 水印合规 B 方案：去平台水印，显式标识由 addAiBadge 的自有品牌角标承担
+      watermark: false,
     }),
   });
 
@@ -212,7 +238,10 @@ export async function callSeedream(prompt: string, referenceImageUrl: string, ap
   }
 
   const data = (await response.json()) as { data: Array<{ url: string }> };
-  return data.data?.[0]?.url || null;
+  const url = data.data?.[0]?.url || null;
+  if (!url) return null;
+  // 合成自有品牌角标并转存本站 uploads（失败降级返回原图 URL，见 imageBadge 模块注释）
+  return addAiBadge(url);
 }
 
 export { EXPRESSIONS, ANGLES, ACTIONS, ACTION_ANGLES };

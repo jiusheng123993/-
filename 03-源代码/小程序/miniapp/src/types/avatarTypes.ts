@@ -98,7 +98,8 @@ export interface AchievementConfig {
 /** 头像定制信息 */
 export interface AvatarCustomization {
   species: PetSpecies
-  style: 'cartoon' | 'realistic'
+  /** 画风 key：历史值为 cartoon/realistic；现与 GEN_STYLES/服务端 AVATAR_STYLE_OPTIONS 的 15 种画风 key 对齐（服务端 avatar_style 为自由字符串，兼容共存） */
+  style: string
   /** 多风格候选中的具体风格（Q版萌系/日系治愈/美式卡通） */
   styleVariant?: string
   baseColor: string

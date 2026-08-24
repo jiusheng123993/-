@@ -56,6 +56,7 @@ import {
   saveAvatarToLibrary,
   getAvatarLibrary,
   deleteAvatarLibraryItem,
+  setMultiviewAsCurrent,
   getPetDiary,
   incrementGenerationCount,
 } from '../avatarService'
@@ -130,7 +131,7 @@ describe('avatarService', () => {
       mockApiPost.mockResolvedValue({ id: 'lib-1' })
     })
 
-    it('saveAvatarToLibrary 保存形象（带风格/表情标记）', async () => {
+    it('saveAvatarToLibrary 保存形象（带风格/表情标记，缺省头像类型）', async () => {
       const ok = await saveAvatarToLibrary('pet-1', 'q', 'happy', 'https://cdn.example.com/q.png')
       expect(ok).toBe(true)
       expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/library', {
@@ -138,6 +139,18 @@ describe('avatarService', () => {
         style: 'q',
         expression: 'happy',
         imageUrl: 'https://cdn.example.com/q.png',
+        viewType: 'headshot',
+      })
+    })
+
+    it('saveAvatarToLibrary 传 viewType=multiview 保存全方位设定图（迁移 030）', async () => {
+      await saveAvatarToLibrary('pet-1', 'q', null, 'https://cdn.example.com/sheet.png', 'multiview')
+      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/library', {
+        petId: 'pet-1',
+        style: 'q',
+        expression: null,
+        imageUrl: 'https://cdn.example.com/sheet.png',
+        viewType: 'multiview',
       })
     })
 
@@ -154,6 +167,7 @@ describe('avatarService', () => {
           style: 'q',
           expression: 'happy',
           image_url: 'https://cdn.example.com/q.png',
+          view_type: 'headshot',
           created_at: '2026-08-24T00:00:00.000Z',
         },
       ])
@@ -161,7 +175,35 @@ describe('avatarService', () => {
       expect(items).toHaveLength(1)
       expect(items[0].imageUrl).toBe('https://cdn.example.com/q.png')
       expect(items[0].petId).toBe('pet-1')
+      expect(items[0].viewType).toBe('headshot')
       expect(items[0].createdAt).toBe('2026-08-24T00:00:00.000Z')
+    })
+
+    it('getAvatarLibrary view_type=multiview 正确映射；服务端未升级缺省时按 headshot 兜底', async () => {
+      mockApiGet.mockResolvedValue([
+        { id: 'lib-2', pet_id: 'pet-1', style: 'q', expression: null, image_url: 'u2', view_type: 'multiview', created_at: 't' },
+        { id: 'lib-3', pet_id: 'pet-1', style: 'japanese', expression: null, image_url: 'u3', created_at: 't' },
+      ])
+      const items = await getAvatarLibrary('pet-1')
+      expect(items[0].viewType).toBe('multiview')
+      expect(items[1].viewType).toBe('headshot')
+    })
+
+    it('setMultiviewAsCurrent 只写 avatar_multiview_url（snake_case），不清真实照片/卡通头像', async () => {
+      mockApiPut.mockResolvedValue({ id: 'pet-1', avatar_multiview_url: 'https://cdn.example.com/sheet.png' })
+      const updated = await setMultiviewAsCurrent('pet-1', 'https://cdn.example.com/sheet.png')
+      expect(updated).not.toBeNull()
+      // 契约锁：PUT body 必须只有 multiview 一个键——多传 camelCase 或误清 photo 都会破坏全家福参考图优先级
+      expect(mockApiPut).toHaveBeenCalledTimes(1)
+      const [path, body] = mockApiPut.mock.calls[0]
+      expect(path).toBe('/api/pets/pet-1')
+      expect(Object.keys(body as Record<string, unknown>)).toEqual(['avatar_multiview_url'])
+      expect(body).toEqual({ avatar_multiview_url: 'https://cdn.example.com/sheet.png' })
+    })
+
+    it('setMultiviewAsCurrent 失败返回 null（调用方 patch 兜底）', async () => {
+      mockApiPut.mockRejectedValue(new Error('network'))
+      expect(await setMultiviewAsCurrent('pet-1', 'x')).toBeNull()
     })
 
     it('getAvatarLibrary 请求失败返回空数组（不抛错）', async () => {

@@ -34,11 +34,17 @@ function avatarCustomKey(petId?: string): string {
   return petId ? `${STORAGE_KEYS.AVATAR_CUSTOM_PREFIX}${petId}` : STORAGE_KEYS.AVATAR_CUSTOM
 }
 
-/** 多风格候选返回项（PRD 4.9.2：Q版萌系/日系治愈/美式卡通） */
+/** 多风格候选返回项（一套两张：头像 + 全方位角色设定图） */
 export interface AvatarStyleOption {
   style: string
   label: string
+  /** 头像图 URL */
   url: string
+  /**
+   * 全方位角色设定图 URL（正面特写/侧面/顶部/背面四视图合一）。
+   * 用作全家福/回忆录的角色参考图；服务端生成失败时为 null（前端隐藏该卡片）
+   */
+  sheetUrl?: string | null
 }
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -86,6 +92,9 @@ export async function generateAvatarOptions(
   }
 }
 
+/** 形象库条目类型：headshot=头像 / multiview=全方位角色设定图 */
+export type AvatarLibraryViewType = 'headshot' | 'multiview'
+
 /** 形象库条目 */
 export interface AvatarLibraryItem {
   id: string
@@ -93,20 +102,24 @@ export interface AvatarLibraryItem {
   style: string
   expression: string | null
   imageUrl: string
+  /** 条目类型（迁移 030；历史数据服务端默认 headshot） */
+  viewType: AvatarLibraryViewType
   createdAt: string
 }
 
 /**
- * 保存形象到形象库（按风格/表情分类）
+ * 保存形象到形象库（按风格/表情/类型分类）
+ * @param viewType - headshot=头像 / multiview=全方位设定图（缺省头像，兼容旧调用方）
  */
 export async function saveAvatarToLibrary(
   petId: string,
   style: string,
   expression: string | null,
   imageUrl: string,
+  viewType: AvatarLibraryViewType = 'headshot',
 ): Promise<boolean> {
   try {
-    await api.post<{ id: string }>('/api/avatar/library', { petId, style, expression, imageUrl })
+    await api.post<{ id: string }>('/api/avatar/library', { petId, style, expression, imageUrl, viewType })
     return true
   } catch {
     return false
@@ -127,6 +140,7 @@ export async function getAvatarLibrary(petId: string): Promise<AvatarLibraryItem
       style: string
       expression: string | null
       image_url: string
+      view_type?: string | null
       created_at: string
     }>>('/api/avatar/library', { petId })
     if (!Array.isArray(data)) return []
@@ -136,10 +150,31 @@ export async function getAvatarLibrary(petId: string): Promise<AvatarLibraryItem
       style: row.style,
       expression: row.expression,
       imageUrl: row.image_url,
+      // 迁移 030 新列；服务端未升级/历史行缺省时按头像处理，避免前端筛选失效
+      viewType: row.view_type === 'multiview' ? 'multiview' : 'headshot',
       createdAt: row.created_at,
     }))
   } catch {
     return []
+  }
+}
+
+/**
+ * 把全方位角色设定图设为当前参考图（写入 pet_profiles.avatar_multiview_url，迁移 030）
+ * 与卡通头像"设为当前"的区别：不清空 avatar_photo_url——真实照片仍是全家福参考第一优先级，
+ * 设定图是第二优先级补充（collectMemberPhotos 的 COALESCE 顺序）。
+ * @returns 成功时携带服务端返回的最新宠物档案（离线时为 null，调用方用 patch 兜底刷新）
+ */
+export async function setMultiviewAsCurrent(petId: string, sheetUrl: string): Promise<PetProfile | null> {
+  try {
+    // 坑点（同 saveAvatarCustomization）：PUT /api/pets/:id 的 body 必须 snake_case，
+    // zod 会剥离 camelCase 键导致 400「没有需要更新的字段」
+    const updated = await api.put<PetProfile>(`/api/pets/${petId}`, {
+      avatar_multiview_url: sheetUrl,
+    })
+    return updated
+  } catch {
+    return null
   }
 }
 

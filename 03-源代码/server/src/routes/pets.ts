@@ -104,7 +104,7 @@ router.put('/:id', validate({ body: updatePetSchema }), async (req: Request, res
 
     const {
       name, species, breed, breed_id, gender, birth_date, weight,
-      avatar_photo_url, avatar_cartoon_url, avatar_style, photos,
+      avatar_photo_url, avatar_cartoon_url, avatar_multiview_url, avatar_style, photos,
       is_neutered, microchip_id, notes,
     } = req.body;
 
@@ -118,6 +118,9 @@ router.put('/:id', validate({ body: updatePetSchema }), async (req: Request, res
     if (weight !== undefined) updateData.weight = weight;
     if (avatar_photo_url !== undefined) updateData.avatar_photo_url = avatar_photo_url;
     if (avatar_cartoon_url !== undefined) updateData.avatar_cartoon_url = avatar_cartoon_url;
+    // 全方位设定图（迁移 030）：设为当前时写入；注意不清 avatar_photo_url（与卡通头像语义不同，
+    // 真实照片仍是全家福参考图第一优先级，设定图是第二优先级的补充参考）
+    if (avatar_multiview_url !== undefined) updateData.avatar_multiview_url = avatar_multiview_url;
     if (avatar_style !== undefined) updateData.avatar_style = avatar_style;
     if (photos !== undefined) updateData.photos = photos;
     if (is_neutered !== undefined) updateData.is_neutered = is_neutered;

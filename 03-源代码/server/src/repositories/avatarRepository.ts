@@ -40,7 +40,7 @@ export interface Avatar3DModelRow extends QueryResultRow {
   created_at: string;
 }
 
-/** 形象库数据行（用户保存的多次生成形象，按风格/表情分类） */
+/** 形象库数据行（用户保存的多次生成形象，按风格/表情/类型分类） */
 export interface AvatarLibraryRow extends QueryResultRow {
   id: string;
   pet_id: string;
@@ -48,6 +48,8 @@ export interface AvatarLibraryRow extends QueryResultRow {
   style: string;
   expression: string | null;
   image_url: string;
+  /** 条目类型：headshot=头像 / multiview=全方位角色设定图（迁移 030，历史行默认 headshot） */
+  view_type: string;
   created_at: string;
 }
 
@@ -59,6 +61,8 @@ export interface SaveAvatarLibraryParams {
   style: string;
   expression: string | null;
   imageUrl: string;
+  /** 条目类型（缺省 headshot，路由层已做白名单校验） */
+  viewType: string;
 }
 
 /** 创建头像生成记录参数 */
@@ -189,17 +193,24 @@ export class AvatarLibraryRepository extends BaseRepository<AvatarLibraryRow> {
   protected allowedSortFields = ['created_at'] as const;
 
   /**
-   * 保存一个形象到形象库
+   * 保存一个形象到形象库（UPSERT：UNIQUE(pet_id,image_url) 冲突时刷新元数据）
+   * 幂等设计（双 Agent 审查修复）：重复保存同一张图（如一套两条部分失败后重试、双击收藏）
+   * 不再抛 23505 → 500，而是按"再次收藏"处理——刷新 view_type/表情/画风并置顶
    */
-  async save(params: SaveAvatarLibraryParams): Promise<AvatarLibraryRow> {
-    return this.insert({
-      id: params.id,
-      pet_id: params.petId,
-      user_id: params.userId,
-      style: params.style,
-      expression: params.expression,
-      image_url: params.imageUrl,
-    });
+  async save(params: SaveAvatarLibraryParams): Promise<AvatarLibraryRow | null> {
+    const result = await this.rawQuery<AvatarLibraryRow>(
+      `INSERT INTO ${this.tableName}
+         (id, pet_id, user_id, style, expression, image_url, view_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (pet_id, image_url) DO UPDATE SET
+         style = EXCLUDED.style,
+         expression = EXCLUDED.expression,
+         view_type = EXCLUDED.view_type,
+         created_at = NOW()
+       RETURNING *`,
+      [params.id, params.petId, params.userId, params.style, params.expression, params.imageUrl, params.viewType],
+    );
+    return result.rows[0] ?? null;
   }
 
   /**
@@ -207,7 +218,7 @@ export class AvatarLibraryRepository extends BaseRepository<AvatarLibraryRow> {
    */
   async findByPet(petId: string, userId: string): Promise<AvatarLibraryRow[]> {
     const result = await this.rawQuery<AvatarLibraryRow>(
-      `SELECT id, pet_id, user_id, style, expression, image_url, created_at
+      `SELECT id, pet_id, user_id, style, expression, image_url, view_type, created_at
        FROM ${this.tableName}
        WHERE pet_id = $1 AND user_id = $2
        ORDER BY created_at DESC`,

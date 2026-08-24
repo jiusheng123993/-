@@ -7,7 +7,7 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
-import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS, extractPetAppearance } from '../services/avatarService.js';
+import { generatePetImage, generatePetImageOptions, AVATAR_STYLE_OPTIONS, EXPRESSION_PROMPTS, AVATAR_BACKGROUND_PROMPTS, extractPetAppearance } from '../services/avatarService.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
 import { generate2DAvatarPack } from '../services/image2DService.js';
@@ -59,6 +59,13 @@ const MEMBER_3D_MONTHLY_LIMIT = 3;
 // 允许的风格白名单
 const VALID_STYLES = ['cartoon', 'realistic'] as const;
 type AvatarStyle = (typeof VALID_STYLES)[number];
+// 2D 形象包画风白名单：基础两档（legacy 兼容）+ 与前端 GEN_STYLES/服务端 AVATAR_STYLE_OPTIONS 对齐的 15 种画风 key；
+// 命中后由 image2DService 的 STYLE_TEXT_2D 映射为提示词风格短语，未命中仍兜底 cartoon
+const VALID_2D_STYLES = [
+  ...VALID_STYLES,
+  'q', 'japanese', 'american', 'watercolor', 'clay', 'ghibli', 'pixar', 'pixel',
+  'ink', 'oil', 'cyberpunk', 'nordic', 'lowpoly', 'lineart', 'dark',
+] as const;
 
 // Supabase 公共 URL 前缀（用于校验 referencePhotoUrl 归属）
 // 环境变量在进程生命周期内不变，模块加载时计算一次即可
@@ -192,7 +199,7 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
 // 生成多风格候选形象（5 种画风：Q版萌系/日系治愈/美式卡通/水彩手绘/黏土萌宠）
 router.post('/generate-options', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
   try {
-    const { petId, referenceImageUrl, style, description, styleKey, expression } = req.body;
+    const { petId, referenceImageUrl, style, description, styleKey, expression, background } = req.body;
     const userId = req.userId!;
 
     if (!petId || typeof petId !== 'string') {
@@ -209,6 +216,10 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
 
     // 表情（可选）：必须是 EXPRESSION_PROMPTS 里的 key，否则忽略
     const safeExpression = typeof expression === 'string' && EXPRESSION_PROMPTS[expression] ? expression : undefined;
+
+    // 背景（可选，文生图换景）：必须是 AVATAR_BACKGROUND_PROMPTS 里的 key，否则忽略（默认干净背景）
+    const safeBackground =
+      typeof background === 'string' && AVATAR_BACKGROUND_PROMPTS[background] ? background : undefined;
 
     // style 白名单校验（写实/卡通基础基调）
     const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
@@ -279,11 +290,14 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       id: generationId,
       user_id: userId,
       pet_id: petId,
-      prompt: `为${pet.breed}生成${safeStyleKey ? ` ${safeStyleKey}画风` : ' 多种风格'}候选形象${effectiveDescription ? `；外貌描述：${effectiveDescription}` : ''}${safeExpression ? `；表情：${safeExpression}` : ''}`,
-      // 配额口径：文字生成（单画风）与照片生成分开记 style——
-      // 文字 = options-<基调>-text-<画风>（不计入照片 3 次/月额度，countMonthlyOptionsByUser 排除 %-text-%）
-      // 照片 = options-<基调>-photo / 老格式 options-<基调>（计入照片额度）
-      style: `options-${safeStyle}${safeStyleKey ? `-text-${safeStyleKey}` : '-photo'}`,
+      prompt: `为${pet.breed}生成${safeStyleKey ? ` ${safeStyleKey}画风` : ' 多种风格'}候选形象${effectiveDescription ? `；外貌描述：${effectiveDescription}` : ''}${safeExpression ? `；表情：${safeExpression} ` : ''}${safeBackground ? `；背景：${safeBackground}` : ''}`,
+      // 配额口径：按"本次是否真用参考图"判定（双 Agent 审查修复，原按 styleKey 判定有两个漏洞：
+      // ①无参考图+非法 styleKey 会静默走批量流却记 -text-，绕过照片月限；
+      // ②有参考图+合法 styleKey 记 -text-，不进 countMonthlyOptionsByUser，白嫖图生图）
+      // 文字流（无参考图）= -text-（不计照片 3 次/月）；照片流 = -photo（计入）
+      style: photoUrl
+        ? `options-${safeStyle}-photo`
+        : `options-${safeStyle}-text-${safeStyleKey || 'batch'}`,
     });
 
     const options = await generatePetImageOptions({
@@ -296,6 +310,7 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
       description: effectiveDescription,
       styleKey: safeStyleKey,
       expression: safeExpression,
+      background: safeBackground,
     });
 
     // 生成失败时明确报错，绝不返回丑陋占位图
@@ -326,7 +341,7 @@ router.post('/generate-options', authMiddleware, generateLimiter, async (req: Re
  */
 router.post('/library', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { petId, style, expression, imageUrl } = req.body;
+    const { petId, style, expression, imageUrl, viewType } = req.body;
     const userId = req.userId!;
 
     if (!petId || typeof petId !== 'string') {
@@ -343,6 +358,12 @@ router.post('/library', authMiddleware, async (req: Request, res: Response) => {
       res.status(400).json({ success: false, message: 'imageUrl 参数不合法' });
       return;
     }
+    // 条目类型白名单：headshot=头像 / multiview=全方位角色设定图（缺省头像，兼容旧调用方）
+    const VALID_VIEW_TYPES = ['headshot', 'multiview'] as const;
+    const safeViewType =
+      typeof viewType === 'string' && (VALID_VIEW_TYPES as readonly string[]).includes(viewType)
+        ? viewType
+        : 'headshot';
     // 表情白名单（与 generate-options 的 EXPRESSION_PROMPTS 口径一致），防脏数据破坏筛选
     const safeExpression =
       typeof expression === 'string' && EXPRESSION_PROMPTS[expression] ? expression : null;
@@ -362,6 +383,7 @@ router.post('/library', authMiddleware, async (req: Request, res: Response) => {
       style,
       expression: safeExpression,
       imageUrl,
+      viewType: safeViewType,
     });
 
     res.json({ success: true, data: { id: libraryId } });
@@ -491,8 +513,8 @@ router.post('/generate-2d', authMiddleware, generateLimiter, async (req: Request
       return;
     }
 
-    // style 白名单校验
-    const safeStyle: AvatarStyle = VALID_STYLES.includes(style) ? style : 'cartoon';
+    // style 白名单校验（2D 扩展集：支持 15 种画风 key，未知值兜底 cartoon）
+    const safeStyle: AvatarStyle = (VALID_2D_STYLES as readonly string[]).includes(style) ? style : 'cartoon';
 
     // 照片生成（参照自家宠物）为会员专享：服务端强制，不能只靠前端隐藏
     const { isMember } = await getUserMembership(userId);

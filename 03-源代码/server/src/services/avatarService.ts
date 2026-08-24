@@ -7,6 +7,8 @@ import { callSeedream } from './image2DService.js';
 import { analyzeImage } from './visionService.js';
 // 宠物提示词公共模块：统一按提示词库 §0.6/§四 规范构造（角色锁定 + 主体锁定 + 品种兜底）
 import { petSubjectText, PET_IDENTITY_KEEP, PET_ONLY_ONE } from './petPrompt.js';
+// AI 生图统一角标（水印 B 方案：去平台水印 + 自有品牌角标，见 imageBadge 模块注释）
+import { addAiBadge } from './imageBadge.js';
 
 /** 宠物形象生成请求参数 */
 export interface GeneratePetImageParams {
@@ -160,6 +162,11 @@ export interface GeneratePetImageOptionsParams {
   styleKey?: string;
   /** 表情 key（happy / excited / ...，拼进提示词），可选 */
   expression?: string;
+  /**
+   * 背景 key（sky / sakura / ...，AVATAR_BACKGROUND_OPTIONS 白名单），可选
+   * 文生图换景：替换提示词尾部的"干净背景"；不传=默认干净背景。设定图不受影响（恒纯白）
+   */
+  background?: string;
 }
 
 /**
@@ -181,17 +188,83 @@ export const EXPRESSION_PROMPTS: Record<string, string> = {
   naughty: '调皮的表情，吐舌头，俏皮',
 };
 
-/** 单个风格候选结果 */
+/**
+ * 背景目录（文生图换景，9 选 1 含默认）
+ * 纯提示词层实现：把"干净背景"替换为场景多维描写（时间光源+环境+氛围+光效，
+ * 对齐提示词技能 §场景公式），不多花生图调用、不影响配额。
+ * 仅作用于头像；全方位设定图恒为纯白背景（参考图价值在精确记录外貌，不能被场景污染）
+ */
+export const AVATAR_BACKGROUND_OPTIONS = [
+  { key: 'sky', label: '蓝天白云', prompt: '晴朗蓝天与蓬松白云背景，明亮自然光，清新开阔' },
+  { key: 'sakura', label: '樱花', prompt: '春日樱花树下粉色花瓣飘落的背景，柔和逆光，浪漫温柔，浅景深虚化' },
+  { key: 'grass', label: '草坪花园', prompt: '阳光洒落的绿色草坪花园背景，午后暖阳，清新自然' },
+  { key: 'christmas', label: '圣诞', prompt: '圣诞壁炉、彩灯与松枝装饰的温暖背景，暖黄灯光，节日温馨氛围' },
+  { key: 'birthday', label: '生日派对', prompt: '生日派对彩带气球与小蛋糕背景，缤纷马卡龙色，欢乐庆祝氛围' },
+  { key: 'beach', label: '夏日海边', prompt: '夏日海边沙滩与浅蓝海浪背景，明媚阳光，清爽度假感' },
+  { key: 'night', label: '星空夜', prompt: '深蓝星空夜晚背景，点点星光与柔和辉光，梦幻静谧氛围' },
+  { key: 'cozy', label: '奶油毛毯', prompt: '奶油色针织毛毯与软靠垫的温馨室内背景，暖调柔光，治愈慵懒' },
+] as const;
+
+/** 背景 key → 提示词片段（路由层白名单校验后按 key 取用） */
+export const AVATAR_BACKGROUND_PROMPTS: Record<string, string> = Object.fromEntries(
+  AVATAR_BACKGROUND_OPTIONS.map((o) => [o.key, o.prompt]),
+);
+
+/** 单个风格候选结果（一套两张：头像 + 全方位角色设定图） */
 export interface PetImageOption {
   style: string;
   label: string;
+  /** 头像图 URL（正面特写，用于小程序内展示） */
   url: string;
+  /**
+   * 全方位角色设定图 URL（正面特写/侧面/顶部/背面四视图合一，全身描绘）
+   * 用途：回忆录视频与全家福的角色参考图——全身多视角比单头像更能锁定体型花纹。
+   * 设定图生成失败时为 null（头像仍可用，前端隐藏设定图卡片）
+   */
+  sheetUrl: string | null;
+}
+
+/** 照片批量生成流程的"一套候选"数量（每套=头像+设定图共 2 次生图调用） */
+const PHOTO_SET_COUNT = 3;
+
+/**
+ * 构建全方位角色设定图提示词（四视图合一：正面特写/侧面/顶部俯视/背面）
+ * 对应提示词技能 §三 公式：主体+外貌+画风+画质+角色锁定+主体锁定；
+ * 关键差异：设定图的主体锁定要说明"四个视图是同一只宠物的不同角度"，防止模型画成四只不同的宠物。
+ * 背景固定纯白——设定图的价值在于精确记录外貌细节，供后续生图/生视频当参考。
+ * @param identityKeep 有参考图时传 PET_IDENTITY_KEEP（"以参考照片为准"），
+ *   无参考图绝不写（金科玉律 #4：没有图却说"与照片一致"是说谎）；设定图与头像共用参考图，锁定话术同样适用
+ */
+function buildMultiviewSheetPrompt(params: {
+  subject: string;
+  userDesc: string;
+  exprText: string;
+  styleText: string;
+  styleKeywords: string;
+  identityKeep?: string;
+}): string {
+  const segments = [
+    // 版式指令：明确四视图内容与排布，降低模型自由发挥空间
+    `${params.subject}的全身角色设定图，四视图合一画在同一张图中：左上=正面特写头像，右上=完整侧面全身，左下=顶部俯视角度，右下=背面全身`,
+    params.userDesc,
+    params.exprText,
+    `${params.styleText}，${params.styleKeywords}`,
+    params.identityKeep,
+    // 主体锁定（设定图特化版）：强调同一只的多视角，而非多只宠物
+    '四个视图必须是同一只宠物从不同角度观察的样子，绝不是四只不同的宠物：毛色、花纹、体型、五官在所有视图中完全一致',
+    '不要出现其他动物、人物、文字、水印或表格线以外的装饰元素',
+    '纯白色干净背景，高质量，细节丰富',
+  ].filter(Boolean);
+  return segments.join('，').replace(/，+/g, '，');
 }
 
 /**
- * 生成多风格候选形象（5 种画风，猫狗各一套提示词）
- * 默认并发生成全部 5 种画风；传 styleKey 则只生成指定画风 1 张
- * 任一失败自动跳过，全部失败返回 null
+ * 生成形象候选（照片流程一套 = 头像 + 全方位角色设定图；文字流程单张头像）
+ * - 文字生成（无参考图）：只出头像——没有真实照片锚定外貌，四视图全靠想象，
+ *   作为"角色参考图"价值低还翻倍成本（用户决策 2026-08-24）
+ * - 照片生成（带参考图）：1 套两张，设定图用于回忆录/全家福的角色参考
+ *   （全身多视角比单头像更能锁定体型花纹）
+ * - 容错：整套失败跳过；仅设定图失败时返回 sheetUrl=null（头像照常可用）
  * @returns 候选列表；AI 服务不可用时返回 null（不返回丑陋占位图）
  */
 export async function generatePetImageOptions(
@@ -209,27 +282,63 @@ export async function generatePetImageOptions(
 
   // 用户文字描述：清洗换行/控制字符 + 截断 100 字，拼进提示词（空则只用档案自动描述）
   const userDesc = (params.description || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 100);
+  // 背景（文生图换景）：选了则用场景描写替换"干净背景"——纯提示词层实现，不加调用不加费用；
+  // key 已由路由层白名单校验，这里再兜底一次（非法 key 视同默认）
+  const bgText = params.background ? AVATAR_BACKGROUND_PROMPTS[params.background] || '' : '';
+  const bgTail = bgText || '干净背景';
   const basePrompt = userDesc
-    ? `${subject}的头像，${userDesc}，高质量，细节丰富，干净背景`
-    : `${subject}的头像，高质量，细节丰富，干净背景`;
+    ? `${subject}的头像，${userDesc}，高质量，细节丰富，${bgTail}`
+    : `${subject}的头像，高质量，细节丰富，${bgTail}`;
 
   // 表情：拼进提示词（正向描述，如"开心的表情，嘴角上扬"）
   const exprText = params.expression ? EXPRESSION_PROMPTS[params.expression] || '' : '';
 
-  // 画风范围：传 styleKey 只生成该画风（1 张，15 种可选）；不传生成默认池 5 种（照片生成批量候选）
+  // 画风范围：传 styleKey 只生成该画风 1 套（15 种可选，文字流程）；
+  // 不传取默认池前 PHOTO_SET_COUNT 种（照片流程，一套两张控制成本与耗时）
   const styleItems = params.styleKey
     ? AVATAR_STYLE_OPTIONS.filter((item) => item.key === params.styleKey)
-    : AVATAR_STYLE_OPTIONS.filter((item) => (DEFAULT_STYLE_KEYS as readonly string[]).includes(item.key));
+    : AVATAR_STYLE_OPTIONS.filter((item) => (DEFAULT_STYLE_KEYS as readonly string[]).includes(item.key))
+        .slice(0, PHOTO_SET_COUNT);
 
-  // 并发生成，互不阻塞；某个风格失败不影响其余
+  // 并发生成每"套"（套内头像+设定图并行），互不阻塞；某套失败不影响其余
   const results = await Promise.allSettled(
-    styleItems.map((item) =>
-      callSeedream(
-        `${basePrompt}，${exprText}，${styleText}，${isDog ? item.dog : item.cat}，${PET_IDENTITY_KEEP}，${PET_ONLY_ONE}`.replace(/，+/g, '，'),
-        params.photoUrl || '',
-        apiKey,
-      ).then((url) => (url ? { style: item.key, label: item.label, url } : null)),
-    ),
+    styleItems.map(async (item) => {
+      const itemText = isDog ? item.dog : item.cat;
+      // 角色锁定条件化（审查修复）：只有真传了参考图才写"以参考照片为准"，
+      // 文字生成流没有图，写了就是说谎（违反提示词技能金科玉律 #4）
+      const identityKeep = params.photoUrl ? PET_IDENTITY_KEEP : '';
+      const headPrompt = [
+        basePrompt,
+        exprText,
+        styleText,
+        itemText,
+        identityKeep,
+        PET_ONLY_ONE,
+      ]
+        .filter(Boolean)
+        .join('，')
+        .replace(/，+/g, '，');
+      const sheetPrompt = buildMultiviewSheetPrompt({
+        subject,
+        userDesc,
+        exprText,
+        styleText,
+        // 设定图是全身四视图：画风关键词里若含"头像"字样会与版式指令打架
+        //（审查发现 watercolor/ghibli/pixar 等描述含"头像"），统一替换为"形象"
+        styleKeywords: itemText.replace(/头像/g, '形象'),
+        identityKeep,
+      });
+      // 头像为必出项；设定图仅在照片流程生成（文字流没有参考图，四视图全靠想象，
+      // 作为角色参考价值低且多花一次生图——用户决策：文生图回归单张）
+      const [headUrl, sheetUrl] = await Promise.all([
+        callSeedream(headPrompt, params.photoUrl || '', apiKey),
+        params.photoUrl
+          ? callSeedream(sheetPrompt, params.photoUrl, apiKey).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+      if (!headUrl) return null;
+      return { style: item.key, label: item.label, url: headUrl, sheetUrl: sheetUrl ?? null };
+    }),
   );
 
   const options: PetImageOption[] = [];
@@ -241,7 +350,7 @@ export async function generatePetImageOptions(
     }
   }
 
-  // 至少成功 1 张才算可用；全部失败视为服务不可用
+  // 至少成功 1 套才算可用；全部失败视为服务不可用
   return options.length > 0 ? options : null;
 }
 
@@ -319,6 +428,8 @@ export async function generatePetImage(
         prompt,
         size: '1024x1024',
         n: 1,
+        // 水印合规 B 方案：去平台水印，显式标识由 addAiBadge 的自有品牌角标承担
+        watermark: false,
       }),
     });
 
@@ -336,7 +447,8 @@ export async function generatePetImage(
 
     if (data.data && data.data.length > 0 && data.data[0].url) {
       return {
-        url: data.data[0].url,
+        // 合成自有品牌角标并转存本站 uploads（失败降级返回原图 URL，见 imageBadge 模块注释）
+        url: await addAiBadge(data.data[0].url),
         isPlaceholder: false,
       };
     }

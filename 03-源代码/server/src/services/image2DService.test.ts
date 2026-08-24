@@ -38,6 +38,12 @@ vi.mock('../utils/delay.js', () => ({
   delay: mockDelay,
 }));
 
+// 显式 mock 角标模块（透传原 URL）：否则成功路径会真实走 addAiBadge——
+// fetch mock 无 arrayBuffer 时靠抛错降级"侥幸"通过，一旦补全 mock 响应就会在测试期写真实磁盘
+vi.mock('./imageBadge.js', () => ({
+  addAiBadge: vi.fn(async (url: string) => url),
+}));
+
 vi.mock('../config.js', () => ({
   config: {
     seedream: { apiKey: 'test-api-key' },
@@ -213,5 +219,55 @@ describe('image2DService 进度计算', () => {
     expect(batch2.end).toBe(75);
     expect(batch3.start).toBe(75);
     expect(batch3.end).toBe(100);
+  });
+});
+
+describe('image2DService 画风映射（与前端 GEN_STYLES 15 种画风对齐）', () => {
+  /** 从首个 Seedream fetch 调用中解析请求体（calls[0][1] 为 requestInit，prompt 在其 .body 字符串里） */
+  function firstSeedreamPrompt(): string {
+    const init = (mockFetch.mock.calls[0] as unknown[])[1] as { body: string };
+    return JSON.parse(init.body).prompt as string;
+  }
+
+  it('ghibli 画风应把吉卜力风格短语拼进提示词', async () => {
+    const { generate2DAvatarPack } = await import('./image2DService.js');
+
+    await generate2DAvatarPack({
+      taskId: 'test-style-ghibli',
+      species: 'cat',
+      breed: '英短',
+      referencePhotoUrl: 'https://example.com/photo.jpg',
+      style: 'ghibli',
+    });
+
+    expect(firstSeedreamPrompt()).toContain('吉卜力');
+  });
+
+  it('未知画风应兜底为可爱卡通风格', async () => {
+    const { generate2DAvatarPack } = await import('./image2DService.js');
+
+    await generate2DAvatarPack({
+      taskId: 'test-style-fallback',
+      species: 'cat',
+      breed: '英短',
+      referencePhotoUrl: 'https://example.com/photo.jpg',
+      style: 'not-a-real-style',
+    });
+
+    expect(firstSeedreamPrompt()).toContain('可爱卡通风格');
+  });
+
+  it('legacy realistic 应保留写实风格映射', async () => {
+    const { generate2DAvatarPack } = await import('./image2DService.js');
+
+    await generate2DAvatarPack({
+      taskId: 'test-style-realistic',
+      species: 'dog',
+      breed: '柯基',
+      referencePhotoUrl: 'https://example.com/photo.jpg',
+      style: 'realistic',
+    });
+
+    expect(firstSeedreamPrompt()).toContain('写实风格');
   });
 });

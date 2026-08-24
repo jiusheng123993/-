@@ -31,6 +31,8 @@ export interface PetProfile {
   coatColor: string;
   avatarPhotoUrl?: string;
   avatarCartoonUrl?: string;
+  /** 全方位角色设定图（迁移 030）：四视图全身参考图，全家福/回忆录参考优先级仅次于真实照片 */
+  avatarMultiviewUrl?: string;
   avatarStyle?: string;
   avatarGeneratedAt?: Date;
   photos: string[];

@@ -194,6 +194,13 @@
     background: $color-primary-bg;
     border-radius: $radius-sm;
     padding: 4rpx 10rpx;
+
+    // 类型徽章（迁移 030）：设定图用白底描边区分，点击即按该类型筛选
+    &--multiview {
+      color: #8a6d1f;
+      background: #fff;
+      border: 1rpx solid rgba(230, 179, 34, 0.55);
+    }
   }
 
   &__actions {
@@ -334,10 +341,88 @@
   }
 }
 
-// —— 4. 形象应用场景 ——
+// 全方位角色设定图展示卡（一套两张之二，迁移 030）
+// 文字生成=单张下方固定展示；照片生成=点选某套后在宫格下方预览
+// 四视图图幅偏横长，用 aspectFit + 白底防裁切，与头像的 aspectFill 区分
+.avatar-options__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  background: #fffdf6;
+  border: 1rpx solid rgba(230, 179, 34, 0.4);
+  border-radius: $radius-md;
+
+  &-label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: #8a6d1f;
+  }
+
+  &-img {
+    width: 100%;
+    height: 560rpx;
+    border-radius: $radius-sm;
+    background: $color-bg-secondary;
+  }
+
+  &-hint {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+    line-height: 1.5;
+  }
+}
+
+// 照片候选卡右下角"有设定图"角标（提示这套信息更全）
+.avatar-options__sheet-badge {
+  position: absolute;
+  right: 10rpx;
+  bottom: 44rpx;
+  font-size: 24rpx;
+  line-height: 1;
+  padding: 4rpx 8rpx;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: $shadow-xs;
+}
+
+// 参考照片小贴士（照片 Tab 上传区下方）：
+// AI 照着参考图抄毛色/花纹/体型，教用户挑片能直接提升生成相似度
+.avatar-customize__photo-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: #fffdf6;
+  border: 1rpx solid rgba(230, 179, 34, 0.35);
+  border-radius: $radius-md;
+
+  &-title {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: #8a6d1f;
+  }
+
+  &-item {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    line-height: 1.6;
+  }
+
+  &-note {
+    font-size: $font-size-xs;
+    color: $color-primary;
+    line-height: 1.6;
+    margin-top: 4rpx;
+  }
+}
+
+// —— 4. 形象操作区（原三列场景区简化为两动作：形象生成 / 分享形象）——
 .avatar-scenes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: $spacing-md;
 
   &__item {
@@ -367,10 +452,6 @@
       background: $color-primary-bg;
     }
 
-    &--gold {
-      background: $color-gold-bg;
-    }
-
     &--teal {
       background: rgba($color-teal, 0.16);
     }
@@ -383,28 +464,7 @@
   }
 }
 
-// —— 5. 生成新形象按钮 ——
-.avatar-gen-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-sm;
-  padding: $spacing-lg 0;
-  border-radius: $radius-sm;
-  background-image: linear-gradient(135deg, $color-primary-light, $color-primary);
-  color: $color-text-inverse;
-  font-size: $font-size-md;
-  font-weight: $font-weight-bold;
-  box-shadow: $shadow-button;
-  @include press-feedback;
-
-  &__icon {
-    font-size: 36rpx;
-    line-height: 1;
-  }
-}
-
-// —— 6. 生成面板 ——
+// —— 5. 生成面板 ——
 .avatar-panel {
   background: $color-bg-card;
   border: 1px solid $color-border;
@@ -436,6 +496,20 @@
   margin-top: 10rpx;
   font-size: $font-size-xs;
   color: $color-text-tertiary;
+}
+
+/* 2D/3D 任务轻提示（替代原 GenerationProgress 重进度卡）：一行小字，失败态可点重试 */
+.avatar-customize__task-hint {
+  display: block;
+  text-align: center;
+  padding: $spacing-md 0;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+
+  &--error {
+    color: #e5484d;
+    @include press-feedback;
+  }
 }
 
 .avatar-customize__tabs {
