@@ -2,7 +2,7 @@
 @import '../../styles/_animations';
 
 // ============================================
-// 我的页面 — 温馨暖色风格 + 丰富动效
+// 我的页面 — 沉浸式暖色头部 + 丰富动效
 // ============================================
 
 .mine-page {
@@ -11,71 +11,70 @@
   animation: pageEnter 0.4s ease-out;
 }
 
-// ===== 用户信息卡（原型对齐：渐变横幅 + 头像 + 昵称） =====
-.mine-user-card {
-  margin: 32rpx $spacing-xl 0;
-  background: $color-bg-card;
-  border-radius: $radius-lg;
-  overflow: hidden;
-  box-shadow: $shadow-card, $glow-sm;
+// ===== 沉浸式头部（替代旧"渐变横幅+白卡"双色模块） =====
+// 设计意图：无卡片无横幅，头像/昵称直接坐在页面米色渐变上，
+// 整个顶部只有一种底色，视觉干净不割裂；头像用白描边+双层柔光环从背景上"托"起来
+.mine-hero {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  margin: 40rpx $spacing-xl 0;
+  padding: 8rpx;
   animation: fadeInUp 0.45s ease-out;
 }
 
-.mine-user-banner {
-  height: 192rpx;
-  background: linear-gradient(135deg, $color-primary-light, $color-primary);
-}
-
-.mine-user-main {
-  display: flex;
-  align-items: flex-end;
-  gap: 24rpx;
-  padding: 0 40rpx 40rpx;
-  margin-top: -96rpx;
-}
-
-.mine-avatar {
+.mine-hero-avatar {
   @include flex-center;
-  width: 192rpx;
-  height: 192rpx;
+  width: 136rpx;
+  height: 136rpx;
   border-radius: $radius-full;
   background: $gradient-warm;
-  border: 8rpx solid $color-bg-card;
-  box-shadow: $shadow-sm, $glow-md;
+  // 白描边 + 外圈半透明白环 + 暖色投影：让头像在浅色背景上有层次但不突兀
+  border: 6rpx solid $color-bg-card;
+  box-shadow:
+    0 10rpx 28rpx rgba($color-primary, 0.16),
+    0 0 0 12rpx rgba($color-bg-card, 0.5);
   flex-shrink: 0;
   overflow: hidden;
 }
 
 /* 头像图片：铺满圆形头像框 */
-.mine-avatar-img {
+.mine-hero-avatar-img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
 }
 
-.mine-avatar-text {
-  font-size: 72rpx;
+.mine-hero-avatar-text {
+  font-size: 56rpx;
   color: $color-text-inverse;
   font-weight: $font-weight-bold;
 }
 
-.mine-user-info {
+.mine-hero-info {
   flex: 1;
   min-width: 0;
-  padding-bottom: 8rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
 }
 
-.mine-user-name-row {
+.mine-hero-name-row {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
   flex-wrap: wrap;
 }
 
-.mine-user-name {
+.mine-hero-name {
   font-size: 40rpx;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
+}
+
+.mine-hero-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
 }
 
 .mine-vip-badge {
@@ -86,12 +85,6 @@
   color: $color-text-inverse;
   font-weight: $font-weight-bold;
   box-shadow: 0 4rpx 16rpx -4rpx rgba($color-gold, 0.45);
-}
-
-.mine-user-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  margin-top: 16rpx;
 }
 
 .mine-edit-btn {
@@ -156,6 +149,60 @@
   line-height: 1;
 }
 
+// ===== 家庭信息卡（多成员共同养宠，2026-08-24） =====
+.mine-family-card {
+  display: flex;
+  align-items: center;
+  margin: 24rpx $spacing-xl 0;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  padding: 28rpx 32rpx;
+  gap: 24rpx;
+  animation: fadeInUp 0.45s ease-out 0.1s both;
+  @include press-feedback;
+}
+
+.mine-family-icon {
+  @include flex-center;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, rgba($color-gold, 0.22), rgba($color-primary, 0.16));
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+
+.mine-family-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.mine-family-name {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  // 沉浸光感：家庭名暖色柔光
+  text-shadow: 0 0 12rpx rgba($color-gold, 0.22);
+}
+
+.mine-family-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mine-family-arrow {
+  font-size: 36rpx;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
 // ===== 宠物切换条 =====
 .mine-pet-chips {
   padding: 0 $spacing-xl $spacing-md;
@@ -205,6 +252,14 @@
   border-radius: $radius-full;
   background: $gradient-card;
   font-size: 30rpx;
+  overflow: hidden;
+}
+
+/* 宠物真实头像（照片/AI 形象）：铺满圆形框，加载失败退回物种 emoji */
+.mine-pet-chip-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .mine-pet-chip-name {
