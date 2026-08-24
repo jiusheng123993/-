@@ -7,12 +7,14 @@ import { Router, type Request, type Response } from 'express';
 import crypto from 'crypto';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createFamilySchema, updateFamilySchema, addFamilyMemberSchema, updateFamilyMemberRoleSchema, familyMomentsQuerySchema, familyNewMomentsQuerySchema, joinFamilySchema } from '../schemas/index.js';
+import { createFamilySchema, updateFamilySchema, addFamilyMemberSchema, updateFamilyMemberRoleSchema, familyMomentsQuerySchema, familyNewMomentsQuerySchema, joinFamilySchema, createFamilyUserRelationSchema } from '../schemas/index.js';
 import {
   FamilyRepository,
   FamilyMemberRepository,
   FamilyUserRepository,
   FamilyInviteRepository,
+  FamilyUserRelationRepository,
+  type FamilyUserRelationRow,
 } from '../repositories/familyRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { postMemberJoinedFeed } from '../services/autoFeedService.js';
@@ -23,6 +25,7 @@ const familyRepository = new FamilyRepository();
 const familyMemberRepository = new FamilyMemberRepository();
 const familyUserRepository = new FamilyUserRepository();
 const familyInviteRepository = new FamilyInviteRepository();
+const familyUserRelationRepository = new FamilyUserRelationRepository();
 const petRepository = new PetRepository();
 
 /** 将 snake_case 数据库字段转换为 camelCase（与其他路由保持一致） */
@@ -458,6 +461,99 @@ router.delete('/:id/users/:userId', authMiddleware, async (req: Request, res: Re
   } catch (err) {
     console.error('[Families RemoveUser Error]', err);
     res.status(500).json({ success: false, message: '移除成员失败' });
+  }
+});
+
+/**
+ * 家庭成员（人）关系列表（主人或成员可读）
+ * 多成员共同养宠：情侣/父女/兄弟姐妹等任意两人之间的家庭角色关系（2026-08-24）
+ */
+router.get('/:id/user-relations', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const userId = req.userId!;
+
+    const isMember = await familyUserRepository.isFamilyUser(familyId, userId);
+    if (!isMember) {
+      res.status(403).json({ success: false, message: '无权查看此家庭' });
+      return;
+    }
+
+    const relations = await familyUserRelationRepository.listRelations(familyId);
+    res.json({ success: true, data: toCamelCaseArray(relations as unknown as Record<string, unknown>[]) });
+  } catch (err) {
+    console.error('[Families UserRelations Error]', err);
+    res.status(500).json({ success: false, message: '获取家庭关系失败' });
+  }
+});
+
+/**
+ * 创建家庭成员（人）关系（仅 owner）
+ * 校验：a/b 必须是家庭成员、不能是自己对自已、两人之间最多一条关系
+ */
+router.post('/:id/user-relations', authMiddleware, validate({ body: createFamilyUserRelationSchema }), async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const operatorId = req.userId!;
+    const { userIdA, userIdB, relationType } = req.body as { userIdA: string; userIdB: string; relationType: FamilyUserRelationRow['relation_type'] };
+
+    // 自指是明确的参数错误（无需查库），优先拦截
+    if (userIdA === userIdB) {
+      res.status(400).json({ success: false, message: '不能给自己设置关系' });
+      return;
+    }
+
+    const isOwner = await familyUserRepository.isFamilyOwner(familyId, operatorId);
+    if (!isOwner) {
+      res.status(403).json({ success: false, message: '仅家庭创建者可设置成员关系' });
+      return;
+    }
+    // 两人都必须是家庭成员
+    const isA = await familyUserRepository.isFamilyUser(familyId, userIdA);
+    const isB = await familyUserRepository.isFamilyUser(familyId, userIdB);
+    if (!isA || !isB) {
+      res.status(400).json({ success: false, message: '关系双方必须是家庭成员' });
+      return;
+    }
+
+    const relation = await familyUserRelationRepository.createRelation(familyId, userIdA, userIdB, relationType);
+    if (!relation) {
+      res.status(409).json({ success: false, message: '这两人之间已存在关系' });
+      return;
+    }
+
+    res.status(201).json({ success: true, data: toCamelCase(relation as unknown as Record<string, unknown>) });
+  } catch (err) {
+    console.error('[Families CreateUserRelation Error]', err);
+    res.status(500).json({ success: false, message: '创建家庭关系失败' });
+  }
+});
+
+/**
+ * 删除家庭成员（人）关系（仅 owner；归属校验：必须属于该家庭）
+ */
+router.delete('/:id/user-relations/:relationId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const familyId = req.params.id as string;
+    const operatorId = req.userId!;
+    const relationId = req.params.relationId as string;
+
+    const isOwner = await familyUserRepository.isFamilyOwner(familyId, operatorId);
+    if (!isOwner) {
+      res.status(403).json({ success: false, message: '仅家庭创建者可删除成员关系' });
+      return;
+    }
+
+    const removed = await familyUserRelationRepository.removeRelation(relationId, familyId);
+    if (!removed) {
+      res.status(404).json({ success: false, message: '关系不存在' });
+      return;
+    }
+
+    res.json({ success: true, data: null });
+  } catch (err) {
+    console.error('[Families RemoveUserRelation Error]', err);
+    res.status(500).json({ success: false, message: '删除家庭关系失败' });
   }
 });
 

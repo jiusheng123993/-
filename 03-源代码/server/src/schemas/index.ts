@@ -46,13 +46,15 @@ export const phoneLoginSchema = z.object({
 export const createPetSchema = z.object({
   name: z.string({ error: 'name不能为空' }).min(1, 'name不能为空'),
   species: z.string({ error: 'species不能为空' }).min(1, 'species不能为空'),
-  breed: z.string({ error: 'breed不能为空' }).min(1, 'breed不能为空'),
+  breed: z.string({ error: 'breed不能为空' }).min(1, 'breed不能为空').max(50, 'breed不能超过50字符'),
   breed_id: z.string({ error: 'breed_id不能为空' }).min(1, 'breed_id不能为空'),
   gender: z.string({ error: 'gender不能为空' }).min(1, 'gender不能为空'),
   birth_date: z.string({ error: 'birth_date不能为空' }).min(1, 'birth_date不能为空'),
   weight: z.number().optional(),
   avatar_photo_url: z.string().nullable().optional(),
   avatar_cartoon_url: z.string().nullable().optional(),
+  // 全方位角色设定图（迁移 030）：四视图全身参考图，供全家福/回忆录使用；设为当前时写入
+  avatar_multiview_url: z.string().nullable().optional(),
   avatar_style: z.string().nullable().optional(),
   photos: z.array(z.unknown()).optional(),
   is_neutered: z.boolean().optional(),
@@ -111,6 +113,25 @@ export const joinFamilySchema = z.object({
     .trim()
     .min(1, '邀请码不能为空')
     .max(32, '邀请码格式不正确'),
+});
+
+/** 8 种标准家庭人关系（2026-08-24） */
+export const FAMILY_USER_RELATION_TYPES = [
+  'couple',            // 情侣
+  'father_daughter',   // 父女
+  'father_son',        // 父子
+  'mother_daughter',   // 母女
+  'mother_son',        // 母子
+  'siblings',          // 兄弟姐妹
+  'friends',           // 朋友
+  'other',             // 其他
+] as const;
+
+/** 创建家庭成员（人）关系（owner 管理）：a ↔ b 两人之间的一种关系 */
+export const createFamilyUserRelationSchema = z.object({
+  userIdA: z.string({ error: '请选择成员 A' }).min(1, '请选择成员 A').max(100, '成员ID过长'),
+  userIdB: z.string({ error: '请选择成员 B' }).min(1, '请选择成员 B').max(100, '成员ID过长'),
+  relationType: z.enum(FAMILY_USER_RELATION_TYPES, { error: '关系类型不正确' }),
 });
 
 /** 上传/保存全家福（用户上传或 Canvas 降级生成） */
@@ -731,6 +752,26 @@ export const familyNewMomentsQuerySchema = z.object({
 
 // ===== 全家福合成模块 =====
 
+/**
+ * 全家福场景 key 白名单（22 个，五大主题）。
+ * schema 层保持零依赖故在此内联声明，但提为具名导出以便单测与服务端
+ * familyPhotoService.ts 的 FAMILY_PHOTO_SCENES 做"双向"集合相等断言——
+ * 只锁"服务端 ⊆ schema"会漏掉"schema 侧多加了 key 但服务端没写 SCENE_PROMPTS"的情况
+ * （运行时会把字符串 "undefined" 拼进提示词）。改场景清单时两处必须同步。
+ */
+export const FAMILY_PHOTO_SCENE_KEYS = [
+  // 居家时光
+  'livingroom', 'window', 'futon', 'bookshelf',
+  // 四季自然
+  'sakura', 'garden', 'autumn', 'snow', 'lavender', 'forest',
+  // 节日庆典
+  'christmas', 'birthday', 'lunarnewyear', 'midautumn',
+  // 旅行见闻
+  'seaside', 'roof', 'cafe', 'camping',
+  // 梦幻唯美
+  'aurora', 'clouds', 'monet', 'ocean',
+] as const
+
 /** 全家福生成请求 */
 export const generateFamilyPhotoSchema = z.object({
   style: z
@@ -739,6 +780,21 @@ export const generateFamilyPhotoSchema = z.object({
       (val) => ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk'].includes(val),
       { message: 'style 必须为 pixar / ghibli / oil / ink / nordic / cyberpunk 之一' },
     ),
+  // 场景（可选）：全家福的"地点感"，不传时服务端用默认温馨客厅；key 白名单见 FAMILY_PHOTO_SCENE_KEYS
+  scene: z
+    .string()
+    .refine((val) => (FAMILY_PHOTO_SCENE_KEYS as readonly string[]).includes(val), {
+      message: 'scene 必须为支持的全家福场景之一',
+    })
+    .optional(),
+  // 自定义场景（可选）：用户自己写的一句场景描述（如"在我家的院子里"），
+  // 服务端清洗截断后拼进提示词；与 scene 二选一或同时使用均可
+  customScene: z
+    .string({ error: 'customScene 不能为空' })
+    .trim()
+    .min(1, '自定义场景不能为空')
+    .max(60, '自定义场景最长 60 字')
+    .optional(),
 });
 
 // ===== 回忆录模块 - Query 参数 =====

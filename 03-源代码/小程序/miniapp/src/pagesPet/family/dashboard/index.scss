@@ -543,6 +543,117 @@
   color: $color-text-tertiary;
 }
 
+// ===== 场景选择器（五大主题分组宫格 + 自定义场景输入） =====
+.fd-scene-picker {
+  margin-bottom: 28rpx;
+}
+
+// 主题分组 tab：横向排布，超出可横向滑动（5 组不会同时全屏铺开）
+.fd-scene-tabs {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  overflow-x: auto;
+
+  // 隐藏横向滚动条，保持卡片内干净
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.fd-scene-tab {
+  flex-shrink: 0;
+  padding: 10rpx 22rpx;
+  border-radius: $radius-full;
+  background: rgba(#D4A574, 0.1);
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.fd-scene-tab-text {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+// 选中的主题组：品牌橙金渐变底 + 白字
+.fd-scene-tab--active {
+  background: linear-gradient(135deg, #FF8C42, #D4A574);
+
+  .fd-scene-tab-text {
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+// 当前分组下的场景 chips 宫格（自动换行）
+.fd-scene-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.fd-scene-chip {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 12rpx 18rpx;
+  border-radius: $radius-full;
+  background: #FFF8F0;
+  border: 2rpx solid rgba(#D4A574, 0.28);
+  transition: all 0.2s ease;
+  @include press-feedback;
+}
+
+.fd-scene-chip-emoji {
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.fd-scene-chip-label {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+// 选中的场景 chip：橙金描边 + 浅橙底 + 主色文字
+.fd-scene-chip--active {
+  background: rgba(#FF8C42, 0.12);
+  border-color: #FF8C42;
+
+  .fd-scene-chip-label {
+    color: #E0722F;
+    font-weight: 600;
+  }
+}
+
+// 自定义场景 chip：虚线边框与预设场景区分
+.fd-scene-chip--custom {
+  border-style: dashed;
+}
+
+// 自定义场景描述输入框（仅选中"自定义"时出现）
+.fd-scene-custom-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 16rpx;
+  padding: 18rpx 20rpx;
+  height: 120rpx;
+  border-radius: $radius-md;
+  border: 2rpx solid rgba(#D4A574, 0.35);
+  background: #FFFDF9;
+  font-size: 24rpx;
+  color: $color-text-primary;
+}
+
+// 相册条目上的场景小标签（如"🎄圣诞之夜"）
+.fd-album-item-scene {
+  font-size: 20rpx;
+  color: #C77A2E;
+  margin-right: 12rpx;
+}
+
 .fd-photo-generate-btn {
   padding: 22rpx 0;
   border-radius: $radius-full;

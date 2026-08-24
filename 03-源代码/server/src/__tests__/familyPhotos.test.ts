@@ -38,6 +38,11 @@ vi.mock('../middleware/auth.js', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch as unknown as typeof fetch;
 
+// Mock 角标合成（集成测试只验证业务链路；角标本体逻辑由 imageBadge.test.ts 单测覆盖）
+vi.mock('../services/imageBadge.js', () => ({
+  addAiBadge: vi.fn(async (url: string) => url),
+}));
+
 import familyPhotosRouter from '../routes/familyPhotos.js';
 
 function createApp() {
@@ -160,7 +165,7 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
     // INSERT INTO family_photos
     mockPool.query.mockResolvedValueOnce({ rowCount: 1 });
     // Seedream API success：捕获请求体，验证提示词安全
-    let capturedBody: { prompt?: string; images?: string[] } = {};
+    let capturedBody: { prompt?: string; images?: string[]; watermark?: boolean } = {};
     mockFetch.mockImplementationOnce(async (_url: unknown, init?: { body?: string }) => {
       capturedBody = JSON.parse(init?.body ?? '{}');
       return {
@@ -191,6 +196,72 @@ describe('POST /api/families/:familyId/photos — 生成全家福', () => {
       'https://example.com/pet1.jpg',
       'https://example.com/pet2.jpg',
     ]);
+    // 水印合规 B 方案：必须显式关闭平台水印，由服务端 imageBadge 打自有角标
+    // （watermark 默认 true 会带「AI生成」角标，与自有角标重复且不可控；此参数一旦回归即红灯）
+    expect(capturedBody.watermark).toBe(false);
+  });
+
+  it('scene + customScene 应透传进提示词并落库（route→service 链路回归锁）', async () => {
+    // 回归背景：generateFamilyPhoto 曾在服务端漏传 scene（解构了却没传给 buildPrompt），
+    // "选了也白选"；本用例锁住 route→service→prompt/INSERT 全链路，防止同类断裂再次发生
+    mockPool.query.mockResolvedValueOnce(ownershipOk);               // isOwner
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // hasActiveTask (no)
+    mockPool.query.mockResolvedValueOnce(mockMembers);               // collectMemberPhotos
+
+    // 捕获 INSERT INTO family_photos 的 SQL 与参数，验证 scene/description 落库
+    let insertSql = '';
+    let insertParams: unknown[] = [];
+    mockPool.query.mockImplementationOnce(async (sql: string, params?: unknown[]) => {
+      insertSql = sql;
+      insertParams = params ?? [];
+      return { rowCount: 1 };
+    });
+
+    let capturedBody: { prompt?: string; watermark?: boolean } = {};
+    mockFetch.mockImplementationOnce(async (_url: unknown, init?: { body?: string }) => {
+      capturedBody = JSON.parse(init?.body ?? '{}');
+      return {
+        ok: true,
+        json: async () => ({ data: [{ url: 'https://seedream.example.com/photo.png' }] }),
+      };
+    });
+    mockPool.query.mockResolvedValueOnce({ rowCount: 1 });           // UPDATE status='completed'
+
+    const app = createApp();
+    const res = await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({ style: 'pixar', scene: 'seaside', customScene: '在我家的院子里\n\n阳光很好' });
+    expect(res.status).toBe(200);
+
+    // ① 提示词包含海边日落的多维场景描写 + 清洗后的自定义描述（换行→空格、压缩空白）
+    expect(capturedBody.prompt).toContain('海边日落');
+    expect(capturedBody.prompt).toContain('在我家的院子里 阳光很好');
+    expect(capturedBody.watermark).toBe(false);
+    // ② INSERT 落库：scene 列存所选 key，description 存清洗后的自定义文本
+    expect(insertSql).toContain('INSERT INTO family_photos');
+    expect(insertSql).toContain('scene');
+    expect(insertParams).toContain('seaside');
+    expect(insertParams).toContain('在我家的院子里 阳光很好');
+  });
+
+  it('参考图优先级契约：真实照片 > 全方位设定图 > 卡通头像（迁移 030）', async () => {
+    // 回归背景：设定图（avatar_multiview_url）加入后必须排在卡通头像之前——
+    // 四视图全身参考比单头像更能锁定宠物体型花纹；真实照片仍是最优先
+    mockPool.query.mockResolvedValueOnce(ownershipOk);
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 }); // hasActiveTask (no)
+    mockPool.query.mockResolvedValueOnce(mockSingleMember);          // 1 位成员 → 后续 400，但 SELECT 已执行
+
+    const app = createApp();
+    await request(app)
+      .post('/api/families/fam-001/photos')
+      .send({ style: 'pixar' });
+
+    // 捕获 collectMemberPhotos 的 SELECT，锁定 COALESCE 顺序
+    const selectCall = mockPool.query.mock.calls.find((c) => String(c[0]).includes('COALESCE'));
+    expect(selectCall).toBeDefined();
+    expect(String(selectCall![0])).toContain(
+      'COALESCE(p.avatar_photo_url, p.avatar_multiview_url, p.avatar_cartoon_url)',
+    );
   });
 
   it('宠物名字叫「烧鸡」也不会被画成鸡（名字不进 Seedream 提示词）', async () => {

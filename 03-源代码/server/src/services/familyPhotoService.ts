@@ -9,6 +9,8 @@ import { pool } from '../db.js';
 import { delay } from '../utils/delay.js';
 // 宠物提示词公共模块：主体描述（品种兜底 + 绝不写名字）统一从这里取
 import { petSubjectText, petSpeciesLabel } from './petPrompt.js';
+// AI 生图统一角标（水印 B 方案：去平台水印 + 自有品牌角标，见 imageBadge 模块注释）
+import { addAiBadge } from './imageBadge.js';
 
 const SEEDREAM_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 
@@ -23,6 +25,88 @@ export const FAMILY_PHOTO_STYLES = [
 ] as const;
 
 export type FamilyPhotoStyle = (typeof FAMILY_PHOTO_STYLES)[number];
+
+/**
+ * 支持的全家福场景（用户可在特定场景生成全家福）
+ * 五大主题 22 个场景，前端按主题分组展示；场景 key 一旦上线不可改名（历史照片入库值兼容）
+ * 场景描写对齐提示词库方法论（§0.9 细节粒度 / §二 场景卡 / §5.2 光影配对），
+ * 每个场景 = 时间光线 + 色彩基调 + 前中后景层次 + 道具细节 + 氛围质感 的多维组合，
+ * 避免"温馨客厅"式的单一贫瘠描写（用户明确要求精美场景）
+ */
+export const FAMILY_PHOTO_SCENES = [
+  // 居家时光
+  'livingroom', 'window', 'futon', 'bookshelf',
+  // 四季自然
+  'sakura', 'garden', 'autumn', 'snow', 'lavender', 'forest',
+  // 节日庆典
+  'christmas', 'birthday', 'lunarnewyear', 'midautumn',
+  // 旅行见闻
+  'seaside', 'roof', 'cafe', 'camping',
+  // 梦幻唯美
+  'aurora', 'clouds', 'monet', 'ocean',
+] as const;
+
+export type FamilyPhotoScene = (typeof FAMILY_PHOTO_SCENES)[number];
+
+/**
+ * 场景 → 提示词片段
+ * 写法公式（对齐提示词库）：{时间与光线} + {环境层次} + {道具细节} + {色彩基调} + {氛围质感}，
+ * 叠加英文光效词（golden hour / volumetric light / bokeh 等）提升模型出图精度
+ */
+const SCENE_PROMPTS: Record<FamilyPhotoScene, string> = {
+  // ===== 居家时光 =====
+  livingroom:
+    '温馨客厅一角，布艺沙发上散落针织毯和抱枕，暖色落地灯与窗外暮色交融，茶几上一杯冒热气的红茶，绿植垂叶入画，木地板映着柔和光晕，浅景深背景虚化',
+  window:
+    '飘窗洒满午后阳光，白纱窗帘半透随风轻扬，毛毯软垫松软堆叠，尘埃在光柱中化作金色微粒浮动，窗外绿意朦胧失焦，慵懒惬意慢时光，柔和逆光',
+  futon:
+    '日式和室，榻榻米上摆着矮方桌与橘色暖桌被褥，纸拉门透进柔和天光，铁壶冒着袅袅白气，墙上一幅浮世绘，陶碗与竹帘细节精致，简约侘寂美学',
+  bookshelf:
+    '复古书房，顶天立地的原木书架摆满旧书，绿色玻璃罩台灯洒下暖黄光晕，皮面扶手椅与花纹地毯，壁炉火光微微跳动，灰尘在光束中漂浮，静谧文艺的英伦气息',
+  // ===== 四季自然 =====
+  sakura:
+    '盛放的樱花树下，粉色花瓣如雪片飘落，花团锦簇遮出斑驳花影，春日柔光穿过花隙洒下点点光斑，青草地上铺满落瓣，空气清透明亮，浪漫唯美的日系春景',
+  garden:
+    '夏日花园，玫瑰与绣球竞相盛开，绿草茵茵缀着晶莹露珠，阳光穿过树叶洒下丁达尔光束，蝴蝶翩跹，藤编野餐篮与格纹餐布摆放整齐，明媚治愈的田园风光',
+  autumn:
+    '深秋庭院，金黄银杏与火红枫叶交织成穹顶，落叶铺成松软地毯，暖橙色夕照为万物镀上金边，木长椅上搭着一条格纹围巾，光斑温柔，浓郁醇厚的秋日诗意',
+  snow:
+    '冬日雪原，皑皑白雪压满松枝，鹅毛雪花正簌簌飘落，蓝色调天光清透干净，雪地上留着一串通向远方的脚印，冷冽空气中透着温暖，纯净梦幻的冰雪世界',
+  lavender:
+    '薰衣草花田，紫色花穗一路铺展到地平线，黄昏金光低角度斜照，花浪随微风起伏泛起紫色涟漪，远方孤树剪影静立，紫金撞色的普罗旺斯浪漫画卷',
+  forest:
+    '魔法森林深处，巨型蕨类植物层层叠叠，翡翠色苔藓覆盖倒木，丁达尔光束穿透薄雾斜射而下，萤火虫点点漂浮，伞状蘑菇散发微光，童话般的奇幻秘境',
+  // ===== 节日庆典 =====
+  christmas:
+    '装饰华丽的圣诞树前，彩灯串闪烁着暖金色光斑，缎带礼盒高高堆叠，壁炉炉火跳动映红墙面，窗外大雪纷飞，松枝清香扑面，红绿金色调的温馨圣诞夜',
+  birthday:
+    '生日派对现场，粉金气球拱门与流苏彩带，奶油蛋糕上蜡烛烛光摇曳，三角彩旗悬挂，亮片折射细碎光芒，纸帽与礼盒点缀四周，欢乐明快的高饱和庆祝氛围',
+  lunarnewyear:
+    '中式新春庭院，红灯笼成串高挂随风轻晃，金色福字与手写春联贴上门楣，红梅枝头绽放，烟花在靛蓝夜空绚烂绽开，红金配色的浓浓年味',
+  midautumn:
+    '中秋庭院，一轮满月悬于靛蓝天幕，桂花树影婆娑，石桌上摆着月饼与温热的桂花酒，烛灯点点如星，银白月光洒在青瓦上，宁静团圆的中式意境',
+  // ===== 旅行见闻 =====
+  seaside:
+    '海边日落，天空从橘粉渐变到淡紫，海面碎金万点随波闪烁，浪花轻吻沙滩留下白色泡沫蕾丝边，贝壳与海星散落，椰林剪影摇曳，黄金时刻的温暖逆光',
+  roof:
+    '城市天台，晚霞把天际线染成橘红与玫紫，远处高楼灯火次第点亮如星河，栏杆串灯散发着温暖光晕，晚风轻拂，都市浪漫的 blue hour 蓝调时刻',
+  cafe:
+    '复古咖啡馆临街落地窗边，木质吧台与手冲器具泛着温润光泽，暖黄吊灯与门外霓虹交相辉映，一杯拉花拿铁冒着热气，雨珠缓缓滑过玻璃，慵懒法式情调',
+  camping:
+    '山谷露营地，帆布帐篷透出暖黄灯光，篝火火星袅袅升腾，头顶银河横贯夜空繁星璀璨，远山剪影层层叠叠，草丛间萤火虫明灭，静谧浪漫的夏夜',
+  // ===== 梦幻唯美 =====
+  aurora:
+    '极地雪原上空，绿紫色极光如绸带般舞动舒展，星辰璀璨低垂，冰晶地表反射着流动极光，雪丘起伏如凝固海浪，梦幻震撼的极夜奇景，冷色调大片质感',
+  clouds:
+    '柔软云端之上，巨大双彩虹横跨天际，棉花糖般的云朵蓬松立体，光晕柔和弥散，远处热气球缓缓漂浮，马卡龙粉彩色调，梦幻治愈的天空之城',
+  monet:
+    '莫奈笔下 impressionist 印象派花园，睡莲池上木桥静卧，鸢尾与睡莲色彩斑斓交融，光斑在水面轻轻跃动，笔触朦胧柔和，油画质感的法式光影花园',
+  ocean:
+    '清澈热带海底，珊瑚丛色彩斑斓如花园，气泡串串升起，光束从水面折射而下形成神圣光柱，银色鱼群穿梭而过，白沙上散落贝壳珍珠，晶莹剔透的海底仙境',
+};
+
+/** 默认场景（用户不选时用温馨客厅） */
+export const DEFAULT_FAMILY_PHOTO_SCENE: FamilyPhotoScene = 'livingroom';
 
 /**
  * 风格 → 提示词模板
@@ -85,6 +169,28 @@ interface GenerateFamilyPhotoParams {
   familyId: string;
   userId: string;
   style: FamilyPhotoStyle;
+  /** 全家福场景（不传用默认温馨客厅） */
+  scene?: FamilyPhotoScene;
+  /**
+   * 用户自定义场景描述（如"在我家的院子里"）
+   * 服务端清洗（去换行/控制字符、截断 60 字）后拼进提示词，并存入 description 字段供相册展示
+   */
+  customScene?: string;
+}
+
+/**
+ * 清洗用户自定义场景描述
+ * 防注入与排版破坏：去换行/制表符等控制字符 → 压缩连续空白 → 截断 60 字
+ * （与提示词库"清洗兜底"金科玉律一致：自由文本进 prompt 前必须过清洗）
+ */
+function cleanCustomScene(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const cleaned = raw
+    .replace(/[\r\n\t\f\v]+/g, ' ')   // 换行/制表符统一替换为空格，防止提示词被断行注入
+    .replace(/\s+/g, ' ')             // 压缩连续空格
+    .trim()
+    .slice(0, 60);                    // 截断兜底（schema 已限 60，双保险防绕过 schema 的调用方）
+  return cleaned || null;             // 清洗后为空串视同未填
 }
 
 /**
@@ -110,19 +216,31 @@ function buildPetList(members: MemberInfo[]): { list: string; summary: string } 
 
 /**
  * 构建全家福合成提示词
- * 结构 = 风格（提示词库 §六） + 数量/物种 + 宠物列表 + 角色一致性 + 主体锁定
+ * 结构 = 风格（提示词库 §六） + 场景（§二/§5.2，多维精美描写） + 自定义场景补充 + 数量/物种
+ *   + 宠物列表 + 角色一致性 + 主体锁定
+ * 场景层与风格层正交：场景负责"环境"，画风交给风格层；角色一致性靠参考图锁定，
+ * 场景再华丽也不会改变宠物外貌。
  * 角色一致性与主体锁定对应提示词库 §0.6「全局角色锁定表」与 §四「角色一致性模板」：
  * 多图合成时外观以参考照片为准，禁止模型自由发挥、增减数量或混入其他主体
  */
-export function buildPrompt(members: MemberInfo[], style: FamilyPhotoStyle): string {
+export function buildPrompt(
+  members: MemberInfo[],
+  style: FamilyPhotoStyle,
+  scene?: FamilyPhotoScene,
+  customScene?: string,
+): string {
   const { list, summary } = buildPetList(members);
   const total = members.length;
   // 有任一成员照片才声明"以参考照片为准"，否则提示词会"说谎"（无图可参考却要求完全一致）
   const hasReference = members.some((m) => m.photoUrl);
+  // 场景（默认温馨客厅）：时间光线+空间层次+材质细节+色彩基调+氛围的多维精美描写
+  const sceneText = SCENE_PROMPTS[scene ?? DEFAULT_FAMILY_PHOTO_SCENE];
+  // 用户自定义场景描述：清洗后自然拼在预设场景之后，作为环境补充
+  const customText = cleanCustomScene(customScene);
 
   const parts = [
     STYLE_PROMPTS[style],
-    `一张温馨的全家福合影，画面中共有${summary}：${list}。`,
+    `一张温馨的全家福合影，${sceneText}${customText ? `，${customText}` : ''}，画面中共有${summary}：${list}。`,
     '所有宠物并排坐在一起，表情自然温馨，构图完整。',
   ];
   if (hasReference) {
@@ -145,7 +263,9 @@ async function collectMemberPhotos(familyId: string, userId: string): Promise<Me
        p.name,
        p.species,
        p.breed,
-       COALESCE(p.avatar_photo_url, p.avatar_cartoon_url) AS "photoUrl"
+       -- 参考图优先级：真实照片 > 全方位角色设定图（迁移 030，四视图全身参考，
+       -- 比单头像更能锁定体型花纹） > 卡通头像
+       COALESCE(p.avatar_photo_url, p.avatar_multiview_url, p.avatar_cartoon_url) AS "photoUrl"
      FROM pet_family_members m
      JOIN pet_profiles p ON p.id = m.pet_id
      JOIN pet_families f ON f.id = m.family_id AND f.user_id = $2
@@ -175,6 +295,9 @@ async function callSeedreamMulti(
     prompt,
     size: '1024x1024',
     n: 1,
+    // 水印合规 B 方案：去掉 Seedream 平台「AI生成」水印，
+    // 显式标识改由 imageBadge.addAiBadge 合成的自有品牌角标承担（样式可控、贴品牌）
+    watermark: false,
   };
 
   // Seedream 4.0 支持多图输入：传入 images 数组做参考图合成
@@ -236,7 +359,9 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
   /** 缺少真实形象的成员（引导前端跳转生成形象） */
   missingMembers?: Array<{ petId: string; name: string }>;
 }> {
-  const { familyId, userId, style } = params;
+  const { familyId, userId, style, scene, customScene } = params;
+  // 自定义场景清洗一次复用：拼提示词 + 入库 description（相册展示用户当时写的场景描述）
+  const cleanedCustomScene = cleanCustomScene(customScene);
   const apiKey = config.seedream.apiKey;
 
   if (!apiKey) {
@@ -274,16 +399,16 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
   const memberNames = members.map((m) => m.name);
   const photoUrls = members.map((m) => m.photoUrl).filter(Boolean) as string[];
 
-  // 创建 processing 记录
+  // 创建 processing 记录（scene 记录所用场景、description 记录自定义场景描述，相册据此展示）
   const photoId = crypto.randomUUID();
   await pool.query(
-    `INSERT INTO family_photos (id, family_id, user_id, style, member_count, member_names, status)
-     VALUES ($1, $2, $3, $4, $5, $6, 'processing')`,
-    [photoId, familyId, userId, style, members.length, memberNames],
+    `INSERT INTO family_photos (id, family_id, user_id, style, scene, description, member_count, member_names, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'processing')`,
+    [photoId, familyId, userId, style, scene ?? DEFAULT_FAMILY_PHOTO_SCENE, cleanedCustomScene, members.length, memberNames],
   );
 
-  // 构建提示词
-  const prompt = buildPrompt(members, style);
+  // 构建提示词（⚠️ 必须把 scene/customScene 传进去：此前漏传导致场景定义形同虚设，选了也白选）
+  const prompt = buildPrompt(members, style, scene, customScene);
 
   // 调用 Seedream 多图合成（Seedream 4.0 内置安全过滤）
   const generatedUrl = await callSeedreamMulti(prompt, photoUrls, apiKey);
@@ -296,12 +421,16 @@ export async function generateFamilyPhoto(params: GenerateFamilyPhotoParams): Pr
     return { success: false, message: 'AI 生成失败，请稍后重试' };
   }
 
+  // 合成品牌角标（去平台水印后的合规显式标识）并转存本站 uploads；
+  // addAiBadge 内部失败会降级返回原图 URL，不会阻断主流程
+  const finalUrl = await addAiBadge(generatedUrl);
+
   // 入库
   await pool.query(
     `UPDATE family_photos SET photo_url = $1, status = 'completed', updated_at = now() WHERE id = $2`,
-    [generatedUrl, photoId],
+    [finalUrl, photoId],
   );
-  return { success: true, photoId, photoUrl: generatedUrl };
+  return { success: true, photoId, photoUrl: finalUrl };
 }
 
 /**
@@ -315,6 +444,10 @@ export async function getFamilyPhotos(
   photoUrl: string | null;
   photoType: string;
   style: string;
+  /** 生成时的场景（livingroom/seaside 等）；上传/手绘照片为 null，前端据此决定是否展示场景标签 */
+  scene: string | null;
+  /** 自定义场景描述（用户生成时填写的话），前端相册直接展示 */
+  description: string | null;
   memberCount: number;
   memberNames: string[];
   status: string;
@@ -323,7 +456,8 @@ export async function getFamilyPhotos(
   const result = await pool.query(
     `SELECT
        id, photo_url AS "photoUrl", photo_type AS "photoType",
-       style, member_count AS "memberCount", member_names AS "memberNames",
+       style, scene, description,
+       member_count AS "memberCount", member_names AS "memberNames",
        status, created_at AS "createdAt"
      FROM family_photos
      WHERE family_id = $1 AND user_id = $2

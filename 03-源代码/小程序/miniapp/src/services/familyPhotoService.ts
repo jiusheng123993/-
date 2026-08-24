@@ -24,6 +24,65 @@ export const FAMILY_PHOTO_STYLE_LABELS: Record<FamilyPhotoStyle, { label: string
 /** 所有风格列表 */
 export const FAMILY_PHOTO_STYLES: FamilyPhotoStyle[] = ['pixar', 'ghibli', 'oil', 'ink', 'nordic', 'cyberpunk']
 
+// ==================== 全家福场景模板 ====================
+// 场景 key 与服务端 familyPhotoService.ts 的 FAMILY_PHOTO_SCENES 保持一致（有单测锁同步）；
+// 场景描写在服务端 SCENE_PROMPTS（时间光线+空间层次+道具细节+色彩基调+氛围的多维组合）
+
+/** 全家福场景类型（与服务端白名单一致） */
+export type FamilyPhotoScene =
+  | 'livingroom' | 'window' | 'futon' | 'bookshelf'          // 居家时光
+  | 'sakura' | 'garden' | 'autumn' | 'snow' | 'lavender' | 'forest'  // 四季自然
+  | 'christmas' | 'birthday' | 'lunarnewyear' | 'midautumn'  // 节日庆典
+  | 'seaside' | 'roof' | 'cafe' | 'camping'                  // 旅行见闻
+  | 'aurora' | 'clouds' | 'monet' | 'ocean'                  // 梦幻唯美
+
+/** 场景标签映射（宫格选择器与相册标签共用） */
+export const FAMILY_PHOTO_SCENE_LABELS: Record<FamilyPhotoScene, { label: string; emoji: string }> = {
+  livingroom: { label: '温馨客厅', emoji: '🛋️' },
+  window: { label: '窗边午后', emoji: '🪟' },
+  futon: { label: '日式和室', emoji: '🍵' },
+  bookshelf: { label: '复古书房', emoji: '📚' },
+  sakura: { label: '樱花树下', emoji: '🌸' },
+  garden: { label: '夏日花园', emoji: '🌳' },
+  autumn: { label: '秋日庭院', emoji: '🍁' },
+  snow: { label: '冬日雪原', emoji: '❄️' },
+  lavender: { label: '薰衣草花田', emoji: '💜' },
+  forest: { label: '森林秘境', emoji: '🍄' },
+  christmas: { label: '圣诞之夜', emoji: '🎄' },
+  birthday: { label: '生日派对', emoji: '🎂' },
+  lunarnewyear: { label: '新春灯笼', emoji: '🧧' },
+  midautumn: { label: '中秋月圆', emoji: '🌕' },
+  seaside: { label: '海边日落', emoji: '🏖️' },
+  roof: { label: '城市天台', emoji: '🌇' },
+  cafe: { label: '复古咖啡馆', emoji: '☕' },
+  camping: { label: '星空露营', emoji: '⛺' },
+  aurora: { label: '极光冰原', emoji: '🌌' },
+  clouds: { label: '云端彩虹', emoji: '☁️' },
+  monet: { label: '莫奈花园', emoji: '🎨' },
+  ocean: { label: '梦幻海底', emoji: '🐚' },
+}
+
+/** 默认场景（温馨客厅） */
+export const DEFAULT_FAMILY_PHOTO_SCENE: FamilyPhotoScene = 'livingroom'
+
+/** 场景主题分组（五大主题，宫格按组展示避免 22 个 chip 一屏铺满） */
+export interface FamilyPhotoSceneGroup {
+  key: string
+  label: string
+  emoji: string
+  /** 该分组下的场景 key 列表 */
+  scenes: FamilyPhotoScene[]
+}
+
+/** 五大主题分组 */
+export const FAMILY_PHOTO_SCENE_GROUPS: FamilyPhotoSceneGroup[] = [
+  { key: 'home', label: '居家时光', emoji: '🏠', scenes: ['livingroom', 'window', 'futon', 'bookshelf'] },
+  { key: 'nature', label: '四季自然', emoji: '🌸', scenes: ['sakura', 'garden', 'autumn', 'snow', 'lavender', 'forest'] },
+  { key: 'festival', label: '节日庆典', emoji: '🎄', scenes: ['christmas', 'birthday', 'lunarnewyear', 'midautumn'] },
+  { key: 'travel', label: '旅行见闻', emoji: '✈️', scenes: ['seaside', 'roof', 'cafe', 'camping'] },
+  { key: 'dream', label: '梦幻唯美', emoji: '✨', scenes: ['aurora', 'clouds', 'monet', 'ocean'] },
+]
+
 // ==================== Canvas 绘制 ====================
 
 const CANVAS_WIDTH = 750

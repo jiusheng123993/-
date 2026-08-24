@@ -200,6 +200,12 @@
   overflow: hidden;
   @include flex-center;
   background: $color-primary-bg;
+
+  // 铲屎官根节点头像（2026-08-24）：金色渐变，与宠物节点区分
+  &--owner {
+    border-color: $color-gold;
+    background: linear-gradient(135deg, rgba($color-gold, 0.35), rgba($color-primary, 0.2));
+  }
 }
 
 .ft-avatar-img {
@@ -384,6 +390,121 @@
   font-size: 32rpx;
   color: $color-text-tertiary;
   flex-shrink: 0;
+}
+
+// ===== 家庭成员（人）卡：人节点 + 人关系（2026-08-24） =====
+.ft-user-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.ft-user-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ft-user-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  @include flex-center;
+  background: linear-gradient(135deg, rgba($color-gold, 0.28), rgba($color-primary, 0.18));
+  flex-shrink: 0;
+}
+
+.ft-user-avatar-text {
+  font-size: 34rpx;
+  font-weight: $font-weight-bold;
+  color: $color-primary-dark;
+  line-height: 1;
+}
+
+.ft-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ft-user-name {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.ft-user-role {
+  flex-shrink: 0;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: $color-bg-secondary;
+
+  &--owner {
+    background: rgba($color-gold, 0.22);
+  }
+}
+
+.ft-user-role text {
+  font-size: 20rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+}
+
+.ft-user-role--owner text {
+  color: $color-gold-deep;
+}
+
+// 人关系列表
+.ft-rel-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid $color-border-light;
+}
+
+.ft-rel-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-bottom: 2rpx solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ft-rel-emoji {
+  font-size: 36rpx;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ft-rel-text {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.ft-rel-remove {
+  @include flex-center;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: rgba($color-danger, 0.1);
+  font-size: 24rpx;
+  color: $color-danger;
+  flex-shrink: 0;
+  @include press-feedback;
 }
 
 // ===== 关系管理入口 =====

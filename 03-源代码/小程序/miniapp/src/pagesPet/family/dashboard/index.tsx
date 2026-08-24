@@ -2,8 +2,8 @@
  * 家庭看板页面
  * 宠物家庭聚合看板、健康总览
  */
-import { useEffect, useState, useMemo, useCallback } from 'react'
-import { View, Text, Canvas } from '@tarojs/components'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
+import { View, Text, Canvas, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useFamilyStore } from '../../../stores/familyStore'
 import { usePetStore } from '../../../stores/petStore'
@@ -18,8 +18,11 @@ import {
   shareFamilyPhoto,
   FAMILY_PHOTO_STYLE_LABELS,
   FAMILY_PHOTO_STYLES,
+  FAMILY_PHOTO_SCENE_LABELS,
+  FAMILY_PHOTO_SCENE_GROUPS,
+  DEFAULT_FAMILY_PHOTO_SCENE,
 } from '../../../services/familyPhotoService'
-import type { FamilyPhotoStyle } from '../../../services/familyPhotoService'
+import type { FamilyPhotoStyle, FamilyPhotoScene } from '../../../services/familyPhotoService'
 import type { PetProfile } from '../../../services/petService'
 import type { PetFamilyMember, FamilyPhoto } from '../../../types/familyTypes'
 import FamilyPetAvatar from '../../../pages/family/FamilyPetAvatar'
@@ -53,6 +56,12 @@ export default function FamilyDashboard() {
   const [uploading, setUploading] = useState(false)
   const [albumHighlight, setAlbumHighlight] = useState(false)
   const [selectedStyle, setSelectedStyle] = useState<FamilyPhotoStyle>('pixar')
+  // 场景选择：预设场景 key 或 'custom'（自定义描述）；默认温馨客厅
+  const [selectedScene, setSelectedScene] = useState<FamilyPhotoScene | 'custom'>(DEFAULT_FAMILY_PHOTO_SCENE)
+  // 当前展开的主题分组（五大主题宫格，避免 22 个场景一屏铺满）
+  const [activeSceneGroup, setActiveSceneGroup] = useState(0)
+  // 自定义场景描述（仅 selectedScene === 'custom' 时使用）
+  const [customSceneText, setCustomSceneText] = useState('')
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiProgressText, setAiProgressText] = useState('')
   const themeClass = useThemeClass()
@@ -192,6 +201,16 @@ export default function FamilyDashboard() {
     })
   }
 
+  /**
+   * 带场景参数的生成函数最新引用。
+   * 为什么需要它（审查 P1 修复）：handleGeneratePhoto 弹出的 ActionSheet 是异步系统弹窗，
+   * 其 success 回调触发时机晚于本次渲染；若直接在 deps 里引 handleGenerateWithStyle 会形成
+   * 先声明后引用的 TDZ 问题，而漏加依赖又会让回调捕获旧渲染的 selectedScene/customSceneText——
+   * 表现为"用户刚改选了海边日落，首次点击生成却仍用上一次的场景"。用 ref 中转，
+   * 每次渲染把最新函数写入 ref，弹窗回调经 ref 调用，永远拿到最新闭包。
+   */
+  const generateWithStyleRef = useRef<((style: FamilyPhotoStyle) => Promise<void>) | null>(null)
+
   const handleGeneratePhoto = useCallback(async () => {
     if (photoGenerating || aiGenerating || !currentFamily || familyPets.length === 0) return
 
@@ -201,7 +220,8 @@ export default function FamilyDashboard() {
       success: (res) => {
         const chosen = FAMILY_PHOTO_STYLES[res.tapIndex]
         setSelectedStyle(chosen)
-        handleGenerateWithStyle(chosen)
+        // 经 ref 调用最新闭包（见 generateWithStyleRef 注释），确保带上用户刚选的场景
+        void generateWithStyleRef.current?.(chosen)
       },
     })
   }, [photoGenerating, aiGenerating, currentFamily, familyPets])
@@ -209,7 +229,13 @@ export default function FamilyDashboard() {
   const handleGenerateWithStyle = useCallback(async (style: FamilyPhotoStyle) => {
     if (!currentFamily) return
 
-    // 步骤2：尝试 AI 生成
+    // 自定义场景必须先写描述（空描述会被后端 schema 拒收，提前拦截给明确提示）
+    if (selectedScene === 'custom' && !customSceneText.trim()) {
+      Taro.showToast({ title: '请先描述你想要的场景', icon: 'none' })
+      return
+    }
+
+    // 步骤2：尝试 AI 生成（预设场景传 scene key；自定义传描述文本，后端清洗截断后拼进提示词）
     setAiGenerating(true)
     setPhotoGenerating(true)
     setShowPhotoPreview(false)
@@ -230,7 +256,11 @@ export default function FamilyDashboard() {
     }, 2000)
 
     try {
-      const result = await generateAiPhoto(style)
+      const result = await generateAiPhoto(
+        style,
+        selectedScene === 'custom' ? undefined : selectedScene,
+        selectedScene === 'custom' ? customSceneText.trim() : undefined,
+      )
       clearInterval(progressTimer)
 
       if (result.success && result.photoUrl) {
@@ -253,7 +283,8 @@ export default function FamilyDashboard() {
         Taro.showModal({
           title: '先为毛孩子生成真实形象',
           content: `「${names}」还没有真实形象。上传照片或生成专属形象后，全家福才能用它的真实样子。现在去生成？`,
-          confirmText: '去生成形象',
+          // 坑点：微信 showModal 按钮文案上限 4 字，超长弹窗直接 fail 不渲染（「去生成」原为「去生成形象」5 字）
+          confirmText: '去生成',
           cancelText: '稍后再说',
           success: (r) => {
             if (!r.confirm) return
@@ -305,7 +336,10 @@ export default function FamilyDashboard() {
       setPhotoGenerating(false)
       setCanvasVisible(false)
     }
-  }, [currentFamily, familyPets, members, generateAiPhoto, switchPet])
+  }, [currentFamily, familyPets, members, generateAiPhoto, switchPet, selectedScene, customSceneText])
+
+  // 每次渲染把最新版生成函数写入 ref，供 handleGeneratePhoto 的弹窗回调使用（见上方注释）
+  generateWithStyleRef.current = handleGenerateWithStyle
 
   const handleSavePhoto = useCallback(async () => {
     if (!photoUrl) return
@@ -480,7 +514,12 @@ export default function FamilyDashboard() {
             <View className='fd-photo-generating'>
               <View className='fd-photo-generating-spinner' />
               <Text className='fd-photo-generating-text'>{aiProgressText}</Text>
-              <Text className='fd-photo-generating-style'>风格：{FAMILY_PHOTO_STYLE_LABELS[selectedStyle].emoji} {FAMILY_PHOTO_STYLE_LABELS[selectedStyle].label}</Text>
+              <Text className='fd-photo-generating-style'>
+                场景：{selectedScene === 'custom'
+                  ? `✏️ ${customSceneText.trim().slice(0, 8) || '自定义'}`
+                  : `${FAMILY_PHOTO_SCENE_LABELS[selectedScene].emoji} ${FAMILY_PHOTO_SCENE_LABELS[selectedScene].label}`}
+                {' · '}风格：{FAMILY_PHOTO_STYLE_LABELS[selectedStyle].emoji} {FAMILY_PHOTO_STYLE_LABELS[selectedStyle].label}
+              </Text>
               <Text className='fd-photo-generating-hint'>AI 正在为您生成全家福，请耐心等待...</Text>
             </View>
           ) : (
@@ -517,8 +556,54 @@ export default function FamilyDashboard() {
                   {familyPets.length}位毛孩子
                 </Text>
                 <Text className='fd-photo-generate-desc'>
-                  选择风格，AI 为您合成一张精美的全家福
+                  选好场景和画风，AI 为您合成一张精美的全家福
                 </Text>
+              </View>
+              {/* ===== 场景选择：五大主题分组宫格 + 自定义场景输入 ===== */}
+              <View className='fd-scene-picker'>
+                <View className='fd-scene-tabs'>
+                  {FAMILY_PHOTO_SCENE_GROUPS.map((group, idx) => (
+                    <View
+                      key={group.key}
+                      className={`fd-scene-tab ${idx === activeSceneGroup ? 'fd-scene-tab--active' : ''}`}
+                      onClick={() => setActiveSceneGroup(idx)}
+                    >
+                      <Text className='fd-scene-tab-text'>{group.emoji} {group.label}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View className='fd-scene-grid'>
+                  {FAMILY_PHOTO_SCENE_GROUPS[activeSceneGroup].scenes.map((sceneKey) => {
+                    const meta = FAMILY_PHOTO_SCENE_LABELS[sceneKey]
+                    return (
+                      <View
+                        key={sceneKey}
+                        className={`fd-scene-chip ${selectedScene === sceneKey ? 'fd-scene-chip--active' : ''}`}
+                        onClick={() => setSelectedScene(sceneKey)}
+                      >
+                        <Text className='fd-scene-chip-emoji'>{meta.emoji}</Text>
+                        <Text className='fd-scene-chip-label'>{meta.label}</Text>
+                      </View>
+                    )
+                  })}
+                  {/* 自定义场景入口：选中后展开描述输入框 */}
+                  <View
+                    className={`fd-scene-chip fd-scene-chip--custom ${selectedScene === 'custom' ? 'fd-scene-chip--active' : ''}`}
+                    onClick={() => setSelectedScene('custom')}
+                  >
+                    <Text className='fd-scene-chip-emoji'>✏️</Text>
+                    <Text className='fd-scene-chip-label'>自定义</Text>
+                  </View>
+                </View>
+                {selectedScene === 'custom' && (
+                  <Textarea
+                    className='fd-scene-custom-input'
+                    value={customSceneText}
+                    maxlength={60}
+                    placeholder='用一句话描述你想要的场景，如：在我家的院子里晒太阳'
+                    onInput={(e) => setCustomSceneText(e.detail.value)}
+                  />
+                )}
               </View>
               <View
                 className={`fd-photo-generate-btn ${photoGenerating ? 'fd-photo-generate-btn--loading' : ''}`}
@@ -685,6 +770,13 @@ export default function FamilyDashboard() {
                         <View className='fd-album-item-header'>
                           <Text className='fd-album-item-date'>{photo.createdAt.slice(0, 10)}</Text>
                           <View className='fd-album-item-meta'>
+                            {/* AI 生成的照片带场景标签（上传/手绘照片无 scene 字段不显示） */}
+                            {(photo.photoType === 'ai_generated' || photo.photoType === 'generated') && photo.scene && FAMILY_PHOTO_SCENE_LABELS[photo.scene as FamilyPhotoScene] && (
+                              <Text className='fd-album-item-scene'>
+                                {FAMILY_PHOTO_SCENE_LABELS[photo.scene as FamilyPhotoScene].emoji}
+                                {FAMILY_PHOTO_SCENE_LABELS[photo.scene as FamilyPhotoScene].label}
+                              </Text>
+                            )}
                             <Text className='fd-album-item-count'>{photo.memberCount}位成员</Text>
                           </View>
                         </View>

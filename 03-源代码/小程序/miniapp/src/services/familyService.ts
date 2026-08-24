@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 宠物家庭服务
  *
  * 宠物家庭的创建/成员管理/血缘追踪/合照管理，含本地缓存与云同步
@@ -7,7 +7,7 @@ import { getStorage, setStorage } from '../utils/storage'
 import { api } from './api'
 import { mockApi } from './mock'
 import { CONFIG } from '../config'
-import type { PetFamily, PetFamilyMember, FamilyUser, PetLineage, LineageResponse, LineageChild, LineageMate, FamilyPhoto, FamilyOverviewResponse } from '../types/familyTypes'
+import type { PetFamily, PetFamilyMember, FamilyUser, FamilyUserRelation, FamilyUserRelationType, PetLineage, LineageResponse, LineageChild, LineageMate, FamilyPhoto, FamilyOverviewResponse } from '../types/familyTypes'
 
 // useMock 以 use 开头会被 react-hooks 规则误判为 Hook，改名 isMockMode（2026-08-24 修复既有 lint error）
 const isMockMode = () => CONFIG.USE_MOCK
@@ -219,6 +219,61 @@ export const familyService = {
     await api.delete(`/api/families/${familyId}/users/${userId}`)
   },
 
+  // ============ 多成员共同养宠：家庭成员（人）关系接口（2026-08-24） ============
+
+  /** 家庭成员（人）关系列表（情侣/父女/兄弟姐妹等任意两人之间） */
+  async getUserRelations(familyId: string): Promise<FamilyUserRelation[]> {
+    if (isMockMode()) return []
+    const data = await api.get<Record<string, unknown>[]>(`/api/families/${familyId}/user-relations`)
+    return (data || []).map((raw) => {
+      const r = snakeToCamel(raw)
+      return {
+        id: String(r.id || ''),
+        familyId: String(r.familyId || ''),
+        userIdA: String(r.userIdA || ''),
+        userIdB: String(r.userIdB || ''),
+        relationType: (r.relationType as FamilyUserRelationType) || 'other',
+        createdAt: String(r.createdAt || ''),
+        nicknameA: (r.nicknameA as string) || '',
+        avatarUrlA: (r.avatarUrlA as string) || '',
+        nicknameB: (r.nicknameB as string) || '',
+        avatarUrlB: (r.avatarUrlB as string) || '',
+      } as FamilyUserRelation
+    })
+  },
+
+  /** 创建家庭成员（人）关系（仅 owner；两人之间最多一条） */
+  async createUserRelation(
+    familyId: string,
+    userIdA: string,
+    userIdB: string,
+    relationType: FamilyUserRelationType,
+  ): Promise<FamilyUserRelation> {
+    if (isMockMode()) {
+      return { id: 'mock-rel', familyId, userIdA, userIdB, relationType, createdAt: new Date().toISOString() }
+    }
+    const data = await api.post<Record<string, unknown>>(`/api/families/${familyId}/user-relations`, {
+      userIdA,
+      userIdB,
+      relationType,
+    })
+    const r = snakeToCamel(data || {})
+    return {
+      id: String(r.id || ''),
+      familyId: String(r.familyId || ''),
+      userIdA: String(r.userIdA || ''),
+      userIdB: String(r.userIdB || ''),
+      relationType: (r.relationType as FamilyUserRelationType) || relationType,
+      createdAt: String(r.createdAt || ''),
+    } as FamilyUserRelation
+  },
+
+  /** 删除家庭成员（人）关系（仅 owner） */
+  async removeUserRelation(familyId: string, relationId: string): Promise<void> {
+    if (isMockMode()) return
+    await api.delete(`/api/families/${familyId}/user-relations/${relationId}`)
+  },
+
   /** 获取家庭关系总览（所有成员 + 所有关系） */
   async getOverview(familyId: string): Promise<FamilyOverviewResponse> {
     if (isMockMode()) {
@@ -355,13 +410,27 @@ export const familyService = {
     return getLocalPhotos().filter((p) => p.familyId === familyId)
   },
 
-  /** 发起 AI 全家福生成 */
-  async generateFamilyPhoto(familyId: string, style: string): Promise<{ id: string; photoUrl: string }> {
+  /**
+   * 发起 AI 全家福生成
+   * @param scene 预设场景 key（不传时后端用默认温馨客厅）
+   * @param customScene 用户自定义场景描述（与 scene 可同时传，后端清洗截断 60 字）
+   */
+  async generateFamilyPhoto(
+    familyId: string,
+    style: string,
+    scene?: string,
+    customScene?: string,
+  ): Promise<{ id: string; photoUrl: string }> {
     if (isMockMode()) {
-      const mockPhoto = await mockApi.saveFamilyPhoto(familyId, '', 0, [], 'generated')
+      const mockPhoto = await mockApi.saveFamilyPhoto(familyId, '', 0, [])
       return { id: mockPhoto.id, photoUrl: mockPhoto.photoUrl }
     }
-    const data = await api.post<{ id: string; photoUrl: string }>(`/api/families/${familyId}/photos`, { style })
+    // 场景参数按需携带，避免发空字符串给 schema 白名单校验找麻烦
+    const data = await api.post<{ id: string; photoUrl: string }>(`/api/families/${familyId}/photos`, {
+      style,
+      ...(scene ? { scene } : {}),
+      ...(customScene ? { customScene } : {}),
+    })
     return data
   },
 
@@ -382,14 +451,15 @@ export const familyService = {
     familyId: string,
     data: {
       photoUrl: string
-      photoType?: 'generated' | 'uploaded'
+      // 后端 uploadFamilyPhotoSchema 仅允许 canvas_fallback | uploaded（'generated' 会 400）
+      photoType?: 'canvas_fallback' | 'uploaded'
       memberCount: number
       memberNames: string[]
       description?: string
     },
   ): Promise<{ id: string }> {
     if (isMockMode()) {
-      const mockPhoto = await mockApi.saveFamilyPhoto(familyId, data.photoUrl, data.memberCount, data.memberNames, data.photoType || 'generated')
+      const mockPhoto = await mockApi.saveFamilyPhoto(familyId, data.photoUrl, data.memberCount, data.memberNames, data.photoType || 'canvas_fallback')
       return { id: mockPhoto.id }
     }
     const result = await api.post<{ success: boolean; data: { id: string } }>(

@@ -10,6 +10,8 @@ import { describe, it, expect, vi } from 'vitest';
 
 // mock 数据库与配置，避免单测触发真实连接
 vi.mock('../db.js', () => ({ pool: { query: vi.fn() } }));
+// 角标合成走真实 jimp 太重，本文件只测提示词构建，mock 成透传
+vi.mock('./imageBadge.js', () => ({ addAiBadge: vi.fn(async (url: string) => url) }));
 vi.mock('../config.js', () => ({
   config: {
     jwtSecret: 'test-jwt-secret',
@@ -23,7 +25,15 @@ vi.mock('../config.js', () => ({
   },
 }));
 
-import { buildPrompt, FAMILY_PHOTO_STYLES, isBrandPresetUrl, type MemberInfo } from './familyPhotoService.js';
+import {
+  buildPrompt,
+  FAMILY_PHOTO_STYLES,
+  FAMILY_PHOTO_SCENES,
+  isBrandPresetUrl,
+  type MemberInfo,
+} from './familyPhotoService.js';
+// schema 白名单与场景清单的契约同步在此锁死（两处内联清单，改一处忘另一处会直接红）
+import { generateFamilyPhotoSchema, FAMILY_PHOTO_SCENE_KEYS } from '../schemas/index.js';
 
 /** 模拟用户家的四只猫（其中一只叫「烧鸡」——名字绝不能进入提示词） */
 const fourCats: MemberInfo[] = [
@@ -133,5 +143,71 @@ describe('FAMILY_PHOTO_STYLES 全部风格可用', () => {
     expect(buildPrompt(fourCats, 'ink')).toContain('Chinese ink wash painting');
     expect(buildPrompt(fourCats, 'nordic')).toContain('Scandinavian design');
     expect(buildPrompt(fourCats, 'oil')).toContain('impasto');
+  });
+});
+
+describe('全家福场景模板（SCENE_PROMPTS 多维精美描写）', () => {
+  it('不传场景时默认使用温馨客厅', () => {
+    const prompt = buildPrompt(fourCats, 'pixar');
+    // 默认场景的"时间光源+层次+道具"多维描写进入提示词
+    expect(prompt).toContain('温馨客厅一角');
+    expect(prompt).toContain('布艺沙发');
+  });
+
+  it('指定场景时对应场景描写进入提示词', () => {
+    expect(buildPrompt(fourCats, 'pixar', 'seaside')).toContain('海边日落');
+    expect(buildPrompt(fourCats, 'ghibli', 'christmas')).toContain('圣诞树前');
+    expect(buildPrompt(fourCats, 'ink', 'sakura')).toContain('樱花树下');
+  });
+
+  it('全部场景都能构建出含多维描写的完整提示词（防新增场景漏写 SCENE_PROMPTS）', () => {
+    for (const scene of FAMILY_PHOTO_SCENES) {
+      const prompt = buildPrompt(fourCats, 'nordic', scene);
+      // 场景库升级后每段描写都显著长于旧版单句（>120 字符），防止退回"温馨客厅，柔和光线"式贫瘠描写
+      expect(prompt.length).toBeGreaterThan(120);
+    }
+  });
+
+  it('自定义场景清洗后拼进提示词（换行转空格 + 压缩空白）', () => {
+    const prompt = buildPrompt(fourCats, 'pixar', 'livingroom', '在我家的院子里\n\n阳光很好');
+    expect(prompt).toContain('在我家的院子里 阳光很好');
+  });
+
+  it('自定义场景超长时截断到 60 字', () => {
+    const prompt = buildPrompt(fourCats, 'pixar', 'livingroom', 'a'.repeat(80));
+    expect(prompt).toContain('a'.repeat(60));
+    expect(prompt).not.toContain('a'.repeat(61));
+  });
+
+  it('自定义场景为纯空白时视同未填，与不传完全一致', () => {
+    expect(buildPrompt(fourCats, 'pixar', 'livingroom', '   \n\t ')).toBe(
+      buildPrompt(fourCats, 'pixar', 'livingroom'),
+    );
+  });
+});
+
+describe('scene 白名单契约同步（schema ↔ FAMILY_PHOTO_SCENES）', () => {
+  it('双向集合相等：FAMILY_PHOTO_SCENES 与 schema 的 FAMILY_PHOTO_SCENE_KEYS 完全一致', () => {
+    // 双向深比较锁死同步：单向"服务端 ⊆ schema"会漏掉"schema 多加 key 但
+    // 服务端没写 SCENE_PROMPTS"的情况（运行时会把 "undefined" 拼进提示词）
+    expect([...FAMILY_PHOTO_SCENE_KEYS].sort()).toEqual([...FAMILY_PHOTO_SCENES].sort());
+  });
+
+  it('schema 接受场景清单的全部 key（两处内联白名单保持一致）', () => {
+    for (const scene of FAMILY_PHOTO_SCENES) {
+      const result = generateFamilyPhotoSchema.safeParse({ style: 'pixar', scene });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it('已下线的旧 key（starry）被 schema 拒收', () => {
+    const result = generateFamilyPhotoSchema.safeParse({ style: 'pixar', scene: 'starry' });
+    expect(result.success).toBe(false);
+  });
+
+  it('非法场景 key 被拒收；customScene 超 60 字被拒收；两者均可省略', () => {
+    expect(generateFamilyPhotoSchema.safeParse({ style: 'pixar', scene: 'moon-palace' }).success).toBe(false);
+    expect(generateFamilyPhotoSchema.safeParse({ style: 'pixar', customScene: 'x'.repeat(61) }).success).toBe(false);
+    expect(generateFamilyPhotoSchema.safeParse({ style: 'pixar' }).success).toBe(true);
   });
 });

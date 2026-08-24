@@ -93,12 +93,36 @@ export interface SnapshotListResponse {
   page_size: number
 }
 
-/** 血亲树响应 */
+/** 血亲树响应（对齐后端 getLineage 契约：2026-08-24 修复字段名不匹配） */
 export interface LineageTreeResponse {
-  pet_id: string
-  ancestors: TreeNode[]
-  descendants: TreeNode[]
+  /** 选中宠物（pet 行：id/name/avatar_url/species） */
+  pet: TreeNode | null
+  /** 直接父母（如"烧鸭是可乐的妈妈"） */
+  parents: TreeNode[]
+  /** 直接子女 */
+  children: TreeNode[]
+  /** 兄弟姐妹（血缘 + 手动添加的兄弟关系） */
   siblings: TreeNode[]
+  /** 配偶 */
+  mates: TreeNode[]
+  /** 多代祖先（按代分组，index 0 为最近一代=父母） */
+  ancestors_levels: TreeNode[][]
+  /** 多代后代（按代分组，index 0 为最近一代=子女） */
+  descendants_levels: TreeNode[][]
+}
+
+/**
+ * 将后端血亲行（LineageWithPetRow：pet_id/pet_name/pet_avatar_url/pet_species）或
+ * 宠物行（pet：id/name/avatar_url/species）统一映射为前端 TreeNode
+ */
+function toTreeNode(row: Record<string, unknown>): TreeNode {
+  return {
+    pet_id: String(row.pet_id || row.id || ''),
+    name: String(row.pet_name || row.name || ''),
+    avatar_url: String(row.pet_avatar_url || row.avatar_url || ''),
+    species: String(row.pet_species || row.species || ''),
+    role: String(row.role || ''),
+  }
 }
 
 export const familyTreeService = {
@@ -158,16 +182,35 @@ export const familyTreeService = {
     await api.post(`/api/families/${familyId}/lineage`, input)
   },
 
-  /** 获取某宠物的血亲树 */
+  /** 获取某宠物的血亲树（后端返回 parents/children/siblings/mates/ancestors_levels/descendants_levels） */
   async getLineageTree(familyId: string, petId: string): Promise<LineageTreeResponse> {
-    const data = await api.get<LineageTreeResponse>(`/api/families/${familyId}/lineage/${petId}`)
-    return (
-      data || {
-        pet_id: petId,
-        ancestors: [],
-        descendants: [],
-        siblings: [],
-      }
-    )
+    const empty = (): LineageTreeResponse => ({
+      pet: null,
+      parents: [],
+      children: [],
+      siblings: [],
+      mates: [],
+      ancestors_levels: [],
+      descendants_levels: [],
+    })
+    const data = await api.get<Record<string, unknown>>(`/api/families/${familyId}/lineage/${petId}`)
+    if (!data) return empty()
+    const mapList = (rows: unknown): TreeNode[] => {
+      if (!Array.isArray(rows)) return []
+      return (rows as Array<Record<string, unknown>>).map(toTreeNode)
+    }
+    const mapLevels = (levels: unknown): TreeNode[][] => {
+      if (!Array.isArray(levels)) return []
+      return (levels as unknown[]).map((level) => mapList(level))
+    }
+    return {
+      pet: data.pet ? toTreeNode(data.pet as Record<string, unknown>) : null,
+      parents: mapList(data.parents),
+      children: mapList(data.children),
+      siblings: mapList(data.siblings),
+      mates: mapList(data.mates),
+      ancestors_levels: mapLevels(data.ancestors_levels),
+      descendants_levels: mapLevels(data.descendants_levels),
+    }
   },
 }

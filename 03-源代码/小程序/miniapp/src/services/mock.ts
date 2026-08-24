@@ -349,7 +349,7 @@ export const mockApi = {
     await wait()
     return mockFamilyPhotos.filter(p => p.familyId === familyId).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   },
-  saveFamilyPhoto: async (familyId: string, photoUrl: string, memberCount: number, memberNames: string[], photoType: 'generated' | 'uploaded' = 'generated', description?: string): Promise<FamilyPhoto> => {
+  saveFamilyPhoto: async (familyId: string, photoUrl: string, memberCount: number, memberNames: string[], photoType: 'canvas_fallback' | 'uploaded' = 'canvas_fallback', description?: string): Promise<FamilyPhoto> => {
     await wait()
     const photo: FamilyPhoto = {
       id: 'fph_' + Date.now(),

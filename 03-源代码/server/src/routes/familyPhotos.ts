@@ -29,7 +29,13 @@ router.post(
     try {
       const userId = req.userId!;
       const familyId = req.params.familyId as string;
-      const { style } = req.body as { style: string };
+      // scene 为可选场景（温馨客厅/海边/圣诞树等），customScene 为用户自定义场景描述，
+      // 两者均经 schema 白名单/长度校验
+      const { style, scene, customScene } = req.body as {
+        style: string;
+        scene?: string;
+        customScene?: string;
+      };
 
       // 家庭归属校验
       const isOwner = await familyRepository.isOwner(familyId, userId);
@@ -42,6 +48,10 @@ router.post(
         familyId,
         userId,
         style: style as 'pixar' | 'ghibli' | 'oil' | 'ink' | 'nordic' | 'cyberpunk',
+        // 透传场景给服务层（拼进提示词 + 入库）；未传时服务层用默认场景
+        scene: scene as Parameters<typeof generateFamilyPhoto>[0]['scene'],
+        // 自定义场景描述原样透传，清洗在服务层统一做（单测可覆盖）
+        customScene,
       });
 
       if (!result.success) {

@@ -3,7 +3,7 @@
  * 管理宠物家庭成员、家庭相册和家庭切换
  */
 import create from 'zustand'
-import type { PetFamily, PetFamilyMember, FamilyUser, FamilyPhoto } from '../types/familyTypes'
+import type { PetFamily, PetFamilyMember, FamilyUser, FamilyUserRelation, FamilyUserRelationType, FamilyPhoto } from '../types/familyTypes'
 import { familyService } from '../services/familyService'
 
 /** 宠物家庭状态定义 */
@@ -13,6 +13,8 @@ interface FamilyState {
   members: PetFamilyMember[]
   /** 家庭成员（人）：owner/member，多成员共同养宠（2026-08-24） */
   users: FamilyUser[]
+  /** 家庭成员（人）关系：情侣/父女等任意两人之间（2026-08-24） */
+  relations: FamilyUserRelation[]
   photos: FamilyPhoto[]
   photosLoading: boolean
   loading: boolean
@@ -27,10 +29,26 @@ interface FamilyState {
   createInvite: () => Promise<string>
   joinFamily: (code: string) => Promise<void>
   removeUser: (userId: string) => Promise<void>
+  fetchRelations: () => Promise<void>
+  createRelation: (userIdA: string, userIdB: string, relationType: FamilyUserRelationType) => Promise<void>
+  removeRelation: (relationId: string) => Promise<void>
   fetchPhotos: () => Promise<void>
-  savePhoto: (photoUrl: string, memberCount: number, memberNames: string[], photoType?: 'generated' | 'uploaded', description?: string) => Promise<void>
+  savePhoto: (photoUrl: string, memberCount: number, memberNames: string[], photoType?: 'canvas_fallback' | 'uploaded', description?: string) => Promise<void>
   deletePhoto: (photoId: string) => Promise<void>
-  generateAiPhoto: (style: string) => Promise<{ success: boolean; photoId?: string; photoUrl?: string; message?: string }>
+  generateAiPhoto: (
+    style: string,
+    scene?: string,
+    customScene?: string,
+  ) => Promise<{
+    success: boolean
+    photoId?: string
+    photoUrl?: string
+    message?: string
+    /** 业务错误码（如 MEMBER_NO_REAL_IMAGE：成员缺真实形象，需先引导生成） */
+    code?: string
+    /** 缺少真实形象的成员（引导跳转形象定制页） */
+    missingMembers?: Array<{ petId: string; name: string }>
+  }>
 }
 
 export const useFamilyStore = create<FamilyState>((set, get) => ({
@@ -38,6 +56,7 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   currentFamily: null,
   members: [],
   users: [],
+  relations: [],
   photos: [],
   photosLoading: false,
   loading: false,
@@ -171,6 +190,52 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
     }
   },
 
+  /** 获取家庭成员（人）关系列表（情侣/父女等，2026-08-24） */
+  fetchRelations: async () => {
+    const family = get().currentFamily
+    if (!family) return
+    set({ error: null })
+    try {
+      const relations = await familyService.getUserRelations(family.id)
+      set({ relations })
+    } catch (err) {
+      // 后端未部署关系表时静默（不阻塞图谱/家庭页）
+      set({ relations: [] })
+    }
+  },
+
+  /** 创建家庭成员（人）关系（仅 owner），成功后刷新关系列表 */
+  createRelation: async (userIdA, userIdB, relationType) => {
+    const family = get().currentFamily
+    if (!family) throw new Error('未选择家庭')
+    set({ error: null })
+    try {
+      await familyService.createUserRelation(family.id, userIdA, userIdB, relationType)
+      await get().fetchRelations()
+    } catch (err) {
+      const message = (err as { message?: string }).message || '创建关系失败'
+      set({ error: message })
+      throw err
+    }
+  },
+
+  /** 删除家庭成员（人）关系（仅 owner），成功后刷新关系列表 */
+  removeRelation: async (relationId) => {
+    const family = get().currentFamily
+    if (!family) return
+    set({ error: null })
+    try {
+      await familyService.removeUserRelation(family.id, relationId)
+      set((state) => ({
+        relations: state.relations.filter((r) => r.id !== relationId),
+      }))
+    } catch (err) {
+      const message = (err as { message?: string }).message || '删除关系失败'
+      set({ error: message })
+      throw err
+    }
+  },
+
   /** 生成家庭邀请码（仅 owner），返回邀请码 */
   createInvite: async () => {
     const family = get().currentFamily
@@ -229,8 +294,10 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
 
   /**
    * 保存家庭合影（上传到后端，不再使用本地存储）
+   * ⚠️ photoType 默认 'canvas_fallback'：后端 uploadFamilyPhotoSchema 仅允许
+   * canvas_fallback | uploaded，传 'generated' 会 400（此前"保存到相册"必失败）
    */
-  savePhoto: async (photoUrl, memberCount, memberNames, photoType = 'generated' as 'generated' | 'uploaded', description: string | undefined) => {
+  savePhoto: async (photoUrl, memberCount, memberNames, photoType = 'canvas_fallback' as 'canvas_fallback' | 'uploaded', description: string | undefined) => {
     const family = get().currentFamily
     if (!family) return
     set({ error: null })
@@ -282,13 +349,14 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
   /**
    * AI 全家福生成
    * 调用后端 Seedream API 合成全家福，失败时返回 success:false
+   * @param style 画风 key；scene 预设场景 key；customScene 自定义场景描述（均可选）
    */
-  generateAiPhoto: async (style) => {
+  generateAiPhoto: async (style, scene?, customScene?) => {
     const family = get().currentFamily
     if (!family) return { success: false, message: '未选择家庭' }
     set({ error: null })
     try {
-      const result = await familyService.generateFamilyPhoto(family.id, style)
+      const result = await familyService.generateFamilyPhoto(family.id, style, scene, customScene)
       if (result && result.photoUrl) {
         const memberNames = get().members.map((m) => m.petName || '').filter(Boolean)
         const photo: FamilyPhoto = {
@@ -297,6 +365,9 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
           userId: '',
           photoUrl: result.photoUrl,
           photoType: 'generated',
+          // 本地乐观插入也带上场景信息，相册立即能显示场景标签（后端拉取后以库内值为准）
+          scene: scene ?? null,
+          description: customScene,
           memberCount: get().members.length,
           memberNames,
           createdAt: new Date().toISOString(),
@@ -308,9 +379,12 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       }
       return { success: false, message: '生成失败，请重试' }
     } catch (err) {
-      const message = (err as { message?: string }).message || 'AI 生成失败'
+      // 透传后端业务错误码（api.ts 把 code 挂到 Error 上），
+      // 全家福页据此识别"成员缺真实形象"并引导用户先生成形象
+      const e = err as { message?: string; code?: string; missingMembers?: Array<{ petId: string; name: string }> }
+      const message = e.message || 'AI 生成失败'
       set({ error: message })
-      return { success: false, message }
+      return { success: false, message, code: e.code, missingMembers: e.missingMembers }
     }
   },
 }))

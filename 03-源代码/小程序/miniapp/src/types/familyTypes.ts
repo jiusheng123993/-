@@ -31,6 +31,37 @@ export interface FamilyUser {
   joinedAt?: string
 }
 
+/** 8 种标准家庭人关系（2026-08-24）：与后端 schema FAMILY_USER_RELATION_TYPES 保持一致 */
+export const FAMILY_USER_RELATION_TYPES = [
+  'couple',            // 情侣
+  'father_daughter',   // 父女
+  'father_son',        // 父子
+  'mother_daughter',   // 母女
+  'mother_son',        // 母子
+  'siblings',          // 兄弟姐妹
+  'friends',           // 朋友
+  'other',             // 其他
+] as const
+
+export type FamilyUserRelationType = typeof FAMILY_USER_RELATION_TYPES[number]
+
+/**
+ * 家庭成员（人）关系 - family_user_relations 表（2026-08-24）
+ * 任意两名成员之间的一种家庭角色关系（有向：userIdA 是关系主体，userIdB 是被关系对象）
+ */
+export interface FamilyUserRelation {
+  id: string
+  familyId: string
+  userIdA: string
+  userIdB: string
+  relationType: FamilyUserRelationType
+  createdAt: string
+  nicknameA?: string
+  avatarUrlA?: string
+  nicknameB?: string
+  avatarUrlB?: string
+}
+
 export interface PetLineage {
   id: string
   familyId: string | null
@@ -215,7 +246,14 @@ export interface PetMilestone {
   createdAt: string
 }
 
-export type PhotoType = 'generated' | 'uploaded'
+/**
+ * 全家福照片类型
+ * - generated：AI 生成的本地乐观插入态（保存到后端时改用 canvas_fallback）
+ * - ai_generated：后端 family_photos 表 AI 生成记录的真实 photo_type 值
+ * - canvas_fallback：Canvas 降级绘制 / 保存到后端时的默认类型（后端 schema 仅允许 canvas_fallback|uploaded）
+ * - uploaded：用户手动上传
+ */
+export type PhotoType = 'generated' | 'ai_generated' | 'canvas_fallback' | 'uploaded'
 
 /** 家庭照片 */
 export interface FamilyPhoto {
@@ -225,6 +263,8 @@ export interface FamilyPhoto {
   photoUrl: string
   photoType: PhotoType
   description?: string
+  /** AI 生成所用场景 key（livingroom/seaside 等）；上传/手绘照片无此字段，相册据此展示场景标签 */
+  scene?: string | null
   memberCount: number
   memberNames: string[]
   createdAt: string

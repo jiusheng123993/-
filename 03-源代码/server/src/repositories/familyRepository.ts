@@ -438,3 +438,94 @@ export class FamilyInviteRepository extends BaseRepository<FamilyInviteRow> {
     return (result.rowCount ?? 0) > 0;
   }
 }
+
+/** 家庭成员（人）关系数据行 - family_user_relations 表（2026-08-24） */
+export interface FamilyUserRelationRow extends QueryResultRow {
+  id: string;
+  family_id: string;
+  user_id_a: string;
+  user_id_b: string;
+  relation_type: 'couple' | 'father_daughter' | 'father_son' | 'mother_daughter' | 'mother_son' | 'siblings' | 'friends' | 'other';
+  created_at: string;
+}
+
+/** 家庭成员（人）关系详情行（JOIN users 带双方昵称头像） */
+export interface FamilyUserRelationDetailRow extends QueryResultRow {
+  id: string;
+  family_id: string;
+  user_id_a: string;
+  user_id_b: string;
+  relation_type: FamilyUserRelationRow['relation_type'];
+  created_at: string;
+  nickname_a: string;
+  avatar_url_a: string | null;
+  nickname_b: string;
+  avatar_url_b: string | null;
+}
+
+/**
+ * 家庭成员（人）关系仓库 - family_user_relations 表
+ * 多成员共同养宠的"人关系"扩展：情侣/父女/兄弟姐妹等任意两人之间的家庭角色关系
+ */
+export class FamilyUserRelationRepository extends BaseRepository<FamilyUserRelationRow> {
+  protected tableName = 'family_user_relations';
+  protected allowedSortFields = ['created_at'] as const;
+
+  /**
+   * 查询家庭全部人关系（JOIN users 带双方昵称头像，供前端图谱/成员列表展示）
+   * @param familyId - 家庭 ID
+   */
+  async listRelations(familyId: string): Promise<FamilyUserRelationDetailRow[]> {
+    const result = await this.rawQuery<FamilyUserRelationDetailRow>(
+      `SELECT r.id, r.family_id, r.user_id_a, r.user_id_b, r.relation_type, r.created_at,
+              COALESCE(ua.nickname, '') AS nickname_a,
+              COALESCE(ua.avatar_url, '') AS avatar_url_a,
+              COALESCE(ub.nickname, '') AS nickname_b,
+              COALESCE(ub.avatar_url, '') AS avatar_url_b
+       FROM family_user_relations r
+       JOIN users ua ON ua.id = r.user_id_a
+       JOIN users ub ON ub.id = r.user_id_b
+       WHERE r.family_id = $1
+       ORDER BY r.created_at ASC`,
+      [familyId],
+    );
+    return result.rows;
+  }
+
+  /**
+   * 创建人关系（防重复：同一对成员只允许一条，a-b 与 b-a 视为同一对）
+   * @param familyId - 家庭 ID
+   * @param userIdA - 关系主体（如父亲）
+   * @param userIdB - 被关系对象（如女儿）
+   * @param relationType - 关系类型（8 种标准枚举）
+   * @returns 插入后的关系行；两人已存在关系时返回 null
+   */
+  async createRelation(
+    familyId: string,
+    userIdA: string,
+    userIdB: string,
+    relationType: FamilyUserRelationRow['relation_type'],
+  ): Promise<FamilyUserRelationRow | null> {
+    // ON CONFLICT 命中 UNIQUE(family_id, LEAST(a,b), GREATEST(a,b)) 时不做任何事 → 返回 null
+    const result = await this.rawQuery<FamilyUserRelationRow>(
+      `INSERT INTO ${this.tableName} (family_id, user_id_a, user_id_b, relation_type)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (family_id, LEAST(user_id_a, user_id_b), GREATEST(user_id_a, user_id_b)) DO NOTHING
+       RETURNING *`,
+      [familyId, userIdA, userIdB, relationType],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /**
+   * 删除人关系（归属校验：必须同时匹配 familyId，防止跨家庭删除）
+   * @returns true=删除成功；false=关系不存在或不属于该家庭
+   */
+  async removeRelation(id: string, familyId: string): Promise<boolean> {
+    const result = await this.rawQuery(
+      `DELETE FROM ${this.tableName} WHERE id = $1 AND family_id = $2 RETURNING *`,
+      [id, familyId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+}
