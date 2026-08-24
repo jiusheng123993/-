@@ -12,8 +12,13 @@
  */
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import Jimp from 'jimp';
 import { config } from '../config.js';
+
+// ⚠️ 生产以 ESM 运行，不存在 __dirname（本地 vitest 走 CJS 转换测不出来，
+// 上线曾因此崩溃循环）——统一用 import.meta.url 推导，与 breedRepository 同模式
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** 角标素材路径：server/assets/ai-badge.png（451x93 透明胶囊，2x 分辨率设计） */
 const BADGE_ASSET_PATH = path.resolve(__dirname, '../../assets/ai-badge.png');

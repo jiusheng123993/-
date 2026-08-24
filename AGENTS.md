@@ -321,3 +321,11 @@ Rules:
 - **处置（用户确认后）**：服务器上从主 AI_API_KEY 复制同值写入 QUALITY_CHECK_API_KEY（同为 DeepSeek 官方账号无混配风险）。**交叉验证法定位首次追加失败**：T1 主key+vision-exp=200（证明账号有该模型权限）、T2 复制key=401 且 source 后 len=0 → od 十六进制查 .env 尾部发现 printf 追加损坏只剩残片。修复=改用 **scp 脚本文件执行**（绕开 ssh 多层引号）：清脏行+tr 剥 CR 引号+三重校验 FILE_LINE_OK/SOURCE_OK(与主 key 同值)/HEALTH=200 全过；真实识图冒烟 http=200 返回图片内容 ✓。
 - **部署记录已更新**；备份 `.env.bak.viskey-*` 两份；回滚=恢复备份后 restart。**教训沉淀：往服务器 .env 追加内容禁止 ssh 内嵌 printf/heredoc，一律 scp 脚本文件执行+source 校验**。
 - **效果**：AI 写描述即刻可用（无需小程序重新编译）；照片自动提取外貌开始真实生效（生图提示词将带上照片里的毛色花纹细节）；体检报告识别激活。
+
+### 2026-08-25 · 四批次合并部署上线（含生产 ESM 崩溃事故与修复）
+
+- **范围**：用户确认"部署"→ 一次上齐四个待部署批次：①全家福 22 场景+水印 B 方案（迁移 029 + jimp + imageBadge）②形象一套两张（迁移 030）③名字→外貌翻译层④品种知识库（迁移 031 + /api/breeds/knowledge 热更新接口）。
+- **执行**：迁移 029/030/031 全部 ✓（031 owner=xinghuanhai）；tar 落盘→scp→远端解压上传 20 文件；npm install 装 jimp@0.22.12；备份 src.bak.batch0825-20260825041703。
+- **⚠️ P0 事故与修复**：首次启动崩溃循环——`imageBadge.ts` 用 `__dirname`，生产 ESM 下不存在（本地 vitest CJS 转换全绿测不出）。改 `fileURLToPath(import.meta.url)` 推导（同 breedRepository 模式），单文件 scp 热修后恢复。**教训：新增模块凡用 `__dirname` 必须 ESM 兼容写法；vitest 全绿≠生产可启动。**
+- **冒烟全绿**：公网 health/breeds-knowledge 双 200（品种库 version 2026-08-25.1，110 品种带来源标注）；background-swap 与全家福 POST 无 token 均 401；进程 online 稳定无新报错。
+- **待办（用户侧）**：微信开发者工具重新编译小程序（前端 dist 已含全部新功能：排座次/换背景/场景模板/品种热更新）；实际生成一张全家福验证角标+座次生效。
