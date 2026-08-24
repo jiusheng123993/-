@@ -6,11 +6,11 @@ import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useThemeStore, type ThemeKey } from '../../stores/themeStore'
-import { BREED_DATA, type BreedItem } from '../../data/petKnowledge/breeds'
+import { getActiveBreeds, type BreedItem } from '../../data/petKnowledge/breeds'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
-import { recognizeBreed, matchBreedInData, type BreedRecognizeResult } from '../../services/breedService'
+import { recognizeBreed, matchBreedInData, syncBreedKnowledge, type BreedRecognizeResult } from '../../services/breedService'
 import './index.scss'
 
 const disclaimerText = new MedicalDisclaimer().getDisclaimer('green', 'breed')
@@ -54,8 +54,17 @@ export default function PetBreed() {
 
   usePageView('breed')
 
+  // 品种库热更新：挂载时拉一次服务端最新版本（失败不阻塞，继续用静态兜底/缓存）
+  const [breedDataVersion, setBreedDataVersion] = useState(0)
+  useEffect(() => {
+    syncBreedKnowledge().then((synced) => {
+      if (synced) setBreedDataVersion((v) => v + 1)
+    })
+  }, [])
+
   const filteredBreeds = useMemo<BreedItem[]>(() => {
-    let result = BREED_DATA
+    // 取当前生效品种库（静态兜底或服务端热更新版本）；breedDataVersion 仅作刷新信号
+    let result = getActiveBreeds()
 
     if (speciesFilter !== 'all') {
       result = result.filter((b) => b.species === speciesFilter)
@@ -73,7 +82,7 @@ export default function PetBreed() {
     }
 
     return result
-  }, [searchText, speciesFilter, sizeFilter])
+  }, [searchText, speciesFilter, sizeFilter, breedDataVersion])
 
   const handleBreedClick = useCallback((breed: BreedItem) => {
     trackEvent('click_breed_card', { breedId: breed.id, breedName: breed.name })
@@ -124,7 +133,7 @@ export default function PetBreed() {
       if (recognizeResult) {
         setRecognizeResult(recognizeResult)
         // 在品种库中匹配
-        const matchedId = matchBreedInData(recognizeResult.breedName, recognizeResult.species, BREED_DATA)
+        const matchedId = matchBreedInData(recognizeResult.breedName, recognizeResult.species, getActiveBreeds())
         setMatchedBreedId(matchedId)
         trackEvent('breed_recognize_success', {
           breedName: recognizeResult.breedName,
@@ -160,7 +169,7 @@ export default function PetBreed() {
       <View className='breed-page__header'>
         <Text className='breed-page__title'>品种百科</Text>
         <Text className='breed-page__subtitle'>
-          共收录 {BREED_DATA.length} 个品种，了解你的毛孩子
+          共收录 {getActiveBreeds().length} 个品种，了解你的毛孩子
         </Text>
       </View>
 

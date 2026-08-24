@@ -6,7 +6,7 @@ import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { useState, useEffect, useCallback } from 'react'
 import { useThemeStore, type ThemeKey } from '../../stores/themeStore'
-import { BREED_DATA, type BreedItem } from '../../data/petKnowledge/breeds'
+import { getActiveBreeds, type BreedItem } from '../../data/petKnowledge/breeds'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { EVENT } from '../../constants/analyticsEvents'
@@ -61,13 +61,18 @@ export default function BreedDetail() {
 
   useEffect(() => {
     const id = router.params.id
-    if (id) {
-      const found = BREED_DATA.find((b) => b.id === id)
-      if (found) {
-        setBreed(found)
-        trackEvent(EVENT.BREED_VIEW, { breedId: found.id, breedName: found.name })
-      }
+    if (!id) return
+    // 先用当前生效品种库立即渲染（静态兜底或已缓存的热更新版本），保证首屏不等待网络
+    const found = getActiveBreeds().find((b) => b.id === id)
+    if (found) {
+      setBreed(found)
+      trackEvent(EVENT.BREED_VIEW, { breedId: found.id, breedName: found.name })
     }
+    // 再异步拉服务端最新品种库；若该品种在新版本中存在则热替换渲染（修订即时可见）
+    syncBreedKnowledge().then(() => {
+      const fresh = getActiveBreeds().find((b) => b.id === id)
+      if (fresh && fresh !== found) setBreed(fresh)
+    })
   }, [router.params.id])
 
   const handleSetMyPet = useCallback(() => {
