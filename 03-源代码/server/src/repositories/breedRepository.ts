@@ -62,14 +62,17 @@ export class BreedKnowledgeRepository extends BaseRepository<BreedKnowledgeRow> 
         return { version: after.rows[0].version, data: after.rows[0].data };
       }
       return null;
-    } catch {
-      // 表不存在/DB 异常 → 返回 null（前端继续用静态兜底 BREED_DATA）
+    } catch (err) {
+      // 表不存在/DB 异常 → 返回 null（前端继续用静态兜底 BREED_DATA）；记日志便于排障
+      console.error('[Breeds] 查询/播种品种库失败:', err);
       return null;
     }
   }
 
   /**
    * 保存新品种库（管理端人工校对后调用），版本自动递增：同日 .n → .n+1，跨日 .1
+   * 已知限制（与 saveGraph 同构）：并发 PUT 可能同时读到相同 latest 而算出同一版本号，
+   * 后提交者违反 UNIQUE(version) 返回 500；管理端单操作者场景概率极低，接受现状。
    * @param data - 新的品种库数据（全量替换语义：{ updatedAt?, breeds: [...] }，服务端补版本元信息）
    * @returns 新版本号
    */

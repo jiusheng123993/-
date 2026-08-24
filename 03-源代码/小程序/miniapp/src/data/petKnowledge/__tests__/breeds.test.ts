@@ -1,7 +1,7 @@
 /**
  * 品种数据测试
- * 覆盖「不确定品种」虚拟条目的数据完整性与搜索命中逻辑
- * （用户不知道宠物品种时的兜底方案：混血/串串/流浪猫狗）
+ * 覆盖「不确定品种」虚拟条目的数据完整性、搜索命中逻辑、
+ * 来源标注（sources）完整性与译名校对（2026-08-25 数据校对轮）
  */
 import { describe, it, expect } from 'vitest'
 import {
@@ -10,6 +10,8 @@ import {
   UNKNOWN_BREED_NAME,
   UNKNOWN_BREED_KEYWORDS,
   isUnknownBreedKeyword,
+  getActiveBreeds,
+  setActiveBreeds,
 } from '../breeds'
 
 describe('不确定品种虚拟条目', () => {
@@ -63,5 +65,41 @@ describe('isUnknownBreedKeyword 搜索命中', () => {
 
   it('命中：单字部分匹配（输入「不」→ 不确定品种）', () => {
     expect(isUnknownBreedKeyword('不')).toBe(true)
+  })
+})
+
+describe('来源标注与热更新切换层（2026-08-25 数据校对轮）', () => {
+  it('全部 110 条均有非空 sources 来源标注', () => {
+    expect(BREED_DATA.length).toBeGreaterThan(100)
+    const missing = BREED_DATA.filter((b) => !Array.isArray(b.sources) || b.sources.length === 0)
+    expect(missing).toEqual([])
+  })
+
+  it('含遗传病条目补了遗传学权威源，含毒物条目补了 ASPCA 中毒控制', () => {
+    const withGenetic = BREED_DATA.find((b) => b.geneticDiseases.length > 0)
+    expect(withGenetic?.sources.some((s) => s.includes('OMIA') || s.includes('UC Davis'))).toBe(true)
+    const withToxic = BREED_DATA.find((b) => b.toxicFoods.length > 0)
+    expect(withToxic?.sources.some((s) => s.includes('ASPCA'))).toBe(true)
+  })
+
+  it('译名修正：沙特尔猫/尼比龙猫/索科凯猫 正名生效且旧名保留在 aliases 可搜索', () => {
+    const chartreux = BREED_DATA.find((b) => b.id === 'chartreux')
+    expect(chartreux?.name).toBe('沙特尔猫')
+    expect(chartreux?.aliases).toContain('沙特儿猫') // 旧译名保留兜底搜索
+    const nebelung = BREED_DATA.find((b) => b.id === 'nebelung')
+    expect(nebelung?.name).toBe('尼比龙猫')
+    expect(nebelung?.aliases).toContain('内华达猫')
+    const sokoke = BREED_DATA.find((b) => b.id === 'sokoke')
+    expect(sokoke?.name).toBe('索科凯猫')
+    expect(sokoke?.aliases).toContain('肯尼亚猫')
+  })
+
+  it('getActiveBreeds 初始返回静态兜底；setActiveBreeds 切换后生效', () => {
+    expect(getActiveBreeds()).toBe(BREED_DATA) // 初始未同步时即静态兜底本体
+    const fake = [{ ...BREED_DATA[0], id: 'hotfix_probe' }]
+    setActiveBreeds(fake as typeof BREED_DATA)
+    expect(getActiveBreeds()[0].id).toBe('hotfix_probe')
+    setActiveBreeds(BREED_DATA) // 还原，避免污染同文件其他用例
+    expect(getActiveBreeds()).toBe(BREED_DATA)
   })
 })

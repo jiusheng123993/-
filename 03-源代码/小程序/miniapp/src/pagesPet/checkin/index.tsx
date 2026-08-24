@@ -29,7 +29,7 @@ import { MilestoneAdapter } from '../../memory-body/adapters/milestoneAdapter'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { EVENT } from '../../constants/analyticsEvents'
-import { BREED_DATA } from '../../data/petKnowledge/breeds'
+import { getActiveBreeds } from '../../data/petKnowledge/breeds'
 import type { Checkin } from '../../types'
 import './index.scss'
 
@@ -809,7 +809,7 @@ export default function PetCheckin() {
             <Text className='pet-checkin__weight-range-hint'>
               {(() => {
                 const breed = currentPet?.breed || ''
-                const matched = BREED_DATA.find(b => b.name === breed || b.aliases.includes(breed))
+                const matched = getActiveBreeds().find(b => b.name === breed || b.aliases.includes(breed))
                 return matched ? `${matched.name}标准范围：${matched.weightRangeStr}` : '记录体重帮助跟踪健康趋势'
               })()}
             </Text>

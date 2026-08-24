@@ -28,7 +28,7 @@ import { checkNpsEligibility, submitNpsResponse, dismissNpsSurvey } from '../../
 import NpsSurvey from '../../components/NpsSurvey'
 import type { NpsTriggerEvent } from '../../types/npsTypes'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
-import { BREED_DATA } from '../../data/petKnowledge/breeds'
+import { getActiveBreeds } from '../../data/petKnowledge/breeds'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
 import { AnalyticsEventName } from '../../types/analyticsTypes'
 import './index.scss'
@@ -343,7 +343,7 @@ export default function PetTrendsPage() {
 
   const breedWeightRange = useMemo(() => {
     if (!currentPet?.breedId) return null
-    const breed = BREED_DATA.find((b) => b.id === currentPet.breedId)
+    const breed = getActiveBreeds().find((b) => b.id === currentPet.breedId)
     if (!breed) return null
     return { min: breed.weightRange.min, max: breed.weightRange.max, name: breed.name }
   }, [currentPet?.breedId])

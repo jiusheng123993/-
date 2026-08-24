@@ -96,7 +96,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '25-34kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'labrador_retriever',
@@ -122,7 +122,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '25-36kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'german_shepherd',
@@ -148,7 +148,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '9-13年',
     weightRangeStr: '22-40kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'french_bulldog',
@@ -174,7 +174,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '8-14kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'poodle_toy',
@@ -200,7 +200,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '2-4kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'poodle_standard',
@@ -226,7 +226,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '20-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'corgi_pembroke',
@@ -252,7 +252,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '10-14kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'husky_siberian',
@@ -278,7 +278,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '16-27kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'chihuahua',
@@ -304,7 +304,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-20年',
     weightRangeStr: '1-3kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'border_collie',
@@ -330,7 +330,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '14-20kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'pug',
@@ -356,7 +356,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '6-8kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'shiba_inu',
@@ -382,7 +382,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '8-10kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'yorkshire_terrier',
@@ -408,7 +408,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '13-16年',
     weightRangeStr: '2-3kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'dachshund',
@@ -434,7 +434,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '4-15kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'rottweiler',
@@ -460,7 +460,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '8-10年',
     weightRangeStr: '35-60kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'bulldog',
@@ -486,7 +486,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '8-10年',
     weightRangeStr: '18-25kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'beagle',
@@ -512,7 +512,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '9-11kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'samoyed',
@@ -538,7 +538,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '16-30kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'bichon_frise',
@@ -564,7 +564,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '5-10kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'shih_tzu',
@@ -590,7 +590,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-16年',
     weightRangeStr: '4-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'doberman',
@@ -616,7 +616,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-13年',
     weightRangeStr: '27-45kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'maltese',
@@ -642,7 +642,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '2-4kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'great_dane',
@@ -668,7 +668,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '7-10年',
     weightRangeStr: '45-90kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'pomeranian',
@@ -694,7 +694,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '1.5-3kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'boxer',
@@ -720,7 +720,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '25-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'cavalier_king_charles',
@@ -746,7 +746,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '9-14年',
     weightRangeStr: '5-8kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'shetland_sheepdog',
@@ -772,7 +772,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '6-12kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'australian_shepherd',
@@ -798,7 +798,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '13-15年',
     weightRangeStr: '16-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'bernese_mountain_dog',
@@ -824,7 +824,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '7-10年',
     weightRangeStr: '35-55kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'miniature_schnauzer',
@@ -850,7 +850,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '5-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'akita',
@@ -876,7 +876,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-13年',
     weightRangeStr: '32-59kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'persian_cat',
@@ -902,7 +902,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-17年',
     weightRangeStr: '3-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'siamese_cat',
@@ -928,7 +928,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-20年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'maine_coon',
@@ -954,7 +954,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '4-11kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'british_shorthair',
@@ -980,7 +980,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-20年',
     weightRangeStr: '4-8kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'ragdoll',
@@ -1006,7 +1006,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-17年',
     weightRangeStr: '4-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'scottish_fold',
@@ -1032,7 +1032,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '11-14年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'sphynx',
@@ -1058,7 +1058,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '8-14年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'bengal_cat',
@@ -1084,7 +1084,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '4-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'russian_blue',
@@ -1110,7 +1110,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '15-20年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'abyssinian',
@@ -1136,7 +1136,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'norwegian_forest_cat',
@@ -1162,7 +1162,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '14-16年',
     weightRangeStr: '4-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'american_shorthair',
@@ -1188,7 +1188,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '15-20年',
     weightRangeStr: '4-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'birman',
@@ -1214,7 +1214,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'oriental_shorthair',
@@ -1240,7 +1240,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'devon_rex',
@@ -1266,7 +1266,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '9-15年',
     weightRangeStr: '3-4kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'exotic_shorthair',
@@ -1292,7 +1292,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'burmese_cat',
@@ -1318,7 +1318,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'tonkinese',
@@ -1344,7 +1344,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'somali_cat',
@@ -1370,7 +1370,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '11-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   // ============================================
   // 补充品种 — 犬类
@@ -1399,7 +1399,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-17年',
     weightRangeStr: '15-25kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'chow_chow',
@@ -1425,7 +1425,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '9-15年',
     weightRangeStr: '20-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'alaskan_malamute',
@@ -1451,7 +1451,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-14年',
     weightRangeStr: '34-43kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'tibetan_mastiff',
@@ -1477,7 +1477,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '45-80kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'pekingese',
@@ -1503,7 +1503,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'cocker_spaniel',
@@ -1529,7 +1529,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '11-15kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'dalmatian',
@@ -1555,7 +1555,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '11-13年',
     weightRangeStr: '23-25kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'saint_bernard',
@@ -1581,7 +1581,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '8-10年',
     weightRangeStr: '55-90kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'west_highland_white_terrier',
@@ -1607,7 +1607,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '7-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'papillon',
@@ -1633,7 +1633,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '13-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   // ============================================
   // 补充品种 — 猫类
@@ -1662,7 +1662,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '15-20年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'dragon_li',
@@ -1688,7 +1688,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '15-20年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'munchkin',
@@ -1714,7 +1714,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '2-4kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'singapura',
@@ -1740,7 +1740,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '11-15年',
     weightRangeStr: '2-3kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'turkish_van',
@@ -1766,7 +1766,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-17年',
     weightRangeStr: '4-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'egyptian_mau',
@@ -1792,7 +1792,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'japanese_bobtail',
@@ -1818,7 +1818,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'cornish_rex',
@@ -1844,7 +1844,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '11-15年',
     weightRangeStr: '3-4kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'selkirk_rex',
@@ -1870,7 +1870,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'snowshoe',
@@ -1896,7 +1896,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   // ============================================
   // 补充品种 — 犬类 20 种 + 猫类 20 种
@@ -1925,7 +1925,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '20-30kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'afghan_hound',
@@ -1951,7 +1951,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '23-27kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'belgian_malinois',
@@ -1977,7 +1977,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '20-30kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'boston_terrier',
@@ -2003,7 +2003,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '11-13年',
     weightRangeStr: '5-11kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'bull_terrier',
@@ -2029,7 +2029,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-14年',
     weightRangeStr: '22-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'great_pyrenees',
@@ -2055,7 +2055,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '40-54kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'shar_pei',
@@ -2081,7 +2081,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '8-12年',
     weightRangeStr: '18-25kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'newfoundland',
@@ -2107,7 +2107,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '8-10年',
     weightRangeStr: '45-68kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'irish_setter',
@@ -2133,7 +2133,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '25-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'greyhound',
@@ -2159,7 +2159,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-14年',
     weightRangeStr: '27-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'weimaraner',
@@ -2185,7 +2185,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-13年',
     weightRangeStr: '25-32kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'rhodesian_ridgeback',
@@ -2211,7 +2211,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '30-39kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'old_english_sheepdog',
@@ -2237,7 +2237,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '10-12年',
     weightRangeStr: '27-41kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'scottish_terrier',
@@ -2263,7 +2263,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '8-10kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'irish_wolfhound',
@@ -2289,7 +2289,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '6-10年',
     weightRangeStr: '48-69kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'basenji',
@@ -2315,7 +2315,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '9-11kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'english_cocker_spaniel',
@@ -2341,7 +2341,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '12-15kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'english_springer_spaniel',
@@ -2367,7 +2367,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '18-23kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'lhasa_apso',
@@ -2393,7 +2393,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '5-8kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'wheaten_terrier',
@@ -2419,7 +2419,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-14年',
     weightRangeStr: '14-20kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['AKC 品种标准', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'himalayan',
@@ -2445,7 +2445,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3.5-6.0kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'american_curl',
@@ -2471,7 +2471,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'bombay_cat',
@@ -2497,7 +2497,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'manx_cat',
@@ -2523,7 +2523,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'ocicat',
@@ -2549,7 +2549,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-18年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'balinese',
@@ -2575,7 +2575,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-18年',
     weightRangeStr: '2.5-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'chartreux',
@@ -2601,7 +2601,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'turkish_angora',
@@ -2627,7 +2627,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-18年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'burmilla',
@@ -2653,7 +2653,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-6kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'ragamuffin',
@@ -2679,7 +2679,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '4-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'siberian_cat',
@@ -2705,7 +2705,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '4-9kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'nebelung',
@@ -2731,7 +2731,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'peterbald',
@@ -2757,7 +2757,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'american_bobtail',
@@ -2783,7 +2783,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-7kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'korat',
@@ -2809,7 +2809,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'laperm',
@@ -2835,7 +2835,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'havana_brown',
@@ -2861,7 +2861,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-4.5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'javanese',
@@ -2887,7 +2887,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-16年',
     weightRangeStr: '2.5-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'sokoke',
@@ -2913,7 +2913,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '3-5kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   },
   {
     id: 'pixie_bob',
@@ -2939,7 +2939,7 @@ export const BREED_DATA: BreedItem[] = [
     lifespan: '12-15年',
     weightRangeStr: '4-8kg',
     // 来源标注：本条为一般性兽医常识，可在以上权威来源交叉印证（2026-08-25 全量补充）
-    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual'],
+    sources: ['CFA 品种标准', 'International Cat Care', 'VCA Animal Hospitals', 'Merck Veterinary Manual', 'UC Davis 兽医遗传学实验室 VGL', 'OMIA 在线动物遗传突变数据库', 'ASPCA 动物中毒控制'],
   }
 ]
 

@@ -63,7 +63,8 @@ export default function PetBreed() {
   }, [])
 
   const filteredBreeds = useMemo<BreedItem[]>(() => {
-    // 取当前生效品种库（静态兜底或服务端热更新版本）；breedDataVersion 仅作刷新信号
+    // 取当前生效品种库（静态兜底或服务端热更新版本）
+    void breedDataVersion // 仅作刷新信号：热更新切换成功后递增触发本 memo 重算
     let result = getActiveBreeds()
 
     if (speciesFilter !== 'all') {

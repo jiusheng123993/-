@@ -126,12 +126,13 @@ vi.mock('../../../engines/petSafety/MedicalDisclaimer', () => ({
   },
 }))
 
-vi.mock('../../../data/petKnowledge/breeds', () => ({
-  BREED_DATA: [
+vi.mock('../../../data/petKnowledge/breeds', () => {
+  const BREED_DATA = [
     { id: 'golden-retriever', name: '金毛', weightRange: { min: 25, max: 34 } },
     { id: 'persian', name: '波斯猫', weightRange: { min: 3.5, max: 7 } },
-  ],
-}))
+  ]
+  return { BREED_DATA, getActiveBreeds: () => BREED_DATA }
+})
 
 vi.mock('../../../hooks/useAnalytics', () => ({
   useAnalytics: vi.fn(() => ({ trackEvent: vi.fn(), trackPageView: vi.fn() })),

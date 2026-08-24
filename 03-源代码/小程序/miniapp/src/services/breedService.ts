@@ -124,7 +124,9 @@ interface BreedKnowledgeResponse {
 
 /**
  * 品种库结构最小校验（与服务端 isValidBreedData 同口径）
- * 防止坏数据切换：空列表/缺关键字段/缺来源标注的条目会导致页面渲染崩溃或来源标注失效。
+ * 防止坏数据切换：除 id/name/species/sources 外还必须校验渲染必需字段——
+ * aliases（checkin/edit/add 直接调数组方法）与 weightRange.min/max（趋势页体型兜底直接取数值），
+ * 任一缺失都会在消费点抛 TypeError 白屏（审查项修复：防线闭合到"渲染必需字段"粒度）。
  */
 function isValidBreedList(breeds: unknown): breeds is BreedItem[] {
   if (!Array.isArray(breeds) || breeds.length === 0) return false
@@ -134,8 +136,13 @@ function isValidBreedList(breeds: unknown): breeds is BreedItem[] {
       typeof b.id === 'string' &&
       typeof b.name === 'string' &&
       (b.species === 'cat' || b.species === 'dog') &&
+      Array.isArray(b.aliases) &&
+      !!b.weightRange &&
+      typeof b.weightRange.min === 'number' &&
+      typeof b.weightRange.max === 'number' &&
       Array.isArray(b.sources) &&
-      b.sources.length > 0,
+      b.sources.length > 0 &&
+      b.sources.every((s: unknown) => typeof s === 'string'),
   )
 }
 
@@ -149,7 +156,13 @@ export async function syncBreedKnowledge(): Promise<boolean> {
     const res = await api.get<BreedKnowledgeResponse>('/breeds/knowledge')
     if (res && res.data && isValidBreedList(res.data.breeds)) {
       setActiveBreeds(res.data.breeds)
-      setStorage(BREED_CACHE_KEY, res)
+      // 缓存写入独立 try/catch（审查项修复）：storage 配额满等异常不能吞掉已成功的切换，
+      // 否则返回 false 让调用方误判失败、不刷新信号，界面停留静态库而模块层已是新库
+      try {
+        setStorage(BREED_CACHE_KEY, res)
+      } catch (cacheErr) {
+        console.warn('[BreedService] 品种库缓存写入失败（不影响本次切换）:', cacheErr)
+      }
       return true
     }
   } catch {

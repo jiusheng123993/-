@@ -222,16 +222,17 @@ vi.mock('../../data/petKnowledge/vaccineSchedule', () => ({
   ],
 }))
 
-vi.mock('../../data/petKnowledge/breeds', () => ({
-  BREED_DATA: [
+vi.mock('../../data/petKnowledge/breeds', () => {
+  const BREED_DATA = [
     { id: 'golden_retriever', name: '金毛寻回犬', species: 'dog', exerciseNeeds: 'high', size: 'large', geneticDiseases: ['髋关节发育不良'] },
     { id: 'french_bulldog', name: '法国斗牛犬', species: 'dog', exerciseNeeds: 'low', size: 'small', geneticDiseases: ['短头综合征'] },
     { id: 'border_collie', name: '边境牧羊犬', species: 'dog', exerciseNeeds: 'high', size: 'medium', geneticDiseases: ['柯利眼异常（CEA）', '多重药物敏感性（MDR1基因突变）'] },
     { id: 'ragdoll', name: '布偶猫', species: 'cat', exerciseNeeds: 'low', size: 'large', geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）'] },
     { id: 'siamese_cat', name: '暹罗猫', species: 'cat', exerciseNeeds: 'high', size: 'medium', geneticDiseases: ['肥厚型心肌病（HCM）'] },
     { id: 'british_shorthair', name: '英国短毛猫', species: 'cat', exerciseNeeds: 'low', size: 'medium', geneticDiseases: ['肥厚型心肌病（HCM）', '多囊肾病（PKD）'] },
-  ],
-}))
+  ]
+  return { BREED_DATA, getActiveBreeds: () => BREED_DATA }
+})
 
 import { api } from '../api'
 import {

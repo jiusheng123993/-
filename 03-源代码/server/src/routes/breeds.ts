@@ -20,31 +20,49 @@ interface BreedShape {
   id?: unknown;
   name?: unknown;
   species?: unknown;
+  aliases?: unknown;
+  weightRange?: unknown;
   sources?: unknown;
 }
 
 /**
  * 品种库结构最小校验
  * 防止坏数据上线：空列表、缺 id/name/species/sources 的条目会导致前端渲染崩溃或来源标注失效。
- * species 仅接受 cat/dog（与前端 BreedItem 联合类型一致）。
+ * species 仅接受 cat/dog（与前端 BreedItem 联合类型一致）；
+ * aliases/weightRange 为渲染必需字段（checkin/edit/add 直接调数组方法、趋势页直接取数值），
+ * 与前端 isValidBreedList 同口径校验，防线闭合到"渲染必需字段"粒度（审查项修复）。
+ * 长度/规模约束防"持 Token 提交超大数据全量下发到所有客户端"（审查项加固）：
+ * id/name ≤50、来源标注元素 ≤100、条目数 ≤300 且 id 不得重复（前端匹配取首条，重复 id 语义不明）。
  * @returns 结构合法则 true
  */
 export function isValidBreedData(data: unknown): data is Record<string, unknown> {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
-  if (!Array.isArray(d.breeds) || d.breeds.length === 0) return false;
+  if (!Array.isArray(d.breeds) || d.breeds.length === 0 || d.breeds.length > 300) return false;
   const validSpecies = ['cat', 'dog'];
+  const seenIds = new Set<string>();
   return (d.breeds as BreedShape[]).every((b) => {
     if (!b || typeof b !== 'object') return false;
-    return (
-      typeof b.id === 'string' &&
-      typeof b.name === 'string' &&
-      typeof b.species === 'string' &&
-      validSpecies.includes(b.species) &&
-      Array.isArray(b.sources) &&
-      b.sources.length > 0 &&
-      b.sources.every((s) => typeof s === 'string')
-    );
+    if (
+      typeof b.id !== 'string' || b.id.length === 0 || b.id.length > 50 ||
+      typeof b.name !== 'string' || b.name.length === 0 || b.name.length > 50 ||
+      typeof b.species !== 'string' ||
+      !validSpecies.includes(b.species) ||
+      !Array.isArray(b.aliases) ||
+      !b.aliases.every((a) => typeof a === 'string') ||
+      !b.weightRange || typeof b.weightRange !== 'object' ||
+      typeof (b.weightRange as { min?: unknown }).min !== 'number' ||
+      typeof (b.weightRange as { max?: unknown }).max !== 'number' ||
+      !Array.isArray(b.sources) ||
+      b.sources.length === 0 ||
+      !b.sources.every((s) => typeof s === 'string' && s.length > 0 && s.length <= 100)
+    ) {
+      return false;
+    }
+    // id 重复拒绝（Set 去重后数量不一致即存在重复）
+    if (seenIds.has(b.id)) return false;
+    seenIds.add(b.id);
+    return true;
   });
 }
 

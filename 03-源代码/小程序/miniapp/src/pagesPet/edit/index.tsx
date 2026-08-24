@@ -6,7 +6,7 @@ import { View, Text, Input, Picker, Switch, Textarea, Image } from '@tarojs/comp
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useAuthStore } from '../../stores/authStore'
-import { BREED_DATA, UNKNOWN_BREED_ID, UNKNOWN_BREED_NAME } from '../../data/petKnowledge/breeds'
+import { getActiveBreeds, UNKNOWN_BREED_ID, UNKNOWN_BREED_NAME } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
@@ -104,7 +104,7 @@ export default function EditPet() {
         avatarUrl: pet.avatarPhotoUrl || pet.avatarCartoonUrl || '',
       })
       if (pet.breedId) {
-        const breed = BREED_DATA.find(b => b.id === pet.breedId)
+        const breed = getActiveBreeds().find(b => b.id === pet.breedId)
         if (breed) setSelectedBreed(breed)
       }
     }
@@ -112,7 +112,7 @@ export default function EditPet() {
 
   const filteredBreeds = useMemo(() => {
     if (!formData.species) return []
-    return BREED_DATA.filter((b) => b.species === formData.species)
+    return getActiveBreeds().filter((b) => b.species === formData.species)
   }, [formData.species])
 
   // 品种选择器选项：真实品种 + 追加「不确定品种」兜底（与添加页一致，保证已存宠物可回改）

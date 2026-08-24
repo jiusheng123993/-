@@ -7,7 +7,7 @@ import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useVaccine } from '../../hooks/useVaccine'
 import { useAuthStore } from '../../stores/authStore'
-import { BREED_DATA, UNKNOWN_BREED_ID, UNKNOWN_BREED_NAME, isUnknownBreedKeyword } from '../../data/petKnowledge/breeds'
+import { getActiveBreeds, UNKNOWN_BREED_ID, UNKNOWN_BREED_NAME, isUnknownBreedKeyword } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
@@ -15,7 +15,7 @@ import { AnalyticsEventName } from '../../types/analyticsTypes'
 import { safeNavigateBack } from '../../utils/navigation'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { uploadPetPhoto } from '../../services/avatarService'
-import { recognizeBreed, matchBreedInData, type BreedRecognizeResult } from '../../services/breedService'
+import { recognizeBreed, matchBreedInData, syncBreedKnowledge, type BreedRecognizeResult } from '../../services/breedService'
 import type { BreedItem } from '../../data/petKnowledge/breeds'
 import './index.scss'
 
@@ -117,6 +117,14 @@ export default function AddPet() {
     trackPageView('add_pet')
   }, [trackPageView])
 
+  // 品种库热更新：挂载时拉一次服务端最新版本（失败不阻塞；用户可能不进品种百科页直接添加宠物）
+  const [breedDataVersion, setBreedDataVersion] = useState(0)
+  useEffect(() => {
+    syncBreedKnowledge().then((synced) => {
+      if (synced) setBreedDataVersion((v) => v + 1)
+    })
+  }, [])
+
   // 品种面板打开期间监听键盘高度变化；关闭/卸载时取消监听并复位偏移
   useEffect(() => {
     if (!showBreedPanel) return
@@ -129,9 +137,10 @@ export default function AddPet() {
   }, [showBreedPanel])
 
   const filteredBreeds = useMemo(() => {
+    void breedDataVersion // 仅作刷新信号：热更新切换成功后递增触发本 memo 重算
     if (!formData.species) return []
-    return BREED_DATA.filter((b) => b.species === formData.species)
-  }, [formData.species])
+    return getActiveBreeds().filter((b) => b.species === formData.species)
+  }, [formData.species, breedDataVersion])
 
   const searchedBreeds = useMemo(() => {
     if (!breedSearch.trim()) return filteredBreeds
@@ -192,8 +201,8 @@ export default function AddPet() {
       const result = await recognizeBreed(res.tempFilePaths[0])
       if (result) {
         // 名称/别名/包含三级匹配库内品种；匹配不到（可能识别出库外品种）则为 null
-        const matchedId = matchBreedInData(result.breedName, result.species, BREED_DATA)
-        const matched = matchedId ? (BREED_DATA.find(b => b.id === matchedId) ?? null) : null
+        const matchedId = matchBreedInData(result.breedName, result.species, getActiveBreeds())
+        const matched = matchedId ? (getActiveBreeds().find(b => b.id === matchedId) ?? null) : null
         setRecognizeResult(result)
         setMatchedBreed(matched)
         trackEvent('breed_recognize_success', {
