@@ -201,3 +201,71 @@ Rules:
 - **提交**：`5758bcf feat(形象): 照片自动提取详细外貌进生图提示词，模板示例细节化`（5 文件 +144/-14，分支 develop）。
 - **部署（已完成，无数据库迁移）**：上传 avatarService.ts + routes/avatar.ts（备份 `/opt/xinghuanhai/src.bak.appearance-*`）→ PM2 重启 → 冒烟 health 200、日志无 error。
 - **待办（用户侧）**：微信开发者工具重新编译小程序体验（有真实照片时描述留空，系统自动提取毛色花纹等详细外貌进提示词）。
+
+### 2026-08-24 · pet-prompt-engine 提示词技能（已提交）
+
+- **需求（用户）**："把提示词库整理成一份标准的技能每次都能完整调用，无论是生图还是回忆录"。
+- **实现**：①新建 `.dsh/skills/pet-prompt-engine/SKILL.md`——提示词库《宠物回忆录-提示词库.md》v5.0 的**可执行固化版**：触发条件（生图/全家福/表情包/回忆录必须加载）+ 六条金科玉律（名字不进提示词/外貌写具体 §0.9/数量锁定/参考图一致性/清洗兜底/中英混排）+ 生图公式八环节（每环节标注代码位置：petPrompt.ts / avatarService.ts / familyPhotoService.ts / promptTemplates.ts / avatar-customize）+ 四场景模板 + 15 画风/12 表情/角色锁定表/避坑清单（烧鸡事故沉淀）+ 修改指引 + 验证清单；②AGENTS.md 注册「提示词技能」小节：**凡是提示词任务先加载该技能，禁止各写各的**；提示词库原文仍为唯一事实源。
+- **提交**：`docs(提示词): 新增 pet-prompt-engine 技能，提示词任务统一加载`（SKILL.md + AGENTS.md，分支 develop）。无部署。
+
+### 2026-08-24 · 修复"邀请对方养宠点击没反应"（showModal 按钮文案超 4 字 + 剪贴板隐私拦截）
+
+- **现象（用户）**：家庭页「邀请 TA」卡点击完全无反应（体验版+模拟器均复现，无弹窗无 toast）。用户 Console 提供决定性报错：`showModal:fail confirmText length should not larger than 4 Chinese characters`。
+- **根因（两个独立问题叠加）**：①`handleInvite` 的 `Taro.showModal({ confirmText: '复制邀请码' })`——**5 个字超出微信 4 字上限**，参数校验直接 fail 且**弹窗不渲染**；此时邀请码其实已成功生成，只是展示环节炸了 → 表现为"点击无反应"。②工作区此前加的 fail 降级调 `setClipboardData` 又撞 **errno 112**（微信后台《用户隐私保护指引》未声明「剪贴板」权限，真机/体验版强制拦截、开发者工具不校验）→ 降级也静默失败。
+- **修复（纯前端 2 文件）**：①`pages/family/index.tsx`：confirmText 改 `'复制'`（2 字）；抽出 `copyInviteCode` 统一复制入口并补 fail 处理（errno 112 时 toast 引导"长按邀请码手动复制"，弹窗 content 本身含完整邀请码，流程不中断）；②`pagesPet/family/dashboard/index.tsx`：全家福 MEMBER_NO_REAL_IMAGE 引导弹窗 confirmText `'去生成形象'`（5 字）同样会弹不出来 → 改 `'去生成'`（隐藏 bug 一并修）。
+- **全局排查**：全项目 47 处 showModal confirm/cancelText 全部复查，其余均 ≤4 字合规 ✅；另有 7 处 setClipboardData 调用（settings/profile/feedback/product/invite/首页）在剪贴板权限声明前真机也会 errno 112，属同类隐患由后台声明一次性解决，未扩散修改。
+- **验证**：tsc 0 错误 ✅、全量 2385 passed / 0 failed（EXIT=0）✅、改动行 eslint 0 新增（余量均为既有问题）✅、build:weapp 成功 ✅、dist 已确认含新文案且旧 5 字文案清除 ✅。改动未提交。
+- **待办（用户侧 P0）**：mp.weixin.qq.com「设置 → 服务内容声明 → 用户隐私保护指引」补充声明**剪贴板权限**（与此前相册/相机同入口），否则真机上"复制邀请码"仍会失败（前端已兜底提示手动复制）；然后微信开发者工具重新编译即可看到邀请弹窗正常弹出。
+- **第二轮补充（同日）**：①弹窗修复生效后用户实测仍报 `setClipboardData errno 112`——即上述待办未配置，属预期内，前端兜底 toast 已生效；②用户追问"哪里输入邀请码？"→ 排查证实**全 App 无任何页面调用 joinFamily**（store/service/生产接口齐全但 UI 层缺失），"生成邀请码 → 对方凭码加入"闭环断裂。**补全**：`family/index.tsx` 新增 `handleJoinByCode`（微信 showModal 原生 `editable` 输入框，Taro 3.6 类型表未收录 editable/placeholderText/content——展开透传+断言绕过，同 showNicknameAccessory 先例）→ `joinFamily`（内部刷新家庭列表/选中新家庭/拉宠物成员）→ 补拉 `fetchUsers` → 成功/失败均有反馈，失败透传服务端原因；空态页新增「🎟️ 凭邀请码加入」次级按钮（`.family-join-btn` 描边弱化样式）；邀请弹窗指引文案改为明确入口路径。**已知取舍**：已有自己家庭的被邀请方在非空态视图暂无输入入口（主场景=新用户空态，后续有需求再补）。验证=tsc 0 错误、2385 passed、eslint 改动文件 0 error、build ✅、dist 确认 editable+新文案 ✅。改动未提交。
+- **第三轮补充（同日）**：用户实测反馈"前端根本没有地方输入邀请码"——其测试号**已建过家庭**，看到的是正常视图，而入口只在空态（上轮取舍正好踩中实际场景）。**补全**：家庭头部 ✏️ 旁新增同款式 🎟️ 小圆钮（复用 `family-head__edit` 样式，onClick 同 handleJoinByCode），**任何家庭状态下都有输码入口**（空态次级按钮 + 正常视图头部图标双入口）。验证=tsc 0 错误、全量测试通过、build:weapp 成功 ✅、dist 确认头部双按钮 + editable 输入框完整编译 ✅。改动未提交。**已知行为**：凭码加入成功后会自动切换到新加入的家庭；多家庭手动切换器暂无 UI（数据层 families 数组已支持），如需后续补。
+- **第四轮补充（同日，用户指定位置）**：用户反馈头部 🎟️ 纯图标"一点标识都没有"且要求**把输入入口放进「共同养宠」区**。**调整**：①删除头部 🎟️ 小圆钮；②共同养宠成员横滑条尾部、「邀请 TA」卡左侧新增同款卡片「🎟️ 凭码加入 / 输邀请码」（复用 family-user-card 全套样式，全员可见不加 owner 条件——已在家庭的任何人都可能收到别家码）；③空态「凭邀请码加入」按钮保留（新用户唯一入口）；④邀请弹窗指引文案同步为「TA 在『家庭』页『共同养宠』区点『凭码加入』输入即可」。最终布局：成员头像 → 凭码加入 → 邀请 TA(owner)。验证=tsc 0/TEST_EXIT=0/BUILD_EXIT=0、dist 确认凭码卡+副文案+新指引文案全部编译 ✅。改动未提交。
+
+### 2026-08-24 · 修复"宠物头像没同步到我的页" + 我的页顶部去双色横幅改沉浸式
+
+- **现象（用户）**：①宠物头像并没有同步到我的页面；②我的页面顶部的双色模块太丑。
+- **根因**：①「我的」页宠物切换 chips 只渲染物种 emoji（`species === 'cat' ? '🐱' : '🐶'`），从未读取宠物真实形象字段 `avatarPhotoUrl/avatarCartoonUrl`——形象定制页保存后 petStore 里明明有数据但页面不展示；且 mine 是 tab 常驻页只在首次挂载 `fetchPets`，切回时不刷新；②顶部用户卡是 `.mine-user-banner`（192rpx 橙色渐变横幅）+ 白卡头像 -96rpx 上叠的"两段拼接"结构，视觉割裂。
+- **修复（纯前端 2 文件）**：①chips 渲染真实头像，优先级与全站一致（`avatarPhotoUrl > avatarCartoonUrl > 物种 emoji`，同 PetAvatar/PetSwitcher）；新增 `petAvatarFailed: Record<petId, 失败URL>`——仅当"当前 URL === 已失败 URL"才退回 emoji，同一坏地址不反复重试、换新地址自动重试；②`useDidShow` 增加 `fetchPets(user.id)`（在线以服务端为权威纠正 store；离线本地缓存与 store 同源无副作用；fetchPets 内部保留 currentPet 不会误切换）；③顶部重构为沉浸式头部 `.mine-hero*`：删横幅与白卡，头像/昵称直接坐在页面暖色渐变上（头像 136rpx 白描边 + 半透明白环 + 暖色投影），VIP 徽章/编辑按钮保留复用；顺带修该文件既有 eslint error（全局 `isNaN` → `Number.isNaN`）。
+- **验证**：typecheck 0 错误 ✅、eslint 改动文件 0 error（余 2 个既有 warning 非本次引入）✅、全量 2385 passed / 0 failed（EXIT=0；另一轮出现 2 failed 系 vitest worker fork 崩溃的环境噪声，三轮中两轮干净通过与本次无关）✅、build:weapp 成功 ✅、dist 确认含 mine-hero + avatarPhotoUrl 且旧 banner 类名零残留 ✅、graphify 已更新 ✅。
+- **效果图**：新旧对比 `E:\Codex\2026-08-24\mine-ui\outputs\mine-header-preview.html` + `mine-header-preview.png`（GLM-4V 质检通过：新版无双色拼接、头像光环自然、无布局错乱、chips 真实照片显示正常）。
+- **待办（用户侧）**：微信开发者工具重新编译小程序后查看效果。改动未提交。
+
+### 2026-08-24 · 全家福「精美场景模板」22 选 + 自定义场景 + 生图水印合规 B 方案（代码完成，待用户确认部署）
+
+- **需求（用户）**：全家福缺少特定场景模板；且场景要精美不能太单一；要求先调研最新提示词写法一起决定。经结构化确认：迁移加 scene 列 ✅、卡内场景 chip 宫格（非 ActionSheet 堆叠）✅、22 场景目录 ✅、自定义场景输入 ✅、写实摄影感基调 ✅。
+- **调研**：Seedream 4.0/Nano Banana/GPT Image 1.5 最新公式=时间光源+前中后景层次+材质细节道具+统一色彩基调+氛围情绪+光效质感词；场景层与画风层(STYLE_PROMPTS)正交，身份由参考图锁定。
+- **服务端**：`familyPhotoService.ts` 重写 `FAMILY_PHOTO_SCENES`（22 键/5 大主题：居家4·自然6·节日4·旅行4·梦幻4，旧 starry 移除）+ `SCENE_PROMPTS` 全量多维描写；**修复关键 bug：generateFamilyPhoto 解构了 scene 却没传给 buildPrompt（选了也白选）**；`cleanCustomScene` 清洗（换行/制表符→空格、压缩空白、截断 60、纯空白视同未填）；INSERT 带 scene（默认 livingroom）+ description 存清洗后自定义文本；getFamilyPhotos 返回 scene/description；迁移 029 `family_photos ADD COLUMN IF NOT EXISTS scene TEXT`；schema 白名单提为具名导出 `FAMILY_PHOTO_SCENE_KEYS`（零依赖不变）供双向深比较。
+- **水印合规 B 方案**（用户确认）：三个生图服务（全家福/表情包/形象）Seedream 请求统一 `watermark:false` 去平台「AI生成」标 + 新增 `services/imageBadge.ts` 用 jimp 在右下角合成自有角标素材 `assets/ai-badge.png`（451x93 半透明胶囊「AI 绘制 · 星河宠记」，宽 30% 留白 3%），落盘 `uploads/ai-generated/{uuid}.png` 返回 `{publicBaseUrl}/uploads/...`；任一环节失败降级返回原图 URL 只记日志不阻断。合规依据《人工智能生成合成内容标识办法》(2025-09-01)：提供用户关闭水印开关不合规；品牌角标为业界标准做法。
+- **前端**：dashboard 生成卡新增「五大主题 tab + 场景 chips 宫格 + ✏️自定义」选择器（Textarea maxlength60、空描述 toast 拦截）；selectedScene 默认 livingroom；生成中文案显示「场景 X · 风格 Y」；相册 AI 照片（ai_generated/generated 且有 scene）带 emoji 场景标签；familyPhotoService.ts 前端常量（类型/标签表/FAMILY_PHOTO_SCENE_GROUPS）、familyService.generateFamilyPhoto(familyId,style,scene?,customScene?)、familyStore.generateAiPhoto 透传+乐观插入带场景、familyTypes PhotoType 补 `ai_generated`（后端真实枚举值）+ FamilyPhoto.scene；`fd-scene-*` 样式沿用橙金暖色语言。
+- **双 Agent 审查**：有条件通过 → 已全部修复：**P1 场景过期闭包**（handleGeneratePhoto 的 ActionSheet 回调捕获旧渲染 selectedScene——改选海边首次生成却是客厅且文案迷惑性显示新场景；用 generateWithStyleRef 最新闭包引用模式修复）；P2 watermark:false 测试断言锁 + route→service scene/customScene 透传集成回归用例（INSERT 参数+prompt 双断言）+ 白名单双向集合相等锁 + **删除零引用 seedreamAdapter.ts**（防止未来复用绕过水印合规）；P3 fetch 加 AbortSignal.timeout(15s) 防挂起 + publicBaseUrl 缺失启动告警 + image2D 测试显式 mock 角标模块。
+- **验证**：服务端 tsc 0 错误 + 全量 975 passed / 65 文件 ✅；前端 tsc 0 + 全量 2388 passed / 0 failed + eslint 改动行 0 新增 + build:weapp 成功 + dist 确认含 fd-scene-picker 与场景 key ✅；graphify 已更新 ✅。改动未提交。
+- **遗留（审查记录在案）**：P2 角标降级时图片完全无标识且库内不可追溯（建议后续加 badge_status 或前端 UI 角标兜底）；形象库 imageUrl 必须 http(s) 而 PUBLIC_BASE_URL 缺失时角标返回相对路径会静默 400（本地/生产 .env 已配置该变量，暂不触发，已有启动告警）；PNG 隐式元数据标识（tEXt AIGC）未做；《办法》第十条隐式标识可后补。
+- **待部署（用户确认后执行）**：①生产 psql 执行迁移 029（遇 owner 问题按规范 sudo -u postgres + ALTER OWNER）②服务器 `npm i jimp@0.22.12` ③上传 assets/ai-badge.png + src/services/imageBadge.ts + schemas/index.ts + routes/familyPhotos.ts + services/{familyPhotoService,image2DService,avatarService}.ts ④PM2 restart xinghuanhai-server ⑤冒烟：health 200 + 日志无 error + 实际生成一张图验证右下角角标与本站 URL ⑥小程序微信开发者工具重新编译体验。
+- **效果预览**：E:\Codex\2026-08-24\xinghuanhai-scene-preview\outputs\christmas-family-badge.png（圣诞之夜+皮克斯风+角标实拍效果）
+
+### 2026-08-24 · 形象定制页场景区简化：「头像/聊天贴纸」移除 → 「形象生成 / 分享形象」
+
+- **需求（用户）**：形象生成页面的「头像」「贴纸」按钮没什么用，删掉，直接改成「形象生成」「分享形象」。
+- **实现（纯前端 2 文件）**：①`pagesPet/avatar-customize/index.tsx`：删除 `handleApplyAvatar`（保存为头像）与 `handleSaveSticker`（聊天贴纸存相册）两个处理函数（grep 确认无其他调用方）；场景区三卡收敛为两卡——「✨ 形象生成」（onClick 切换 showPanel，**同时承担原独立「生成新形象」大按钮的面板开合职责**，文案随状态切换 收起面板/形象生成——原大按钮是面板唯一开关，直接删会导致面板打开后无处收起）+「📤 分享形象」（复用 handleGoShareCard 跳分享卡片页，仅改文案）；删除独立 `.avatar-gen-btn` 大按钮；页头结构注释同步更新；②`index.scss`：`.avatar-scenes` 三列→两列，删除死样式 `.avatar-gen-btn*` 与 `--gold` 图标变体。
+- **验证**：typecheck 0 错误 ✅、全量 2388 passed / 0 failed（135 文件）✅、eslint 改动文件 0 error（余 8 个既有 warning 均在未触碰行；顺带 --fix 修掉 ref-fill 按钮既有 jsx-closing-bracket 格式 error）✅、build:weapp 成功 ✅、dist 确认含 形象生成/分享形象/收起面板 且 聊天贴纸/生成新形象 零残留（产物中文为 Unicode 转义，按转义串校验）✅、graphify 已更新 ✅。改动未提交。
+- **说明**：轻量档任务（2 文件、非核心逻辑、无高风险关键词），按规范未启动双 Agent 审查，以调用点排查 + 全量测试 + 构建产物校验代替；`.scss` 传入 eslint 报 parsing error 为工具误报（项目 lint 不含 scss），非代码问题。
+- **待办（用户侧）**：微信开发者工具重新编译小程序后查看效果。
+
+### 2026-08-24 · 形象生成升级「一套两张」：头像 + 全方位角色设定图（代码完成，待用户确认部署）
+
+- **需求（用户）**：形象生成只出头像不够——要做回忆录和全家福的参考图，需要全身形象；希望一次生成两张：一张头像，另一张是猫咪全方位描绘（正面特写、侧面、顶部、背面）。结构化确认：①不加照片上传位（已有参考图生图）；②文字+照片两条流程都改两张一套；③都进形象库，全家福优先用全方位图；④配额仍算 1 次。
+- **服务端**：①迁移 030：`pet_avatar_library` 加 `view_type TEXT NOT NULL DEFAULT 'headshot'`（历史行自动归头像）、`pet_profiles` 加 `avatar_multiview_url TEXT`；②`avatarService.generatePetImageOptions` 重写为"一套两张"：新增 `buildMultiviewSheetPrompt`（四视图版式指令 左上正面特写/右上侧面全身/左下顶部俯视/右下背面全身 + "四个视图必须是同一只宠物…绝不是四只不同宠物"主体锁定特化话术 + 纯白背景），文字流=指定画风 1 套 2 调用、照片流=`PHOTO_SET_COUNT`=3 套 6 调用（原默认池 5 张）；容错=套内 Promise.all（头像必出、设定图 catch→null）、套间 allSettled，全失败才 null；③`avatarRepository.save` 改专用 UPSERT `ON CONFLICT (pet_id,image_url) DO UPDATE`（重复收藏幂等，修审查发现的"部分失败重试永远 500"循环）；④`/library` 接收 `viewType` 白名单 ['headshot','multiview'] 非法归 headshot 不拒绝；⑤pets 更新链路（schema/pets.ts/petRepository PetRow+allowedFields）支持 `avatar_multiview_url`；⑥全家福 `collectMemberPhotos` 参考图优先级改为 `COALESCE(avatar_photo_url, avatar_multiview_url, avatar_cartoon_url)`（真实照片>设定图>卡通头像）。
+- **前端**：①service：`AvatarStyleOption.sheetUrl?` / `AvatarLibraryItem.viewType`（view_type 缺省兜底 headshot）/ `saveAvatarToLibrary` 第 5 参 viewType / 新增 `setMultiviewAsCurrent`（PUT body 仅 snake_case 单键 `avatar_multiview_url`，不清真实照片）；②页面：文字结果单卡下方固定设定图卡、照片流程改"3 套宫格选 1"+选中套下方预览设定图+📋 角标、存入形象库一次存两条（headshot+multiview）toast 按结果四态、形象库第三行类型筛选（🖼️头像/📋设定图）+类型徽章（点击即筛选）、设为当前按类型分流（multiview→写 avatar_multiview_url 提示"已设为参考图"；headshot→原 cartoon 流程）、文案"生成风格形象（3 套）"；③PetProfile 补 `avatarMultiviewUrl?: string`。
+- **双 Agent 审查：双双有条件通过 → 放行条件已全部当轮修复**。服务端 P1 配额标签按"是否真用参考图"判定（原按 styleKey：无图+非法 key 错扣照片额度/有图+合法 key 记 -text- 绕月限，本次 6 调用放大成本）→ `photoUrl ? '-photo' : '-text-'`+2 条路由测试；P2-1 头像提示词 `PET_IDENTITY_KEEP` 条件化（无参考图不写"以参考照片为准"，金科玉律 #4）；P2-2 设定图画风关键词 `.replace(/头像/g,'形象')`（防与四视图指令打架）+ 有参考图时补一致性话术。前端 P1 toast 四态按 okHead/okSheet 判定（原判定键反了会显示与现实相反的文案）+UPSERT 根治；P2 照片流剩 1 套误入文字单张分支出现死按钮 → 分支条件加 `activeTab==='text'` 且显式传 styleOptions[0]；PetProfile 类型缺口。P3 记录延后：入库表情元数据取控件状态（已顺手修 targetOption 时 expression=null）、multiview 设参考图吞错假成功面（与既有离线兜底模式一致待产品确认）、view_type 无 CHECK、6 路并发 Seedream 无超时、"非品牌即真实"在 multiview 列延续 avatar_source 遗留。
+- **验证**：服务端 tsc 0 + 全量 **983 passed**（975→983，含配额标签/身份锁定/UPSERT 幂等/viewType 白名单/COALESCE 优先级契约锁）；前端 tsc 0 + 全量 **2392 passed** + build:weapp ✅ + dist 确认含 multiview/viewType/sheetUrl；eslint 改动文件仅余既有 2 error（vi.hoisted shadow/import-first，改动前后同位）。graphify 已更新。改动未提交。
+- **待部署（用户确认后执行，⚠️ 迁移 029+030 与场景/水印改动一并上）**：①生产 psql 迁移 029+030（owner 问题按规范 sudo -u postgres + ALTER OWNER）②服务器 npm i jimp@0.22.12 ③上传 assets/ai-badge.png + src/services/{imageBadge,familyPhotoService,avatarService,petPrompt?}.ts + repositories/{avatarRepository,petRepository}.ts + routes/{familyPhotos,avatar,pets}.ts + schemas/index.ts ④PM2 restart xinghuanhai-server ⑤冒烟 health 200+日志无 error+实际生成一套验证两张+角标 ⑥**发版顺序硬性约束：新后端+迁移必须先于/同批于小程序前端发版**（否则 GET 形象库静默变空、POST 存入失败、PUT 设参考图假成功三连）。⑦用户微信开发者工具重新编译体验。
+- **遗留/后续**：回忆录视频管线接入设定图（memoirProcessor 用用户选的 source_photos，本轮不动视频管线；后续把设定图加入可选素材或自动优先）；avatar_source 严格化时把 multiview 来源一并收口；Seedream CDN 临时 URL 长期有效性问题延续。
+
+### 2026-08-24 · 照片生成对齐文生图（15 画风+表情单选）+ 2D/3D 进度卡改一行轻提示
+
+- **需求（用户）**：①删掉照片生成下面的 2D/3D 进度条（经结构化确认选"换成一行轻提示"方案——直接删干净会让付费生成盲等且失败无感知）；②"风格等等都要更新 跟文生图一样"。
+- **实现（前端 3 文件 + 服务端 2 文件 + 测试，基于并行会话"一套两张"最新代码之上）**：
+  - 前端 `avatar-customize/index.tsx`：①2D/3D 两块 `GenerationProgress` 重进度卡替换为 `.avatar-customize__task-hint` 一行轻提示（生成中=⏳ 小字；失败=红字可点重试，复用 handle2DRetry / task3D.retry），组件 import 移除；②照片 Tab 原 cartoon/realistic 两卡选择器整块删除（STYLE_OPTIONS 常量删除），替换为与文字 Tab **完全同一套** GEN_STYLES 15 画风 chips + GEN_EXPRESSIONS 12 表情 chips（含"无"）；③`photoStyle` 放宽 string 默认 'q'、新增 `photoExpression`；`handleGeneratePhotoOptions` 改传 `styleKey+expression`（基调参数固定 'cartoon' legacy 口径）→ 与文生图一致**按所选画风生成 1 套**（头像+全方位设定图，服务端 styleKey 分支），成功 `setSelectedStyleIndex(0)`；按钮文案「生成风格形象（3 套）」→「按所选画风生成形象」，会员引导文案同步；④结果单张分支守卫从 `length===1 && activeTab==='text'` 放宽为 `length===1`——原审查约束防的是"批量剩 1 张无选中态死按钮"，现两条流程单张均显式下标 0 无死按钮；单卡画风/表情标签按 Tab 取值；⑤`AvatarCustomization.style` 类型放宽 string（服务端 avatar_style 本是 z.string() 自由串，历史 cartoon/realistic 兼容共存，grep 证实无消费方做枚举分支）；⑥index.scss 新增 task-hint/--error 样式。
+  - 服务端 `routes/avatar.ts`：新增 `VALID_2D_STYLES` 白名单（VALID_STYLES 两档 + 15 种画风 key）**仅用于 /generate-2d**（legacy /generate 与 generate-options 的基调白名单不动，避免 key 泄进旧中文提示词模板）；`image2DService.ts`：`STYLE_TEXT_2D` 映射表（17 键含兜底）替换原二元三元式，关键词与提示词库 §六同源。
+- **行为变更说明**：照片流从并行会话"一套两张"的默认池 3 套（6 调用）变为指定画风 1 套（2 调用）——AI 成本降 3 倍/次，由用户"跟文生图一样"需求驱动；不传 styleKey 的批量路径服务端保留未动。
+- **验证**：小程序 tsc 0 ✅、eslint 0 error（余 8 既有 warning）✅、全量 **2392 passed** ✅、build:weapp ✅、dist 校验新文案全在（按所选画风生成形象/选择表情/生成中/点击重试/task-hint 样式）旧文案零残留（卡通风格卡/写实风格卡/生成风格形象）✅；服务端 tsc 0 ✅、全量 **986 passed**（983+新增 3：ghibli 映射进提示词/未知画风兜底/legacy realistic 保留）✅；graphify 已更新 ✅。改动未提交。测试首版踩坑：mockFetch.calls[0][1] 是 requestInit 对象不是 body 字符串，JSON.parse 需取 `.body`（已修，18/18 过）。
+- **待部署（并入"一套两张"/场景水印批次一起上，⚠️ 发版顺序硬性约束同前：新后端先于/同批于前端发版）**：上传 routes/avatar.ts + services/image2DService.ts → PM2 restart xinghuanhai-server → 冒烟 health 200；用户侧微信开发者工具重新编译体验（照片 Tab 选画风+表情→生成一套两张）。
