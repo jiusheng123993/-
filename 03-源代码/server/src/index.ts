@@ -42,6 +42,7 @@ import agentRoutes from './routes/agentRouter.js';
 import memoryRoutes from './routes/memory.js';
 import feedbackRoutes from './routes/feedback.js';
 import knowledgeRoutes from './routes/knowledge.js';
+import breedKnowledgeRoutes from './routes/breeds.js';
 import redeemRoutes from './routes/redeem.js';
 import analyticsRoutes from './routes/analytics.js';
 import inviteRoutes from './routes/invites.js';
@@ -143,6 +144,7 @@ app.use('/api/memory', memoryRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api', knowledgeRoutes);
+app.use('/api', breedKnowledgeRoutes);
 app.use('/api', redeemRoutes);
 app.use('/api', inviteRoutes);
 

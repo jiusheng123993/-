@@ -1,6 +1,9 @@
 import Taro from '@tarojs/taro'
 import { CONFIG } from '../config'
-import { storage } from '../utils/storage'
+import { storage, getStorage, setStorage } from '../utils/storage'
+import { api } from './api'
+import { setActiveBreeds } from '../data/petKnowledge/breeds'
+import type { BreedItem } from '../data/petKnowledge/breeds'
 
 export interface BreedRecognizeResult {
   species: 'dog' | 'cat'
@@ -103,4 +106,59 @@ export function matchBreedInData(
   if (containsMatch) return containsMatch.id
 
   return null
+}
+
+// ===== 品种知识库热更新（复刻 knowledgeService.syncKnowledgeGraph 模式） =====
+
+/** 品种库缓存 key（storage 内部带 xhh_ 前缀） */
+const BREED_CACHE_KEY = 'breed_knowledge'
+
+/** 服务端品种库响应（body.data 结构，与 GET /api/breeds/knowledge 返回一致） */
+interface BreedKnowledgeResponse {
+  version: string
+  data: {
+    version: string
+    breeds: BreedItem[]
+  }
+}
+
+/**
+ * 品种库结构最小校验（与服务端 isValidBreedData 同口径）
+ * 防止坏数据切换：空列表/缺关键字段/缺来源标注的条目会导致页面渲染崩溃或来源标注失效。
+ */
+function isValidBreedList(breeds: unknown): breeds is BreedItem[] {
+  if (!Array.isArray(breeds) || breeds.length === 0) return false
+  return breeds.every(
+    (b) =>
+      b &&
+      typeof b.id === 'string' &&
+      typeof b.name === 'string' &&
+      (b.species === 'cat' || b.species === 'dog') &&
+      Array.isArray(b.sources) &&
+      b.sources.length > 0,
+  )
+}
+
+/**
+ * 同步最新品种知识库（热更新，品种百科页/添加宠物面板打开时调用一次，失败不阻塞）
+ * 优先级：网络成功（校验结构）→ 本地缓存 → 静态兜底（不切换，保持打包内 BREED_DATA）
+ * @returns 是否成功切换到服务端/缓存版本（false 表示继续用静态兜底，调用方无需处理）
+ */
+export async function syncBreedKnowledge(): Promise<boolean> {
+  try {
+    const res = await api.get<BreedKnowledgeResponse>('/breeds/knowledge')
+    if (res && res.data && isValidBreedList(res.data.breeds)) {
+      setActiveBreeds(res.data.breeds)
+      setStorage(BREED_CACHE_KEY, res)
+      return true
+    }
+  } catch {
+    // 网络失败：走本地缓存兜底（未登录/弱网场景品种页仍可用旧版本数据）
+  }
+  const cached = getStorage<BreedKnowledgeResponse>(BREED_CACHE_KEY)
+  if (cached && cached.data && isValidBreedList(cached.data.breeds)) {
+    setActiveBreeds(cached.data.breeds)
+    return true
+  }
+  return false
 }
