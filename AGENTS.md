@@ -260,6 +260,14 @@ Rules:
 - **待部署（用户确认后执行，⚠️ 迁移 029+030 与场景/水印改动一并上）**：①生产 psql 迁移 029+030（owner 问题按规范 sudo -u postgres + ALTER OWNER）②服务器 npm i jimp@0.22.12 ③上传 assets/ai-badge.png + src/services/{imageBadge,familyPhotoService,avatarService,petPrompt?}.ts + repositories/{avatarRepository,petRepository}.ts + routes/{familyPhotos,avatar,pets}.ts + schemas/index.ts ④PM2 restart xinghuanhai-server ⑤冒烟 health 200+日志无 error+实际生成一套验证两张+角标 ⑥**发版顺序硬性约束：新后端+迁移必须先于/同批于小程序前端发版**（否则 GET 形象库静默变空、POST 存入失败、PUT 设参考图假成功三连）。⑦用户微信开发者工具重新编译体验。
 - **遗留/后续**：回忆录视频管线接入设定图（memoirProcessor 用用户选的 source_photos，本轮不动视频管线；后续把设定图加入可选素材或自动优先）；avatar_source 严格化时把 multiview 来源一并收口；Seedream CDN 临时 URL 长期有效性问题延续。
 
+### 2026-08-25 · 名字→外貌+方位翻译层（全家福成员排位 + 自定义文本宠物名自动转译）
+
+- **需求（用户）**：用户必然用名字沟通座次/互动（"烧鸡在左边、烧鸭在右边"），但不能把名字给生图模型（金科玉律 #1）——方案=两层翻译，用户用名字说话，系统翻译成"外貌+方位"再进提示词。
+- **第一层 排位**：①服务端 `generateFamilyPhoto` 增 `memberOrder?: string[]`（schema 驼峰 `memberOrder` uuid 数组 max20；**必须在 memberNames/photoUrls 取值之前 sort**，稳定排序未提及者追加）；`buildPrompt` 多只时改写「从左到右依次是：…」+ 有参考图时补「参考照片的顺序与画面从左到右的宠物顺序一一对应」；②FE dashboard 生成卡新增「🪑 排个座次」成员卡（头像+名字+‹›箭头交换顺序，名字只在 UI 显示）+ `fd-order*` 样式；store/service 第4参透传。
+- **第二层 转译**：`petPrompt.translatePetNames(raw, pets)`——已知宠物名替换为「那只英短猫咪」（单只）/「左起第N只{品种}{物种}」（多只，序号=数组顺序即座次）；长名优先替换防子串误伤；空名/>20字跳过；复用 petSubjectText 品种兜底。挂载点三处：全家福 customScene（**入库 description 存用户原文，仅提示词用转译后文本**）、avatar generate-options description、background-swap customBackground（路由层做，单宠流程只译当前宠物名）。
+- **测试坑实录**：①once-mock 按注册顺序消费，INSERT 用 implementationOnce 前不能再排 resolvedValueOnce（会把捕获槽挤到角标 UPDATE 上）；clearAllMocks 不清实现也不清 once 队列，残留会级联污染后续用例（mockResolvedValue(null) 泄漏→503；多余 once→isOwner 读 undefined rows 报错）；②前后端字段名契约：zod 默认剥离未知键，FE 发 snake_case `member_order` 被静默丢弃排序失效——必须驼峰 `memberOrder`，server 测试夹具同步（uuid 校验需真 UUID 格式）。
+- **验证**：服务端 tsc0 + 全量绿（petPrompt 转译 4 例 + buildPrompt 从左到右例 + familyPhotos 集成排位/转译 2 例 + avatar bgswap 转译例）；前端 tsc0 + 全量绿 + build✅ + dist 确认含 memberOrder/fd-order/排个座次；graphify 已更新。改动未提交，并入既有待部署批次（无新增迁移）。
+
 ### 2026-08-24 · 照片生成对齐文生图（15 画风+表情单选）+ 2D/3D 进度卡改一行轻提示
 
 - **需求（用户）**：①删掉照片生成下面的 2D/3D 进度条（经结构化确认选"换成一行轻提示"方案——直接删干净会让付费生成盲等且失败无感知）；②"风格等等都要更新 跟文生图一样"。
@@ -269,3 +277,39 @@ Rules:
 - **行为变更说明**：照片流从并行会话"一套两张"的默认池 3 套（6 调用）变为指定画风 1 套（2 调用）——AI 成本降 3 倍/次，由用户"跟文生图一样"需求驱动；不传 styleKey 的批量路径服务端保留未动。
 - **验证**：小程序 tsc 0 ✅、eslint 0 error（余 8 既有 warning）✅、全量 **2392 passed** ✅、build:weapp ✅、dist 校验新文案全在（按所选画风生成形象/选择表情/生成中/点击重试/task-hint 样式）旧文案零残留（卡通风格卡/写实风格卡/生成风格形象）✅；服务端 tsc 0 ✅、全量 **986 passed**（983+新增 3：ghibli 映射进提示词/未知画风兜底/legacy realistic 保留）✅；graphify 已更新 ✅。改动未提交。测试首版踩坑：mockFetch.calls[0][1] 是 requestInit 对象不是 body 字符串，JSON.parse 需取 `.body`（已修，18/18 过）。
 - **待部署（并入"一套两张"/场景水印批次一起上，⚠️ 发版顺序硬性约束同前：新后端先于/同批于前端发版）**：上传 routes/avatar.ts + services/image2DService.ts → PM2 restart xinghuanhai-server → 冒烟 health 200；用户侧微信开发者工具重新编译体验（照片 Tab 选画风+表情→生成一套两张）。
+
+### 2026-08-24 · 文生图收敛：回归单张头像 + 背景换景 8 选 + 照片 Tab 参考照片小贴士
+
+- **需求演进（用户三轮）**：①"这些（参考照片挑选技巧）需要提示用户"；②"突然觉得文生图好像没太需要这个功能"→ 文字生成没有参考图，四视图设定图全靠想象，作为回忆录/全家福角色参考价值低还翻倍生图成本 → **设定图收敛为照片流程专属，文字生成回归单张头像**；③"文生图能不能做背景更换？"→ 能，纯提示词层实现；④命名讨论：用户提议改叫「背景替换」→ **不建议**（该 Tab 核心是生成新形象，叫背景替换会让用户误以为保留原图只换景，预期落差），如要改名建议「创意生成」；真·背景替换（从形象库选已有形象 img2img 保角色换景）列为后续可做。
+- **服务端**：①`generatePetImageOptions` 设定图调用条件化 `params.photoUrl ? call : null`——文字流 1 次调用、照片流每套仍 2 次；JSDoc 同步；②新增 `AVATAR_BACKGROUND_OPTIONS`（8 种：sky☁️/sakura🌸/grass🌿/christmas🎄/birthday🎂/beach🌊/night🌙/cozy🧶，中文多维描写对齐提示词技能 §场景公式）+ `AVATAR_BACKGROUND_PROMPTS` 映射；提示词尾部 `${bgText || '干净背景'}` 替换式拼接（非法 key 兜底默认）；**设定图不受影响恒纯白**（参考图价值在精确记录外貌，不能被场景污染）；③路由 generate-options 接收 background 白名单透传 + prompt 记录含背景。
+- **前端**：①service `generateAvatarOptions` 第 7 参 background 透传；②文字 Tab 表情下方新增「选择背景（可选）」chips（默认+8 种，复用 gen-chip 样式零新 CSS）；③照片 Tab 上传区下新增 `.avatar-customize__photo-tips` 小贴士卡（自然光/清晰/正面五官/**尽量全身入镜**——设定图侧面背面视角靠它推断/背景干净单只/避免糊片蜷睡强滤镜 + "直接用此照片作头像免费且文字生成全家福受益"引导）；④入库 toast 文案：文字流不再显示"（仅头像）"后缀（本就只有头像，避免困惑）。
+- **测试**：服务端 avatarService 文字流断言改为 1 次调用 sheetUrl=null + 四视图/表情用例补 photoUrl + 新增背景替换与非法 key 兜底 2 例；路由库测 mock 补 `AVATAR_BACKGROUND_PROMPTS` 导出（**教训：给被 mock 模块加新导出时，所有 vi.mock 工厂必须同步**，否则路由引用即 500）+ 背景白名单透传 1 例（X-Forwarded-For 分桶 .12/.13）；前端 service 3 处精确 body 断言补 background 字段 + 新增 sakura 透传例。
+- **验证**：服务端 tsc 0 + 全量 **990 passed**；前端 tsc 0 + 全量测试 0 failed（2394）+ build:weapp ✅ + dist 含背景 key（sakura 命中页面产物）。改动未提交。graphify 已更新。
+- **部署**：并入既有待部署批次（迁移 029+030 + jimp + 多文件上传 + PM2 重启），无新增迁移；发版顺序硬约束不变（新后端先于/同批于小程序前端）。
+
+### 2026-08-24 · 真·背景替换上线（图生图保角色换景，代码完成待部署）
+
+- **需求（用户）**："要真背景替换"——不是文生图换景，而是从已有形象选一张，AI 保持宠物完全不变、只把背景换掉。
+- **服务端**：①`avatarService.generateBackgroundSwap({petId,species,breed,imageUrl,background})`：以用户选定源形象为参考图走 `callSeedream` 图生图（watermark:false+角标复用既有链路）；提示词按技能 §角色锁定=「以这张{品种}的照片为准…毛色/花纹/体型/五官/姿态与参考图完全一致，不改变外貌，不增减数量」+「仅将背景更换为：{AVATAR_BACKGROUND_PROMPTS}」+ 只出现这一只 + 边缘干净自然；非法背景 key 双保险不发请求；②路由 `POST /api/avatar/background-swap`（authMiddleware+generateLimiter）：petId 归属 findByIdAndUser、imageUrl 必须 http(s)、background 白名单否则 400、会员校验 MEMBER_ONLY；配额口径 `style='options-cartoon-text-bgswap'`（单次调用成本同文字流，-text- 不占照片月限）；createGeneration/markCompleted·Failed 全记录。
+- **前端**：①service `backgroundSwap(petId,imageUrl,background)`；②生成面板新增第三 Tab「🌈 换背景」：第一步源形象横滑卡（当前形象 avatarCartoonUrl + 形象库全部条目，选中金框）→ 第二步 GEN_BACKGROUNDS 8 背景 chips → 「开始换背景」按钮（未选源/背景或进行中置灰，文案"换背景中…"）→ 结果卡（预览 + 💾存入形象库 / ✅设为当前形象[复用 saveAvatarCustomization cartoon 流程 styleVariant='bgswap'] + "不满意换个背景再来"提示）；非会员显示专享引导卡；空态引导先生成形象。③形象库归类 `style='bgswap'`：服务端 /library style 白名单追加 'bgswap'、前端 GEN_STYLE_LABELS 加 bgswap:'换背景'（库标签显示用，不进画风 chips 筛选行）。
+- **测试**：服务端 service 用例断言参考图透传/角色锁定话术/仅换景/名字不进 prompt/非法背景不发请求；路由 4 用例（成功透传+bgswap 配额标签+markCompleted、400×2 不触服务、失败 503 markFailed）+ bgswap 入库白名单例；FE service 透传/失败 null 例。教训沿用：被 mock 模块新导出必须同步 vi.mock 工厂（generateBackgroundSwap 已同步）。
+- **验证**：服务端 tsc 0 + 全量测试绿（995 passed）；前端 tsc 0 + 测试全绿 + build:weapp ✅ + dist 确认 background-swap 在 sub-vendors 共享 chunk；graphify 已更新。改动未提交。
+- **部署**：并入既有批次（迁移 029+030 + jimp + 多文件上传含 routes/avatar.ts + services/avatarService.ts + PM2 重启），无新增迁移；发版顺序硬约束不变。
+- **同日补充：自定义背景描述**（用户"背景除了我们提供的之外 还要允许用户自己写提示词 然后我们帮他锁定角色不变"）：①服务端新增导出 `cleanCustomBackground`（对齐全家福 cleanCustomScene 口径：换行/制表符→空格、压缩空白、截断 60、纯空白视同未填）；generateBackgroundSwap 增 `customBackground?` 参数，**自定义优先于预设 key**，两者皆空不发请求；路由接收 customBackground 与预设二选一（均缺省 400'请选择预设背景或填写自定义背景描述'），createGeneration prompt 记录"自定义-{文本}"；角色锁定话术不变（保宠物完全不变仅换景）。②前端换背景 Tab 背景 chips 下新增 ✏️ 自定义 Textarea（maxlength60，placeholder 示例"铺满落叶的秋日森林小径，午后暖阳穿过树叶洒下光斑"+ 提醒不要写宠物名字；非空时提示"优先于上方所选预设"）；按钮可用条件放宽为 (bgSwapBg || bgCustom.trim())；service backgroundSwap 第 4 参 customBackground。③测试：service 自定义清洗/截断/优先级/皆空不发请求例 + 路由 customBackground 透传与双缺省 400 例 + FE 透传例；**截断边界注意**：60 字=前缀+空格+50 个填充字，断言曾差 1 字失败。mock 教训再现：cleanCustomBackground 也必须同步进 vi.mock 工厂。验证：服务端 tsc 0+全量绿、前端 tsc 0+全量绿+build✅+dist 含 customBackground；graphify 已更新。
+
+### 2026-08-25 · 修复"时光足迹里的记忆打不开"（生成条目点击是死胡同）
+
+- **现象（用户）**：时光足迹（`pages/timeline/index.tsx`）里的记忆无法打开。经结构化确认症状=系统生成条目点不开。
+- **根因**：时光线列表混两类条目——①用户手动添加的真实回忆（pet_moments，有 sourceId）→ 点击开详情弹窗 ✓；②档案/打卡生成的条目（生日🎂/加入家庭🏠/体重记录⚖️/日常记录📝/健康预警🚨，无 sourceId）→ `handleEventClick` 只弹「查看：xxx」toast 就没了，而这类条目恰是列表里最多的 → 用户感知"记忆打不开"。这些生成条目本就有完整标题/日期/描述，纯 UX 死胡同非数据缺失。
+- **修复（纯前端 1 文件 1 函数）**：`handleEventClick` 删除 sourceId 分流与 flashback toast 分支，**所有条目统一点开详情弹窗**（弹窗复用既有 `timeline-detail-modal`）；删除按钮仍由 `detailEvent.sourceId` 门控（归属校验在 handleDeleteMoment 内不动）——查看权限与删除权限分离。
+- **验证**：tsc 0 ✅、改动文件 eslint 仅余 5 个既有问题（stash 基线对比证实 2 error+3 warning 均在未触碰的 useEffect 数据加载处）✅、全量 2395 passed ✅、build:weapp ✅、dist 校验旧「查看：」/「回顾…年前」toast 零残留+详情弹窗与删除按钮文案在 ✅、graphify 已更新 ✅。改动未提交。
+- **待办（用户侧）**：微信开发者工具重新编译后，点生日/体重记录等任意条目即可看完整内容；手动添加的回忆照旧可查看+删除。
+
+### 2026-08-25 · 修复"AI 润色 503"（thinking 吃光 token 预算，已提交前部署完成）
+
+- **现象（用户）**：时光足迹添加回忆的 AI 润色按钮报错，Console：`POST /api/timeline/ai-polish 503`。
+- **排查链**：①路由 503 只有两个分支=chat 返回空串或未配置占位串；②生产日志实锤同一用户 02:27:51 成功（1.5s）→ 02:28:18/42 连续两次 503（4s+），无 `[Timeline AiPolish Error]`（排除 500 抛错分支）；③`.env` 有 `AI_API_KEY`（旧组 DeepSeek，模型 deepseek-v4-flash），排除未配置；④生产同参复现：简单输入 3/3 成功，长草稿 6 连发抓到 1 次 `finish=length、tokens=400 打满、reasoning 512 字符`——**deepseek-v4-flash 思考模式默认开启，思考吃光 max_tokens=400 时正文零 token → 空串 → 503**，间歇性由单次思考长度决定。
+- **修复（服务端 2 文件）**：①`routes/timeline.ts` 润色调用加 `thinking: 'disabled'` + max_tokens 400→800（对齐 visionService/feedingAi 等新服务"关闭思考保正文"口径，润色是简单改写不需要推理）；②`__tests__/timeline.test.ts` 新增回归锁用例（断言 chat 必须带 thinking disabled + max_tokens 800）。
+- **验证**：tsc 0 ✅、timeline 20/20 ✅；生产 API 实测 thinking disabled 六连发 reasoning 全 0、finish 全 stop、正文全非空 ✅；全量套件 5 failed 经 stash 基线对比证实均为并行会话"背景替换"工作区既有失败（avatar.library 1 + familyPhotos 4），与本改动无关 ✅。graphify 待更新。
+- **部署（已完成，无数据库迁移，用户确认后执行）**：备份 routes/timeline.ts 到 `/opt/xinghuanhai/src.bak.aipolish-20260825024113` → scp 上传 → PM2 重启 online → 冒烟 health 200、ai-polish 无 token 401 路由存活、重启后日志无 error；部署记录已更新；回滚=恢复 src.bak.aipolish-* 后重启。
+- **遗留建议**：`routes/ai.ts` 4 处、weeklyReportService、memoryService、qualityCheckService 等**老调用点同样没关 thinking**（token 预算 300-800 不等），存在同类间歇性截断/空响应风险，建议下轮统一收口 thinking 口径；PM2 启动日志持续提示"旧 AI_API_KEY 语义，建议迁移 ARK_*"。
