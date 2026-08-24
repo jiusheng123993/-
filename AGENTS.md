@@ -313,3 +313,11 @@ Rules:
 - **验证**：tsc 0 ✅、timeline 20/20 ✅；生产 API 实测 thinking disabled 六连发 reasoning 全 0、finish 全 stop、正文全非空 ✅；全量套件 5 failed 经 stash 基线对比证实均为并行会话"背景替换"工作区既有失败（avatar.library 1 + familyPhotos 4），与本改动无关 ✅。graphify 待更新。
 - **部署（已完成，无数据库迁移，用户确认后执行）**：备份 routes/timeline.ts 到 `/opt/xinghuanhai/src.bak.aipolish-20260825024113` → scp 上传 → PM2 重启 online → 冒烟 health 200、ai-polish 无 token 401 路由存活、重启后日志无 error；部署记录已更新；回滚=恢复 src.bak.aipolish-* 后重启。
 - **遗留建议**：`routes/ai.ts` 4 处、weeklyReportService、memoryService、qualityCheckService 等**老调用点同样没关 thinking**（token 预算 300-800 不等），存在同类间歇性截断/空响应风险，建议下轮统一收口 thinking 口径；PM2 启动日志持续提示"旧 AI_API_KEY 语义，建议迁移 ARK_*"。
+
+### 2026-08-25 · 视觉模型全项目盘点 + 补配 QUALITY_CHECK_API_KEY（视觉能力从"一直降级"到正式激活）
+
+- **用户问题**："我们项目总的一个视觉模型的配置"——盘点发现**生产/本地 .env 均未配置 `QUALITY_CHECK_API_KEY`**，visionService 自上线起永远命中"未配置降级"分支：AI 写描述实际一直返回 503「AI 视觉能力未配置」、照片自动提取外貌静默降级档案描述（此前"提示词草草描述"的隐藏原因之一）、回忆录视频抽帧质检同样降级。
+- **项目视觉模型全景**：①**visionService 统一识图底座**=DeepSeek 官方 `deepseek-v4-flash-vision-exp`（QUALITY_CHECK_* 组，temp 0/max_tokens 500/thinking disabled/30s 超时/禁止回落主 AI key 防跨厂商混配）→ 消费方：AI 写描述、extractPetAppearance 照片提取外貌、healthReportService 体检报告识别；②**百炼多模态 bailianChat**=`BAILIAN_API_KEY` @ dashscope compatible-mode，模型 `BAILIAN_VISION_MODEL`（生产已配）默认 qwen3.6-plus → 消费方：品种识别 /breed-recognize；bailianASR 语音同组；③**qualityCheckService** 回忆录视频抽帧评分直用同一 qualityCheck 组；④相邻非识图：Seedream 生图/Seedance 图生视频的 image_url 输入、Meshy 3D。
+- **处置（用户确认后）**：服务器上从主 AI_API_KEY 复制同值写入 QUALITY_CHECK_API_KEY（同为 DeepSeek 官方账号无混配风险）。**交叉验证法定位首次追加失败**：T1 主key+vision-exp=200（证明账号有该模型权限）、T2 复制key=401 且 source 后 len=0 → od 十六进制查 .env 尾部发现 printf 追加损坏只剩残片。修复=改用 **scp 脚本文件执行**（绕开 ssh 多层引号）：清脏行+tr 剥 CR 引号+三重校验 FILE_LINE_OK/SOURCE_OK(与主 key 同值)/HEALTH=200 全过；真实识图冒烟 http=200 返回图片内容 ✓。
+- **部署记录已更新**；备份 `.env.bak.viskey-*` 两份；回滚=恢复备份后 restart。**教训沉淀：往服务器 .env 追加内容禁止 ssh 内嵌 printf/heredoc，一律 scp 脚本文件执行+source 校验**。
+- **效果**：AI 写描述即刻可用（无需小程序重新编译）；照片自动提取外貌开始真实生效（生图提示词将带上照片里的毛色花纹细节）；体检报告识别激活。
