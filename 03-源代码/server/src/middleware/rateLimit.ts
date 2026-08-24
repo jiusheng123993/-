@@ -44,6 +44,18 @@ export const uploadLimiter = rateLimit({
   },
 });
 
+/** 拍照识别品种：5次/分钟（每次=1 次付费视觉 LLM 调用，且本功能已铺到添加宠物流程，必须有独立限流防滥用） */
+export const aiRecognizeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  keyGenerator,
+  message: {
+    success: false,
+    code: '100003',
+    message: '识别请求过于频繁，请稍后再试',
+  },
+});
+
 /** AI 算力类：5次/分钟（2D/3D形象生成） */
 export const aiGenerateLimiter = rateLimit({
   windowMs: 60 * 1000,

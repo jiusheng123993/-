@@ -29,6 +29,13 @@ describe('petSubjectText 主体描述', () => {
     expect(petSubjectText(undefined, 'cat')).toBe(`一只${PET_BREED_FALLBACK}猫咪`);
   });
 
+  it('「不确定品种」及同类口语词按品种缺失兜底（防文生图把「不确定」当指令）', () => {
+    expect(petSubjectText('不确定品种', 'cat')).toBe(`一只${PET_BREED_FALLBACK}猫咪`);
+    expect(petSubjectText('不确定品种', 'dog')).toBe(`一只${PET_BREED_FALLBACK}狗狗`);
+    expect(petSubjectText('混血', 'cat')).toBe(`一只${PET_BREED_FALLBACK}猫咪`);
+    expect(petSubjectText('土猫串串', 'cat')).toBe(`一只${PET_BREED_FALLBACK}猫咪`);
+  });
+
   it('品种含换行/多余空白时清洗并截断（防污染提示词结构）', () => {
     expect(petSubjectText('英短\n布偶', 'cat')).toBe('一只英短 布偶猫咪');
     expect(petSubjectText('  中华田园  ', 'cat')).toBe('一只中华田园猫咪');

@@ -23,10 +23,23 @@ export async function recognizeBreed(tempFilePath: string): Promise<BreedRecogni
       header: token ? { Authorization: `Bearer ${token}` } : {},
     })
 
-    const data = JSON.parse(res.data) as {
+    // 登录失效/无权限单独提示，避免误导用户以为照片不清晰而反复重拍（每次重拍=1 次付费 AI 调用）
+    if (res.statusCode === 401) {
+      Taro.showToast({ title: '登录已过期，请重新登录后再试', icon: 'none', duration: 2500 })
+      return null
+    }
+
+    let data: {
       success: boolean
       message?: string
       data?: BreedRecognizeResult
+    }
+    try {
+      data = JSON.parse(res.data)
+    } catch {
+      // 非 JSON 响应（网关/代理错误页等），同样不应误导用户重拍
+      Taro.showToast({ title: '识别服务异常，请稍后重试', icon: 'none', duration: 2500 })
+      return null
     }
 
     if (data.success && data.data) {

@@ -22,6 +22,13 @@ export function petSpeciesLabel(species: string): string {
 export const PET_BREED_FALLBACK = '毛茸茸的';
 
 /**
+ * 「不确定品种」标记词：前端 unknown_mix 的展示文案（及同类口语词）。
+ * 这些词对文生图模型是无效噪声甚至指令污染（「不确定」可能被当成指令执行，
+ * 与 2026-08-24「烧鸡」被画成鸡同类风险的低危版），命中时按品种缺失兜底。
+ */
+const UNKNOWN_BREED_MARKERS = ['不确定品种', '混血', '串串'];
+
+/**
  * 单只宠物主体描述：一只英短猫咪 / 一只母英短猫咪 / 一只毛茸茸的猫咪
  * @param breed - 品种，可为空（档案未填）
  * @param species - 物种（dog / cat / 其他）
@@ -31,7 +38,9 @@ export const PET_BREED_FALLBACK = '毛茸茸的';
 export function petSubjectText(breed: string | null | undefined, species: string, genderLabel = ''): string {
   // 品种是用户自由文本：先清洗换行/控制字符再截断，防止污染提示词结构或注入额外指令
   const b = (breed || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, 20);
-  return b
+  // 「不确定品种」等标记命中时按品种缺失兜底，避免「一只不确定品种的猫咪」进入提示词
+  const isUnknownBreed = UNKNOWN_BREED_MARKERS.some((m) => b.includes(m));
+  return b && !isUnknownBreed
     ? `一只${genderLabel}${b}${petSpeciesLabel(species)}`
     : `一只${genderLabel}${PET_BREED_FALLBACK}${petSpeciesLabel(species)}`;
 }

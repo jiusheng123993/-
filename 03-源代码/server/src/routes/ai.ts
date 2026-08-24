@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AI 服务路由 - 对话、安全检测、取名、语音识别、品种识别
  * 集成 DeepSeek 和阿里云百炼 AI 服务
  */
@@ -6,7 +6,7 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { uploadLimiter } from '../middleware/rateLimit.js';
+import { uploadLimiter, aiRecognizeLimiter } from '../middleware/rateLimit.js';
 import { chatMessageSchema } from '../schemas/index.js';
 import { chat, guardCheck, guardCheckOutput, bailianChat, bailianASR } from '../services/aiService.js';
 import { recognizeHealthReport } from '../services/healthReportService.js';
@@ -249,8 +249,9 @@ router.post('/voice', authMiddleware, upload.single('audio'), async (req: Reques
 /**
  * 拍照识别品种接口
  * 接收宠物照片上传，使用 AI 多模态能力识别品种
+ * 安全：aiRecognizeLimiter 限流（每次=1 次付费视觉 LLM 调用，防算力滥用）
  */
-router.post('/breed-recognize', authMiddleware, upload.single('photo'), async (req: Request, res: Response) => {
+router.post('/breed-recognize', authMiddleware, aiRecognizeLimiter, upload.single('photo'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, message: '请上传宠物照片' });

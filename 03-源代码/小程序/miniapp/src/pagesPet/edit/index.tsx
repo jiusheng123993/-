@@ -6,7 +6,7 @@ import { View, Text, Input, Picker, Switch, Textarea, Image } from '@tarojs/comp
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePet } from '../../hooks/usePet'
 import { useAuthStore } from '../../stores/authStore'
-import { BREED_DATA } from '../../data/petKnowledge/breeds'
+import { BREED_DATA, UNKNOWN_BREED_ID, UNKNOWN_BREED_NAME } from '../../data/petKnowledge/breeds'
 import Taro from '@tarojs/taro'
 import { useState, useMemo, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
@@ -115,12 +115,17 @@ export default function EditPet() {
     return BREED_DATA.filter((b) => b.species === formData.species)
   }, [formData.species])
 
+  // 品种选择器选项：真实品种 + 追加「不确定品种」兜底（与添加页一致，保证已存宠物可回改）
   const breedOptions = useMemo(() => {
-    return filteredBreeds.map((b) => ({
+    const options = filteredBreeds.map((b) => ({
       value: b.id,
       label: b.aliases.length > 0 ? `${b.name}（${b.aliases[0]}）` : b.name,
     }))
-  }, [filteredBreeds])
+    if (formData.species) {
+      options.push({ value: UNKNOWN_BREED_ID, label: `${UNKNOWN_BREED_NAME}（混血/串串）` })
+    }
+    return options
+  }, [filteredBreeds, formData.species])
 
   const selectedBreedIndex = useMemo(() => {
     return breedOptions.findIndex((b) => b.value === formData.breedId)
@@ -140,6 +145,15 @@ export default function EditPet() {
 
   const handleBreedChange = (e: { detail: { value: number } }) => {
     const index = e.detail.value
+    // 超出真实品种列表的最后一个选项即「不确定品种」（无品种特征卡）；
+    // 埋点与添加页 handleSelectUnknownBreed 口径一致，便于统计不知道品种的用户占比
+    if (index >= filteredBreeds.length) {
+      trackEvent('select_breed_unknown')
+      updateField('breedId', UNKNOWN_BREED_ID)
+      updateField('breedName', UNKNOWN_BREED_NAME)
+      setSelectedBreed(null)
+      return
+    }
     const breed = filteredBreeds[index]
     if (breed) {
       updateField('breedId', breed.id)

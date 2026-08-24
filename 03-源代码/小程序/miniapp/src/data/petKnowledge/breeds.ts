@@ -29,6 +29,34 @@ export interface BreedItem {
   weightRangeStr: string
 }
 
+/**
+ * 「不确定品种」虚拟条目标识
+ * 用户不知道宠物品种（混血/串串/流浪猫狗/领养）时，表单选择此值。
+ * 刻意不放入 BREED_DATA 数组：避免污染品种知识库统计（品种列表页计数、
+ * breed-detail 详情、趋势页等均遍历 BREED_DATA），仅作为表单特殊值存在；
+ * 后端 breed_id 仅存字符串无外键校验，可安全落库，各消费方（疫苗推荐/头像/饮食/趋势）
+ * 对未匹配品种均有兜底逻辑（见 breedFoodWarnings.getBreedSizeCategory 返回 'unknown' 等）。
+ */
+export const UNKNOWN_BREED_ID = 'unknown_mix'
+
+/** 「不确定品种」落库展示名（宠物档案/喂养指南/聊天上下文等直接展示此文案） */
+export const UNKNOWN_BREED_NAME = '不确定品种'
+
+/** 「不确定品种」搜索命中关键词：搜索框输入这些词时，品种面板顶部固定行仍展示 */
+export const UNKNOWN_BREED_KEYWORDS = ['不确定品种', '不确定', '混血', '串串', '不知道', '流浪', '土狗', '土猫', '田园', '领养', 'mix', 'unknown']
+
+/**
+ * 判断搜索关键词是否命中「不确定品种」固定行
+ * @param keyword 用户输入的搜索词（可为空）
+ * @returns 命中返回 true；空词返回 false（初始态是否展示由调用方决定）
+ */
+export function isUnknownBreedKeyword(keyword: string): boolean {
+  const kw = keyword.trim().toLowerCase()
+  if (!kw) return false
+  // 双向包含匹配：输入「不」→ 命中「不确定」；输入「串」→ 命中「串串」；输入「mix」→ 命中「mix」
+  return UNKNOWN_BREED_KEYWORDS.some((k) => k.toLowerCase().includes(kw) || kw.includes(k.toLowerCase()))
+}
+
 export const BREED_DATA: BreedItem[] = [
   {
     id: 'golden_retriever',
