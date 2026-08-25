@@ -105,6 +105,15 @@ export default defineAppConfig({
       ],
     },
   ],
+  // 分包预下载：WiFi 环境进入首页后空闲预拉分包，缩短首次进入分包页的路由耗时
+  // （连点触发 routeDone 竞态的根因级缓解；选 wifi 不消耗用户蜂窝流量）。
+  // ⚠️ 微信硬限制：单条 preloadRule 预载包合计 ≤ 2MB（上传校验报错码 80058）。
+  // 实测 dist 体积：pagesPet 1911KB + pagesUser 873KB 合计经微信计重 ≈2931KB 超限，
+  // 故本规则仅保留 pagesUser（873KB 余量充足）；pagesPet 待后续瘦身
+  //（如 preset 图片外移/压缩）后再追加预载，切勿直接加回以免再次卡上传。
+  preloadRule: {
+    'pages/index/index': { network: 'wifi', packages: ['pagesUser'] },
+  },
   // 开启"组件按需注入"：微信代码质量检查要求主包启用 lazyCodeLoading，
   // 否则上传时该项"未通过"。开启后页面组件按需加载，也能顺带减小首包体积。
   lazyCodeLoading: 'requiredComponents',
