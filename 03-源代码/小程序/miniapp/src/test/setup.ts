@@ -54,6 +54,8 @@ vi.mock('@tarojs/taro', () => ({
     removeStorageSync: vi.fn(),
     getStorageInfoSync: vi.fn(() => ({ keys: [] })),
     chooseImage: vi.fn(),
+    // chooseImage 自基础库 2.21.0 废弃后的替代接口（utils/privacy 与 platform/media 已迁移）
+    chooseMedia: vi.fn(),
     uploadFile: vi.fn(),
     getSystemInfoSync: vi.fn(() => ({ windowWidth: 375, windowHeight: 667 })),
     setClipboardData: vi.fn(),

@@ -1,6 +1,6 @@
 /**
  * 平台适配器 - 图片/文件模块
- * 小程序用 Taro.chooseImage/previewImage/uploadFile
+ * 小程序用 Taro.chooseMedia/previewImage/uploadFile
  * App/H5 用 HTML input / fetch
  */
 import Taro from '@tarojs/taro'
@@ -26,16 +26,18 @@ export async function chooseImage(params: {
   sourceType?: ImageSourceType[]
 }): Promise<ChooseImageResult[]> {
   if (isWeapp()) {
+    // chooseImage 自基础库 2.21.0 停止维护、新基础库上实质失效，统一切 chooseMedia
     const res = await new Promise<any>((resolve, reject) => {
-      Taro.chooseImage({
+      Taro.chooseMedia({
         count: params.count || 1,
+        mediaType: ['image'],
         sourceType: params.sourceType || ['album', 'camera'],
         success: resolve,
         fail: reject,
       })
     })
     return (res.tempFiles || []).map((f: any) => ({
-      tempFilePath: f.path || f.tempFilePath,
+      tempFilePath: f.tempFilePath || f.path,
       size: f.size || 0,
     }))
   }

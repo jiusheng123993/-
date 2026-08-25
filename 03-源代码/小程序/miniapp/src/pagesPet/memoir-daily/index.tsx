@@ -283,14 +283,15 @@ export default function MemoirDaily() {
       return
     }
 
-    Taro.chooseImage({
+    // chooseImage 已随基础库 2.21.0+ 废弃（新基础库上点击无反应），改用替代接口 chooseMedia
+    Taro.chooseMedia({
       count: remain,
+      mediaType: ['image'],
       sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
       success: (res) => {
-        const newPhotos = res.tempFilePaths.map((path, i) => ({
-          path,
-          size: res.tempFiles[i]?.size || 0,
+        const newPhotos = res.tempFiles.map((f) => ({
+          path: f.tempFilePath,
+          size: f.size || 0,
         }))
         setPhotos(prev => [...prev, ...newPhotos].slice(0, 3))
       },

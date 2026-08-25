@@ -1,8 +1,9 @@
 /**
  * chooseImageWithPrivacy 单元测试
  *
- * 覆盖场景（对应 privacy.ts 的失败反馈约定）：
- * - 正常选图：直接返回 chooseImage 结果，不弹任何提示
+ * 覆盖场景（对应 privacy.ts 的失败反馈约定 + chooseMedia 迁移契约）：
+ * - 正常选图：内部调 chooseMedia（chooseImage 已随基础库 2.21.0+ 废弃），
+ *   返回结构适配回 chooseImage 形状（tempFilePaths / tempFiles[].path）
  * - 用户主动取消：静默失败（不弹提示）
  * - errno 112（后台未声明隐私接口）：弹 modal 提示开发者
  * - 用户拒绝隐私授权：toast 提示需要同意隐私指引
@@ -12,9 +13,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Taro from '@tarojs/taro'
 import { chooseImageWithPrivacy } from '../privacy'
 
-// setup.ts 已全局 mock @tarojs/taro（chooseImage/showToast/showModal 均为 vi.fn()），
+// setup.ts 已全局 mock @tarojs/taro（chooseMedia/showToast/showModal 均为 vi.fn()，
+// getEnv → 'WEAPP' 故 isWeapp() 为 true，走微信端 chooseMedia 分支），
 // 这里直接通过 vi.mocked 注入各场景行为
-const mockChooseImage = vi.mocked(Taro.chooseImage)
+const mockChooseMedia = vi.mocked(Taro.chooseMedia)
 const mockShowToast = vi.mocked(Taro.showToast)
 const mockShowModal = vi.mocked(Taro.showModal)
 
@@ -24,20 +26,34 @@ describe('chooseImageWithPrivacy', () => {
     vi.clearAllMocks()
   })
 
-  it('正常：已授权用户直接选择照片并返回结果，不弹任何提示', async () => {
-    // 微信在用户已同意隐私协议时不会拦截 chooseImage，直接返回临时文件
-    const res = { tempFilePaths: ['wxfile://tmp_abc.jpg'], tempFiles: [] as any[] }
-    mockChooseImage.mockResolvedValue(res as any)
+  it('正常：已授权用户选图，内部走 chooseMedia 并把结果适配回 chooseImage 形状', async () => {
+    // chooseMedia 真实返回形状：tempFiles[].tempFilePath（无顶层 tempFilePaths）
+    mockChooseMedia.mockResolvedValue({
+      tempFiles: [
+        { tempFilePath: 'wxfile://tmp_abc.jpg', size: 12345 },
+        { tempFilePath: 'wxfile://tmp_def.jpg', size: 678 },
+      ],
+    } as any)
 
-    await expect(chooseImageWithPrivacy({ count: 1, sizeType: ['compressed'] })).resolves.toBe(res)
-    expect(mockChooseImage).toHaveBeenCalledWith({ count: 1, sizeType: ['compressed'] })
+    const res = await chooseImageWithPrivacy({ count: 2, sizeType: ['compressed'] })
+
+    // 适配层必须产出调用方依赖的 chooseImage 契约字段
+    expect(res.tempFilePaths).toEqual(['wxfile://tmp_abc.jpg', 'wxfile://tmp_def.jpg'])
+    expect(res.tempFiles).toEqual([
+      { path: 'wxfile://tmp_abc.jpg', size: 12345 },
+      { path: 'wxfile://tmp_def.jpg', size: 678 },
+    ])
+    // 底层必须已是替代接口且锁定图片类型（防回退到废弃 API）
+    expect(mockChooseMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ count: 2, mediaType: ['image'], sourceType: ['album', 'camera'] }),
+    )
     expect(mockShowToast).not.toHaveBeenCalled()
     expect(mockShowModal).not.toHaveBeenCalled()
   })
 
   it('用户主动取消：静默失败，不弹提示（正常交互）', async () => {
-    const err = { errMsg: 'chooseImage:fail cancel' }
-    mockChooseImage.mockRejectedValue(err)
+    const err = { errMsg: 'chooseMedia:fail cancel' }
+    mockChooseMedia.mockRejectedValue(err)
 
     await expect(chooseImageWithPrivacy({ count: 1 })).rejects.toBe(err)
     expect(mockShowToast).not.toHaveBeenCalled()
@@ -45,8 +61,8 @@ describe('chooseImageWithPrivacy', () => {
   })
 
   it('errno 112（后台未声明隐私接口）：弹 modal 提示开发者处理', async () => {
-    const err = { errno: 112, errMsg: 'chooseImage:fail api scope is not declared in the privacy agreement' }
-    mockChooseImage.mockRejectedValue(err)
+    const err = { errno: 112, errMsg: 'chooseMedia:fail api scope is not declared in the privacy agreement' }
+    mockChooseMedia.mockRejectedValue(err)
 
     await expect(chooseImageWithPrivacy({ count: 1 })).rejects.toBe(err)
     expect(mockShowModal).toHaveBeenCalledWith(expect.objectContaining({ title: '功能不可用' }))
@@ -54,8 +70,8 @@ describe('chooseImageWithPrivacy', () => {
   })
 
   it('用户拒绝隐私授权：toast 提示需要同意隐私指引', async () => {
-    const err = { errMsg: 'chooseImage:fail privacy permission is not authorized' }
-    mockChooseImage.mockRejectedValue(err)
+    const err = { errMsg: 'chooseMedia:fail privacy permission is not authorized' }
+    mockChooseMedia.mockRejectedValue(err)
 
     await expect(chooseImageWithPrivacy({ count: 1 })).rejects.toBe(err)
     expect(mockShowToast).toHaveBeenCalledWith(
@@ -65,8 +81,8 @@ describe('chooseImageWithPrivacy', () => {
   })
 
   it('其他失败（如系统相册权限被禁）：toast 提示选择照片失败，不静默', async () => {
-    const err = { errMsg: 'chooseImage:fail system error' }
-    mockChooseImage.mockRejectedValue(err)
+    const err = { errMsg: 'chooseMedia:fail system error' }
+    mockChooseMedia.mockRejectedValue(err)
 
     await expect(chooseImageWithPrivacy({ count: 1 })).rejects.toBe(err)
     expect(mockShowToast).toHaveBeenCalledWith(expect.objectContaining({ title: '选择照片失败，请重试' }))
@@ -76,7 +92,7 @@ describe('chooseImageWithPrivacy', () => {
   it('边界：错误对象缺失 errMsg 时按其他失败处理（toast）', async () => {
     // 极低概率：Taro 抛出的错误对象结构异常，仍应给出反馈而非静默
     const err = { someUnknownField: true }
-    mockChooseImage.mockRejectedValue(err)
+    mockChooseMedia.mockRejectedValue(err)
 
     await expect(chooseImageWithPrivacy({ count: 1 })).rejects.toBe(err)
     expect(mockShowToast).toHaveBeenCalledWith(expect.objectContaining({ title: '选择照片失败，请重试' }))
