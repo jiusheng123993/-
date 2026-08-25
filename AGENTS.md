@@ -350,3 +350,11 @@ Rules:
 - **双 Agent 审查结论（2026-08-25 补记）**：**双双放行（P0/P1=0）→ 加固项全部当轮落地**。服务端 4×P2 已修：getLatestBreeds catch 补 console.error；saveBreeds 并发版本竞争注释标注已知限制（saveGraph 同构）；isValidBreedData 补长度/规模约束（id/name≤50、来源元素≤100、条目≤300、id 重复拒绝）；跨日版本递增（昨日.5→今日.1）与"服务端覆写 version/updatedAt"契约锁测试补齐。前端有条件放行 → 条件全完成：**P1-1 双端校验缺口闭合**——isValidBreedList 与 isValidBreedData 同口径补 `aliases` 数组 + `weightRange.min/max` 数值校验（checkin/edit/add 直接调数组方法、趋势页直接取数值，坏库穿透会 TypeError 白屏；防线从 4 字段闭合到"渲染必需字段"粒度，各补拒绝用例）；P2-1 add 页刷新信号（本轮自查先行修复 breedDataVersion，与审查发现殊途同归）；P2-2 setStorage 独立 try/catch（缓存配额满不再吞掉已成功的切换返回 false）。P3 记录延后：breed-detail 服务端新增品种无空态、edit/trends/checkin 不自触发同步（冷启动用静态库）、?version= 协商省流量、多账号缓存隔离、vaccineService.test breeds mock 无效防御可删。
 - **待部署（用户确认后）**：①生产 psql 执行迁移 031（owner 问题按规范 sudo -u postgres + ALTER OWNER xinghuanhai）②上传 server/src/{data/breedSeed.json,repositories/breedRepository.ts,routes/breeds.ts,schemas/index.ts,index.ts} → PM2 restart xinghuanhai-server ③冒烟：curl /api/breeds/knowledge 应返回 version+110 条（空表自动播种）④小程序微信开发者工具重新编译，进品种百科页看 Console 无报错即热更新生效。
 - **遗留建议**：管理后台 /admin 尚无品种库修订 UI（可先 curl PUT /api/admin/breeds 带 x-admin-token 修订，PUT 会版本递增+结构校验兜底）；sources 为一般参考粒度非逐字段溯源，后续逐条精修走 saveBreeds 发新版即可体现热更新价值；edit 页 Picker 与 add 页搜索面板交互不一致（既有遗留延续）。
+
+### 2026-08-25 · 全端选图失效修复：chooseImage 已废弃，全量迁移 chooseMedia
+
+- **现象**：用户报"个人资料自定义头像传不了 + 所有传照片都传不了、点击无反应"（模拟器+体验版一致、Console 无业务输出）。
+- **定位过程**：静态排查代码链路全部健康（privacy.ts 失败分支全有提示/app.js 被动授权注册/WechatProfile 原生组件事件绑定正确）→ 请用户在模拟器 Console 直接执行 `wx.chooseImage({count:1,...})` 决定性实验 → 底层 API 本身失败（errorReport 栈、不弹窗）→ 用户环境基础库 **3.16.2** → 官方文档实锤：**wx.chooseImage 自基础库 2.21.0 起停止维护，新基础库上实质失效**。
+- **修复（commit 92f48dc）**：①`utils/privacy.ts` 微信端内部改调 `Taro.chooseMedia`（mediaType 锁 image），返回结构适配回 chooseImage 契约（`tempFiles[].tempFilePath` → `tempFilePaths`/`tempFiles[].path` + errMsg:'chooseImage:ok'），8 个调用方零改动；②`platform/media.ts` weapp 分支同步迁移；③memoir-vlog/memoir-daily 两处直调点迁移（tempFilePaths→tempFiles.map）；④setup.ts 补 chooseMedia mock + privacy.test.ts 6 用例重写为 chooseMedia 契约（含形状适配断言与"锁定 mediaType:['image']"防回退断言）。errno 112/取消/拒绝隐私分支对 chooseMedia 天然兼容（errMsg 同构）。
+- **验证**：tsc 0 ✅、全量 2407 passed / 44 skipped ✅、build:weapp EXIT=0 ✅、dist 确认含 chooseMedia ✅。
+- **⚠️ 教训沉淀**：①微信会静默回收旧 API——"以前好的现在坏了"+多入口同时挂+底层直调失败=优先怀疑基础库变更，让用户跑一行原生 API 调用是最快分叉手段；②选图类需求新代码一律用 chooseMedia；③chooseAvatar(open-type) 是独立原生能力不受影响，勿混淆。
