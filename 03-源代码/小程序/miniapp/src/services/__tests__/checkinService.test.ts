@@ -4,6 +4,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { AnomalyItem } from '../../memory-body/types/memoryBodyTypes'
 
+import { api as _api } from '../api'
+import {
+  createCheckin,
+  batchCreateCheckins,
+  getTodayCheckin,
+  getCheckinStats,
+  getCheckinsByDateRange,
+  getCheckins,
+  getLatestCheckin,
+} from '../checkinService'
+import type { PetHealthEntry } from '../checkinService'
+
 const mockStorage: Record<string, string> = {}
 
 vi.mock('../../utils/storage', () => ({
@@ -37,19 +49,7 @@ vi.mock('../../utils/petOwnership', () => ({
   requirePetOwnership: vi.fn(),
   isPetOwnerLocal: vi.fn(() => true),
 }))
-
-import { api as _api } from '../api'
 const api = _api as any
-import {
-  createCheckin,
-  batchCreateCheckins,
-  getTodayCheckin,
-  getCheckinStats,
-  getCheckinsByDateRange,
-  getCheckins,
-  getLatestCheckin,
-} from '../checkinService'
-import type { PetHealthEntry } from '../checkinService'
 
 const today = new Date().toISOString().split('T')[0]
 const userId = 'user-001'
@@ -106,7 +106,8 @@ describe('checkinService', () => {
       expect(result.createdAt).toBeDefined()
       expect(api.post).toHaveBeenCalledWith(
         '/api/pets/pet-001/checkins',
-        expect.objectContaining({ poop_level: 3, risk_level: 'medium' })
+        // 全正常档位（便3/食3/神3）应为 low：3="正常"不是轻度异常（历史 caution 语义颠倒已修复）
+        expect.objectContaining({ poop_level: 3, risk_level: 'low' })
       )
     })
 
@@ -182,7 +183,7 @@ describe('checkinService', () => {
       const result = await createCheckin(mockEntry)
 
       expect(result.petId).toBe('pet-001')
-      expect(result.riskLevel).toBe('medium')
+      expect(result.riskLevel).toBe('low')
       expect(result.id).toBeDefined()
     })
   })

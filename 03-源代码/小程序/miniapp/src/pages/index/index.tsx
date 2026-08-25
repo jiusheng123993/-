@@ -7,7 +7,6 @@ import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useState } from 'react'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { useChatCore } from '../../hooks/useChatCore'
-import { useCheckinFlow } from '../../hooks/useCheckinFlow'
 import { useSymptomFlow } from '../../hooks/useSymptomFlow'
 import { useNamingFlow } from '../../hooks/useNamingFlow'
 import { useFoodFlow } from '../../hooks/useFoodFlow'
@@ -20,6 +19,7 @@ import { getTodayCheckin } from '../../services/checkinService'
 import type { CardData, Message, NamingDetail, PetInfo } from '../../types/chatTypes'
 import type { PetHealthEntry } from '../../memory-body/types/memoryBodyTypes'
 import HomeSkeleton from '../../components/HomeSkeleton'
+import CheckinPopup from '../../components/CheckinPopup'
 import AiAvatar from './AiAvatar'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
@@ -122,8 +122,10 @@ export default function Index() {
   const { agentToolStatus } = chat
 
   // 加载今日健康打卡数据（用于健康摘要卡）
-  useEffect(() => {
-    const activePet = petInfo.activePet
+  // 抽成 refreshTodayHealth：打卡弹窗完成后也需要手动刷新一次
+  // activePet 提升到回调外，依赖对象引用（eslint exhaustive-deps 口径）
+  const activePet = petInfo.activePet
+  const refreshTodayHealth = useCallback(() => {
     if (!activePet || !user?.id) {
       setTodayHealth(null)
       return
@@ -131,11 +133,14 @@ export default function Index() {
     getTodayCheckin(activePet.id, user.id)
       .then(entry => setTodayHealth(entry))
       .catch(() => setTodayHealth(null))
-  }, [petInfo.activePet?.id, user?.id])
+  }, [activePet, user?.id])
+
+  useEffect(() => {
+    refreshTodayHealth()
+  }, [refreshTodayHealth])
 
   // 慢性病风险角标：读取缓存的风险扫描结果（慢性病页进入时自动扫描并写缓存）
   useEffect(() => {
-    const activePet = petInfo.activePet
     if (!activePet) {
       setChronicRiskCount(0)
       return
@@ -144,14 +149,22 @@ export default function Index() {
     // 仅统计需要关注的信号（warning/alert），info 级不打扰
     const count = cached ? cached.signals.filter(s => s.level !== 'info').length : 0
     setChronicRiskCount(count)
-  }, [petInfo.activePet?.id])
+  }, [activePet])
 
-  const checkin = useCheckinFlow({
-    addAiMsg: chat.addAiMsg,
-    addUserMsg: chat.addUserMsg,
-    addMessage: chat.addMessage,
-    petInfo,
-  })
+  // 健康打卡改为弹窗卡片交互：全流程在卡内完成，聊天流只在打卡完成后追加一条结果消息
+  const [checkinOpen, setCheckinOpen] = useState(false)
+  /** 所有打卡入口统一走这里（快捷按钮/+面板/摘要卡/CTA/Agent 工具动作） */
+  const openCheckin = useCallback(() => setCheckinOpen(true), [])
+
+  /** 打卡完成回调：往聊天流追加一条结果卡消息 + 刷新顶部今日健康摘要 */
+  const handleCheckinComplete = useCallback((payload: {
+    type: 'ai'
+    content: string
+    card?: CardData
+  }) => {
+    chat.addMessage(payload)
+    refreshTodayHealth()
+  }, [chat, refreshTodayHealth])
 
   const symptom = useSymptomFlow({
     addAiMsg: chat.addAiMsg,
@@ -198,14 +211,7 @@ export default function Index() {
         return
       }
 
-      // 如果在打卡流程中，将语音转文字结果作为打卡答案处理
-      const flowType = getCurrentFlowType()
-      if (flowType === 'checkin' && checkin.checkinStep >= -2) {
-        const matched = checkin.handleCheckinAnswer(text)
-        if (matched) return
-      }
-
-      // 如果不在打卡流程中或匹配失败，将语音内容作为文本消息发送
+      // 打卡已改为弹窗卡片交互，语音不再承担打卡答题入口；转写结果直接作为消息发送
       setInputValue(text)
       // 使用 setTimeout 确保 setInputValue 已生效
       setTimeout(() => {
@@ -217,7 +223,7 @@ export default function Index() {
     } finally {
       setIsVoiceProcessing(false)
     }
-  }, [checkin, chat, setInputValue])
+  }, [chat, setInputValue])
 
   const voice = useVoiceInput({
     onRecordComplete: handleVoiceComplete,
@@ -234,7 +240,7 @@ export default function Index() {
       namingTextActive: naming.isTextInputActive,
       handleNamingText: naming.handleNamingText,
       startNaming: naming.startNaming,
-      startCheckin: checkin.startCheckin,
+      startCheckin: openCheckin,
       startMemory: memory.startMemoryRecord,
       startSymptom: symptom.startSymptom,
       startFoodQuery: food.handleFoodQuery,
@@ -243,7 +249,7 @@ export default function Index() {
       onToolAction: (action: string) => {
         switch (action) {
           case 'naming_flow': naming.startNaming(); break
-          case 'checkin_flow': checkin.startCheckin(); break
+          case 'checkin_flow': openCheckin(); break
           case 'memory_flow': memory.startMemoryRecord(); break
           case 'symptom_flow': symptom.startSymptom(); break
         }
@@ -292,7 +298,7 @@ export default function Index() {
 
   const handleQuickAction = (action: string) => {
     setShowGreetingQuickActions(false)
-    if (action === 'checkin') checkin.startCheckin()
+    if (action === 'checkin') openCheckin()
     else if (action === 'food') food.handleFoodQuery()
     else if (action === 'symptom') symptom.startSymptom()
     else if (action === 'naming') naming.startNaming()
@@ -307,17 +313,6 @@ export default function Index() {
     const suggestions = suggestQuickActions(text)
     setCurrentQuickActions(suggestions)
 
-    // 打卡流程激活时，优先把输入的文字当作打卡答案处理（与语音输入行为一致），
-    // 避免输入宠物名/选项时误发给 Agent，导致请求被 400 拦截而出现空白回复
-    const flowType = getCurrentFlowType()
-    if (flowType === 'checkin') {
-      const handled = checkin.handleCheckinAnswer(text)
-      if (handled) {
-        setInputValue('')
-        return
-      }
-    }
-
     // 调用原始 handleSend
     chat.handleSend()
   }
@@ -327,7 +322,7 @@ export default function Index() {
     switch (index) {
       case 0: chat.handleImageSend(['camera']); break
       case 1: chat.handleImageSend(['album']); break
-      case 2: checkin.startCheckin(); break
+      case 2: openCheckin(); break
       case 3: naming.startNaming(); break
       case 4: memory.startMemoryRecord(); break
       case 5: Taro.navigateTo({ url: '/pagesPet/breed/index' }); break
@@ -335,10 +330,8 @@ export default function Index() {
     }
   }
 
-  const getCurrentFlowType = (): 'checkin' | 'symptom' | 'naming' | null => {
-    // checkinStep === -2 是多宠选择的"为谁打卡"步骤，
-    // 也必须识别为打卡流程，否则该步骤的选项按钮点击会被忽略
-    if (checkin.checkinStep !== -1) return 'checkin'
+  const getCurrentFlowType = (): 'symptom' | 'naming' | null => {
+    // 打卡已改为弹窗卡片，不再占用聊天输入流；此处只识别症状/取名两个聊天内流程
     if (symptom.symptomStep >= 0) return 'symptom'
     if (naming.namingStep >= 0) return 'naming'
     return null
@@ -346,8 +339,7 @@ export default function Index() {
 
   const handleOptionClick = (option: string) => {
     const flowType = getCurrentFlowType()
-    if (flowType === 'checkin') checkin.handleCheckinAnswer(option)
-    else if (flowType === 'symptom') symptom.handleSymptomAnswer(option)
+    if (flowType === 'symptom') symptom.handleSymptomAnswer(option)
     else if (flowType === 'naming') naming.handleNamingAnswer(option)
   }
 
@@ -705,7 +697,7 @@ export default function Index() {
         <View className='chat-msg-list__inner'>
 
         {/* ===== 今日健康摘要卡（设计稿对齐） ===== */}
-        <View className='home-summary-card' onClick={() => checkin.startCheckin()}>
+        <View className='home-summary-card' onClick={openCheckin}>
           <View className='home-summary-main'>
             <View className='home-summary-avatar'>
               {/* 头像与全局一致：真实照片/AI 形象优先，没有才回退物种 emoji */}
@@ -751,7 +743,7 @@ export default function Index() {
         </View>
 
         {/* ===== 3秒健康打卡主按钮（设计稿对齐） ===== */}
-        <View className='home-checkin-cta' onClick={() => checkin.startCheckin()} hoverClass='home-checkin-cta--hover'>
+        <View className='home-checkin-cta' onClick={openCheckin} hoverClass='home-checkin-cta--hover'>
           <View className='home-checkin-cta-left'>
             <View className='home-checkin-cta-icon'>
               <Text>🐾</Text>
@@ -772,7 +764,7 @@ export default function Index() {
             <View className='msg-bubble'>
               <Text>你好呀～我是团团，你的 AI 宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
             </View>
-            {showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
+            {showGreetingQuickActions && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
                 {currentQuickActions.map(qa => (
                   <View key={qa.action} className='msg-quick-btn' onClick={() => handleQuickAction(qa.action)}>
@@ -810,7 +802,7 @@ export default function Index() {
 
               {msg.card && renderCard(msg.card)}
 
-              {idx === chat.messages.length - 1 && msg.type === 'ai' && showGreetingQuickActions && checkin.checkinStep < 0 && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
+              {idx === chat.messages.length - 1 && msg.type === 'ai' && showGreetingQuickActions && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
                 <View className='msg-quick-actions'>
                   {currentQuickActions.map(qa => (
                     <View key={qa.action} className='msg-quick-btn' onClick={() => handleQuickAction(qa.action)}>
@@ -1077,6 +1069,13 @@ export default function Index() {
         </View>
         </>
       )}
+
+      {/* 健康打卡弹窗卡片：全流程在卡内完成，完成后聊天流只追加一条结果消息 */}
+      <CheckinPopup
+        open={checkinOpen}
+        onClose={() => setCheckinOpen(false)}
+        onComplete={handleCheckinComplete}
+      />
 
       {/* 命理详情悬浮弹窗 */}
       {naming.namingDetailPopup && (

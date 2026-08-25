@@ -1,7 +1,9 @@
 /** 首页页面单元测试 */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render } from '@testing-library/react'
+import { render, fireEvent } from '@testing-library/react'
 import { createElement } from 'react'
+// 被测组件正常置于顶部导入；vi.mock 由 vitest 自动提升到文件最前，mock 生效不受影响
+import Index from '../index'
 
 // ============================================================
 // calcAge — 纯函数（从源码复制，用于测试私有函数）
@@ -130,14 +132,6 @@ vi.mock('../../../hooks/useChatCore', () => ({
   }),
 }))
 
-vi.mock('../../../hooks/useCheckinFlow', () => ({
-  useCheckinFlow: () => ({
-    checkinStep: -1,
-    startCheckin: vi.fn(),
-    handleCheckinAnswer: vi.fn(),
-  }),
-}))
-
 vi.mock('../../../hooks/useSymptomFlow', () => ({
   useSymptomFlow: () => ({
     symptomStep: -1,
@@ -184,6 +178,12 @@ vi.mock('../../../components/HomeSkeleton', () => ({
   default: () => createElement('div', { 'data-testid': 'home-skeleton' }, '加载中...'),
 }))
 
+// 打卡弹窗 mock：只验证首页的"开/关"接线，卡内流程由 CheckinPopup 自己的测试覆盖
+vi.mock('../../../components/CheckinPopup', () => ({
+  default: ({ open }: { open: boolean }) =>
+    open ? createElement('div', { 'data-testid': 'checkin-popup' }, '打卡弹窗') : null,
+}))
+
 vi.mock('../../../utils/suggestQuickActions', () => ({
   suggestQuickActions: () => [
     { action: 'checkin', label: '打卡', emoji: '💩' },
@@ -193,11 +193,6 @@ vi.mock('../../../utils/suggestQuickActions', () => ({
 }))
 
 vi.mock('../index.scss', () => ({}))
-
-// ============================================================
-// 动态导入被测组件
-// ============================================================
-import Index from '../index'
 
 // ============================================================
 // 测试套件
@@ -440,5 +435,52 @@ describe('Index page — render states', () => {
 
     addBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(mockNavigateTo).toHaveBeenCalledWith({ url: '/pagesPet/add/index' })
+  })
+})
+
+describe('Index page — 打卡弹窗卡片交互', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    petStoreState.currentPet = mockPet
+    petStoreState.pets = [mockPet]
+    petStoreState.isLoading = false
+  })
+
+  it('默认不渲染打卡弹窗', () => {
+    const { container } = render(createElement(Index))
+
+    expect(container.querySelector('[data-testid="checkin-popup"]')).toBeFalsy()
+  })
+
+  it('点击快捷操作「健康打卡」打开弹窗卡片（不再往聊天流塞逐条消息）', () => {
+    const { container } = render(createElement(Index))
+
+    const btn = Array.from(container.querySelectorAll('.msg-quick-btn')).find(
+      el => el.textContent?.includes('健康打卡')
+    )
+    expect(btn).toBeTruthy()
+
+    fireEvent.click(btn!)
+    expect(container.querySelector('[data-testid="checkin-popup"]')).toBeTruthy()
+  })
+
+  it('点击「3秒健康打卡」主按钮打开弹窗卡片', () => {
+    const { container } = render(createElement(Index))
+
+    const cta = container.querySelector('.home-checkin-cta')
+    expect(cta).toBeTruthy()
+
+    fireEvent.click(cta!)
+    expect(container.querySelector('[data-testid="checkin-popup"]')).toBeTruthy()
+  })
+
+  it('点击今日健康摘要卡打开弹窗卡片', () => {
+    const { container } = render(createElement(Index))
+
+    const card = container.querySelector('.home-summary-card')
+    expect(card).toBeTruthy()
+
+    fireEvent.click(card!)
+    expect(container.querySelector('[data-testid="checkin-popup"]')).toBeTruthy()
   })
 })

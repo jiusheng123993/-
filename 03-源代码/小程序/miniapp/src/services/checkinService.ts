@@ -8,8 +8,9 @@ import { getStorage, setStorage } from '../utils/storage';
 import { queueSync } from './syncHelper';
 import { requirePetOwnership } from '../utils/petOwnership';
 import type { PetHealthEntry, HealthRiskLevel, AnomalyItem } from '../memory-body/types/memoryBodyTypes';
-export type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes';
 import { HealthIndexAdapter } from '../memory-body/adapters/healthIndexAdapter';
+
+export type { PetHealthEntry, HealthRiskLevel } from '../memory-body/types/memoryBodyTypes';
 
 /** 健康打卡统计 */
 export interface HealthCheckinStats {
@@ -83,7 +84,8 @@ function calculateRiskLevel(entry: CheckinInput): HealthRiskLevel {
   else if (entry.appetiteLevel === 5 && entry.spiritLevel <= 2) legacy = 'warning';
   else if (entry.appetiteLevel === 5) legacy = 'caution';
   else if (entry.hasAnomaly) legacy = 'caution';
-  else if (entry.appetiteLevel === 3 || entry.spiritLevel === 3) legacy = 'caution';
+  // 注意：3 = "正常"档，不能判为 caution（历史语义颠倒曾导致全勾正常也报"轻度异常"，
+  // 与报告文案"状态满分"自相矛盾并污染趋势 dominantRiskLevel）——其余情况兜底为 normal
 
   return mapRiskLevel(legacy);
 }
