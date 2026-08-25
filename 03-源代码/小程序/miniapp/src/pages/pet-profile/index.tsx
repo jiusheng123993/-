@@ -12,6 +12,7 @@ import { useFamilyStore } from '../../stores/familyStore'
 import PageLoading from '../../components/PageLoading'
 import PetAvatar from '../../components/PetAvatar'
 import { useThemeClass } from '../../hooks/useThemeClass'
+import { redirectToLoginIfNeeded } from '../../utils/authGuard'
 import { getPetFacts, type PetFact } from '../../services/petService'
 import { getCheckinStats, getCheckinsByDateRange, getLatestCheckin } from '../../services/checkinService'
 import { getVaccineRecords } from '../../services/vaccineService'
@@ -95,11 +96,8 @@ export default function PetProfile() {
   useEffect(() => {
     if (!isInitialized) return
     if (!isAuthenticated || !user) {
-      const pages = Taro.getCurrentPages()
-      const currentPage = pages[pages.length - 1]
-      if (currentPage && currentPage.route !== 'pagesUser/login/index') {
-        Taro.reLaunch({ url: '/pagesUser/login/index' })
-      }
+      // 未登录统一走收口守卫：已是登录页时不再 reLaunch（避免路由竞态报 routeDone not found）
+      redirectToLoginIfNeeded()
       return
     }
     const loadData = async () => {

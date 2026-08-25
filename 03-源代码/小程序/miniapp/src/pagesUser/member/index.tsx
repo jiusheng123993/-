@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useMembershipStore } from '../../stores/membershipStore'
 import { api } from '../../services/api'
+import { redirectToLoginIfNeeded } from '../../utils/authGuard'
 import PageLoading from '../../components/PageLoading'
 import './index.scss'
 
@@ -122,7 +123,9 @@ export default function Member() {
   useEffect(() => {
     if (!isInitialized) return
     if (!isAuthenticated || !user) {
-      Taro.reLaunch({ url: '/pagesUser/login/index' })
+      // 未登录统一走收口守卫（原实现缺少 currentPage 判空：登录页挂载中再次 reLaunch 会触发
+      // "routeDone with a webviewId not found" 路由竞态噪音，这里一并收敛）
+      redirectToLoginIfNeeded()
       return
     }
     const loadData = async () => {

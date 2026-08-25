@@ -9,6 +9,8 @@ vi.mock('@tarojs/taro', () => ({
     getStorageSync: vi.fn(),
     removeStorageSync: vi.fn(),
     navigateTo: vi.fn(),
+    getCurrentPages: vi.fn(),
+    reLaunch: vi.fn(),
   },
 }))
 
@@ -27,11 +29,13 @@ vi.mock('../../config', () => ({
 }))
 
 import Taro from '@tarojs/taro'
-import { getAuthenticatedUserId, requireAuth, requireAuthAsync, isAuthenticated, AuthenticationError } from '../authGuard'
+import { getAuthenticatedUserId, requireAuth, requireAuthAsync, isAuthenticated, redirectToLoginIfNeeded, AuthenticationError } from '../authGuard'
 
 const mockGetStorageSync = Taro.getStorageSync as ReturnType<typeof vi.fn>
 const mockRemoveStorageSync = Taro.removeStorageSync as ReturnType<typeof vi.fn>
 const mockNavigateTo = Taro.navigateTo as ReturnType<typeof vi.fn>
+const mockGetCurrentPages = Taro.getCurrentPages as ReturnType<typeof vi.fn>
+const mockReLaunch = Taro.reLaunch as ReturnType<typeof vi.fn>
 
 const SK = {
   TOKEN: 'xhh_token',
@@ -152,6 +156,38 @@ describe('authGuard', () => {
       const result = requireAuth()
       expect(result.userId).toBe('user-789')
       expect(result.token).toBe('valid-token')
+    })
+  })
+
+  describe('redirectToLoginIfNeeded', () => {
+    it('should reLaunch to login when current page is not the login page', () => {
+      mockGetCurrentPages.mockReturnValue([{ route: 'pages/index/index', options: {} }])
+      expect(redirectToLoginIfNeeded()).toBe(true)
+      expect(mockReLaunch).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
+    })
+
+    it('should NOT reLaunch when already on the login page (avoid routing race)', () => {
+      mockGetCurrentPages.mockReturnValue([{ route: 'pagesUser/login/index', options: {} }])
+      expect(redirectToLoginIfNeeded()).toBe(false)
+      expect(mockReLaunch).not.toHaveBeenCalled()
+    })
+
+    it('should NOT reLaunch when page stack is empty (same as legacy guard behavior)', () => {
+      mockGetCurrentPages.mockReturnValue([])
+      expect(redirectToLoginIfNeeded()).toBe(false)
+      expect(mockReLaunch).not.toHaveBeenCalled()
+    })
+
+    it('should support a custom loginUrl with leading slash', () => {
+      mockGetCurrentPages.mockReturnValue([{ route: 'pages/index/index', options: {} }])
+      expect(redirectToLoginIfNeeded('/pagesUser/login/index')).toBe(true)
+      expect(mockReLaunch).toHaveBeenCalledWith({ url: '/pagesUser/login/index' })
+    })
+
+    it('should skip reLaunch when current route matches custom loginUrl (leading slash normalized)', () => {
+      mockGetCurrentPages.mockReturnValue([{ route: 'pagesUser/login/index', options: {} }])
+      expect(redirectToLoginIfNeeded('/pagesUser/login/index')).toBe(false)
+      expect(mockReLaunch).not.toHaveBeenCalled()
     })
   })
 

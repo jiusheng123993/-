@@ -18,6 +18,7 @@ import type { PetHealthEntry } from '../../services/checkinService'
 import { usePolling } from '../../hooks/usePolling'
 import { calculateHealthScore } from './utils'
 import FamilyPetAvatar from './FamilyPetAvatar'
+import { redirectToLoginIfNeeded } from '../../utils/authGuard'
 import './index.scss'
 
 /** 食欲等级文案（1-6） */
@@ -112,11 +113,8 @@ export default function FamilyPage() {
   useEffect(() => {
     if (!isInitialized) return
     if (!isAuthenticated || !user) {
-      const pages = Taro.getCurrentPages()
-      const currentPage = pages[pages.length - 1]
-      if (currentPage && currentPage.route !== 'pagesUser/login/index') {
-        Taro.reLaunch({ url: '/pagesUser/login/index' })
-      }
+      // 未登录统一走收口守卫：已是登录页时不再 reLaunch（避免路由竞态报 routeDone not found）
+      redirectToLoginIfNeeded()
       return
     }
     const loadData = async () => {
