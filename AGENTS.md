@@ -391,3 +391,11 @@ Rules:
 - **处置（零触碰并行会话工作区）**：①`git worktree add E:\temp-xhh-clean-build 724ddc1` 干净提交快照；②junction 链接主仓库 node_modules 免重装；③补齐 untracked 必需文件 `src/utils/routeGuard.ts`（app.js 依赖、未提交）；④快照内 build → 校验（含 requirePrivacyAuthorize ✓ / 无 CheckinPopup ✓ / 首页无半成品引用 ✓）→ 回填主仓库 dist；⑤摘 junction → worktree remove 清场，主 node_modules 完好。
 - **验证链**：node --check dist/app.js=0、common.js 含官方授权代码、pages/** 无 CheckinPopup 字符串。用户重新编译即可回到可用状态（隐私官方弹窗方案仍在）。
 - **⚠️ 流程教训沉淀**：①**共享活跃仓库 build 前，git status 里未跟踪+已修改文件必须过目**——build 会把任何人的半成品带进产物，此前"操作前复核"规范没覆盖 build 场景，现补上；②多会话共用仓库时，需要"只含已提交代码"的产物一律走 worktree 干净构建（勿 stash——会冻结并行会话的工作区）；③esbuild 对"导入了不存在的具名绑定"不报错只产 undefined，tsc 错误（当时有 TS2322/TS2304）被并行会话标注为"它的半成品"而忽略——**build 门禁不能只看自己的文件**。
+
+### 2026-08-25 · 形象定制页移除「文字生图」与「换背景」（用户裁决）
+
+- **需求（用户原话）**："形象生成里面的文字生图和换背景都删掉吧 都没啥用 形象里面没背景"——两个功能使用率低且形象（头像/设定图）本身不需要背景。
+- **实现（纯前端 4 文件）**：①`avatar-customize/index.tsx`：删 Tab 切换栏与 activeTab 状态、文字面板全量（描述输入/参考提示词模板/画风表情背景选择器/配额行）、换背景面板全量（源形象横滑选卡/预设+自定义背景/结果区）、GEN_BACKGROUNDS 与 GEN_STYLE_ATMOS 常量、textQuotaText/canGenerate/genCount/generatedUrl 等 10 个状态量、handleTextGenerate/handleBackgroundSwap/handleSaveBgResult/handleUseBgResult 四个 handler；照片面板去掉条件包装直出；handleSaveToLibrary 入库画风改取候选自身元数据（顺手消除 genStyle 错标隐患）；GEN_STYLE_LABELS.bgswap 标签保留（形象库历史条目中文显示兼容）；②`services/avatarService.ts`：generateAvatarOptions 去 description/background 参数（服务端仍兼容但前端不再发）、删 backgroundSwap 函数；③scss 删五段死样式（__ref*/__desc*/__tabs/__tab*/bgsrc/bgres）；④测试：删 backgroundSwap×2 与描述/背景透传×3 用例，重写为新签名断言（30 用例全过）。
+- **验证**：tsc 0 ✅、全量 137 文件 passed / 0 failed（EXIT=0）✅、eslint 改动文件 2 error 均既有（vi.hoisted shadow/import-first）✅、build:weapp 成功 ✅、dist 校验：删除文案零残留、照片生成等保留功能在产物 ✅。graphify 已更新。已提交 `refactor(形象)` 分支 develop。
+- **边界说明**：服务端 generate-options 的 styleKey/expression/description/background 参数与 POST /background-swap 端点保留未动（刚部署过生产，避免再动后端；前端无入口即不可达）——后续统一清理时一并下线并同步删除 AVATAR_BACKGROUND_PROMPTS/cleanCustomBackground/generateBackgroundSwap 及其测试。
+- **待办（用户侧）**：微信开发者工具重新编译小程序查看效果。
