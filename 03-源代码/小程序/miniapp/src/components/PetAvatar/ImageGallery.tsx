@@ -13,6 +13,8 @@ interface ImageGalleryProps {
   onGenerate3D?: () => void
   isGenerating3D?: boolean
   canGenerate3D?: boolean
+  /** 是否展示「生成 3D 模型」入口：按《功能分级与竞品分析-2026-08-22》决定上线首版关闭 3D，默认隐藏，恢复时传 true */
+  show3DEntry?: boolean
 }
 
 type TabType = 'expression' | 'action'
@@ -23,6 +25,7 @@ export default function ImageGallery({
   onGenerate3D,
   isGenerating3D = false,
   canGenerate3D = true,
+  show3DEntry = false,
 }: ImageGalleryProps) {
   const [activeTab, setActiveTab] = useState<TabType>('expression')
   const [selectedAngle, setSelectedAngle] = useState<AvatarAngle>(AVATAR_ANGLES[0].key)
@@ -127,14 +130,17 @@ export default function ImageGallery({
           <View className='image-gallery__btn' onClick={() => onSaveAsAvatar?.(currentImage)}>
             <Text className='image-gallery__btn-text'>保存为头像</Text>
           </View>
-          <View
-            className={`image-gallery__btn image-gallery__btn--3d ${isGenerating3D || !canGenerate3D ? 'image-gallery__btn--disabled' : ''}`}
-            onClick={handle3DClick}
-          >
-            <Text className='image-gallery__btn-text'>
-              {isGenerating3D ? '生成中...' : canGenerate3D ? '生成 3D 模型' : '会员专享'}
-            </Text>
-          </View>
+          {/* 3D 入口按 2026-08-22 决定默认隐藏（show3DEntry=false），恢复时父组件传 true 即可 */}
+          {show3DEntry && (
+            <View
+              className={`image-gallery__btn image-gallery__btn--3d ${isGenerating3D || !canGenerate3D ? 'image-gallery__btn--disabled' : ''}`}
+              onClick={handle3DClick}
+            >
+              <Text className='image-gallery__btn-text'>
+                {isGenerating3D ? '生成中...' : canGenerate3D ? '生成 3D 模型' : '会员专享'}
+              </Text>
+            </View>
+          )}
         </View>
       )}
     </View>

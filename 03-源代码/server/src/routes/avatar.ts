@@ -56,7 +56,9 @@ const FREE_2D_MONTHLY_LIMIT = 1;
 // 会员每月可生成的"照片专属多风格头像"次数
 const MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT = 3;
 // 会员每月可生成的 3D 模型数量
-const MEMBER_3D_MONTHLY_LIMIT = 3;
+// 3D 模型月配额：按《功能分级与竞品分析-2026-08-22》决定，上线首版关闭 3D（需求未验证 + Meshy ~1-3 元/个烧钱）。
+// 关闭机制 = 配额归零（原决定二选一：feature flag 或配额归零）；需求验证后恢复只需改回 3 并放开前端 ImageGallery 入口。
+const MEMBER_3D_MONTHLY_LIMIT = 0;
 // 允许的风格白名单
 const VALID_STYLES = ['cartoon', 'realistic'] as const;
 type AvatarStyle = (typeof VALID_STYLES)[number];
@@ -722,10 +724,14 @@ router.post('/generate-3d', authMiddleware, generateLimiter, async (req: Request
 
     const used3DCount = await countMonthlyTasks(userId, '3d');
     if (used3DCount >= MEMBER_3D_MONTHLY_LIMIT) {
+      // 配额归零（功能关闭）与正常用尽的文案区分：归零时提示"暂未开放"而非"已用完"
+      const closedByConfig = MEMBER_3D_MONTHLY_LIMIT === 0;
       res.status(403).json({
         success: false,
-        message: `本月 3D 生成次数已用完（${MEMBER_3D_MONTHLY_LIMIT} 次/月），请下月再试`,
-        code: 'QUOTA_EXCEEDED',
+        message: closedByConfig
+          ? '3D 模型功能暂未开放，敬请期待'
+          : `本月 3D 生成次数已用完（${MEMBER_3D_MONTHLY_LIMIT} 次/月），请下月再试`,
+        code: closedByConfig ? 'FEATURE_DISABLED' : 'QUOTA_EXCEEDED',
       });
       return;
     }
