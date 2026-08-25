@@ -375,6 +375,7 @@ Rules:
 - **测试**：新增 `CheckinPopup.test.tsx` 11 用例（渲染/映射落库/异常标记/高风险警示/失败 toast/多宠选宠/一键批量默认指标/已打卡不重复提交/关闭确认×2）+ 首页测试 mock 弹窗并断言三入口打开。
 - **验证**：tsc 0 ✅、全量 **2426 passed / 44 skipped** ✅、eslint 改动文件 0 问题 ✅、build:weapp ✅、dist 确认 ckp-* 类名 ✅、graphify 已更新 ✅。改动未提交。
 - **待办（用户侧）**：微信开发者工具重新编译体验；行为变化=打卡期间语音输入不再承担答题入口（弹窗内点选完成）。
+- **双 Agent 审查（已闭环，第2轮复核通过 P0/P1=0）**：第1轮 P1×2+P2×5 → ①P1-1 提交守卫：未答完点提交不再静默按中性默认值落库（污染健康数据），toast「还有 N 项未选」拦截；②P1-2 **checkinService.calculateRiskLevel 历史语义颠倒修复**：删「appetite/spirit=3(正常档)→caution」分支——打卡真落库后每天全勾正常也会被判"轻度异常"并写进趋势，全正常档改判 low（测试断言 medium→low 同步）；③P2-1 顺手修：结果卡 handleClose 先 setResultPayload(null) 再回调防双击重发；组件测试增至 **14 用例**；全量回归 **2436 passed / 0 failed**、graphify ✅。遗留延后：P2-2 单宠同日重复提交云端非幂等（建议 getTodayCheckin 前置）、P2-3 五项选项口径双源（CheckinPopup vs pagesPet/checkin，建议抽共享常量）、P2-5 批量串行 await 不可关、备注C checkinService.ts:84 既有死分支 appetite===5&&spirit<=2 待顺手删。
 
 ### 2026-08-25 · 隐私授权终版方案：官方 requirePrivacyAuthorize 弹窗（第三轮收敛）
 
@@ -382,3 +383,11 @@ Rules:
 - **终版方案（commit aa5281e+本轮）**：**主动模式**——`utils/privacy.ts` 的 chooseImageWithPrivacy 在调 chooseMedia 前先 `wx.requirePrivacyAuthorize`：由**基础库弹出官方标准半屏授权弹窗**（完全不依赖自绘 UI），同意一次永久放行；拒绝时 fail errMsg 含 privacy → 现有 toast 分支兜底。app.js 同步移除 onNeedPrivacyAuthorization 注册、getPrivacySetting 主动弹窗与 PrivacyPopup 挂载（官方规定主动/被动必须二选一，混用即 8-24 冲突教训）；memoir-vlog/daily 直调点收编进统一入口。PrivacyPopup 组件文件保留未挂载。
 - **验证**：tsc 0 ✅、全量 2436 passed ✅、build EXIT=0、requirePrivacyAuthorize 编译进 dist/common.js（共享 chunk）、app.js 无被动监听残留 ✅。
 - **⚠️ 教训沉淀**：①「官方 API 有标准 UI 就不要自绘」——授权类交互优先平台原生弹窗，少一层自绘渲染链路少一类故障；②二选一机制必须彻底删掉另一侧代码而非仅注释；③用户端验证链 getPrivacySetting(needAuthorization)→点接口看官方弹窗是否出现，两步即可切分"配置问题/前端问题"。
+
+### 2026-08-25 · "连登录页都进不去"事故：并行会话半成品混入 dist（已修复）
+
+- **现象**：隐私修复（725fee0 官方 requirePrivacyAuthorize 弹窗方案）build 后用户实测「连登录页面都进不去」+ 报错 `t is not a function`。
+- **根因【不是隐私改动】**：并行会话正在做打卡流程大重构——`?? CheckinPopup/` 未跟踪半成品组件 + `pages/index/index.tsx` 新增 `import CheckinPopup`（首页=启动页）+ 删除 `useCheckinFlow.ts`。我 21:12 的 build 把这些工作区半成品一起编译进 dist；CheckinPopup 引用 `checkinService.CheckinInput`（类型尚未在服务中导出，esbuild 把值导入保留为 undefined 绑定）→ **首页模块加载即崩 → 全 App 白屏**。
+- **处置（零触碰并行会话工作区）**：①`git worktree add E:\temp-xhh-clean-build 724ddc1` 干净提交快照；②junction 链接主仓库 node_modules 免重装；③补齐 untracked 必需文件 `src/utils/routeGuard.ts`（app.js 依赖、未提交）；④快照内 build → 校验（含 requirePrivacyAuthorize ✓ / 无 CheckinPopup ✓ / 首页无半成品引用 ✓）→ 回填主仓库 dist；⑤摘 junction → worktree remove 清场，主 node_modules 完好。
+- **验证链**：node --check dist/app.js=0、common.js 含官方授权代码、pages/** 无 CheckinPopup 字符串。用户重新编译即可回到可用状态（隐私官方弹窗方案仍在）。
+- **⚠️ 流程教训沉淀**：①**共享活跃仓库 build 前，git status 里未跟踪+已修改文件必须过目**——build 会把任何人的半成品带进产物，此前"操作前复核"规范没覆盖 build 场景，现补上；②多会话共用仓库时，需要"只含已提交代码"的产物一律走 worktree 干净构建（勿 stash——会冻结并行会话的工作区）；③esbuild 对"导入了不存在的具名绑定"不报错只产 undefined，tsc 错误（当时有 TS2322/TS2304）被并行会话标注为"它的半成品"而忽略——**build 门禁不能只看自己的文件**。
