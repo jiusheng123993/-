@@ -358,3 +358,11 @@ Rules:
 - **修复（commit 92f48dc）**：①`utils/privacy.ts` 微信端内部改调 `Taro.chooseMedia`（mediaType 锁 image），返回结构适配回 chooseImage 契约（`tempFiles[].tempFilePath` → `tempFilePaths`/`tempFiles[].path` + errMsg:'chooseImage:ok'），8 个调用方零改动；②`platform/media.ts` weapp 分支同步迁移；③memoir-vlog/memoir-daily 两处直调点迁移（tempFilePaths→tempFiles.map）；④setup.ts 补 chooseMedia mock + privacy.test.ts 6 用例重写为 chooseMedia 契约（含形状适配断言与"锁定 mediaType:['image']"防回退断言）。errno 112/取消/拒绝隐私分支对 chooseMedia 天然兼容（errMsg 同构）。
 - **验证**：tsc 0 ✅、全量 2407 passed / 44 skipped ✅、build:weapp EXIT=0 ✅、dist 确认含 chooseMedia ✅。
 - **⚠️ 教训沉淀**：①微信会静默回收旧 API——"以前好的现在坏了"+多入口同时挂+底层直调失败=优先怀疑基础库变更，让用户跑一行原生 API 调用是最快分叉手段；②选图类需求新代码一律用 chooseMedia；③chooseAvatar(open-type) 是独立原生能力不受影响，勿混淆。
+
+### 2026-08-25 · 全端选图失效真根因：Taro 未转发 onNeedPrivacyAuthorization 致隐私接口集体挂起
+
+- **接续排查**：chooseMedia 迁移（92f48dc）后用户反馈仍全端无反应（连登录页头像都点不动、零反馈）→ 推翻单 API 废弃假设，转向"所有隐私接口同时挂"的公共层。
+- **真根因**：`@tarojs/taro@3.6.40` 封装层【未转发】`onNeedPrivacyAuthorization`（node_modules dist 实证无此 API）→ app.js 的 `typeof Taro.onNeedPrivacyAuthorization === 'function'` 恒 false → **被动授权监听从未注册成功**。此前一直正常是因为用户已同意旧版隐私协议、接口直接放行；**用户在 mp.weixin.qq.com 补声明剪贴板权限时《用户隐私保护指引》更新 → 协议版本变化重置全体用户同意状态** → 此后每次调用隐私接口（选图/剪贴板/头像昵称）微信都在等开发者弹窗，而监听不存在 → **接口永久挂起=点击零反馈无报错**。完美解释：所有选图入口同挂+复制邀请码 errno 112 同期出现+模拟器体验版一致+Console 无业务输出。
+- **修复（commit 待填）**：①app.js 改用原生 `wx.onNeedPrivacyAuthorization`（保留 Taro fallback 与 typeof 防御，不支持时 console.warn 不再静默）；②PrivacyPopup 同意按钮补 `id='agree'` 与 resolve({buttonId:'agree'}) 对齐（官方按 id 关联放行按钮）。
+- **验证**：tsc 0（CheckinPopup 报错为并行会话未跟踪半成品，stash 对照证实非本次引入）；全量 2416 passed ✅；build EXIT=0；dist/app.js 确认含 wx.onNeedPrivacyAuthorization 注册与 open-type 透传 ✅。
+- **⚠️ 教训沉淀**：①「多入口同时挂+底层直调失败+零报错」三联征=隐私授权挂起的典型指纹，先查 wx.getPrivacySetting({success:console.log}) 的 needAuthorization 与监听注册链路；②凡用 Taro 封装的较新 wx API 必须验证 node_modules 里真实存在（typeof 防御会静默跳过，反而掩盖问题），关键平台能力优先直接用全局 wx；③后台隐私指引每次更新都会重置用户同意状态——发版前改指引需评估存量用户首次调用隐私接口的授权引导。
