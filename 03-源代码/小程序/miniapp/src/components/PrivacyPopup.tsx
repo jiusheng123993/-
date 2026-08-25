@@ -49,9 +49,11 @@ export default function PrivacyPopup({ visible, onAgree, onReject }: PrivacyPopu
           。如你同意，请点击"同意"开始使用。
         </Text>
         <View className='privacy-popup__actions'>
-          {/* 同意按钮：必须用 openType="agreePrivacyAuthorization" 才能完成微信隐私授权 */}
+          {/* 同意按钮：必须用 openType="agreePrivacyAuthorization" 才能完成微信隐私授权；
+              id 与 app.js resolve({buttonId:'agree'}) 对齐（官方按 id 关联放行的按钮） */}
           {isWeapp() ? (
             <Button
+              id='agree'
               className='privacy-popup__btn privacy-popup__btn--agree'
               openType='agreePrivacyAuthorization'
               onAgreePrivacyAuthorization={() => {

@@ -59,11 +59,21 @@ export default function App({ children }) {
       // 必须用 openType="agreePrivacyAuthorization" 的 Button 弹窗让用户同意，
       // 完成后 resolve({ buttonId, event: 'agree' }) 才会放行隐私接口。
       // 若用普通 showModal 的「同意」按钮，微信不会视为完成隐私授权 → errno 112。
-      if (isWeapp() && typeof Taro.onNeedPrivacyAuthorization === 'function') {
-        Taro.onNeedPrivacyAuthorization((resolve) => {
+      // ⚠️ 必须优先用原生 wx.onNeedPrivacyAuthorization：@tarojs/taro@3.6.x 封装层
+      // 【未转发】该 API（typeof Taro.onNeedPrivacyAuthorization === 'function' 恒为
+      // false），若只走 Taro 会导致监听【静默不注册】——后台《用户隐私保护指引》
+      // 一旦更新（如补声明权限）重置全体用户同意状态，所有隐私接口调用都会挂起
+      // 等待开发者弹窗，表现为「点击选图/复制等无任何反应」（2026-08-25 全端选图失效根因）。
+      const privacyRegistrar =
+        (typeof wx !== 'undefined' && typeof wx.onNeedPrivacyAuthorization === 'function' && wx) ||
+        (typeof Taro.onNeedPrivacyAuthorization === 'function' ? Taro : null)
+      if (isWeapp() && privacyRegistrar) {
+        privacyRegistrar.onNeedPrivacyAuthorization((resolve) => {
           privacyResolveRef.current = resolve
           setPrivacyVisible(true)
         })
+      } else if (isWeapp()) {
+        console.warn('[App] 当前环境不支持 onNeedPrivacyAuthorization，隐私接口可能被挂起')
       }
 
       // 记录启动参数携带的邀请码，登录成功后由 authStore 消费建立推荐关系（邀请裂变）
