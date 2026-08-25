@@ -76,6 +76,27 @@ export default function App({ children }) {
         console.warn('[App] 当前环境不支持 onNeedPrivacyAuthorization，隐私接口可能被挂起')
       }
 
+      // 主动检查：启动时若用户尚未同意《用户隐私保护指引》（后台指引更新会重置
+      // 全体用户同意状态），不等用户撞隐私接口才被动弹窗——直接弹出授权引导，
+      // 同步解决渲染层组件降级问题（errno 104：昵称输入组件未授权时静默降级）。
+      // 此场景无挂起中的 API，resolve 为 null，同意按钮的 openType 本身即完成授权。
+      if (
+        isWeapp() &&
+        typeof wx !== 'undefined' &&
+        typeof wx.getPrivacySetting === 'function'
+      ) {
+        wx.getPrivacySetting({
+          success: (res) => {
+            if (res && res.needAuthorization) {
+              setPrivacyVisible(true)
+            }
+          },
+          fail: () => {
+            // 查询失败（低版本基础库等）：保持被动监听兜底，不打扰启动
+          },
+        })
+      }
+
       // 记录启动参数携带的邀请码，登录成功后由 authStore 消费建立推荐关系（邀请裂变）
       try {
         const launchOptions = Taro.getLaunchOptionsSync()
