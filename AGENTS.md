@@ -366,3 +366,19 @@ Rules:
 - **修复（commit 待填）**：①app.js 改用原生 `wx.onNeedPrivacyAuthorization`（保留 Taro fallback 与 typeof 防御，不支持时 console.warn 不再静默）；②PrivacyPopup 同意按钮补 `id='agree'` 与 resolve({buttonId:'agree'}) 对齐（官方按 id 关联放行按钮）。
 - **验证**：tsc 0（CheckinPopup 报错为并行会话未跟踪半成品，stash 对照证实非本次引入）；全量 2416 passed ✅；build EXIT=0；dist/app.js 确认含 wx.onNeedPrivacyAuthorization 注册与 open-type 透传 ✅。
 - **⚠️ 教训沉淀**：①「多入口同时挂+底层直调失败+零报错」三联征=隐私授权挂起的典型指纹，先查 wx.getPrivacySetting({success:console.log}) 的 needAuthorization 与监听注册链路；②凡用 Taro 封装的较新 wx API 必须验证 node_modules 里真实存在（typeof 防御会静默跳过，反而掩盖问题），关键平台能力优先直接用全局 wx；③后台隐私指引每次更新都会重置用户同意状态——发版前改指引需评估存量用户首次调用隐私接口的授权引导。
+
+### 2026-08-25 · AI 页健康打卡改弹窗卡片（聊天不再被打卡消息撑长）
+
+- **需求**：用户反馈宠物打卡在 AI 页一条条弹、聊天非常长，要做成弹窗卡片在卡内打卡。
+- **根因 + 隐藏 bug**：旧流程（已删 `hooks/useCheckinFlow.ts`）逐条问答一次注入约 12 条消息；且逐项打卡从未调 `createCheckin` 落库，报告卡是假数据（仅多宠一键打卡落库）——本次一并修复。
+- **实现**：①新建 `components/CheckinPopup` 居中弹窗卡片（与本页命理详情弹窗同视觉语言）：多宠先选宠（保留一键全部正常 batchCreateCheckins）→ 卡内一屏 5 项选项 chips（还剩 N 项提示）→ 完成打卡真实落库 → 卡内结果视图（星级+分项+服务端 aiFeedback 按风险分级配色）；②完成后聊天只追加一条 checkin_result 结果卡消息 + 刷新顶部今日摘要（refreshTodayHealth 抽取复用）；③等级映射口径对齐独立打卡页 CheckinInput（poop3正常/4偏软/2腹泻、appetite1~4、spirit1~4、exercise 由活力推导），anomalyItems 落 AnomalyItem 枚举（小便归 other）、中文描述走 note；④中途退出 showModal 二次确认防误丢；⑤首页所有入口统一 openCheckin（快捷按钮/+面板/摘要卡/CTA/setFlowHandlers.startCheckin/Agent 工具 checkin_flow），删除语音/文本答题拦截与 getCurrentFlowType 的 checkin 分支。
+- **测试**：新增 `CheckinPopup.test.tsx` 11 用例（渲染/映射落库/异常标记/高风险警示/失败 toast/多宠选宠/一键批量默认指标/已打卡不重复提交/关闭确认×2）+ 首页测试 mock 弹窗并断言三入口打开。
+- **验证**：tsc 0 ✅、全量 **2426 passed / 44 skipped** ✅、eslint 改动文件 0 问题 ✅、build:weapp ✅、dist 确认 ckp-* 类名 ✅、graphify 已更新 ✅。改动未提交。
+- **待办（用户侧）**：微信开发者工具重新编译体验；行为变化=打卡期间语音输入不再承担答题入口（弹窗内点选完成）。
+
+### 2026-08-25 · 隐私授权终版方案：官方 requirePrivacyAuthorize 弹窗（第三轮收敛）
+
+- **接续**：86ef58f（原生 wx 注册监听）后用户实测 `getPrivacySetting` 返回 `needAuthorization:true`（后台指引正常）但自绘 PrivacyPopup 始终不出现、选图零反馈 → 自绘弹窗渲染链路问题无法远程定位，果断换方案。
+- **终版方案（commit aa5281e+本轮）**：**主动模式**——`utils/privacy.ts` 的 chooseImageWithPrivacy 在调 chooseMedia 前先 `wx.requirePrivacyAuthorize`：由**基础库弹出官方标准半屏授权弹窗**（完全不依赖自绘 UI），同意一次永久放行；拒绝时 fail errMsg 含 privacy → 现有 toast 分支兜底。app.js 同步移除 onNeedPrivacyAuthorization 注册、getPrivacySetting 主动弹窗与 PrivacyPopup 挂载（官方规定主动/被动必须二选一，混用即 8-24 冲突教训）；memoir-vlog/daily 直调点收编进统一入口。PrivacyPopup 组件文件保留未挂载。
+- **验证**：tsc 0 ✅、全量 2436 passed ✅、build EXIT=0、requirePrivacyAuthorize 编译进 dist/common.js（共享 chunk）、app.js 无被动监听残留 ✅。
+- **⚠️ 教训沉淀**：①「官方 API 有标准 UI 就不要自绘」——授权类交互优先平台原生弹窗，少一层自绘渲染链路少一类故障；②二选一机制必须彻底删掉另一侧代码而非仅注释；③用户端验证链 getPrivacySetting(needAuthorization)→点接口看官方弹窗是否出现，两步即可切分"配置问题/前端问题"。
