@@ -14,9 +14,16 @@ import { useThemeClass } from './hooks/useThemeClass'
 import { wsClient } from './services/wsClient'
 import { PENDING_INVITE_CODE_KEY } from './services/shareService'
 import { isWeapp } from './platform'
+import { installRouteGuard } from './utils/routeGuard'
 import LogoLoading from './components/LogoLoading'
-import PrivacyPopup from './components/PrivacyPopup'
 import './app.scss'
+
+// 全局路由防抖守卫：必须在任何页面导航发生前装载（模块加载即生效，
+// 早于 useLaunch），防止分包页首次加载慢 + 用户连点触发
+// 「routeDone with a webviewId N is not found」路由竞态报错
+if (isWeapp()) {
+  installRouteGuard()
+}
 
 let ready = false
 
@@ -37,10 +44,6 @@ function AppContent({ children }) {
 export default function App({ children }) {
   // 品牌缓冲页开关：启动初始化完成后隐藏（至少展示 800ms，避免闪屏）
   const [splashVisible, setSplashVisible] = useState(true)
-  // 微信隐私授权弹窗：onNeedPrivacyAuthorization 触发时展示
-  const [privacyVisible, setPrivacyVisible] = useState(false)
-  // 微信隐私授权 resolve 回调（用户同意/拒绝后调用，放行/拒绝隐私接口）
-  const privacyResolveRef = React.useRef(null)
 
   useLaunch(() => {
     if (ready) return
@@ -54,48 +57,14 @@ export default function App({ children }) {
       setTimeout(() => setSplashVisible(false), Math.max(0, 800 - elapsed))
     }
     try {
-      // 处理微信隐私授权事件（仅小程序，基础库 2.32.3+）
-      // 官方机制：隐私接口（chooseAvatar/昵称填写/chooseImage 等）被调用时触发本监听，
-      // 必须用 openType="agreePrivacyAuthorization" 的 Button 弹窗让用户同意，
-      // 完成后 resolve({ buttonId, event: 'agree' }) 才会放行隐私接口。
-      // 若用普通 showModal 的「同意」按钮，微信不会视为完成隐私授权 → errno 112。
-      // ⚠️ 必须优先用原生 wx.onNeedPrivacyAuthorization：@tarojs/taro@3.6.x 封装层
-      // 【未转发】该 API（typeof Taro.onNeedPrivacyAuthorization === 'function' 恒为
-      // false），若只走 Taro 会导致监听【静默不注册】——后台《用户隐私保护指引》
-      // 一旦更新（如补声明权限）重置全体用户同意状态，所有隐私接口调用都会挂起
-      // 等待开发者弹窗，表现为「点击选图/复制等无任何反应」（2026-08-25 全端选图失效根因）。
-      const privacyRegistrar =
-        (typeof wx !== 'undefined' && typeof wx.onNeedPrivacyAuthorization === 'function' && wx) ||
-        (typeof Taro.onNeedPrivacyAuthorization === 'function' ? Taro : null)
-      if (isWeapp() && privacyRegistrar) {
-        privacyRegistrar.onNeedPrivacyAuthorization((resolve) => {
-          privacyResolveRef.current = resolve
-          setPrivacyVisible(true)
-        })
-      } else if (isWeapp()) {
-        console.warn('[App] 当前环境不支持 onNeedPrivacyAuthorization，隐私接口可能被挂起')
-      }
-
-      // 主动检查：启动时若用户尚未同意《用户隐私保护指引》（后台指引更新会重置
-      // 全体用户同意状态），不等用户撞隐私接口才被动弹窗——直接弹出授权引导，
-      // 同步解决渲染层组件降级问题（errno 104：昵称输入组件未授权时静默降级）。
-      // 此场景无挂起中的 API，resolve 为 null，同意按钮的 openType 本身即完成授权。
-      if (
-        isWeapp() &&
-        typeof wx !== 'undefined' &&
-        typeof wx.getPrivacySetting === 'function'
-      ) {
-        wx.getPrivacySetting({
-          success: (res) => {
-            if (res && res.needAuthorization) {
-              setPrivacyVisible(true)
-            }
-          },
-          fail: () => {
-            // 查询失败（低版本基础库等）：保持被动监听兜底，不打扰启动
-          },
-        })
-      }
+      // 微信隐私授权走「主动模式」（官方二选一）：utils/privacy.ts 在每次调用
+      // 隐私接口（选图等）前先 wx.requirePrivacyAuthorize——由【基础库弹出官方
+      // 标准半屏授权弹窗】，用户同意一次后永久放行。这里刻意【不再注册】
+      // onNeedPrivacyAuthorization / 自绘弹窗：①@tarojs/taro@3.6.x 未转发该 API
+      // （typeof 检查静默跳过）；②原生注册后自绘弹窗仍可能因渲染链路问题不显示，
+      // 用户处于 needAuthorization=true 时所有隐私接口永久挂起（2026-08-25 全端
+      // 选图失效事故：点击零反馈、errno 104 组件降级）。两方案混用同样会互相干扰。
+      // 渲染层组件（input type=nickname 等）的授权状态由同一次官方弹窗统一解决。
 
       // 记录启动参数携带的邀请码，登录成功后由 authStore 消费建立推荐关系（邀请裂变）
       try {
@@ -133,26 +102,6 @@ export default function App({ children }) {
     null,
     children,
     // 启动缓冲层：盖在首屏之上，初始化完成后淡出
-    splashVisible && React.createElement(LogoLoading, null),
-    // 微信隐私授权弹窗（全局）：用户同意/拒绝后放行对应隐私接口
-    React.createElement(PrivacyPopup, {
-      visible: privacyVisible,
-      onAgree: () => {
-        const resolve = privacyResolveRef.current
-        if (resolve) {
-          resolve({ event: 'agree', buttonId: 'agree' })
-          privacyResolveRef.current = null
-        }
-        setPrivacyVisible(false)
-      },
-      onReject: () => {
-        const resolve = privacyResolveRef.current
-        if (resolve) {
-          resolve({ event: 'disagree' })
-          privacyResolveRef.current = null
-        }
-        setPrivacyVisible(false)
-      },
-    })
+    splashVisible && React.createElement(LogoLoading, null)
   )
 }

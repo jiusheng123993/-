@@ -7,6 +7,7 @@ import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { CONFIG } from '../../config'
 import { storage } from '../../utils/storage'
+import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { wsClient } from '../../services/wsClient'
 import './index.scss'
 
@@ -132,22 +133,19 @@ export default function MemoirVlog() {
       return
     }
 
-    // chooseImage 已随基础库 2.21.0+ 废弃（新基础库上点击无反应），改用替代接口 chooseMedia
-    Taro.chooseMedia({
-      count: remain,
-      mediaType: ['image'],
-      sizeType: ['compressed'],
-      success: (res) => {
+    // 统一走隐私选图入口（前置 wx.requirePrivacyAuthorize 官方授权弹窗 +
+    // chooseMedia 替代已废弃的 chooseImage + 失败统一提示），返回为 chooseImage 形状
+    chooseImageWithPrivacy({ count: remain, sizeType: ['compressed'] })
+      .then((res) => {
         const newPhotos = res.tempFiles.map((f) => ({
-          path: f.tempFilePath,
+          path: f.path,
           size: f.size || 0,
         }))
         setPhotos(prev => [...prev, ...newPhotos].slice(0, MAX_PHOTOS))
-      },
-      fail: () => {
-        // 用户取消选择，不做处理
-      },
-    })
+      })
+      .catch(() => {
+        // 用户取消选择/拒绝授权等已在 privacy 层反馈，此处静默
+      })
   }, [photos])
 
   const handleDeletePhoto = useCallback((index: number) => {
