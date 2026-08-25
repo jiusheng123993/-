@@ -48,18 +48,17 @@ vi.mock('../../constants', () => ({
 
 import {
   getGenerationCount,
+  incrementGenerationCount,
   canGenerateAvatar,
   getAvatarCustomization,
   saveAvatarCustomization,
   generateAvatarImage,
   generateAvatarOptions,
-  backgroundSwap,
   saveAvatarToLibrary,
   getAvatarLibrary,
   deleteAvatarLibraryItem,
   setMultiviewAsCurrent,
   getPetDiary,
-  incrementGenerationCount,
 } from '../avatarService'
 
 describe('avatarService', () => {
@@ -70,7 +69,7 @@ describe('avatarService', () => {
     mockGeneratePetImage.mockResolvedValue({ success: false, error: 'stub' })
   })
 
-  describe('generateAvatarOptions 文字描述透传', () => {
+  describe('generateAvatarOptions 参数透传', () => {
     beforeEach(() => {
       mockApiPost.mockReset()
       mockApiPost.mockResolvedValue({
@@ -81,81 +80,25 @@ describe('avatarService', () => {
       })
     })
 
-    it('把用户文字描述透传给后端 /generate-options', async () => {
-      const options = await generateAvatarOptions('pet-1', undefined, 'cartoon', '橘色英短，圆脸胖乎乎的')
-      expect(options).toHaveLength(2)
+    it('传画风+表情时透传给后端（照片流生成 1 张）', async () => {
+      await generateAvatarOptions('pet-1', 'https://e.com/photo.png', 'cartoon', 'q', 'happy')
       expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
         petId: 'pet-1',
-        referenceImageUrl: undefined,
+        referenceImageUrl: 'https://e.com/photo.png',
         style: 'cartoon',
-        description: '橘色英短，圆脸胖乎乎的',
-        styleKey: undefined,
-        expression: undefined,
-        background: undefined,
+        styleKey: 'q',
+        expression: 'happy',
       })
     })
 
-    it('不传描述时 description 为 undefined（后端自动用档案描述）', async () => {
+    it('不传可选参数时字段为 undefined（服务端按档案自动生成）', async () => {
       await generateAvatarOptions('pet-1')
       expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
         petId: 'pet-1',
         referenceImageUrl: undefined,
         style: 'cartoon',
-        description: undefined,
         styleKey: undefined,
         expression: undefined,
-        background: undefined,
-      })
-    })
-
-    it('传画风+表情时透传给后端（生成 1 张）', async () => {
-      await generateAvatarOptions('pet-1', undefined, 'cartoon', '圆脸', 'q', 'happy')
-      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
-        petId: 'pet-1',
-        referenceImageUrl: undefined,
-        style: 'cartoon',
-        description: '圆脸',
-        styleKey: 'q',
-        expression: 'happy',
-        background: undefined,
-      })
-    })
-
-    it('传背景 key 时透传给后端（文生图换景）', async () => {
-      await generateAvatarOptions('pet-1', undefined, 'cartoon', undefined, undefined, undefined, 'sakura')
-      expect(mockApiPost).toHaveBeenCalledWith('/api/avatar/generate-options', {
-        petId: 'pet-1',
-        referenceImageUrl: undefined,
-        style: 'cartoon',
-        description: undefined,
-        styleKey: undefined,
-        expression: undefined,
-        background: 'sakura',
-      })
-    })
-
-    it('真·背景替换：POST /background-swap 透传源图+背景，返回新图 URL；失败返回 null', async () => {
-      mockApiPost.mockResolvedValueOnce({ url: 'https://cdn.example.com/swapped.png' })
-      const url = await backgroundSwap('pet-1', 'https://e.com/source.png', 'sakura')
-      expect(url).toBe('https://cdn.example.com/swapped.png')
-      expect(mockApiPost).toHaveBeenLastCalledWith('/api/avatar/background-swap', {
-        petId: 'pet-1',
-        imageUrl: 'https://e.com/source.png',
-        background: 'sakura',
-      })
-      mockApiPost.mockRejectedValueOnce(new Error('network'))
-      expect(await backgroundSwap('pet-1', 'https://e.com/source.png', 'sakura')).toBeNull()
-    })
-
-    it('真·背景替换：自定义描述作为 customBackground 透传（预设可缺省）', async () => {
-      mockApiPost.mockResolvedValueOnce({ url: 'https://cdn.example.com/custom.png' })
-      const url = await backgroundSwap('pet-1', 'https://e.com/source.png', undefined, '雪夜壁炉旁的木地板')
-      expect(url).toBe('https://cdn.example.com/custom.png')
-      expect(mockApiPost).toHaveBeenLastCalledWith('/api/avatar/background-swap', {
-        petId: 'pet-1',
-        imageUrl: 'https://e.com/source.png',
-        background: undefined,
-        customBackground: '雪夜壁炉旁的木地板',
       })
     })
 

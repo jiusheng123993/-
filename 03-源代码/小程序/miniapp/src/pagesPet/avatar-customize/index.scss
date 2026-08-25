@@ -271,66 +271,7 @@
   font-weight: $font-weight-medium;
 }
 
-.avatar-customize__ref-box {
-  padding: $spacing-md;
-  background: $color-bg-secondary;
-  border-radius: $radius-md;
-  border-left: 6rpx solid $color-primary;
-}
-
-.avatar-customize__ref-text {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: 1.6;
-}
-
-// 参考提示词模板：公式字段说明 + 一键填入
-.avatar-customize__ref-formula {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-  padding: $spacing-md;
-  background: $color-bg-card;
-  border: 1px dashed $color-border;
-  border-radius: $radius-md;
-  margin-bottom: $spacing-sm;
-}
-
-.avatar-customize__ref-formula-line {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
-  line-height: 1.5;
-}
-
-.avatar-customize__ref-tag {
-  display: inline-block;
-  padding: 2rpx 12rpx;
-  margin-right: 8rpx;
-  background: $color-primary-bg;
-  color: $color-primary;
-  border-radius: $radius-sm;
-  font-weight: $font-weight-medium;
-}
-
-.avatar-customize__ref-actions {
-  margin-top: $spacing-sm;
-}
-
-.avatar-customize__ref-fill {
-  display: inline-flex;
-  padding: 10rpx 28rpx;
-  background: $color-primary;
-  border-radius: $radius-round;
-  @include press-feedback;
-}
-
-.avatar-customize__ref-fill-text {
-  font-size: $font-size-xs;
-  color: $color-text-inverse;
-  font-weight: $font-weight-medium;
-}
-
-// 生成结果单张展示（文字生成）
+// 生成结果单张展示
 .avatar-options--single {
   .avatar-options__single-img {
     width: 100%;
@@ -419,90 +360,6 @@
   }
 }
 
-// —— 真·背景替换：源形象横滑选择卡 ——
-.avatar-bgsrc {
-  white-space: nowrap;
-  width: 100%;
-
-  &__card {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8rpx;
-    margin-right: $spacing-md;
-    padding: $spacing-xs;
-    border: 3rpx solid transparent;
-    border-radius: $radius-md;
-    background: $color-bg-card;
-    vertical-align: top;
-
-    &--active {
-      border-color: $color-primary;
-      background: rgba(230, 179, 34, 0.12);
-    }
-  }
-
-  &__img {
-    width: 160rpx;
-    height: 160rpx;
-    border-radius: $radius-sm;
-    background: #f5f0e6;
-  }
-
-  &__label {
-    max-width: 168rpx;
-    font-size: $font-size-xs;
-    color: $color-text-secondary;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__empty {
-    display: block;
-    font-size: $font-size-xs;
-    color: $color-text-secondary;
-    line-height: 1.6;
-  }
-
-  &__hint {
-    display: block;
-    margin-top: $spacing-sm;
-    font-size: $font-size-xs;
-    color: $color-primary;
-  }
-}
-
-// —— 真·背景替换：结果卡 ——
-.avatar-bgres {
-  margin-top: $spacing-md;
-
-  &__img {
-    width: 100%;
-    height: 640rpx;
-    border-radius: $radius-md;
-    background: #f5f0e6;
-  }
-
-  &__actions {
-    display: flex;
-    gap: $spacing-md;
-    margin-top: $spacing-md;
-
-    .avatar-customize__btn {
-      flex: 1;
-    }
-  }
-
-  &__hint {
-    display: block;
-    margin-top: $spacing-sm;
-    font-size: $font-size-xs;
-    color: $color-text-secondary;
-    text-align: center;
-  }
-}
-
 // —— 4. 形象操作区（原三列场景区简化为两动作：形象生成 / 分享形象）——
 .avatar-scenes {
   display: grid;
@@ -561,27 +418,6 @@
 // ============================================
 // 生成面板内组件样式（保留原业务）
 // ============================================
-// 文字描述输入框（"文字描述生成"Tab 的描述入口）
-.avatar-customize__desc-input {
-  width: 100%;
-  min-height: 120rpx;
-  padding: 20rpx 24rpx;
-  box-sizing: border-box;
-  background: $color-bg-secondary;
-  border: 1px solid $color-border;
-  border-radius: $radius-md;
-  font-size: $font-size-md;
-  color: $color-text-primary;
-  line-height: 1.6;
-}
-
-.avatar-customize__desc-hint {
-  display: block;
-  margin-top: 10rpx;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-}
-
 /* 2D/3D 任务轻提示（替代原 GenerationProgress 重进度卡）：一行小字，失败态可点重试 */
 .avatar-customize__task-hint {
   display: block;
@@ -593,38 +429,6 @@
   &--error {
     color: #e5484d;
     @include press-feedback;
-  }
-}
-
-.avatar-customize__tabs {
-  display: flex;
-  background: $color-bg-secondary;
-  border-radius: $radius-lg;
-  padding: 6rpx;
-  margin-bottom: $spacing-xl;
-}
-
-.avatar-customize__tab {
-  flex: 1;
-  text-align: center;
-  padding: 14rpx 0;
-  border-radius: $radius-md;
-  transition: all $transition-fast;
-
-  &--active {
-    background: $color-bg-card;
-    box-shadow: $shadow-xs;
-  }
-}
-
-.avatar-customize__tab-text {
-  font-size: $font-size-md;
-  font-weight: $font-weight-medium;
-  color: $color-text-tertiary;
-
-  .avatar-customize__tab--active & {
-    color: $color-primary;
-    font-weight: $font-weight-semibold;
   }
 }
 

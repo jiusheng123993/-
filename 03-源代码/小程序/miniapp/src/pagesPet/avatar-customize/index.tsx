@@ -1,13 +1,14 @@
 /**
  * 宠物形象定制页面
- * 当前形象展示 → 形象库 → 预设形象 → 形象操作区（形象生成 / 分享形象）→ 生成面板（文字/照片）
- * 说明：2026-08-24 移除冗余的"风格切换/表情系统"展示卡；文字生成改为
- * 手动选择画风+表情+描述，参考提示词模板指引；新增形象库按风格/表情分类保存
- * 说明：2026-08-24 场景区简化——移除使用率低的「头像」「聊天贴纸」入口，
- * 收敛为「形象生成」「分享形象」两个动作；原独立「生成新形象」大按钮的
- * 面板开合职责并入「形象生成」（避免删掉后面板打开就无处收起）
+ * 当前形象展示 → 形象库 → 预设形象 → 形象操作区（形象生成 / 分享形象）→ 生成面板（照片生成）
+ * 说明：2026-08-25 按用户要求移除「文字描述生成」与「换背景」两个 Tab
+ * （使用率低且形象本身不需要背景），生成面板只保留照片生成一条链路；
+ * 服务端 generate-options 的 description/background 参数与 /background-swap
+ * 端点保留但前端不再调用，后续统一清理。
+ * 历史：2026-08-24 移除"风格切换/表情系统"展示卡；新增形象库按画风/表情/类型分类保存；
+ * 2026-08-24 场景区收敛为「形象生成」「分享形象」两动作。
  */
-import { View, Text, Image, Textarea, ScrollView } from '@tarojs/components'
+import { View, Text, Image, ScrollView } from '@tarojs/components'
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { useThemeClass } from '../../hooks/useThemeClass'
@@ -25,9 +26,6 @@ import {
   generateAvatarOptions,
   getAvatarCustomization,
   saveAvatarCustomization,
-  canGenerateAvatar,
-  getGenerationCount,
-  incrementGenerationCount,
   uploadPetPhoto,
   setPetPhotoAsAvatar,
   generate2DAvatar,
@@ -45,7 +43,6 @@ import {
   getAvatarLibrary,
   deleteAvatarLibraryItem,
   setMultiviewAsCurrent,
-  backgroundSwap,
   type AvatarStyleOption,
   type AvatarLibraryItem,
 } from '../../services/avatarService'
@@ -58,7 +55,7 @@ import './index.scss'
 
 // 生成画风（单选，key 与服务端 AVATAR_STYLE_OPTIONS 对齐，15 种）
 // 来源：现有 5 种 + 项目提示词库《宠物回忆录-提示词库.md》§6/§7.1 通用视觉风格库
-// 文字 Tab 与照片 Tab 共用此列表（2026-08-24 照片生成画风对齐文生图，原 cartoon/realistic 两卡选择器移除）
+// 照片生成 Tab 专用（2026-08-25 移除文字生图，原文字/照片共用说明保留画风来源注释）
 const GEN_STYLES: Array<{ key: string; label: string; icon: string }> = [
   { key: 'q', label: 'Q版萌系', icon: '🐾' },
   { key: 'japanese', label: '日系治愈', icon: '🌸' },
@@ -93,47 +90,13 @@ const GEN_EXPRESSIONS: Array<{ key: string; label: string; icon: string }> = [
   { key: 'sad', label: '难过', icon: '😢' },
 ]
 
-// 生成背景（单选，key 与服务端 AVATAR_BACKGROUND_OPTIONS 对齐，8 种 + 默认）
-// 文生图换景：选了则替换提示词里的"干净背景"，纯提示词层实现不加调用不加费用
-const GEN_BACKGROUNDS: Array<{ key: string; label: string; icon: string }> = [
-  { key: 'sky', label: '蓝天白云', icon: '☁️' },
-  { key: 'sakura', label: '樱花', icon: '🌸' },
-  { key: 'grass', label: '草坪花园', icon: '🌿' },
-  { key: 'christmas', label: '圣诞', icon: '🎄' },
-  { key: 'birthday', label: '生日派对', icon: '🎂' },
-  { key: 'beach', label: '夏日海边', icon: '🌊' },
-  { key: 'night', label: '星空夜', icon: '🌙' },
-  { key: 'cozy', label: '奶油毛毯', icon: '🧶' },
-]
-
-/** 画风 key → 中文名（形象库分类/参考模板用）；'bgswap'=真·背景替换产物的库内归类（非画风生成，服务端 /library style 白名单同步收） */
+/** 画风 key → 中文名（形象库分类用）；'bgswap'=历史换背景条目的库内归类兼容（功能已下线，仅旧数据展示） */
 const GEN_STYLE_LABELS: Record<string, string> = {
   ...Object.fromEntries(GEN_STYLES.map(s => [s.key, s.label])),
   bgswap: '换背景',
 }
-/** 表情 key → 中文名（形象库分类/参考模板用） */
+/** 表情 key → 中文名（形象库分类用） */
 const GEN_EXPR_LABELS: Record<string, string> = Object.fromEntries(GEN_EXPRESSIONS.map(e => [e.key, e.label]))
-
-/** 画风 key → 光影/氛围词（参考提示词模板拼接用，对齐提示词库各风格关键词） */
-const GEN_STYLE_ATMOS: Record<string, string> = {
-  q: '萌系贴纸质感，柔和暖光，明亮干净背景',
-  japanese: '奶油色柔和渐变，水彩晕染，温馨治愈氛围',
-  american: '高饱和撞色，夸张生动，活力满满',
-  watercolor: '透明水彩晕染，纸张纹理，淡雅清新',
-  clay: '软陶立体，手作质感，柔和影棚光',
-  ghibli: '手绘水彩背景，宫崎骏式温暖治愈，柔和光线',
-  pixar: '光滑立体渲染，大眼睛高光，温暖光线，次表面散射毛发',
-  pixel: '16-bit 复古像素，色彩分明，俏皮可爱',
-  ink: '水墨宣纸质感，留白意境，禅意宁静',
-  oil: '厚涂笔触，油画布纹理，浓郁艺术感',
-  cyberpunk: '霓虹灯光，雨夜反光，紫青色调，未来都市氛围',
-  nordic: '低饱和莫兰迪色，极简构图，宁静高级',
-  lowpoly: '几何切面，扁平着色，简洁现代',
-  lineart: '铅笔线稿，排线阴影，艺术手绘感',
-  dark: '哥特月光，神秘雾气，戏剧性光影',
-}
-
-type TabType = 'text' | 'photo' | 'bgswap'
 
 /** 计算年龄（岁/月） */
 function calcAge(birthDate?: string): string {
@@ -154,7 +117,6 @@ export default function AvatarCustomizePage() {
   const { isMember } = useMembership()
   const { trackPageView, trackEvent } = useAnalytics()
 
-  const [activeTab, setActiveTab] = useState<TabType>('text')
   const [showPanel, setShowPanel] = useState(false)
 
   const species = (currentPet?.species || 'dog') as PetSpecies
@@ -167,24 +129,9 @@ export default function AvatarCustomizePage() {
   const [selectedStyle, setSelectedStyle] = useState<'cartoon' | 'realistic'>('cartoon')
   const [selectedColor, setSelectedColor] = useState('#FFD93D')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
-  const [genCount, setGenCount] = useState(getGenerationCount())
   // 生成结果（styleKey 指定画风时只有 1 项）
   const [styleOptions, setStyleOptions] = useState<AvatarStyleOption[] | null>(null)
   const [selectedStyleIndex, setSelectedStyleIndex] = useState<number | null>(null)
-  // 文字描述生成：用户输入的外貌描述（可选，拼进提示词参与生图）
-  const [textDescription, setTextDescription] = useState('')
-  // 生成参数：手动选择画风 + 表情（对应服务端 AVATAR_STYLE_OPTIONS / EXPRESSION_PROMPTS）
-  const [genStyle, setGenStyle] = useState<string>('q')
-  const [genExpression, setGenExpression] = useState<string | null>(null)
-  // 文字 Tab 背景选择（'' = 默认干净背景；key 与服务端 AVATAR_BACKGROUND_OPTIONS 对齐）
-  const [genBackground, setGenBackground] = useState<string>('')
-  // 真·背景替换：源形象 URL（当前形象/形象库条目）+ 新背景 key + 自定义描述（优先于预设）+ 结果
-  const [bgSourceUrl, setBgSourceUrl] = useState<string | null>(null)
-  const [bgSwapBg, setBgSwapBg] = useState<string>('')
-  const [bgCustom, setBgCustom] = useState<string>('')
-  const [bgSwapResult, setBgSwapResult] = useState<string | null>(null)
-  const [isBgSwapping, setIsBgSwapping] = useState(false)
   // 形象库：按风格/表情/类型分类保存的生成形象 + 筛选
   const [library, setLibrary] = useState<AvatarLibraryItem[]>([])
   const [libraryStyleFilter, setLibraryStyleFilter] = useState<string>('all')
@@ -233,7 +180,6 @@ export default function AvatarCustomizePage() {
       return styleOptions[selectedStyleIndex].url
     }
     if (selectedPreset) return selectedPreset.image
-    if (generatedUrl) return generatedUrl
     // 宠物档案是权威数据：真实照片优先于卡通/AI 形象，避免多宠物互相串头像
     if (currentPet?.avatarPhotoUrl) return currentPet.avatarPhotoUrl
     if (currentPet?.avatarCartoonUrl) return currentPet.avatarCartoonUrl
@@ -242,7 +188,7 @@ export default function AvatarCustomizePage() {
     // 默认形象：没有自定义头像时按品种匹配品牌小动物头像，与家庭页头像保持一致（同图同源）
     if (currentPet) return getHomeStyleAvatarUrl(currentPet)
     return null
-  }, [isGenerating, generatedUrl, styleOptions, selectedStyleIndex, selectedPreset, currentPet, petId])
+  }, [isGenerating, styleOptions, selectedStyleIndex, selectedPreset, currentPet, petId])
 
   // 形象卡副标题：品种 · 年龄 · 状态
   const petDesc = useMemo(() => {
@@ -252,13 +198,6 @@ export default function AvatarCustomizePage() {
     const status = currentPet?.isDeceased ? '永远的宝贝' : '元气满满'
     return `${breed} · ${age} · ${status}`
   }, [species, currentPet])
-
-  const canGenerate = useMemo(() => {
-    if (serverQuota) {
-      return serverQuota.isMember || serverQuota.generation2D.used < serverQuota.generation2D.limit
-    }
-    return canGenerateAvatar(isMember)
-  }, [serverQuota, isMember, genCount])
 
   const canGenPhoto = useMemo(() => {
     if (serverQuota) {
@@ -279,15 +218,6 @@ export default function AvatarCustomizePage() {
     }
     return canGenerate3D(isMember)
   }, [serverQuota, isMember])
-
-  const textQuotaText = useMemo(() => {
-    if (serverQuota) {
-      if (serverQuota.isMember) return '会员无限生成'
-      const remaining = Math.max(0, serverQuota.generation2D.limit - serverQuota.generation2D.used)
-      return `剩余次数：${remaining}/${serverQuota.generation2D.limit}`
-    }
-    return isMember ? '会员无限生成' : `剩余次数：${Math.max(0, 1 - genCount)}/1`
-  }, [serverQuota, isMember, genCount])
 
   const photoQuotaText = useMemo(() => {
     // 照片生成（参照自家宠物）为会员专享，每月 3 次
@@ -499,49 +429,6 @@ export default function AvatarCustomizePage() {
     }
   }, [species, photoStyle, petId, trackEvent, handleSaved])
 
-  const handleTextGenerate = useCallback(async () => {
-    if (!canGenerate || isGenerating) return
-    trackEvent('generate_avatar_options', { style: selectedStyle, species, genStyle, genExpression })
-    setIsGenerating(true)
-    setStyleOptions(null)
-    setSelectedStyleIndex(null)
-    try {
-      // 按用户选择的画风+表情生成 1 张（styleKey 指定后服务端只生成该画风）
-      // 用户描述（可选）拼进提示词参与生图；背景（可选）替换"干净背景"实现换景
-      const desc = textDescription.trim().slice(0, 100)
-      const options = await generateAvatarOptions(petId, undefined, selectedStyle, desc || undefined, genStyle, genExpression || undefined, genBackground || undefined)
-      if (options && options.length > 0) {
-        setStyleOptions(options)
-        // 单选画风生成 1 张，默认选中它
-        setSelectedStyleIndex(0)
-        incrementGenerationCount()
-        setGenCount(getGenerationCount())
-        trackEvent('generate_avatar_options_success', { style: selectedStyle, genStyle, count: options.length })
-        Taro.showToast({ title: '生成成功', icon: 'none' })
-        // 生成结果在面板底部，滚动到页面底部让用户一眼看到
-        Taro.nextTick(() => {
-          Taro.pageScrollTo({ scrollTop: 99999, duration: 300 })
-        })
-      } else if (!canGenerateAvatar(isMember)) {
-        Taro.showModal({
-          title: '生成次数已用完',
-          content: '免费用户仅可生成1次，开通会员可无限生成',
-          confirmText: '开通会员',
-          success: (res) => {
-            if (res.confirm) Taro.navigateTo({ url: '/pagesUser/member/index' })
-          },
-        })
-      } else {
-        Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
-      }
-    } catch {
-      trackEvent('generate_avatar_failure')
-      Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
-    } finally {
-      setIsGenerating(false)
-    }
-  }, [canGenerate, isGenerating, species, petName, selectedStyle, selectedColor, isMember, textDescription, genStyle, genExpression, genBackground, petId, trackEvent])
-
   // ---- 形象库：按风格/表情/类型分类保存的生成形象 ----
 
   /** 按当前筛选（画风/表情/类型）过滤形象库 */
@@ -577,9 +464,9 @@ export default function AvatarCustomizePage() {
       if (!current) Taro.showToast({ title: '请先生成并选择形象', icon: 'none' })
       return
     }
-    // 显式指定候选时用候选自身的画风；表情仅文字流程有（照片流程不选表情，错标会污染筛选）
-    const style = targetOption ? targetOption.style : genStyle
-    const expression = targetOption ? null : genExpression
+    // 画风/表情一律取候选自身元数据（调用点全部显式传候选，控件状态不参与，防错标污染筛选）
+    const style = current.style
+    const expression: string | null = null
     // 服务端 UPSERT 幂等：重复保存同一张图按"再次收藏"成功处理（审查修复：原 23505→500 会让重试永远失败）
     const okHead = await saveAvatarToLibrary(petId, style, expression, current.url, 'headshot')
     const okSheet = current.sheetUrl
@@ -598,7 +485,7 @@ export default function AvatarCustomizePage() {
       Taro.showToast({ title: '已存入头像，设定图失败', icon: 'none' })
       await loadLibrary(petId)
     }
-  }, [styleOptions, selectedStyleIndex, petId, genStyle, genExpression, loadLibrary])
+  }, [styleOptions, selectedStyleIndex, petId, loadLibrary])
 
   /** 把形象库中的某个形象设为当前（按类型分流）：
    * - multiview 设定图 → 写 avatar_multiview_url，作为全家福/回忆录参考图，不动真实照片与头像
@@ -639,64 +526,6 @@ export default function AvatarCustomizePage() {
     }
   }, [petId, species, handleSaved])
 
-  /** 真·背景替换：源形象 + 新背景（预设或自定义描述，自定义优先）→ 保角色换景新图 */
-  const handleBackgroundSwap = useCallback(async () => {
-    const customTrimmed = bgCustom.trim()
-    if (!petId || !bgSourceUrl || (!bgSwapBg && !customTrimmed) || isBgSwapping) return
-    setIsBgSwapping(true)
-    setBgSwapResult(null)
-    trackEvent('bg_swap_start', { background: bgSwapBg || 'custom' })
-    try {
-      const url = await backgroundSwap(petId, bgSourceUrl, bgSwapBg || undefined, customTrimmed || undefined)
-      if (url) {
-        setBgSwapResult(url)
-        Taro.showToast({ title: '换背景成功', icon: 'success' })
-        Taro.nextTick(() => {
-          Taro.pageScrollTo({ scrollTop: 99999, duration: 300 })
-        })
-      } else {
-        Taro.showToast({ title: '换背景失败，请重试', icon: 'none' })
-      }
-    } finally {
-      setIsBgSwapping(false)
-    }
-  }, [petId, bgSourceUrl, bgSwapBg, bgCustom, isBgSwapping, trackEvent])
-
-  /** 换背景结果 → 存入形象库（style='bgswap' 单独归类） */
-  const handleSaveBgResult = useCallback(async () => {
-    if (!petId || !bgSwapResult) return
-    const ok = await saveAvatarToLibrary(petId, 'bgswap', null, bgSwapResult, 'headshot')
-    if (ok) {
-      Taro.showToast({ title: '已存入形象库', icon: 'success' })
-      await loadLibrary(petId)
-    } else {
-      Taro.showToast({ title: '存入失败，请重试', icon: 'none' })
-    }
-  }, [petId, bgSwapResult, loadLibrary])
-
-  /** 换背景结果 → 设为当前形象（同形象库头像条目的 cartoon 流程） */
-  const handleUseBgResult = useCallback(async () => {
-    if (!petId || !bgSwapResult) return
-    try {
-      const custom: AvatarCustomization = {
-        species,
-        style: 'cartoon',
-        styleVariant: 'bgswap',
-        baseColor: '#FFD93D',
-        generatedAt: new Date().toISOString(),
-        cartoonUrl: bgSwapResult,
-      }
-      const updated = await saveAvatarCustomization(custom, petId)
-      const patch = updated
-        ? (updated as unknown as Record<string, unknown>)
-        : { avatarCartoonUrl: custom.cartoonUrl, avatarStyle: custom.style, avatarPhotoUrl: null }
-      await handleSaved(petId, patch)
-      Taro.showToast({ title: '已设为当前形象', icon: 'success' })
-    } catch {
-      Taro.showToast({ title: '设置失败，请重试', icon: 'none' })
-    }
-  }, [petId, species, bgSwapResult, handleSaved])
-
   /** 删除形象库中的一条 */
   const handleDeleteLibraryItem = useCallback(async (id: string) => {    Taro.showModal({
       title: '删除这个形象？',
@@ -731,12 +560,11 @@ export default function AvatarCustomizePage() {
     setStyleOptions(null)
     setSelectedStyleIndex(null)
     try {
-      // 与文生图一致：styleKey 指定画风后服务端只生成该画风 1 张；
-      // 基调参数固定传 cartoon（legacy 兜底口径），画风/表情由 styleKey/expression 精确控制
-      const options = await generateAvatarOptions(petId, referenceImageUrl, 'cartoon', undefined, photoStyle, photoExpression ?? undefined)
+      // styleKey 指定画风后服务端只生成该画风 1 张；基调参数固定传 cartoon（legacy 兜底口径）
+      const options = await generateAvatarOptions(petId, referenceImageUrl, 'cartoon', photoStyle, photoExpression ?? undefined)
       if (options && options.length > 0) {
         setStyleOptions(options)
-        // 单选画风生成 1 张默认选中（同文字 Tab 口径），否则单张结果分支的「设为当前形象」按钮不可点
+        // 单选画风生成 1 张默认选中，否则单张结果分支的「设为当前形象」按钮不可点
         setSelectedStyleIndex(0)
         incrementPhotoOptionsCount()
         trackEvent('generate_photo_options_success', { style: photoStyle, count: options.length })
@@ -1000,95 +828,52 @@ export default function AvatarCustomizePage() {
         </View>
       </View>
 
-      {/* 5. 生成面板（保留原文字/照片双 Tab 业务） */}
+      {/* 5. 生成面板（2026-08-25 移除文字生图与换背景，仅保留照片生成） */}
       {showPanel && (
         <View className='avatar-panel'>
-          {/* Tab 切换 */}
-          <View className='avatar-customize__tabs'>
-            <View
-              className={`avatar-customize__tab ${activeTab === 'text' ? 'avatar-customize__tab--active' : ''}`}
-              onClick={() => setActiveTab('text')}
-            >
-              <Text className='avatar-customize__tab-text'>文字描述生成</Text>
-            </View>
-            <View
-              className={`avatar-customize__tab ${activeTab === 'photo' ? 'avatar-customize__tab--active' : ''}`}
-              onClick={() => setActiveTab('photo')}
-            >
-              <Text className='avatar-customize__tab-text'>照片生成</Text>
-            </View>
-            <View
-              className={`avatar-customize__tab ${activeTab === 'bgswap' ? 'avatar-customize__tab--active' : ''}`}
-              onClick={() => setActiveTab('bgswap')}
-            >
-              <Text className='avatar-customize__tab-text'>换背景</Text>
-            </View>
+          {/* 照片生成（上传/直接用照片作头像对所有用户开放，AI 生成会员专享） */}
+          <>
+          <View className='avatar-customize__section'>
+            <Text className='avatar-customize__section-title'>上传宠物照片</Text>
+            <PhotoUploader value={photoUrl} onChange={handlePhotoChange} disabled={isUploading} />
           </View>
 
-          {/* Tab 1: 文字描述生成 */}
-          {activeTab === 'text' && (
-            !isMember ? (
-              <View className='avatar-customize__member-only'>
-                <Text className='avatar-customize__member-only-icon'>✨</Text>
-                <Text className='avatar-customize__member-only-title'>AI 形象生成 · 会员专享</Text>
-                <Text className='avatar-customize__member-only-desc'>AI 按你选的画风+表情生成专属形象；免费用户可直接使用上方「预设形象」，或在「照片生成」Tab 上传真实照片作头像</Text>
-                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可使用 AI 生成专属形象（文字/照片）')}>
-                  <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
-                </View>
-              </View>
-            ) : (
-              <>
-              {/* 文字描述输入：让"文字描述生成"名副其实（此前没有输入框，用户无法输入描述） */}
-              <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>描述你的宠物</Text>
-                <Textarea
-                  className='avatar-customize__desc-input'
-                  value={textDescription}
-                  onInput={(e) => setTextDescription(e.detail.value)}
-                  placeholder='例如：橘色虎斑英短，橙底深棕条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头，白色下巴胸毛（写得越具体越像；有真实照片留空也能自动提取）'
-                  maxlength={100}
-                  autoHeight
-                />
-                <Text className='avatar-customize__desc-hint'>外貌写得越具体生成越像：毛色、花纹、体型、脸型、眼睛颜色、特殊标记；不要写宠物名字</Text>
-              </View>
+          {/* 参考照片小贴士：AI 照着照片抄毛色/花纹/体型，图里看不清的特征就画不准 */}
+          <View className='avatar-customize__photo-tips'>
+            <Text className='avatar-customize__photo-tips-title'>📷 参考照片小贴士</Text>
+            <Text className='avatar-customize__photo-tips-item'>· 自然光充足、对焦清晰，宠物占画面主体</Text>
+            <Text className='avatar-customize__photo-tips-item'>· 正面或微侧面，五官看得清</Text>
+            <Text className='avatar-customize__photo-tips-item'>· 尽量全身入镜——设定图的侧面/背面视角靠它推断</Text>
+            <Text className='avatar-customize__photo-tips-item'>· 背景干净、只拍这一只；避免糊片、蜷睡、强滤镜</Text>
+            <Text className='avatar-customize__photo-tips-note'>💡 上传后点「直接用此照片作头像」（免费），全家福也会用它当参考</Text>
+          </View>
 
-              {/* 参考提示词模板：按提示词库公式组织（主体+外貌+表情+画风+光影氛围+画质），实时示例可一键填入 */}
-              <View className='avatar-customize__section avatar-customize__ref'>
-                <Text className='avatar-customize__section-title'>💡 参考提示词模板</Text>
-                <View className='avatar-customize__ref-formula'>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>主体</Text>一只{species === 'cat' ? '猫咪' : '狗狗'}（档案自动带上品种）</Text>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>外貌</Text>毛色 / 花纹 / 体型 / 脸型 / 眼睛颜色 / 特殊标记（写得越具体越像；有真实照片留空自动提取）</Text>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>表情</Text>{genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情` : '自然神态'}（下方选择）</Text>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>画风</Text>{GEN_STYLE_LABELS[genStyle]}（下方选择，15 种）</Text>
-                  <Text className='avatar-customize__ref-formula-line'><Text className='avatar-customize__ref-tag'>氛围</Text>光影 / 质感 / 背景（自动配好）</Text>
-                </View>
-                <View className='avatar-customize__ref-box'>
-                  <Text className='avatar-customize__ref-text'>
-                    {`一只${currentPet?.breed || (species === 'cat' ? '猫咪' : '狗狗')}的头像，${textDescription.trim() || '毛色层次分明，橘色底色配深棕色虎斑条纹，额头有M形纹，圆脸，琥珀色大眼睛水汪汪，粉色鼻头，白色下巴和胸毛，四肢粗短胖乎乎的'}，${genExpression ? `${GEN_EXPR_LABELS[genExpression]}的表情，嘴角微扬，眼睛弯弯` : '神态自然'}，${GEN_STYLE_LABELS[genStyle]}风格：${GEN_STYLE_ATMOS[genStyle]}，高质量，细节丰富，干净背景`}
-                  </Text>
-                </View>
-                <View className='avatar-customize__ref-actions'>
-                  <View className='avatar-customize__ref-fill' onClick={() => {
-                    // 一键填入"外貌+表情"部分（画风/表情由下方选择器控制，避免重复）
-                    const desc = `${textDescription.trim() || '毛色层次分明，橘色底色配深棕色虎斑条纹，额头M纹，圆脸，琥珀色大眼睛，粉色鼻头，白下巴胸毛'}${genExpression ? `，${GEN_EXPR_LABELS[genExpression]}的表情` : ''}`
-                    setTextDescription(desc.slice(0, 100))
-                  }}
+            {/* 直接把照片设为头像：免费、所有用户可用（不消耗 AI 配额） */}
+            {uploadedPhotoUrl && (
+              <View className='avatar-customize__section'>
+                <View className='avatar-customize__actions'>
+                  <View
+                    className='avatar-customize__btn avatar-customize__btn--photo-as-avatar'
+                    onClick={handleUsePhotoAsAvatar}
                   >
-                    <Text className='avatar-customize__ref-fill-text'>填入外貌+表情</Text>
+                    <Text className='avatar-customize__btn-text'>📸 直接用此照片作头像</Text>
                   </View>
                 </View>
-                <Text className='avatar-customize__desc-hint'>按「外貌特征，表情，画风」组织描述；有真实照片时描述留空，生成时也会自动提取你家宠物的真实外貌</Text>
               </View>
+            )}
 
-              {/* 画风选择（单选，生成 1 张） */}
+            {/* AI 照片生成：会员专享（服务端同样强制校验会员，不能只靠前端隐藏） */}
+            {isMember ? (
+              <>
+              {/* 画风/表情选择：与文生图（文字 Tab）完全同一套 GEN_STYLES 15 种画风 + GEN_EXPRESSIONS 12 种表情 */}
               <View className='avatar-customize__section'>
                 <Text className='avatar-customize__section-title'>选择画风</Text>
                 <View className='avatar-customize__gen-options'>
                   {GEN_STYLES.map(opt => (
                     <View
                       key={opt.key}
-                      className={`avatar-customize__gen-chip ${genStyle === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
-                      onClick={() => setGenStyle(opt.key)}
+                      className={`avatar-customize__gen-chip ${photoStyle === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
+                      onClick={() => setPhotoStyle(opt.key)}
                     >
                       <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
                       <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
@@ -1097,21 +882,20 @@ export default function AvatarCustomizePage() {
                 </View>
               </View>
 
-              {/* 表情选择（单选，可选"不选"） */}
               <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>选择表情</Text>
+                <Text className='avatar-customize__section-title'>选择表情（可选）</Text>
                 <View className='avatar-customize__gen-options avatar-customize__gen-options--expr'>
                   <View
-                    className={`avatar-customize__gen-chip ${genExpression === null ? 'avatar-customize__gen-chip--active' : ''}`}
-                    onClick={() => setGenExpression(null)}
+                    className={`avatar-customize__gen-chip ${photoExpression === null ? 'avatar-customize__gen-chip--active' : ''}`}
+                    onClick={() => setPhotoExpression(null)}
                   >
                     <Text className='avatar-customize__gen-chip-label'>无</Text>
                   </View>
                   {GEN_EXPRESSIONS.map(opt => (
                     <View
                       key={opt.key}
-                      className={`avatar-customize__gen-chip ${genExpression === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
-                      onClick={() => setGenExpression(opt.key)}
+                      className={`avatar-customize__gen-chip ${photoExpression === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
+                      onClick={() => setPhotoExpression(opt.key)}
                     >
                       <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
                       <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
@@ -1120,321 +904,104 @@ export default function AvatarCustomizePage() {
                 </View>
               </View>
 
-              {/* 背景选择（单选，可选"默认"；文生图换景——替换提示词的干净背景） */}
-              <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>选择背景（可选）</Text>
-                <View className='avatar-customize__gen-options avatar-customize__gen-options--expr'>
+              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                <View className='avatar-customize__quota'>
+                  <Text className='avatar-customize__quota-text'>
+                    {photoQuotaText}
+                  </Text>
+                </View>
+              )}
+
+              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                <View className='avatar-customize__actions'>
                   <View
-                    className={`avatar-customize__gen-chip ${genBackground === '' ? 'avatar-customize__gen-chip--active' : ''}`}
-                    onClick={() => setGenBackground('')}
+                    className={`avatar-customize__btn ${(!uploadedPhotoUrl || !canGenPhoto) ? 'avatar-customize__btn--disabled' : ''}`}
+                    onClick={handleGenerate2D}
                   >
-                    <Text className='avatar-customize__gen-chip-label'>默认</Text>
+                    <Text className='avatar-customize__btn-text'>生成 2D 形象包</Text>
                   </View>
-                  {GEN_BACKGROUNDS.map(opt => (
-                    <View
-                      key={opt.key}
-                      className={`avatar-customize__gen-chip ${genBackground === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
-                      onClick={() => setGenBackground(opt.key)}
-                    >
-                      <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
-                      <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
-                    </View>
-                  ))}
                 </View>
-              </View>
+              )}
 
-              <View className='avatar-customize__quota'>
-                <Text className='avatar-customize__quota-text'>
-                  {textQuotaText}
-                </Text>
-              </View>
+              {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
+                <View className='avatar-customize__actions avatar-customize__actions--spaced'>
+                  <View
+                    className={`avatar-customize__btn avatar-customize__btn--secondary ${(!uploadedPhotoUrl || !canGenPhotoOptions || isGenerating) ? 'avatar-customize__btn--disabled' : ''}`}
+                    onClick={() => uploadedPhotoUrl && handleGeneratePhotoOptions(uploadedPhotoUrl)}
+                  >
+                    <Text className='avatar-customize__btn-text'>按所选画风生成形象</Text>
+                  </View>
+                </View>
+              )}
 
-              <View className='avatar-customize__actions'>
-                <View
-                  className={`avatar-customize__btn ${!canGenerate ? 'avatar-customize__btn--disabled' : ''}`}
-                  onClick={handleTextGenerate}
+              {/* 2D 任务轻提示（替代原 GenerationProgress 重进度卡）：生成中一行小字，失败可点重试 */}
+              {task2D.isProcessing && (
+                <Text className='avatar-customize__task-hint'>⏳ 2D 形象包 AI 生成中，请稍候…</Text>
+              )}
+              {task2D.isFailed && (
+                <Text
+                  className='avatar-customize__task-hint avatar-customize__task-hint--error'
+                  onClick={handle2DRetry}
                 >
-                  <Text className='avatar-customize__btn-text'>生成形象</Text>
-                </View>
-              </View>
-            </>
-            ))}
-
-          {/* Tab 2: 照片生成（上传/直接用照片作头像对所有用户开放，AI 生成会员专享） */}
-          {activeTab === 'photo' && (
-            <>
-              <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>上传宠物照片</Text>
-                <PhotoUploader value={photoUrl} onChange={handlePhotoChange} disabled={isUploading} />
-              </View>
-
-              {/* 参考照片小贴士：AI 照着照片抄毛色/花纹/体型，图里看不清的特征就画不准 */}
-              <View className='avatar-customize__photo-tips'>
-                <Text className='avatar-customize__photo-tips-title'>📷 参考照片小贴士</Text>
-                <Text className='avatar-customize__photo-tips-item'>· 自然光充足、对焦清晰，宠物占画面主体</Text>
-                <Text className='avatar-customize__photo-tips-item'>· 正面或微侧面，五官看得清</Text>
-                <Text className='avatar-customize__photo-tips-item'>· 尽量全身入镜——设定图的侧面/背面视角靠它推断</Text>
-                <Text className='avatar-customize__photo-tips-item'>· 背景干净、只拍这一只；避免糊片、蜷睡、强滤镜</Text>
-                <Text className='avatar-customize__photo-tips-note'>💡 上传后点「直接用此照片作头像」（免费），文字生成和全家福也会用它当参考</Text>
-              </View>
-
-              {/* 直接把照片设为头像：免费、所有用户可用（不消耗 AI 配额） */}
-              {uploadedPhotoUrl && (
-                <View className='avatar-customize__section'>
-                  <View className='avatar-customize__actions'>
-                    <View
-                      className='avatar-customize__btn avatar-customize__btn--photo-as-avatar'
-                      onClick={handleUsePhotoAsAvatar}
-                    >
-                      <Text className='avatar-customize__btn-text'>📸 直接用此照片作头像</Text>
-                    </View>
-                  </View>
-                </View>
+                  ❌ 2D 形象包生成失败，点击重试
+                </Text>
               )}
 
-              {/* AI 照片生成：会员专享（服务端同样强制校验会员，不能只靠前端隐藏） */}
-              {isMember ? (
-                <>
-                {/* 画风/表情选择：与文生图（文字 Tab）完全同一套 GEN_STYLES 15 种画风 + GEN_EXPRESSIONS 12 种表情 */}
-                <View className='avatar-customize__section'>
-                  <Text className='avatar-customize__section-title'>选择画风</Text>
-                  <View className='avatar-customize__gen-options'>
-                    {GEN_STYLES.map(opt => (
-                      <View
-                        key={opt.key}
-                        className={`avatar-customize__gen-chip ${photoStyle === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
-                        onClick={() => setPhotoStyle(opt.key)}
-                      >
-                        <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
-                        <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
+              {task2D.isComplete && task2D.pack.images.length > 0 && (
+                <ImageGallery
+                  images={task2D.pack.images}
+                  onSaveAsAvatar={handleSaveAsAvatar}
+                  onGenerate3D={handleGenerate3D}
+                  isGenerating3D={task3D.isGenerating}
+                  canGenerate3D={canGen3D}
+                />
+              )}
 
-                <View className='avatar-customize__section'>
-                  <Text className='avatar-customize__section-title'>选择表情（可选）</Text>
-                  <View className='avatar-customize__gen-options avatar-customize__gen-options--expr'>
-                    <View
-                      className={`avatar-customize__gen-chip ${photoExpression === null ? 'avatar-customize__gen-chip--active' : ''}`}
-                      onClick={() => setPhotoExpression(null)}
-                    >
-                      <Text className='avatar-customize__gen-chip-label'>无</Text>
-                    </View>
-                    {GEN_EXPRESSIONS.map(opt => (
-                      <View
-                        key={opt.key}
-                        className={`avatar-customize__gen-chip ${photoExpression === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
-                        onClick={() => setPhotoExpression(opt.key)}
-                      >
-                        <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
-                        <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
+              {/* 3D 任务轻提示：同 2D 口径，失败点击重试（依赖其参考的 2D 任务存在） */}
+              {task3D.isProcessing && (
+                <Text className='avatar-customize__task-hint'>⏳ 3D 模型 AI 生成中，请稍候…</Text>
+              )}
+              {task3D.isFailed && (
+                <Text
+                  className='avatar-customize__task-hint avatar-customize__task-hint--error'
+                  onClick={() => task3D.retry(petId, task2D.taskId!)}
+                >
+                  ❌ 3D 模型生成失败，点击重试
+                </Text>
+              )}
 
-                {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
-                  <View className='avatar-customize__quota'>
-                    <Text className='avatar-customize__quota-text'>
-                      {photoQuotaText}
-                    </Text>
-                  </View>
-                )}
+              {task3D.isComplete && task3D.result.model && (
+                <Model3DViewer
+                  modelUrl={task3D.result.model.modelUrl}
+                  thumbnailUrl={task3D.result.model.thumbnailUrl}
+                />
+              )}
 
-                {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
-                  <View className='avatar-customize__actions'>
-                    <View
-                      className={`avatar-customize__btn ${(!uploadedPhotoUrl || !canGenPhoto) ? 'avatar-customize__btn--disabled' : ''}`}
-                      onClick={handleGenerate2D}
-                    >
-                      <Text className='avatar-customize__btn-text'>生成 2D 形象包</Text>
-                    </View>
-                  </View>
-                )}
-
-                {!task2D.isProcessing && !task2D.isComplete && !task2D.isFailed && (
-                  <View className='avatar-customize__actions avatar-customize__actions--spaced'>
-                    <View
-                      className={`avatar-customize__btn avatar-customize__btn--secondary ${(!uploadedPhotoUrl || !canGenPhotoOptions || isGenerating) ? 'avatar-customize__btn--disabled' : ''}`}
-                      onClick={() => uploadedPhotoUrl && handleGeneratePhotoOptions(uploadedPhotoUrl)}
-                    >
-                      <Text className='avatar-customize__btn-text'>按所选画风生成形象</Text>
-                    </View>
-                  </View>
-                )}
-
-                {/* 2D 任务轻提示（替代原 GenerationProgress 重进度卡）：生成中一行小字，失败可点重试 */}
-                {task2D.isProcessing && (
-                  <Text className='avatar-customize__task-hint'>⏳ 2D 形象包 AI 生成中，请稍候…</Text>
-                )}
-                {task2D.isFailed && (
-                  <Text
-                    className='avatar-customize__task-hint avatar-customize__task-hint--error'
-                    onClick={handle2DRetry}
-                  >
-                    ❌ 2D 形象包生成失败，点击重试
-                  </Text>
-                )}
-
-                {task2D.isComplete && task2D.pack.images.length > 0 && (
-                  <ImageGallery
-                    images={task2D.pack.images}
-                    onSaveAsAvatar={handleSaveAsAvatar}
-                    onGenerate3D={handleGenerate3D}
-                    isGenerating3D={task3D.isGenerating}
-                    canGenerate3D={canGen3D}
+              {existingCustom && !task2D.isComplete && !task3D.isComplete && !task2D.isProcessing && !task3D.isProcessing && (
+                <View className='avatar-customize__existing'>
+                  <Text className='avatar-customize__existing-label'>当前头像</Text>
+                  <Image
+                    className='avatar-customize__existing-img'
+                    src={currentPet?.avatarPhotoUrl || currentPet?.avatarCartoonUrl || existingCustom.cartoonUrl || ''}
+                    mode='aspectFit'
+                    lazyLoad
                   />
-                )}
-
-                {/* 3D 任务轻提示：同 2D 口径，失败点击重试（依赖其参考的 2D 任务存在） */}
-                {task3D.isProcessing && (
-                  <Text className='avatar-customize__task-hint'>⏳ 3D 模型 AI 生成中，请稍候…</Text>
-                )}
-                {task3D.isFailed && (
-                  <Text
-                    className='avatar-customize__task-hint avatar-customize__task-hint--error'
-                    onClick={() => task3D.retry(petId, task2D.taskId!)}
-                  >
-                    ❌ 3D 模型生成失败，点击重试
-                  </Text>
-                )}
-
-                {task3D.isComplete && task3D.result.model && (
-                  <Model3DViewer
-                    modelUrl={task3D.result.model.modelUrl}
-                    thumbnailUrl={task3D.result.model.thumbnailUrl}
-                  />
-                )}
-
-                {existingCustom && !task2D.isComplete && !task3D.isComplete && !task2D.isProcessing && !task3D.isProcessing && (
-                  <View className='avatar-customize__existing'>
-                    <Text className='avatar-customize__existing-label'>当前头像</Text>
-                    <Image
-                      className='avatar-customize__existing-img'
-                      src={currentPet?.avatarPhotoUrl || currentPet?.avatarCartoonUrl || existingCustom.cartoonUrl || ''}
-                      mode='aspectFit'
-                      lazyLoad
-                    />
-                  </View>
-                )}
-              </>
-              ) : (
-                <View className='avatar-customize__member-only'>
-                  <Text className='avatar-customize__member-only-icon'>✨</Text>
-                  <Text className='avatar-customize__member-only-title'>AI 照片生成 · 会员专享</Text>
-                  <Text className='avatar-customize__member-only-desc'>上传宠物照片后，选好画风（与文生图同一套 15 种）和表情，AI 参考照片生成专属形象（一套含头像+全方位设定图），会员每月限 3 次；免费用户可直接用上方照片作头像</Text>
-                  <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可用宠物照片生成专属形象，每月 3 次')}>
-                    <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
-                  </View>
                 </View>
               )}
             </>
-          )}
-
-          {/* Tab 3: 真·背景替换（图生图保角色换景，会员专享） */}
-          {activeTab === 'bgswap' && (
-            !isMember ? (
+            ) : (
               <View className='avatar-customize__member-only'>
-                <Text className='avatar-customize__member-only-icon'>🌈</Text>
-                <Text className='avatar-customize__member-only-title'>背景替换 · 会员专享</Text>
-                <Text className='avatar-customize__member-only-desc'>选一张已有形象，AI 保持宠物完全不变、只把背景换成你想要的场景；可先在「照片生成」Tab 生成专属形象再来换景</Text>
-                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可使用 AI 背景替换')}>
+                <Text className='avatar-customize__member-only-icon'>✨</Text>
+                <Text className='avatar-customize__member-only-title'>AI 照片生成 · 会员专享</Text>
+                <Text className='avatar-customize__member-only-desc'>上传宠物照片后，选好画风（与文生图同一套 15 种）和表情，AI 参考照片生成专属形象（一套含头像+全方位设定图），会员每月限 3 次；免费用户可直接用上方照片作头像</Text>
+                <View className='avatar-customize__member-only-btn' onClick={() => showMemberGuide('开通会员即可用宠物照片生成专属形象，每月 3 次')}>
                   <Text className='avatar-customize__member-only-btn-text'>开通会员</Text>
                 </View>
               </View>
-            ) : (
-              <>
-              {/* 第一步：选源形象（当前形象 + 形象库条目） */}
-              <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>1️⃣ 选一张形象</Text>
-                <ScrollView className='avatar-bgsrc' scrollX enhanced showScrollbar={false}>
-                  {currentPet?.avatarCartoonUrl && (
-                    <View
-                      className={`avatar-bgsrc__card ${bgSourceUrl === currentPet.avatarCartoonUrl ? 'avatar-bgsrc__card--active' : ''}`}
-                      onClick={() => setBgSourceUrl(currentPet.avatarCartoonUrl!)}
-                    >
-                      <Image className='avatar-bgsrc__img' src={currentPet.avatarCartoonUrl} mode='aspectFill' lazyLoad />
-                      <Text className='avatar-bgsrc__label'>当前形象</Text>
-                    </View>
-                  )}
-                  {library.map(item => (
-                    <View
-                      key={item.id}
-                      className={`avatar-bgsrc__card ${bgSourceUrl === item.imageUrl ? 'avatar-bgsrc__card--active' : ''}`}
-                      onClick={() => setBgSourceUrl(item.imageUrl)}
-                    >
-                      <Image className='avatar-bgsrc__img' src={item.imageUrl} mode='aspectFill' lazyLoad />
-                      <Text className='avatar-bgsrc__label'>{GEN_STYLE_LABELS[item.style] || item.style}</Text>
-                    </View>
-                  ))}
-                </ScrollView>
-                {!currentPet?.avatarCartoonUrl && library.length === 0 && (
-                  <Text className='avatar-bgsrc__empty'>还没有可用的形象：先在上方「文字描述生成 / 照片生成」生成并保存到形象库</Text>
-                )}
-                {bgSourceUrl && <Text className='avatar-bgsrc__hint'>已选择 ✓ AI 会保持这只宠物完全不变，只更换背景</Text>}
-              </View>
-
-              {/* 第二步：选新背景（预设 chips 或自定义描述） */}
-              <View className='avatar-customize__section'>
-                <Text className='avatar-customize__section-title'>2️⃣ 选择新背景</Text>
-                <View className='avatar-customize__gen-options avatar-customize__gen-options--expr'>
-                  {GEN_BACKGROUNDS.map(opt => (
-                    <View
-                      key={opt.key}
-                      className={`avatar-customize__gen-chip ${bgSwapBg === opt.key ? 'avatar-customize__gen-chip--active' : ''}`}
-                      onClick={() => setBgSwapBg(opt.key)}
-                    >
-                      <Text className='avatar-customize__gen-chip-icon'>{opt.icon}</Text>
-                      <Text className='avatar-customize__gen-chip-label'>{opt.label}</Text>
-                    </View>
-                  ))}
-                </View>
-                {/* 自定义背景：自由写场景，角色锁定由服务端提示词保证；清洗截断 60 字在服务端做 */}
-                <Text className='avatar-customize__desc-hint'>✏️ 或自己写一个背景（只描述场景即可，宠物会保持不变；不要写宠物名字）</Text>
-                <Textarea
-                  className='avatar-customize__desc-input'
-                  value={bgCustom}
-                  onInput={(e) => setBgCustom(e.detail.value)}
-                  placeholder='例如：铺满落叶的秋日森林小径，午后暖阳穿过树叶洒下光斑'
-                  maxlength={60}
-                  autoHeight
-                />
-                {!!bgCustom.trim() && (
-                  <Text className='avatar-bgsrc__hint'>将使用你的自定义背景（优先于上方所选预设）</Text>
-                )}
-              </View>
-
-              {/* 生成 */}
-              <View className='avatar-customize__actions'>
-                <View
-                  className={`avatar-customize__btn ${(!bgSourceUrl || (!bgSwapBg && !bgCustom.trim()) || isBgSwapping) ? 'avatar-customize__btn--disabled' : ''}`}
-                  onClick={handleBackgroundSwap}
-                >
-                  <Text className='avatar-customize__btn-text'>{isBgSwapping ? '换背景中…' : '🌈 开始换背景'}</Text>
-                </View>
-              </View>
-
-              {/* 结果：存入形象库 / 设为当前 */}
-              {bgSwapResult && (
-                <View className='avatar-bgres'>
-                  <Image className='avatar-bgres__img' src={bgSwapResult} mode='aspectFit' lazyLoad />
-                  <View className='avatar-bgres__actions'>
-                    <View className='avatar-customize__btn avatar-customize__btn--secondary' onClick={handleSaveBgResult}>
-                      <Text className='avatar-customize__btn-text'>💾 存入形象库</Text>
-                    </View>
-                    <View className='avatar-customize__btn' onClick={handleUseBgResult}>
-                      <Text className='avatar-customize__btn-text'>✅ 设为当前形象</Text>
-                    </View>
-                  </View>
-                  <Text className='avatar-bgres__hint'>不满意？换个背景再点一次「开始换背景」即可</Text>
-                </View>
-              )}
-              </>
-            )
-          )}
-          {/* 生成结果：一套 = 头像 + 全方位设定图。单张结果走单卡（文字流指定画风 / 照片流按所选画风，
-              两者生成成功都会 setSelectedStyleIndex(0)，单卡内保存/设当前均显式用下标 0，无死按钮）；
+            )}
+          </>
+          {/* 生成结果：一套 = 头像 + 全方位设定图。单张结果走单卡（照片流按所选画风，
+              生成成功会 setSelectedStyleIndex(0)，单卡内保存/设当前均显式用下标 0，无死按钮）；
               多张（照片批量候选遗留路径，不传 styleKey 时服务端仍返回多套）走宫格选 1 */}
           {styleOptions && styleOptions.length > 0 && (
             styleOptions.length === 1 ? (
@@ -1442,10 +1009,8 @@ export default function AvatarCustomizePage() {
                 <View className='avatar-options__head'>
                   <Text className='avatar-options__title'>生成结果</Text>
                   <Text className='avatar-options__hint'>
-                    {GEN_STYLE_LABELS[activeTab === 'text' ? genStyle : photoStyle] || styleOptions[0].label}
-                    {(activeTab === 'text' ? genExpression : photoExpression)
-                      ? ` · ${GEN_EXPR_LABELS[(activeTab === 'text' ? genExpression : photoExpression)!]}`
-                      : ''}
+                    {GEN_STYLE_LABELS[photoStyle] || styleOptions[0].label}
+                    {photoExpression ? ` · ${GEN_EXPR_LABELS[photoExpression]}` : ''}
                   </Text>
                 </View>
                 <Image className='avatar-options__single-img' src={styleOptions[0].url} mode='aspectFit' lazyLoad />
