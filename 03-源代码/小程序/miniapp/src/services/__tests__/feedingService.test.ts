@@ -4,7 +4,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { PetProfile } from '../petService'
 import type { ChronicRecord } from '../../types/chronicTypes'
-import type { FeedingProfile, PersonalizedFeedingAdvice } from '../feedingService'
+import type { FeedingProfile } from '../feedingService'
+
+import { buildFeedingProfile, generatePersonalizedAdvice, getMealPlan, getAiFeedingAdvice } from '../feedingService'
 
 vi.mock('../chronicService', () => ({
   getChronicRecords: vi.fn(() => Promise.resolve([])),
@@ -17,8 +19,6 @@ vi.mock('../api', () => ({
     post: (...args: unknown[]) => mockApiPost(...args),
   },
 }))
-
-import { buildFeedingProfile, generatePersonalizedAdvice, getMealPlan, getAiFeedingAdvice } from '../feedingService'
 
 function makePet(overrides: Partial<PetProfile> = {}): PetProfile {
   const now = new Date()
@@ -67,10 +67,21 @@ function makeChronicRecord(overrides: Partial<ChronicRecord> = {}): ChronicRecor
   }
 }
 
+/**
+ * 生成"当前日期往前推 months 个月"的出生日期（YYYY-MM-DD，按本地时区，不做 UTC 换算）。
+ * 关键修复：目标月份可能比当前月短（如 8-31 往前推 6 个月 → 2-31 不存在），
+ * 直接 setMonth 会让 JS 溢出到下一个月（2-31 → 3-02），导致月龄断言差 1；
+ * 这里把"日"钳制到目标月的最后一天（2-31 → 2-28/29），月份语义保持正确。
+ */
 function monthsAgo(months: number): string {
   const d = new Date()
-  d.setMonth(d.getMonth() - months)
-  return d.toISOString().slice(0, 10)
+  const targetMonthIndex = d.getMonth() - months
+  const targetYear = d.getFullYear() + Math.floor(targetMonthIndex / 12)
+  const monthIndex = ((targetMonthIndex % 12) + 12) % 12
+  const lastDayOfTargetMonth = new Date(targetYear, monthIndex + 1, 0).getDate()
+  const day = Math.min(d.getDate(), lastDayOfTargetMonth)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${targetYear}-${pad(monthIndex + 1)}-${pad(day)}`
 }
 
 function yearsAgo(years: number): string {
