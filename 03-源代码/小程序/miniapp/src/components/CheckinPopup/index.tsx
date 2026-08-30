@@ -5,6 +5,11 @@
  * （开场白 + 5 问 × 问题/回答 + 报告卡），把聊天撑得非常长。
  * 现在全部流程（多宠选择 → 5 项指标勾选 → 提交落库 → 结果展示）都在卡片内完成，
  * 完成后仅通过 onComplete 向聊天流追加一条结果卡消息。
+ *
+ * 多宠连续打卡（单只异常场景）：
+ * 打开时并行查询各宠物今日打卡状态，列表带 ✓ 标记与剩余计数；
+ * 先给状态不好的那只逐项勾选提交，结果页可「继续给剩余 N 只打卡」回到列表，
+ * 再一键批量正常——避免"某一只状态不好却被全部正常"误伤，也无需反复开关弹窗。
  */
 import { useCallback, useEffect, useState } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
@@ -97,9 +102,6 @@ const CHECKIN_ITEMS: CkItem[] = [
   },
 ]
 
-/** 多宠一键打卡的固定文案（多宠选择步骤内展示） */
-const BATCH_CHECKIN_LABEL = '🐾 全部正常，一键打卡'
-
 /** 卡片内部步骤：选宠物 → 填表单 → 看结果（单宠场景直接从 form 开始） */
 type CheckinStep = 'pet' | 'form' | 'result'
 
@@ -134,9 +136,14 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
   const [batchRunning, setBatchRunning] = useState(false)
   const [resultPayload, setResultPayload] = useState<CheckinCompletePayload | null>(null)
   const [resultFeedback, setResultFeedback] = useState<{ text: string; riskLevel: string } | null>(null)
+  /** 今日各宠物是否已打卡（打开时并行查询；单只提交/批量成功后增量更新） */
+  const [checkedToday, setCheckedToday] = useState<Record<string, boolean>>({})
 
   /** 当前打卡的目标宠物（表单头部展示用） */
   const targetPet = pets.find(p => p.id === targetPetId) ?? pets[0] ?? null
+
+  /** 今日尚未打卡的宠物数：宠物选择步骤的剩余提示、批量按钮文案、结果页"继续打卡"按钮统一口径 */
+  const uncheckedCount = pets.filter(p => !checkedToday[p.id]).length
 
   /** 每次打开时重置状态：单宠直接进表单，多宠先选宠物 */
   useEffect(() => {
@@ -146,8 +153,27 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
     setBatchRunning(false)
     setResultPayload(null)
     setResultFeedback(null)
+    setCheckedToday({})
     setTargetPetId(usePetStore.getState().currentPet?.id || pets[0]?.id || '')
     setStep(pets.length > 1 ? 'pet' : 'form')
+    // 多宠打开时并行查询今日打卡状态：宠物列表带 ✓ 标记、批量按钮只面向未打卡宠物，
+    // 避免"某一只状态不好却被一键全部正常"误伤（单宠直接进表单无需查询）
+    const uid = user?.id
+    if (pets.length > 1 && uid) {
+      // Promise.resolve 防御：异常/非 Promise 返回值一律视为未打卡，不阻塞打开
+      Promise.all(pets.map(p => Promise.resolve(getTodayCheckin(p.id, uid)).catch(() => null)))
+        .then(results => {
+          // 合并时保留已提交标记：查询是打开瞬间的快照，若期间用户已完成某只打卡，
+          // 不得用旧快照（null）把它的 ✓ 打回未打卡（异步竞态）
+          setCheckedToday(prev => {
+            const next = { ...prev }
+            pets.forEach((p, i) => {
+              if (!next[p.id]) next[p.id] = !!results[i]
+            })
+            return next
+          })
+        })
+    }
     // 仅在打开瞬间做一次初始化；pets 变化不重置进行中的打卡
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -200,6 +226,8 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
     setSubmitting(true)
     try {
       const entry = await createCheckin(buildCheckinInput(targetPet.id))
+      // 提交成功即标记今日已打卡：结果页据此提示"剩余 N 只"，批量按钮不再包含本只
+      setCheckedToday(prev => ({ ...prev, [targetPet.id]: true }))
 
       // 评分口径与旧聊天流程一致：各选项 score 求和 / 满分(5×5) 取百分比
       const total = CHECKIN_ITEMS.reduce((s, it) => s + (answers[it.key]?.score ?? 0), 0)
@@ -236,7 +264,7 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
     }
   }, [answers, answeredCount, buildCheckinInput, submitting, targetPet, user?.id])
 
-  /** 多宠一键打卡：为所有今天还没打卡的宠物批量提交"全部正常"默认指标（迁移自旧 useCheckinFlow） */
+  /** 多宠一键打卡：为今天还没打卡的宠物批量提交"全部正常"默认指标（迁移自旧 useCheckinFlow） */
   const runBatchCheckin = useCallback(async () => {
     const userId = useAuthStore.getState().user?.id
     if (!userId || pets.length === 0) {
@@ -245,9 +273,11 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
     }
     setBatchRunning(true)
     try {
-      // 只批量处理今天尚未打卡的宠物，避免同一天重复记录
+      // 只批量处理今天尚未打卡的宠物：已 ✓（打开时查询或单只已提交）的直接跳过，
+      // 不重复查询也不重复记录；剩余的逐个向云端复核后提交
+      const candidates = pets.filter(p => !checkedToday[p.id])
       const unchecked: PetProfile[] = []
-      for (const p of pets) {
+      for (const p of candidates) {
         const today = await getTodayCheckin(p.id, userId)
         if (!today) unchecked.push(p)
       }
@@ -265,6 +295,12 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
         hasAnomaly: false,
         anomalyItems: [],
       })))
+      // 批量成功后同步标记，宠物列表/继续按钮状态保持一致
+      setCheckedToday(prev => {
+        const next = { ...prev }
+        unchecked.forEach(p => { next[p.id] = true })
+        return next
+      })
       setResultPayload({
         type: 'ai',
         content: `搞定！已为 ${unchecked.length} 只毛孩子完成打卡 ✦\n\n${unchecked.map(p => p.name).join('、')} 今天都是满分状态！`,
@@ -275,7 +311,20 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
     } finally {
       setBatchRunning(false)
     }
-  }, [pets])
+  }, [checkedToday, pets])
+
+  /** 结果页"继续给剩余宠物打卡"：先回传本只结果卡到聊天，再回到宠物选择（同会话连续打卡） */
+  const handleContinue = useCallback(() => {
+    if (!resultPayload) return
+    const payload = resultPayload
+    setResultPayload(null)
+    setResultFeedback(null)
+    setAnswers({})
+    setSubmitting(false)
+    setTargetPetId('')
+    setStep('pet')
+    onComplete(payload)
+  }, [onComplete, resultPayload])
 
   /** 关闭卡片：已完成则回传结果消息；表单填了一半需确认放弃，防止误触丢数据 */
   const handleClose = useCallback(() => {
@@ -319,26 +368,43 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
             <View className='ckp-head'>
               <Text className='ckp-head-icon'>📋</Text>
               <Text className='ckp-head-title'>要为谁打卡？</Text>
-              <Text className='ckp-head-sub'>选择一只毛孩子开始今天的记录</Text>
+              <Text className='ckp-head-sub'>
+                {uncheckedCount > 0 ? `今天还有 ${uncheckedCount} 只没打卡` : '今天都已打卡，可以安心休息 🎉'}
+              </Text>
             </View>
             <View className='ckp-pet-list'>
-              {pets.map(p => (
-                <View
-                  key={p.id}
-                  className={`ckp-pet-chip ${p.id === targetPetId ? 'ckp-pet-chip--active' : ''}`}
-                  hoverClass='ckp-pet-chip--hover'
-                  onClick={() => {
-                    setTargetPetId(p.id)
-                    setStep('form')
-                  }}
-                >
-                  <Text className='ckp-pet-chip-emoji'>{p.species === 'cat' ? '🐱' : p.species === 'dog' ? '🐕' : '🐾'}</Text>
-                  <Text className='ckp-pet-chip-name'>{p.name}</Text>
-                </View>
-              ))}
+              {pets.map(p => {
+                const done = !!checkedToday[p.id]
+                return (
+                  <View
+                    key={p.id}
+                    className={`ckp-pet-chip ${p.id === targetPetId ? 'ckp-pet-chip--active' : ''} ${done ? 'ckp-pet-chip--done' : ''}`}
+                    hoverClass='ckp-pet-chip--hover'
+                    onClick={() => {
+                      // 已打卡宠物点击拦截：防误以为还能重打，避免同一天重复记录
+                      if (done) {
+                        Taro.showToast({ title: '今天已经打过卡啦', icon: 'none' })
+                        return
+                      }
+                      setTargetPetId(p.id)
+                      setStep('form')
+                    }}
+                  >
+                    <Text className='ckp-pet-chip-emoji'>{p.species === 'cat' ? '🐱' : p.species === 'dog' ? '🐕' : '🐾'}</Text>
+                    <Text className='ckp-pet-chip-name'>{p.name}</Text>
+                    {done && <Text className='ckp-pet-chip-check'>✓</Text>}
+                  </View>
+                )
+              })}
             </View>
             <View className='ckp-batch-btn' hoverClass='ckp-batch-btn--hover' onClick={runBatchCheckin}>
-              <Text>{batchRunning ? '打卡中...' : BATCH_CHECKIN_LABEL}</Text>
+              <Text>
+                {batchRunning
+                  ? '打卡中...'
+                  : uncheckedCount === 0
+                    ? '🐾 今天都打过卡啦 🎉'
+                    : `🐾 剩余 ${uncheckedCount} 只全部正常，一键打卡`}
+              </Text>
             </View>
           </>
         )}
@@ -434,6 +500,11 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
               </View>
             </ScrollView>
             <View className='ckp-footer'>
+              {uncheckedCount > 0 && (
+                <View className='ckp-continue' hoverClass='ckp-continue--hover' onClick={handleContinue}>
+                  <Text>继续给剩余 {uncheckedCount} 只打卡 ›</Text>
+                </View>
+              )}
               <View className='ckp-submit' hoverClass='ckp-submit--hover' onClick={handleClose}>
                 <Text>收下啦 ✨</Text>
               </View>

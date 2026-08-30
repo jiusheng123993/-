@@ -300,6 +300,107 @@ describe('CheckinPopup — 多宠场景', () => {
     )
     expect(mockBatchCreate).not.toHaveBeenCalled()
   })
+
+  it('打开时查询今日打卡状态：已打卡宠物带✓且点击被拦截，未打卡宠物可进入表单', async () => {
+    // 先于渲染设置 mock：打开瞬间的并行状态查询会立即调用 getTodayCheckin
+    mockGetToday.mockImplementation(async (petId: string) =>
+      petId === 'pet_1' ? ({ id: 'entry_x' } as any) : null
+    )
+    const { container } = renderPopup()
+
+    // pet_1（旺财）已打卡 → 显示 ✓ 标记；pet_2（咪咪）未打卡无标记
+    await waitFor(() => {
+      const wangcai = Array.from(container.querySelectorAll('.ckp-pet-chip')).find(
+        el => el.textContent?.includes('旺财')
+      )!
+      expect(wangcai.querySelector('.ckp-pet-chip-check')).toBeTruthy()
+    })
+    expect(
+      Array.from(container.querySelectorAll('.ckp-pet-chip'))
+        .find(el => el.textContent?.includes('咪咪'))!
+        .querySelector('.ckp-pet-chip-check')
+    ).toBeFalsy()
+
+    // 点击已打卡宠物：toast 拦截，停留在宠物选择步骤
+    fireEvent.click(
+      Array.from(container.querySelectorAll('.ckp-pet-chip')).find(
+        el => el.textContent?.includes('旺财')
+      )!
+    )
+    expect(mockShowToast).toHaveBeenCalledWith({ title: '今天已经打过卡啦', icon: 'none' })
+    expect(container.textContent).toContain('要为谁打卡？')
+
+    // 未打卡宠物正常进入表单
+    fireEvent.click(
+      Array.from(container.querySelectorAll('.ckp-pet-chip')).find(
+        el => el.textContent?.includes('咪咪')
+      )!
+    )
+    expect(container.textContent).toContain('咪咪的健康打卡')
+  })
+
+  it('单只状态不好：先逐项打卡，结果页可继续给剩余宠物一键正常（连续会话）', async () => {
+    // 模拟服务端状态：咪咪( pet_2 )在单独提交成功后云端有记录
+    let mimiChecked = false
+    mockGetToday.mockImplementation(async (petId: string) =>
+      petId === 'pet_2' && mimiChecked ? ({ id: 'entry_mimi' } as any) : null
+    )
+    mockCreateCheckin.mockImplementation(async (input: any) => {
+      if (input.petId === 'pet_2') mimiChecked = true
+      return {
+        id: 'entry_2',
+        petId: input.petId,
+        riskLevel: 'high',
+        aiFeedback: '🔔 出现需要关注的症状。',
+        createdAt: new Date(),
+      } as any
+    })
+    mockBatchCreate.mockResolvedValue([])
+    const { container } = renderPopup()
+
+    // 状态不好的咪咪：进入表单勾选异常项提交
+    fireEvent.click(
+      Array.from(container.querySelectorAll('.ckp-pet-chip')).find(
+        el => el.textContent?.includes('咪咪')
+      )!
+    )
+    clickOption(container, '拉稀/软便')
+    clickOption(container, '清亮，次数正常')
+    clickOption(container, '完全不吃')
+    clickOption(container, '趴着不动，精神差')
+    clickOption(container, '体重稳定')
+    fireEvent.click(container.querySelector('.ckp-submit')!)
+
+    // 落库对象是咪咪且带异常信号；结果页出现"继续给剩余 1 只打卡"
+    await waitFor(() => expect(mockCreateCheckin).toHaveBeenCalledTimes(1))
+    expect(mockCreateCheckin.mock.calls[0][0].petId).toBe('pet_2')
+    expect(mockCreateCheckin.mock.calls[0][0].hasAnomaly).toBe(true)
+    await waitFor(() => expect(container.textContent).toContain('继续给剩余 1 只打卡'))
+
+    // 点继续：咪咪的结果卡回传聊天，回到宠物选择（不关闭弹窗）
+    fireEvent.click(container.querySelector('.ckp-continue')!)
+    expect(mockOnComplete).toHaveBeenCalledTimes(1)
+    expect(mockOnComplete.mock.calls[0][0].content).toContain('咪咪的打卡完成')
+    expect(mockOnClose).not.toHaveBeenCalled()
+    await waitFor(() => expect(container.textContent).toContain('要为谁打卡？'))
+
+    // 列表里咪咪已 ✓、旺财未打卡；批量按钮只处理旺财一只
+    expect(
+      Array.from(container.querySelectorAll('.ckp-pet-chip'))
+        .find(el => el.textContent?.includes('咪咪'))!
+        .querySelector('.ckp-pet-chip-check')
+    ).toBeTruthy()
+    fireEvent.click(
+      Array.from(container.querySelectorAll('.ckp-batch-btn')).find(
+        el => el.textContent?.includes('全部正常')
+      )!
+    )
+    await waitFor(() => expect(mockBatchCreate).toHaveBeenCalledTimes(1))
+    const items = mockBatchCreate.mock.calls[0][0]
+    expect(items).toHaveLength(1)
+    expect(items[0].petId).toBe('pet_1')
+    expect(items[0].hasAnomaly).toBe(false)
+  })
 })
 
 describe('CheckinPopup — 关闭交互', () => {
