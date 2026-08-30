@@ -11,6 +11,8 @@
   left: 0;
   right: 0;
   bottom: 0;
+  /* 显式高度兜底：仅靠 top/bottom 撑出的 fixed 高度，在部分微信 webview 下百分比 max-height 解析不可靠 */
+  height: 100vh;
   background: rgba(0, 0, 0, 0.55);
   z-index: 1050;
   display: flex;
@@ -27,7 +29,9 @@
 /* ===== 弹窗卡片 ===== */
 .ckp-card {
   width: 650rpx;
-  max-height: 86%;
+  /* 用 vh 而非百分比：百分比 max-height 在 fixed 祖先 + 部分微信 webview 下不生效，
+     卡片会按内容撑高、超出屏幕部分被裁且内部 ScrollView 无滚动空间（显示不完整/不支持滚动） */
+  max-height: 86vh;
   background: linear-gradient(180deg, #fef9f3 0%, #faf3e8 30%, #fdf8f0 100%);
   border-radius: 32rpx;
   overflow: hidden;
@@ -116,6 +120,13 @@
 }
 
 /* ===== 步骤一：多宠选择 ===== */
+/* 宠物列表滚动区：宠物多时列表超高可滚动，批量按钮固定在底部（同表单区 ckp-body 模式） */
+.ckp-pet-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+
 .ckp-pet-list {
   display: flex;
   flex-wrap: wrap;
@@ -174,6 +185,8 @@
   border-radius: 100rpx;
   background: rgba(232, 168, 56, 0.14);
   border: 2rpx dashed rgba(232, 168, 56, 0.55);
+  /* 空间紧张时也保持可见：批量按钮不随列表区收缩 */
+  flex-shrink: 0;
 
   text {
     font-size: 28rpx;
@@ -191,13 +204,19 @@
   flex: 1;
   height: 0;
   min-height: 0;
-  padding: 8rpx 32rpx 16rpx;
   box-sizing: border-box;
 
   /* 结果视图内容较少时允许居中呼吸 */
   &--result {
-    padding-top: 20rpx;
+    .ckp-body-inner {
+      padding-top: 20rpx;
+    }
   }
+}
+
+/* scroll-view 上不支持 padding（webview 渲染模式），间距统一放内部容器 */
+.ckp-body-inner {
+  padding: 8rpx 32rpx 16rpx;
 }
 
 .ckp-item {

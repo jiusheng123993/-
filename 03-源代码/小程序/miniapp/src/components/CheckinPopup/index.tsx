@@ -372,31 +372,33 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
                 {uncheckedCount > 0 ? `今天还有 ${uncheckedCount} 只没打卡` : '今天都已打卡，可以安心休息 🎉'}
               </Text>
             </View>
-            <View className='ckp-pet-list'>
-              {pets.map(p => {
-                const done = !!checkedToday[p.id]
-                return (
-                  <View
-                    key={p.id}
-                    className={`ckp-pet-chip ${p.id === targetPetId ? 'ckp-pet-chip--active' : ''} ${done ? 'ckp-pet-chip--done' : ''}`}
-                    hoverClass='ckp-pet-chip--hover'
-                    onClick={() => {
-                      // 已打卡宠物点击拦截：防误以为还能重打，避免同一天重复记录
-                      if (done) {
-                        Taro.showToast({ title: '今天已经打过卡啦', icon: 'none' })
-                        return
-                      }
-                      setTargetPetId(p.id)
-                      setStep('form')
-                    }}
-                  >
-                    <Text className='ckp-pet-chip-emoji'>{p.species === 'cat' ? '🐱' : p.species === 'dog' ? '🐕' : '🐾'}</Text>
-                    <Text className='ckp-pet-chip-name'>{p.name}</Text>
-                    {done && <Text className='ckp-pet-chip-check'>✓</Text>}
-                  </View>
-                )
-              })}
-            </View>
+            <ScrollView className='ckp-pet-scroll' scrollY enhanced showScrollbar={false}>
+              <View className='ckp-pet-list'>
+                {pets.map(p => {
+                  const done = !!checkedToday[p.id]
+                  return (
+                    <View
+                      key={p.id}
+                      className={`ckp-pet-chip ${p.id === targetPetId ? 'ckp-pet-chip--active' : ''} ${done ? 'ckp-pet-chip--done' : ''}`}
+                      hoverClass='ckp-pet-chip--hover'
+                      onClick={() => {
+                        // 已打卡宠物点击拦截：防误以为还能重打，避免同一天重复记录
+                        if (done) {
+                          Taro.showToast({ title: '今天已经打过卡啦', icon: 'none' })
+                          return
+                        }
+                        setTargetPetId(p.id)
+                        setStep('form')
+                      }}
+                    >
+                      <Text className='ckp-pet-chip-emoji'>{p.species === 'cat' ? '🐱' : p.species === 'dog' ? '🐕' : '🐾'}</Text>
+                      <Text className='ckp-pet-chip-name'>{p.name}</Text>
+                      {done && <Text className='ckp-pet-chip-check'>✓</Text>}
+                    </View>
+                  )
+                })}
+              </View>
+            </ScrollView>
             <View className='ckp-batch-btn' hoverClass='ckp-batch-btn--hover' onClick={runBatchCheckin}>
               <Text>
                 {batchRunning
@@ -421,27 +423,30 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
             </View>
 
             <ScrollView className='ckp-body' scrollY enhanced showScrollbar={false}>
-              {CHECKIN_ITEMS.map(item => (
-                <View key={item.key} className='ckp-item'>
-                  <View className='ckp-item-q'>
-                    <Text className='ckp-item-emoji'>{item.emoji}</Text>
-                    <Text className='ckp-item-label'>{item.label}</Text>
-                    <Text className='ckp-item-question'>{item.question}</Text>
+              {/* scroll-view 上不支持 padding（webview 渲染模式），间距放内部容器 */}
+              <View className='ckp-body-inner'>
+                {CHECKIN_ITEMS.map(item => (
+                  <View key={item.key} className='ckp-item'>
+                    <View className='ckp-item-q'>
+                      <Text className='ckp-item-emoji'>{item.emoji}</Text>
+                      <Text className='ckp-item-label'>{item.label}</Text>
+                      <Text className='ckp-item-question'>{item.question}</Text>
+                    </View>
+                    <View className='ckp-opts'>
+                      {item.options.map(opt => (
+                        <View
+                          key={opt.label}
+                          className={`ckp-opt ${answers[item.key]?.label === opt.label ? 'ckp-opt--active' : ''}`}
+                          onClick={() => handleSelectOption(item.key, opt)}
+                          hoverClass='ckp-opt--hover'
+                        >
+                          <Text>{opt.label}</Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
-                  <View className='ckp-opts'>
-                    {item.options.map(opt => (
-                      <View
-                        key={opt.label}
-                        className={`ckp-opt ${answers[item.key]?.label === opt.label ? 'ckp-opt--active' : ''}`}
-                        onClick={() => handleSelectOption(item.key, opt)}
-                        hoverClass='ckp-opt--hover'
-                      >
-                        <Text>{opt.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
+                ))}
+              </View>
             </ScrollView>
 
             {/* 底部进度 + 提交 */}
@@ -471,32 +476,35 @@ export default function CheckinPopup({ open, onClose, onComplete }: CheckinPopup
               <Text className='ckp-head-sub'>已记录到健康档案</Text>
             </View>
             <ScrollView className='ckp-body ckp-body--result' scrollY enhanced showScrollbar={false}>
-              {resultPayload.card?.score !== undefined && (
-                <>
-                  <View className='ckp-score'>
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <Text key={i} className='ckp-star'>
-                        {i <= Math.round(resultPayload.card!.score! / 20) ? '★' : '☆'}
-                      </Text>
-                    ))}
-                    <Text className='ckp-score-num'>{resultPayload.card.score} 分</Text>
-                  </View>
-                  {resultPayload.card.stats?.map(stat => (
-                    <View key={stat.label} className='ckp-stat'>
-                      <Text className='ckp-stat-label'>{stat.emoji || ''} {stat.label}</Text>
-                      <Text className='ckp-stat-val'>{stat.value}</Text>
+              {/* scroll-view 上不支持 padding（webview 渲染模式），间距放内部容器 */}
+              <View className='ckp-body-inner'>
+                {resultPayload.card?.score !== undefined && (
+                  <>
+                    <View className='ckp-score'>
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <Text key={i} className='ckp-star'>
+                          {i <= Math.round(resultPayload.card!.score! / 20) ? '★' : '☆'}
+                        </Text>
+                      ))}
+                      <Text className='ckp-score-num'>{resultPayload.card.score} 分</Text>
                     </View>
-                  ))}
-                </>
-              )}
-              {/* 服务端风险反馈：低风险绿色安抚，中风险金色提示，高风险红色警示 */}
-              {resultFeedback?.text && (
-                <View className={`ckp-feedback ckp-feedback--${resultFeedback.riskLevel}`}>
-                  <Text>{resultFeedback.text}</Text>
+                    {resultPayload.card.stats?.map(stat => (
+                      <View key={stat.label} className='ckp-stat'>
+                        <Text className='ckp-stat-label'>{stat.emoji || ''} {stat.label}</Text>
+                        <Text className='ckp-stat-val'>{stat.value}</Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+                {/* 服务端风险反馈：低风险绿色安抚，中风险金色提示，高风险红色警示 */}
+                {resultFeedback?.text && (
+                  <View className={`ckp-feedback ckp-feedback--${resultFeedback.riskLevel}`}>
+                    <Text>{resultFeedback.text}</Text>
+                  </View>
+                )}
+                <View className='ckp-hint-msg'>
+                  <Text>报告已同步到聊天，随时可以回看～</Text>
                 </View>
-              )}
-              <View className='ckp-hint-msg'>
-                <Text>报告已同步到聊天，随时可以回看～</Text>
               </View>
             </ScrollView>
             <View className='ckp-footer'>
