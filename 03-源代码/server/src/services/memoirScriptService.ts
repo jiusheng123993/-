@@ -18,6 +18,7 @@ import {
   type MemoirScript,
   type MemoirSegmentScript,
 } from '../schemas/memoirScript.js';
+import { petSubjectText, translatePetNames } from './petPrompt.js';
 
 /** 产品线类型（与 videoGenerationService 保持一致） */
 export type MemoirProductLine = 'daily' | 'memorial';
@@ -46,6 +47,8 @@ export interface MemoirScriptInput {
   sourceText?: string | null;
   /** 用户选择的音乐风格（可空） */
   musicStyle?: string | null;
+  /** 每张照片的可见事实摘要（与 source_photos 顺序一致；识别失败可为空） */
+  photoDescriptions?: string[];
 }
 
 /** 产品线配置（与 videoGenerationService.PRODUCT_LINE_CONFIG 对齐） */
@@ -75,7 +78,8 @@ const MAX_ATTEMPTS = 3;
 /** 分镜生成参数（chat 调用配置） */
 const SCRIPT_CHAT_OPTIONS = {
   temperature: 0.8, // 创意生成需要一定随机性
-  max_tokens: 4000, // 12 镜 JSON 约 2500-3500 tokens
+  // 纪念线最多 15 镜，升级后的十段 prompt 信息更完整；保留足够 JSON 输出空间，避免末段截断重试。
+  max_tokens: 8000,
   // 关闭思考模式：否则 reasoning_content 会吃掉 max_tokens，导致 content 为空/JSON 截断
   thinking: 'disabled' as const,
 } as const;
@@ -99,29 +103,31 @@ function buildSystemPrompt(): string {
    例：不写"氛围温馨感人"，写"黄昏暖光从窗台洒入，猫在光斑里眯眼"；
    不写"悲伤的回忆"，写"空了的猫窝，窗帘被风轻轻吹动"。
    旁白和 prompt 都必须遵守：每个情绪点都要对应一个看得见的具体画面。
-3. 角色锚点（anchors，多宠物/多人场景核心）：照片里**每一个需要保持一致的在场角色**（宠物和人）各提取
+3. 提示词安全红线：宠物名字仅可用于 title/narration/subtitle 等给人看的文案，绝不能写进 anchors.desc 或 seedance_prompt。
+   CHARACTERS 与 Shot 中只能用“参考图中的宠物”“这只猫咪/狗狗”或毛色、花纹、体型、五官等外貌指代。
+4. 角色锚点（anchors，多宠物/多人场景核心）：照片里**每一个需要保持一致的在场角色**（宠物和人）各提取
    3-6 个"能一眼认出它/他/她"的物理特征（宠物：毛色/花纹/体型/五官/特殊标记；人：发型/身高体型/服装/眼镜
    等稳定特征，不用表情），写进 JSON 顶部的 anchors 数组（每项 {id, type: pet/human, desc}）。
    每个锚点的 desc 在它出现的每一镜 seedance_prompt 里**逐字重复**（Seedance 一致性核心）。
    每镜的 characters_present 声明本镜在场角色 id（这镜只有猫就只写猫的 id）。
-4. 每镜 seedance_prompt 用中文，按十段结构组装：
-   GLOBAL STYLE（类型/调色/必须不出现的东西，如"只出现本镜声明的角色"）
-   → SCENE（一句话）→ CHARACTERS（角色=参考图+本镜在场角色锚点逐字重复）
-   → LOCATION（位置与道具，防止多镜漂移）→ FIRST FRAME（开场构图 x/y 百分比）
-   → Shot 1（景别+动作，1-2 句）→ OPTICS（焦段/机位）→ PHYSICS（毛发等柔软细节）
-   → LIGHTING（一个光源方案）→ AUDIO（环境声；无音乐）。
-   动作细节只写"从照片能推断"的（如"耳朵在光里透出粉色""尾巴尖轻轻摆动"），
-   不编造照片里没有的场景。人物动作克制写实（不美化不丑化）。
-5. 旁白文案：口语化、克制、有画面感，每镜 1-2 句话（20-50 字），
-   写具体细节（"它总在黄昏蹲在窗台第三块砖上"），避免"永远爱你"式空话。
-6. 字幕：短句（≤15 字），可含时间节点（"2018 年冬天 · 第一次下雪"）。
-7. 情感曲线遵循产品线说明：开头平静留白，中段温暖回忆，转折点到为止
-   （不渲染痛苦），结尾释怀与感激。
-8. **结尾全家福镜头（必须）**：最后一镜必须是"全家福合影动效"——用角色最多的照片
-   （照片里有最多宠物/人物同框的那张）做缓慢推近或拉远 + 柔和光效 + 轻微动效
-   （尾巴/耳朵/衣角轻动），旁白写"一家人/一大家子在一起"的释怀收尾，字幕如"我们一家"。
-   如果所有照片都是单角色，则用最后一张照片做温暖收尾（推近+光效）。
-9. 避免：同镜超过 3 个动作、可读文字/水印、冲突光线（一个光源方案只选一个）。
+5. 每镜 seedance_prompt 用中文，按十段结构组装：
+   GLOBAL STYLE（题材、写实质感、统一调色、画质与严格排除）
+   → SCENE（一句话概述主体+地点+事件）→ CHARACTERS（参考图+本镜在场角色锚点逐字重复）
+   → LOCATION（只写对应照片可见的空间、前中后景和关键道具）→ FIRST FRAME（按参考照片原始构图）
+   → Shot 1（景别+一种运镜+主体微动作+相对节奏词）→ OPTICS（焦段/机位/景深）
+   → PHYSICS（毛发、耳朵、胡须、尾巴、衣角等低缓连续物理细节）
+   → LIGHTING（单一主光源、方向与色温）→ AUDIO（用<>标环境音；无对白、无模型字幕、无模型BGM）。
+6. 官方工程型公式必须完整：精准主体 + 动作细节 + 场景环境 + 光影色调 + 镜头运镜 + 视觉风格 + 画质 + 约束条件。
+   GLOBAL STYLE 必须包含“写实照片级质感、电影质感、色彩自然、细节丰富”，并排除黑白、手绘、插画、动画、塑料CG。
+   每镜只用一种运镜，从缓慢推镜/平稳横移/固定机位轻微漂移/轨道推进/缓慢上摇中选择；不要同镜堆叠推拉摇移。
+7. 动作只写照片中可见姿态能自然延续的低缓微动作，并写清幅度与速度；例如缓慢眨眼、耳朵轻转、尾巴尖小幅摆动、胸腹轻微呼吸。
+   禁止凭空让静卧宠物奔跑、跳跃、转身，禁止增加照片中不存在的互动；前后动作使用“缓慢、随后、片刻后、轻轻”等相对节奏词，不写硬时间戳。
+8. 旁白文案：口语化、克制、有画面感，每镜 1-2 句话（20-50 字），
+   写具体细节，避免“永远爱你”式空话。字幕短句（≤15 字），可含时间节点。
+9. 情感曲线遵循产品线说明：开头平静留白，中段温暖回忆，转折点到为止，不渲染痛苦，结尾释怀与感激。
+10. **结尾全家福镜头（必须）**：最后一镜使用角色最多的照片，并标记 source="static_photo"；
+    只做缓慢推近或拉远，旁白写“一家人/一大家子在一起”的释怀收尾。若所有照片都是单角色，则最后一张也使用 static_photo 温暖收尾。
+11. 避免：同镜超过 3 个动作、可读文字/模型字幕/logo/水印、冲突光线、肢体畸形、额外四肢、主体复制和镜面倒影。
 
 【输出 JSON 结构】
 {
@@ -159,7 +165,16 @@ function buildSystemPrompt(): string {
  * @returns 用户消息内容
  */
 function buildUserContext(input: MemoirScriptInput): string {
-  const { petProfile, memorySummary, photoCount, productLine, targetDuration, sourceText, musicStyle } = input;
+  const {
+    petProfile,
+    memorySummary,
+    photoCount,
+    productLine,
+    targetDuration,
+    sourceText,
+    musicStyle,
+    photoDescriptions,
+  } = input;
   const meta = PRODUCT_LINE_META[productLine];
 
   // 宠物档案描述
@@ -170,8 +185,12 @@ function buildUserContext(input: MemoirScriptInput): string {
     : '';
   const deceasedText = petProfile.is_deceased ? '（已离世）' : '';
 
-  // 照片信息（无内容描述，只有数量）
+  // 视觉摘要是分镜唯一可依赖的照片内容事实；缺失时明确要求模型保守处理，避免凭空编剧情。
   const photoText = `${photoCount} 张照片，按时间排序`;
+  const photoContext = photoDescriptions?.length
+    ? `【逐张照片视觉摘要】\n${photoDescriptions.slice(0, photoCount).join('\n')}\n` +
+      '严格按 photo_index 一一对应：不得把照片2的动作或场景写入照片1对应分镜；摘要未识别时只做轻微镜头运动，不新增动作或场景。'
+    : '【逐张照片视觉摘要】（未提供；每镜只允许保持参考照片原始主体、姿态、场景与构图，并做低缓微动作）';
 
   return `【宠物档案】${petProfile.species === 'cat' ? '猫' : petProfile.species === 'dog' ? '狗' : petProfile.species}，
 品种 ${petProfile.breed}，${genderText}${ageText}，名字「${petProfile.name}」${deceasedText}
@@ -182,6 +201,7 @@ ${petProfile.notes ? `档案备注：${petProfile.notes}` : ''}
 【用户文案】${sourceText || '（无，请基于档案与照片合理构思）'}
 
 【照片信息】${photoText}
+${photoContext}
 
 【产品线】${meta.label}（${meta.durationText}），情感曲线：${meta.curve}
 目标时长：${targetDuration} 秒${musicStyle ? `，音乐风格偏好：${musicStyle}` : ''}
@@ -206,6 +226,57 @@ function extractJson(raw: string): string {
 }
 
 /**
+ * 清洗仅供 Seedance 消费的身份与画面提示词，阻止宠物名字泄漏给生成模型。
+ * 标题、旁白、字幕仍保留名字，因为它们是展示给用户的正常文案，不参与画面生成。
+ * @param script - 已通过 zod 校验的分镜脚本
+ * @param input - 当前宠物档案，用于名字到外貌指代的安全转译
+ * @returns 仅 anchors/identity_anchor/seedance_prompt 被清洗的新脚本
+ */
+export function sanitizeMemoirScriptPrompts(
+  script: MemoirScript,
+  input: MemoirScriptInput,
+): MemoirScript {
+  const pets = [{
+    name: input.petProfile.name,
+    breed: input.petProfile.breed,
+    species: input.petProfile.species,
+  }];
+  /** 清洗单行锚点控制字符后，把已知名字替换为不含名字的外貌指代。 */
+  const cleanInline = (text: string, maxLength: number): string =>
+    translatePetNames(text.replace(/[\r\n\t]+/g, ' ').replace(/ {2,}/g, ' ').trim(), pets)
+      .slice(0, maxLength);
+  /** Seedance 十段结构依赖换行识别段落，因此仅移除制表符并保留换行。 */
+  const cleanPrompt = (text: string, maxLength: number): string =>
+    translatePetNames(text.replace(/\r\n?/g, '\n').replace(/\t+/g, ' ').trim(), pets)
+      .slice(0, maxLength);
+
+  /** 宠物名字不得残留在任何生成字段；异常长文本也必须有安全外貌兜底。 */
+  const safePetAnchor = (text: string): string => {
+    const cleaned = cleanInline(text, 150);
+    return cleaned.length >= 4
+      ? cleaned
+      : petSubjectText(input.petProfile.breed, input.petProfile.species).replace(/^一只/, '');
+  };
+
+  return {
+    ...script,
+    identity_anchor: script.identity_anchor
+      ? safePetAnchor(script.identity_anchor).slice(0, 120)
+      : script.identity_anchor,
+    anchors: script.anchors?.map((anchor) => ({
+      ...anchor,
+      desc: anchor.type === 'pet'
+        ? safePetAnchor(anchor.desc)
+        : cleanInline(anchor.desc, 150),
+    })),
+    segments: script.segments.map((segment) => ({
+      ...segment,
+      seedance_prompt: cleanPrompt(segment.seedance_prompt, 1500),
+    })),
+  };
+}
+
+/**
  * 修正分镜脚本（LLM 输出校验通过后的规范化）
  * - segments 数量对齐照片数（多了截断、少了补最后一张的复刻）
  * - 每镜时长修正到 3-8 秒
@@ -226,7 +297,12 @@ function normalizeScript(script: MemoirScript, input: MemoirScriptInput): Memoir
       anchors = [{ id: 'pet1', type: 'pet', desc: legacy }];
     } else {
       // 都没有 → 用宠物档案兜底（保证锚点存在）
-      anchors = [{ id: 'pet1', type: 'pet', desc: `${input.petProfile.breed}${input.petProfile.name}` }];
+      // 名字绝不进入身份锚点；无视觉锚点时只使用经过品种兜底清洗的主体描述。
+      anchors = [{
+        id: 'pet1',
+        type: 'pet',
+        desc: petSubjectText(input.petProfile.breed, input.petProfile.species).replace(/^一只/, ''),
+      }];
     }
   }
 
@@ -268,7 +344,7 @@ function normalizeScript(script: MemoirScript, input: MemoirScriptInput): Memoir
   segments.sort((a, b) => a.photo_index - b.photo_index);
   segments = segments.map((seg, i) => ({ ...seg, photo_index: i }));
 
-  return { ...script, anchors, segments };
+  return sanitizeMemoirScriptPrompts({ ...script, anchors, segments }, input);
 }
 
 /**
@@ -279,7 +355,8 @@ function normalizeScript(script: MemoirScript, input: MemoirScriptInput): Memoir
  */
 function fallbackTemplate(input: MemoirScriptInput): MemoirScript {
   const { petProfile, photoCount, productLine, targetDuration, musicStyle } = input;
-  const anchor = `${petProfile.breed}${petProfile.species === 'cat' ? '猫' : petProfile.species === 'dog' ? '狗' : ''}，名字「${petProfile.name}」`;
+  // 兜底锚点只描述品种与物种，绝不把名字交给视频生成模型。
+  const anchor = petSubjectText(petProfile.breed, petProfile.species).replace(/^一只/, '');
 
   // 按情感曲线给每镜分配情绪与基础 prompt（纪念用 CREST，日常用温暖）
   // 注意：这里是情感名（calm/memory/pain...），不是转场原语
@@ -301,16 +378,16 @@ function fallbackTemplate(input: MemoirScriptInput): MemoirScript {
     const emotion = emotionCycle[i % emotionCycle.length] ?? 'calm';
     const lighting = lightingCycle[i % lightingCycle.length] ?? 'golden_hour';
     // 十段结构简化模板（身份锚点用占位，M2 会强制注入）
-    const prompt = `GLOBAL STYLE：写实风格，柔和暖调；画面只出现这一只宠物，无其他动物/人物/文字/水印。
-SCENE：${petProfile.name}的${emotion === 'pain' ? '安静时刻' : '日常一瞬'}。
-CHARACTERS：角色=参考图1（${anchor}）。
-LOCATION：日常熟悉的环境，窗边或沙发一角。
-FIRST FRAME：主体位于画面中央偏下，静止。
-Shot 1（${i === 0 ? 'wide' : 'close_up'}，缓慢推镜）：画面自然流畅，轻微镜头移动，保持主体清晰。
-OPTICS：47°焦段，机位与宠物视线同高。
-PHYSICS：毛发柔软，随微风轻微浮动。
-LIGHTING：${lighting === 'moonlight' ? '柔和月光' : '温暖自然光'}，单一光源。
-AUDIO：安静的室内环境声；无音乐。`;
+    const prompt = `GLOBAL STYLE：写实照片级质感，电影质感，色彩自然，细节丰富，柔和暖调；严格排除黑白、手绘、插画、动画与塑料CG；避免生成任何文字或字幕、logo、水印。
+SCENE：参考照片中的宠物保持原始姿态，呈现${emotion === 'pain' ? '短暂停顿的安静片刻' : '自然日常片刻'}。
+CHARACTERS：宠物=参考图1（${anchor}），毛色、花纹、体型与五官保持一致。
+LOCATION：严格保持参考照片原始场景、道具、空间关系与构图，不新增物体。
+FIRST FRAME：沿用参考照片原始景别与主体位置，保持首帧稳定。
+Shot 1（${i === 0 ? 'wide' : 'close_up'}，缓慢推镜）：主体保持原始姿态，缓慢眨眼并伴随轻微呼吸，随后尾巴尖或耳朵做小幅自然动作；只使用一种运镜。
+OPTICS：50mm自然视角，机位与宠物视线同高，浅景深，焦点持续锁定眼睛与面部。
+PHYSICS：毛发、胡须和耳缘仅有低缓连续微动，身体结构自然，无额外四肢、肢体畸形或主体复制。
+LIGHTING：${lighting === 'moonlight' ? '柔和月光' : '温暖自然光'}作为唯一主光源，保持参考照片原始明暗关系与色温。
+AUDIO：<与参考场景匹配的低音量环境声>；无人物对白，无模型字幕，无模型BGM。`;
     return {
       photo_index: i,
       shot_type: i === 0 ? 'push_in' : 'static_drift',
@@ -324,7 +401,7 @@ AUDIO：安静的室内环境声；无音乐。`;
     };
   });
 
-  return {
+  return sanitizeMemoirScriptPrompts({
     title: `${petProfile.name}的回忆录`,
     theme: '陪伴',
     emotion_curve: productLine === 'memorial' ? ['calm', 'memory', 'relief'] : ['calm'],
@@ -332,7 +409,7 @@ AUDIO：安静的室内环境声；无音乐。`;
     music_mood: (musicStyle as MemoirScript['music_mood']) ?? (productLine === 'memorial' ? 'nostalgic' : 'warm'),
     anchors: [{ id: 'pet1', type: 'pet', desc: anchor }],
     segments,
-  };
+  }, input);
 }
 
 /**

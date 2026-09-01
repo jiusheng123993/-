@@ -21,7 +21,8 @@ import {
   mapMemoirTypeToProductLine,
   type VideoGenerationResult,
 } from './videoGenerationService.js';
-import { generateMemoirScript } from './memoirScriptService.js';
+import { generateMemoirScript, sanitizeMemoirScriptPrompts } from './memoirScriptService.js';
+import { analyzeMemoirPhotos } from './memoirPhotoAnalysis.js';
 import { buildMemoryContext, getMemoriesByTags } from './memoryService.js';
 import { checkVideoQuality } from './qualityCheckService.js';
 import { cleanupNarration } from './ttsService.js';
@@ -288,15 +289,37 @@ async function ensureMemoirScript(
   narrative: Record<string, unknown>,
   productLine: 'daily' | 'memorial',
 ): Promise<MemoirScript | undefined> {
-  // 已有分镜（重试任务）直接复用
   const existing = narrative.script;
+  // 宠物查询也必须遵循“分镜失败不阻断旧管线”的降级约定，数据库短暂异常时使用无名字兜底档案。
+  let pet: Awaited<ReturnType<PetRepository['findByIdAndUser']>> = null;
+  try {
+    pet = await petRepository.findByIdAndUser(task.pet_id, task.user_id);
+  } catch (error) {
+    console.warn(`[MemoirProcessor] Task ${task.id}: 宠物档案查询失败，使用安全兜底档案:`, sanitizeError(error));
+  }
+  const petProfile = pet
+    ? {
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed,
+        gender: pet.gender,
+        birth_date: pet.birth_date,
+        notes: pet.notes,
+        is_deceased: pet.is_deceased,
+      }
+    : { name: '宝贝', species: 'cat', breed: '宠物' };
+
+  // 重试任务复用已持久化脚本，但仍经过当前安全清洗，避免历史脚本中的名字进入生成模型。
   if (existing && typeof existing === 'object') {
-    return existing as MemoirScript;
+    return sanitizeMemoirScriptPrompts(existing as MemoirScript, {
+      petProfile,
+      photoCount: task.source_photos.length,
+      productLine,
+      targetDuration: typeof narrative.duration === 'number' ? narrative.duration : productLine === 'memorial' ? 75 : 15,
+    });
   }
 
   try {
-    // 查宠物档案（失败用兜底档案，不阻断）
-    const pet = await petRepository.findByIdAndUser(task.pet_id, task.user_id);
 
     // 记忆摘要（F4：按回忆标签筛核心层记忆作素材；失败不影响分镜生成）
     let memorySummary: string | undefined;
@@ -323,18 +346,11 @@ async function ensureMemoirScript(
       // 记忆摘要失败忽略
     }
 
+    // 分镜模型本身看不到照片，先用视觉服务逐张提取可见事实；单图失败会在服务内保守降级。
+    const photoDescriptions = await analyzeMemoirPhotos(task.source_photos);
+
     const script = await generateMemoirScript({
-      petProfile: pet
-        ? {
-            name: pet.name,
-            species: pet.species,
-            breed: pet.breed,
-            gender: pet.gender,
-            birth_date: pet.birth_date,
-            notes: pet.notes,
-            is_deceased: pet.is_deceased,
-          }
-        : { name: '宝贝', species: 'cat', breed: '宠物' },
+      petProfile,
       memorySummary,
       photoCount: task.source_photos.length,
       productLine,
@@ -346,6 +362,7 @@ async function ensureMemoirScript(
             : 15,
       sourceText: task.source_text,
       musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
+      photoDescriptions,
     });
 
     // 持久化分镜（失败仅记录，不影响本任务生成）

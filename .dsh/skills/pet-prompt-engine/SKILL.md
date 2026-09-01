@@ -58,10 +58,16 @@
 - 品牌默认头像判定：`isBrandPresetUrl`（URL 含 `/home-style/` 或 `/preset-home/`）
 
 ### 4.3 回忆录视频（promptTemplates.ts，Seedance 2.5）
-- **十段结构**：GLOBAL STYLE → SCENE → CHARACTERS → LOCATION → FIRST FRAME → Shot → OPTICS → PHYSICS → LIGHTING → AUDIO（缺段补默认）
-- **Locks 连续性锁**：COUNT LOCK（只出现一只）/ SCREEN DIRECTION（方向不反转）/ IDENTITY LOCK（与参考照片一致）
-- **多角色锚点**：每在场角色一个 CharacterAnchor（id/type/desc 3-6 特征全片逐字重复）
-- 身份锚点强制注入，LLM 输出缺段不跳段
+- **生成前看图**：`memoirPhotoAnalysis.ts` 逐张提取可见主体/外貌/姿态/互动/场景/构图/光线，按 `photo_index` 一一对应喂给分镜；单图失败保守降级，不编造照片外剧情
+- **全库调用协议**：提示词库 v5.1 已将卡片分为模式 S（真实照片首帧）、模式 C（创意关键帧）、模式 P（空镜/后期模块）；调用卡片时必须追加对应公共尾缀，禁止只复制旧卡片正文
+- **官方工程型公式**：精准主体 + 动作细节 + 场景环境 + 光影色调 + 镜头运镜 + 视觉风格 + 画质 + 约束条件
+- **全库调用模式**：真实照片/日常静图默认模式 S（首帧安全）；空镜/转场/光影/音频用模式 P（后期模块）；大动作与风格化模板用模式 C（先专用关键帧再视频），不得把模式 C 直接套到任意静态宠物照片
+- **十段结构**：GLOBAL STYLE → SCENE → CHARACTERS → LOCATION → FIRST FRAME → Shot → OPTICS → PHYSICS → LIGHTING → AUDIO（缺段补官方级默认）
+- **静图安全动作**：每镜只用一种运镜；只做缓慢眨眼/轻微呼吸/耳朵或尾巴尖小幅微动，不凭空奔跑、跳跃、转身
+- **Locks 连续性锁**：COUNT LOCK / SCREEN DIRECTION（默认保持首帧原始朝向）/ IDENTITY LOCK / ANATOMY LOCK / QUALITY LOCK
+- **多角色锚点**：每在场角色一个 CharacterAnchor（id/type/desc 3-6 特征全片逐字重复）；历史脚本和 LLM 输出也必须在进入 Seedance 前清除宠物名字
+- **首帧契约**：Seedance 图片输入显式 `role: first_frame`；无参考图绝不写身份锁定说谎
+- **音频边界**：Seedance 段要求无人物对白、无模型字幕、无模型 BGM；旁白与字幕由后期 TTS/ASS 统一完成
 
 ### 4.4 2D 表情包（image2DService）
 组装：`{主体}，{表情/动作}，{角度}视角，{基调}，高质量，干净背景，{PET_IDENTITY_KEEP}，{PET_ONLY_ONE}`

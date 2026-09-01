@@ -50,8 +50,8 @@ export const MemoirSegmentScriptSchema = z.object({
   atmosphere: z.string().max(50).optional(),
   /** 本镜时长（秒，Seedance 单段 3-8 秒；超范围落 5 秒由 normalize 再修正） */
   duration_sec: z.number().int().min(3).max(8).catch(5),
-  /** Seedance 提示词（十段结构，M2 会强制注入身份锚点） */
-  seedance_prompt: z.string().min(20).max(500),
+  /** Seedance 提示词（十段结构，M2 会强制注入身份锚点；官方工程型字段较多，放宽兼容长度） */
+  seedance_prompt: z.string().min(20).max(1500),
   /** 旁白文案（TTS 用，20-50 字） */
   narration: z.string().min(5).max(120),
   /** 字幕（≤15 字，可含时间节点） */

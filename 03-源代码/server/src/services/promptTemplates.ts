@@ -34,16 +34,19 @@ const SECTION_KEYS = [
 
 /** 默认段落（LLM 输出缺段时补齐） */
 const DEFAULT_SECTIONS: Record<string, string> = {
-  'GLOBAL STYLE': '写实风格，柔和暖调；画面只出现这一只宠物，无其他动物/人物/文字/水印。',
-  'SCENE': '宠物日常的一瞬，安静自然。',
-  'CHARACTERS': '角色=参考图1（与原始照片一致的宠物）。',
-  'LOCATION': '日常熟悉的环境（窗边或沙发一角）。',
-  'FIRST FRAME': '主体位于画面中央偏下，静止，朝向镜头方向。',
-  'Shot 1': '缓慢推镜，画面自然流畅，保持主体清晰。',
-  'OPTICS': '47°焦段，机位与宠物视线同高。',
-  'PHYSICS': '毛发柔软，随微风轻微浮动；动作自然不僵直。',
-  'LIGHTING': '温暖自然光，单一光源。',
-  'AUDIO': '安静的室内环境声；无音乐。',
+  'GLOBAL STYLE':
+    '写实照片级质感，电影质感，色彩自然，细节丰富，柔和暖调；严格排除黑白、手绘、插画、动画与塑料CG；避免生成任何文字或字幕、logo、水印。',
+  'SCENE': '参考照片中的宠物保持原始姿态，呈现自然日常片刻。',
+  'CHARACTERS': '宠物=参考图1（与原始照片一致的宠物），毛色、花纹、体型与五官保持一致。',
+  'LOCATION': '严格保持参考照片原始场景、道具、空间关系与构图，不新增物体。',
+  'FIRST FRAME': '沿用参考照片原始景别与主体位置，保持首帧稳定。',
+  'Shot':
+    '缓慢推镜；主体保持原始姿态，缓慢眨眼并伴随轻微呼吸，随后耳朵或尾巴尖做小幅自然动作；只使用一种运镜。',
+  'OPTICS': '50mm自然视角，机位与宠物视线同高，浅景深，焦点持续锁定眼睛与面部。',
+  'PHYSICS':
+    '毛发、胡须和耳缘仅有低缓连续微动，身体结构自然，无额外四肢、肢体畸形或主体复制。',
+  'LIGHTING': '参考照片原始光线作为唯一主光源，保持光线方向、明暗关系与色温。',
+  'AUDIO': '<与参考场景匹配的低音量环境声>；无人物对白，无模型字幕，无模型BGM。',
 };
 
 /** 角色锚点输入（多宠物/多人场景：每个在场角色一个锚点） */
@@ -79,7 +82,8 @@ function hasSection(prompt: string, key: string): boolean {
   const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern =
     key === 'Shot'
-      ? `(^|\\n)\\s*Shot(\\s+\\d+)?\\s*[:：]`
+      // 兼容官方工程型写法：Shot 1（特写，缓慢推镜）：……，避免误判缺段后重复追加 Shot。
+      ? `(^|\\n)\\s*Shot(\\s+\\d+)?(?:\\s*[（(][^）)\\n]*[）)])?\\s*[:：]`
       : `(^|\\n)\\s*${escaped}\\s*[:：]`;
   return new RegExp(pattern, 'i').test(prompt);
 }
@@ -130,19 +134,26 @@ export function injectCharacters(prompt: string, charactersText: string): string
  * 追加连续性锁（Locks）
  * - COUNT LOCK：只出现照片中已有的角色（多宠物/多人通用），防多余动物/人物/镜面倒影
  * - SCREEN DIRECTION：方向锁定，防多镜拼接方向漂移
- * - IDENTITY LOCK：无 logo/文字/水印
+ * - IDENTITY LOCK：主体外貌与参考图一致，无 logo/文字/水印/模型字幕
+ * - ANATOMY LOCK：宠物身体结构自然，防额外四肢、肢体畸形与主体复制
+ * - QUALITY LOCK：补齐官方工程型公式中的画质与自然运动边界
  * @param prompt - 注入锚点后的 prompt
  * @param screenDirection - 屏幕方向
  * @returns 追加锁后的 prompt
  */
 export function appendLocks(
   prompt: string,
-  screenDirection: 'right' | 'left' = 'right',
+  screenDirection?: 'right' | 'left',
 ): string {
+  const directionLock = screenDirection
+    ? `SCREEN DIRECTION：主体始终朝向画面${screenDirection === 'right' ? '右侧' : '左侧'}，永不反转。`
+    : 'SCREEN DIRECTION：保持参考照片首帧中的原始朝向与屏幕运动方向，不左右翻转，不在镜头中途换向。';
   const locks = [
     'COUNT LOCK：画面只出现照片中已有的宠物与人，不出现额外动物、人物，无镜面/玻璃倒影出现第二个。',
-    `SCREEN DIRECTION：主体始终朝向画面${screenDirection === 'right' ? '右侧' : '左侧'}，永不反转。`,
-    'IDENTITY LOCK：无 logo、无可读文字、无字幕、无水印。',
+    directionLock,
+    'IDENTITY LOCK：保持每个主体的毛色、花纹、体型、五官与参考图一致；无 logo、无可读文字、无字幕、无水印；避免生成任何文字或字幕。',
+    'ANATOMY LOCK：身体结构自然，四肢数量正确，无肢体畸形、额外肢体、脸部扭曲、主体复制或穿模。',
+    'QUALITY LOCK：高质量，细节丰富，电影质感，色彩自然，动作低缓连续，焦点稳定，无闪烁、抖动或形象漂移。',
   ];
   return `${prompt}\n\n${locks.join('\n')}`;
 }

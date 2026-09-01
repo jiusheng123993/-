@@ -305,7 +305,8 @@ async function generateFromScript(
           segment: seg,
           anchors: script.anchors ?? [],
           identityAnchor: script.identity_anchor,
-          screenDirection: 'right',
+          // 保持每张首帧照片的真实朝向，避免统一强制朝右导致图像镜像或姿态跳变。
+          screenDirection: undefined,
         });
         url = await generateSegmentWithRetry(taskId, photoUrl, prompt, seg.duration_sec);
       }

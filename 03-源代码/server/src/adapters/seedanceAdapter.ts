@@ -88,6 +88,8 @@ export async function createVideoGenerationTask(
           {
             type: 'image_url' as const,
             image_url: { url: params.imageUrl },
+            // 明确声明首帧角色，避免普通 reference_image 只做语义参考而不锁定视频首帧。
+            role: 'first_frame' as const,
           },
         ],
         ...(params.duration ? { duration: params.duration } : {}),

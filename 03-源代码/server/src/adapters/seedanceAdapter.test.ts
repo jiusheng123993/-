@@ -78,7 +78,11 @@ describe('Seedance 视频生成适配器', () => {
       const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
       expect(url).toContain('/contents/generations/tasks');
       const body = JSON.parse(String(init.body));
-      expect(body.content.some((c: { type: string }) => c.type === 'image_url')).toBe(true);
+      expect(
+        body.content.some(
+          (c: { type: string; role?: string }) => c.type === 'image_url' && c.role === 'first_frame',
+        ),
+      ).toBe(true);
       expect(body.content.some((c: { type: string; text: string }) => c.type === 'text' && c.text === '缓慢推拉镜头')).toBe(true);
       expect(body.duration).toBe(5);
       expect(body.model).toBe('doubao-seedance-1-5-pro-251215');

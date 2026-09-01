@@ -69,6 +69,7 @@ describe('promptTemplates 提示词模板库', () => {
       expect(hasSection('GLOBAL STYLE: 写实', 'GLOBAL STYLE')).toBe(true);
       expect(hasSection('GLOBAL STYLE：写实', 'GLOBAL STYLE')).toBe(true);
       expect(hasSection('   SCENE: 内容', 'SCENE')).toBe(true);
+      expect(hasSection('Shot 1（特写，缓慢推镜）：耳朵微动。', 'Shot')).toBe(true);
     });
   });
 
@@ -95,10 +96,19 @@ describe('promptTemplates 提示词模板库', () => {
       expect(result).toContain('COUNT LOCK');
       expect(result).toContain('不出现额外动物、人物');
       expect(result).toContain('主体始终朝向画面右侧');
-      expect(result).toContain('IDENTITY LOCK：无 logo、无可读文字');
+      expect(result).toContain('IDENTITY LOCK：保持每个主体的毛色、花纹、体型、五官与参考图一致');
+      expect(result).toContain('避免生成任何文字或字幕');
+      expect(result).toContain('ANATOMY LOCK');
+      expect(result).toContain('高质量，细节丰富，电影质感');
     });
 
-    it('方向可切到左侧', () => {
+    it('未指定方向时保持参考首帧原始朝向，不强制镜像', () => {
+      const result = appendLocks(FULL_PROMPT);
+      expect(result).toContain('保持参考照片首帧中的原始朝向');
+      expect(result).not.toContain('始终朝向画面右侧');
+    });
+
+    it('明确指定方向时可锁定到左侧', () => {
       const result = appendLocks(FULL_PROMPT, 'left');
       expect(result).toContain('主体始终朝向画面左侧');
     });

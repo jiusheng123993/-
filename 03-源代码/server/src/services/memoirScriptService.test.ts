@@ -16,7 +16,9 @@ import {
   extractJson,
   normalizeScript,
   buildSystemPrompt,
+  buildUserContext,
   fallbackTemplate,
+  sanitizeMemoirScriptPrompts,
   type MemoirScriptInput,
 } from './memoirScriptService.js';
 import { MemoirScriptSchema } from '../schemas/memoirScript.js';
@@ -187,6 +189,16 @@ describe('memoirScriptService 分镜生成器', () => {
       expect(parsed.music_mood).toBe('nostalgic');
     });
 
+    it('宠物名字绝不进入身份锚点与 Seedance 提示词', () => {
+      const script = fallbackTemplate(
+        makeInput({ petProfile: { name: '烧鸡', species: 'cat', breed: '英短' } }),
+      );
+      expect(script.anchors?.map((anchor) => anchor.desc).join('')).not.toContain('烧鸡');
+      expect(script.segments.map((segment) => segment.seedance_prompt).join('')).not.toContain('烧鸡');
+      expect(script.segments[0].seedance_prompt).toContain('电影质感');
+      expect(script.segments[0].seedance_prompt).toContain('避免生成任何文字或字幕');
+    });
+
     it('日常回忆录生成 1-3 镜且音乐为 warm', () => {
       const script = fallbackTemplate(
         makeInput({ productLine: 'daily', photoCount: 2, targetDuration: 15 }),
@@ -194,6 +206,40 @@ describe('memoirScriptService 分镜生成器', () => {
       const parsed = MemoirScriptSchema.parse(script);
       expect(parsed.segments).toHaveLength(2);
       expect(parsed.music_mood).toBe('warm');
+    });
+  });
+
+  describe('提示词安全清洗与照片上下文', () => {
+    it('清除 LLM 锚点和视频 prompt 中泄漏的宠物名字', () => {
+      const parsed = MemoirScriptSchema.parse(JSON.parse(validScriptJson()));
+      const unsafe = {
+        ...parsed,
+        anchors: [{ id: 'pet1', type: 'pet' as const, desc: '烧鸡，橘色短毛猫，白色胸脯' }],
+        segments: parsed.segments.map((segment) => ({
+          ...segment,
+          seedance_prompt: `${segment.seedance_prompt.replace('。SCENE：', '。\nSCENE：')} 烧鸡缓慢抬头。`,
+        })),
+      };
+      const safe = sanitizeMemoirScriptPrompts(unsafe, makeInput({
+        petProfile: { name: '烧鸡', species: 'cat', breed: '橘猫' },
+      }));
+      expect(safe.anchors?.[0].desc).not.toContain('烧鸡');
+      expect(safe.segments.map((segment) => segment.seedance_prompt).join('')).not.toContain('烧鸡');
+      expect(safe.segments[0].seedance_prompt).toContain('\nSCENE：');
+      expect(safe.title).toBe(unsafe.title);
+      expect(safe.segments[0].narration).toBe(unsafe.segments[0].narration);
+    });
+
+    it('把每张照片的视觉摘要按序写入分镜上下文', () => {
+      const context = buildUserContext(makeInput({
+        photoDescriptions: [
+          '照片1：一只橘猫蜷缩在米色沙发上，闭眼休息，室内暖光。',
+          '照片2：一只橘猫坐在窗台侧望窗外，尾巴垂下，黄昏逆光。',
+        ],
+      }));
+      expect(context).toContain('【逐张照片视觉摘要】');
+      expect(context).toContain('照片1：一只橘猫蜷缩在米色沙发上');
+      expect(context).toContain('不得把照片2的动作或场景写入照片1对应分镜');
     });
   });
 
