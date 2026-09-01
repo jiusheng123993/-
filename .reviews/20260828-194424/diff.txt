@@ -1,0 +1,130 @@
+﻿diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/routeGuard.test.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/routeGuard.test.ts"
+index 040000a..80ec9e1 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/routeGuard.test.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/__tests__/routeGuard.test.ts"
+@@ -156,4 +156,50 @@ describe('routeGuard 全局路由防抖守卫', () => {
+     first.settleResolve()
+     await p1
+   })
++
++  it('should share one lock across APIs (navigateTo pending blocks redirectTo)', async () => {
++    // navigateTo 路由挂起中：redirectTo 也应被同一把锁拦截（竞态不分 API）
++    const nav = makeControllable('navigateTo')
++    void (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/index/index' })
++
++    await expect(
++      (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesUser/onboarding/index' })
++    ).resolves.toEqual({ errMsg: 'redirectTo:ok' })
++    // 原始 redirectTo 不应被真实调用
++    expect(originalNav.redirectTo).not.toHaveBeenCalled()
++
++    nav.settleResolve()
++    await Promise.resolve()
++  })
++
++  it('should not trigger options success/fail/complete callbacks for dropped navigations', async () => {
++    // 契约锁定：被吞的重复导航以 ok 形态 resolve，但绝不触发调用方传入的回调
++    // （全项目调用均为发完即忘，此契约保证未来新增回调依赖时能显式暴露问题）
++    const first = makeControllable('navigateTo')
++    void (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/family/index' })
++
++    const callbacks = { success: vi.fn(), fail: vi.fn(), complete: vi.fn() }
++    const dropped = await (
++      Taro.navigateTo as unknown as (o: Record<string, unknown>) => Promise<unknown>
++    )({ url: '/pages/family/index', ...callbacks })
++    expect(dropped).toEqual({ errMsg: 'navigateTo:ok' })
++    expect(callbacks.success).not.toHaveBeenCalled()
++    expect(callbacks.fail).not.toHaveBeenCalled()
++    expect(callbacks.complete).not.toHaveBeenCalled()
++
++    first.settleResolve()
++    await Promise.resolve()
++  })
++
++  it('should be idempotent when installed repeatedly', async () => {
++    // 幂等契约：重复安装不得二次包裹（否则一次导航会穿透两层导致原 API 双调）
++    installRouteGuard()
++    installRouteGuard()
++
++    const nav = makeControllable('navigateTo')
++    const p = (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/mine/index' })
++    expect(nav.api).toHaveBeenCalledTimes(1)
++    nav.settleResolve()
++    await p
++  })
+ })
+diff --git "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/routeGuard.ts" "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/routeGuard.ts"
+index 5a1ce91..46f6380 100644
+--- "a/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/routeGuard.ts"
++++ "b/03-\346\272\220\344\273\243\347\240\201/\345\260\217\347\250\213\345\272\217/miniapp/src/utils/routeGuard.ts"
+@@ -24,6 +24,13 @@
+  * - 微信框架自身的页面切换（tab 切换、系统返回）不经 Taro.navigateTo，
+  *   补丁不影响框架行为；switchTab/reLaunch/navigateBack 有登录守卫与降级链
+  *   依赖（authGuard.redirectToLoginIfNeeded / safeNavigateBack），刻意不碰。
++ *
++ * ⚠️ 已知残余风险边界（显式记录）：
++ * - 分包首载超过占位保护窗（1500ms）时锁先行过期，此后的第二次点击仍可与
++ *   第一次并发——极慢网络下的窄场景残留竞态，由 app.config.ts 的 preloadRule
++ *   （WiFi 预下载分包）从根因侧收敛；
++ * - 双击返回键触发的 navigateBack 连发、登录守卫 reLaunch 与用户导航并发
++ *   不在本守卫防护范围内（二者均有各自的上游防重复逻辑兜底）。
+  */
+ import Taro from '@tarojs/taro'
+ 
+@@ -41,15 +48,25 @@ let installed = false
+ 
+ /**
+  * 尝试获取路由执行权
+- * @returns true=获得执行权；false=冷却中被拦截（调用方应静默跳过本次导航）
++ * @returns 本次导航的占位窗截止时间戳；null=冷却中被拦截（调用方应静默跳过）
+  */
+-function acquireRouteLock(): boolean {
++function acquireRouteLock(): number | null {
+   const now = Date.now()
+-  if (now < lockUntil) return false
++  if (now < lockUntil) {
++    // 墙钟回拨防护：若冷却剩余远超单个占位窗理论上限，说明系统时钟被回拨
++    // （手动改时间/NTP 校准），继续拦截会让所有导航静默失效数小时且无自愈，
++    // 故强制作废旧锁重新上锁；正常场景剩余 ≤ 占位窗，不受影响
++    if (lockUntil - now > PENDING_HOLD_MS + SETTLE_BUFFER_MS) {
++      console.warn('[routeGuard] 检测到异常时钟状态（疑似系统回拨），已重置路由冷却锁')
++    } else {
++      return null
++    }
++  }
+   // 先按「进行中占位窗」上锁：即使原 API 同步抛错/永不回调，锁也会自动过期，
+   // 不会出现一次异常导致后续所有导航被永久吞掉的死锁
+-  lockUntil = now + PENDING_HOLD_MS
+-  return true
++  const expiry = now + PENDING_HOLD_MS
++  lockUntil = expiry
++  return expiry
+ }
+ 
+ /**
+@@ -66,7 +83,8 @@ export function installRouteGuard(): void {
+    */
+   const wrapNav = <T extends (options: never) => Promise<unknown>>(apiName: string, original: T): T => {
+     const wrapped = (options: Parameters<T>[0]): ReturnType<T> => {
+-      if (!acquireRouteLock()) {
++      const myHoldExpiry = acquireRouteLock()
++      if (myHoldExpiry === null) {
+         console.warn(`[routeGuard] 上一次路由未完成，已忽略本次重复${apiName}`)
+         // 以成功形态收尾（与微信 ok 响应形状一致）；被吞的是「冗余重复导航」，
+         // 不触发原 options 回调，避免调用方误以为页面真的打开了两次
+@@ -78,8 +96,13 @@ export function installRouteGuard(): void {
+       Promise.resolve(result)
+         .catch(() => {})
+         .finally(() => {
+-          // 路由已结束：把占位长窗收紧为短冷却（快速完成的路由不多占点击响应时间）
+-          lockUntil = Date.now() + SETTLE_BUFFER_MS
++          // 仅当锁仍属于「本次导航的占位窗」时才收紧为短冷却：
++          // 若本次路由迟迟未 settle、占位窗已过期且更晚的导航已重新上锁，
++          // 此处不得砍短对方（更晚导航）的保护窗——宁长勿短防竞态复发；
++          // 正常快速完成的路由仍立即收紧，不多占用户的下一次点击响应时间
++          if (lockUntil <= myHoldExpiry) {
++            lockUntil = Date.now() + SETTLE_BUFFER_MS
++          }
+         })
+       // 原样透传原 API 的 Promise（含 success/fail/complete 回调语义）
+       return result as ReturnType<T>

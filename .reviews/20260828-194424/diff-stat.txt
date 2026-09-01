@@ -1,0 +1,3 @@
+﻿ .../src/utils/__tests__/routeGuard.test.ts"        | 46 ++++++++++++++++++++++
+ .../miniapp/src/utils/routeGuard.ts"               | 39 ++++++++++++++----
+ 2 files changed, 77 insertions(+), 8 deletions(-)
