@@ -24,11 +24,33 @@
  * - 微信框架自身的页面切换（tab 切换、系统返回）不经 Taro.navigateTo，
  *   补丁不影响框架行为；switchTab/reLaunch/navigateBack 有登录守卫与降级链
  *   依赖（authGuard.redirectToLoginIfNeeded / safeNavigateBack），刻意不碰。
+ *
+ * ⚠️ 已知残余风险边界（显式记录）：
+ * - 分包（pagesPet / pagesUser）首次进入需现场下载分包，下载耗时通常远超
+ *   主包路由——本次对分包目标使用独立长占位窗（SUBPACK_PENDING_HOLD_MS=8s）
+ *   覆盖下载窗口，连点竞态在分包场景被完整拦截；仅当极慢网络下首载超过 8s
+ *   锁才先行过期（此时的二次点击仍可与第一次并发），该窄残留由
+ *   app.config.ts 的 preloadRule（WiFi 预下载 pagesPet/pagesUser 分包）
+ *   从根因侧收敛；
+ * - 双击返回键触发的 navigateBack 连发、登录守卫 reLaunch 与用户导航并发
+ *   不在本守卫防护范围内（二者均有各自的上游防重复逻辑兜底）。
  */
 import Taro from '@tarojs/taro'
 
-/** 路由进行中的占位保护窗：原 API 迟迟不 settle 时的最长锁定期（防锁死） */
+/** 主包路由的占位保护窗：原 API 迟迟不 settle 时的最长锁定期（防锁死） */
 const PENDING_HOLD_MS = 1500
+
+/** 分包路由的占位保护窗：覆盖分包首载下载（1.9MB 分包在普通网络下可达数秒） */
+const SUBPACK_PENDING_HOLD_MS = 8000
+
+/**
+ * 判断导航目标是否位于分包（pagesPet / pagesUser）
+ * 分包首载需下载，路由窗口远长于主包，必须用长占位窗防连点
+ * @param url 导航目标完整路径（如 /pagesPet/avatar-customize/index）
+ */
+function isSubpackUrl(url?: string): boolean {
+  return !!url && (url.startsWith('/pagesPet/') || url.startsWith('/pagesUser/'))
+}
 
 /** 路由 settle 后的收尾冷却：等待基础库 routeDone 消息处理完再放行下一次导航 */
 const SETTLE_BUFFER_MS = 300
@@ -41,15 +63,28 @@ let installed = false
 
 /**
  * 尝试获取路由执行权
- * @returns true=获得执行权；false=冷却中被拦截（调用方应静默跳过本次导航）
+ * @param url 导航目标路径（用于判别分包目标选择长占位窗）
+ * @returns 本次导航的占位窗截止时间戳；null=冷却中被拦截（调用方应静默跳过）
  */
-function acquireRouteLock(): boolean {
+function acquireRouteLock(url?: string): number | null {
   const now = Date.now()
-  if (now < lockUntil) return false
+  // 分包目标用长占位窗（覆盖分包首载下载），主包保持短窗（快速连点手感不拖慢）
+  const holdMs = isSubpackUrl(url) ? SUBPACK_PENDING_HOLD_MS : PENDING_HOLD_MS
+  if (now < lockUntil) {
+    // 墙钟回拨防护：若冷却剩余远超「本次占位窗 + 收尾冷却」理论上限，说明系统
+    // 时钟被回拨（手动改时间/NTP 校准），继续拦截会让所有导航静默失效数小时且
+    // 无自愈，故强制作废旧锁重新上锁；正常场景剩余 ≤ 本次占位窗，不受影响
+    if (lockUntil - now > holdMs + SETTLE_BUFFER_MS) {
+      console.warn('[routeGuard] 检测到异常时钟状态（疑似系统回拨），已重置路由冷却锁')
+    } else {
+      return null
+    }
+  }
   // 先按「进行中占位窗」上锁：即使原 API 同步抛错/永不回调，锁也会自动过期，
   // 不会出现一次异常导致后续所有导航被永久吞掉的死锁
-  lockUntil = now + PENDING_HOLD_MS
-  return true
+  const expiry = now + holdMs
+  lockUntil = expiry
+  return expiry
 }
 
 /**
@@ -66,7 +101,10 @@ export function installRouteGuard(): void {
    */
   const wrapNav = <T extends (options: never) => Promise<unknown>>(apiName: string, original: T): T => {
     const wrapped = (options: Parameters<T>[0]): ReturnType<T> => {
-      if (!acquireRouteLock()) {
+      // 读取导航目标 URL 判别是否分包（分包目标走长占位窗防连点竞态）
+      const targetUrl = (options as { url?: string } | undefined)?.url
+      const myHoldExpiry = acquireRouteLock(targetUrl)
+      if (myHoldExpiry === null) {
         console.warn(`[routeGuard] 上一次路由未完成，已忽略本次重复${apiName}`)
         // 以成功形态收尾（与微信 ok 响应形状一致）；被吞的是「冗余重复导航」，
         // 不触发原 options 回调，避免调用方误以为页面真的打开了两次
@@ -78,8 +116,13 @@ export function installRouteGuard(): void {
       Promise.resolve(result)
         .catch(() => {})
         .finally(() => {
-          // 路由已结束：把占位长窗收紧为短冷却（快速完成的路由不多占点击响应时间）
-          lockUntil = Date.now() + SETTLE_BUFFER_MS
+          // 仅当锁仍属于「本次导航的占位窗」时才收紧为短冷却：
+          // 若本次路由迟迟未 settle、占位窗已过期且更晚的导航已重新上锁，
+          // 此处不得砍短对方（更晚导航）的保护窗——宁长勿短防竞态复发；
+          // 正常快速完成的路由仍立即收紧，不多占用户的下一次点击响应时间
+          if (lockUntil <= myHoldExpiry) {
+            lockUntil = Date.now() + SETTLE_BUFFER_MS
+          }
         })
       // 原样透传原 API 的 Promise（含 success/fail/complete 回调语义）
       return result as ReturnType<T>

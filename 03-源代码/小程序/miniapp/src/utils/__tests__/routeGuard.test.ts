@@ -1,6 +1,7 @@
 /**
  * 全局路由防抖守卫单测（monkey-patch 方案）
  * 覆盖：透传放行 / 冷却拦截 / settle 后收窄冷却 / 失败也释放锁 / 占位窗防锁死
+ * / 分包长占位窗（8s，覆盖分包首载下载期的连点竞态）
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Taro from '@tarojs/taro'
@@ -124,20 +125,44 @@ describe('routeGuard 全局路由防抖守卫', () => {
     await p2
   })
 
-  it('should auto-release the lock when the original API never settles (anti-deadlock)', async () => {
-    // 路由永不完成：冷却期内的重复导航被拦
+  it('should auto-release the lock when the original API never settles (anti-deadlock, main-package window)', async () => {
+    // 路由永不完成：冷却期内的重复导航被拦（主包短占位窗 1500ms）
     const stuck = makeControllable('redirectTo')
-    void (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesUser/onboarding/index' })
+    void (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/family/index' })
 
     await expect(
-      (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesUser/onboarding/index' })
+      (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/family/index' })
     ).resolves.toEqual({ errMsg: 'redirectTo:ok' })
     expect(stuck.api).toHaveBeenCalledTimes(1)
 
-    // 推进超过占位保护窗(1500ms)：锁自动过期，新导航放行
+    // 推进超过主包占位保护窗(1500ms)：锁自动过期，新导航放行
     vi.advanceTimersByTime(1501)
     const afterExpiry = makeControllable('redirectTo')
     const p = (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/index/index' })
+    expect(afterExpiry.api).toHaveBeenCalledTimes(1)
+    afterExpiry.settleResolve()
+    await p
+  })
+
+  it('should keep the long 8s hold window for subpackage URLs and drop rapid re-taps during first-load (regression: routeDone race)', async () => {
+    // 分包首次进入需下载分包（实测 pagesPet ~1.9MB、pagesUser ~0.85MB，普通网络下载
+    // 常超主包导 1500ms 占位窗）——用户在等待期连点是「routeDone with a webviewId
+    // N is not found」竞态的典型触发。本次修复：分包目标用 8s 长占位窗覆盖下载期。
+    const stuck = makeControllable('navigateTo')
+    void (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesPet/avatar-customize/index' })
+    expect(stuck.api).toHaveBeenCalledTimes(1)
+
+    // 推进 3s：已超过旧版主包窗(1500ms)，但仍在分包长窗(8s)内——第二次点击必须被吞
+    vi.advanceTimersByTime(3000)
+    await expect(
+      (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesPet/avatar-customize/index' })
+    ).resolves.toEqual({ errMsg: 'navigateTo:ok' })
+    expect(stuck.api).toHaveBeenCalledTimes(1)
+
+    // 再推进越过 8s 长窗（累计 8001ms）：防死锁兜底放行，后续可重新导航
+    vi.advanceTimersByTime(5001)
+    const afterExpiry = makeControllable('navigateTo')
+    const p = (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesPet/avatar-customize/index' })
     expect(afterExpiry.api).toHaveBeenCalledTimes(1)
     afterExpiry.settleResolve()
     await p
@@ -155,5 +180,51 @@ describe('routeGuard 全局路由防抖守卫', () => {
 
     first.settleResolve()
     await p1
+  })
+
+  it('should share one lock across APIs (navigateTo pending blocks redirectTo)', async () => {
+    // navigateTo 路由挂起中：redirectTo 也应被同一把锁拦截（竞态不分 API）
+    const nav = makeControllable('navigateTo')
+    void (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/index/index' })
+
+    await expect(
+      (Taro.redirectTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pagesUser/onboarding/index' })
+    ).resolves.toEqual({ errMsg: 'redirectTo:ok' })
+    // 原始 redirectTo 不应被真实调用
+    expect(originalNav.redirectTo).not.toHaveBeenCalled()
+
+    nav.settleResolve()
+    await Promise.resolve()
+  })
+
+  it('should not trigger options success/fail/complete callbacks for dropped navigations', async () => {
+    // 契约锁定：被吞的重复导航以 ok 形态 resolve，但绝不触发调用方传入的回调
+    // （全项目调用均为发完即忘，此契约保证未来新增回调依赖时能显式暴露问题）
+    const first = makeControllable('navigateTo')
+    void (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/family/index' })
+
+    const callbacks = { success: vi.fn(), fail: vi.fn(), complete: vi.fn() }
+    const dropped = await (
+      Taro.navigateTo as unknown as (o: Record<string, unknown>) => Promise<unknown>
+    )({ url: '/pages/family/index', ...callbacks })
+    expect(dropped).toEqual({ errMsg: 'navigateTo:ok' })
+    expect(callbacks.success).not.toHaveBeenCalled()
+    expect(callbacks.fail).not.toHaveBeenCalled()
+    expect(callbacks.complete).not.toHaveBeenCalled()
+
+    first.settleResolve()
+    await Promise.resolve()
+  })
+
+  it('should be idempotent when installed repeatedly', async () => {
+    // 幂等契约：重复安装不得二次包裹（否则一次导航会穿透两层导致原 API 双调）
+    installRouteGuard()
+    installRouteGuard()
+
+    const nav = makeControllable('navigateTo')
+    const p = (Taro.navigateTo as unknown as (o: { url: string }) => Promise<unknown>)({ url: '/pages/mine/index' })
+    expect(nav.api).toHaveBeenCalledTimes(1)
+    nav.settleResolve()
+    await p
   })
 })
