@@ -920,4 +920,43 @@ export async function getMemoriesByTags(params: {
   }
 }
 
+/**
+ * 读取时光线（pet_moments）回忆文本，作为回忆录分镜的第二记忆素材源。
+ * 背景：回忆录卖点承诺"根据用户在小程序里的回忆生成"，除 agent_memories（对话/打卡沉淀）
+ * 外，用户在「时光」页记录的回忆（content->>'description'，AI 描述或手写）同样是真实回忆素材。
+ * 注意：happened_at 为 DATE 类型（迁移 021 修正过时区问题），空时由 created_at 兜底。
+ * @param userId 用户 ID
+ * @param petId 宠物 ID
+ * @param limit 最多取多少条（默认 15，硬上限 50）
+ * @returns 按发生日期倒序的回忆文本清单；无记录或查询失败返回空串（调用方据此判定"无记忆"）
+ */
+export async function getPetMomentsSummary(
+  userId: string,
+  petId: string,
+  limit = 15,
+): Promise<string> {
+  const capped = Math.min(50, Math.max(1, limit));
+  try {
+    const { rows } = await pool.query(
+      `SELECT type,
+              CASE WHEN jsonb_typeof(content) = 'object' THEN content->>'description' END AS description,
+              to_char(COALESCE(happened_at, created_at::date), 'YYYY-MM-DD') AS day
+       FROM pet_moments
+       WHERE user_id = $1 AND pet_id = $2
+         AND jsonb_typeof(content) = 'object'
+         AND NULLIF(BTRIM(COALESCE(content->>'description', '')), '') IS NOT NULL
+       ORDER BY COALESCE(happened_at, created_at::date) DESC, created_at DESC
+       LIMIT $3`,
+      [userId, petId, capped],
+    );
+    if (rows.length === 0) return '';
+    return rows
+      .map((r) => `- [时光·${r.type}] ${r.description}（${r.day}）`)
+      .join('\n');
+  } catch (err) {
+    console.warn('[Memory] 读取时光线回忆失败:', (err as Error).message);
+    return '';
+  }
+}
+
 console.log('[MemoryService] memory-body 引擎已就绪');

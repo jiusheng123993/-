@@ -241,6 +241,46 @@ describe('memoirScriptService 分镜生成器', () => {
       expect(context).toContain('照片1：一只橘猫蜷缩在米色沙发上');
       expect(context).toContain('不得把照片2的动作或场景写入照片1对应分镜');
     });
+
+    it('有记忆摘要时：标注为真实回忆并要求叙事锚定，不出现无记忆约束', () => {
+      const context = buildUserContext(makeInput({
+        memorySummary: '- [event] 2020-03 到家那天躲在纸箱里不肯出来',
+      }));
+      expect(context).toContain('真实回忆');
+      expect(context).toContain('锚定');
+      expect(context).toContain('2020-03 到家那天躲在纸箱里不肯出来');
+      expect(context).not.toContain('无记忆约束');
+      expect(context).not.toContain('合理构思');
+    });
+
+    it('无记忆且无自述时：输出禁止虚构具体事件的无记忆约束', () => {
+      const context = buildUserContext(makeInput({
+        memorySummary: undefined,
+        sourceText: undefined,
+      }));
+      expect(context).toContain('【无记忆约束】');
+      expect(context).toContain('禁止虚构具体事件');
+      expect(context).not.toContain('合理构思');
+    });
+
+    it('有用户自述时：标注为核心依据且不再邀请模型合理构思', () => {
+      const context = buildUserContext(makeInput({
+        memorySummary: undefined,
+        sourceText: '它最爱玩纸箱，每次拆快递都要先钻进去。',
+      }));
+      expect(context).toContain('核心依据');
+      expect(context).toContain('它最爱玩纸箱');
+      // 自述是真实素材：不得再输出"没有任何素材"的无记忆约束（与用户文案段自相矛盾）
+      expect(context).not.toContain('无记忆约束');
+      expect(context).not.toContain('合理构思');
+    });
+
+    it('系统提示词包含记忆锚定规则（防编造）', () => {
+      const prompt = buildSystemPrompt();
+      expect(prompt).toContain('记忆锚定规则');
+      expect(prompt).toContain('禁止虚构任何具体事件');
+      expect(prompt).toContain('以照片为准');
+    });
   });
 
   describe('buildSystemPrompt 关键规则', () => {

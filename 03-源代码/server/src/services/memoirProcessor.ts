@@ -23,7 +23,7 @@ import {
 } from './videoGenerationService.js';
 import { generateMemoirScript, sanitizeMemoirScriptPrompts } from './memoirScriptService.js';
 import { analyzeMemoirPhotos } from './memoirPhotoAnalysis.js';
-import { buildMemoryContext, getMemoriesByTags } from './memoryService.js';
+import { buildMemoryContext, getMemoriesByTags, getPetMomentsSummary } from './memoryService.js';
 import { checkVideoQuality } from './qualityCheckService.js';
 import { cleanupNarration } from './ttsService.js';
 import { cleanupDoubaoSpeech } from './doubaoSpeechTts.js';
@@ -344,6 +344,18 @@ async function ensureMemoirScript(
       }
     } catch {
       // 记忆摘要失败忽略
+    }
+
+    // 时光线回忆（第二素材源）：把「时光」页的回忆文本并入记忆摘要，二者皆无才判定"无记忆"，
+    // 触发分镜提示词的【无记忆约束】（禁止虚构具体事件），兑现"真实回忆优先、无素材才中性生成"的卖点。
+    try {
+      const momentsSummary = await getPetMomentsSummary(task.user_id, task.pet_id, 15);
+      if (momentsSummary) {
+        const parts = [memorySummary?.trim(), momentsSummary].filter(Boolean);
+        memorySummary = parts.join('\n');
+      }
+    } catch {
+      // 时光线读取失败忽略
     }
 
     // 分镜模型本身看不到照片，先用视觉服务逐张提取可见事实；单图失败会在服务内保守降级。

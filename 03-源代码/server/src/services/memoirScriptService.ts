@@ -129,6 +129,12 @@ function buildSystemPrompt(): string {
     只做缓慢推近或拉远，旁白写“一家人/一大家子在一起”的释怀收尾。若所有照片都是单角色，则最后一张也使用 static_photo 温暖收尾。
 11. 避免：同镜超过 3 个动作、可读文字/模型字幕/logo/水印、冲突光线、肢体畸形、额外四肢、主体复制和镜面倒影。
 
+【记忆锚定规则（防编造，优先级仅次于安全红线）】
+- 分镜叙事（SCENE 的具体事件、narration、subtitle）只能以【记忆摘要】【用户文案】【逐张照片视觉摘要】为事实来源。
+- 素材里出现的具体回忆（如"到家的那天""最爱的玩具""某次生病""陪你去过草地"）必须优先写进对应分镜的旁白，形成真实回忆感；素材为空时禁止虚构任何具体事件、具体日期、对话与人物关系。
+- 照片可见事实与记忆文本冲突时，以照片为准（照片是首帧权威），记忆文本只用于旁白情感层。
+- 通用中性描写（光线、季节感、天气、陪伴氛围）不在此限，可以自由使用。
+
 【输出 JSON 结构】
 {
   "title": "视频标题（≤30字）",
@@ -192,13 +198,29 @@ function buildUserContext(input: MemoirScriptInput): string {
       '严格按 photo_index 一一对应：不得把照片2的动作或场景写入照片1对应分镜；摘要未识别时只做轻微镜头运动，不新增动作或场景。'
     : '【逐张照片视觉摘要】（未提供；每镜只允许保持参考照片原始主体、姿态、场景与构图，并做低缓微动作）';
 
+  // 记忆依据分级（防编造核心）：有真实回忆 → 叙事锚定素材；记忆与自述全空 → 明示只许照片事实与中性叙事。
+  // 注意：【无记忆约束】仅在记忆与用户自述"双双为空"时输出——自述本身也是真实素材，
+  // 若只缺记忆引擎数据就宣布"没有任何素材"，会与【用户文案（真实回忆）】段自相矛盾。
+  const hasMemory = Boolean(memorySummary && memorySummary.trim());
+  const hasSourceText = Boolean(sourceText && sourceText.trim());
+  const memoryContext = hasMemory
+    ? `【记忆摘要（用户在小程序中沉淀的真实回忆，叙事必须优先锚定其中的具体事件）】\n${memorySummary?.trim()}`
+    : hasSourceText
+      ? '【记忆摘要】（暂无；叙事以【用户文案】与照片可见事实为准，不得凭空补充记忆里没有的事件）'
+      : '【记忆摘要】（暂无）\n【无记忆约束】当前没有任何用户真实回忆素材：分镜与旁白只允许描述照片可见事实与中性通用氛围（光线、季节感、陪伴感），禁止虚构具体事件、具体日期、人物对话与关系（如"第一次到家""最爱的玩具""那次生病"均不得出现）。';
+
+  // 用户自述与记忆同为真实素材；无自述时不得引导模型"合理构思"（等于邀请编造）。
+  const sourceTextContext = sourceText && sourceText.trim()
+    ? `【用户文案（用户亲述的真实回忆，旁白叙事的核心依据，事件细节以此为准）】\n${sourceText.trim()}`
+    : '【用户文案】（无；旁白只允许从记忆摘要与照片可见事实取材，不得虚构具体事件）';
+
   return `【宠物档案】${petProfile.species === 'cat' ? '猫' : petProfile.species === 'dog' ? '狗' : petProfile.species}，
 品种 ${petProfile.breed}，${genderText}${ageText}，名字「${petProfile.name}」${deceasedText}
 ${petProfile.notes ? `档案备注：${petProfile.notes}` : ''}
 
-【记忆摘要】${memorySummary || '（暂无）'}
+${memoryContext}
 
-【用户文案】${sourceText || '（无，请基于档案与照片合理构思）'}
+${sourceTextContext}
 
 【照片信息】${photoText}
 ${photoContext}
