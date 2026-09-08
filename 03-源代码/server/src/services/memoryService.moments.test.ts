@@ -64,6 +64,19 @@ describe('memoryService.getPetMomentsSummary（时光线素材源）', () => {
     expect(params2[2]).toBe(1);
   });
 
+  it('超长描述截断到 120 字（防分镜上下文膨胀），SQL 用北京时区归日', async () => {
+    mockPool.query.mockResolvedValueOnce({
+      rows: [{ type: 'memory', description: '长'.repeat(150), day: '2026-09-01' }],
+      rowCount: 1,
+    });
+    const summary = await getPetMomentsSummary('u1', 'p1', 15);
+    expect(summary).toContain('长'.repeat(120) + '…');
+    expect(summary).not.toContain('长'.repeat(121));
+    // 无 happened_at 的记录兜底日期必须按北京时区归日（生产 PG 默认 UTC，直接 ::date 会差一天）
+    const [sql] = mockPool.query.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("AT TIME ZONE 'Asia/Shanghai'");
+  });
+
   it('查询失败时吞错返回空串（不阻断分镜生成）', async () => {
     mockPool.query.mockRejectedValueOnce(new Error('db down'));
     const summary = await getPetMomentsSummary('u1', 'p1', 15);

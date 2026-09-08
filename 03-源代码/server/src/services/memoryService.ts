@@ -940,18 +940,26 @@ export async function getPetMomentsSummary(
     const { rows } = await pool.query(
       `SELECT type,
               CASE WHEN jsonb_typeof(content) = 'object' THEN content->>'description' END AS description,
-              to_char(COALESCE(happened_at, created_at::date), 'YYYY-MM-DD') AS day
+              to_char(
+                COALESCE(happened_at, (created_at AT TIME ZONE 'Asia/Shanghai')::date),
+                'YYYY-MM-DD'
+              ) AS day
        FROM pet_moments
        WHERE user_id = $1 AND pet_id = $2
          AND jsonb_typeof(content) = 'object'
          AND NULLIF(BTRIM(COALESCE(content->>'description', '')), '') IS NOT NULL
-       ORDER BY COALESCE(happened_at, created_at::date) DESC, created_at DESC
+       ORDER BY COALESCE(happened_at, (created_at AT TIME ZONE 'Asia/Shanghai')::date) DESC, created_at DESC
        LIMIT $3`,
       [userId, petId, capped],
     );
     if (rows.length === 0) return '';
+    // 每条截断 120 字：时光页 AI 描述可达百字级，×15 条会膨胀分镜上下文（token 成本 + 指令稀释）
     return rows
-      .map((r) => `- [时光·${r.type}] ${r.description}（${r.day}）`)
+      .map((r) => {
+        const desc = String(r.description ?? '');
+        const clipped = desc.length > 120 ? `${desc.slice(0, 120)}…` : desc;
+        return `- [时光·${r.type}] ${clipped}（${r.day}）`;
+      })
       .join('\n');
   } catch (err) {
     console.warn('[Memory] 读取时光线回忆失败:', (err as Error).message);
