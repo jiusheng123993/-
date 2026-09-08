@@ -27,6 +27,8 @@ export interface MemoirRecordRow extends QueryResultRow {
   awaiting_confirmation?: boolean;
   script_confirmed_at?: string | null;
   script_rejected_at?: string | null;
+  /** 审核拒绝重试计数（迁移 033，持久化防进程重启清零多烧视频成本） */
+  retry_count?: number;
 }
 
 export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
@@ -238,5 +240,21 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
        WHERE id = $1`,
       [taskId],
     );
+  }
+
+  /**
+   * 重试计数原子递增（迁移 033，审查⏳4）
+   * 原 retryCountMap 内存 Map 在进程重启后清零，坏任务可多烧最多 2 轮 Seedance 视频
+   * （单条 20-200 元）。改为落库 + UPDATE ... RETURNING 原子递增，返回递增后的计数值。
+   */
+  async incrementRetryCount(taskId: string): Promise<number> {
+    const result = await this.rawQuery(
+      `UPDATE ${this.tableName}
+       SET retry_count = retry_count + 1
+       WHERE id = $1
+       RETURNING retry_count`,
+      [taskId],
+    );
+    return Number(result.rows[0]?.retry_count ?? 0);
   }
 }

@@ -13,6 +13,10 @@ const mocks = vi.hoisted(() => ({
   claimTask: vi.fn(),
   pause: vi.fn(),
   generateVideo: vi.fn(),
+  moderate: vi.fn(),
+  markFailed: vi.fn(),
+  incrementRetryCount: vi.fn(),
+  resetToPending: vi.fn(),
 }));
 
 vi.mock('../repositories/memoirRepository.js', () => ({
@@ -20,10 +24,11 @@ vi.mock('../repositories/memoirRepository.js', () => ({
     claimTask = mocks.claimTask;
     pauseForScriptConfirmation = mocks.pause;
     updateScript = vi.fn().mockResolvedValue(undefined);
-    markFailed = vi.fn().mockResolvedValue(undefined);
+    markFailed = mocks.markFailed;
     markCompleted = vi.fn().mockResolvedValue(undefined);
-    // 重试路径会调用 resetToPending（handleRetry），此处返回 false = 不重试，直接走 markFailed
-    resetToPending = vi.fn().mockResolvedValue(false);
+    // 重试路径会调用 incrementRetryCount（迁移 033 持久化计数）+ resetToPending（handleRetry）
+    incrementRetryCount = mocks.incrementRetryCount;
+    resetToPending = mocks.resetToPending;
   },
 }));
 
@@ -65,7 +70,7 @@ vi.mock('../services/qualityCheckService.js', () => ({
 vi.mock('../services/ttsService.js', () => ({ cleanupNarration: vi.fn() }));
 vi.mock('../services/doubaoSpeechTts.js', () => ({ cleanupDoubaoSpeech: vi.fn() }));
 vi.mock('../services/videoModerationService.js', () => ({
-  moderateVideo: vi.fn().mockResolvedValue({ result: 'pass' }),
+  moderateVideo: mocks.moderate,
 }));
 vi.mock('../services/websocketService.js', () => ({ sendToUser: vi.fn() }));
 vi.mock('../services/autoFeedService.js', () => ({
@@ -110,6 +115,11 @@ beforeEach(() => {
     videoUrl: 'https://cdn.example.com/final.mp4',
     previewUrl: 'https://cdn.example.com/preview.mp4',
   });
+  // 处理器代码按字符串语义判断（=== 'block' / === 'review'）
+  mocks.moderate.mockReset().mockResolvedValue('pass');
+  mocks.markFailed.mockReset().mockResolvedValue(undefined);
+  mocks.incrementRetryCount.mockReset().mockResolvedValue(1);
+  mocks.resetToPending.mockReset().mockResolvedValue(undefined);
   vi.mocked(generateMemoirScript).mockClear();
   vi.mocked(sendToUser).mockClear();
 });
@@ -151,5 +161,45 @@ describe('剧本确认闸门分叉（立项 v0.2 P0-2）', () => {
       'user-1',
       expect.objectContaining({ data: expect.objectContaining({ type: 'memoir_script_ready' }) }),
     );
+  });
+
+  it('重试计数持久化（迁移 033 / 审查⏳4）：retry_count 已达上限的坏任务不再重烧视频', async () => {
+    // 审核拒绝（block），且该任务历史重试已用完（重启后计数仍持久在库）
+    mocks.moderate.mockResolvedValue('block');
+    const exhaustedTask = makeTask({
+      retry_count: 2,
+      narrative_structure: {
+        music_style: 'warm',
+        duration: 15,
+        script: { title: '已确认剧本', scenes: [{ index: 1 }] },
+      },
+    });
+
+    await processTask(exhaustedTask);
+
+    // 本轮视频已烧（不可逆），但绝不再递增计数重置入队（防重启清零后反复烧钱）
+    expect(mocks.generateVideo).toHaveBeenCalledTimes(1);
+    expect(mocks.incrementRetryCount).not.toHaveBeenCalled();
+    expect(mocks.resetToPending).not.toHaveBeenCalled();
+    expect(mocks.markFailed).toHaveBeenCalledWith('task-001', '内容审核拒绝，已超过最大重试次数');
+  });
+
+  it('重试计数未达上限：递增计数（落库）后重置入队重试', async () => {
+    mocks.moderate.mockResolvedValue('block');
+    const retryableTask = makeTask({
+      retry_count: 0,
+      narrative_structure: {
+        music_style: 'warm',
+        duration: 15,
+        script: { title: '已确认剧本', scenes: [{ index: 1 }] },
+      },
+    });
+
+    const result = await processTask(retryableTask);
+
+    expect(mocks.incrementRetryCount).toHaveBeenCalledWith('task-001');
+    expect(mocks.resetToPending).toHaveBeenCalledWith('task-001');
+    expect(mocks.markFailed).not.toHaveBeenCalled();
+    expect(result).toBe(false);
   });
 });

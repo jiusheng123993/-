@@ -54,8 +54,8 @@ const POLL_INTERVAL_MS = 30_000;
 const memoirRepository = new MemoirRepository();
 const petRepository = new PetRepository();
 
-/** 任务处理状态（用于 in-memory 重试计数） */
-const retryCountMap = new Map<string, number>();
+// [审查⏳4] 重试计数已由内存 Map 改为 pet_memoir_records.retry_count 落库持久化（迁移 033），
+// 进程重启不再清零，见 handleRetry
 
 /** 处理器是否正在运行 */
 let isRunning = false;
@@ -203,7 +203,7 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       identityAnchor: script?.identity_anchor,
     });
     if (!quality.passed && !quality.degraded) {
-      const retried = await handleRetry(task.id, `质量质检未通过: ${quality.defects.join('；') || '低分'}`);
+      const retried = await handleRetry(task, `质量质检未通过: ${quality.defects.join('；') || '低分'}`);
       if (retried) {
         console.warn(`[MemoirProcessor] Task ${task.id}: Quality check failed, retrying`);
         return false;
@@ -223,7 +223,7 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
 
     if (moderationResult === 'block') {
       // 审核拒绝，尝试重试
-      const retried = await handleRetry(task.id, `内容审核拒绝`);
+      const retried = await handleRetry(task, `内容审核拒绝`);
       if (retried) {
         console.warn(`[MemoirProcessor] Task ${task.id}: Content blocked, retrying`);
         return false;
@@ -251,7 +251,7 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
         taskId: task.id,
         previewUrl: result.previewUrl,
       });
-      retryCountMap.delete(task.id);
+      
       return true;
     }
 
@@ -266,7 +266,7 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     void cleanupTaskTempFiles(task.id);
 
     // 7. 清理重试计数
-    retryCountMap.delete(task.id);
+    
 
     // 8. 通知用户
     await notifyUser(task.user_id, {
@@ -281,7 +281,7 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     const errorMessage = sanitizeError(err);
 
     // 生成失败，尝试重试
-    const retried = await handleRetry(task.id, errorMessage);
+    const retried = await handleRetry(task, errorMessage);
     if (retried) {
       console.warn(`[MemoirProcessor] Task ${task.id}: Generation failed, retrying`);
       return false;
@@ -444,15 +444,20 @@ function parseNarrativeStructure(
  * 处理重试逻辑
  * @returns true 表示已重置为 pending（可重试），false 表示重试次数用完
  */
-async function handleRetry(taskId: string, _reason: string): Promise<boolean> {
-  const currentCount = retryCountMap.get(taskId) ?? 0;
+/**
+ * 审核拒绝重试（迁移 033，审查⏳4 持久化版）
+ * 计数落库 pet_memoir_records.retry_count（原子 UPDATE ... RETURNING），
+ * 进程重启不再清零——同一坏任务全生命周期最多重试 MAX_RETRY_COUNT 次。
+ * @param task 任务行（需含 retry_count 当前值）
+ * @returns true=已重置入队重试；false=重试次数用完
+ */
+async function handleRetry(task: MemoirRecordRow, _reason: string): Promise<boolean> {
+  const currentCount = task.retry_count ?? 0;
   if (currentCount >= MAX_RETRY_COUNT) {
-    retryCountMap.delete(taskId);
     return false;
   }
-
-  retryCountMap.set(taskId, currentCount + 1);
-  await memoirRepository.resetToPending(taskId);
+  await memoirRepository.incrementRetryCount(task.id);
+  await memoirRepository.resetToPending(task.id);
   return true;
 }
 
@@ -480,15 +485,10 @@ async function notifyUser(
 }
 
 /**
- * 获取任务重试次数（用于测试和监控）
- */
-export function getRetryCount(taskId: string): number {
-  return retryCountMap.get(taskId) ?? 0;
-}
-
-/**
  * 重置处理器状态（用于测试）
+ * 注：重试计数已落库（迁移 033），内存态仅剩 isRunning；测试用
+ * repository mock 的 clear 语义 + resetProcessorState 复位运行标志
  */
 export function resetProcessorState(): void {
-  retryCountMap.clear();
+  isRunning = false;
 }
