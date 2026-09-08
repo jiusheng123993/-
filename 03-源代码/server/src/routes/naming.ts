@@ -7,8 +7,11 @@ import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
+import { PetRepository } from '../repositories/petRepository.js';
 
 const router = Router();
+
+const petRepository = new PetRepository();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -34,6 +37,14 @@ router.post('/photo/upload', authMiddleware, photoUploadLimiter, upload.single('
 
     if (!petId || typeof petId !== 'string') {
       res.status(400).json({ success: false, message: 'petId 参数不能为空' });
+      return;
+    }
+
+    // 归属校验（2026-09 审查 P0 修复：此前仅校验 string 非空，与 avatar.ts 同接口口径不一致；
+    // petId 直拼磁盘路径 + 无归属校验 = 路径穿越 + 越权写双重风险）
+    const owns = await petRepository.canAccess(petId, userId);
+    if (!owns) {
+      res.status(404).json({ success: false, message: '宠物不存在或无权操作' });
       return;
     }
 

@@ -24,9 +24,10 @@ export async function moderateVideo(videoUrl: string): Promise<ModerationResult>
   }
 
   try {
-    // 火山引擎内容审核 - 视频扫描
+    // 火山引擎内容审核 - 视频扫描（2026-09 审查 P1 修复：补 15s 超时，防审核 API 挂起拖死同步流程）
     const response = await fetch('https://api.volcengine.com/v2/video/scan', {
       method: 'POST',
+      signal: AbortSignal.timeout(15_000),
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,

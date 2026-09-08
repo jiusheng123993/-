@@ -212,6 +212,7 @@ const MAX_429_RETRIES = 2;
 export async function callSeedream(prompt: string, referenceImageUrl: string, apiKey: string, retryCount = 0): Promise<string | null> {
   const response = await fetch(SEEDREAM_API, {
     method: 'POST',
+    signal: AbortSignal.timeout(60_000), // 2026-09 审查 P1：补超时防上游挂起拖死同步请求（生图较慢取 60s）
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,

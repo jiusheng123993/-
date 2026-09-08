@@ -39,6 +39,7 @@ import {
   refund,
 } from '../services/wechatPayService.js';
 import { sendToUser } from '../services/websocketService.js';
+import { recordAuditLog } from '../services/auditService.js';
 import { sanitizeLog } from '../utils/sanitize.js';
 
 const router = Router();
@@ -413,9 +414,26 @@ async function handleMembershipPaymentSuccess(order: {
 }): Promise<void> {
   const plan = order.plan as 'monthly' | 'quarterly' | 'yearly';
   const durationDays = MEMBERSHIP_PLAN_DURATION_DAYS[plan];
-  const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+
+  // 续费顺延口径（2026-09 审查 P1 修复）：原实现 expiresAt = now + 时长 直接覆盖，
+  // 用户剩 29 天再购月度只多得约 1 天（吞掉剩余时长）。现改为 base = max(当前到期时间, 现在)，
+  // 与 redeem.ts 的兑换顺延口径一致。
+  const current = await membershipRepository.findTierAndStatus(order.user_id);
+  const currentExpiry =
+    current && current.status === 'active' && current.expires_at ? new Date(current.expires_at) : null;
+  const base = currentExpiry && currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
+  const expiresAt = new Date(base.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
   await membershipRepository.activateMembership(order.user_id, plan, order.amount, expiresAt);
+
+  // 资金审计（2026-09 审查 P1 修复：支付/激活全链路此前零审计，无法对账追责）
+  await recordAuditLog({
+    userId: order.user_id,
+    action: 'membership-activated',
+    resourceType: 'membership',
+    resourceId: order.id,
+    detail: { plan, amount: order.amount, expires_at: expiresAt.toISOString(), base: 'renewal-extended' },
+  });
 
   // WebSocket 通知用户
   sendToUser(order.user_id, {
@@ -437,6 +455,7 @@ async function handleMembershipPaymentSuccess(order: {
 async function handleMemoirPaymentSuccess(order: {
   id: string;
   user_id: string;
+  amount: number;
   product_metadata: Record<string, unknown> | null;
 }): Promise<void> {
   if (!order.product_metadata) {
@@ -462,6 +481,15 @@ async function handleMemoirPaymentSuccess(order: {
     music_style: meta.music_style,
     duration: meta.duration,
     style_preset: meta.style_preset,
+  });
+
+  // 资金审计（2026-09 审查 P1 修复：回忆录付费任务创建落审计）
+  await recordAuditLog({
+    userId: order.user_id,
+    action: 'memoir-created',
+    resourceType: 'memoir',
+    resourceId: task.id,
+    detail: { order_id: order.id, memoir_type: meta.memoir_type, amount: order.amount },
   });
 
   // WebSocket 通知用户：任务已创建
@@ -499,6 +527,15 @@ async function handlePaymentBusinessFailure(
 
     // 标记订单 refunded
     await paymentOrderRepository.markRefunded(order.id);
+
+    // 资金审计（2026-09 审查 P1 修复：退款动作落审计，含失败原因便于对账）
+    await recordAuditLog({
+      userId: order.user_id,
+      action: 'payment-refunded',
+      resourceType: 'payment-order',
+      resourceId: order.id,
+      detail: { product_type: order.product_type, amount: order.amount, reason: errorMessage.slice(0, 120) },
+    });
 
     // WebSocket 通知用户
     sendToUser(order.user_id, {

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 支付模块集成测试
  *
  * 覆盖：
@@ -87,9 +87,11 @@ function createApp() {
   return app;
 }
 
-/** 生成指定数量的有效照片 URL */
+/** 生成指定数量的有效照片 URL
+ * 2026-09 审查 SSRF 白名单修复后：source_photos 仅接受本站 /uploads/ 路径或本站域名 URL，
+ * 测试夹具同步改为本站相对路径（与真实前端上传后的取值一致） */
 function makePhotos(count: number): string[] {
-  return Array.from({ length: count }, (_, i) => `https://example.com/photo${i + 1}.jpg`);
+  return Array.from({ length: count }, (_, i) => `/uploads/pet-photos/test-user/pet-1/photo${i + 1}.jpg`);
 }
 
 const mockUserRow = {
@@ -415,10 +417,14 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
       .mockResolvedValueOnce({ rows: [mockPendingMembershipOrder], rowCount: 1 })
       // markPaidByCallback
       .mockResolvedValueOnce({ rows: [{ id: orderId }], rowCount: 1 })
+      // 续费顺延查询（2026-09 审查修复新增：findTierAndStatus 查当前会员，无 → 从现在起算）
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       // activateMembership: findByUser (无现有会员)
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       // createMembership: insert
-      .mockResolvedValueOnce({ rows: [{ id: 'membership-001' }], rowCount: 1 });
+      .mockResolvedValueOnce({ rows: [{ id: 'membership-001' }], rowCount: 1 })
+      // recordAuditLog 资金审计写入（2026-09 审查修复新增）
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/api/payment/wechat/notify')
@@ -442,6 +448,49 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
         }),
       }),
     );
+  });
+
+  it('会员未到期续费：从原到期时间顺延，不吞剩余时长（2026-09 审查 P1 回归锁）', async () => {
+    const orderId = 'order-membership-renew';
+    // 用户当前会员剩余 15 天（未到期）
+    const futureExpiry = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+
+    mockPool.query
+      // findById
+      .mockResolvedValueOnce({ rows: [mockPendingMembershipOrder], rowCount: 1 })
+      // markPaidByCallback
+      .mockResolvedValueOnce({ rows: [{ id: orderId }], rowCount: 1 })
+      // 续费顺延查询：findTierAndStatus 返回未到期会员
+      .mockResolvedValueOnce({
+        rows: [{ tier: 'member', status: 'active', expires_at: futureExpiry.toISOString() }],
+        rowCount: 1,
+      })
+      // activateMembership: findByUser（有现有会员 → 走 renewMembership）
+      .mockResolvedValueOnce({ rows: [{ id: 'membership-001' }], rowCount: 1 })
+      // renewMembership UPDATE
+      .mockResolvedValueOnce({ rows: [{ id: 'membership-001' }], rowCount: 1 })
+      // recordAuditLog 资金审计写入
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/payment/wechat/notify')
+      .set('Wechatpay-Timestamp', String(Math.floor(Date.now() / 1000)))
+      .set('Wechatpay-Nonce', 'test-nonce')
+      .set('Wechatpay-Serial', 'test-serial')
+      .set('Wechatpay-Signature', 'test-signature')
+      .send(buildMockNotifyBody(orderId, 'SUCCESS', 990));
+
+    expect(res.status).toBe(200);
+    expect(res.body.code).toBe('SUCCESS');
+
+    // 顺延断言：renewMembership 收到的 expiresAt 应 ≈ 原到期时间 + 30 天（而非 now + 30 天）
+    const updateCall = mockPool.query.mock.calls.find((c) => String(c[0]).includes('UPDATE memberships'));
+    expect(updateCall).toBeDefined();
+    const params = updateCall![1] as unknown[];
+    const gotExpiry = new Date(String(params[2])).getTime();
+    const expectedExpiry = futureExpiry.getTime() + 30 * 24 * 60 * 60 * 1000;
+    // 允许 2 分钟时钟/执行误差
+    expect(Math.abs(gotExpiry - expectedExpiry)).toBeLessThan(2 * 60 * 1000);
   });
 
   it('重复回调：订单已 paid，幂等返回 SUCCESS 不重复处理', async () => {

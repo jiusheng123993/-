@@ -1,11 +1,15 @@
 // ============================================================
 // 星河宠记 - PM2 进程配置
 // 放置路径: 03-源代码/server/ecosystem.config.cjs
+// 2026-09 全项目审查修正：进程名/日志路径与生产实况对齐（PM2 实际进程为
+// xinghuanhai-server、部署目录 /opt/xinghuanhai，见 05-部署配置/部署配置.md）。
+// 旧名 xinghechongji-server 是立项初期占位，从未在生产使用过。
+// wait_ready:true 要求进程就绪后显式 process.send('ready')——src/index.ts 已实现。
 // ============================================================
 module.exports = {
   apps: [
     {
-      name: 'xinghechongji-server',
+      name: 'xinghuanhai-server',
       script: 'src/index.ts',
       interpreter: 'node',
       interpreter_args: '--import tsx',
@@ -27,8 +31,8 @@ module.exports = {
 
       // 日志
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      error_file: '/opt/xinghechongji/logs/err.log',
-      out_file: '/opt/xinghechongji/logs/out.log',
+      error_file: '/opt/xinghuanhai/logs/err.log',
+      out_file: '/opt/xinghuanhai/logs/out.log',
       merge_logs: true,
 
       // 自动重启

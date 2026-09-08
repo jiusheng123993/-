@@ -48,9 +48,11 @@ function createApp() {
   return app;
 }
 
-/** 生成指定数量的有效照片 URL */
+/** 生成指定数量的有效照片 URL
+ * 2026-09 审查 SSRF 白名单修复后：source_photos 仅接受本站 /uploads/ 路径或本站域名 URL，
+ * 测试夹具同步改为本站相对路径（与真实前端上传后的取值一致） */
 function makePhotos(count: number): string[] {
-  return Array.from({ length: count }, (_, i) => `https://example.com/photo${i + 1}.jpg`);
+  return Array.from({ length: count }, (_, i) => `/uploads/pet-photos/test-user/pet-1/photo${i + 1}.jpg`);
 }
 
 const mockMemoirRecord = {
@@ -144,6 +146,26 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir')
       .send({ memoir_type: 'daily', source_photos: [] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('source_photos 外部域 URL 被 SSRF 白名单拒绝（2026-09 审查 P1 回归锁）', async () => {
+    // source_photos 会交给服务端 fetch 下载并交给视觉 LLM，外部域/内网地址必须拦截
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir')
+      .send({ memoir_type: 'daily', source_photos: ['https://example.com/photo1.jpg'] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toContain('不受信任');
+  });
+
+  it('source_photos 内网地址被 SSRF 白名单拒绝（2026-09 审查 P1 回归锁）', async () => {
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir')
+      .send({ memoir_type: 'daily', source_photos: ['http://169.254.169.254/latest/meta-data'] });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
@@ -510,8 +532,9 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{
+        // 过期时间必须用「动态未来 30 天」而非硬编码日期：硬编码会随真实时间流逝变成已过期会员，断言必然翻车（时间炸弹测试，2026-09 全项目复审发现）
         id: 'mem-001', tier: 'monthly', plan: 'monthly', status: 'active',
-        price: 990, expires_at: '2026-09-01T00:00:00Z', started_at: '2026-08-01T00:00:00Z',
+        price: 990, expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), started_at: '2026-08-01T00:00:00Z',
       }], rowCount: 1 });
 
     const res = await request(createApp())

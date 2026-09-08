@@ -15,28 +15,30 @@ export interface AuditEntry {
   ipAddress?: string;
 }
 
+/**
+ * 审计动作白名单（2026-09 全项目审查 P1 修复）
+ * 原枚举为情侣消消乐遗留（equip/try-on 等）且全仓零调用，资金动作审计完全缺失；
+ * 现替换为本项目的资金/权益关键动作，并在支付回调/退款/会员激活/兑换码处落调用点。
+ */
 const VALID_ACTIONS = [
-  'equip',
-  'unequip',
-  'unlock',
-  'try-on',
-  'generate-theme',
-  'apply-theme',
-  'save-outfit',
-  'reset-outfit',
+  'payment-paid',
+  'payment-refunded',
+  'membership-activated',
+  'memoir-created',
+  'redeem-used',
+  'referral-reward',
   'login',
   'logout',
-  'token-revoke',
 ] as const;
 
 type AuditAction = (typeof VALID_ACTIONS)[number];
 
 const VALID_RESOURCE_TYPES = [
-  'accessory',
-  'outfit',
-  'theme-suite',
-  'theme-task',
-  'pet',
+  'payment-order',
+  'membership',
+  'redeem-code',
+  'memoir',
+  'referral',
   'user',
   'token',
 ] as const;

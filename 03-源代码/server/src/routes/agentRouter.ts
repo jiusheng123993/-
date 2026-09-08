@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AI Agent 路由 - 智能对话和工具调用
  * 支持 SSE 流式对话、对话历史加载、工具列表查询
  */
@@ -6,6 +6,7 @@ import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { agentHistoryQuerySchema, agentChatSchema } from '../schemas/index.js';
+import { chatLimiter } from '../middleware/rateLimit.js';
 import { agentLoop, guardCheckInput, type AgentContext, type ChatMessage } from '../services/agentService.js';
 import { loadConversationHistory, saveConversation } from '../services/memoryService.js';
 import { PetRepository } from '../repositories/petRepository.js';
@@ -29,7 +30,8 @@ const petRepository = new PetRepository();
  * - done: 对话完成
  * - error: 错误
  */
-router.post('/chat', authMiddleware, validate({ body: agentChatSchema }), async (req: Request, res: Response) => {
+// 限流：chatLimiter 30次/分钟（2026-09 审查修复：Agent 对话为多轮工具链 LLM 调用，成本高于单轮对话）
+router.post('/chat', authMiddleware, chatLimiter, validate({ body: agentChatSchema }), async (req: Request, res: Response) => {
   const { message, history, petId } = req.body;
 
   // 安全守卫

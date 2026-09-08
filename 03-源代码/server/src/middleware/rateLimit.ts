@@ -12,6 +12,17 @@ function keyGenerator(req: Request): string {
   return `${ipKeyGenerator(req.ip || '')}:${userId}`;
 }
 
+/**
+ * 测试环境跳过限流（2026-09 全项目审查修复引入）
+ * 背景：为修复「限流器定义后从未挂载」（审查 P0/P1），本文件多个限流器新挂到业务端点；
+ * 但既有单测会对同一端点高频调用（如 memoir.test.ts 创建回忆录 16 次 > 3次/分钟），
+ * 挂载后必然误伤测试。故测试环境（vitest NODE_ENV=test）跳过，开发/生产照常生效。
+ * 注意：globalLimiter 有独立测试断言 429 行为，绝不能加此豁免。
+ */
+function skipInTest(): boolean {
+  return process.env.NODE_ENV === 'test';
+}
+
 /** 通用限流：120次/分钟（兜底防刷） */
 export const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -37,6 +48,7 @@ export const uploadLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   keyGenerator,
+  skip: skipInTest,
   message: {
     success: false,
     code: '100003',
@@ -56,11 +68,12 @@ export const aiRecognizeLimiter = rateLimit({
   },
 });
 
-/** AI 算力类：5次/分钟（2D/3D形象生成） */
+/** AI 算力类：5次/分钟（2D/3D形象生成/全家福） */
 export const aiGenerateLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
   keyGenerator,
+  skip: skipInTest, // vitest 全量回归会连发多个生成请求，测试环境豁免（同其他新挂载限流口径）
   message: {
     success: false,
     code: '100003',
@@ -68,11 +81,12 @@ export const aiGenerateLimiter = rateLimit({
   },
 });
 
-/** AI 对话：30次/分钟 */
+/** AI 对话：30次/分钟（2026-09 审查修复：此前定义后从未挂载，AI 烧钱口仅剩全局兜底） */
 export const chatLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
   keyGenerator,
+  skip: skipInTest,
   message: {
     success: false,
     code: '100003',
@@ -80,11 +94,12 @@ export const chatLimiter = rateLimit({
   },
 });
 
-/** 回忆录生成：3次/分钟 */
+/** 回忆录生成：3次/分钟（2026-09 审查修复：最高成本接口，此前定义后从未挂载） */
 export const memoirLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 3,
   keyGenerator,
+  skip: skipInTest,
   message: {
     success: false,
     code: '100003',
@@ -92,11 +107,12 @@ export const memoirLimiter = rateLimit({
   },
 });
 
-/** 取名引擎：10次/分钟 */
+/** 取名引擎：10次/分钟（2026-09 审查修复：此前定义后从未挂载） */
 export const namingLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   keyGenerator,
+  skip: skipInTest,
   message: {
     success: false,
     code: '100003',

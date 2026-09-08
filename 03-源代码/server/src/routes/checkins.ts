@@ -85,7 +85,18 @@ router.post('/:petId/checkins', checkPetAccess, validate({ body: createCheckinSc
         const items = Array.isArray(anomaly_items) && anomaly_items.length > 0
           ? (anomaly_items as string[]).join('、')
           : '有异常';
-        const importance = risk_level === 'high' ? 9 : risk_level === 'medium' ? 8 : 7;
+        // 重要度映射（2026-09 审查 P1 修复）：打卡 risk_level 紧急度从高到低为
+        // emergency > high/warning > medium/caution > low/normal，原映射只认 high/medium，
+        // emergency（最紧急）落到 default 7 比 medium 还低，权重错位会拖低紧急健康事件的
+        // 记忆召回排序。现按紧急度分档：emergency→10（记忆重要度上限），warning 归 high 档。
+        const importance =
+          risk_level === 'emergency'
+            ? 10
+            : risk_level === 'high' || risk_level === 'warning'
+              ? 9
+              : risk_level === 'medium' || risk_level === 'caution'
+                ? 8
+                : 7;
         void recordHealthMemory({
           userId: req.userId!,
           petId,

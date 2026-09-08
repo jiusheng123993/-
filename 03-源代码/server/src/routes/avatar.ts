@@ -116,7 +116,11 @@ async function getUserMembership(userId: string): Promise<{ isMember: boolean; s
   return { isMember: row.tier !== 'free' && row.status === 'active', status: row.status };
 }
 
-router.post('/generate', authMiddleware, async (req: Request, res: Response) => {
+// 2026-09 审查 P1 修复：/generate 原先仅挂 authMiddleware——绕过照片 3 次/月配额且无限流，
+// 会员可无限烧 Seedream（generate-options 有双重约束而此口裸奔）。现补齐：
+// ①generateLimiter 5次/分（与 generate-options 同款）；②照片月度总配额（按创建数统计，含失败，
+// 与 options 流共享 3 次/月封顶，见 countMonthlyPhotoGenerationsByUser 注释）。
+router.post('/generate', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
   try {
     const { petId, style } = req.body;
     const userId = req.userId!;
@@ -143,6 +147,20 @@ router.post('/generate', authMiddleware, async (req: Request, res: Response) => 
         success: false,
         message: 'AI 形象生成仅限会员使用，请先开通会员',
         code: 'MEMBER_ONLY',
+      });
+      return;
+    }
+
+    // 照片生成月配额封顶（成本护栏，2026-09 审查修复）
+    const quotaMonthStart = new Date();
+    quotaMonthStart.setDate(1);
+    quotaMonthStart.setHours(0, 0, 0, 0);
+    const usedPhotoCount = await avatarGenerationRepository.countMonthlyPhotoGenerationsByUser(userId, quotaMonthStart);
+    if (usedPhotoCount >= MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT) {
+      res.status(429).json({
+        success: false,
+        code: 'PHOTO_QUOTA_EXCEEDED',
+        message: `本月照片生成次数已用完（${MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT} 次/月），请下月再试`,
       });
       return;
     }

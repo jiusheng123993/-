@@ -4,11 +4,39 @@
  * 按 TECH_DESIGN 3.1 节关键参数定义
  */
 import { z } from 'zod';
+import { config } from '../config.js';
 
 // ===== 通用 Schema =====
 
 /** UUID 格式校验 */
 export const uuidSchema = z.string().uuid('ID格式错误');
+
+/**
+ * 回忆录照片 URL 白名单（2026-09 审查 P1 SSRF 修复）
+ * source_photos 会交给服务端 fetch 下载并交给视觉 LLM，原仅校验 URL 格式：
+ * 内网地址（http://169.254.169.254/ 等）可被用作内网探测 + 落盘回读外泄通道。
+ * 现仅放行：①本站相对路径 /uploads/...；②https(s) 且主机名为 PUBLIC_BASE_URL 主机或本地回环。
+ */
+export const memoirPhotoUrlSchema = z.string().superRefine((url, ctx) => {
+  // 本站相对路径：由服务端拼 publicBaseUrl 后下载，天然可信
+  if (url.startsWith('/uploads/')) return;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: '照片地址仅支持 http(s)' });
+      return;
+    }
+    const trustedHosts = new Set(['localhost', '127.0.0.1']);
+    if (config.publicBaseUrl) {
+      trustedHosts.add(new URL(config.publicBaseUrl).hostname);
+    }
+    if (!trustedHosts.has(u.hostname)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: '照片地址不受信任，仅支持本站上传的照片' });
+    }
+  } catch {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: '照片地址格式无效' });
+  }
+});
 
 /** 分页参数 */
 export const paginationSchema = z.object({
@@ -67,18 +95,25 @@ export const updatePetSchema = createPetSchema.partial();
 
 // ===== 健康打卡模块 =====
 
-/** 创建健康打卡 */
+/** 创建健康打卡
+ * 2026-09 审查 P1 收紧：①weight 补范围（负数/巨数入库会污染趋势 AVG）；②risk_level 改枚举
+ * （原仅 min(1)，任意串入库，且前端值域为 low/medium/high/emergency）；③note/ai_feedback 补长度上限、
+ * anomaly_items 补数组与元素上限——超长文本经 recordHealthMemory 落库后会被无截断拼进 AI 提示词
+ * （token 成本 + 间接注入面）。 */
 export const createCheckinSchema = z.object({
   poop_level: z.number().int().min(1).max(5),
   appetite_level: z.number().int().min(1).max(5),
   spirit_level: z.number().int().min(1).max(5),
   exercise_level: z.number().int().min(0).max(5),
-  weight: z.number().optional(),
+  weight: z.number().min(0).max(200).optional(),
   has_anomaly: z.boolean().optional(),
-  anomaly_items: z.array(z.string()).optional(),
-  ai_feedback: z.string().nullable().optional(),
-  risk_level: z.string().min(1),
-  note: z.string().nullable().optional(),
+  anomaly_items: z.array(z.string().max(50)).max(20).optional(),
+  ai_feedback: z.string().max(2000).nullable().optional(),
+  // 值域：新版前端上报 {low,medium,high,emergency}（见 miniapp checkinService.mapRiskLevel），
+  // 兼容收留旧版小程序的 legacy 值 {normal,caution,warning}（旧版本仍在微信线上分发，
+  // 硬拒会导致老版本用户打卡 400）；任意其他串仍然拒绝（修复原 min(1) 任意串入库）
+  risk_level: z.enum(['low', 'medium', 'high', 'emergency', 'normal', 'caution', 'warning']),
+  note: z.string().max(500).nullable().optional(),
 });
 
 // ===== 家庭模块 =====
@@ -152,11 +187,21 @@ export const foodQuerySchema = z.object({
 
 // ===== AI 对话模块 =====
 
-/** 发送对话消息 */
+/** 发送对话消息（2026-09 审查 P1 收紧成本上限：此前 messages 无条数/单条长度限、max_tokens 无上限，
+ *  10MB body 可直喂付费 LLM 形成烧钱口；20 条 × 4000 字 × max_tokens≤4096 覆盖真实聊天上下文） */
 export const chatMessageSchema = z.object({
-  messages: z.array(z.unknown(), { error: 'messages 不能为空' }).min(1, 'messages 不能为空'),
-  temperature: z.number().optional(),
-  max_tokens: z.number().optional(),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['system', 'user', 'assistant']),
+        content: z.string().max(4000, '单条消息内容过长'),
+      }),
+      { error: 'messages 不能为空' },
+    )
+    .min(1, 'messages 不能为空')
+    .max(20, '对话轮数超限（最多 20 条）'),
+  temperature: z.number().min(0).max(2).optional(),
+  max_tokens: z.number().int().min(1).max(4096).optional(),
   petId: z.string().optional(),
 });
 
@@ -313,7 +358,7 @@ export const createMemoirOrderSchema = z
       error: 'memoir_type 必须为 daily/memorial/seasonal/milestone/custom',
     }),
     source_photos: z
-      .array(z.string().url(), { error: 'source_photos 不能为空' })
+      .array(memoirPhotoUrlSchema, { error: 'source_photos 不能为空' })
       .min(1, '至少需要1张照片'),
     source_text: z.string().max(2000).optional(),
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
@@ -416,7 +461,7 @@ export const timelineAiPolishSchema = z.object({
 export const createMemoirSchema = z
   .object({
     memoir_type: z.enum(['daily', 'memorial', 'seasonal', 'milestone', 'custom'], { error: 'memoir_type 必须为 daily/memorial/seasonal/milestone/custom' }),
-    source_photos: z.array(z.string().url(), { error: 'source_photos 不能为空' })
+    source_photos: z.array(memoirPhotoUrlSchema, { error: 'source_photos 不能为空' })
       .min(1, '至少需要1张照片'),
     source_text: z.string().max(2000).optional(),
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),

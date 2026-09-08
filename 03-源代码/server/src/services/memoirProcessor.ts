@@ -214,8 +214,19 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     }
 
     if (moderationResult === 'review') {
-      // 需要人工审核，先标记完成但标记为需审核
-      console.warn(`[MemoirProcessor] Task ${task.id}: Content flagged for manual review`);
+      // 2026-09 审查 P1 修复（fail-closed）：review 原先仅 console.warn 后照常 markCompleted 并
+      // 自动分发（发动态/写时光线），等于"待人工审核"形同虚设。现口径：视频仍完成（用户付费成果
+      // 不作废、本人列表可见），但**跳过自动分发**（不发家庭动态、不写时光线），待人工复核后由
+      // 运营在管理端手动处理；无人工审核队列前宁可不分发。
+      console.warn(`[MemoirProcessor] Task ${task.id}: Content flagged for manual review, completed but NOT distributed`);
+      await memoirRepository.markCompleted(task.id, result.videoUrl, result.previewUrl);
+      void notifyUser(task.user_id, {
+        type: 'memoir_completed',
+        taskId: task.id,
+        previewUrl: result.previewUrl,
+      });
+      retryCountMap.delete(task.id);
+      return true;
     }
 
     // 6. 审核通过，标记完成

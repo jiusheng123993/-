@@ -58,6 +58,13 @@ router.post('/send-sms', validate({ body: sendSmsSchema }), async (req: Request,
   try {
     const { phone } = req.body as { phone: string };
 
+    // 2026-09 审查 P1：短信服务商从未接入（验证码实际无法送达用户手机），此接口却暴露公网；
+    // 且 devCode 分支若仅靠 NODE_ENV 门控存在误配风险。生产环境直接关闭手机号登录入口（fail-closed）。
+    if (process.env.NODE_ENV === 'production') {
+      res.status(403).json({ success: false, message: '手机号登录暂未开放' });
+      return;
+    }
+
     // 发送频率限制（简单内存限流：同一手机号 60 秒内只能发一次）
     const existing = smsCodeStore.get(phone);
     if (existing && existing.expiresAt - Date.now() > SMS_CODE_TTL_MINUTES * 60 * 1000 - 60 * 1000) {
@@ -97,6 +104,13 @@ router.post('/send-sms', validate({ body: sendSmsSchema }), async (req: Request,
  */
 router.post('/login/phone', validate({ body: phoneLoginSchema }), async (req: Request, res: Response) => {
   try {
+    // 2026-09 审查 P1：与 /send-sms 同口径——生产环境关闭手机号验证码登录
+    //（验证码从未真正下发过，接口存在即构成「已知手机号+爆破验证码」的账户接管面）
+    if (process.env.NODE_ENV === 'production') {
+      res.status(403).json({ success: false, message: '手机号登录暂未开放' });
+      return;
+    }
+
     const { phone, code } = req.body as { phone: string; code: string };
 
     const record = smsCodeStore.get(phone);
@@ -140,7 +154,18 @@ router.post('/login', validate({ body: wxLoginSchema }), async (req: Request, re
     const { code } = req.body;
 
     let openid: string;
-    const isDev = !config.wechat.appId || !config.wechat.secret;
+
+    // 2026-09 审查 P1：开发降级判定必须看运行环境，而非「appId/secret 是否漏配」。
+    // 原写法 isDev = !appId || !secret：生产一旦漏配微信配置，openid 将由客户端 code 任意指定，
+    // 可接管任意已知 openid 的账号并无限造号。现在：生产缺配置直接拒绝登录（503），
+    // 仅开发/测试环境允许「code 即 openid」的降级；config.ts 另有生产缺配置启动告警兜底。
+    const missingWxConfig = !config.wechat.appId || !config.wechat.secret;
+    if (missingWxConfig && process.env.NODE_ENV === 'production') {
+      console.error('[Auth] 生产环境未配置 WECHAT_APPID/WECHAT_SECRET，微信登录不可用');
+      res.status(503).json({ success: false, message: '微信登录暂不可用，请联系管理员' });
+      return;
+    }
+    const isDev = missingWxConfig;
 
     if (isDev) {
       openid = code;
@@ -263,11 +288,17 @@ router.post('/bind-phone', authMiddleware, async (req: Request, res: Response) =
       return;
     }
 
-    const isDev = !config.wechat.appId || !config.wechat.secret;
+    // 2026-09 审查 P1：与 /login 同口径——绑定手机号的开发降级也必须按环境收口，
+    // 生产缺配置时拒绝（否则客户端可控 code 会被当手机号写入用户档案）
+    const missingWxConfig = !config.wechat.appId || !config.wechat.secret;
+    if (missingWxConfig && process.env.NODE_ENV === 'production') {
+      res.status(503).json({ success: false, message: '微信服务暂不可用，请联系管理员' });
+      return;
+    }
 
     let phoneNumber: string;
 
-    if (isDev) {
+    if (missingWxConfig) {
       // 开发模式：直接使用 code 作为手机号（仅用于开发测试）
       phoneNumber = code;
     } else {

@@ -235,7 +235,9 @@ router.get('/moments', authMiddleware, validate({ query: timelineMomentsQuerySch
 });
 
 // 上传回忆照片
-router.post('/photo/upload', authMiddleware, upload.single('photo'), async (req: Request, res: Response) => {
+// 限流：uploadLimiter 10次/分钟（2026-09 审查 P1 修复：10MB memoryStorage 此前仅全局 120/分兜底，
+// 单用户 1 分钟可打约 1.2GB 内存；扩展名同步改服务端白名单映射，不再信原始文件名）
+router.post('/photo/upload', authMiddleware, uploadLimiter, upload.single('photo'), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const file = req.file;
@@ -245,7 +247,14 @@ router.post('/photo/upload', authMiddleware, upload.single('photo'), async (req:
       return;
     }
 
-    const ext = file.originalname.split('.').pop() || 'jpg';
+    // 扩展名由服务端按 mimeType 白名单映射（防 .html/.php 等任意后缀落盘）
+    const EXT_BY_MIME: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/heic': 'heic',
+    };
+    const ext = EXT_BY_MIME[file.mimetype] || 'jpg';
     const filename = `${crypto.randomUUID()}.${ext}`;
     const dirPath = path.join(config.uploadDir, 'moment-photos', userId);
     const filePath = path.join(dirPath, filename);

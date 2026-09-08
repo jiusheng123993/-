@@ -136,6 +136,25 @@ export class AvatarGenerationRepository extends BaseRepository<AvatarGenerationR
     );
     return result.rows[0]?.count ?? 0;
   }
+
+  /**
+   * 统计用户本月照片类生成调用次数（含 options 候选流与旧 /generate 单图流）
+   * 2026-09 审查 P1 修复配套：/generate 原本绕过月配额，需要与 generate-options 共享
+   * 「照片生成 3 次/月」的成本封顶口径。
+   * ⚠️ 与 countMonthlyOptionsByUser 的口径差异：本方法按【创建数】统计（含失败）——
+   * 失败的调用同样消耗 Seedream 算力（烧钱），做成本封顶必须计入；排除文字生成（-text-）。
+   * @param userId - 用户 ID
+   * @param monthStart - 本月 1 号 0 点
+   */
+  async countMonthlyPhotoGenerationsByUser(userId: string, monthStart: Date): Promise<number> {
+    const result = await this.rawQuery(
+      `SELECT COUNT(*)::int AS count
+       FROM ${this.tableName}
+       WHERE user_id = $1 AND style NOT LIKE '%-text-%' AND created_at >= $2`,
+      [userId, monthStart],
+    );
+    return result.rows[0]?.count ?? 0;
+  }
 }
 
 /**

@@ -144,6 +144,35 @@ export const config = {
     .filter(Boolean),
 };
 
+// ===== 生产环境启动守卫（2026-09 全项目双 Agent 审查 P0）=====
+// 背景：Mock 模式下支付回调（decodeMockNotify）不做任何验签，向 /api/payment/wechat/notify
+// 伪造 {"out_trade_no","trade_state":"SUCCESS"} 即可把任意 pending 订单标记为已支付（白嫖会员/回忆录）。
+// 生产环境绝不允许 Mock 支付：这里 fail-fast 拒绝启动，杜绝「忘配 WECHAT_PAY_MOCK=false」的资损事故。
+if (process.env.NODE_ENV === 'production' && config.wechatPay.mock) {
+  throw new Error(
+    '[config] 生产环境禁止开启支付 Mock（Mock 回调无验签，存在资损风险）。请在生产 .env 设置 WECHAT_PAY_MOCK=false 后重启。',
+  );
+}
+
+// 生产环境缺失微信登录配置时给出醒目告警：auth 路由会拒绝登录（isDev 降级已按环境收口），
+// 但配置缺失本身是部署事故，必须在启动日志里可见，而不是等用户登录失败才发现。
+if (process.env.NODE_ENV === 'production' && (!config.wechat.appId || !config.wechat.secret)) {
+  console.error('[config] 生产环境未配置 WECHAT_APPID/WECHAT_SECRET，微信登录将不可用！');
+}
+
+// CORS 白名单声称核实（审查 P0/P2）：ALLOWED_ORIGINS 未配置时 origin:true 放行所有来源（fail-open），
+// 与《运营应急预案》声称的「CORS 白名单✅」不符。小程序不受 CORS 约束、同源管理后台也不受影响，
+// 故不硬失败（避免误伤官网等跨域浏览器端），但生产环境必须给出告警推动补配。
+if (process.env.NODE_ENV === 'production' && config.allowedOrigins.length === 0) {
+  console.warn('[config] 生产环境未配置 ALLOWED_ORIGINS，CORS 当前放行所有来源（fail-open）。建议配置来源白名单。');
+}
+
+// 内容审核 key 缺失时 moderateVideo 会默认放行（fail-open），与《运营应急预案》声称的
+// 「内容审核✅」不符。生产必须配置 MODERATE_API_KEY，缺失时醒目告警（2026-09 审查 P1 配套）。
+if (process.env.NODE_ENV === 'production' && !config.moderate?.apiKey) {
+  console.error('[config] 生产环境未配置 MODERATE_API_KEY，视频内容审核将默认放行（fail-open），存在合规风险！');
+}
+
 // ===== AI 连接配置启动校验 =====
 // 检测到 ARK_* 被部分配置（最常见的部署遗漏：只配了 key 忘了配另外两项）时，
 // 尽早打警告日志提醒，避免线上 AI 请求静默失败。密钥本身不打印，仅打印缺失的变量名。

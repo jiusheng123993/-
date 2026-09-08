@@ -936,9 +936,11 @@ async function hostSingleVideo(
 
 /**
  * 下载远程文件到本地
+ * 2026-09 审查 P1 修复：原 fetch 无超时，上游挂起会拖死 processor 轮询；补 60s 上限
+ * （视频/照片文件较大，比普通 API 调用放宽）
  */
 async function downloadFile(url: string, localPath: string): Promise<void> {
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!response.ok) {
     throw new Error(`Download failed: ${response.status} ${response.statusText}`);
   }

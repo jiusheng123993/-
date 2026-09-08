@@ -6,6 +6,7 @@ import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { generateFamilyPhotoSchema, uploadFamilyPhotoSchema } from '../schemas/index.js';
+import { aiGenerateLimiter } from '../middleware/rateLimit.js';
 import { FamilyRepository } from '../repositories/familyRepository.js';
 import {
   generateFamilyPhoto,
@@ -20,10 +21,13 @@ const familyRepository = new FamilyRepository();
 /**
  * POST /api/families/:familyId/photos
  * 发起AI全家福生成
+ * 限流：aiGenerateLimiter 5次/分钟（2026-09 审查 P1 修复：同步烧 Seedream 的接口，
+ * 此前仅全局 120/分兜底）
  */
 router.post(
   '/:familyId/photos',
   authMiddleware,
+  aiGenerateLimiter,
   validate({ body: generateFamilyPhotoSchema }),
   async (req: Request, res: Response) => {
     try {

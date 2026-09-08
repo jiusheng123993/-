@@ -2,10 +2,14 @@
  * 会员数据访问层 - memberships 表
  * 处理会员订阅状态查询、订阅、取消、过期检查
  * 继承 BaseRepository，复用通用 CRUD 能力，强制参数化查询防注入
- * 事务化的订阅流程封装在 subscribeWithTransaction 方法中，保证订单和会员状态原子更新
+ *
+ * 2026-09 全项目审查：已删除 subscribeWithTransaction（旧模拟支付专用）。
+ * 原因有二：①全仓无调用方（/subscribe 已改为真实支付下单），属死代码；
+ * ②其 BEGIN/COMMIT 依赖 BaseRepository 持有的 pg 连接池，各语句可能被池分配到
+ * 不同连接，事务原子性实际失效（资金埋雷）。真实支付链路由 payment 模块的
+ * activateMembership 承接，订单与会员状态一致性由回调 CAS + 退款兜底保证。
  */
 import { BaseRepository } from './baseRepository.js';
-import { PaymentOrderRepository, type CreateMembershipOrderParams } from './paymentOrderRepository.js';
 import type { QueryResultRow } from 'pg';
 
 /** 会员数据行 */
@@ -138,64 +142,21 @@ export class MembershipRepository extends BaseRepository<MembershipRow> {
   }
 
   /**
-   * 事务化的订阅流程：创建订单 → 创建/更新会员 → 标记订单已支付
-   * 任一步骤失败自动回滚，保证订单和会员状态原子更新
-   *
-   * 注意：此方法保留以兼容旧流程（membership.ts /subscribe 接口直接走模拟支付）
-   * 新流程（payment 模块走真实支付）应使用 activateMembership 方法
-   *
-   * @param orderParams - 订单参数（id/userId/plan/amount）
-   * @param subscribeParams - 会员订阅参数（plan/price/expiresAt）
-   * @param paymentOrderRepo - 支付订单仓库实例
-   */
-  async subscribeWithTransaction(
-    orderParams: CreateMembershipOrderParams,
-    subscribeParams: { plan: string; price: number; expiresAt: Date },
-    paymentOrderRepo: PaymentOrderRepository,
-  ): Promise<void> {
-    await this.db.query('BEGIN');
-    try {
-      await paymentOrderRepo.createOrder(orderParams);
-
-      const existing = await this.findByUser(orderParams.userId);
-      if (existing === null) {
-        await this.createMembership({
-          userId: orderParams.userId,
-          plan: subscribeParams.plan,
-          price: subscribeParams.price,
-          expiresAt: subscribeParams.expiresAt,
-        });
-      } else {
-        await this.renewMembership({
-          userId: orderParams.userId,
-          plan: subscribeParams.plan,
-          price: subscribeParams.price,
-          expiresAt: subscribeParams.expiresAt,
-        });
-      }
-
-      await paymentOrderRepo.markPaid(orderParams.id);
-      await this.db.query('COMMIT');
-    } catch (error) {
-      await this.db.query('ROLLBACK');
-      throw error;
-    }
-  }
-
-  /**
-   * 支付回调后激活会员（新流程）
+   * 支付回调后激活会员（真实支付链路唯一入口）
    *
    * 由 payment 模块的微信回调调用，订单已标记 paid 后才调用此方法。
    * 此方法只负责创建/续期会员，不操作订单状态（订单状态由 payment 模块管理）。
    *
    * 业务规则：
    *   - 不存在会员记录：创建新会员
-   *   - 已存在会员：续期（覆盖原 plan 和 expires_at）
+   *   - 已存在会员：按调用方传入的 expiresAt 更新（调用方必须按「未到期顺延」口径计算，
+   *     即 base = max(当前到期时间, 现在) + 时长，否则会吞掉用户剩余会员时长——
+   *     2026-09 审查 P1，参见 payment.ts handleMembershipPaymentSuccess）
    *
    * @param userId - 用户 ID
    * @param plan - 订阅计划：monthly/quarterly/yearly
    * @param price - 实际支付金额（分）
-   * @param expiresAt - 会员到期时间
+   * @param expiresAt - 会员到期时间（调用方按顺延口径算好传入）
    */
   async activateMembership(
     userId: string,

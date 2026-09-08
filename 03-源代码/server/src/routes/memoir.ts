@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 回忆录路由 - 宠物回忆录视频生成任务管理
  * 提供创建、状态查询、列表、删除、预览接口
  * 所有接口需登录认证，均做宠物归属校验防越权
@@ -7,6 +7,7 @@ import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema } from '../schemas/index.js';
+import { memoirLimiter } from '../middleware/rateLimit.js';
 import {
   createMemoir,
   getStatus,
@@ -51,8 +52,10 @@ function handleServiceError(res: Response, err: unknown): void {
 
 /**
  * POST /:petId/memoir - 创建回忆录任务
+ * 限流：memoirLimiter 3次/分钟（2026-09 审查修复：回忆录为 15-200 元/单的最高成本接口，
+ * 此前 memoirLimiter 定义后从未挂载，仅剩全局 120/分兜底；只挂创建端点，查询/列表不限）
  */
-router.post('/:petId/memoir', validate({ body: createMemoirSchema }), async (req: Request, res: Response) => {
+router.post('/:petId/memoir', memoirLimiter, validate({ body: createMemoirSchema }), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const petId = req.params.petId as string;

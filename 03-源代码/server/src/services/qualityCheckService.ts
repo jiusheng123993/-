@@ -160,6 +160,7 @@ async function checkFrame(
 
   const response = await fetch(`${config.qualityCheck.baseUrl}/chat/completions`, {
     method: 'POST',
+    signal: AbortSignal.timeout(30_000), // 2026-09 审查 P1：补超时防质检 API 挂起拖死 processor
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,

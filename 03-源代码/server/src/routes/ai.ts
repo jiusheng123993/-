@@ -6,7 +6,7 @@ import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { uploadLimiter, aiRecognizeLimiter } from '../middleware/rateLimit.js';
+import { uploadLimiter, aiRecognizeLimiter, chatLimiter, namingLimiter } from '../middleware/rateLimit.js';
 import { chatMessageSchema } from '../schemas/index.js';
 import { chat, guardCheck, guardCheckOutput, bailianChat, bailianASR } from '../services/aiService.js';
 import { recognizeHealthReport } from '../services/healthReportService.js';
@@ -23,7 +23,8 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-router.post('/chat', authMiddleware, validate({ body: chatMessageSchema }), async (req: Request, res: Response) => {
+// 限流：chatLimiter 30次/分钟（2026-09 审查修复：此前未挂载，付费 LLM 入口仅剩全局兜底）
+router.post('/chat', authMiddleware, chatLimiter, validate({ body: chatMessageSchema }), async (req: Request, res: Response) => {
   try {
     const { messages, temperature, max_tokens, petId } = req.body;
 
@@ -132,7 +133,8 @@ router.post('/guard/output', authMiddleware, async (req: Request, res: Response)
   }
 });
 
-router.post('/naming/interpret', authMiddleware, async (req: Request, res: Response) => {
+// 限流：namingLimiter 10次/分钟（2026-09 审查修复：此前取名引擎无限流，属免费 LLM 烧钱面）
+router.post('/naming/interpret', authMiddleware, namingLimiter, async (req: Request, res: Response) => {
   try {
     const { name, species, breed, gender } = req.body;
 
@@ -172,7 +174,7 @@ router.post('/naming/interpret', authMiddleware, async (req: Request, res: Respo
   }
 });
 
-router.post('/naming/recommend', authMiddleware, async (req: Request, res: Response) => {
+router.post('/naming/recommend', authMiddleware, namingLimiter, async (req: Request, res: Response) => {
   try {
     const { species, breed, gender, style, count } = req.body;
 
@@ -220,8 +222,9 @@ router.post('/naming/recommend', authMiddleware, async (req: Request, res: Respo
 /**
  * 语音转文字接口
  * 接收音频上传，使用 AI 进行语音识别，返回转写文本
+ * 限流：uploadLimiter 10次/分钟（2026-09 审查修复：付费 ASR 调用，此前无任何专用限流）
  */
-router.post('/voice', authMiddleware, upload.single('audio'), async (req: Request, res: Response) => {
+router.post('/voice', authMiddleware, uploadLimiter, upload.single('audio'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, message: '请上传音频文件' });

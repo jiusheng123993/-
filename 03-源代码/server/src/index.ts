@@ -151,14 +151,22 @@ app.use('/api', inviteRoutes);
 // ===== 全局错误处理 =====
 app.use(errorHandler);
 
+// ===== 启动前守卫（2026-09 审查：原在 listen 回调内，存在「端口先开、守卫后跑」窗口，现前置）=====
+if (!config.jwtSecret || config.jwtSecret.length < 32) {
+  console.error('[Server] 致命错误: JWT_SECRET 未配置或长度不足 32 字符，拒绝启动');
+  process.exit(1);
+}
+
 // ===== 启动服务器 =====
 const server = app.listen(config.port, () => {
-  if (!config.jwtSecret || config.jwtSecret.length < 32) {
-    console.error('[Server] 致命错误: JWT_SECRET 未配置或长度不足 32 字符，拒绝启动');
-    process.exit(1);
-  }
   console.log(`[Server] 星河宠记后端服务已启动: http://localhost:${config.port}`);
   console.log(`[Server] 环境: ${process.env.NODE_ENV || 'development'}`);
+
+  // PM2 wait_ready 模式：就绪后显式通知（2026-09 审查 P2 修复，ecosystem.config.cjs 配了
+  // wait_ready:true 但进程从不 send('ready')，此前只能靠 listen_timeout 兜底强杀等待窗口）
+  if (process.send) {
+    process.send('ready');
+  }
 
   const runCleanup = async () => {
     try {

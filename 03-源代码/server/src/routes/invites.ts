@@ -137,8 +137,14 @@ router.post(
   authMiddleware,
   validate({ body: processReferralSchema }),
   async (req: Request, res: Response) => {
-    const { invite_code, invitee_id } = req.body;
+    const { invite_code } = req.body;
     try {
+      // 2026-09 审查 P0 修复：被邀请人一律取登录态用户（req.userId），绝不信任请求体 invitee_id。
+      // 原实现取 body.invitee_id：任意登录用户可代任意真实用户建立推荐关系（抢占其唯一名额
+      // UNIQUE(invitee_id)），配合小号注册→注销（FK CASCADE 删 referral 记录）可无限刷 7 天会员奖励。
+      // 注意：本接口的语义就是「新用户自己提交邀请码」，登录态即被邀请人。
+      const invitee_id = req.userId!;
+
       const found = await pool.query(`SELECT user_id FROM invite_codes WHERE code = $1`, [invite_code]);
       if (found.rows.length === 0) {
         res.json({ success: false, error: '邀请码无效' });

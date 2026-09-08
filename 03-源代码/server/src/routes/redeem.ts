@@ -10,6 +10,7 @@ import { adminAuth } from '../middleware/adminAuth.js';
 import { validate } from '../middleware/validate.js';
 import { redeemSchema, adminRedeemGenerateSchema } from '../schemas/index.js';
 import { RedeemCodeRepository } from '../repositories/redeemCodeRepository.js';
+import { recordAuditLog } from '../services/auditService.js';
 import { pool } from '../db.js';
 
 const router = Router();
@@ -69,6 +70,16 @@ router.post('/redeem', authMiddleware, validate({ body: redeemSchema }), async (
         [req.userId, expiresAt.toISOString()],
       );
     }
+
+    // 资金审计（2026-09 审查 P1 修复：兑换码是付费权益发放动作，此前零审计）
+    // 注意 id/days 来自 DB 行（可能为 bigint/数值类型），审计字段统一转字符串
+    await recordAuditLog({
+      userId: req.userId!,
+      action: 'redeem-used',
+      resourceType: 'redeem-code',
+      resourceId: String(row.id),
+      detail: { code_prefix: code.slice(0, 8), days: String(row.days), expires_at: expiresAt.toISOString() },
+    });
 
     res.json({
       success: true,
