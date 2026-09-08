@@ -231,31 +231,14 @@ export async function createPaymentOrder(userId: string, plan: MembershipPlan): 
     orders.unshift(order)
     saveLocalOrders(userId, orders)
     return mapped
-  } catch {
-    // 离线模式：生成本地订单
-    const planConfig = MEMBERSHIP_PLANS.find(p => p.plan === plan)
-    const orderId = generateId()
-    const result: CreateOrderResult = {
-      orderId,
-      amount: planConfig?.price || 0,
-      channel: 'wechat',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    }
-    const orders = getLocalOrders(userId)
-    const order: PaymentOrder = {
-      id: orderId,
-      userId,
-      plan,
-      amount: result.amount,
-      status: 'pending',
-      channel: 'wechat',
-      createdAt: result.createdAt,
-      paidAt: null,
-    }
-    orders.unshift(order)
-    saveLocalOrders(userId, orders)
-    return result
+  } catch (err: any) {
+    // 2026-09 审查 P1 修复：下单失败不再静默生成本地假订单。
+    // 原实现 catch 后无日志无提示直接造一条 pending 本地订单——网络抖动/服务端拒绝/401
+    // 都会污染本地订单列表，且假订单永远不会收敛为真实状态。现改为：
+    // 记录错误日志并把失败抛给调用方（completeWechatPayment 的 catch 会转成
+    // {success:false,error} 供页面 toast），由用户重试；订单以服务端创建成功为准。
+    console.error('[MembershipService] 创建支付订单失败:', err?.message || err)
+    throw new Error(err?.message || '创建订单失败，请检查网络后重试')
   }
 }
 

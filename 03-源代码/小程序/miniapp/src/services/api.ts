@@ -129,6 +129,12 @@ async function request<T>(path: string, options?: { method?: string; data?: any;
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
+    // 401 统一处理（2026-09 审查 P1 修复）：token 过期/无效时清理本地会话并引导重登，
+    // 防止此前「会话不清理 + authStore 仍 isAuthenticated=true → 全接口静默失败」的死局
+    if (res.statusCode === 401) {
+      await handleUnauthorized()
+      throw new Error('登录已过期，请重新登录')
+    }
     const body = res.data as ApiResponse<T> & { success?: boolean; code?: unknown; missingMembers?: unknown }
     if (body.success) return body.data as T
     if (body.code === 0) return body.data
@@ -149,6 +155,32 @@ async function request<T>(path: string, options?: { method?: string; data?: any;
 /** 判断是否启用 Mock 模式 */
 function useMock(): boolean {
   return CONFIG.USE_MOCK
+}
+
+/**
+ * 401 统一处理（2026-09 审查 P1 修复）
+ * 复用 authStore.logout：断开 WebSocket + 清空本地存储（含认证与业务数据）+ 重置登录态，
+ * 然后跳转登录页。用动态 import 避免 api.ts ↔ authStore 的静态循环依赖；
+ * handling401 防止并发请求同时收到 401 时重复登出/跳转。
+ */
+let handling401 = false
+async function handleUnauthorized(): Promise<void> {
+  if (handling401) return
+  handling401 = true
+  try {
+    const { useAuthStore } = await import('../stores/authStore')
+    await useAuthStore.getState().logout()
+    // 已在登录页则不重复跳转（登录页在 pagesUser 分包）
+    const pages = Taro.getCurrentPages()
+    const current = pages[pages.length - 1]
+    if (!current || !current.route?.includes('login')) {
+      Taro.reLaunch({ url: '/pagesUser/login/index' }).catch(() => {})
+    }
+  } catch (err) {
+    console.warn('[Api] 401 会话清理失败:', err)
+  } finally {
+    handling401 = false
+  }
 }
 
 /** API 实例 - 封装 GET/POST/PUT/DELETE 及专用接口 */
