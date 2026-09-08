@@ -1,689 +1,157 @@
-# 星河宠记 API 文档
-
-> Base URL: `http://localhost:3001`
-
-## 认证接口 (Auth)
-
-| 方法 | 路径 | 描述 | 认证 |
-|------|------|------|------|
-| POST | `/api/auth/register` | 用户注册 | 否 |
-| POST | `/api/auth/login` | 用户登录 | 否 |
-| POST | `/api/auth/refresh` | 刷新 Token | 否 |
-| POST | `/api/auth/logout` | 登出 | 否 |
-| GET | `/api/auth/session` | 获取当前用户 | 是 |
-| POST | `/api/auth/bind-device` | 绑定设备 | 是 |
-| GET | `/api/auth/devices` | 获取设备列表 | 是 |
-
-### POST /api/auth/register
-
-注册新用户。
-
-**请求体：**
-```json
-{
-  "provider": "wechat" | "alipay" | "apple",
-  "code": "string",
-  "phoneNumber": "1xxxxxxxxxx",
-  "displayName": "string",
-  "age": 18
-}
-```
-
-**响应 (201)：**
-```json
-{
-  "userId": "user-xxx",
-  "role": "user",
-  "displayName": "string",
-  "phoneNumber": "1xxxxxxxxxx",
-  "avatarUrl": "string",
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresIn": 7200
-}
-```
-
-**错误：**
-- 400: 无效的登录方式 / 请输入有效的手机号 / 请输入昵称
-- 409: 该手机号已注册 / 该账号已注册
-
----
-
-### POST /api/auth/login
-
-用户登录。
-
-**请求体：**
-```json
-{
-  "provider": "wechat" | "alipay" | "apple",
-  "code": "string",
-  "phoneNumber": "1xxxxxxxxxx"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "userId": "user-xxx",
-  "role": "user",
-  "displayName": "string",
-  "phoneNumber": "1xxxxxxxxxx",
-  "avatarUrl": "string",
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresIn": 7200
-}
-```
-
-**错误：**
-- 400: 无效的登录方式
-- 404: 用户未注册 (needRegister: true)
-
----
-
-### POST /api/auth/refresh
-
-刷新访问令牌。
-
-**请求体：**
-```json
-{
-  "refreshToken": "string"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresIn": 7200
-}
-```
-
-**错误：**
-- 400: 缺少 refreshToken
-- 401: refreshToken 无效或已过期 / 用户不存在
-
----
-
-### POST /api/auth/logout
-
-用户登出。
-
-**响应 (200)：**
-```json
-{
-  "success": true
-}
-```
-
----
-
-### GET /api/auth/session
-
-获取当前登录用户信息。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**响应 (200)：**
-```json
-{
-  "userId": "user-xxx",
-  "role": "user",
-  "displayName": "string",
-  "phoneNumber": "1xxxxxxxxxx",
-  "avatarUrl": "string",
-  "provider": "wechat"
-}
-```
-
-**错误：**
-- 401: 未登录 / Token 无效或已过期 / 用户不存在
-
----
-
-### POST /api/auth/bind-device
-
-绑定设备。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**请求体：**
-```json
-{
-  "deviceName": "string"
-}
-```
-
-**响应 (201)：**
-```json
-{
-  "deviceId": "device-xxx",
-  "deviceName": "string",
-  "boundAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-**错误：**
-- 400: 缺少设备名称
-- 401: 未登录 / Token 无效或已过期
-- 404: 用户不存在
-
----
-
-### GET /api/auth/devices
-
-获取用户绑定的设备列表。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**响应 (200)：**
-```json
-[
-  {
-    "deviceId": "device-xxx",
-    "deviceName": "string",
-    "boundAt": "2024-01-01T00:00:00.000Z"
-  }
-]
-```
-
-**错误：**
-- 401: 未登录 / Token 无效或已过期
-
----
-
-## 订单接口 (Orders)
-
-| 方法 | 路径 | 描述 | 认证 |
-|------|------|------|------|
-| POST | `/api/orders` | 创建订单 | 是 |
-| GET | `/api/orders/user/:userId` | 用户订单列表 | 是 |
-| GET | `/api/orders/:id` | 订单详情 | 是 |
-| POST | `/api/orders/:id/refund` | 申请退款 | 是 |
-| POST | `/api/orders/:id/pay` | 模拟支付 | 是 (仅管理员) |
-
-### POST /api/orders
-
-创建新订单。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**请求体：**
-```json
-{
-  "userId": "user-xxx",
-  "productId": "string",
-  "channel": "wechat" | "alipay" | "apple"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "id": "order-xxx",
-  "userId": "user-xxx",
-  "productId": "string",
-  "amount": 100,
-  "channel": "wechat",
-  "status": "pending",
-  "createdAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-**错误：**
-- 400: Invalid userId / Invalid productId / channel must be one of: wechat, alipay, apple
-- 403: Forbidden
-- 404: Product not found
-
----
-
-### GET /api/orders/user/:userId
-
-获取用户订单列表。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**响应 (200)：**
-```json
-[
-  {
-    "id": "order-xxx",
-    "userId": "user-xxx",
-    "productId": "string",
-    "amount": 100,
-    "channel": "wechat",
-    "status": "paid",
-    "createdAt": "2024-01-01T00:00:00.000Z"
-  }
-]
-```
-
-**错误：**
-- 400: Invalid userId format
-- 403: Forbidden
-
----
-
-### GET /api/orders/:id
-
-获取订单详情。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**响应 (200)：**
-```json
-{
-  "id": "order-xxx",
-  "userId": "user-xxx",
-  "productId": "string",
-  "amount": 100,
-  "channel": "wechat",
-  "status": "paid",
-  "createdAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-**错误：**
-- 400: Invalid order id format
-- 403: Forbidden
-- 404: Order not found
-
----
-
-### POST /api/orders/:id/refund
-
-申请退款。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**响应 (200)：**
-```json
-{
-  "id": "order-xxx",
-  "status": "refunded",
-  "refundedAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-**错误：**
-- 400: Invalid order id format / Cannot refund order with status: xxx
-- 403: Forbidden
-- 404: Order not found
-
----
-
-### POST /api/orders/:id/pay
-
-模拟支付（仅开发环境 + 管理员可用）。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**请求体：**
-```json
-{
-  "channelTradeNo": "string"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "id": "order-xxx",
-  "status": "paid",
-  "paidAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-**错误：**
-- 400: Invalid order id format / Cannot pay order with status: xxx
-- 403: This endpoint is disabled in production / Forbidden
-- 404: Order not found
-- 500: Failed to mark as paid
-
----
-
-## 支付回调接口 (Payment)
-
-| 方法 | 路径 | 描述 | 认证 |
-|------|------|------|------|
-| POST | `/api/payment/wechat/callback` | 微信支付回调 | 否 |
-| POST | `/api/payment/alipay/callback` | 支付宝回调 | 否 |
-| POST | `/api/payment/apple/verify` | Apple IAP 验证 | 否 |
-
-### POST /api/payment/wechat/callback
-
-微信支付回调。
-
-**请求体：**
-```json
-{
-  "orderId": "order-xxx",
-  "transactionId": "string",
-  "totalAmount": 100,
-  "timeEnd": "20240101000000"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "success": true
-}
-```
-
----
-
-### POST /api/payment/alipay/callback
-
-支付宝回调。
-
-**请求体：**
-```json
-{
-  "orderId": "order-xxx",
-  "tradeNo": "string",
-  "totalAmount": "100.00"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "success": true
-}
-```
-
----
-
-### POST /api/payment/apple/verify
-
-Apple IAP 支付验证。
-
-**请求体：**
-```json
-{
-  "orderId": "order-xxx",
-  "receipt": "base64-encoded-receipt"
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "success": true,
-  "tradeNo": "string"
-}
-```
-
----
-
-## 同步接口 (Sync)
-
-| 方法 | 路径 | 描述 | 认证 |
-|------|------|------|------|
-| POST | `/api/sync/push` | 推送数据 | 是 |
-| GET | `/api/sync/pull` | 拉取数据 | 是 |
-| POST | `/api/sync/conflict` | 冲突解决 | 是 |
-| GET | `/api/sync/status` | 同步状态 | 是 |
-
-### POST /api/sync/push
-
-推送本地数据到服务器。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**请求体：**
-```json
-{
-  "personas": [
-    {
-      "id": "string",
-      "name": "string",
-      "description": "string",
-      "personaType": "string",
-      "config": {},
-      "avatarUrl": "string",
-      "isPublic": true,
-      "status": "active"
-    }
-  ],
-  "memoryEvents": [
-    {
-      "id": "string",
-      "eventType": "string",
-      "content": "string",
-      "metadata": {},
-      "importance": 0.5
-    }
-  ]
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "success": true,
-  "syncedAt": "2024-01-01T00:00:00.000Z",
-  "results": {
-    "personas": 1,
-    "memoryEvents": 1
-  }
-}
-```
-
-**错误：**
-- 401: Missing authorization token / Invalid or expired token
-- 500: Sync push failed
-
----
-
-### GET /api/sync/pull
-
-从服务器拉取数据。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**查询参数：**
-- `since` (可选): ISO 时间戳，只返回该时间之后的数据
-
-**响应 (200)：**
-```json
-{
-  "personas": [],
-  "memoryEvents": [],
-  "syncedAt": "2024-01-01T00:00:00.000Z"
-}
-```
-
-**错误：**
-- 401: Missing authorization token / Invalid or expired token
-- 500: Sync pull failed
-
----
-
-### POST /api/sync/conflict
-
-冲突解决。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**请求体：**
-```json
-{
-  "localVersion": 1,
-  "remoteVersion": 2,
-  "localData": {},
-  "remoteData": {}
-}
-```
-
-**响应 (200)：**
-```json
-{
-  "resolution": "local" | "remote" | "merge",
-  "mergedData": {}
-}
-```
-
-**错误：**
-- 500: Conflict resolution failed
-
----
-
-### GET /api/sync/status
-
-获取同步状态。
-
-**请求头：**
-```
-Authorization: Bearer <accessToken>
-```
-
-**响应 (200)：**
-```json
-{
-  "connected": true,
-  "lastSync": "2024-01-01T00:00:00.000Z",
-  "tables": {
-    "personas": "2024-01-01T00:00:00.000Z",
-    "memory_events": "2024-01-01T00:00:00.000Z"
-  }
-}
-```
-
-**错误：**
-- 500: Failed to get sync status
-
----
-
-## 健康检查
-
-### GET /health
-
-服务健康检查。
-
-**响应 (200)：**
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
----
-
-## 错误响应格式
-
-所有错误响应遵循统一格式：
-
-```json
-{
-  "error": "错误信息描述"
-}
-```
-
-部分接口可能返回额外字段：
-
-```json
-{
-  "error": "用户未注册",
-  "needRegister": true,
-  "providerUserId": "wechat-xxx"
-}
-```
-
-## 状态码说明
-
-| 状态码 | 说明 |
-|--------|------|
-| 200 | 成功 |
-| 201 | 创建成功 |
-| 400 | 请求参数错误 |
-| 401 | 未认证 / Token 无效 |
-| 403 | 无权限 |
-| 404 | 资源不存在 |
-| 409 | 资源冲突 |
-| 500 | 服务器错误 |
----
-
-## 2026-08-22 变更与新增接口
-
-> 说明：本文档为早期版本，完整接口以代码为准（server/src/routes/*）。
-> 本节记录 2026-08-22 起的行为变更与新增/设计中的接口。
-
-### 行为变更
-
-| 接口 | 变更 |
+# 星河宠记 · API 文档
+
+> **文档版本：2026-09-08 基于代码全量重写**。全项目双 Agent 审查发现旧版前 643 行为早期生成的虚构内容（register/alipay 等查无路由、Base URL 误写 3001），已整体废弃。本文档由 37 个路由文件 + `index.ts` 挂载 + `schemas/index.ts` 校验 + `middleware/rateLimit.ts` 逐一对齐得出，**以代码为准**。
+
+## 一、通用约定
+
+- **Base URL**
+  - 开发：`http://localhost:3000`
+  - 生产：`https://api.xinghuanhai.com`
+- **鉴权**：`Authorization: Bearer <JWT>`（`/api/auth/login` 换取；JWT_SECRET ≥32 字符，启动强校验）
+- **统一响应包裹**：`{ "success": true, "data": ..., "message?: string }`；业务错误码挂 `code` 字段（如 `MEMBER_ONLY`、`MEMBER_NO_REAL_IMAGE`、`PHOTO_QUOTA_EXCEEDED`）
+- **限流总表**（express-rate-limit，IP+用户双维度，全局限流覆盖所有 `/api/*`）：
+
+| 限流器 | 档位 | 覆盖接口 |
+| --- | --- | --- |
+| globalLimiter | 120 次/分 | 全部 /api/*（兜底） |
+| aiGenerateLimiter | 5 次/分 | 形象生成类 + 全家福生成 |
+| generateLimiter（avatar 本地） | 5 次/分 | /api/avatar/generate |
+| chatLimiter | 30 次/分 | /api/ai/chat、/api/agent/chat |
+| memoirLimiter | 3 次/分 | POST /api/pets/:petId/memoir |
+| uploadLimiter | 10 次/分 | /api/ai/voice、/api/timeline/photo/upload |
+| photoUploadLimiter（本地） | 10 次/分 | /api/naming/photo/upload |
+| aiRecognizeLimiter | 5 次/分 | /api/ai/breed-recognize、/api/ai/health-report-recognize |
+
+- **管理后台鉴权**：`/admin/*` 业务接口走 `ADMIN_TOKEN` 头校验（adminAuth）；静态管理页挂 `/admin`。
+- **WebSocket**：`wss://<host>/ws?token=<JWT>`（JWT 鉴权，频道按宠物归属隔离）。
+
+## 二、认证 `/api/auth`
+
+| 方法 | 路径 | 鉴权 | 说明 |
+| --- | --- | --- | --- |
+| POST | /login | 公开 | 微信登录（code 换 JWT）；生产缺微信配置返回 503；开发环境 code 即 openid（仅限非生产） |
+| POST | /login/phone | 公开 | 手机号验证码登录；**生产环境 403 关闭**（短信服务商未接入） |
+| POST | /send-sms | 公开 | 发送验证码；**生产环境 403 关闭**；开发环境返回 devCode |
+| POST | /bind-phone | 登录 | 绑定手机号（微信 getPhoneNumber；开发降级 code 即手机号，生产缺配置 503） |
+| GET | /profile | 登录 | 当前用户资料 |
+| PUT | /profile | 登录 | 更新昵称/头像等 |
+| POST | /avatar | 登录 | 上传用户头像（返回 /uploads 相对路径） |
+
+## 三、宠物档案 `/api/pets`（pets.ts）
+
+| 方法 | 路径 | 鉴权 | 说明 |
+| --- | --- | --- | --- |
+| POST | / | 登录 | 创建宠物档案（品种必填，支持 unknown_mix 不确定品种） |
+| GET | / | 登录 | 我的宠物列表（含家庭成员共享宠） |
+| GET | /:id | 登录 | 宠物详情（canAccess 归属校验） |
+| PUT | /:id | 登录 | 更新档案（含 avatar_photo_url/avatar_cartoon_url/avatar_multiview_url） |
+| DELETE | /:id | 登录 | 删除档案 |
+| POST | /:id/deceased | 登录 | 标记离世（触发纪念线） |
+| GET | /:id/facts | 登录 | 宠物事实摘要（记忆引擎） |
+
+## 四、健康数据 `/api/pets`（多文件，全部需登录，宠物归属校验）
+
+| 文件 | 端点 |
 | --- | --- |
-| `POST /api/pets/:petId/checkins` | 打卡含异常项（has_anomaly/anomaly_items/risk_level）时，自动写健康事件记忆（异步，`recordHealthMemory`） |
-| `POST /api/pets/:petId/symptom-check` | 初筛提交后自动写医疗记忆（症状+评估+建议，异步） |
+| checkins | POST /:petId/checkins（打卡，risk_level 枚举 low/medium/high/emergency + legacy 别名）；GET /:petId/checkins（历史，startDate/endDate）；GET /:petId/checkins/today |
+| symptoms | POST /:petId/symptom-check（症状初筛）；GET /:petId/symptom-check/history；POST /:petId/symptom-check/ai-analysis（会员 AI 深度分析） |
+| vaccines | GET/POST /:petId/vaccines；PUT /:petId/vaccines/:vaccineId/complete；PUT /:petId/vaccines/:vaccineId/reminder |
+| chronic | POST/GET /:petId/chronic；PUT/DELETE /:petId/chronic/:recordId；POST /:petId/chronic/ai-analysis；POST /:petId/chronic/scan-risk |
+| feedingRecords | POST/GET /:petId/feeding-records；PUT/DELETE /:petId/feeding-records/:recordId；POST /:petId/feeding-records/ai-analysis |
+| suggestionRecords | POST/GET /:petId/suggestions；PATCH /:petId/suggestions/:recordId/adoption；DELETE /:petId/suggestions/:recordId |
+| trends | GET /:petId/trends（趋势点，startDate/endDate）；GET /:petId/trends/report（月报） |
+| yearlyReview | POST /:petId/yearly-review（创建年度报告草稿）；GET /:petId/yearly-review/list；GET /:petId/yearly-review/:year；PUT /:petId/yearly-review/:reviewId（编辑含封面）；POST /:petId/yearly-review/:reviewId/generate-video（付费生成，Seedance） |
 
-### 回忆录 2.0（已实现，管线见 TECH_DESIGN 二十章）
+## 五、家庭 `/api/families`
 
-| 接口 | 说明 |
+**families.ts**（读=成员，写删=owner）：POST /（创建）、GET /（我的家庭列表）、GET/PUT/DELETE /:id、POST /:id/members（加宠）、DELETE /:id/members/:petId、DELETE /:id/members/by-id/:memberId、PATCH /:id/members/:memberId/role（角色管理）、GET /:id/moments、GET /:id/moments/new、POST /:id/invites（生成家庭邀请）、POST /join（凭码加入）、GET /:id/users（人成员）、DELETE /:id/users/:userId、GET/POST /:id/user-relations（人关系：couple/father_daughter 等 8 种）、DELETE /:id/user-relations/:relationId。
+
+**feeds.ts**：GET /:id/feeds/highlight、GET /:id/feeds、POST /:id/feeds（发动态）、PUT/DELETE /:id/feeds/:feedId。
+
+**weeklyReports.ts**：GET /:id/weekly-reports/latest、POST /:id/weekly-reports/generate、GET /:id/weekly-reports、GET /:id/weekly-reports/:reportId（返回表行结构 report_data JSONB，前端 mapBackendReportRowToView 映射）。
+
+**familyTree.ts**：GET /:id/overview（家庭总览图谱）、GET /:id/tree、POST /:id/tree/snapshot、GET /:id/tree/snapshots、POST /:id/relationships（宠物关系）、PUT/DELETE /:id/relationships/:relId、POST /:id/lineage（血缘）、GET /:id/lineage/:petId、DELETE /:id/lineage/:lineageId。
+
+**leaderboard.ts**：GET/POST /:id/roles、DELETE /:id/roles/:roleId（家庭角色分工）。
+
+**familyPhotos.ts**（AI 全家福，owner）：POST /:familyId/photos（生成，aiGenerateLimiter 5/分，scene 22 选+customScene+memberOrder 排位）、GET /:familyId/photos、DELETE /:familyId/photos/:photoId、POST /:familyId/photos/upload。生成校验「真实形象」分级（MEMBER_NO_REAL_IMAGE 引导）。
+
+## 六、AI `/api/ai` + Agent `/api/agent`
+
+| 方法 | 路径 | 限流 | 说明 |
+| --- | --- | --- | --- |
+| POST | /api/ai/chat | chatLimiter 30/分 | AI 对话（messages ≤20 条×4000 字，max_tokens ≤4096） |
+| POST | /api/agent/chat | chatLimiter 30/分 | Agent 对话（工具调用链，成本落 agent_conversation_logs） |
+| GET | /api/agent/history | 登录 | 会话历史 |
+| GET | /api/agent/tools | 登录 | 工具清单 |
+| POST | /api/ai/guard | 登录 | 输入安全守卫 |
+| POST | /api/ai/guard/output | 登录 | 输出安全守卫 |
+| POST | /api/ai/naming/interpret | namingLimiter 10/分 | 名字解读 |
+| POST | /api/ai/naming/recommend | namingLimiter 10/分 | AI 起名推荐 |
+| POST | /api/ai/voice | uploadLimiter 10/分 | 语音识别（音频上传） |
+| POST | /api/ai/breed-recognize | aiRecognizeLimiter 5/分 | 拍照识别品种（视觉 LLM） |
+| POST | /api/ai/health-report-recognize | aiRecognizeLimiter 5/分 | 体检报告识别 |
+
+## 七、形象生成 `/api/avatar`
+
+| 方法 | 路径 | 限流 | 说明 |
+| --- | --- | --- | --- |
+| POST | /generate | 5/分+月配额 | 旧单图生成（会员；照片月度 3 次封顶 PHOTO_QUOTA_EXCEEDED） |
+| POST | /generate-options | 5/分 | 一套两张候选生成（文字流/照片流；description/styleKey/expression/background 可选；照片月配额与 /generate 共享） |
+| POST | /background-swap | 5/分 | 真·背景替换（图生图保角色；8 预设+customBackground） |
+| POST | /library | 登录 | 存入形象库（viewType: headshot/multiview） |
+| GET | /library | 登录 | 形象库列表（style/expression/viewType 筛选） |
+| DELETE | /library/:id | 登录 | 删除形象库条目 |
+| POST | /photo/upload | 登录 | 上传宠物照片（uuid+归属校验+扩展名白名单） |
+| POST | /generate-2d | 5/分 | 2D 形象包 |
+| GET | /task/:taskId | 登录 | 2D 任务轮询 |
+| POST | /generate-3d | 5/分 | 3D 模型生成 |
+| GET | /images/:petId | 登录 | 2D 图片列表 |
+| GET | /model/:petId | 登录 | 3D 模型地址 |
+| GET | /quota | 登录 | 生成配额查询 |
+
+## 八、回忆录 `/api/pets`（memoir.ts）
+
+| 方法 | 路径 | 限流 | 说明 |
+| --- | --- | --- | --- |
+| POST | /:petId/memoir | memoirLimiter 3/分 | 创建回忆录任务（source_photos 仅本站 uploads 白名单，SSRF 防护；daily 1-3 张/memorial 8-15 张；非会员返回 need_payment+订单） |
+| POST | /:petId/memoir/preview | 登录 | 剧本预览（LLM 分镜） |
+| GET | /:petId/memoir/status | 登录 | 当前任务状态 |
+| GET | /:petId/memoir/list | 登录 | 回忆录列表 |
+| DELETE | /:petId/memoir/:memoirId | 登录 | 删除 |
+| GET | /:petId/membership | 登录 | 回忆录会员权益查询 |
+
+## 九、支付与会员
+
+**payment.ts `/api/payment`**：POST /memoir/order（创建回忆录支付订单，含 source_photos 白名单校验）、POST /membership/order（创建会员订单）、POST /wechat/notify（**公开**，微信支付回调，raw body 验签；生产禁止 Mock——WECHAT_PAY_MOCK=false 强制）、GET /orders/:orderId（查自己的订单，归属校验）。资金动作全部落 audit_log（payment-paid/payment-refunded/membership-activated/memoir-created）。会员续费顺延：expires_at = max(当前到期, now) + 时长。
+
+**membership.ts `/api/membership`**：GET /status、POST /subscribe、POST /cancel、GET /usage（配额使用）。
+
+**redeem.ts `/api`**：POST /redeem（登录，兑换码核销，顺延口径；审计 redeem-used）、POST /admin/redeem-codes（adminAuth，生成）、GET /admin/redeem-codes（adminAuth，列表）。
+
+## 十、其他业务
+
+| 域 | 端点 |
 | --- | --- |
-| `POST /api/pets/:petId/memoir` | 创建回忆录（含 script 分镜自动生成；body 可带 tags 按标签筛记忆） |
-| `POST /api/ai/health-report-recognize` | 体检报告识别（multipart photo + petId）→ 指标提取 + 存 health_reports + 写健康记忆 |
-| `GET /api/timeline/last-year` | 旧时光提醒：去年今天的回忆列表 |
+| 时光线 /api/timeline | POST /moments（发回忆）、GET /moments（familyId 可选）、DELETE /moments/:id、POST /ai-describe、POST /ai-polish、POST /photo/upload（uploadLimiter+扩展名白名单）、GET /last-year |
+| 分享卡 /api/share-cards | POST /generate、GET /、GET /:id、DELETE /:id、POST /:id/share |
+| 记忆 /api/memory | GET /（健康记忆列表）、PUT /:id |
+| 食物 /api/food | GET /query、GET /history、GET /stats、GET /today-count |
+| 知识图谱 /api | GET /knowledge/latest、POST /knowledge/feedback；admin：GET/PUT /admin/knowledge、GET /admin/feedback、POST /admin/feedback/:id/review（adminAuth） |
+| 品种 /api | GET /breeds/knowledge；admin：GET/PUT /admin/breeds（adminAuth） |
+| 反馈 /api/feedback | POST /nps、GET /my |
+| 统计 /api/analytics | POST /events（**当前无鉴权，userId 客户端自报**——审查 P2 在案） |
+| 邀请裂变 /api | GET /invite-code、POST /shares（记录分享）、GET /referrals、POST /referrals/process（invitee 一律取登录态，2026-09 P0 修复）、POST /shares/grant-reward（邀请满 3 人奖 7 天会员） |
+| 健康 | GET /api/health（公开探针） |
 
-### 时光引擎 · 回忆管理（2026-08-22 升级）
+## 十一、静态资源
 
-| 接口 | 说明 |
-| --- | --- |
-| `GET /api/timeline/moments` | 回忆列表（按宠物/家庭/用户；按 happened_at 倒序） |
-| `POST /api/timeline/moments` | 创建回忆（body 支持 `happenedAt` 补记任意日期，不传默认当前时间） |
-| `POST /api/timeline/photo/upload` | 上传回忆照片（单张，multipart，10MB 上限） |
-| `POST /api/timeline/ai-describe` | AI 生成照片描述（multipart photo，视觉模型，uploadLimiter 10 次/分钟） |
-| `POST /api/timeline/ai-polish` | AI 润色回忆文案（body `text`，chatLimiter 30 次/分钟） |
-| `DELETE /api/timeline/moments/:id` | 删除回忆（归属校验，只能删自己的） |
+- `/uploads/**`：Express 托管上传目录（nginx 对 jpg/png 等静态资源优先、uploads 回退后端）。
+- `/admin`：管理后台静态页（adminAuth 保护业务接口，页面本身路径可枚举——P2 在案）。
 
-> 行为变更：`pet_moments` 表新增 `happened_at`（发生日期，DATE 类型，migration 020/021）列，
-> 查询/旧时光提醒均按 happened_at 排序/匹配，老数据由迁移回填为 created_at；
-> 创建回忆不传 `happenedAt` 时由 COALESCE 兜底为当前日期（不会落 NULL）；
-> 按家庭查询回忆需家庭归属校验（防 IDOR）。
+## 十二、与旧版（虚构版）差异
 
-### 设计中（剧本确认流程，待实现）
-
-| 接口 | 说明 |
-| --- | --- |
-| `POST /api/memoir/script-draft` | 生成剧本草稿（选模板，DeepSeek 文本 ~0.03 元） |
-| `GET /api/memoir/:id/script` | 读剧本预览 |
-| `POST /api/memoir/:id/script/confirm` | 确认剧本 → script_confirmed |
-| `POST /api/memoir/:id/script/regenerate` | 换模板/换记忆重生成 |
-| `POST /api/memoir/:id/script/edit` | 修改旁白/字幕 |
+1. Base URL 3001 → **3000**（PORT=3000）。
+2. 删除不存在的接口描述：`/api/auth/register`、任何 alipay 相关接口、`token refresh`、`session`、`bind-device`、`devices` 等——代码中查无此路由。
+3. 新增旧版遗漏的真实接口域：回忆录（memoir/preview/payment 链）、形象生成（generate-options/library/background-swap/2D/3D）、全家福（scene/memberOrder）、Agent、知识图谱热更新、兑换码、邀请裂变、年度报告、分享卡等。
+4. refreshToken：服务端不下发；小程序端 storage 中的 refreshToken 为僵尸字段（审查 P1 在案，待清理）。
