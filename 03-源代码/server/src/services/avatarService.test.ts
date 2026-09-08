@@ -225,7 +225,7 @@ describe('generatePetImageOptions 一套两张（头像 + 全方位设定图）'
     expect(hits).toHaveLength(1);
   });
 
-  it('照片批量流程生成 3 套（6 次调用），配额仍记 1 次/运行', async () => {
+  it('照片批量流程生成 2 套（4 次调用），配额仍记 1 次/运行（立项 P0-1 降本：3套→2套）', async () => {
     const options = await generatePetImageOptions({
       petId: 'p1',
       species: 'dog',
@@ -233,9 +233,9 @@ describe('generatePetImageOptions 一套两张（头像 + 全方位设定图）'
       gender: 'male',
       photoUrl: 'https://e.com/dog.jpg',
     });
-    expect(options).toHaveLength(3);
-    // 每套=头像+设定图 → 3 套共 6 次调用；参考图 URL 透传给每次调用
-    expect(mockCallSeedream.mock.calls.length).toBe(6);
+    expect(options).toHaveLength(2);
+    // 每套=头像+设定图 → 2 套共 4 次调用；参考图 URL 透传给每次调用
+    expect(mockCallSeedream.mock.calls.length).toBe(4);
     for (const call of mockCallSeedream.mock.calls) {
       expect(call[1]).toBe('https://e.com/dog.jpg');
     }

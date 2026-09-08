@@ -224,8 +224,12 @@ export interface PetImageOption {
   sheetUrl: string | null;
 }
 
-/** 照片批量生成流程的"一套候选"数量（每套=头像+设定图共 2 次生图调用） */
-const PHOTO_SET_COUNT = 3;
+/**
+ * 照片批量生成流程的"一套候选"数量（每套=头像+设定图共 2 次生图调用）。
+ * 2026-09-08 商业化立项 v0.2 P0-1 降本：3 套（6 次调用≈33.6 元/次）→ 2 套（4 次≈22.4 元/次），
+ * 会员权益成本仍高于订阅月均，需配合照片月配额收紧（avatar.ts MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT）。
+ */
+const PHOTO_SET_COUNT = 2;
 
 /**
  * 构建全方位角色设定图提示词（四视图合一：正面特写/侧面/顶部俯视/背面）

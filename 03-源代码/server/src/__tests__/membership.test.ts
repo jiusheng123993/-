@@ -162,7 +162,8 @@ describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', ()
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.plan).toBe('monthly');
-    expect(res.body.data.price).toBe(990);
+    // 立项 v0.2 P0-1：促销价仅保留年费 88，月付恢复常规价 29.9（停 9.9 亏损获客）
+    expect(res.body.data.price).toBe(2990);
     expect(res.body.data.order_id).toBe('mock-order-uuid');
     expect(res.body.data.payment).toBeDefined();
     expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
@@ -181,7 +182,8 @@ describe('POST /membership/subscribe - 订阅会员（v2 走支付流程）', ()
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.plan).toBe('quarterly');
-    expect(res.body.data.price).toBe(2590);
+    // 立项 v0.2 P0-1：季付恢复常规价 79.9（8.6 元/月仍低于权益成本）
+    expect(res.body.data.price).toBe(7990);
   });
 
   it('正常订阅 yearly 计划', async () => {

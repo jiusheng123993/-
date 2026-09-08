@@ -13,11 +13,15 @@ import { redirectToLoginIfNeeded } from '../../utils/authGuard'
 import PageLoading from '../../components/PageLoading'
 import './index.scss'
 
-/** 套餐价格（PRD：会员 9.9 元/月） */
+/**
+ * 套餐价格展示。⚠️ 必须与服务端 routes/membership.ts 的 getPlanPrice 保持一致：
+ * 立项 v0.2 P0-1 后促销价仅年费 88 元（月均 7.3），月卡/季卡恢复常规价 29.9/79.9。
+ * 展示价 < 实收价会引发微信支付投诉，展示价 > 实收价属误导——两处永远同步改。
+ */
 const PLANS = [
-  { key: 'monthly', name: '月卡', price: '¥9.9', period: '/月', note: '按月续费', tag: '' },
-  { key: 'quarterly', name: '季卡', price: '¥26.9', period: '/季', note: '省 ¥2.8', tag: '' },
-  { key: 'yearly', name: '年卡', price: '¥99', period: '/年', note: '省 ¥19.8', tag: '推荐' },
+  { key: 'monthly', name: '月卡', price: '¥29.9', period: '/月', note: '按月续费', tag: '' },
+  { key: 'quarterly', name: '季卡', price: '¥79.9', period: '/季', note: '即将上线', tag: '' },
+  { key: 'yearly', name: '年卡', price: '¥88', period: '/年', note: '限时价 · 原价¥269', tag: '推荐' },
 ]
 
 const BENEFITS = [

@@ -54,7 +54,10 @@ const generateLimiter = rateLimit({
 // 会员每月可生成的 2D 形象包数量（照片生成属会员专享）
 const FREE_2D_MONTHLY_LIMIT = 1;
 // 会员每月可生成的"照片专属多风格头像"次数
-const MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT = 3;
+// 2026-09-08 商业化立项 v0.2 P0-1 收紧：3→1。照片流每次 2 套 4 次 Seedream 调用（约 22.4 元），
+// 月度 3 次上限下重度会员月成本可达 67+ 元，远超年费月均 7.3 元——收敛到 1 次/月硬顶，
+// 并与 avatar /generate 照片生成共享同一配额（countMonthlyPhotoGenerationsByUser）。
+const MEMBER_PHOTO_OPTIONS_MONTHLY_LIMIT = 1;
 // 会员每月可生成的 3D 模型数量
 // 3D 模型月配额：按《功能分级与竞品分析-2026-08-22》决定，上线首版关闭 3D（需求未验证 + Meshy ~1-3 元/个烧钱）。
 // 关闭机制 = 配额归零（原决定二选一：feature flag 或配额归零）；需求验证后恢复只需改回 3 并放开前端 ImageGallery 入口。

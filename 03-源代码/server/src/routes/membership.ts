@@ -15,7 +15,6 @@ import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createOrderSchema } from '../schemas/index.js';
 import { v4 as uuidv4 } from 'uuid';
-import { isMembershipPromoActive } from '../config/featureFlags.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { PaymentOrderRepository } from '../repositories/paymentOrderRepository.js';
 import { UsageQuotaRepository } from '../repositories/usageQuotaRepository.js';
@@ -29,11 +28,14 @@ const paymentOrderRepository = new PaymentOrderRepository();
 const usageQuotaRepository = new UsageQuotaRepository();
 const userRepository = new UserRepository();
 
-/** 会员订阅计划促销价（分） - 上线前三个月 3.3 折获客 */
-const PLAN_PROMO_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = {
-  monthly: 990,    // 9.9 元
-  quarterly: 2590, // 25.9 元
-  yearly: 8800,    // 88 元
+/**
+ * 会员订阅计划促销价（分）——2026-09-08 商业化立项 v0.2 P0-1 收敛：
+ * 成本核算证实促销会员权益成本 47-53 元/月 > 促销月费 9.9（每开一人净亏 37-43 元），
+ * 故促销价仅保留年付 88 元（月均 7.3 元，配合照片月配额收紧可接受）；
+ * 月付/季付恢复常规价，避免低于成本价获客。
+ */
+const PLAN_PROMO_PRICES: Partial<Record<'monthly' | 'quarterly' | 'yearly', number>> = {
+  yearly: 8800, // 88 元（验证期冻结价）
 };
 
 /** 会员订阅计划常规价（分） */
@@ -43,9 +45,9 @@ const PLAN_REGULAR_PRICES: Record<'monthly' | 'quarterly' | 'yearly', number> = 
   yearly: 26900,   // 269 元
 };
 
-/** 获取当前生效的会员计划价格（促销开关控制） */
+/** 获取当前生效的会员计划价格（促销开关控制；未配置促销价的档位一律常规价） */
 function getPlanPrice(plan: 'monthly' | 'quarterly' | 'yearly'): number {
-  return isMembershipPromoActive() ? PLAN_PROMO_PRICES[plan] : PLAN_REGULAR_PRICES[plan];
+  return PLAN_PROMO_PRICES[plan] ?? PLAN_REGULAR_PRICES[plan];
 }
 
 router.get('/status', authMiddleware, async (req: Request, res: Response) => {
