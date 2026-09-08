@@ -204,7 +204,20 @@ export async function guardCheckOutput(
       // 给出"确诊XX病"式诊断结论
       /确诊.{0,12}(了|为|是)/,
     ];
-    const isUnsafeMedicalAdvice = DANGER_PATTERNS.some((p) => p.test(text));
+    // 立项 v0.2 P0-4（§七.4 ③）：拟人化情感承诺红线——AI 对话不得呈现"情感陪伴"属性
+    // （否则触发「拟人化互动」类目=强制自有算法备案）。匹配 AI 输出中的第一人称拟人承诺/恋人化语气。
+    const EMOTIONAL_ATTACHMENT_PATTERNS = [
+      // "我会一直陪你""我要永远爱你"式承诺
+      /我(会|要|想)(一直|永远)(陪|爱|在)/,
+      /(永远|一直)(陪着|爱着|守着)你/,
+      // 身份拟人化："我是你的朋友/家人/伙伴"
+      /我是你的(朋友|家人|伙伴|好朋友|好伙伴)/,
+      // 诱导情感依赖："想我了就跟我说""把心里话都告诉我"
+      /想我(了|的时候)|把(心里话|秘密)都(告诉|说给)我/,
+      // 恋人化语气词
+      /(爱你哟|么么哒|最喜欢你了)/,
+    ];
+    const isUnsafeMedicalAdvice = [...DANGER_PATTERNS, ...EMOTIONAL_ATTACHMENT_PATTERNS].some((p) => p.test(text));
     return { isUnsafeMedicalAdvice };
   }
 
@@ -213,8 +226,9 @@ export async function guardCheckOutput(
   }
 
   // medical 场景（症状 AI 等）检测 prompt：从严
+  // 立项 v0.2 P0-4（§七.4 ③）：检测维度补充拟人化情感承诺（与 care 规则红线同口径）
   const prompt =
-    '你是一个安全检测助手。请分析以下AI回答是否包含不安全的医疗建议（如推荐具体药物、处方、替代兽医诊断等）。只回复JSON格式：{"isUnsafeMedicalAdvice":<true/false>}';
+    '你是一个安全检测助手。请分析以下AI回答是否包含不安全内容：①不安全的医疗建议（推荐具体药物、处方、替代兽医诊断等）；②拟人化情感承诺（如"我会一直陪着你""我是你的家人"等恋人化/家人化语气，AI 应为工具助手而非情感陪伴角色）。命中任一项即视为不安全。只回复JSON格式：{"isUnsafeMedicalAdvice":<true/false>}';
 
   let response: Response;
   try {

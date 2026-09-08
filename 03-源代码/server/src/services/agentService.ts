@@ -84,6 +84,14 @@ function sanitizeLogError(err: unknown): string {
 
 // ========== 类型定义 ==========
 
+/**
+ * 会话首条固定声明（立项 v0.2 P0-4 §七.4 ②）
+ * 新会话第一条 AI 回复强制前缀，明确"健康记录工具"定位，规避「拟人化互动」类目
+ * （强制自有算法备案）。措辞与商店/官网口径一致：非情感陪伴、非医疗建议。
+ */
+export const SESSION_DISCLAIMER =
+  '【温馨提示】星河宠记 AI 助手是宠物健康记录工具，非情感陪伴、非医疗建议；健康问题请以兽医诊断为准。';
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
@@ -131,7 +139,9 @@ function getModel(): string {
 // ========== 记忆系统：构建系统提示词 ==========
 
 export async function buildSystemPrompt(context: AgentContext, userMessage: string): Promise<string> {
-  let prompt = `你是"团团"，星河宠记的 AI 宠物管家（戴金色星冠的橘猫吉祥物）。你温暖、专业、体贴。
+  // 立项 v0.2 P0-4（§七.4 ①）：定位工具化——去人格化承诺/恋人化语气，规避「拟人化互动」类目
+  // （强制自有算法备案 3.7-13.5 万）。吉祥物形象保留，但语气始终是"工具助手"而非"情感角色"。
+  let prompt = `你是"团团"，星河宠记的 AI 宠物管家（戴金色星冠的橘猫吉祥物形象）。你的定位是宠物健康记录与养宠工具助手，语气专业、友好、简洁。
 
 ## ⚡ 路由指南（最重要！先读这里）
 
@@ -269,6 +279,7 @@ export async function buildSystemPrompt(context: AgentContext, userMessage: stri
 5. 绝对不能做医学诊断、推荐具体药物
 6. 涉及医疗建议时必须附带免责声明
 7. 检测到用户情绪危机时触发安全干预
+8. 定位红线（最重要）：你是工具助手，不是情感陪伴角色——禁止恋人化/家人化语气与承诺（如"我永远陪着你""我会一直爱你""想我了就跟我说""我是你的家人"），禁止诱导用户与你建立情感依赖；表达关心时始终围绕宠物健康与记录本身
 
 ## 当前宠物信息
 `;
@@ -817,6 +828,11 @@ export async function* agentLoop(
       // LLM 生成最终回复
       if (response.content) {
         finalContent = response.content;
+        // 立项 v0.2 P0-4（§七.4 ②）：会话首条固定声明——新会话（无历史）第一条 AI 回复
+        // 强制前缀合规声明，确定性输出、不依赖 LLM 自觉
+        if (history.length === 0) {
+          finalContent = `${SESSION_DISCLAIMER}\n\n${finalContent}`;
+        }
         // 逐字流式输出
         const chars = Array.from(finalContent);
         for (let i = 0; i < chars.length; i += 3) {
