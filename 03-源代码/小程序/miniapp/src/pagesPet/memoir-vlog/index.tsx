@@ -6,6 +6,7 @@ import { View, Text, ScrollView, Image, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { CONFIG } from '../../config'
+import { MEMOIR_TAG_OPTIONS } from '../../constants/memoirTags'
 import { storage } from '../../utils/storage'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { wsClient } from '../../services/wsClient'
@@ -96,6 +97,15 @@ export default function MemoirVlog() {
 
   // —— 步骤2：写叙事 ——
   const [narrative, setNarrative] = useState('')
+  // 回忆标签（F4 记忆驱动）：选中的标签传给服务端按标签筛核心层记忆作分镜素材
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  /** 切换回忆标签选中态（最多 8 个，与服务端 schema 上限一致） */
+  const toggleTag = useCallback((key: string) => {
+    setSelectedTags(prev =>
+      prev.includes(key) ? prev.filter(t => t !== key) : [...prev, key],
+    )
+  }, [])
 
   // —— 步骤3：选BGM ——
   const [selectedBGM, setSelectedBGM] = useState('piano')
@@ -351,6 +361,8 @@ export default function MemoirVlog() {
           source_photos: photos.map(p => p.path),
           music_style: mapBGMToMusicStyle(selectedBGM),
           source_text: narrative.trim() || '',
+          // 回忆标签（F4）：服务端按标签筛核心层记忆作分镜素材
+          tags: selectedTags.length > 0 ? selectedTags : undefined,
         },
       })
 
@@ -374,7 +386,7 @@ export default function MemoirVlog() {
         loadingTimerRef.current = null
       }
     }
-  }, [petId, photos, selectedBGM, narrative])
+  }, [petId, photos, selectedBGM, narrative, selectedTags])
 
   // ==================== 轮询任务状态 ====================
 
@@ -460,6 +472,7 @@ export default function MemoirVlog() {
   const handleReset = useCallback(() => {
     setPhotos([])
     setNarrative('')
+    setSelectedTags([])
     setSelectedBGM('piano')
     setTaskId('')
     setOutputUrl('')
@@ -560,11 +573,30 @@ export default function MemoirVlog() {
   const renderStepNarrative = () => (
     <View className='memoir-vlog__step-enter'>
       <Text className='memoir-vlog__title'>写下你想说的故事</Text>
-      <Text className='memoir-vlog__hint'>好的故事让视频更有情感</Text>
+      <Text className='memoir-vlog__hint'>AI 会优先使用你在小程序里沉淀的回忆生成旁白</Text>
+
+      {/* 回忆标签：勾选后服务端按标签取真实记忆作叙事素材，无标签则用全部记忆 */}
+      <View className='memoir-vlog__tags'>
+        <Text className='memoir-vlog__tags-title'>它属于哪些回忆？（可多选，让旁白更懂你们）</Text>
+        <View className='memoir-vlog__tags-list'>
+          {MEMOIR_TAG_OPTIONS.map((tag) => {
+            const active = selectedTags.includes(tag.key)
+            return (
+              <View
+                key={tag.key}
+                className={`memoir-vlog__tag${active ? ' memoir-vlog__tag--active' : ''}`}
+                onClick={() => toggleTag(tag.key)}
+              >
+                <Text>{tag.emoji} {tag.label}{active ? ' ✓' : ''}</Text>
+              </View>
+            )
+          })}
+        </View>
+      </View>
 
       <Textarea
         className='memoir-vlog__narrative-textarea'
-        placeholder='写下你和它之间的故事，AI会根据文字编排视频叙事...'
+        placeholder='写下你们的真实回忆（到家的那天、最爱的玩具、生过的病、去过的地方…），旁白将优先使用你的回忆；留空则只基于照片事实生成，不会编故事。'
         value={narrative}
         onInput={(e) => {
           const val = e.detail.value

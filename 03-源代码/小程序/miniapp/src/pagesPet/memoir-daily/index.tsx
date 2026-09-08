@@ -7,6 +7,7 @@ import { View, Text, ScrollView, Canvas, Image, Textarea } from '@tarojs/compone
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONFIG } from '../../config'
+import { MEMOIR_TAG_OPTIONS } from '../../constants/memoirTags'
 import { storage } from '../../utils/storage'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { wsClient } from '../../services/wsClient'
@@ -93,6 +94,15 @@ export default function MemoirDaily() {
   // —— 步骤1：选照片 ——
   const [photos, setPhotos] = useState<PhotoItem[]>([])
   const [story, setStory] = useState('')
+  // 回忆标签（F4 记忆驱动）：选中的标签传给服务端按标签筛核心层记忆作分镜素材
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  /** 切换回忆标签选中态（最多 8 个，与服务端 schema 上限一致） */
+  const toggleTag = useCallback((key: string) => {
+    setSelectedTags(prev =>
+      prev.includes(key) ? prev.filter(t => t !== key) : [...prev, key],
+    )
+  }, [])
 
   // —— 步骤2：选风格 ——
   const [selectedStyle, setSelectedStyle] = useState('warm')
@@ -340,7 +350,11 @@ export default function MemoirDaily() {
           source_photos: photos.map(p => p.path),
           music_style: selectedBGM,
           style_preset: selectedStyle,
-          story: story.trim() || undefined,
+          // 修复：此前误传 story 字段被服务端 schema 静默剥离，用户写的回忆从未生效；
+          // 统一为 source_text（与纪念 Vlog、服务端契约一致）
+          source_text: story.trim() || undefined,
+          // 回忆标签（F4）：服务端按标签筛核心层记忆作分镜素材
+          tags: selectedTags.length > 0 ? selectedTags : undefined,
         },
       })
 
@@ -357,7 +371,7 @@ export default function MemoirDaily() {
       Taro.showToast({ title: '网络异常，请重试', icon: 'none' })
       setLoading(false)
     }
-  }, [petId, photos, selectedStyle, selectedBGM, story])
+  }, [petId, photos, selectedStyle, selectedBGM, story, selectedTags])
 
   // ==================== 轮询任务状态 ====================
 
@@ -454,6 +468,7 @@ export default function MemoirDaily() {
     }
     setPhotos([])
     setStory('')
+    setSelectedTags([])
     setSelectedStyle('warm')
     setTaskId('')
     setOutputUrl('')
@@ -600,11 +615,30 @@ export default function MemoirDaily() {
         <Text className='memoir__pick-btn-text'>🖼️ 选择照片（{photos.length}/3）</Text>
       </View>
 
+      {/* 回忆标签：勾选后服务端按标签取真实记忆作叙事素材，无标签则用全部记忆 */}
+      <View className='memoir__tags'>
+        <Text className='memoir__tags-title'>它属于哪些回忆？（可多选，让旁白更懂你们）</Text>
+        <View className='memoir__tags-list'>
+          {MEMOIR_TAG_OPTIONS.map((tag) => {
+            const active = selectedTags.includes(tag.key)
+            return (
+              <View
+                key={tag.key}
+                className={`memoir__tag${active ? ' memoir__tag--active' : ''}`}
+                onClick={() => toggleTag(tag.key)}
+              >
+                <Text>{tag.emoji} {tag.label}{active ? ' ✓' : ''}</Text>
+              </View>
+            )
+          })}
+        </View>
+      </View>
+
       <Textarea
         className='memoir__story'
         value={story}
         onInput={e => setStory(e.detail.value)}
-        placeholder='写点什么，让 AI 更懂 TA 的故事…'
+        placeholder='写下你们的真实回忆（最爱的玩具、每天的日常…），旁白将优先使用你的回忆；留空则只基于照片事实生成，不会编故事。'
         placeholderClass='memoir__placeholder'
         maxlength={200}
         autoHeight

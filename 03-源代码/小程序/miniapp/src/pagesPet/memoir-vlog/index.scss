@@ -91,6 +91,41 @@
   line-height: 1.6;
 }
 
+// ==================== 步骤二：回忆标签（F4 记忆驱动） ====================
+.memoir-vlog__tags {
+  margin-bottom: 28rpx;
+}
+
+.memoir-vlog__tags-title {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: 16rpx;
+}
+
+.memoir-vlog__tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.memoir-vlog__tag {
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background: rgba(184, 160, 216, 0.06);
+  border: 1rpx solid rgba(184, 160, 216, 0.18);
+  transition: all 0.2s ease;
+}
+
+.memoir-vlog__tag--active {
+  color: #b8a0d8;
+  background: rgba(184, 160, 216, 0.14);
+  border-color: rgba(184, 160, 216, 0.55);
+  font-weight: 600;
+}
+
 // ==================== 步骤一：选照片 ====================
 .memoir-vlog__photo-header {
   display: flex;

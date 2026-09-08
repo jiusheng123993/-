@@ -371,6 +371,41 @@
   margin-bottom: $spacing-md;
 }
 
+// ==================== 回忆标签（F4 记忆驱动） ====================
+.memoir__tags {
+  margin-bottom: $spacing-md;
+}
+
+.memoir__tags-title {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: 16rpx;
+}
+
+.memoir__tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.memoir__tag {
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background: $color-bg-secondary;
+  border: 1px solid $color-border;
+  transition: all 0.2s ease;
+}
+
+.memoir__tag--active {
+  color: #e8913f;
+  background: rgba(232, 145, 63, 0.1);
+  border-color: #e8913f;
+  font-weight: 600;
+}
+
 .memoir__placeholder {
   color: $color-text-placeholder;
 }
