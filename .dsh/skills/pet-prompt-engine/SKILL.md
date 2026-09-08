@@ -67,6 +67,7 @@
 - **Locks 连续性锁**：COUNT LOCK / SCREEN DIRECTION（默认保持首帧原始朝向）/ IDENTITY LOCK / ANATOMY LOCK / QUALITY LOCK
 - **多角色锚点**：每在场角色一个 CharacterAnchor（id/type/desc 3-6 特征全片逐字重复）；历史脚本和 LLM 输出也必须在进入 Seedance 前清除宠物名字
 - **首帧契约**：Seedance 图片输入显式 `role: first_frame`；无参考图绝不写身份锁定说谎
+- **记忆锚定（防编造，2026-09-01 新增）**：分镜叙事只能以三类真实素材为事实来源——记忆引擎摘要（`agent_memories` 核心层 + 时光线 `pet_moments` 回忆文本，`memoryService.getPetMomentsSummary`）、用户亲述文案（`source_text`）、逐张照片视觉摘要。素材里的具体回忆优先写进旁白；三类素材全空时必须触发【无记忆约束】：禁止虚构具体事件/日期/对话/关系，只许照片事实与中性氛围。照片事实与记忆冲突时以照片为准
 - **音频边界**：Seedance 段要求无人物对白、无模型字幕、无模型 BGM；旁白与字幕由后期 TTS/ASS 统一完成
 
 ### 4.4 2D 表情包（image2DService）
