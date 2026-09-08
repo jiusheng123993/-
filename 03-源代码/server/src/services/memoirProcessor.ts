@@ -30,6 +30,7 @@ import { cleanupDoubaoSpeech } from './doubaoSpeechTts.js';
 import type { MemoirScript } from '../schemas/memoirScript.js';
 import { moderateVideo } from './videoModerationService.js';
 import { sendToUser } from './websocketService.js';
+import { stampAigcVideoMetadataOnFile } from './aigcMetadata.js';
 import { postMemoirCompletedFeed } from './autoFeedService.js';
 import { postMemoirTimelineMoment } from './autoFeedService.js';
 import { sanitizeError } from '../utils/sanitize.js';
@@ -151,11 +152,31 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     // 2. 解析叙事结构
     const narrative = parseNarrativeStructure(task.narrative_structure);
 
+    // 2.5 剧本确认闸门（立项 v0.2 P0-2）：
+    // 任务此前没有持久化剧本 → 本次会新生成分镜，生成后暂停等待用户确认，不在本轮烧视频成本；
+    // 任务已有剧本（用户确认后重新入队 / 历史失败重试）→ 直接进入视频生成，保持原语义。
+    const hasScriptBefore = Boolean(
+      narrative.script && typeof narrative.script === 'object',
+    );
+
     // 3. 映射产品线
     const productLine = mapMemoirTypeToProductLine(task.memoir_type);
 
     // 4. 回忆录 2.0：确保分镜脚本存在（无则调用 M1 生成并持久化）
     const script = await ensureMemoirScript(task, narrative, productLine);
+
+    // 4.5 剧本确认闸门：新生成剧本的任务暂停待确认（Seedance 视频成本在确认后才发生）
+    if (!hasScriptBefore && script) {
+      await memoirRepository.pauseForScriptConfirmation(task.id);
+      await notifyUser(task.user_id, {
+        type: 'memoir_script_ready',
+        taskId: task.id,
+      });
+      console.log(
+        `[MemoirProcessor] Task ${task.id}: 剧本已生成，暂停等待用户确认（立项 P0-2 剧本确认闸门）`,
+      );
+      return false;
+    }
 
     // 5. 调用视频生成服务（分镜驱动新管线）
     const result = await generateMemoirVideo({
@@ -172,6 +193,11 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
     // 6. 质量质检（回忆录 2.0 M5：DeepSeek 视觉抽帧评分）
     //    degraded=true（质检不可用）时放行；不合格时整条重试
     const localFinalPath = path.join(UPLOAD_DIR, 'memoir', task.id, 'final.mp4');
+
+    // 立项 v0.2 P0-3：《标识办法》第十条隐式标识——成片 mp4 元数据写入 AIGC udta box
+    // （失败仅记日志不阻断，质检与交付不受影响）
+    await stampAigcVideoMetadataOnFile(localFinalPath);
+
     const quality = await checkVideoQuality({
       videoPath: localFinalPath,
       identityAnchor: script?.identity_anchor,
@@ -436,7 +462,7 @@ async function handleRetry(taskId: string, _reason: string): Promise<boolean> {
 async function notifyUser(
   userId: string,
   message: {
-    type: 'memoir_completed' | 'memoir_failed';
+    type: 'memoir_completed' | 'memoir_failed' | 'memoir_script_ready';
     taskId: string;
     previewUrl?: string;
     reason?: string;

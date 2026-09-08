@@ -15,6 +15,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Jimp from 'jimp';
 import { config } from '../config.js';
+import { appendAigcPngMetadata } from './aigcMetadata.js';
 
 // ⚠️ 生产以 ESM 运行，不存在 __dirname（本地 vitest 走 CJS 转换测不出来，
 // 上线曾因此崩溃循环）——统一用 import.meta.url 推导，与 breedRepository 同模式
@@ -72,10 +73,13 @@ export async function addAiBadge(imageUrl: string): Promise<string> {
     base.composite(badge, x, y);
 
     // 3. 落盘 uploads/ai-generated/{uuid}.png
+    //    立项 v0.2 P0-3：《标识办法》第十条隐式标识——落盘前在 PNG 元数据写入 AIGC tEXt 块
+    //    （与右下角显式角标双保险：显式标识可被裁剪，隐式标识随文件元数据保留）
     const dir = path.join(config.uploadDir, SUB_DIR);
     await fs.mkdir(dir, { recursive: true });
     const filename = `${crypto.randomUUID()}.png`;
-    await fs.writeFile(path.join(dir, filename), await base.getBufferAsync(Jimp.MIME_PNG));
+    const stamped = appendAigcPngMetadata(await base.getBufferAsync(Jimp.MIME_PNG));
+    await fs.writeFile(path.join(dir, filename), stamped);
 
     // 4. 返回公网 URL（publicBaseUrl 未配置时为相对路径，与站内其他上传口径一致）
     return `${config.publicBaseUrl || ''}/uploads/${SUB_DIR}/${filename}`;

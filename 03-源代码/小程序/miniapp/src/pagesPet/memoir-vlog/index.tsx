@@ -46,6 +46,19 @@ interface TaskStatusResponse {
     status: 'pending' | 'processing' | 'completed' | 'failed'
     video_url?: string
     preview_url?: string
+    /** 剧本确认闸门（立项 v0.2 P0-2）：true=分镜已生成，等待用户确认后才进入烧钱的视频生成阶段 */
+    awaiting_confirmation?: boolean
+    /** 待确认的分镜脚本（awaiting_confirmation=true 时存在） */
+    script?: {
+      title?: string
+      theme?: string
+      segments?: Array<{
+        photo_index?: number
+        duration_sec?: number
+        narration?: string
+        subtitle?: string
+      }> | null
+    } | null
   }
 }
 
@@ -54,6 +67,19 @@ interface MemberCheckResponse {
 }
 
 // ==================== 常量 ====================
+
+/** 待确认剧本（立项 P0-2）：segments 在轮询处已归一化为数组，渲染侧无需再判空 */
+interface ScriptConfirmState {
+  taskId: string
+  title: string
+  theme: string
+  segments: Array<{
+    photo_index?: number
+    duration_sec?: number
+    narration?: string
+    subtitle?: string
+  }>
+}
 
 // 背景音乐（全部为 incompetech.com 的 Kevin MacLeod 作品，CC BY 3.0 免费可商用，需署名）
 const BGM_OPTIONS: BGMOption[] = [
@@ -126,6 +152,11 @@ export default function MemoirVlog() {
   /** WS 事件触发计数：收到 memoir_status 时自增，驱动立即刷新（替代等待轮询） */
   const [refreshKey, setRefreshKey] = useState(0)
   const loadingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  /**
+   * 剧本确认闸门（立项 v0.2 P0-2）：轮询到 awaiting_confirmation=true 时记录待确认剧本，
+   * 渲染确认卡（确认→回队生成视频 / 放弃→任务终止不产生视频成本）
+   */
+  const [scriptConfirm, setScriptConfirm] = useState<ScriptConfirmState | null>(null)
 
   // ==================== 步骤切换 ====================
 
@@ -428,7 +459,22 @@ export default function MemoirVlog() {
 
         if (res.statusCode === 200) {
           const data = res.data?.data
-          if (data?.status === 'completed') {
+          if (data?.awaiting_confirmation) {
+            // 剧本确认闸门（立项 P0-2）：分镜已生成，暂停等待用户确认；
+            // 停止轮询与加载动画，展示确认卡（确认后重新入队，Seedance 成本才发生）
+            setLoading(false)
+            setPolling(false)
+            if (loadingTimerRef.current) {
+              clearInterval(loadingTimerRef.current)
+              loadingTimerRef.current = null
+            }
+            setScriptConfirm({
+              taskId,
+              title: data.script?.title || '分镜脚本',
+              theme: data.script?.theme || '',
+              segments: Array.isArray(data.script?.segments) ? data.script!.segments! : [],
+            })
+          } else if (data?.status === 'completed') {
             setOutputUrl(data.video_url || '')
             setLoading(false)
             setPolling(false)
@@ -487,6 +533,88 @@ export default function MemoirVlog() {
       withShareTicket: true,
     })
   }, [])
+
+  // ==================== 剧本确认闸门（立项 v0.2 P0-2） ====================
+
+  /** 确认分镜脚本：任务重新入队，处理器直接进入视频生成（此时才发生视频成本） */
+  const handleConfirmScript = useCallback(async () => {
+    if (!scriptConfirm || !petId) return
+
+    try {
+      const token = storage.getToken()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const res = await Taro.request({
+        url: `${CONFIG.API_BASE_URL}/api/pets/${petId}/memoir/${scriptConfirm.taskId}/confirm`,
+        method: 'POST',
+        header: headers,
+      })
+
+      if (res.statusCode === 200) {
+        setScriptConfirm(null)
+        setLoading(true)
+        setLoadingText('剧本已确认')
+        setLoadingStepIndex(2)
+        // 重启加载进度动画（AI编排中 → 生成视频中）
+        loadingTimerRef.current = setInterval(() => {
+          setLoadingStepIndex(prev => {
+            const next = prev + 1
+            if (next < LOADING_STEPS.length) {
+              setLoadingText(LOADING_STEPS[next])
+              return next
+            }
+            return prev
+          })
+        }, 3000)
+        setPolling(true)
+        Taro.showToast({ title: '已确认，开始生成视频', icon: 'none' })
+      } else {
+        Taro.showToast({ title: '确认失败，请重试', icon: 'none' })
+      }
+    } catch {
+      Taro.showToast({ title: '网络异常，请重试', icon: 'none' })
+    }
+  }, [scriptConfirm, petId])
+
+  /** 放弃分镜脚本：二次确认后终止任务（放弃发生在视频生成之前，不产生视频费用） */
+  const handleRejectScript = useCallback(() => {
+    Taro.showModal({
+      title: '放弃本次生成？',
+      content: '放弃后本次任务作废，可重新提交生成（本次尚未开始生成视频，不产生视频费用）',
+      confirmText: '放弃',
+      cancelText: '再想想',
+      success: async (modalRes) => {
+        if (!modalRes.confirm || !scriptConfirm || !petId) return
+
+        try {
+          const token = storage.getToken()
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`
+          }
+
+          const res = await Taro.request({
+            url: `${CONFIG.API_BASE_URL}/api/pets/${petId}/memoir/${scriptConfirm.taskId}/reject`,
+            method: 'POST',
+            header: headers,
+          })
+
+          if (res.statusCode === 200) {
+            setScriptConfirm(null)
+            handleReset()
+            Taro.showToast({ title: '已放弃本次生成', icon: 'none' })
+          } else {
+            Taro.showToast({ title: '操作失败，请重试', icon: 'none' })
+          }
+        } catch {
+          Taro.showToast({ title: '网络异常，请重试', icon: 'none' })
+        }
+      },
+    })
+  }, [scriptConfirm, petId, handleReset])
 
   const handlePlayVideo = useCallback(() => {
     if (outputUrl) {
@@ -725,7 +853,8 @@ export default function MemoirVlog() {
                 <Text className='memoir-vlog__price-amount'>¥149</Text>
                 <Text className='memoir-vlog__price-suffix'>/次</Text>
               </Text>
-              <Text className='memoir-vlog__price-sub'>开通会员仅需¥9.9/月，享3次免费日常回忆录</Text>
+              {/* 立项 P0-1：会员价格口径收敛（年卡限时 88），不再写死 9.9/月 */}
+              <Text className='memoir-vlog__price-sub'>开通年卡会员（限时¥88/年）享回忆录会员权益</Text>
             </>
           )}
         </View>
@@ -865,6 +994,54 @@ export default function MemoirVlog() {
                 {i <= loadingStepIndex ? '✓ ' : '○ '}{s}
               </Text>
             ))}
+          </View>
+        </View>
+      )}
+
+      {/*
+        剧本确认卡（立项 v0.2 P0-2）：分镜已生成、视频未烧钱，让用户确认后再生成；
+        覆盖在页面上层，确认/放弃前不可操作页面（与 loading 同级遮罩）
+      */}
+      {scriptConfirm && (
+        <View className='memoir-vlog__script-overlay'>
+          <View className='memoir-vlog__script-card'>
+            <Text className='memoir-vlog__script-title'>🎬 剧本已生成，请确认</Text>
+            <Text className='memoir-vlog__script-sub'>
+              「{scriptConfirm.title}」{scriptConfirm.theme ? ` · ${scriptConfirm.theme}` : ''}
+              {' '}· 共 {scriptConfirm.segments.length} 个镜头，确认后开始生成视频（生成后不支持退款）
+            </Text>
+            <ScrollView scrollY className='memoir-vlog__script-list'>
+              {scriptConfirm.segments.map((seg, i) => (
+                <View key={i} className='memoir-vlog__script-seg'>
+                  <Text className='memoir-vlog__script-seg-head'>
+                    镜头 {i + 1} · 第 {(seg?.photo_index ?? 0) + 1} 张照片 · {seg?.duration_sec ?? 5} 秒
+                  </Text>
+                  {!!seg?.narration && (
+                    <Text className='memoir-vlog__script-seg-narr'>{seg.narration}</Text>
+                  )}
+                  {!!seg?.subtitle && (
+                    <Text className='memoir-vlog__script-seg-sub'>字幕：{seg.subtitle}</Text>
+                  )}
+                </View>
+              ))}
+              {scriptConfirm.segments.length === 0 && (
+                <Text className='memoir-vlog__script-empty'>脚本内容为空，建议放弃后重新生成</Text>
+              )}
+            </ScrollView>
+            <View className='memoir-vlog__script-actions'>
+              <View
+                className='memoir-vlog__script-btn memoir-vlog__script-btn--ghost'
+                onClick={handleRejectScript}
+              >
+                <Text className='memoir-vlog__script-btn-text memoir-vlog__script-btn-text--ghost'>放弃</Text>
+              </View>
+              <View
+                className='memoir-vlog__script-btn memoir-vlog__script-btn--primary'
+                onClick={handleConfirmScript}
+              >
+                <Text className='memoir-vlog__script-btn-text'>确认生成</Text>
+              </View>
+            </View>
           </View>
         </View>
       )}

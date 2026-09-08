@@ -593,3 +593,121 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
     expect(res.body.data.status).toBe('expired');
   });
 });
+
+describe('POST /api/pets/:petId/memoir/:memoirId/confirm - 确认分镜剧本（立项 v0.2 P0-2）', () => {
+  beforeEach(() => {
+    mockPool.query.mockReset();
+  });
+
+  it('等待确认的任务确认成功，返回 200', async () => {
+    // 第 1 次 query = canAccess 宠物归属校验（命中）；第 2 次 = confirmScript UPDATE（rowCount 1 = 确认成功）
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'memoir-001' }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/memoir-001/confirm');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toContain('开始生成视频');
+  });
+
+  it('任务不在等待确认状态（已确认/已过期）返回 409', async () => {
+    // confirmScript UPDATE 命中 0 行 → 服务层抛 409
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/memoir-001/confirm');
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('宠物不属于当前用户返回 404', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .post('/api/pets/other-pet/memoir/memoir-001/confirm');
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe('宠物不存在');
+  });
+});
+
+describe('POST /api/pets/:petId/memoir/:memoirId/reject - 放弃分镜剧本（立项 v0.2 P0-2）', () => {
+  beforeEach(() => {
+    mockPool.query.mockReset();
+  });
+
+  it('等待确认的任务放弃成功，返回 200', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 'memoir-001' }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/memoir-001/reject');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toContain('已放弃');
+  });
+
+  it('任务不在等待确认状态返回 409', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/memoir-001/reject');
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+  });
+});
+
+describe('GET /api/pets/:petId/memoir/status - 剧本确认闸门字段透出（立项 v0.2 P0-2）', () => {
+  beforeEach(() => {
+    mockPool.query.mockReset();
+  });
+
+  it('awaiting_confirmation=true 时透传 awaiting_confirmation 与待确认 script', async () => {
+    const awaitingRecord = {
+      ...mockMemoirRecord,
+      awaiting_confirmation: true,
+      narrative_structure: {
+        music_style: 'warm',
+        duration: 15,
+        script: { title: 'Test Script', scenes: [{ index: 1, narration: 'hello' }] },
+      },
+    };
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [awaitingRecord], rowCount: 1 });
+
+    const res = await request(createApp())
+      .get('/api/pets/pet-001/memoir/status');
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.awaiting_confirmation).toBe(true);
+    expect(res.body.data.script).toEqual({
+      title: 'Test Script',
+      scenes: [{ index: 1, narration: 'hello' }],
+    });
+  });
+
+  it('常规任务（非等待确认）不透传 script 字段', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [mockCompletedRecord], rowCount: 1 });
+
+    const res = await request(createApp())
+      .get('/api/pets/pet-001/memoir/status');
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.awaiting_confirmation).toBe(false);
+    expect(res.body.data.script).toBeUndefined();
+  });
+});

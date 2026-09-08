@@ -585,3 +585,119 @@
   align-items: center;
   gap: 10rpx;
 }
+
+// ==================== 剧本确认闸门（立项 v0.2 P0-2） ====================
+// 分镜生成后暂停、用户确认后才烧视频成本——确认卡覆盖层，视觉与 loading 遮罩同语言
+
+.memoir-vlog__script-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $color-bg-overlay;
+  z-index: 100;
+  @include flex-center;
+  padding: 48rpx;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.memoir-vlog__script-card {
+  width: 100%;
+  max-height: 80vh;
+  background: rgba(26, 20, 24, 0.96);
+  border: 2rpx solid rgba(184, 160, 216, 0.2);
+  border-radius: $radius-lg;
+  padding: 40rpx 32rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.memoir-vlog__script-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.memoir-vlog__script-sub {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
+.memoir-vlog__script-list {
+  max-height: 44vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.memoir-vlog__script-seg {
+  background: rgba(184, 160, 216, 0.06);
+  border-radius: $radius-md;
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.memoir-vlog__script-seg-head {
+  font-size: 22rpx;
+  color: #D8B8A0;
+  font-weight: $font-weight-bold;
+}
+
+.memoir-vlog__script-seg-narr {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  line-height: 1.6;
+}
+
+.memoir-vlog__script-seg-sub {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.memoir-vlog__script-empty {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.memoir-vlog__script-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.memoir-vlog__script-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: $radius-round;
+  @include flex-center;
+  @include press-feedback;
+
+  &--primary {
+    background: linear-gradient(135deg, #B8A0D8, #D8B8A0);
+    color: #1A1418;
+    box-shadow: 0 8rpx 32rpx rgba(184, 160, 216, 0.3);
+  }
+
+  &--ghost {
+    background: rgba(184, 160, 216, 0.06);
+    border: 2rpx solid rgba(184, 160, 216, 0.15);
+    color: $color-text-secondary;
+  }
+}
+
+.memoir-vlog__script-btn-text {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: #1A1418;
+
+  &--ghost {
+    color: $color-text-secondary;
+    font-weight: normal;
+  }
+}

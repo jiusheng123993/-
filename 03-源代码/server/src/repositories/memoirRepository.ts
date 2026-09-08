@@ -23,6 +23,10 @@ export interface MemoirRecordRow extends QueryResultRow {
   error_message: string | null;
   created_at: string;
   completed_at: string | null;
+  /** 剧本确认闸门（立项 v0.2 P0-2）：true=剧本已生成、暂停等待用户确认 */
+  awaiting_confirmation?: boolean;
+  script_confirmed_at?: string | null;
+  script_rejected_at?: string | null;
 }
 
 export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
@@ -32,6 +36,7 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
   /**
    * 查找宠物当前进行中的任务（pending/processing）
    * 用于并发检查：同一宠物同时只能存在一个视频生成任务
+   * 注：等待剧本确认的任务 status 仍为 pending，天然被本查询覆盖（创建互斥）
    */
   async findActiveByPetId(petId: string): Promise<MemoirRecordRow | null> {
     return this.findOneWhere(
@@ -99,28 +104,78 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
   }
 
   /**
-   * 查询所有待处理的回忆录任务（pending 状态）
+   * 查询所有待处理的回忆录任务（pending 且未在等待剧本确认）
    * 用于异步任务处理器轮询
+   * 立项 v0.2 P0-2：awaiting_confirmation=true 的任务已生成剧本、暂停等用户确认，不领取
    */
   async findPendingTasks(limit: number): Promise<MemoirRecordRow[]> {
-    return this.findManyWhere(
-      'status = $1',
-      ['pending'],
-      { orderBy: 'created_at', sortDirection: 'ASC', limit },
+    const result = await this.rawQuery<MemoirRecordRow>(
+      `SELECT * FROM ${this.tableName}
+       WHERE status = 'pending' AND awaiting_confirmation = false
+       ORDER BY created_at ASC LIMIT $1`,
+      [limit],
     );
+    return result.rows;
   }
 
   /**
    * 原子更新任务状态为 processing（防止并发重复处理）
-   * 仅当当前状态为 pending 时才更新，返回是否抢占成功
+   * 仅当当前状态为 pending 且未在等待剧本确认时才更新，返回是否抢占成功
    */
   async claimTask(taskId: string): Promise<boolean> {
     const result = await this.rawQuery(
       `UPDATE ${this.tableName}
        SET status = 'processing'
-       WHERE id = $1 AND status = 'pending'
+       WHERE id = $1 AND status = 'pending' AND awaiting_confirmation = false
        RETURNING id`,
       [taskId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /**
+   * 剧本生成后暂停任务，等待用户确认（立项 v0.2 P0-2）
+   * 任务保持 pending + awaiting_confirmation=true，处理器不再领取；
+   * 用户确认后由 confirmScript 释放回队列，视频生成成本在确认后才发生
+   */
+  async pauseForScriptConfirmation(taskId: string): Promise<void> {
+    await this.rawQuery(
+      `UPDATE ${this.tableName}
+       SET awaiting_confirmation = true
+       WHERE id = $1 AND status = 'pending'`,
+      [taskId],
+    );
+  }
+
+  /**
+   * 用户确认分镜脚本：释放回生成队列（立项 v0.2 P0-2）
+   * 仅 awaiting_confirmation=true 的任务可确认（幂等：重复确认无效果）
+   */
+  async confirmScript(taskId: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery(
+      `UPDATE ${this.tableName}
+       SET awaiting_confirmation = false, script_confirmed_at = now()
+       WHERE id = $1 AND user_id = $2 AND status = 'pending' AND awaiting_confirmation = true
+       RETURNING id`,
+      [taskId, userId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /**
+   * 用户拒绝分镜脚本：终止任务（立项 v0.2 P0-2）
+   * 拒绝发生在视频生成之前，Seedance 成本未发生；failed 终态由用户在页面重建任务
+   */
+  async rejectScript(taskId: string, userId: string): Promise<boolean> {
+    const result = await this.rawQuery(
+      `UPDATE ${this.tableName}
+       SET status = 'failed',
+           awaiting_confirmation = false,
+           script_rejected_at = now(),
+           error_message = '用户放弃生成（剧本未确认）'
+       WHERE id = $1 AND user_id = $2 AND status = 'pending' AND awaiting_confirmation = true
+       RETURNING id`,
+      [taskId, userId],
     );
     return (result.rowCount ?? 0) > 0;
   }

@@ -14,6 +14,8 @@ import {
   listMemoirs,
   deleteMemoir,
   previewMemoir,
+  confirmMemoirScript,
+  rejectMemoirScript,
   MemoirError,
   MemoirBusinessError,
 } from '../services/memoirService.js';
@@ -68,6 +70,7 @@ router.post('/:petId/memoir', memoirLimiter, validate({ body: createMemoirSchema
 
 /**
  * GET /:petId/memoir/status - 查询回忆录状态（最新任务）
+ * 立项 v0.2 P0-2：awaiting_confirmation=true 时响应携带待确认分镜 script，前端渲染确认 UI
  */
 router.get('/:petId/memoir/status', async (req: Request, res: Response) => {
   try {
@@ -75,6 +78,38 @@ router.get('/:petId/memoir/status', async (req: Request, res: Response) => {
     const petId = req.params.petId as string;
     const result = await getStatus(userId, petId);
     res.json({ success: true, data: result });
+  } catch (err) {
+    handleServiceError(res, err);
+  }
+});
+
+/**
+ * POST /:petId/memoir/:memoirId/confirm - 确认分镜脚本（立项 v0.2 P0-2 剧本确认闸门）
+ * 确认后任务重新入队，处理器直接进入视频生成（Seedance 成本在确认后才发生）
+ */
+router.post('/:petId/memoir/:memoirId/confirm', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const petId = req.params.petId as string;
+    const memoirId = req.params.memoirId as string;
+    await confirmMemoirScript(userId, petId, memoirId);
+    res.json({ success: true, message: '剧本已确认，开始生成视频' });
+  } catch (err) {
+    handleServiceError(res, err);
+  }
+});
+
+/**
+ * POST /:petId/memoir/:memoirId/reject - 放弃分镜脚本（立项 v0.2 P0-2 剧本确认闸门）
+ * 拒绝发生在视频生成之前，无视频成本；任务置为 failed 终态，可另建新任务
+ */
+router.post('/:petId/memoir/:memoirId/reject', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const petId = req.params.petId as string;
+    const memoirId = req.params.memoirId as string;
+    await rejectMemoirScript(userId, petId, memoirId);
+    res.json({ success: true, message: '已放弃本次生成' });
   } catch (err) {
     handleServiceError(res, err);
   }

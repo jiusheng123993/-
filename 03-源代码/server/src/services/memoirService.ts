@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 回忆录业务服务层 - 编排回忆录任务的核心业务逻辑
  * 职责：
  *   1. 归属校验（防越权）
@@ -34,6 +34,10 @@ export interface MemoirTaskResponse {
   /** 生成完成后的预览地址（completed 时存在） */
   preview_url: string | null;
   created_at: string;
+  /** 剧本确认闸门（立项 v0.2 P0-2）：true=分镜已生成、等待用户确认后才烧视频成本 */
+  awaiting_confirmation?: boolean;
+  /** 待确认的分镜脚本（awaiting_confirmation=true 时存在，供前端预览渲染） */
+  script?: Record<string, unknown> | null;
 }
 
 /** 创建回忆录请求参数 */
@@ -110,6 +114,13 @@ function buildTaskResponse(record: MemoirRecordRow): MemoirTaskResponse {
     video_url: record.video_url,
     preview_url: record.preview_url,
     created_at: record.created_at,
+    // 剧本确认闸门（立项 v0.2 P0-2）：仅在等待确认时透传脚本，避免常规轮询冗余负载
+    awaiting_confirmation:
+      record.status === 'pending' && record.awaiting_confirmation === true,
+    script:
+      record.status === 'pending' && record.awaiting_confirmation === true
+        ? ((record.narrative_structure?.script as Record<string, unknown> | undefined) ?? null)
+        : undefined,
   };
 }
 
@@ -364,6 +375,48 @@ export async function getStatus(
   }
 
   return buildTaskResponse(latest);
+}
+
+/**
+ * 用户确认分镜脚本（立项 v0.2 P0-2 剧本确认闸门）
+ * 确认后任务释放回生成队列，处理器下次轮询领取并直接进入视频生成（此时才发生 Seedance 成本）
+ * @throws MemoirError 404 宠物/任务不存在；409 任务不在等待确认状态（含已确认/已过期）
+ */
+export async function confirmMemoirScript(
+  userId: string,
+  petId: string,
+  memoirId: string,
+): Promise<void> {
+  const owns = await petRepository.canAccess(petId, userId);
+  if (!owns) {
+    throw new MemoirError(404, '宠物不存在');
+  }
+
+  const confirmed = await memoirRepository.confirmScript(memoirId, userId);
+  if (!confirmed) {
+    throw new MemoirError(409, '任务不在等待确认状态，请刷新后查看最新进度');
+  }
+}
+
+/**
+ * 用户拒绝分镜脚本（立项 v0.2 P0-2 剧本确认闸门）
+ * 拒绝发生在视频生成之前，Seedance 成本未发生；任务置为 failed 终态，用户可另建新任务
+ * @throws MemoirError 404 宠物/任务不存在；409 任务不在等待确认状态
+ */
+export async function rejectMemoirScript(
+  userId: string,
+  petId: string,
+  memoirId: string,
+): Promise<void> {
+  const owns = await petRepository.canAccess(petId, userId);
+  if (!owns) {
+    throw new MemoirError(404, '宠物不存在');
+  }
+
+  const rejected = await memoirRepository.rejectScript(memoirId, userId);
+  if (!rejected) {
+    throw new MemoirError(409, '任务不在等待确认状态，请刷新后查看最新进度');
+  }
 }
 
 /**
