@@ -132,14 +132,6 @@ vi.mock('../../../hooks/useChatCore', () => ({
   }),
 }))
 
-vi.mock('../../../hooks/useSymptomFlow', () => ({
-  useSymptomFlow: () => ({
-    symptomStep: -1,
-    startSymptom: vi.fn(),
-    handleSymptomAnswer: vi.fn(),
-  }),
-}))
-
 vi.mock('../../../hooks/useNamingFlow', () => ({
   useNamingFlow: () => ({
     namingStep: -1,
@@ -182,6 +174,12 @@ vi.mock('../../../components/HomeSkeleton', () => ({
 vi.mock('../../../components/CheckinPopup', () => ({
   default: ({ open }: { open: boolean }) =>
     open ? createElement('div', { 'data-testid': 'checkin-popup' }, '打卡弹窗') : null,
+}))
+
+// 症状初筛弹窗 mock：只验证首页的"开/关"接线，卡内 4 步由 SymptomCheckPopup 自己的测试覆盖
+vi.mock('../../../components/SymptomCheckPopup', () => ({
+  default: ({ open }: { open: boolean }) =>
+    open ? createElement('div', { 'data-testid': 'symptom-popup' }, '症状初筛弹窗') : null,
 }))
 
 vi.mock('../../../utils/suggestQuickActions', () => ({
@@ -482,5 +480,32 @@ describe('Index page — 打卡弹窗卡片交互', () => {
 
     fireEvent.click(card!)
     expect(container.querySelector('[data-testid="checkin-popup"]')).toBeTruthy()
+  })
+})
+
+describe('Index page — 症状初筛弹窗卡片交互', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    petStoreState.currentPet = mockPet
+    petStoreState.pets = [mockPet]
+    petStoreState.isLoading = false
+  })
+
+  it('默认不渲染症状初筛弹窗', () => {
+    const { container } = render(createElement(Index))
+
+    expect(container.querySelector('[data-testid="symptom-popup"]')).toBeFalsy()
+  })
+
+  it('首页「症状初筛」快捷入口打开弹窗卡片（不再往聊天流塞逐条问答）', () => {
+    const { container } = render(createElement(Index))
+
+    const shortcut = Array.from(container.querySelectorAll('.home-shortcut')).find(
+      el => el.textContent?.includes('症状初筛')
+    )
+    expect(shortcut).toBeTruthy()
+
+    fireEvent.click(shortcut!)
+    expect(container.querySelector('[data-testid="symptom-popup"]')).toBeTruthy()
   })
 })

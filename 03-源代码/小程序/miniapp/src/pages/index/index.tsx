@@ -7,7 +7,7 @@ import Taro from '@tarojs/taro'
 import { useCallback, useEffect, useState } from 'react'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { useChatCore } from '../../hooks/useChatCore'
-import { useSymptomFlow } from '../../hooks/useSymptomFlow'
+import SymptomCheckPopup from '../../components/SymptomCheckPopup'
 import { useNamingFlow } from '../../hooks/useNamingFlow'
 import { useFoodFlow } from '../../hooks/useFoodFlow'
 import { useMemoryFlow } from '../../hooks/useMemoryFlow'
@@ -23,7 +23,6 @@ import CheckinPopup from '../../components/CheckinPopup'
 import AiAvatar from './AiAvatar'
 import { suggestQuickActions, type QuickAction } from '../../utils/suggestQuickActions'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
-import { uploadVoiceForTranscription } from '../../services/voiceService'
 import { getCachedRiskScan } from '../../services/chronicService'
 import './index.scss'
 
@@ -166,12 +165,19 @@ export default function Index() {
     refreshTodayHealth()
   }, [chat, refreshTodayHealth])
 
-  const symptom = useSymptomFlow({
-    addAiMsg: chat.addAiMsg,
-    addUserMsg: chat.addUserMsg,
-    addMessage: chat.addMessage,
-    petInfo,
-  })
+  // 症状初筛改为弹窗卡片交互：全流程在卡内完成，聊天流只在初筛完成后追加一条结果消息
+  const [symptomOpen, setSymptomOpen] = useState(false)
+  /** 所有症状初筛入口统一走这里（快捷按钮/首页入口/Agent 工具动作/Layer 1 意图） */
+  const openSymptom = useCallback(() => setSymptomOpen(true), [])
+
+  /** 初筛完成回调：往聊天流追加一条结果卡消息 */
+  const handleSymptomComplete = useCallback((payload: {
+    type: 'ai'
+    content: string
+    card?: CardData
+  }) => {
+    chat.addMessage(payload)
+  }, [chat])
 
   const naming = useNamingFlow({
     addAiMsg: chat.addAiMsg,
@@ -201,33 +207,26 @@ export default function Index() {
   // 语音转文字处理中标记
   const [isVoiceProcessing, setIsVoiceProcessing] = useState(false)
 
-  /** 语音录制完成后的处理：上传转文字 → 处理打卡或发送消息 */
-  const handleVoiceComplete = useCallback(async (tempFilePath: string) => {
-    setIsVoiceProcessing(true)
-    try {
-      const text = await uploadVoiceForTranscription(tempFilePath)
-      if (!text || text === '无法识别语音内容') {
-        Taro.showToast({ title: '未识别到语音内容，请重试', icon: 'none' })
-        return
-      }
-
-      // 打卡已改为弹窗卡片交互，语音不再承担打卡答题入口；转写结果直接作为消息发送
-      setInputValue(text)
-      // 使用 setTimeout 确保 setInputValue 已生效
-      setTimeout(() => {
-        chat.handleSend()
-      }, 50)
-    } catch (err) {
-      console.error('[VoiceComplete] Error:', err)
-      Taro.showToast({ title: '语音处理失败，请重试', icon: 'none' })
-    } finally {
-      setIsVoiceProcessing(false)
+  /** 同声传译识别完成后的处理：把识别到的文字作为消息发送（改版后不再上传后端 ASR） */
+  const handleVoiceComplete = useCallback((text: string) => {
+    if (!text || text === '无法识别语音内容') {
+      Taro.showToast({ title: '未识别到语音内容，请重试', icon: 'none' })
+      return
     }
+
+    // 打卡已改为弹窗卡片交互，语音不再承担打卡答题入口；转写结果直接作为消息发送
+    setIsVoiceProcessing(true)
+    setInputValue(text)
+    // 使用 setTimeout 确保 setInputValue 已生效
+    setTimeout(() => {
+      chat.handleSend()
+      setIsVoiceProcessing(false)
+    }, 50)
   }, [chat, setInputValue])
 
   const voice = useVoiceInput({
-    onRecordComplete: handleVoiceComplete,
-    maxDuration: 60,
+    onRecognizeComplete: handleVoiceComplete,
+    maxDuration: 60000,
   })
 
   // 将食物/回忆/取名流程处理器注册到聊天核心，打破循环依赖
@@ -242,7 +241,7 @@ export default function Index() {
       startNaming: naming.startNaming,
       startCheckin: openCheckin,
       startMemory: memory.startMemoryRecord,
-      startSymptom: symptom.startSymptom,
+      startSymptom: openSymptom,
       startFoodQuery: food.handleFoodQuery,
       navigateToBreed: () => Taro.navigateTo({ url: '/pagesPet/breed/index' }),
       // Layer 2: Agent 工具调用触发的流程动作映射
@@ -251,7 +250,7 @@ export default function Index() {
           case 'naming_flow': naming.startNaming(); break
           case 'checkin_flow': openCheckin(); break
           case 'memory_flow': memory.startMemoryRecord(); break
-          case 'symptom_flow': symptom.startSymptom(); break
+          case 'symptom_flow': openSymptom(); break
         }
       },
     })
@@ -300,7 +299,7 @@ export default function Index() {
     setShowGreetingQuickActions(false)
     if (action === 'checkin') openCheckin()
     else if (action === 'food') food.handleFoodQuery()
-    else if (action === 'symptom') symptom.startSymptom()
+    else if (action === 'symptom') openSymptom()
     else if (action === 'naming') naming.startNaming()
     else if (action === 'memory') memory.startMemoryRecord()
   }
@@ -330,17 +329,15 @@ export default function Index() {
     }
   }
 
-  const getCurrentFlowType = (): 'symptom' | 'naming' | null => {
-    // 打卡已改为弹窗卡片，不再占用聊天输入流；此处只识别症状/取名两个聊天内流程
-    if (symptom.symptomStep >= 0) return 'symptom'
+  const getCurrentFlowType = (): 'naming' | null => {
+    // 打卡/症状初筛已改为弹窗卡片，不再占用聊天输入流；此处只识别取名聊天内流程
     if (naming.namingStep >= 0) return 'naming'
     return null
   }
 
   const handleOptionClick = (option: string) => {
     const flowType = getCurrentFlowType()
-    if (flowType === 'symptom') symptom.handleSymptomAnswer(option)
-    else if (flowType === 'naming') naming.handleNamingAnswer(option)
+    if (flowType === 'naming') naming.handleNamingAnswer(option)
   }
 
   const renderMessageContent = (msg: Message) => {
@@ -778,7 +775,7 @@ export default function Index() {
             <View className='msg-bubble'>
               <Text>你好呀～我是团团，你的 AI 宠物管家🐾{'\n'}我可以帮你：<Text className='msg-bubble-highlight'>3秒健康打卡</Text>、<Text className='msg-bubble-highlight'>食物安全查询</Text>、<Text className='msg-bubble-highlight'>症状初筛</Text>、<Text className='msg-bubble-highlight'>疫苗日历</Text>、<Text className='msg-bubble-highlight'>时光记录</Text>。今天想做什么呢？</Text>
             </View>
-            {showGreetingQuickActions && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
+            {showGreetingQuickActions && !symptomOpen && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
               <View className='msg-quick-actions'>
                 {currentQuickActions.map(qa => (
                   <View key={qa.action} className='msg-quick-btn' onClick={() => handleQuickAction(qa.action)}>
@@ -816,7 +813,7 @@ export default function Index() {
 
               {msg.card && renderCard(msg.card)}
 
-              {idx === chat.messages.length - 1 && msg.type === 'ai' && showGreetingQuickActions && symptom.symptomStep < 0 && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
+              {idx === chat.messages.length - 1 && msg.type === 'ai' && showGreetingQuickActions && !symptomOpen && naming.namingStep < 0 && !food.foodActive && !memory.memoryActive && (
                 <View className='msg-quick-actions'>
                   {currentQuickActions.map(qa => (
                     <View key={qa.action} className='msg-quick-btn' onClick={() => handleQuickAction(qa.action)}>
@@ -933,7 +930,7 @@ export default function Index() {
               <Text className='home-shortcut-label'>食物查询</Text>
               <Text className='home-shortcut-desc'>查一查毛孩子能不能吃</Text>
             </View>
-            <View className='home-shortcut' onClick={() => symptom.startSymptom()} hoverClass='home-shortcut--hover'>
+            <View className='home-shortcut' onClick={() => openSymptom()} hoverClass='home-shortcut--hover'>
               <View className='home-shortcut-icon home-shortcut-icon--gold'>
                 <Text>🩺</Text>
               </View>
@@ -1089,6 +1086,13 @@ export default function Index() {
         open={checkinOpen}
         onClose={() => setCheckinOpen(false)}
         onComplete={handleCheckinComplete}
+      />
+
+      {/* 症状初筛弹窗卡片：全流程在卡内完成，完成后聊天流只追加一条结果消息 */}
+      <SymptomCheckPopup
+        open={symptomOpen}
+        onClose={() => setSymptomOpen(false)}
+        onComplete={handleSymptomComplete}
       />
 
       {/* 命理详情悬浮弹窗 */}

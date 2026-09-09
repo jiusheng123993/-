@@ -1,0 +1,341 @@
+/**
+ * 症状初筛弹窗卡片样式
+ * 视觉语言与健康打卡弹窗（ckp-*）保持一致：暖色纸感背景 + 金色顶边 + 居中弹卡
+ * 颜色使用字面量，不依赖全局 scss 变量注入
+ */
+
+/* ===== 遮罩层 ===== */
+.scp-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* 显式高度兜底：仅靠 top/bottom 撑出的 fixed 高度，在部分微信 webview 下百分比 max-height 解析不可靠 */
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scpFadeIn 0.3s ease-out;
+}
+
+@keyframes scpFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== 弹窗卡片 ===== */
+.scp-card {
+  width: 650rpx;
+  /* 用 vh 而非百分比：百分比 max-height 在 fixed 祖先 + 部分微信 webview 下不生效 */
+  max-height: 86vh;
+  background: linear-gradient(180deg, #fef9f3 0%, #faf3e8 30%, #fdf8f0 100%);
+  border-radius: 32rpx;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24rpx 80rpx rgba(0, 0, 0, 0.3);
+  animation: scpSlideUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+
+  /* 顶部金色装饰线 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6rpx;
+    background: linear-gradient(90deg, #e8a838, #ff8a5c, #ff6b3d);
+    z-index: 1;
+  }
+}
+
+@keyframes scpSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(60rpx) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 关闭按钮 */
+.scp-close {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(166, 143, 120, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: all 0.2s ease;
+
+  text {
+    font-size: 28rpx;
+    color: #8b7355;
+    font-weight: 700;
+  }
+
+  &:active {
+    background: rgba(166, 143, 120, 0.3);
+    transform: scale(0.92);
+  }
+}
+
+/* ===== 头部 ===== */
+.scp-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 32rpx 20rpx;
+  flex-shrink: 0;
+}
+
+.scp-head-icon {
+  font-size: 52rpx;
+  margin-bottom: 12rpx;
+}
+
+.scp-head-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a3728;
+  margin-bottom: 8rpx;
+}
+
+.scp-head-sub {
+  font-size: 24rpx;
+  color: #b69b83;
+}
+
+/* ===== 答题区 ===== */
+.scp-body {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  box-sizing: border-box;
+
+  &--result {
+    .scp-body-inner {
+      padding-top: 20rpx;
+    }
+  }
+}
+
+/* scroll-view 上不支持 padding，间距统一放内部容器 */
+.scp-body-inner {
+  padding: 8rpx 32rpx 16rpx;
+}
+
+/* 进度指示 */
+.scp-progress-dots {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 28rpx;
+}
+
+.scp-progress-dot {
+  width: 20rpx;
+  height: 8rpx;
+  border-radius: 8rpx;
+  background: rgba(166, 143, 120, 0.25);
+
+  &--active {
+    background: #ff8a5c;
+  }
+}
+
+.scp-progress-text {
+  font-size: 24rpx;
+  color: #b69b83;
+  margin-left: 8rpx;
+}
+
+.scp-q {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 22rpx;
+}
+
+.scp-q-emoji {
+  font-size: 40rpx;
+  margin-bottom: 8rpx;
+}
+
+.scp-q-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #4a3728;
+  margin-bottom: 6rpx;
+}
+
+.scp-q-question {
+  font-size: 26rpx;
+  color: #b69b83;
+}
+
+.scp-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.scp-opt {
+  padding: 16rpx 26rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2rpx solid rgba(166, 143, 120, 0.22);
+
+  text {
+    font-size: 26rpx;
+    color: #6b563f;
+  }
+
+  &--active {
+    border-color: #ff8a5c;
+    background: linear-gradient(135deg, rgba(255, 138, 92, 0.16), rgba(255, 107, 61, 0.16));
+
+    text {
+      color: #e05a33;
+      font-weight: 700;
+    }
+  }
+
+  &--hover {
+    transform: scale(0.97);
+  }
+}
+
+/* ===== 底部进度 + 上一步 ===== */
+.scp-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx 32rpx;
+  border-top: 1rpx solid rgba(166, 143, 120, 0.15);
+}
+
+.scp-back-btn {
+  padding: 16rpx 28rpx;
+  border-radius: 100rpx;
+  border: 2rpx solid rgba(166, 143, 120, 0.32);
+  background: rgba(255, 255, 255, 0.7);
+
+  text {
+    font-size: 26rpx;
+    font-weight: 600;
+    color: #8b7355;
+  }
+
+  &--disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+.scp-progress-label {
+  font-size: 24rpx;
+  color: #b69b83;
+}
+
+/* ===== 结果视图 ===== */
+.scp-risk {
+  padding: 26rpx 24rpx;
+  border-radius: 20rpx;
+  margin-bottom: 18rpx;
+  background: rgba(47, 201, 142, 0.12);
+  text-align: center;
+
+  .scp-risk-label {
+    font-size: 32rpx;
+    font-weight: 700;
+    color: #1c8a5a;
+  }
+
+  &--mid {
+    background: rgba(232, 168, 56, 0.14);
+
+    .scp-risk-label { color: #a06f10; }
+  }
+
+  &--high {
+    background: rgba(255, 138, 92, 0.13);
+
+    .scp-risk-label { color: #d94f28; }
+  }
+
+  &--critical {
+    background: rgba(255, 90, 95, 0.14);
+
+    .scp-risk-label { color: #d43a3f; }
+  }
+}
+
+.scp-result-advice {
+  display: block;
+  font-size: 27rpx;
+  line-height: 1.7;
+  color: #6b563f;
+  margin-bottom: 20rpx;
+}
+
+.scp-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 24rpx;
+  margin-bottom: 12rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.scp-stat-label {
+  font-size: 27rpx;
+  color: #6b563f;
+}
+
+.scp-stat-val {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #4a3728;
+}
+
+.scp-hint-msg {
+  margin-top: 20rpx;
+  text-align: center;
+
+  text {
+    font-size: 23rpx;
+    color: #c4ab90;
+  }
+}
+
+/* 完成按钮（主 CTA） */
+.scp-submit {
+  padding: 20rpx 52rpx;
+  border-radius: 100rpx;
+  background: linear-gradient(135deg, #ff8a5c, #ff6b3d);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 61, 0.35);
+
+  text {
+    font-size: 30rpx;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  &--hover {
+    opacity: 0.85;
+  }
+}

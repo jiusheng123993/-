@@ -52,33 +52,54 @@ export function useFoodFlow(params: UseFoodFlowParams) {
         )
         setIsTyping(false)
 
-        const isSafe = result.safetyLevel === 'safe'
-        const verdict = isSafe ? '✅ 可以吃（适量）' : '🚫 不能吃'
+        // 判定按 safetyLevel 分级，避免把「caution（少量谨慎）」误报成「不能吃/高风险」
+        const safetyLevel = result.safetyLevel
+        const isSafe = safetyLevel === 'safe'
+        const verdict =
+          safetyLevel === 'safe'
+            ? '✅ 可以吃（适量）'
+            : safetyLevel === 'caution'
+              ? '⚠️ 少量谨慎'
+              : safetyLevel === 'dangerous'
+                ? '🚫 禁止食用'
+                : '☠️ 有毒，禁止食用'
         const safetyEmoji =
-          result.safetyLevel === 'toxic'
+          safetyLevel === 'toxic'
             ? '☠️'
-            : result.safetyLevel === 'dangerous'
-              ? '⚠️'
-              : result.safetyLevel === 'caution'
-                ? '⚡'
+            : safetyLevel === 'dangerous'
+              ? '🚫'
+              : safetyLevel === 'caution'
+                ? '⚠️'
                 : '✅'
+        // 建议文案分档：toxic 给急救，caution 提示少量观察，dangerous 明确禁止
+        const advice =
+          safetyLevel === 'toxic'
+            ? result.firstAid || '误食请立即就医！'
+            : safetyLevel === 'dangerous'
+              ? '⚠️ 不要喂食！'
+              : safetyLevel === 'caution'
+                ? '⚠️ 少量尝试，观察 24 小时。'
+                : '适量喂食即可。'
         const card: CardData = {
           type: 'food_result',
           data: {},
           title: '📋 分析结果',
           safe: isSafe,
-          risk: result.safetyLevel === 'toxic' ? 'P0' : result.safetyLevel === 'dangerous' ? 'P1' : 'P4',
+          risk: safetyLevel === 'toxic' ? 'P0' : safetyLevel === 'dangerous' ? 'P1' : 'P4',
           icon: safetyEmoji,
           foodName: result.foodName,
           desc: result.detail || '',
-          advice: result.firstAid || (isSafe ? '适量喂食即可。' : '请勿喂食！'),
+          advice,
         }
         let summary = `${safetyEmoji} ${result.foodName} ${verdict}`
-        if (!isSafe) {
+        // 只有真正有毒/危险的食物才按「高风险」口径警示；caution 只提示谨慎
+        if (safetyLevel === 'toxic' || safetyLevel === 'dangerous') {
           summary += '\n\n🚨 这是高风险食物，请务必远离！'
           if (result.symptoms && result.symptoms.length > 0) {
             summary += `\n中毒症状：${result.symptoms.join('、')}`
           }
+        } else if (safetyLevel === 'caution') {
+          summary += '\n\n⚖️ 少量尝试即可，观察猫咪/狗狗是否有不适反应。'
         }
         addMessage({ type: 'ai', content: summary, card })
       } catch (err) {

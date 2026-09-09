@@ -121,14 +121,6 @@ export const FOOD_SAFETY_ORIGINAL_B: FoodSafetyItem[] = [
     detail: '黄瓜切片后少量喂食是安全的，含水量高热量低。是夏季消暑的好选择。无需烹饪，洗净切片即可。'
   },
   {
-    id: 'watermelon',
-    name: '西瓜',
-    aliases: ['无籽西瓜', '西瓜瓤'],
-    safetyLevel: 'safe',
-    speciesApplicable: ['dog', 'cat'],
-    detail: '西瓜去籽去皮后少量喂食是安全的，含水量高。必须去籽（籽可导致肠梗阻），去皮。含糖量较高不宜过量。'
-  },
-  {
     id: 'egg_cooked',
     name: '鸡蛋（煮熟）',
     aliases: ['水煮蛋', '全熟蛋'],

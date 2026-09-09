@@ -584,15 +584,16 @@ export function useChatCore(params: UseChatCoreParams) {
     // 排查「为什么不能吃 → 空白气泡」：Agent 事件流若因分块/断开丢失了 done/token，
     // 循环会提前出栈落到这里，而占位 AI 消息 content 仍是 ''（空白气泡）。
     // 修复：把已累积的 fullContent 或兜底文案写入占位消息，保证气泡永远有内容。
-    if (fullContent) {
-      setMessages(prev =>
-        prev.map(m => m.id === aiMsgId ? { ...m, content: fullContent } : m)
-      )
-    } else {
-      setMessages(prev =>
-        prev.map(m => m.id === aiMsgId ? { ...m, content: '抱歉，我刚走神了，请再问一次。' } : m)
-      )
-    }
+    const fallbackContent = fullContent || '抱歉，我刚走神了，请再问一次。'
+    setMessages(prev =>
+      prev.map(m => m.id === aiMsgId ? { ...m, content: fallbackContent } : m)
+    )
+    // 同步写入会话上下文（与 done 正常路径一致），保证后续追问能带上本次回复语境
+    setChatHistory(prev => [
+      ...prev.slice(-18),
+      { role: 'user', content: text },
+      { role: 'assistant', content: fallbackContent },
+    ])
     setIsTyping(false)
     setAgentToolStatus(null)
     setStreamingId(null)
