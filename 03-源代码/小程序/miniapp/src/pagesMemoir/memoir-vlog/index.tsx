@@ -126,7 +126,7 @@ const STYLE_OPTIONS: Array<{ key: string; emoji: string; name: string; desc: str
 ]
 
 /** 顶部参考样例视频（2026-09-09）：用户提供成品视频 URL 后填入即可在顶部播放；为空显示占位 */
-const SAMPLE_VIDEO_URL = ''
+const SAMPLE_VIDEO_URL = 'https://api.xinghuanhai.com/uploads/memoir-sample/sample-light-1.mp4'
 
 /** 选照片步骤的两个 tab */
 type PhotoTab = 'local' | 'pool'
