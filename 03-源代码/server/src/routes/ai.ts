@@ -10,6 +10,7 @@ import { uploadLimiter, aiRecognizeLimiter, chatLimiter, namingLimiter } from '.
 import { chatMessageSchema } from '../schemas/index.js';
 import { chat, guardCheck, guardCheckOutput, bailianChat, bailianASR } from '../services/aiService.js';
 import { recognizeHealthReport } from '../services/healthReportService.js';
+import { analyzeImage } from '../services/visionService.js';
 import { PetFactRepository } from '../repositories/petFactRepository.js';
 import { PetRepository } from '../repositories/petRepository.js';
 
@@ -18,9 +19,21 @@ const router = Router();
 const petFactRepository = new PetFactRepository();
 const petRepository = new PetRepository();
 
+// 共享上传配置：multipart 表单（photo / audio 等）
+// 需对 MIME 做白名单——本路由的 /photo-analyze、/breed-recognize、/health-report-recognize、
+// /voice 等都会把上传负载转发给**付费**视觉/ASR 模型，若不限类型，任何 Content-Type 负载
+// 都能打进来烧算力（对比 timeline.ts /ai-describe 已用同一白名单）。
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/wav', 'audio/aac', 'audio/m4a'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('不支持的文件类型'));
+    }
+  },
 });
 
 // 限流：chatLimiter 30次/分钟（2026-09 审查修复：此前未挂载，付费 LLM 入口仅剩全局兜底）
@@ -392,6 +405,54 @@ router.post('/health-report-recognize', authMiddleware, uploadLimiter, upload.si
     const message = error instanceof Error ? error.message : '体检报告识别服务异常';
     console.error('[HealthReportRecognize] 识别失败:', message);
     res.status(500).json({ success: false, message });
+  }
+});
+
+/**
+ * 聊天「发图片」视觉分析接口
+ * 上传宠物照片 → DeepSeek 视觉模型输出结构化照片描述 → 返回给前端注入对话上下文
+ *
+ * 背景：聊天页「发图片」此前是占位桩——只发文字、图片未上传，AI 永远"看不到"照片。
+ * 本次打通：前端上传 → 本接口识别 → description 注入 system prompt → AI 基于照片回答。
+ *
+ * 安全：uploadLimiter 限流（每次=1 次付费视觉 LLM 调用，防算力滥用）
+ * 不落库（与 timeline/ai-describe 口径一致，前端拿 description 自己用）；
+ * 只描述照片**可见内容**，不确诊、不编造照片外信息。
+ */
+router.post('/photo-analyze', authMiddleware, uploadLimiter, upload.single('photo'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, message: '请上传宠物照片' });
+      return;
+    }
+
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const imageDataUrl = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
+    const systemPrompt = `你是"星河宠记"的宠物照片分析助手。用户上传了一张宠物照片，请用简洁、自然的中文输出一段对照片的观察描述，供后续 AI 管家基于照片回答用户问题。
+要求：
+1. 只描述照片中**能看到**的内容：体型、毛色、花纹、神态、动作、环境、可能的状态特征（如是否精神、被毛状况）。可酌情指出肉眼可见的异常信号（如流泪、红肿、皮屑），但不要下诊断结论。
+2. 不要编造照片里看不到的信息（如病史、年龄、性格、喜好）。
+3. 语气客观中肯，像一位有经验的宠物观察者。
+4. 直接输出描述文字，不要用"AI""生成"等字眼，不要加标题、引号或列表，150 字以内。`;
+
+    const result = await analyzeImage({
+      imageUrl: imageDataUrl,
+      prompt: systemPrompt,
+      maxTokens: 400,
+    });
+
+    // 视觉 key 未配置时降级：返回 503，前端提示"AI 分析功能暂不可用"（不再谎称看不到图）
+    if (!result) {
+      res.status(503).json({ success: false, message: 'AI 视觉能力未配置，无法分析照片' });
+      return;
+    }
+
+    res.json({ success: true, data: { description: result.trim() } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '照片分析服务异常';
+    console.error('[PhotoAnalyze] 照片分析失败:', message);
+    res.status(500).json({ success: false, message: '照片分析失败，请重试' });
   }
 });
 

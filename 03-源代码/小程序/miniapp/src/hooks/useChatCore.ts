@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { sendChatMessage, type ChatContext } from '../services/chatService'
+import { sendChatMessage, analyzeChatPhoto, type ChatContext } from '../services/chatService'
 import { agentChat, getToolLabel, loadAgentHistory } from '../services/agentService'
 import type { CardData, ChatMessage, Message, PetInfo } from '../types/chatTypes'
 import { logger } from '../logger'
@@ -331,22 +331,40 @@ export function useChatCore(params: UseChatCoreParams) {
         petAge: petInfo.age,
       }
 
+      // 先上传照片并做视觉分析，把"照片里能看到什么"注入对话上下文，AI 才能基于图片回答。
+      // 此前这里是占位桩：图片从未上传、AI 只收到一句文字 → 表现为"发图后 AI 说收不到照片"。
       setIsTyping(true)
+      const description = await analyzeChatPhoto(imageUrl)
+      // 视觉分析成功：注入上下文；失败：降级为普通文字问答（如实说明"暂无法分析图片"，不再谎称看不到）
+      if (description) {
+        context.imageAnalysis = description
+      }
+
       try {
         const result = await sendChatMessage(
-          '我上传了一张宠物照片，请帮我看看并给出一些建议。',
+          description
+            ? '我上传了一张宠物照片，请帮我看看这张照片里的宠物并给出一些建议。'
+            : '我上传了一张宠物照片，请帮我看看并给出一些建议。',
           context,
           chatHistory
         )
         setIsTyping(false)
 
+        // 历史里把视觉观察一并存下，用户在本会话继续追问时 AI 保有"照片看到什么"的上下文
+        const userHistoryContent = description ? `[图片] 视觉观察：${description}` : '[图片]'
+
         if (result.blocked) {
           addAiMsg(result.reply)
+          setChatHistory(prev => [
+            ...prev.slice(-18),
+            { role: 'user', content: userHistoryContent },
+            { role: 'assistant', content: result.reply },
+          ])
         } else {
           streamAiReply(result.reply, () => {
             setChatHistory(prev => [
               ...prev.slice(-18),
-              { role: 'user', content: '[图片]' },
+              { role: 'user', content: userHistoryContent },
               { role: 'assistant', content: result.reply },
             ])
           })
@@ -354,7 +372,8 @@ export function useChatCore(params: UseChatCoreParams) {
       } catch (err) {
         setIsTyping(false)
         logger.error('index', 'AI image chat failed', err)
-        addAiMsg('图片已收到！虽然我现在无法分析图片内容，但你可以描述一下想了解什么～')
+        // 分析成功但回复生成失败：如实说明是"回复"失败，而不是误导为"照片分析失败"
+        addAiMsg(description ? '回复生成失败，请稍后再试。' : '图片已收到！虽然我现在无法分析图片内容，但你可以描述一下想了解什么～')
       }
     } catch (err) {
       const errMsg = (err as { errMsg?: string }).errMsg || ''
@@ -562,6 +581,18 @@ export function useChatCore(params: UseChatCoreParams) {
     }
 
     // 正常结束（无 done 事件的情况，兜底）
+    // 排查「为什么不能吃 → 空白气泡」：Agent 事件流若因分块/断开丢失了 done/token，
+    // 循环会提前出栈落到这里，而占位 AI 消息 content 仍是 ''（空白气泡）。
+    // 修复：把已累积的 fullContent 或兜底文案写入占位消息，保证气泡永远有内容。
+    if (fullContent) {
+      setMessages(prev =>
+        prev.map(m => m.id === aiMsgId ? { ...m, content: fullContent } : m)
+      )
+    } else {
+      setMessages(prev =>
+        prev.map(m => m.id === aiMsgId ? { ...m, content: '抱歉，我刚走神了，请再问一次。' } : m)
+      )
+    }
     setIsTyping(false)
     setAgentToolStatus(null)
     setStreamingId(null)

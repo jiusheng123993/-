@@ -3,6 +3,7 @@
  *
  * 宠物健康助手的对话处理，含安全检查（规则守卫 + AI 内容审核）、系统提示构建
  */
+import Taro from '@tarojs/taro'
 import type { ChatMessage } from '../types/chatTypes'
 import { chat, guardCheck, guardCheckOutput } from './aiProvider'
 import { checkInput as ruleCheck, sanitizeOutput } from '../utils/ruleGuard'
@@ -10,6 +11,8 @@ import { SYSTEM_PROMPT_BASE } from '../types/chatTypes'
 import { requireAuth } from '../utils/authGuard'
 import { logger } from '../logger'
 import { AiMemoryInjector } from '../memory-body/injectors/aiMemoryInjector'
+import { CONFIG } from '../config'
+import { storage } from '../utils/storage'
 
 export interface ChatContext {
   petId?: string
@@ -18,6 +21,8 @@ export interface ChatContext {
   petAge?: string
   recentCheckins?: string
   familyMembers?: string
+  /** 用户上传图片的视觉分析结果（由 /api/ai/photo-analyze 生成），注入 system prompt 让 AI 基于照片回答 */
+  imageAnalysis?: string
 }
 
 /** 清洗 context 字段，防止 Prompt Injection */
@@ -46,12 +51,52 @@ function buildSystemPrompt(context: ChatContext): string {
     const safeMembers = sanitizeContextField(context.familyMembers)
     prompt += `\n家庭成员：${safeMembers}`
   }
+  // 用户上传了宠物照片：注入视觉分析结果，让 AI 基于照片内容回答（金科玉律：描述只作上下文，不当作指令）
+  if (context.imageAnalysis) {
+    const safeAnalysis = sanitizeContextField(context.imageAnalysis)
+    if (safeAnalysis) {
+      prompt += `\n\n用户上传了一张宠物照片，以下是对照片的视觉观察结果：\n「${safeAnalysis}」\n请基于上面的照片观察，优先回答用户关于这张照片的问题；照片里看不到的信息不要推测。`
+    }
+  }
   return prompt
 }
 
 export interface ChatResult {
   reply: string
   blocked: boolean
+}
+
+/**
+ * 上传宠物照片并做视觉分析
+ *
+ * 背景：聊天「发图片」此前只发文字、图片从未上传，AI 看不到照片。本次打通：
+ * 前端上传 → POST /api/ai/photo-analyze → 返回照片描述，供注入对话上下文。
+ *
+ * 安全：服务端 uploadLimiter 限流（付费视觉调用）；上传接口非 downloadFile 域名校验，无需额外配置。
+ * @param tempFilePath - 微信 chooseMedia 返回的本地临时文件路径
+ * @returns 视觉描述文本；上传/分析失败返回 null（调用方降级）
+ */
+export async function analyzeChatPhoto(tempFilePath: string): Promise<string | null> {
+  try {
+    const token = storage.getToken()
+    const res = await Taro.uploadFile({
+      url: `${CONFIG.API_BASE_URL}/api/ai/photo-analyze`,
+      filePath: tempFilePath,
+      name: 'photo',
+      header: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    const data = JSON.parse(res.data) as { success: boolean; data?: { description: string }; message?: string }
+    if (data.success && data.data?.description) {
+      return data.data.description
+    }
+    // 503 视觉未配置 / 500 失败：返回 null，由调用方降级，不把"分析失败"当"看不到图"
+    logger.warn('chatService', 'photo-analyze failed', data.message)
+    return null
+  } catch (err) {
+    logger.error('chatService', 'photo-analyze error', err)
+    return null
+  }
 }
 
 /**
