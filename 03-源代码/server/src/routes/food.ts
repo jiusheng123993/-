@@ -1,3 +1,4 @@
+﻿import { beijingDateString } from '../utils/beijingTime.js';
 /**
  * 食物安全查询路由 - 查询食物对宠物的安全性
  * 支持关键词模糊匹配、历史查询记录、查询统计
@@ -71,7 +72,7 @@ router.get('/history', async (req: Request, res: Response) => {
 
 router.get('/stats', async (req: Request, res: Response) => {
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = beijingDateString(); // 审查⏳1：北京「今日」
 
     const [totalQueries, todayQueries] = await Promise.all([
       foodRepository.countByUser(req.userId!),
@@ -93,7 +94,7 @@ router.get('/stats', async (req: Request, res: Response) => {
 
 router.get('/today-count', async (req: Request, res: Response) => {
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = beijingDateString(); // 审查⏳1：北京「今日」
     const count = await foodRepository.countTodayByUser(req.userId!, today);
 
     res.json({ success: true, data: { count } });

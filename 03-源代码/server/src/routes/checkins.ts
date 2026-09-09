@@ -1,3 +1,4 @@
+﻿import { beijingDateString } from '../utils/beijingTime.js';
 /**
  * 健康打卡路由 - 宠物健康状态记录
  * 每日打卡记录精神、食欲、排便、运动等健康指标
@@ -150,7 +151,7 @@ router.get('/:petId/checkins/today', async (req: Request, res: Response) => {
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = beijingDateString(); // 审查⏳1：北京「今日」（原 UTC 日期把 0-8 点打卡归昨天）
 
     const row = await checkinRepository.findTodayCheckin(petId, today);
 

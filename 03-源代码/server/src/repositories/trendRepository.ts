@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 健康趋势数据访问层 - pet_health_entries 表的聚合查询
  * 继承 BaseRepository，强制参数化查询防注入
  * 专注于趋势分析（按日聚合、月度报告），与 CheckinRepository（CRUD）职责分离
@@ -74,7 +74,8 @@ export class TrendRepository extends BaseRepository<QueryResultRow> {
     const fieldName = TrendRepository.getFieldName(type);
     const result = await this.rawQuery<TrendPoint>(
       `SELECT
-         created_at::date AS record_date,
+         -- 审查⏳1：趋势日聚合按北京时区归日
+      (created_at AT TIME ZONE 'Asia/Shanghai')::date AS record_date,
          ${fieldName} AS value
        FROM ${this.tableName}
        WHERE pet_id = $1 AND user_id = $2
@@ -108,7 +109,7 @@ export class TrendRepository extends BaseRepository<QueryResultRow> {
          COUNT(*) FILTER (WHERE has_anomaly = true) AS anomaly_count
        FROM ${this.tableName}
        WHERE pet_id = $1 AND user_id = $2
-         AND created_at >= $3::DATE AND created_at < $4::DATE`,
+         AND created_at >= ($3::date AT TIME ZONE 'Asia/Shanghai') AND created_at < ($4::date AT TIME ZONE 'Asia/Shanghai')`,
       [petId, userId, startDate, endDate],
     );
     return result.rows[0] ?? null;

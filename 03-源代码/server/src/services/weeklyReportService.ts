@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 家庭周报业务服务层 - 编排家庭周报的核心业务逻辑
  * 职责：家庭归属校验、周报列表分页、最新周报、详情查询、手动生成
  * generateReport 聚合当周真实数据（健康打卡/症状/食物查询/家庭动态）
@@ -189,7 +189,8 @@ async function buildRealReportData(
     ),
     // 5. 最佳一天：当周打卡最多的日期
     pool.query(
-      `SELECT (h.created_at AT TIME ZONE 'UTC')::date AS day, COUNT(*) AS cnt
+      `SELECT -- 审查⏳1：最佳一天按北京时区归日
+      (h.created_at AT TIME ZONE 'Asia/Shanghai')::date AS day, COUNT(*) AS cnt
        FROM pet_health_entries h
        JOIN pet_family_members m ON m.pet_id = h.pet_id
        WHERE m.family_id = $1 AND h.created_at BETWEEN $2 AND $3

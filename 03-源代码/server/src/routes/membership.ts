@@ -1,3 +1,4 @@
+﻿import { beijingDateString } from '../utils/beijingTime.js';
 /**
  * 会员管理路由 - 会员订阅与用量配额管理
  * 查询会员状态、订阅/取消会员、查询当日使用配额
@@ -179,7 +180,7 @@ router.post('/cancel', authMiddleware, async (req: Request, res: Response) => {
 router.get('/usage', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
-    const today = new Date().toISOString().split('T')[0];
+    const today = beijingDateString(); // 审查⏳1：北京「今日」（与 usage_quotas.date 口径统一）
 
     const quota = await usageQuotaRepository.findTodayUsage(userId, today);
 

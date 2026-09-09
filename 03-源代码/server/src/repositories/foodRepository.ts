@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 食物安全查询数据访问层 - pet_food_queries 表
  * 继承 BaseRepository，复用通用 CRUD 能力，强制参数化查询防注入
  * 支持关键词模糊匹配（ILIKE）、历史查询、按日统计
@@ -90,7 +90,8 @@ export class FoodRepository extends BaseRepository<FoodRow> {
   async countTodayByUser(userId: string, today: string): Promise<number> {
     const result = await this.rawQuery<{ count: number }>(
       `SELECT COUNT(*)::int AS count FROM ${this.tableName}
-       WHERE user_id = $1 AND created_at::date = $2::date`,
+       -- 审查⏳1：北京时区归日（原 UTC 归组 0-8 点错日）
+      WHERE user_id = $1 AND (created_at AT TIME ZONE 'Asia/Shanghai')::date = $2::date`,
       [userId, today],
     );
     return result.rows[0]?.count ?? 0;

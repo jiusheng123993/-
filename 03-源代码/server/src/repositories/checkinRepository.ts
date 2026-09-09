@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 健康打卡数据访问层 - pet_health_entries 表
  * 继承 BaseRepository，复用通用 CRUD 能力，强制参数化查询防注入
  * 提供打卡记录的创建、历史查询、今日打卡查询
@@ -87,7 +87,8 @@ export class CheckinRepository extends BaseRepository<CheckinRow> {
   async findTodayCheckin(petId: string, today: string): Promise<CheckinRow | null> {
     const result = await this.rawQuery<CheckinRow>(
       `SELECT * FROM ${this.tableName}
-       WHERE pet_id = $1 AND created_at::date = $2
+       -- 审查⏳1：UTC ::date 会把北京 0-8 点打卡归前一天
+      WHERE pet_id = $1 AND (created_at AT TIME ZONE 'Asia/Shanghai')::date = $2::date
        ORDER BY created_at DESC
        LIMIT 1`,
       [petId, today],

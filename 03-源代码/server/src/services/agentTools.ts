@@ -1,3 +1,4 @@
+﻿import { beijingDateString } from '../utils/beijingTime.js';
 /**
  * Agent 工具实现
  * 每个工具封装对现有后端逻辑的调用，供 Agent 循环使用
@@ -277,10 +278,11 @@ registerTool('record_health_checkin', async (args, context): Promise<ToolResult>
   const riskLevel = hasAnomaly ? 'high' : 'low';
 
   // 检查今天是否已经打卡
-  const today = new Date().toISOString().split('T')[0];
+  const today = beijingDateString(); // 审查⏳1：北京「今日」
   const { rows: existing } = await pool.query(
     `SELECT id FROM pet_health_entries
-     WHERE pet_id = $1 AND created_at::date = $2 LIMIT 1`,
+     -- 审查⏳1：AI 助手今日打卡判断按北京时区
+      WHERE pet_id = $1 AND (created_at AT TIME ZONE 'Asia/Shanghai')::date = $2::date LIMIT 1`,
     [petId, today]
   );
 
