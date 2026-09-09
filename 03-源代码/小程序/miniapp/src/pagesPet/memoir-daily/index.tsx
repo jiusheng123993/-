@@ -1,5 +1,5 @@
 /**
- * 日常回忆录页面（按高保真原型 1:1 重构）
+ * 轻纪念页面（回忆录馆「轻纪念」档流程，按高保真原型 1:1 重构）
  * 标题区 + hero + 双产品线卡 + 三步流程（上传素材 → AI生成 → 预览保存）
  * 保留完整业务：照片选择、风格/BGM、Ken Burns 预览、生成任务、WS+轮询、保存分享
  * 2026-09-09 B2：生成改为三档定价支付链（light 档：下单→微信支付→轮询回调创建的任务），
@@ -709,7 +709,6 @@ export default function MemoirDaily() {
 
   const isMember = pricing?.isMember ?? false
   const lightPrice = pricing?.prices ? pickTierPrice(pricing.prices, 'light', isMember) : null
-  const fullPrice = pricing?.prices ? pickTierPrice(pricing.prices, 'full', isMember) : null
 
   // ==================== 渲染：步骤指示器 ====================
 
@@ -1035,33 +1034,6 @@ export default function MemoirDaily() {
         </View>
         <View className='memoir__hero-badge'>
           <Text className='memoir__hero-badge-text'>✨ AI 时光电影</Text>
-        </View>
-      </View>
-
-      {/* 升档引导卡：本页即轻纪念(日常回忆录)流程，不再重复展示自身档位卡（审查：删自指卡避免「页内选档=自己」冲突） */}
-      <View className='memoir__product-list'>
-        <View
-          className='memoir__product-card memoir__product-card--gold'
-          onClick={() => Taro.navigateTo({ url: `/pagesPet/memoir-center/index${petId ? `?petId=${petId}` : ''}` })}
-        >
-          <View className='memoir__product-head'>
-            <View className='memoir__product-icon'>🎬</View>
-            <View className='memoir__product-titles'>
-              <Text className='memoir__product-name'>标准 · 完整回忆录</Text>
-              {/* full 档起价动态展示（B1 三档体系；旧硬编码 ¥99/149 已废除）；价格未就绪用中性文案不硬编码 */}
-              <Text className='memoir__product-price'>
-                {fullPrice !== null ? `¥${formatYuan(fullPrice)} 起 · 三档可选` : '三档可选'}
-              </Text>
-            </View>
-            <View className='memoir__badge-paid'>
-              <Text className='memoir__badge-paid-text'>付费</Text>
-            </View>
-          </View>
-          <View className='memoir__product-tags'>
-            <Text className='memoir__pill'>最长 90 秒 AI 视频</Text>
-            <Text className='memoir__pill'>8-15 张照片</Text>
-            <Text className='memoir__pill'>深刻催泪</Text>
-          </View>
         </View>
       </View>
 
