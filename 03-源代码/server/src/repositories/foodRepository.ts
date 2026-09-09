@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 食物安全查询数据访问层 - pet_food_queries 表
  * 继承 BaseRepository，复用通用 CRUD 能力，强制参数化查询防注入
  * 支持关键词模糊匹配（ILIKE）、历史查询、按日统计
@@ -13,6 +13,21 @@ export interface FoodRow extends QueryResultRow {
   food_name: string;
   safety_level: 'safe' | 'caution' | 'danger';
   detail: string;
+  created_at: string;
+}
+
+/** 权威知识库数据行（pet_food_safety_knowledge，security_level 枚举为 safe/caution/dangerous/toxic） */
+export interface KnowledgeFoodRow extends QueryResultRow {
+  id: string;
+  food_name: string;
+  aliases: string[];
+  safety_level: 'safe' | 'caution' | 'dangerous' | 'toxic';
+  species_applicable: string[];
+  detail: string;
+  dangerous_compounds: string[];
+  toxic_doses: string;
+  symptoms: string[];
+  first_aid: string;
   created_at: string;
 }
 
@@ -42,6 +57,26 @@ export class FoodRepository extends BaseRepository<FoodRow> {
       [`%${keyword}%`],
     );
     return result.rows;
+  }
+
+  /**
+   * 优先查询权威知识库 pet_food_safety_knowledge（标准答案，safety_level 含 toxic/dangerous）
+   * 匹配：食物名或别名模糊匹配；返回单条最佳匹配（未命中返回 null）
+   * 说明：迁移自 agentTools.ts 的 query_food_safety 逻辑，因原 /api/food/query 只查占位表
+   *      导致"权威库=安全、查询页却回 caution"的不一致。
+   */
+  async searchKnowledge(keyword: string): Promise<KnowledgeFoodRow | null> {
+    const result = await this.rawQuery<KnowledgeFoodRow>(
+      `SELECT id, food_name, aliases, safety_level, species_applicable,
+              detail, dangerous_compounds, toxic_doses, symptoms, first_aid, created_at
+       FROM pet_food_safety_knowledge
+       WHERE food_name ILIKE $1
+          OR aliases::text ILIKE $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [`%${keyword}%`],
+    );
+    return result.rows[0] ?? null;
   }
 
   /**
