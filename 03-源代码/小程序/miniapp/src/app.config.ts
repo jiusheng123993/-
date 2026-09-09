@@ -35,6 +35,12 @@ export default defineAppConfig({
         selectedIconPath: 'assets/icons/creative-active.png',
       },
       {
+        pagePath: 'pages/timeline/index',
+        text: '时光',
+        iconPath: 'assets/icons/timeline.png',
+        selectedIconPath: 'assets/icons/timeline-active.png',
+      },
+      {
         pagePath: 'pages/pet-profile/index',
         text: '宠物',
         iconPath: 'assets/icons/pet.png',

@@ -168,18 +168,18 @@ const CreativeHub = () => {
         </View>
       </View>
 
-      {/* ===== ✨ 更多（收口原 tab 页入口） ===== */}
+      {/* ===== ✨ 更多（原 tab 页功能收口 / 高频养宠工具） ===== */}
       <View className='cve-sectitle'>✨ 更多</View>
       <View className='cve-grid2'>
-        <View className='cve-mini' onClick={() => goWithPet('/pages/timeline/index', false)}>
-          <Text className='cve-mini-em'>📸</Text>
-          <Text className='cve-mini-title'>时光线</Text>
-          <Text className='cve-mini-desc'>回忆 · 日常 · 纪念</Text>
-        </View>
         <View className='cve-mini' onClick={() => goWithPet('/pagesPet/vaccine/index')}>
           <Text className='cve-mini-em'>💉</Text>
           <Text className='cve-mini-title'>疫苗日历</Text>
           <Text className='cve-mini-desc'>接种计划 · 提醒</Text>
+        </View>
+        <View className='cve-mini' onClick={() => goWithPet('/pagesPet/health-report/index')}>
+          <Text className='cve-mini-em'>📄</Text>
+          <Text className='cve-mini-title'>健康报告</Text>
+          <Text className='cve-mini-desc'>体检 · 疫苗 · 检查记录</Text>
         </View>
       </View>
     </View>

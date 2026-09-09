@@ -9,74 +9,74 @@
 .mhall {
   min-height: 100vh;
   background: #fffaf5;
-  padding: 14px 14px calc(40px + env(safe-area-inset-bottom));
+  padding: 28rpx 28rpx calc(80rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
 // ==================== 紫渐变 hero（原型 .hero.film） ====================
 .mhall-hero {
-  border-radius: 20px;
-  padding: 18px 16px;
+  border-radius: 40rpx;
+  padding: 36rpx 32rpx;
   background: linear-gradient(135deg, #a78bfa, #7c6cf0);
   color: #fff;
   position: relative;
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 28rpx;
 }
 
 .mhall-hero-face {
   position: absolute;
-  right: 14px;
-  top: 12px;
-  font-size: 44px;
+  right: 28rpx;
+  top: 24rpx;
+  font-size: 88rpx;
   opacity: 0.35;
 }
 
 .mhall-hero-title {
   display: block;
-  font-size: 20px;
+  font-size: 40rpx;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 8rpx;
 }
 
 .mhall-hero-sub {
   display: block;
-  font-size: 12px;
+  font-size: 24rpx;
   opacity: 0.92;
 }
 
 // ==================== 素材盘点 banner（原型 .banner） ====================
 .mhall-banner {
   background: linear-gradient(135deg, #ffd8a8, #ffc2d1);
-  border-radius: 16px;
-  padding: 10px 14px;
-  margin-bottom: 6px;
+  border-radius: 32rpx;
+  padding: 20rpx 28rpx;
+  margin-bottom: 12rpx;
 }
 
 .mhall-banner-text {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #7a4a2a;
   line-height: 1.6;
 }
 
 // ==================== 区块标题（原型 .sectitle） ====================
 .mhall-sectitle {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 700;
   color: #5a4634;
-  margin: 14px 2px 8px;
+  margin: 28rpx 4rpx 16rpx;
 }
 
 // ==================== 三档 wide 卡（原型 .card.wide） ====================
 .mhall-card {
   background: #fff;
-  border-radius: 18px;
-  padding: 12px;
-  box-shadow: 0 4px 14px rgba(170, 120, 70, 0.12);
+  border-radius: 36rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 28rpx rgba(170, 120, 70, 0.12);
   display: flex;
-  gap: 12px;
+  gap: 24rpx;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
   transition: all 0.2s ease;
 
   &:active {
@@ -91,9 +91,9 @@
 }
 
 .mhall-card-em {
-  font-size: 30px;
+  font-size: 60rpx;
   flex-shrink: 0;
-  width: 48px;
+  width: 96rpx;
   text-align: center;
 }
 
@@ -105,24 +105,24 @@
 .mhall-card-titlerow {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 3px;
+  gap: 16rpx;
+  margin-bottom: 6rpx;
 }
 
 .mhall-card-title {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 700;
   color: #3d2f24;
 }
 
 .mhall-card-sub {
-  font-size: 10px;
+  font-size: 20rpx;
   color: #b08b5e;
 }
 
 .mhall-card-desc {
   display: block;
-  font-size: 10.5px;
+  font-size: 21rpx;
   color: #a08b76;
   line-height: 1.45;
 }
@@ -130,22 +130,22 @@
 .mhall-card-pricerow {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-top: 7px;
+  gap: 12rpx;
+  margin-top: 14rpx;
 }
 
 .mhall-card-price {
   display: inline-block;
-  font-size: 11px;
+  font-size: 22rpx;
   font-weight: 700;
   color: #e2582f;
   background: #ffece2;
-  border-radius: 14px;
-  padding: 3px 9px;
+  border-radius: 28rpx;
+  padding: 6rpx 18rpx;
 }
 
 .mhall-card-mprice {
-  font-size: 10px;
+  font-size: 20rpx;
   color: #b08b5e;
 }
 
@@ -153,14 +153,14 @@
 .mhall-grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .mhall-mini {
   background: #fff;
-  border-radius: 18px;
-  padding: 12px;
-  box-shadow: 0 4px 14px rgba(170, 120, 70, 0.12);
+  border-radius: 36rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 28rpx rgba(170, 120, 70, 0.12);
 
   &:active {
     background: #fff8f2;
@@ -168,20 +168,20 @@
 }
 
 .mhall-mini-em {
-  font-size: 24px;
+  font-size: 48rpx;
 }
 
 .mhall-mini-title {
   display: block;
-  font-size: 14px;
+  font-size: 28rpx;
   color: #3d2f24;
   font-weight: 600;
-  margin: 6px 0 3px;
+  margin: 12rpx 0 6rpx;
 }
 
 .mhall-mini-desc {
   display: block;
-  font-size: 10.5px;
+  font-size: 21rpx;
   color: #a08b76;
   line-height: 1.45;
 }
