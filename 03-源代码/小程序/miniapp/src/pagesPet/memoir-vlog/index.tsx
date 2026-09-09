@@ -31,9 +31,15 @@ import {
   snapshotLatestTaskId,
   confirmScript,
   rejectScript,
+  getPromptPreview,
+  refinePrompt,
+  confirmPrompt,
+  mapBGMKeyToMusicStyle,
   type MaterialCheck,
   type MemoirPricing,
   type MemoirTaskStatus,
+  type MemoirPromptScript,
+  type PromptSegment,
 } from '../../services/memoirService'
 import {
   MEMOIR_TIER_ORDER,
@@ -166,6 +172,13 @@ export default function MemoirVlog() {
   // 外部预选档位（回忆录馆档位卡直达）：标准/完整走本页多段管线
   const [selectedTier, setSelectedTier] = useState<MemoirTier | null>(presetTier)
   const [paying, setPaying] = useState(false)
+
+  // —— 步骤5：提示词人机协同（2026-09-09 块①，生成前确认最终版防扯皮） ——
+  const [promptScript, setPromptScript] = useState<MemoirPromptScript | null>(null)
+  const [promptVersion, setPromptVersion] = useState(0)
+  const [promptDraft, setPromptDraft] = useState('')
+  const [promptConfirmed, setPromptConfirmed] = useState(false)
+  const [previewingPrompt, setPreviewingPrompt] = useState(false)
 
   // —— 步骤6：生成与结果 ——
   const [loading, setLoading] = useState(false)
@@ -492,12 +505,116 @@ export default function MemoirVlog() {
     }
   }, [step, selectedTier, photos.length])
 
+  // ==================== 提示词人机协同（2026-09-09 块①） ====================
+
+  /**
+   * 预览第一版提示词：按 照片+画风+BGM 从服务端取「将用提示词」给用户看。
+   */
+  const handlePreviewPrompt = useCallback(async () => {
+    if (!petId) {
+      Taro.showToast({ title: '宠物信息缺失', icon: 'none' })
+      return
+    }
+    if (!selectedTier) {
+      Taro.showToast({ title: '请先选择档位', icon: 'none' })
+      return
+    }
+    const uploading = photos.filter(p => p.uploading).length
+    if (uploading > 0) {
+      Taro.showToast({ title: `还有 ${uploading} 张照片上传中`, icon: 'none' })
+      return
+    }
+    const remotePhotos = photos
+      .map(p => p.remoteUrl)
+      .filter((u): u is string => !!u)
+    if (remotePhotos.length === 0) {
+      Taro.showToast({ title: '请先添加并上传照片', icon: 'none' })
+      return
+    }
+    if (!isTierAvailable(selectedTier, photos.length)) {
+      Taro.showToast({ title: `照片数不满足${TIER_META[selectedTier].name}要求`, icon: 'none' })
+      return
+    }
+    setPreviewingPrompt(true)
+    try {
+      const script = await getPromptPreview(petId, {
+        memoir_type: 'memorial',
+        tier: selectedTier,
+        source_photos: remotePhotos,
+        source_text: narrative.trim() || undefined,
+        music_style: mapBGMKeyToMusicStyle(selectedBGM),
+        // 画风画圈（块②重构时接入 selectedStyle）；当前沿用系统默认风格
+        selected_moment_ids: selectedMomentIds.length > 0 ? selectedMomentIds : undefined,
+      })
+      setPromptScript(script)
+      setPromptVersion(v => v + 1)
+      setPromptConfirmed(false)
+      setPromptDraft('')
+    } catch (err) {
+      Taro.showToast({ title: err instanceof Error ? err.message : '提示词预览失败', icon: 'none' })
+    } finally {
+      setPreviewingPrompt(false)
+    }
+  }, [petId, selectedTier, photos, narrative, selectedBGM, selectedMomentIds])
+
+  /** 生成下一版提示词：用户提修改要求 → LLM 改写。 */
+  const handleRefinePrompt = useCallback(async () => {
+    if (!petId || !promptScript) {
+      Taro.showToast({ title: '请先预览提示词', icon: 'none' })
+      return
+    }
+    if (!promptDraft.trim()) {
+      Taro.showToast({ title: '请先填写修改要求', icon: 'none' })
+      return
+    }
+    setPreviewingPrompt(true)
+    try {
+      const segments = await refinePrompt(petId, promptScript.segments as PromptSegment[], promptDraft.trim())
+      setPromptScript({ ...promptScript, segments })
+      setPromptVersion(v => v + 1)
+      setPromptConfirmed(false)
+      setPromptDraft('')
+      Taro.showToast({ title: `已生成第 ${promptVersion + 2} 版提示词`, icon: 'none' })
+    } catch (err) {
+      Taro.showToast({ title: err instanceof Error ? err.message : '改写失败', icon: 'none' })
+    } finally {
+      setPreviewingPrompt(false)
+    }
+  }, [petId, promptScript, promptDraft, promptVersion])
+
+  /** 确认最终版提示词：留存作证，才允许进入支付/生成。 */
+  const handleConfirmPrompt = useCallback(async () => {
+    if (!petId || !promptScript || !selectedTier) {
+      return
+    }
+    setPreviewingPrompt(true)
+    try {
+      await confirmPrompt(petId, selectedTier, promptScript)
+      setPromptConfirmed(true)
+      Taro.showToast({ title: '已确认最终版提示词', icon: 'success' })
+    } catch (err) {
+      Taro.showToast({ title: err instanceof Error ? err.message : '确认失败', icon: 'none' })
+    } finally {
+      setPreviewingPrompt(false)
+    }
+  }, [petId, promptScript, selectedTier])
+
   // ==================== 支付链：下单 → 微信支付 → 等任务 → 轮询 ====================
 
   /** 支付并开始生成（确认页主按钮） */
   const handlePayAndGenerate = useCallback(async () => {
     if (!petId) {
       Taro.showToast({ title: '宠物信息缺失', icon: 'none' })
+      return
+    }
+    // 提示词人机协同硬门槛（2026-09-09）：生成前必须把提示词确认成最终版，防「这不是我生成的」扯皮
+    if (!promptConfirmed) {
+      Taro.showModal({
+        title: '请先确认提示词',
+        content: '生成前请预览提示词，并将它确认为最终版；无修改时可只预览后直接确认',
+        showCancel: false,
+        confirmText: '去确认',
+      })
       return
     }
     if (!selectedTier) {
@@ -597,7 +714,7 @@ export default function MemoirVlog() {
       setPaying(false)
       Taro.showToast({ title: err instanceof Error ? err.message : '支付失败，请重试', icon: 'none' })
     }
-  }, [petId, selectedTier, photos, narrative, selectedTags, selectedBGM, selectedMomentIds, goToStep, startLoadingAnim])
+  }, [petId, selectedTier, photos, narrative, selectedTags, selectedBGM, selectedMomentIds, goToStep, startLoadingAnim, promptConfirmed])
 
   // ==================== 轮询任务状态 ====================
 
@@ -1251,6 +1368,79 @@ export default function MemoirVlog() {
               <Text className='memoir-vlog__confirm-item-label'>背景音乐</Text>
             </View>
           </View>
+        </View>
+
+        {/* 提示词人机协同（2026-09-09 块①）：生成前预览→多轮修改→确认最终版才可支付 */}
+        <View className='memoir-vlog__prompt-confirm'>
+          <View className='memoir-vlog__prompt-confirm-head'>
+            <Text className='memoir-vlog__prompt-confirm-title'>🧠 提示词确认</Text>
+            <Text className='memoir-vlog__prompt-confirm-version'>
+              {promptScript ? `第 ${promptVersion} 版` : '未预览'}
+            </Text>
+          </View>
+
+          {!promptScript ? (
+            <Text className='memoir-vlog__prompt-confirm-hint'>
+              生成前我们会按照片+风格+BGM 生成提示词；请先预览，确认无误后再生成
+            </Text>
+          ) : (
+            <View className='memoir-vlog__prompt-segments'>
+              {promptScript.segments.map((seg, i) => (
+                <View key={i} className='memoir-vlog__prompt-segment'>
+                  <Text className='memoir-vlog__prompt-segment-label'>第 {seg.photo_index + 1} 镜</Text>
+                  <Text className='memoir-vlog__prompt-segment-text'>{seg.seedance_prompt}</Text>
+                  {seg.narration && (
+                    <Text className='memoir-vlog__prompt-segment-narr'>旁白：{seg.narration}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          <View className='memoir-vlog__prompt-actions'>
+            <View
+              className='memoir-vlog__prompt-btn memoir-vlog__prompt-btn--ghost'
+              onClick={handlePreviewPrompt}
+            >
+              <Text>{previewingPrompt ? '生成中...' : promptScript ? '重新预览' : '预览提示词'}</Text>
+            </View>
+            {promptScript && (
+              <View
+                className='memoir-vlog__prompt-btn memoir-vlog__prompt-btn--ghost'
+                onClick={handleConfirmPrompt}
+              >
+                <Text>{promptConfirmed ? '✓ 已确认' : '确认最终版'}</Text>
+              </View>
+            )}
+          </View>
+
+          {promptScript && !promptConfirmed && (
+            <>
+              <View className='memoir-vlog__prompt-refine-row'>
+                <Text className='memoir-vlog__prompt-refine-label'>哪里要改？</Text>
+                <View
+                  className='memoir-vlog__prompt-btn memoir-vlog__prompt-btn--gold'
+                  onClick={handleRefinePrompt}
+                >
+                  <Text>{previewingPrompt ? '生成中...' : `生成下一版`}</Text>
+                </View>
+              </View>
+              <View className='memoir-vlog__prompt-input-wrap'>
+                <Textarea
+                  className='memoir-vlog__prompt-input'
+                  placeholder='例如：第一镜改成傍晚光线，氛围更温馨一点'
+                  placeholderClass='memoir-vlog__prompt-input-placeholder'
+                  value={promptDraft}
+                  onInput={(e) => setPromptDraft(e.detail.value)}
+                  maxlength={200}
+                />
+              </View>
+            </>
+          )}
+
+          {promptConfirmed && (
+            <Text className='memoir-vlog__prompt-confirm-ok'>✓ 已确认最终版，将按此版生成</Text>
+          )}
         </View>
       </View>
     )

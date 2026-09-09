@@ -1080,3 +1080,146 @@
   color: $color-text-secondary;
   line-height: 1.7;
 }
+
+// ==================== 提示词人机协同（2026-09-09 块①） ====================
+.memoir-vlog__prompt-confirm {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border-radius: $radius-xl;
+  background: rgba(255, 154, 98, 0.05);
+  border: 2rpx solid rgba(255, 154, 98, 0.22);
+}
+
+.memoir-vlog__prompt-confirm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.memoir-vlog__prompt-confirm-title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: #D2703A;
+}
+
+.memoir-vlog__prompt-confirm-version {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.memoir-vlog__prompt-confirm-hint {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.memoir-vlog__prompt-confirm-ok {
+  display: block;
+  margin-top: 12rpx;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: #3fae72;
+}
+
+// 分段提示词列表
+.memoir-vlog__prompt-segments {
+  max-height: 520rpx;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin: 12rpx 0;
+}
+
+.memoir-vlog__prompt-segment {
+  padding: 16rpx 18rpx;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2rpx solid rgba(255, 154, 98, 0.12);
+}
+
+.memoir-vlog__prompt-segment-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: #D2703A;
+  margin-bottom: 6rpx;
+}
+
+.memoir-vlog__prompt-segment-text {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.memoir-vlog__prompt-segment-narr {
+  display: block;
+  margin-top: 6rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  line-height: 1.5;
+}
+
+// 操作按钮行
+.memoir-vlog__prompt-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.memoir-vlog__prompt-btn {
+  flex: 1;
+  height: 76rpx;
+  border-radius: $radius-round;
+  @include flex-center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &--ghost {
+    background: rgba(255, 154, 98, 0.08);
+    border: 2rpx solid rgba(255, 154, 98, 0.3);
+    color: #D2703A;
+  }
+
+  &--gold {
+    background: linear-gradient(135deg, #FF9A62, #D2703A);
+    color: #fff;
+    box-shadow: 0 8rpx 24rpx rgba(255, 154, 98, 0.3);
+  }
+}
+
+// 修改输入行
+.memoir-vlog__prompt-refine-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.memoir-vlog__prompt-refine-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.memoir-vlog__prompt-input-wrap {
+  margin-top: 14rpx;
+}
+
+.memoir-vlog__prompt-input {
+  width: 100%;
+  min-height: 140rpx;
+  padding: 16rpx 20rpx;
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2rpx solid rgba(255, 154, 98, 0.2);
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.memoir-vlog__prompt-input-placeholder {
+  color: $color-text-tertiary;
+}
