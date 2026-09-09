@@ -145,7 +145,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const userId = req.userId!;
-      const { pet_id, memoir_type, tier, source_photos, source_text, music_style, duration, style_preset, tags, selected_moment_ids } = req.body;
+      const { pet_id, memoir_type, tier, source_photos, source_text, music_style, duration, style_preset, tags, selected_moment_ids, custom_bgm_url } = req.body;
 
       // 1. 归属校验
       const owns = await petRepository.isOwner(pet_id, userId);
@@ -200,6 +200,7 @@ router.post(
           style_preset,
           tags,
           selected_moment_ids,
+          custom_bgm_url,
           tier: resolvedTier,
           user_tier: userTier,
         },
@@ -454,6 +455,8 @@ async function handleMemoirPaymentSuccess(order: {
     style_preset?: string;
     tags?: string[];
     selected_moment_ids?: string[];
+    /** 用户导入的自定义 BGM 公网 URL（2026-09-09，合成优先使用） */
+    custom_bgm_url?: string;
     /** 档位（2026-09-09 三档）：兼容历史订单可能存的会员身份旧语义，回调时统一 resolveMemoirTier 兜底 */
     tier?: 'light' | 'standard' | 'full' | 'member' | 'free';
   };
@@ -487,6 +490,7 @@ async function handleMemoirPaymentSuccess(order: {
     music_style: meta.music_style,
     duration: meta.duration,
     style_preset: meta.style_preset,
+    custom_bgm_url: meta.custom_bgm_url,
     tags: meta.tags,
     selected_moment_ids: meta.selected_moment_ids,
   });

@@ -57,6 +57,8 @@ export interface VideoGenerationParams {
   duration?: number | null;
   /** 风格预设 */
   stylePreset?: string | null;
+  /** 用户导入的自定义 BGM URL（2026-09-09，合成优先使用；无则用内置 incompetech 曲） */
+  customBgmUrl?: string | null;
   /**
    * AI 分镜脚本（回忆录 2.0，M1 生成）
    * 存在时走"分镜驱动"新管线（十段提示词 + 字幕 + 旁白 + xfade）；
@@ -236,7 +238,7 @@ export function validateDuration(
 export async function generateMemoirVideo(
   params: VideoGenerationParams,
 ): Promise<VideoGenerationResult> {
-  const { taskId, productLine, tier, sourcePhotos, sourceText, musicStyle, duration, stylePreset, script } = params;
+  const { taskId, productLine, tier, sourcePhotos, sourceText, musicStyle, duration, stylePreset, script, customBgmUrl } = params;
 
   // 参数校验（2026-09-09 三档：tier 传入时按档位边界校验——standard 5-7 张/40-50 秒等；
   // 缺省（历史调用方/旧路径）维持产品线校验，行为向后兼容）
@@ -255,7 +257,7 @@ export async function generateMemoirVideo(
 
   // 回忆录 2.0：有 AI 分镜脚本 → 分镜驱动新管线
   if (script && Array.isArray(script.segments) && script.segments.length > 0) {
-    return generateFromScript(taskId, sourcePhotos, script, musicStyle);
+    return generateFromScript(taskId, sourcePhotos, script, musicStyle, customBgmUrl);
   }
 
   // 旧管线（兼容历史任务：narrative_structure 无 script）
@@ -340,6 +342,7 @@ async function generateFromScript(
   photos: string[],
   script: MemoirScript,
   musicStyle: string | null | undefined,
+  customBgmUrl?: string | null,
 ): Promise<VideoGenerationResult> {
   if (!isSeedanceConfigured()) {
     console.warn(`[VideoGen] Task ${taskId}: API key not configured, using mock mode (scripted)`);
@@ -379,8 +382,8 @@ async function generateFromScript(
       cursor += seg.duration_sec;
     }
 
-    // 2. 拼接：xfade 转场 + 字幕 + 旁白
-    const finalVideo = await stitchWithScript(taskId, segmentUrls, timeline, script, musicStyle);
+    // 2. 拼接：xfade 转场 + 字幕 + 旁白（BGM 优先用用户导入的 customBgmUrl）
+    const finalVideo = await stitchWithScript(taskId, segmentUrls, timeline, script, musicStyle, customBgmUrl);
 
     return {
       videoUrl: finalVideo.videoUrl,
@@ -410,6 +413,7 @@ async function stitchWithScript(
   timeline: ScriptTimeline[],
   script: MemoirScript,
   musicStyle: string | null | undefined,
+  customBgmUrl?: string | null,
 ): Promise<StitchResult> {
   if (segmentUrls.length === 0) {
     throw new Error(`[VideoGen] No segments to stitch for task ${taskId}`);
@@ -503,19 +507,31 @@ async function stitchWithScript(
       filterParts.push(`[abase]anull[aout]`);
     }
 
-    // BGM 背景（2026-09-09 合成接入）：按音乐风格选内置曲（incompetech CC BY 3.0），循环 + 低音量，
-    // 与旁白/底噪混合；BGM 文件缺失时静默跳过（不阻断最终成片）
+    // BGM 背景（2026-09-09 合成接入）：优先用用户导入的 customBgmUrl（下载后循环混音），
+    // 否则按音乐风格选内置 incompetech 曲；BGM 文件缺失时静默跳过（不阻断最终成片）
     try {
-      const bgmFileName = musicStyle ? BGM_FILES[musicStyle] : undefined;
-      if (bgmFileName) {
-        const bgmPath = path.join(UPLOAD_DIR, 'bgm', bgmFileName);
-        if (existsSync(bgmPath)) {
-          const bgmIdx = inputs.length; // 追加一个输入
-          inputs.push('-stream_loop', '-1', '-i', bgmPath);
-          filterParts.push(`[${bgmIdx}:a]volume=0.22[abgm]`);
-          filterParts.push(`[aout][abgm]amix=inputs=2:duration=first:normalize=0[amix]`);
-          filterParts.push(`[amix]atrim=0:${Math.max(totalDuration, 1)}[aout]`);
+      let bgmLocalPath: string | null = null;
+      if (customBgmUrl) {
+        // 下载用户上传的音频到任务目录（复用 downloadFile），用作 BGM
+        const extSuffix = (customBgmUrl.split('.').pop() || 'mp3').toLowerCase();
+        const safeExt = ['mp3', 'm4a', 'aac', 'wav'].includes(extSuffix) ? extSuffix : 'mp3';
+        bgmLocalPath = path.join(workDir, `custom_bgm.${safeExt}`);
+        await downloadFile(customBgmUrl, bgmLocalPath);
+      } else {
+        const bgmFileName = musicStyle ? BGM_FILES[musicStyle] : undefined;
+        if (bgmFileName) {
+          const p = path.join(UPLOAD_DIR, 'bgm', bgmFileName);
+          if (existsSync(p)) {
+            bgmLocalPath = p;
+          }
         }
+      }
+      if (bgmLocalPath && existsSync(bgmLocalPath)) {
+        const bgmIdx = inputs.length; // 追加一个输入
+        inputs.push('-stream_loop', '-1', '-i', bgmLocalPath);
+        filterParts.push(`[${bgmIdx}:a]volume=0.22[abgm]`);
+        filterParts.push(`[aout][abgm]amix=inputs=2:duration=first:normalize=0[amix]`);
+        filterParts.push(`[amix]atrim=0:${Math.max(totalDuration, 1)}[aout]`);
       }
     } catch {
       // BGM 处理失败不阻断合成

@@ -59,6 +59,8 @@ export interface CreateMemoirInput {
   music_style?: string;
   duration?: number;
   style_preset?: string;
+  /** 用户导入的自定义 BGM URL（2026-09-09，合成优先使用） */
+  custom_bgm_url?: string;
   /**
    * 回忆标签（F4：记忆驱动回忆录）
    * 用户选标签（如 milestone/daily_joy/farewell），分镜生成时按标签筛核心层记忆作素材

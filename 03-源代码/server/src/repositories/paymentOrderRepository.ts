@@ -63,6 +63,8 @@ export interface CreateMemoirOrderParams {
     tags?: string[];
     /** 勾选记忆 ID（G2 记忆勾选，透传给任务创建） */
     selected_moment_ids?: string[];
+    /** 用户导入的自定义 BGM URL（2026-09-09，合成优先使用） */
+    custom_bgm_url?: string;
     /** 档位（2026-09-09 三档定价体系）：回调时重建 createMemoir 入参 */
     tier: 'light' | 'standard' | 'full';
     /** 下单时的会员身份（审计用，非业务必需） */

@@ -366,6 +366,8 @@ export const createMemoirOrderSchema = z
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
     duration: z.number().int().min(5).max(180).optional(),
     style_preset: z.string().max(100).optional(),
+    /** 用户导入的自定义 BGM URL（2026-09-09，合成优先；仅本站 /uploads/ 相对路径） */
+    custom_bgm_url: z.string().max(500).optional(),
     // F4：回忆标签（与 createMemoirSchema 一致，走支付流程也透传）
     tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
     // G2 记忆勾选（透传进订单 product_metadata → 回调后建任务）
@@ -463,6 +465,8 @@ export const createMemoirSchema = z
     music_style: z.enum(['warm', 'nostalgic', 'cheerful', 'peaceful']).optional(),
     duration: z.number().int().min(5).max(180).optional(),
     style_preset: z.string().max(100).optional(),
+    /** 用户导入的自定义 BGM URL（2026-09-09，合成优先；仅本站 /uploads/ 相对路径） */
+    custom_bgm_url: z.string().max(500).optional(),
     // F4：回忆标签（用户选，分镜按标签筛核心层记忆）
     tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
     // G2 记忆勾选：仅勾选的时光线回忆进入旁白锚定（用户控制权，后端逐条校验归属）

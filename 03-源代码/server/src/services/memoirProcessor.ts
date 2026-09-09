@@ -200,6 +200,7 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
       duration: typeof narrative.duration === 'number' ? narrative.duration : null,
       stylePreset: typeof narrative.style_preset === 'string' ? narrative.style_preset : null,
+      customBgmUrl: typeof narrative.custom_bgm_url === 'string' ? narrative.custom_bgm_url : null,
       script,
     });
 
