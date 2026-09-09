@@ -101,7 +101,18 @@ export const config = {
     baseUrl: 'https://api.meshy.ai',
   },
   moderate: {
+    /** 旧单 key 形态已废弃（真实接口走 AK/SK 签名），保留字段兼容历史配置读取 */
     apiKey: process.env.MODERATE_API_KEY || '',
+    /** 火山引擎 IAM AccessKey（AKLT… 开头）——内容安全/视觉智能 V4 签名鉴权 */
+    accessKeyId: process.env.MODERATE_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.MODERATE_SECRET_ACCESS_KEY || '',
+    /** 内容安全能力名（req_key），以控制台 API Explorer 实测为准，可经 .env 校准 */
+    reqKey: process.env.MODERATE_REQ_KEY || '',
+    /** 审核场景（色情/涉政/暴恐/广告），默认四场景 */
+    scenarios: (process.env.MODERATE_SCENARIOS || 'porn,politician,terror,ad')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
   },
   /** 回忆录旁白 TTS 配置（火山引擎豆包语音 Doubao Speech 2.0，回忆录 2.0 M3 模块） */
   doubaoSpeech: {
@@ -169,8 +180,8 @@ if (process.env.NODE_ENV === 'production' && config.allowedOrigins.length === 0)
 
 // 内容审核 key 缺失时 moderateVideo 会默认放行（fail-open），与《运营应急预案》声称的
 // 「内容审核✅」不符。生产必须配置 MODERATE_API_KEY，缺失时醒目告警（2026-09 审查 P1 配套）。
-if (process.env.NODE_ENV === 'production' && !config.moderate?.apiKey) {
-  console.error('[config] 生产环境未配置 MODERATE_API_KEY，视频内容审核将默认放行（fail-open），存在合规风险！');
+if (process.env.NODE_ENV === 'production' && !(config.moderate?.accessKeyId && config.moderate?.secretAccessKey)) {
+  console.error('[config] 生产环境未配置 MODERATE_ACCESS_KEY_ID/MODERATE_SECRET_ACCESS_KEY，视频内容审核将默认放行（fail-open），存在合规风险！');
 }
 
 // ===== AI 连接配置启动校验 =====
