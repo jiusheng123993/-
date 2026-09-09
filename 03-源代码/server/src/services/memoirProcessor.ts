@@ -382,16 +382,25 @@ async function ensureMemoirScript(
   // 真正兑现「按用户确认过的版本生成」，防止「这不是我确认的那版」的扯皮。
   if (!existing) {
     try {
-      const confirmation = await memoirRepository.findPromptConfirmation(task.pet_id);
-      if (confirmation && confirmation.tier === tier) {
+      // 按 pet_id + 当前档位取确认版（审查 P2-1：同宠多档确认互不遮蔽）
+      const confirmation = await memoirRepository.findPromptConfirmation(task.pet_id, tier);
+      if (confirmation) {
         const confirmedScript = confirmation.script as MemoirScript;
         if (confirmedScript && Array.isArray(confirmedScript.segments) && confirmedScript.segments.length > 0) {
-          return sanitizeMemoirScriptPrompts(confirmedScript, {
+          const script = sanitizeMemoirScriptPrompts(confirmedScript, {
             petProfile,
             photoCount: task.source_photos.length,
             productLine,
             targetDuration: typeof narrative.duration === 'number' ? narrative.duration : MEMOIR_TIER_CONFIG[tier].defaultDuration,
           });
+          // 审查 P0-1 关键修复：确认版也须持久化到任务，否则剧本确认闸门放行后
+          // narrative.script 仍为空 → 重新入队又走确认版分支 → 再暂停 → 确认-暂停死循环，永远无法出片。
+          try {
+            await memoirRepository.updateScript(task.id, script as unknown as Record<string, unknown>);
+          } catch (err) {
+            console.warn(`[MemoirProcessor] Task ${task.id}: 确认版持久化失败（不影响本次生成）:`, sanitizeError(err));
+          }
+          return script;
         }
       }
     } catch {

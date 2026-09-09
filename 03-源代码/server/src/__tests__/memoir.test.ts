@@ -957,7 +957,15 @@ describe('POST /api/pets/:petId/memoir/prompt-refine 提示词改写', () => {
 
 // ===== POST /api/pets/:petId/memoir/prompt-confirm - 提示词确认留存 =====
 describe('POST /api/pets/:petId/memoir/prompt-confirm 提示词确认留存', () => {
-  const script = { title: '测试', segments: [{ photo_index: 0, seedance_prompt: '一只橘猫' }] };
+  // 需符合 MemoirScriptSchema（safeParse 校验，审查 P2-2）
+  const script = {
+    title: '测试',
+    theme: '陪伴',
+    emotion_curve: ['memory'],
+    narration_voice: 'zh_female_vv_uranus_bigtts',
+    music_mood: 'warm',
+    segments: [{ photo_index: 0, shot_type: 'static_drift', camera: 'medium', lighting: 'soft_afternoon', transition: 'cut', duration_sec: 5, seedance_prompt: '一只橘色猫咪在午后阳光下静静伸懒腰，柔软光线，电影质感。', narration: '它就是这样慢慢长大的。', subtitle: '午后', music_mood: 'warm', source: 'ai_video' }],
+  };
 
   it('用户确认最终版提示词返回 confirmed', async () => {
     mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });   // canAccess OK
@@ -987,6 +995,17 @@ describe('POST /api/pets/:petId/memoir/prompt-confirm 提示词确认留存', ()
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir/prompt-confirm')
       .send({ script });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('script 结构不完整（缺 segments）返回 400（审查 P2-2）', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });   // canAccess OK
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-confirm')
+      .send({ tier: 'standard', script: { title: 'x' } });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);

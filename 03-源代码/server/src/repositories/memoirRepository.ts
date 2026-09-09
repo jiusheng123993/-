@@ -260,15 +260,18 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
     );
   }
 
-  /** 读取某宠物最近一条已确认提示词（供生成管线优先采用；无则 null） */
-  async findPromptConfirmation(petId: string): Promise<{ tier: string; script: Record<string, unknown> } | null> {
+  /** 读取某宠物某档位最近一条已确认提示词（供生成管线优先采用；无则 null） */
+  async findPromptConfirmation(
+    petId: string,
+    tier: 'light' | 'standard' | 'full',
+  ): Promise<{ tier: string; script: Record<string, unknown> } | null> {
     const result = await this.rawQuery(
       `SELECT tier, script
        FROM memoir_prompt_confirmations
-       WHERE pet_id = $1
+       WHERE pet_id = $1 AND tier = $2
        ORDER BY confirmed_at DESC
        LIMIT 1`,
-      [petId],
+      [petId, tier],
     );
     const row = result.rows[0];
     if (!row) return null;

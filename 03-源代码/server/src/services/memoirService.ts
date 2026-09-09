@@ -19,6 +19,7 @@ import { PetRepository } from '../repositories/petRepository.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { generateMemoirScript } from './memoirScriptService.js';
 import type { MemoirScript } from '../schemas/memoirScript.js';
+import { MemoirScriptSchema } from '../schemas/memoirScript.js';
 import { analyzeMemoirPhotos } from './memoirPhotoAnalysis.js';
 import { chat } from './aiService.js';
 import { buildMemoryContext, getMemoriesByTags, getMomentSummariesByIds } from './memoryService.js';
@@ -640,6 +641,12 @@ export async function confirmMemoirPrompt(
     throw new MemoirError(404, '宠物不存在');
   }
 
-  await memoirRepository.upsertPromptConfirmation(userId, petId, tier, script);
+  // 确认版结构校验（审查 P2-2：畸形段会令 sanitize 抛 TypeError，静默失效）
+  const parsed = MemoirScriptSchema.safeParse(script);
+  if (!parsed.success) {
+    throw new MemoirError(400, '确认版提示词结构不完整，请重新预览确认');
+  }
+
+  await memoirRepository.upsertPromptConfirmation(userId, petId, tier, parsed.data as unknown as Record<string, unknown>);
   return { confirmed: true, confirmed_at: new Date().toISOString() };
 }
