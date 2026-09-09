@@ -14,6 +14,7 @@
  *   - 配额校验在 service 层强制执行，不依赖前端
  */
 import { MemoirRepository, type MemoirRecordRow } from '../repositories/memoirRepository.js';
+import { refundMemoirOrder } from './memoirRefundService.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
 import {
@@ -416,6 +417,13 @@ export async function rejectMemoirScript(
   const rejected = await memoirRepository.rejectScript(memoirId, userId);
   if (!rejected) {
     throw new MemoirError(409, '任务不在等待确认状态，请刷新后查看最新进度');
+  }
+
+  // 退款闭环（审查⏳3）：用户放弃剧本 = 任务终止且未消耗视频成本，
+  // 付费单条（payment_id 非空）应全额退款。失败仅记日志不阻断放弃动作。
+  const task = await memoirRepository.findById(memoirId);
+  if (task) {
+    await refundMemoirOrder(task, '用户放弃生成（剧本未确认），自动退款');
   }
 }
 

@@ -6,8 +6,9 @@
  *   3. 调用视频生成服务
  *   4. 对生成结果进行内容审核
  *   5. 审核失败自动重试（最多 2 次）
- *   6. 最终成功/失败后通过 WebSocket 通知用户
- *   7. 最终失败需退款/退额度（由调用方在 service 层处理）
+ *   7. 最终成功/失败后通过 WebSocket 通知用户
+ *   8. 最终失败自动退款（审查⏳3 退款闭环，方案 A）：付费单条（payment_id 非空）
+ *      最终失败时调用 memoirRefundService 原路全额退款，会员任务无支付订单自然跳过
  *
  * 安全约束：
  *   - 单次最多处理 5 个任务（防止阻塞）
@@ -37,6 +38,7 @@ import { sanitizeError } from '../utils/sanitize.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from '../config.js';
+import { refundMemoirOrder } from './memoirRefundService.js';
 
 /** 服务器工作目录（上传/生成产物根目录，质检抽帧用） */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -209,6 +211,8 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
         return false;
       }
       await memoirRepository.markFailed(task.id, '质量质检未通过');
+      // 退款闭环（审查⏳3）：付费单条最终失败 → 自动原路全额退款
+      await refundMemoirOrder(task, '视频质量未达标，已超过最大重试次数');
       await notifyUser(task.user_id, {
         type: 'memoir_failed',
         taskId: task.id,
@@ -230,6 +234,8 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       }
       // 重试次数用完，标记失败
       await memoirRepository.markFailed(task.id, '内容审核拒绝，已超过最大重试次数');
+      // 退款闭环（审查⏳3）：付费单条最终失败 → 自动原路全额退款
+      await refundMemoirOrder(task, '内容审核未通过，已超过最大重试次数');
       await notifyUser(task.user_id, {
         type: 'memoir_failed',
         taskId: task.id,
@@ -289,6 +295,8 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
 
     // 重试次数用完，标记失败
     await memoirRepository.markFailed(task.id, errorMessage);
+    // 退款闭环（审查⏳3）：付费单条最终失败 → 自动原路全额退款
+    await refundMemoirOrder(task, `视频生成失败: ${errorMessage.slice(0, 60)}`);
     await notifyUser(task.user_id, {
       type: 'memoir_failed',
       taskId: task.id,

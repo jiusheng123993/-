@@ -28,6 +28,7 @@ vi.mock('../config.js', () => ({
     meshy: { apiKey: '' },
     moderate: { apiKey: '' },
     wechat: { appId: '', secret: '' },
+    wechatPay: { mock: true }, // 审查⏳3：refundMemoirOrder 退款走 mock 分支，不发真实微信支付请求
     uploadDir: './uploads',
   },
 }));
@@ -644,8 +645,9 @@ describe('POST /api/pets/:petId/memoir/:memoirId/reject - 放弃分镜剧本（�
 
   it('等待确认的任务放弃成功，返回 200', async () => {
     mockPool.query
-      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ id: 'memoir-001' }], rowCount: 1 });
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // canAccess
+      .mockResolvedValueOnce({ rows: [{ id: 'memoir-001' }], rowCount: 1 })  // rejectScript UPDATE
+      .mockResolvedValueOnce({ rows: [{ id: 'memoir-001', user_id: 'user-001', payment_id: null }], rowCount: 1 }); // findById（退款守卫：无付费订单跳过）
 
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir/memoir-001/reject');
@@ -653,6 +655,50 @@ describe('POST /api/pets/:petId/memoir/:memoirId/reject - 放弃分镜剧本（�
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.message).toContain('已放弃');
+  });
+
+  it('放弃剧本后付费单条自动退款（审查⏳3 退款闭环）', async () => {
+    // 按 SQL 特征路由 mock（次序无关，避免 Once 链脆弱）：归属→放弃 UPDATE→任务→订单→CAS→审计
+    mockPool.query.mockImplementation((sql: unknown) => {
+      const s = String(sql);
+      if (s.includes('SELECT EXISTS')) {
+        return Promise.resolve({ rows: [{ ok: true }], rowCount: 1 });
+      }
+      if (s.includes("status = 'failed'")) {
+        return Promise.resolve({ rows: [{ ok: true }], rowCount: 1 });
+      }
+      if (s.includes('pet_memoir_records')) {
+        return Promise.resolve({
+          rows: [{ id: 'memoir-001', user_id: 'user-001', payment_id: 'order-001' }],
+          rowCount: 1,
+        });
+      }
+      if (s.includes('payment_orders') && s.includes("status = 'refunded'")) {
+        return Promise.resolve({ rows: [{ id: 'order-001' }], rowCount: 1 });
+      }
+      if (s.includes('payment_orders')) {
+        return Promise.resolve({
+          rows: [{ id: 'order-001', user_id: 'user-001', amount: 990, status: 'paid', product_type: 'memoir' }],
+          rowCount: 1,
+        });
+      }
+      return Promise.resolve({ rows: [], rowCount: 1 });
+    });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/memoir-001/reject');
+
+    expect(res.status).toBe(200);
+    // 退款动作落库：CAS UPDATE ... status='refunded'
+    const casCall = mockPool.query.mock.calls.find((c: unknown[]) =>
+      String(c[0]).includes("status = 'refunded'"),
+    );
+    expect(casCall).toBeTruthy();
+    // 审计落库：payment-refunded 动作（action 为参数化值，匹配 SQL+参数整体）
+    const auditCall = mockPool.query.mock.calls.find((c: unknown[]) =>
+      JSON.stringify(c).includes('payment-refunded'),
+    );
+    expect(auditCall).toBeTruthy();
   });
 
   it('任务不在等待确认状态返回 409', async () => {
