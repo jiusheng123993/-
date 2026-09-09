@@ -81,6 +81,12 @@ const BGM_OPTIONS: BGMOption[] = [
 // 三步流程（原型：上传素材 / AI生成 / 预览保存）
 const STEP_LABELS = ['上传素材', 'AI生成', '预览保存']
 
+/** 参考样例视频（2026-09-10 用户提供的轻纪念成片案例，公网已部署 memoir-sample/） */
+const SAMPLE_VIDEOS: Array<{ url: string; label: string; emoji: string }> = [
+  { url: 'https://api.xinghuanhai.com/uploads/memoir-sample/sample-light-1.mp4', label: '样例一 · 静图动效', emoji: '🎬' },
+  { url: 'https://api.xinghuanhai.com/uploads/memoir-sample/sample-light-2.mp4', label: '样例二 · 温暖短片', emoji: '🎞️' },
+]
+
 // ==================== 组件 ====================
 
 export default function MemoirDaily() {
@@ -1034,6 +1040,31 @@ export default function MemoirDaily() {
         </View>
         <View className='memoir__hero-badge'>
           <Text className='memoir__hero-badge-text'>✨ AI 时光电影</Text>
+        </View>
+      </View>
+
+      {/* 参考样例视频（2026-09-10 用户提供的轻纪念成片案例，点击全屏播放） */}
+      <View className='memoir__samples'>
+        <Text className='memoir__samples-title'>🎬 看看别人的轻纪念长什么样</Text>
+        <View className='memoir__samples-list'>
+          {SAMPLE_VIDEOS.map((sv) => (
+            <View
+              key={sv.url}
+              className='memoir__samples-card'
+              onClick={() => {
+                Taro.previewMedia({ sources: [{ url: sv.url, type: 'video' }] }).catch(() => {
+                  Taro.showToast({ title: '视频播放失败，请重试', icon: 'none' })
+                })
+              }}
+            >
+              <Text className='memoir__samples-card-emoji'>{sv.emoji}</Text>
+              <View className='memoir__samples-card-info'>
+                <Text className='memoir__samples-card-label'>{sv.label}</Text>
+                <Text className='memoir__samples-card-hint'>5-30 秒 · 点击播放</Text>
+              </View>
+              <View className='memoir__samples-card-play'><Text>▶</Text></View>
+            </View>
+          ))}
         </View>
       </View>
 

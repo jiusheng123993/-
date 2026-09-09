@@ -780,3 +780,68 @@
     background: rgba(200, 80, 80, 0.75);
   }
 }
+
+// ==================== 参考样例视频区（2026-09-10 轻纪念两案例） ====================
+.memoir__samples {
+  margin-top: $spacing-md;
+}
+
+.memoir__samples-title {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.memoir__samples-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.memoir__samples-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  background: #fff;
+  box-shadow: 0 4rpx 14rpx rgba(170, 120, 70, 0.1);
+  @include press-feedback;
+}
+
+.memoir__samples-card-emoji {
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+
+.memoir__samples-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.memoir__samples-card-label {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.memoir__samples-card-hint {
+  display: block;
+  margin-top: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.memoir__samples-card-play {
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  @include flex-center;
+  background: rgba(255, 107, 61, 0.12);
+  color: #FF6B3D;
+  font-size: 24rpx;
+}
