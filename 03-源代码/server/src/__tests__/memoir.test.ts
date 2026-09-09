@@ -954,3 +954,41 @@ describe('POST /api/pets/:petId/memoir/prompt-refine 提示词改写', () => {
     expect(res.body.data).toEqual(baseSegments);
   });
 });
+
+// ===== POST /api/pets/:petId/memoir/prompt-confirm - 提示词确认留存 =====
+describe('POST /api/pets/:petId/memoir/prompt-confirm 提示词确认留存', () => {
+  const script = { title: '测试', segments: [{ photo_index: 0, seedance_prompt: '一只橘猫' }] };
+
+  it('用户确认最终版提示词返回 confirmed', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 });   // canAccess OK
+    mockPool.query.mockResolvedValueOnce({ rows: [{ confirmed_at: new Date().toISOString() }], rowCount: 1 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-confirm')
+      .send({ tier: 'standard', script });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.confirmed).toBe(true);
+  });
+
+  it('越权宠物返回 404', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-404/memoir/prompt-confirm')
+      .send({ tier: 'standard', script });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('缺少 tier 返回 400', async () => {
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-confirm')
+      .send({ script });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+});

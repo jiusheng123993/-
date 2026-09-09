@@ -239,4 +239,39 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
     );
     return Number(result.rows[0]?.retry_count ?? 0);
   }
+
+  /**
+   * 提示词确认留存（迁移 036，2026-09-09 人机协同）：
+   * 用户确认的「最终版提示词」按 (user_id, pet_id, tier) 幂等覆盖（重复确认更新），
+   * 用作「用户认可依据」防扯皮，并供生成管线优先采用。
+   */
+  async upsertPromptConfirmation(
+    userId: string,
+    petId: string,
+    tier: 'light' | 'standard' | 'full',
+    script: Record<string, unknown>,
+  ): Promise<void> {
+    await this.rawQuery(
+      `INSERT INTO memoir_prompt_confirmations (user_id, pet_id, tier, script)
+       VALUES ($1, $2, $3, $4::jsonb)
+       ON CONFLICT (user_id, pet_id, tier)
+       DO UPDATE SET script = EXCLUDED.script, confirmed_at = now()`,
+      [userId, petId, tier, JSON.stringify(script)],
+    );
+  }
+
+  /** 读取某宠物最近一条已确认提示词（供生成管线优先采用；无则 null） */
+  async findPromptConfirmation(petId: string): Promise<{ tier: string; script: Record<string, unknown> } | null> {
+    const result = await this.rawQuery(
+      `SELECT tier, script
+       FROM memoir_prompt_confirmations
+       WHERE pet_id = $1
+       ORDER BY confirmed_at DESC
+       LIMIT 1`,
+      [petId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return { tier: String(row.tier), script: row.script as Record<string, unknown> };
+  }
 }

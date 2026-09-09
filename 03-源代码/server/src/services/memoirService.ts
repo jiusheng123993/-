@@ -621,3 +621,25 @@ export async function refineMemoirPrompt(
   }
   return segments;
 }
+
+/**
+ * 提示词确认留存（2026-09-09 人机协同收口）：用户确认「这就是最终版提示词」后，
+ * 按 (user_id, pet_id, tier) 幂等留存，作「用户认可依据」防扯皮；
+ * 同时供生成管线优先采用（用户确认过的版本，而非重新生成）。
+ * @returns 确认状态与确认时间（无落库失败时抛出）
+ */
+export async function confirmMemoirPrompt(
+  userId: string,
+  petId: string,
+  tier: 'light' | 'standard' | 'full',
+  script: Record<string, unknown>,
+): Promise<{ confirmed: boolean; confirmed_at: string }> {
+  // 归属校验
+  const owns = await petRepository.canAccess(petId, userId);
+  if (!owns) {
+    throw new MemoirError(404, '宠物不存在');
+  }
+
+  await memoirRepository.upsertPromptConfirmation(userId, petId, tier, script);
+  return { confirmed: true, confirmed_at: new Date().toISOString() };
+}

@@ -874,6 +874,12 @@ export const memoirPromptRefineSchema = z.object({
   user_request: z.string({ error: '请填写修改要求' }).min(1, '请填写修改要求').max(500, '修改要求过长'),
 });
 
+/** 提示词确认请求（2026-09-09 人机协同）：用户确认最终版提示词 → 留存作证 */
+export const memoirPromptConfirmSchema = z.object({
+  tier: z.enum(['light', 'standard', 'full'], { error: 'tier 必须为 light/standard/full' }),
+  script: z.record(z.string(), z.unknown(), { error: 'script 不能为空' }),
+});
+
 // ===== 疫苗模块 - Body 参数 =====
 
 /** 设置疫苗提醒请求 */

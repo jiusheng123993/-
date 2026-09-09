@@ -6,7 +6,7 @@
 import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema, memoirPromptRefineSchema } from '../schemas/index.js';
+import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema, memoirPromptRefineSchema, memoirPromptConfirmSchema } from '../schemas/index.js';
 import { memoirLimiter, promptLimiter } from '../middleware/rateLimit.js';
 import {
   createMemoir,
@@ -18,6 +18,7 @@ import {
   rejectMemoirScript,
   generatePromptPreview,
   refineMemoirPrompt,
+  confirmMemoirPrompt,
   MemoirError,
   MemoirBusinessError,
 } from '../services/memoirService.js';
@@ -245,6 +246,26 @@ router.post(
     try {
       const refined = await refineMemoirPrompt(req.body.segments, req.body.user_request);
       res.json({ success: true, data: refined });
+    } catch (err) {
+      handleServiceError(res, err);
+    }
+  },
+);
+
+/**
+ * POST /api/pets/:petId/memoir/prompt-confirm
+ * 提示词确认留存（2026-09-09 人机协同收口）：用户确认「这就是最终版提示词」→
+ * 按 (user_id, pet_id, tier) 幂等留存作证（防扯皮）+ 供生成管线优先采用。
+ */
+router.post(
+  '/:petId/memoir/prompt-confirm',
+  validate({ body: memoirPromptConfirmSchema }),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.userId!;
+      const petId = req.params.petId as string;
+      const result = await confirmMemoirPrompt(userId, petId, req.body.tier, req.body.script);
+      res.json({ success: true, data: result });
     } catch (err) {
       handleServiceError(res, err);
     }
