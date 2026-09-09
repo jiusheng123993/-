@@ -1,10 +1,13 @@
 export default defineAppConfig({
   pages: [
     'pages/index/index',
+    'pages/creative/index',
     'pages/pet-profile/index',
+    'pages/mine/index',
+    // 以下页面保留但退出 tabBar（创作板块 IA 2026-09-09：5 tab 收敛为 4 tab），
+    // 仍可从创作页等入口 navigateTo 跳入，不能从 tabBar 直接进入
     'pages/timeline/index',
     'pages/family/index',
-    'pages/mine/index',
   ],
   window: {
     navigationBarBackgroundColor: '#FFF6EE',
@@ -21,27 +24,21 @@ export default defineAppConfig({
     list: [
       {
         pagePath: 'pages/index/index',
-        text: '首页',
+        text: '今天',
         iconPath: 'assets/icons/home.png',
         selectedIconPath: 'assets/icons/home-active.png',
+      },
+      {
+        pagePath: 'pages/creative/index',
+        text: '创作',
+        iconPath: 'assets/icons/creative.png',
+        selectedIconPath: 'assets/icons/creative-active.png',
       },
       {
         pagePath: 'pages/pet-profile/index',
         text: '宠物',
         iconPath: 'assets/icons/pet.png',
         selectedIconPath: 'assets/icons/pet-active.png',
-      },
-      {
-        pagePath: 'pages/timeline/index',
-        text: '时光',
-        iconPath: 'assets/icons/timeline.png',
-        selectedIconPath: 'assets/icons/timeline-active.png',
-      },
-      {
-        pagePath: 'pages/family/index',
-        text: '家庭',
-        iconPath: 'assets/icons/family.png',
-        selectedIconPath: 'assets/icons/family-active.png',
       },
       {
         pagePath: 'pages/mine/index',
@@ -78,6 +75,7 @@ export default defineAppConfig({
         'memoir-center/index',
         'memoir-daily/index',
         'memoir-vlog/index',
+        'studio/index',
         'family/feed/index',
         'share-card/index',
         'leaderboard/index',

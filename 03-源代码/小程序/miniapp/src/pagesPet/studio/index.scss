@@ -1,0 +1,199 @@
+@import '../../styles/_theme';
+@import '../../styles/_animations';
+
+// ============================================
+// 形象工坊页（2026-09-09 对齐高保真原型屏2）—— 米白暖色主题
+// ============================================
+
+.stu {
+  min-height: 100vh;
+  background: #fffaf5;
+  padding: 14px 14px calc(40px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  animation: pageEnter 0.4s ease-out;
+}
+
+// ==================== 橙粉 hero ====================
+.stu-hero {
+  border-radius: 20px;
+  padding: 18px 16px;
+  background: linear-gradient(135deg, #ff9a62, #ff6f91);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.stu-hero-face {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  font-size: 44px;
+  opacity: 0.35;
+}
+
+.stu-hero-title {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.stu-hero-sub {
+  display: block;
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+// ==================== 新客礼 banner ====================
+.stu-banner {
+  background: linear-gradient(135deg, #ffd8a8, #ffc2d1);
+  border-radius: 16px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+}
+
+.stu-banner-text {
+  font-size: 11px;
+  color: #7a4a2a;
+  line-height: 1.6;
+}
+
+// ==================== 区块标题 ====================
+.stu-sectitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5a4634;
+  margin: 14px 2px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stu-sectitle-tag {
+  font-size: 10px;
+  background: #ffe8d6;
+  color: #d2703a;
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+// ==================== 变装玩法 wide 卡 ====================
+.stu-wide {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(170, 120, 70, 0.12);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+
+  &:active {
+    background: #fff8f2;
+  }
+}
+
+.stu-wide-thumb {
+  width: 86px;
+  height: 86px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &--a { background: linear-gradient(150deg, #ffe3ee, #fff1e8); }
+  &--b { background: linear-gradient(150deg, #e8e0ff, #ffe0f0); }
+}
+
+.stu-wide-thumb-emoji {
+  font-size: 40px;
+}
+
+.stu-wide-txt {
+  flex: 1;
+  min-width: 0;
+}
+
+.stu-wide-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3d2f24;
+}
+
+.stu-wide-desc {
+  display: block;
+  font-size: 10.5px;
+  color: #a08b76;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+// 玩法缩略 tab
+.stu-modes {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.stu-mode {
+  flex: 1;
+  border-radius: 10px;
+  padding: 6px 4px;
+  text-align: center;
+  background: #fff4ec;
+  border: 1px solid #ffd9c2;
+}
+
+.stu-mode-emoji {
+  display: block;
+  font-size: 18px;
+}
+
+.stu-mode-text {
+  display: block;
+  font-size: 9.5px;
+  color: #8a5a3a;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+// ==================== 形象资产 mini 卡 ====================
+.stu-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stu-mini {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(170, 120, 70, 0.12);
+
+  &:active {
+    background: #fff8f2;
+  }
+}
+
+.stu-mini-em {
+  font-size: 24px;
+}
+
+.stu-mini-title {
+  display: block;
+  font-size: 14px;
+  color: #3d2f24;
+  font-weight: 600;
+  margin: 6px 0 3px;
+}
+
+.stu-mini-desc {
+  display: block;
+  font-size: 10.5px;
+  color: #a08b76;
+  line-height: 1.45;
+}
