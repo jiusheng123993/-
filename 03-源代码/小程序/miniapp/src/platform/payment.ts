@@ -26,7 +26,7 @@ export async function requestWechatPayment(params: PaymentParams): Promise<boole
     throw new Error('微信支付仅支持微信小程序环境')
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     Taro.requestPayment({
       timeStamp: params.timeStamp,
       nonceStr: params.nonceStr,
@@ -36,9 +36,12 @@ export async function requestWechatPayment(params: PaymentParams): Promise<boole
       success: () => resolve(true),
       fail: (err: any) => {
         if (err.errMsg?.includes('cancel')) {
+          // 用户主动取消：resolve(false)，调用方按「已取消支付」提示
           resolve(false)
         } else {
-          resolve(false)
+          // 真实支付失败（签名/参数/网络）：reject 透传原因，调用方 toast err.message
+          // （此前与 cancel 同体 resolve(false)，页面一律显示「已取消支付」误导排障）
+          reject(new Error(`微信支付失败：${err.errMsg || '未知错误'}`))
         }
       },
     })

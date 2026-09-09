@@ -2,18 +2,30 @@
  * 日常回忆录页面（按高保真原型 1:1 重构）
  * 标题区 + hero + 双产品线卡 + 三步流程（上传素材 → AI生成 → 预览保存）
  * 保留完整业务：照片选择、风格/BGM、Ken Burns 预览、生成任务、WS+轮询、保存分享
+ * 2026-09-09 B2：生成改为三档定价支付链（light 档：下单→微信支付→轮询回调创建的任务），
+ * 本地照片先上传服务器再提交（wxfile:// 会被后端 source_photos 白名单拒绝）
  */
 import { View, Text, ScrollView, Canvas, Image, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONFIG } from '../../config'
 import { MEMOIR_TAG_OPTIONS } from '../../constants/memoirTags'
-import { storage } from '../../utils/storage'
 import { chooseImageWithPrivacy } from '../../utils/privacy'
 import { wsClient } from '../../services/wsClient'
 import { timelineService } from '../../services/timelineService'
 import { useThemeClass } from '../../hooks/useThemeClass'
 import { usePetStore } from '../../stores/petStore'
+import {
+  uploadLocalPhoto,
+  createMemoirOrder,
+  payWithWechat,
+  waitForNewTask,
+  getLatestStatus,
+  snapshotLatestTaskId,
+  getMemoirPricing,
+  type MemoirPricing,
+} from '../../services/memoirService'
+import { pickTierPrice, formatYuan } from '../../utils/memoirTier'
 import './index.scss'
 
 // ==================== 类型定义 ====================
@@ -35,29 +47,18 @@ interface BGMOption {
   previewUrl: string
 }
 
-/** 已选照片项 */
+/** 已选照片项：本地照片需上传换 remoteUrl（wxfile:// 无法进 source_photos 白名单） */
 interface PhotoItem {
+  /** 稳定唯一 key（上传回写按 key 匹配——按 index 回写在删除照片后会错位写脏其他照片） */
+  key: string
   path: string
   size: number
-}
-
-/** API 响应类型 */
-interface CreateTaskResponse {
-  success?: boolean
-  data?: {
-    id: string
-    status: 'pending' | 'processing' | 'completed' | 'failed'
-  }
-}
-
-interface TaskStatusResponse {
-  success?: boolean
-  data?: {
-    id: string
-    status: 'pending' | 'processing' | 'completed' | 'failed'
-    video_url?: string
-    preview_url?: string
-  }
+  /** 上传后的服务端相对路径（提交用） */
+  remoteUrl?: string
+  /** 上传中 */
+  uploading?: boolean
+  /** 上传失败（点击重试） */
+  failed?: boolean
 }
 
 // ==================== 常量 ====================
@@ -287,6 +288,30 @@ export default function MemoirDaily() {
 
   // ==================== 照片操作 ====================
 
+  /** 照片 key 自增序号（单页会话内唯一） */
+  const photoKeySeq = useRef(0)
+  /** 串行上传队列链尾（真正逐张错峰，防止瞬时并发触发 10次/分钟限流——审查 P2） */
+  const uploadChainRef = useRef<Promise<void>>(Promise.resolve())
+
+  /**
+   * 本地照片异步上传（选完即传换服务端 URL）。加入串行队列尾逐张执行。
+   * 回写按稳定 key 匹配（按 index 回写：先删 A 再等 B 上传完成会把 A 的 URL 写到 B 上）
+   */
+  const uploadPhotoItem = useCallback((itemKey: string, filePath: string) => {
+    setPhotos(prev => prev.map(p => (p.key === itemKey ? { ...p, uploading: true, failed: false } : p)))
+    const job = uploadChainRef.current.then(async () => {
+      try {
+        const remoteUrl = await uploadLocalPhoto(filePath)
+        setPhotos(prev => prev.map(p => (p.key === itemKey ? { ...p, remoteUrl, uploading: false, failed: false } : p)))
+      } catch (err) {
+        setPhotos(prev => prev.map(p => (p.key === itemKey ? { ...p, uploading: false, failed: true } : p)))
+        Taro.showToast({ title: err instanceof Error ? err.message : '照片上传失败', icon: 'none' })
+      }
+    })
+    // 队列容错：单张失败不阻塞后续照片上传
+    uploadChainRef.current = job
+  }, [])
+
   const handleAddPhoto = useCallback(() => {
     const remain = 3 - photos.length
     if (remain <= 0) {
@@ -298,16 +323,27 @@ export default function MemoirDaily() {
     // chooseMedia 替代已废弃的 chooseImage + 失败统一提示），返回为 chooseImage 形状
     chooseImageWithPrivacy({ count: remain, sizeType: ['compressed'] })
       .then((res) => {
-        const newPhotos = res.tempFiles.map((f) => ({
-          path: f.path,
-          size: f.size || 0,
-        }))
+        const added: Array<{ key: string; filePath: string }> = []
+        const newPhotos: PhotoItem[] = res.tempFiles.map((f) => {
+          const key = `local_${++photoKeySeq.current}`
+          added.push({ key, filePath: f.path })
+          return { key, path: f.path, size: f.size || 0, uploading: true }
+        })
         setPhotos(prev => [...prev, ...newPhotos].slice(0, 3))
+        // 逐张进入串行上传队列
+        added.forEach(({ key, filePath }) => uploadPhotoItem(key, filePath))
       })
       .catch(() => {
         // 用户取消选择/拒绝授权等已在 privacy 层反馈，此处静默
       })
-  }, [photos])
+  }, [photos, uploadPhotoItem])
+
+  /** 点击上传失败的照片重试上传（按 key 找回本地临时路径） */
+  const handleRetryUpload = useCallback((itemKey: string) => {
+    const photo = photos.find(p => p.key === itemKey)
+    if (!photo || photo.uploading) return
+    uploadPhotoItem(itemKey, photo.path)
+  }, [photos, uploadPhotoItem])
 
   const handleDeletePhoto = useCallback((index: number) => {
     setPhotos(prev => prev.filter((_, i) => i !== index))
@@ -321,57 +357,140 @@ export default function MemoirDaily() {
     })
   }, [photos])
 
-  // ==================== 生成回忆录 ====================
+  /** 跳转纪念Vlog（供 handleGenerate 超时引导、挂载检测、轮询闸门引导复用） */
+  const handleGoVlog = useCallback(() => {
+    Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index${petId ? `?petId=${petId}` : ''}` })
+  }, [petId])
 
+  // ==================== 生成回忆录（2026-09-09 B2：light 档支付链） ====================
+
+  /**
+   * 轻纪念档（light）生成流程：
+   * 1. 校验照片上传就绪（本地照片异步上传，可能未完成/失败）
+   * 2. 快照当前最新任务 id（防旧任务干扰新任务识别）
+   * 3. POST /api/payment/memoir/order（tier=light, memoir_type=daily）→ 微信支付
+   * 4. 等待支付回调创建任务 → 进入既有轮询状态机
+   * 旧直创建路径（POST /:petId/memoir）已废除——三档一律付费后该端点恒 402
+   */
   const handleGenerate = useCallback(async () => {
     if (!petId) {
       Taro.showToast({ title: '宠物信息缺失', icon: 'none' })
       return
     }
 
+    // 照片上传就绪校验
+    const uploadingCount = photos.filter(p => p.uploading).length
+    if (uploadingCount > 0) {
+      Taro.showToast({ title: `还有 ${uploadingCount} 张照片上传中，请稍候`, icon: 'none' })
+      return
+    }
+    const failedCount = photos.filter(p => p.failed).length
+    if (failedCount > 0) {
+      Taro.showToast({ title: `有 ${failedCount} 张照片上传失败，请点击重试`, icon: 'none' })
+      return
+    }
+
     setLoading(true)
-    setLoadingText('正在生成...')
+    setLoadingText('正在下单...')
+
+    // 提交前快照最新任务 id（严格模式：失败重试 3 次，仍失败阻断支付——
+    // 审查 P1：快照失败置 null 会把库内旧任务误判为新任务，新订单反被并发互斥自动退款）
+    const preTaskId = await snapshotLatestTaskId(petId)
+    if (preTaskId === undefined) {
+      setLoading(false)
+      Taro.showModal({
+        title: '网络不稳定',
+        content: '无法确认当前任务状态，为避免重复扣款已暂停下单，请稍后重试',
+        showCancel: false,
+        confirmText: '知道了',
+      })
+      return
+    }
 
     try {
-      const token = storage.getToken()
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
-      const res = await Taro.request<CreateTaskResponse>({
-        url: `${CONFIG.API_BASE_URL}/api/pets/${petId}/memoir`,
-        method: 'POST',
-        header: headers,
-        data: {
-          memoir_type: 'daily',
-          source_photos: photos.map(p => p.path),
-          music_style: selectedBGM,
-          style_preset: selectedStyle,
-          // 修复：此前误传 story 字段被服务端 schema 静默剥离，用户写的回忆从未生效；
-          // 统一为 source_text（与纪念 Vlog、服务端契约一致）
-          source_text: story.trim() || undefined,
-          // 回忆标签（F4）：服务端按标签筛核心层记忆作分镜素材
-          tags: selectedTags.length > 0 ? selectedTags : undefined,
-        },
+      // 1. 下单（light 档：会员 18.9 / 非会员 25.9，以下单响应为准；
+      // musicStyle 传 BGM key，service 内部统一转换后端枚举——审查 P0 修复点）
+      const order = await createMemoirOrder({
+        petId,
+        memoirType: 'daily',
+        tier: 'light',
+        // 提交前就绪校验已保证全部 remoteUrl 就绪；此处防御性兜底必须显式报错
+        // （静默回退 wxfile:// 会被服务端白名单 400，报错不可理解——审查 P2 修复点）
+        sourcePhotos: photos.map(p => {
+          if (!p.remoteUrl) {
+            throw new Error('有照片尚未上传完成，请稍候或删除后重试')
+          }
+          return p.remoteUrl
+        }),
+        sourceText: story.trim() || undefined,
+        musicStyle: selectedBGM,
+        stylePreset: selectedStyle,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       })
 
-      if (res.statusCode === 201 && res.data?.data?.id) {
-        setTaskId(res.data.data.id)
-        setLoadingText('正在处理...')
-        // 开始轮询
-        setPolling(true)
-      } else {
-        Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
+      // 2. 拉起微信支付（false=用户取消；真实支付失败由 platform 层 reject 透传原因）
+      setLoadingText('等待支付...')
+      const paid = await payWithWechat(order.payment)
+      if (!paid) {
         setLoading(false)
+        Taro.showToast({ title: '已取消支付', icon: 'none' })
+        return
       }
-    } catch {
-      Taro.showToast({ title: '网络异常，请重试', icon: 'none' })
+
+      // 3. 等待支付回调创建任务（1~10s 异步延迟）
+      setLoadingText('支付成功，任务创建中...')
+      const task = await waitForNewTask(petId, preTaskId, { maxAttempts: 45, intervalMs: 2000 })
+
+      if (!task) {
+        // 超时兜底（审查 P1 修复）：本页轮询状态机依赖 taskId（无从得知新任务 id），
+        // 降级轮询在此页不可行——改为引导跳纪念Vlog页（其挂载恢复+降级轮询+结果屏已完整）；
+        // 绝不引导重新下单（原单支付成功后服务端会建任务，重下单会被并发互斥退款）
+        setLoading(false)
+        Taro.showModal({
+          title: '生成任务确认中',
+          content: '支付已受理，视频任务正在排队创建，请勿重复下单；请前往「纪念Vlog」查看进度',
+          confirmText: '去查看',
+          cancelText: '留在本页',
+          success: (m) => {
+            if (m.confirm) handleGoVlog()
+          },
+        })
+        return
+      }
+
+      // 4. 新任务出现 → 进入既有轮询状态机
+      setTaskId(task.id)
+      setLoadingText('正在处理...')
+      setPolling(true)
+    } catch (err) {
+      // 下单失败（价格变动/校验失败/网络）：透传服务端 message
       setLoading(false)
+      Taro.showToast({ title: err instanceof Error ? err.message : '支付失败，请重试', icon: 'none' })
     }
-  }, [petId, photos, selectedStyle, selectedBGM, story, selectedTags])
+  }, [petId, photos, selectedStyle, selectedBGM, story, selectedTags, handleGoVlog])
+
+  // 挂载时检测进行中/待确认任务（审查 P1 孤儿闸门恢复）：本页只做引导，
+  // 完整接管（闸门卡/进度恢复/结果展示）统一在纪念Vlog页状态机
+  useEffect(() => {
+    if (!petId) return
+    let cancelled = false
+    getLatestStatus(petId).then((task) => {
+      if (cancelled || !task) return
+      if (task.awaiting_confirmation || task.status === 'pending' || task.status === 'processing') {
+        Taro.showModal({
+          title: task.awaiting_confirmation ? '有分镜待确认' : '有生成任务进行中',
+          content: '你有一笔回忆录任务正在进行，请前往「纪念Vlog」查看进度或确认剧本',
+          confirmText: '去查看',
+          cancelText: '稍后',
+          success: (m) => {
+            if (m.confirm) handleGoVlog()
+          },
+        })
+      }
+    }).catch(() => {})
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅挂载时检测一次
+  }, [petId])
 
   // ==================== 轮询任务状态 ====================
 
@@ -387,53 +506,77 @@ export default function MemoirDaily() {
   }, [polling, petId, taskId])
 
   useEffect(() => {
-    if (!polling || !petId || !taskId) return
+    // taskId 仅用于 id 比对过滤（降级轮询路径可能无 taskId，不得作启动门——审查 P1 修复）
+    if (!polling || !petId) return
 
     let timer: ReturnType<typeof setTimeout> | null = null
     let stopped = false
+    // 总时长上限 30 分钟（与纪念Vlog页一致，防任务卡死时遮罩永久挂起）
+    const startedAt = Date.now()
+    const MAX_POLL_MS = 30 * 60 * 1000
 
     const poll = async () => {
       if (stopped) return
 
-      try {
-        const token = storage.getToken()
-        const headers: Record<string, string> = {}
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`
-        }
+      // 统一走 service 层（getLatestStatus 内部处理 404/网络抖动返回 null）
+      const task = await getLatestStatus(petId)
 
-        const res = await Taro.request<TaskStatusResponse>({
-          url: `${CONFIG.API_BASE_URL}/api/pets/${petId}/memoir/status`,
-          method: 'GET',
-          header: headers,
+      if (stopped) return
+
+      // 轮询期间任务被替换（如用户在别处新建任务）：忽略，继续等本任务
+      // （taskId 为空 = 降级轮询/无本页任务锚点，latest 即目标，不比对）
+      if (taskId && task?.id && task.id !== taskId) {
+        timer = setTimeout(poll, 2000)
+        return
+      }
+
+      if (task?.awaiting_confirmation) {
+        // 剧本确认闸门（服务端对所有新任务生效，含 light——审查 P0：原版漏处理导致付款后无限轮询）：
+        // 本页为轻流程，确认/放弃入口在纪念Vlog页（全页面状态机统一接管）
+        setLoading(false)
+        setPolling(false)
+        Taro.showModal({
+          title: '分镜已生成',
+          content: '你的回忆录分镜已就绪，请前往「纪念Vlog」确认剧本后开始生成视频',
+          confirmText: '去确认',
+          cancelText: '稍后',
+          success: (m) => {
+            if (m.confirm) handleGoVlog()
+          },
         })
-
-        if (stopped) return
-
-        if (res.statusCode === 200) {
-          const data = res.data?.data
-          if (data?.status === 'completed') {
-            setOutputUrl(data.video_url || '')
-            setLoading(false)
-            setPolling(false)
-            Taro.showToast({ title: '生成成功', icon: 'success' })
-            goToStep(3)
-          } else if (data?.status === 'failed') {
-            setLoading(false)
-            setPolling(false)
-            Taro.showToast({ title: '生成失败，请重试', icon: 'none' })
-          } else {
-            // 继续轮询
-            setLoadingText(data?.status === 'processing' ? '正在处理...' : '排队中...')
-            timer = setTimeout(poll, 2000)
-          }
-        } else {
-          timer = setTimeout(poll, 2000)
-        }
-      } catch {
-        if (!stopped) {
-          timer = setTimeout(poll, 2000)
-        }
+      } else if (task?.status === 'completed') {
+        setOutputUrl(task.video_url || '')
+        setLoading(false)
+        setPolling(false)
+        Taro.showToast({ title: '生成成功', icon: 'success' })
+        goToStep(3)
+      } else if (task?.status === 'failed') {
+        setLoading(false)
+        setPolling(false)
+        // 生成失败服务端已自动退款（B1 退款闭环），文案给用户确定感
+        Taro.showModal({
+          title: '生成失败',
+          content: '本次生成未成功，已支付费用将自动原路退回',
+          showCancel: false,
+          confirmText: '知道了',
+        })
+      } else if (Date.now() - startedAt > MAX_POLL_MS) {
+        // 轮询总时长超限（30 分钟）：停止遮罩挂起，引导去纪念Vlog页查看（其有完整接管状态机）
+        setLoading(false)
+        setPolling(false)
+        Taro.showModal({
+          title: '生成时间较长',
+          content: '视频仍在生成中，已为你保留任务；请前往「纪念Vlog」查看进度',
+          confirmText: '去查看',
+          cancelText: '稍后',
+          success: (m) => {
+            if (m.confirm) handleGoVlog()
+          },
+        })
+      } else {
+        // 继续轮询（pending/processing/暂无任务）
+        setLoadingText(task?.status === 'processing' ? '正在处理...' : '排队中...')
+        timer = setTimeout(poll, 2000)
       }
     }
 
@@ -443,7 +586,7 @@ export default function MemoirDaily() {
       stopped = true
       if (timer) clearTimeout(timer)
     }
-  }, [polling, petId, taskId, goToStep, refreshKey])
+  }, [polling, petId, taskId, goToStep, refreshKey, handleGoVlog])
 
   // ==================== 进入预览步骤时启动动画 ====================
 
@@ -489,14 +632,17 @@ export default function MemoirDaily() {
       return
     }
     try {
-      const userId = usePetStore.getState().userId || ''
+      const store = usePetStore.getState()
+      const userId = store.userId || ''
+      // 当前宠物名（既有硬编码「毛孩子」改为真实档案名，取不到回退）
+      const currentPet = store.pets?.find((p) => p.id === petId)
       await timelineService.addMoment({
         userId,
         petId,
         type: 'memory',
         content: {
-          petName: '毛孩子',
-          petEmoji: '🐾',
+          petName: currentPet?.name || '毛孩子',
+          petEmoji: currentPet?.species === 'dog' ? '🐶' : '🐱',
           description: outputUrl,
         },
         photos: [outputUrl],
@@ -542,13 +688,28 @@ export default function MemoirDaily() {
     if (!outputUrl) return
     Taro.previewMedia({
       sources: [{ url: outputUrl, type: 'video' }],
+    }).catch(() => {
+      Taro.showToast({ title: '视频播放失败', icon: 'none' })
     })
   }, [outputUrl])
 
-  /** 跳转纪念Vlog */
-  const handleGoVlog = useCallback(() => {
-    Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index${petId ? `?petId=${petId}` : ''}` })
+  // ==================== 定价展示（审查 P1：产品卡文案随 B1 三档体系动态取价） ====================
+
+  // 挂载拉取三档价格：产品卡显示 light 档实时价（会员/非会员分价），vlog 卡显示 full 档起价
+  const [pricing, setPricing] = useState<MemoirPricing | null>(null)
+  useEffect(() => {
+    if (!petId) return
+    let cancelled = false
+    getMemoirPricing(petId).then((p) => {
+      if (!cancelled) setPricing(p)
+    }).catch(() => {})
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅挂载时取价一次
   }, [petId])
+
+  const isMember = pricing?.isMember ?? false
+  const lightPrice = pricing?.prices ? pickTierPrice(pricing.prices, 'light', isMember) : null
+  const fullPrice = pricing?.prices ? pickTierPrice(pricing.prices, 'full', isMember) : null
 
   // ==================== 渲染：步骤指示器 ====================
 
@@ -581,18 +742,34 @@ export default function MemoirDaily() {
       <Text className='memoir__section-title'>上传素材</Text>
 
       <View className='memoir__photo-grid'>
-        {photos.map((photo, index) => (
+        {/* key 用稳定 photo.key（删除后其余照片 key 不变，上传回写不错位）；index 仅作预览/删除定位 */}
+        {photos.map((photo) => (
           <View
-            key={index}
+            key={photo.key}
             className='memoir__photo-slot'
-            onClick={() => handlePreviewPhoto(index)}
+            onClick={() => handlePreviewPhoto(photos.findIndex(p => p.key === photo.key))}
           >
             <Image className='memoir__photo-image' src={photo.path} mode='aspectFill' />
+            {/* 上传状态徽标（B2：本地照片需上传就绪才能提交） */}
+            {photo.uploading && (
+              <View className='memoir__photo-badge'><Text>上传中</Text></View>
+            )}
+            {photo.failed && (
+              <View
+                className='memoir__photo-badge memoir__photo-badge--failed'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRetryUpload(photo.key)
+                }}
+              >
+                <Text>失败·点重试</Text>
+              </View>
+            )}
             <View
               className='memoir__photo-delete'
               onClick={(e) => {
                 e.stopPropagation()
-                handleDeletePhoto(index)
+                handleDeletePhoto(photos.findIndex(p => p.key === photo.key))
               }}
             >
               ✕
@@ -782,7 +959,7 @@ export default function MemoirDaily() {
           </View>
         </View>
         <View className='memoir__cover-duration'>
-          <Text className='memoir__cover-duration-text'>15-30 秒</Text>
+          <Text className='memoir__cover-duration-text'>5-30 秒</Text>
         </View>
       </View>
 
@@ -828,7 +1005,12 @@ export default function MemoirDaily() {
     if (step === 2) {
       return (
         <View className='memoir__btn memoir__btn--primary' onClick={handleGenerate}>
-          <Text className='memoir__btn-text'>生成回忆录</Text>
+          {/* 支付透明（审查 P1）：按钮明示 light 档应付金额（会员/非会员分价），不以无金额按钮拉起收银台 */}
+          <Text className='memoir__btn-text'>
+            {lightPrice !== null
+              ? `支付 ¥${formatYuan(lightPrice)} · 生成回忆录`
+              : '生成回忆录（付费）'}
+          </Text>
         </View>
       )
     }
@@ -866,12 +1048,15 @@ export default function MemoirDaily() {
             <View className='memoir__product-icon'>✨</View>
             <View className='memoir__product-titles'>
               <Text className='memoir__product-name'>日常回忆录</Text>
-              <Text className='memoir__product-price'>免费 · 月 3 次</Text>
+              {/* light 档动态价（B1 三档体系；旧「免费·月3次」已废除） */}
+              <Text className='memoir__product-price'>
+                {lightPrice !== null ? `¥${formatYuan(lightPrice)}${isMember ? ' · 会员价' : ''}` : '轻纪念档 · 付费'}
+              </Text>
             </View>
             <Text className='memoir__product-arrow'>›</Text>
           </View>
           <View className='memoir__product-tags'>
-            <Text className='memoir__pill'>15-30 秒静图动效</Text>
+            <Text className='memoir__pill'>5-30 秒轻纪念</Text>
             <Text className='memoir__pill'>1-3 张照片</Text>
             <Text className='memoir__pill'>温暖治愈</Text>
           </View>
@@ -882,15 +1067,18 @@ export default function MemoirDaily() {
             <View className='memoir__product-icon'>🎬</View>
             <View className='memoir__product-titles'>
               <Text className='memoir__product-name'>纪念Vlog</Text>
-              <Text className='memoir__product-price'>会员 ¥99 / 非会员 ¥149</Text>
+              {/* full 档起价动态展示（B1 三档体系；旧硬编码 ¥99/149 已废除）；价格未就绪用中性文案不硬编码 */}
+              <Text className='memoir__product-price'>
+                {fullPrice !== null ? `¥${formatYuan(fullPrice)} 起 · 三档可选` : '三档可选'}
+              </Text>
             </View>
             <View className='memoir__badge-paid'>
               <Text className='memoir__badge-paid-text'>付费</Text>
             </View>
           </View>
           <View className='memoir__product-tags'>
-            <Text className='memoir__pill'>45-60 秒 AI 视频</Text>
-            <Text className='memoir__pill'>5-15 张照片</Text>
+            <Text className='memoir__pill'>最长 90 秒 AI 视频</Text>
+            <Text className='memoir__pill'>8-15 张照片</Text>
             <Text className='memoir__pill'>深刻催泪</Text>
           </View>
         </View>

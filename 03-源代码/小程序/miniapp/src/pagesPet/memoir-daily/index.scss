@@ -763,3 +763,20 @@
 .memoir__loading-overlay .memoir__panel {
   width: 100%;
 }
+
+// ==================== 照片上传状态徽标（2026-09-09 B2：本地照片先上传后提交） ====================
+.memoir__photo-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6rpx 0;
+  font-size: 20rpx;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: $color-text-inverse;
+
+  &--failed {
+    background: rgba(200, 80, 80, 0.75);
+  }
+}

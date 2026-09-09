@@ -139,8 +139,10 @@ async function request<T>(path: string, options?: { method?: string; data?: any;
     if (body.success) return body.data as T
     if (body.code === 0) return body.data
     // 业务错误：把后端业务错误码（如 MEMBER_NO_REAL_IMAGE）与附加数据挂到 Error 上，
-    // 供调用方（如全家福引导）做差异化处理；message 保持原样
-    const err = new Error(body.message || '请求失败') as Error & { code?: string; missingMembers?: unknown }
+    // 供调用方（如全家福引导）做差异化处理；message 保持原样。
+    // statusCode 一并挂上（如 404=无任务/资源不存在，调用方可与网络失败区分——审查 P0 修复）
+    const err = new Error(body.message || '请求失败') as Error & { code?: string; missingMembers?: unknown; statusCode?: number }
+    err.statusCode = res.statusCode
     if (body.code && typeof body.code === 'string') err.code = body.code
     if (body.missingMembers) err.missingMembers = body.missingMembers
     throw err
