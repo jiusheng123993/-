@@ -1038,30 +1038,8 @@ export default function MemoirDaily() {
         </View>
       </View>
 
-      {/* 双产品线卡 */}
+      {/* 升档引导卡：本页即轻纪念(日常回忆录)流程，不再重复展示自身档位卡（审查：删自指卡避免「页内选档=自己」冲突） */}
       <View className='memoir__product-list'>
-        <View
-          className='memoir__product-card memoir__product-card--coral'
-          onClick={() => goToStep(0)}
-        >
-          <View className='memoir__product-head'>
-            <View className='memoir__product-icon'>✨</View>
-            <View className='memoir__product-titles'>
-              <Text className='memoir__product-name'>日常回忆录</Text>
-              {/* light 档动态价（B1 三档体系；旧「免费·月3次」已废除） */}
-              <Text className='memoir__product-price'>
-                {lightPrice !== null ? `¥${formatYuan(lightPrice)}${isMember ? ' · 会员价' : ''}` : '轻纪念档 · 付费'}
-              </Text>
-            </View>
-            <Text className='memoir__product-arrow'>›</Text>
-          </View>
-          <View className='memoir__product-tags'>
-            <Text className='memoir__pill'>5-30 秒轻纪念</Text>
-            <Text className='memoir__pill'>1-3 张照片</Text>
-            <Text className='memoir__pill'>温暖治愈</Text>
-          </View>
-        </View>
-
         <View
           className='memoir__product-card memoir__product-card--gold'
           onClick={() => Taro.navigateTo({ url: `/pagesPet/memoir-center/index${petId ? `?petId=${petId}` : ''}` })}
