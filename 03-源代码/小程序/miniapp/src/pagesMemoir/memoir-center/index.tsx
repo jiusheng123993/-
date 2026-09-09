@@ -68,11 +68,11 @@ const MemoirCenter = () => {
         return
       }
       // 中心页被直接打开（无 petId）时回退用当前宠物
-      const base = tier === 'light' ? '/pagesPet/memoir-daily/index' : (tier === 'full' ? '/pagesPet/memoir-full/index' : '/pagesPet/memoir-vlog/index')
+      const base = tier === 'light' ? '/pagesMemoir/memoir-daily/index' : (tier === 'full' ? '/pagesMemoir/memoir-full/index' : '/pagesMemoir/memoir-vlog/index')
       Taro.navigateTo({ url: `${base}?petId=${currentPet.id}${tier !== 'light' ? `&tier=${tier}` : ''}` })
       return
     }
-    const base = tier === 'light' ? '/pagesPet/memoir-daily/index' : (tier === 'full' ? '/pagesPet/memoir-full/index' : '/pagesPet/memoir-vlog/index')
+    const base = tier === 'light' ? '/pagesMemoir/memoir-daily/index' : (tier === 'full' ? '/pagesMemoir/memoir-full/index' : '/pagesMemoir/memoir-vlog/index')
     Taro.navigateTo({ url: `${base}?petId=${petId}${tier !== 'light' ? `&tier=${tier}` : ''}` })
   }
 

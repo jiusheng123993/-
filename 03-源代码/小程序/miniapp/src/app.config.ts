@@ -78,11 +78,6 @@ export default defineAppConfig({
         'family/dashboard/index',
         'family/calendar/index',
         'family/lineage/index',
-        'memoir-center/index',
-        'memoir-daily/index',
-        'memoir-vlog/index',
-        'memoir-full/index',
-        'studio/index',
         'family/feed/index',
         'share-card/index',
         'leaderboard/index',
@@ -90,6 +85,18 @@ export default defineAppConfig({
         'yearly-review/index',
         'family-tree/index',
         'achievement/index',
+      ],
+    },
+    // 回忆录 + 创作中心独立分包（2026-09-10：pagesPet 曾因超 2MB 上传失败，
+    // 把 memoir/studio 挪到 pagesMemoir 独立分包，各分包 ≤2MB 满足微信限制）
+    {
+      root: 'pagesMemoir',
+      pages: [
+        'memoir-center/index',
+        'memoir-daily/index',
+        'memoir-vlog/index',
+        'memoir-full/index',
+        'studio/index',
       ],
     },
     {

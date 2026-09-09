@@ -359,7 +359,7 @@ export default function MemoirDaily() {
 
   /** 跳转回忆录页（供 handleGenerate 超时引导、挂载检测、轮询闸门引导复用） */
   const handleGoVlog = useCallback(() => {
-    Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index${petId ? `?petId=${petId}` : ''}` })
+    Taro.navigateTo({ url: `/pagesMemoir/memoir-vlog/index${petId ? `?petId=${petId}` : ''}` })
   }, [petId])
 
   // ==================== 生成回忆录（2026-09-09 B2：light 档支付链） ====================

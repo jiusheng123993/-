@@ -22,7 +22,7 @@ const COMFORT_MESSAGES = [
 
 /** 纪念专区 2x2 */
 const MEMORIAL_ENTRIES = [
-  { key: 'memoir', icon: '📖', title: '回忆录', desc: '做一条专属回忆录', url: '/pagesPet/memoir-daily/index' },
+  { key: 'memoir', icon: '📖', title: '回忆录', desc: '做一条专属回忆录', url: '/pagesMemoir/memoir-daily/index' },
   { key: 'timeline', icon: '🕰️', title: '时光线', desc: '回看 TA 的日常', url: '/pages/timeline/index' },
   { key: 'family', icon: '🌳', title: '家族图谱', desc: '家族的每一个成员', url: '/pagesPet/family-tree/index' },
   { key: 'share', icon: '🃏', title: '分享卡片', desc: '把爱分享出去', url: '/pagesPet/share-card/index' },

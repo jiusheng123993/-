@@ -598,7 +598,7 @@ export default function TimelinePage() {
       Taro.showToast({ title: '请先选择宠物', icon: 'none' })
       return
     }
-    Taro.navigateTo({ url: `/pagesPet/memoir-daily/index?petId=${currentPet.id}` })
+    Taro.navigateTo({ url: `/pagesMemoir/memoir-daily/index?petId=${currentPet.id}` })
   }
 
   /** 跳转到纪念Vlog页面 */
@@ -607,7 +607,7 @@ export default function TimelinePage() {
       Taro.showToast({ title: '请先选择宠物', icon: 'none' })
       return
     }
-    Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index?petId=${currentPet.id}` })
+    Taro.navigateTo({ url: `/pagesMemoir/memoir-vlog/index?petId=${currentPet.id}` })
   }
 
   const petName = currentPet?.name || '你的宠物'

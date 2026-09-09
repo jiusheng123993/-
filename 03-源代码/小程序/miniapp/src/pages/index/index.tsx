@@ -757,7 +757,7 @@ export default function Index() {
         </View>
 
         {/* ===== 回忆录馆入口卡（2026-09-09 用户拍板：创作板块 IA，首页直达回忆录馆） ===== */}
-        <View className='home-memoir-card' onClick={() => Taro.navigateTo({ url: '/pagesPet/memoir-center/index' })}>
+        <View className='home-memoir-card' onClick={() => Taro.navigateTo({ url: '/pagesMemoir/memoir-center/index' })}>
           <View className='home-memoir-card__glow' />
           <View className='home-memoir-card__icon'><Text>🎬</Text></View>
           <View className='home-memoir-card__body'>

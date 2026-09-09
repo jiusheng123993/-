@@ -123,7 +123,7 @@ const CreativeHub = () => {
       <View className='cve-grid2'>
         <View
           className='cve-ccard cve-ccard--warm'
-          onClick={() => goWithPet('/pagesPet/studio/index', false)}
+          onClick={() => goWithPet('/pagesMemoir/studio/index', false)}
           style={{ borderRadius: 20, background: 'linear-gradient(150deg,#fff1e8,#ffe3ee)', padding: 14 }}
         >
           <Text className='cve-ccard-em'>🎨</Text>
@@ -133,7 +133,7 @@ const CreativeHub = () => {
         </View>
         <View
           className='cve-ccard cve-ccard--violet'
-          onClick={() => goWithPet('/pagesPet/memoir-center/index', false)}
+          onClick={() => goWithPet('/pagesMemoir/memoir-center/index', false)}
           style={{ borderRadius: 20, background: 'linear-gradient(150deg,#f0ecff,#ffe0f0)', padding: 14 }}
         >
           <Text className='cve-ccard-em'>🎬</Text>
