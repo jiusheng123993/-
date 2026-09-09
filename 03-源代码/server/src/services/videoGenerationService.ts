@@ -25,6 +25,7 @@ import { delay } from '../utils/delay.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 // 回忆录 2.0 模块（M2 提示词组装 / M4 字幕 / M3 旁白）
@@ -151,6 +152,18 @@ const MUSIC_STYLE_HINTS: Record<string, string> = {
   piano: '轻柔钢琴',
   gentle: '舒缓悠扬',
   bright: '明亮轻快',
+};
+
+/**
+ * BGM 内置曲库（2026-09-09 BGM 合成接入）：全部 incompetech.com 的 Kevin MacLeod 作品，
+ * CC BY 3.0 免费可商用（需署名，页面已常驻署名）。
+ * 键 = 前端 BGM key 经 mapBGMKeyToMusicStyle 转的音乐风格枚举；值 = uploads/bgm/ 下音频文件名。
+ */
+const BGM_FILES: Record<string, string> = {
+  peaceful: 'piano-preview.mp3',   // 温柔时光（钢琴曲）→ Bittersweet
+  warm: 'guitar-preview.mp3',      // 暖心回忆（轻快）→ Life of Riley
+  nostalgic: 'strings-preview.mp3', // 深情告白（弦乐）→ Healing
+  cheerful: 'upbeat-preview.mp3',  // 欢快瞬间（轻快节奏）→ Carefree
 };
 
 /** 档位 → 生成管线映射：standard 与 full 均走多段合集（memorial 管线），仅 light 走单段静图动效（daily 管线） */
@@ -396,7 +409,7 @@ async function stitchWithScript(
   segmentUrls: string[],
   timeline: ScriptTimeline[],
   script: MemoirScript,
-  _musicStyle: string | null | undefined,
+  musicStyle: string | null | undefined,
 ): Promise<StitchResult> {
   if (segmentUrls.length === 0) {
     throw new Error(`[VideoGen] No segments to stitch for task ${taskId}`);
@@ -474,7 +487,7 @@ async function stitchWithScript(
       filterParts.push(`[vxf]null[vout]`);
     }
 
-    // 音频：静音底噪 + 旁白（若有）；BGM 音乐库后续接入
+    // 音频：静音底噪 + 旁白（若有）+ BGM 背景（内置 incompetech 曲，循环低音）
     const totalDuration = accumulated + (timeline[timeline.length - 1]?.endSec - timeline[timeline.length - 1]?.startSec || 0);
     const baseAudioIdx = localPaths.length; // anullsrc 输入下标
     inputs.push('-f', 'lavfi', '-t', String(Math.max(totalDuration, 1)), '-i', 'anullsrc=r=44100:cl=stereo');
@@ -488,6 +501,24 @@ async function stitchWithScript(
       filterParts.push(`[abase][anar]amix=inputs=2:duration=first:normalize=0[aout]`);
     } else {
       filterParts.push(`[abase]anull[aout]`);
+    }
+
+    // BGM 背景（2026-09-09 合成接入）：按音乐风格选内置曲（incompetech CC BY 3.0），循环 + 低音量，
+    // 与旁白/底噪混合；BGM 文件缺失时静默跳过（不阻断最终成片）
+    try {
+      const bgmFileName = musicStyle ? BGM_FILES[musicStyle] : undefined;
+      if (bgmFileName) {
+        const bgmPath = path.join(UPLOAD_DIR, 'bgm', bgmFileName);
+        if (existsSync(bgmPath)) {
+          const bgmIdx = inputs.length; // 追加一个输入
+          inputs.push('-stream_loop', '-1', '-i', bgmPath);
+          filterParts.push(`[${bgmIdx}:a]volume=0.22[abgm]`);
+          filterParts.push(`[aout][abgm]amix=inputs=2:duration=first:normalize=0[amix]`);
+          filterParts.push(`[amix]atrim=0:${Math.max(totalDuration, 1)}[aout]`);
+        }
+      }
+    } catch {
+      // BGM 处理失败不阻断合成
     }
 
     // 执行 ffmpeg
