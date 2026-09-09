@@ -7,7 +7,7 @@
 
 .memoir-vlog {
   min-height: 100vh;
-  background: linear-gradient(180deg, #120E1A 0%, #16102A 30%, #1C1430 70%, #221838 100%);
+  background: linear-gradient(180deg, #FFFDF9 0%, #FFF6EE 30%, #FFEDE0 70%, #FFE6D8 100%);
   display: flex;
   flex-direction: column;
   animation: pageEnter 0.4s ease-out;
@@ -34,13 +34,13 @@
     width: 32rpx;
     height: 8rpx;
     border-radius: 4rpx;
-    background: linear-gradient(90deg, #B8A0D8, #E8C8A0);
+    background: linear-gradient(90deg, #FF9A62, #E8C8A0);
     opacity: 1;
-    box-shadow: 0 0 12rpx rgba(184, 160, 216, 0.4);
+    box-shadow: 0 0 12rpx rgba(255, 154, 98, 0.4);
   }
 
   &--done {
-    background: rgba(184, 160, 216, 0.5);
+    background: rgba(255, 154, 98, 0.5);
     opacity: 0.6;
   }
 }
@@ -48,7 +48,7 @@
 .memoir-vlog__step-connector {
   width: 20rpx;
   height: 2rpx;
-  background: rgba(184, 160, 216, 0.15);
+  background: rgba(255, 154, 98, 0.15);
 }
 
 // ==================== 步骤容器 ====================
@@ -110,15 +110,15 @@
   border-radius: 999rpx;
   font-size: $font-size-sm;
   color: $color-text-secondary;
-  background: rgba(184, 160, 216, 0.06);
-  border: 1rpx solid rgba(184, 160, 216, 0.18);
+  background: rgba(255, 154, 98, 0.06);
+  border: 1rpx solid rgba(255, 154, 98, 0.18);
   transition: all 0.2s ease;
 }
 
 .memoir-vlog__tag--active {
-  color: #b8a0d8;
-  background: rgba(184, 160, 216, 0.14);
-  border-color: rgba(184, 160, 216, 0.55);
+  color: #FF9A62;
+  background: rgba(255, 154, 98, 0.14);
+  border-color: rgba(255, 154, 98, 0.55);
   font-weight: 600;
 }
 
@@ -134,7 +134,7 @@
 .memoir-vlog__photo-count {
   font-size: $font-size-sm;
   color: #D8B8A0;
-  background: rgba(184, 160, 216, 0.1);
+  background: rgba(255, 154, 98, 0.1);
   border: 1rpx solid rgba(216, 184, 160, 0.2);
   padding: 6rpx 18rpx;
   border-radius: 20rpx;
@@ -152,7 +152,7 @@
   border-radius: $radius-xl;
   overflow: hidden;
   @include card-base;
-  border-color: rgba(184, 160, 216, 0.2);
+  border-color: rgba(255, 154, 98, 0.2);
   animation: fadeInScale 0.3s ease-out;
 }
 
@@ -172,7 +172,7 @@
   background: rgba(0, 0, 0, 0.55);
   @include flex-center;
   font-size: 22rpx;
-  color: #FFFFFF;
+  color: #40281C;
   z-index: 2;
   @include press-feedback;
 }
@@ -180,8 +180,8 @@
 .memoir-vlog__photo-add {
   aspect-ratio: 1;
   border-radius: $radius-xl;
-  border: 2rpx dashed rgba(184, 160, 216, 0.25);
-  background: rgba(184, 160, 216, 0.03);
+  border: 2rpx dashed rgba(255, 154, 98, 0.25);
+  background: rgba(255, 154, 98, 0.03);
   @include flex-center;
   flex-direction: column;
   gap: 8rpx;
@@ -190,18 +190,18 @@
 
   &:active {
     border-color: #D8B8A0;
-    background: rgba(184, 160, 216, 0.08);
+    background: rgba(255, 154, 98, 0.08);
   }
 }
 
 .memoir-vlog__photo-add-icon {
   font-size: 48rpx;
-  color: #A898C0;
+  color: #D2703A;
 }
 
 .memoir-vlog__photo-add-text {
   font-size: 22rpx;
-  color: #A898C0;
+  color: #D2703A;
 }
 
 // ==================== 步骤二：写叙事文字 ====================
@@ -210,8 +210,8 @@
   min-height: 280rpx;
   padding: 28rpx 24rpx;
   border-radius: $radius-xl;
-  background: rgba(184, 160, 216, 0.04);
-  border: 1rpx solid rgba(184, 160, 216, 0.15);
+  background: rgba(255, 154, 98, 0.04);
+  border: 1rpx solid rgba(255, 154, 98, 0.15);
   color: $color-text-primary;
   font-size: $font-size-md;
   line-height: 1.8;
@@ -226,7 +226,7 @@
 
   &:focus {
     border-color: rgba(216, 184, 160, 0.4);
-    box-shadow: 0 0 20rpx rgba(184, 160, 216, 0.08);
+    box-shadow: 0 0 20rpx rgba(255, 154, 98, 0.08);
   }
 }
 
@@ -239,7 +239,7 @@
 
 .memoir-vlog__bgm-card {
   @include card-base;
-  border-color: rgba(184, 160, 216, 0.12);
+  border-color: rgba(255, 154, 98, 0.12);
   padding: 24rpx 24rpx;
   border-radius: $radius-xl;
   display: flex;
@@ -251,8 +251,8 @@
 
   &--active {
     border-color: #D8B8A0;
-    background: rgba(184, 160, 216, 0.08);
-    box-shadow: 0 4rpx 24rpx rgba(184, 160, 216, 0.15), inset 0 0 0 1rpx rgba(216, 184, 160, 0.1);
+    background: rgba(255, 154, 98, 0.08);
+    box-shadow: 0 4rpx 24rpx rgba(255, 154, 98, 0.15), inset 0 0 0 1rpx rgba(216, 184, 160, 0.1);
 
     .memoir-vlog__bgm-card-emoji {
       transform: scale(1.1);
@@ -265,7 +265,7 @@
   width: 72rpx;
   height: 72rpx;
   @include flex-center;
-  background: rgba(184, 160, 216, 0.06);
+  background: rgba(255, 154, 98, 0.06);
   border-radius: $radius-lg;
   flex-shrink: 0;
   transition: transform 0.25s ease;
@@ -287,8 +287,8 @@
 
 .memoir-vlog__bgm-card-tag {
   font-size: 20rpx;
-  color: #A898C0;
-  background: rgba(184, 160, 216, 0.08);
+  color: #D2703A;
+  background: rgba(255, 154, 98, 0.08);
   padding: 2rpx 14rpx;
   border-radius: $radius-full;
   display: inline-block;
@@ -325,17 +325,17 @@
   width: 32rpx;
   height: 32rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba(184, 160, 216, 0.2);
+  border: 2rpx solid rgba(255, 154, 98, 0.2);
   @include flex-center;
   transition: all 0.25s ease;
 
   .memoir-vlog__bgm-card--active & {
-    background: linear-gradient(135deg, #B8A0D8, #D8B8A0);
+    background: linear-gradient(135deg, #FF9A62, #D8B8A0);
     border-color: #D8B8A0;
   }
 
   &--checked {
-    color: #1A1418;
+    color: #40281C;
     font-size: 18rpx;
   }
 }
@@ -343,7 +343,7 @@
 // ==================== 步骤四：确认与支付 ====================
 .memoir-vlog__confirm-summary {
   @include card-base;
-  border-color: rgba(184, 160, 216, 0.15);
+  border-color: rgba(255, 154, 98, 0.15);
   padding: 28rpx 24rpx;
   border-radius: $radius-xl;
   margin-bottom: 32rpx;
@@ -356,7 +356,7 @@
   padding: 16rpx 0;
 
   & + & {
-    border-top: 1rpx solid rgba(184, 160, 216, 0.06);
+    border-top: 1rpx solid rgba(255, 154, 98, 0.06);
   }
 }
 
@@ -385,7 +385,7 @@
   border-radius: $radius-xl;
   overflow: hidden;
   @include card-base;
-  border-color: rgba(184, 160, 216, 0.2);
+  border-color: rgba(255, 154, 98, 0.2);
   margin-bottom: 32rpx;
   @include flex-center;
   position: relative;
@@ -425,7 +425,7 @@
   background: rgba(216, 184, 160, 0.9);
   @include flex-center;
   font-size: 44rpx;
-  box-shadow: 0 8rpx 32rpx rgba(184, 160, 216, 0.3);
+  box-shadow: 0 8rpx 32rpx rgba(255, 154, 98, 0.3);
   @include press-feedback;
 }
 
@@ -453,7 +453,7 @@
 .memoir-vlog__loading-spinner {
   width: 80rpx;
   height: 80rpx;
-  border: 6rpx solid rgba(184, 160, 216, 0.15);
+  border: 6rpx solid rgba(255, 154, 98, 0.15);
   border-top-color: #D8B8A0;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -499,7 +499,7 @@
   align-items: center;
   gap: 20rpx;
   padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
-  background: linear-gradient(0deg, #16102A 60%, transparent);
+  background: linear-gradient(0deg, #FFF6EE 60%, transparent);
   z-index: 10;
 }
 
@@ -520,9 +520,9 @@
   }
 
   &--primary {
-    background: linear-gradient(135deg, #B8A0D8, #D8B8A0);
-    color: #1A1418;
-    box-shadow: 0 8rpx 32rpx rgba(184, 160, 216, 0.3);
+    background: linear-gradient(135deg, #FF9A62, #D8B8A0);
+    color: #40281C;
+    box-shadow: 0 8rpx 32rpx rgba(255, 154, 98, 0.3);
     letter-spacing: 2rpx;
   }
 
@@ -532,22 +532,22 @@
   }
 
   &--secondary {
-    background: rgba(184, 160, 216, 0.06);
-    border: 2rpx solid rgba(184, 160, 216, 0.15);
+    background: rgba(255, 154, 98, 0.06);
+    border: 2rpx solid rgba(255, 154, 98, 0.15);
     color: $color-text-secondary;
   }
 
   // 弱化描边按钮（上一步回退；此前 tsx 引用但 scss 缺失，渲染成纯文字——复验 P1 修复）
   &--ghost {
-    background: rgba(184, 160, 216, 0.06);
-    border: 2rpx solid rgba(184, 160, 216, 0.2);
+    background: rgba(255, 154, 98, 0.06);
+    border: 2rpx solid rgba(255, 154, 98, 0.2);
     color: $color-text-secondary;
     font-weight: normal;
   }
 
   &--gold {
     background: linear-gradient(135deg, #D8B8A0, #E8D0A8);
-    color: #1A1418;
+    color: #40281C;
     box-shadow: 0 8rpx 32rpx rgba(216, 184, 160, 0.3);
     letter-spacing: 2rpx;
   }
@@ -579,7 +579,7 @@
   width: 100%;
   max-height: 80vh;
   background: rgba(26, 20, 24, 0.96);
-  border: 2rpx solid rgba(184, 160, 216, 0.2);
+  border: 2rpx solid rgba(255, 154, 98, 0.2);
   border-radius: $radius-lg;
   padding: 40rpx 32rpx 32rpx;
   display: flex;
@@ -607,7 +607,7 @@
 }
 
 .memoir-vlog__script-seg {
-  background: rgba(184, 160, 216, 0.06);
+  background: rgba(255, 154, 98, 0.06);
   border-radius: $radius-md;
   padding: 20rpx 24rpx;
   display: flex;
@@ -652,14 +652,14 @@
   @include press-feedback;
 
   &--primary {
-    background: linear-gradient(135deg, #B8A0D8, #D8B8A0);
-    color: #1A1418;
-    box-shadow: 0 8rpx 32rpx rgba(184, 160, 216, 0.3);
+    background: linear-gradient(135deg, #FF9A62, #D8B8A0);
+    color: #40281C;
+    box-shadow: 0 8rpx 32rpx rgba(255, 154, 98, 0.3);
   }
 
   &--ghost {
-    background: rgba(184, 160, 216, 0.06);
-    border: 2rpx solid rgba(184, 160, 216, 0.15);
+    background: rgba(255, 154, 98, 0.06);
+    border: 2rpx solid rgba(255, 154, 98, 0.15);
     color: $color-text-secondary;
   }
 }
@@ -667,7 +667,7 @@
 .memoir-vlog__script-btn-text {
   font-size: $font-size-md;
   font-weight: $font-weight-bold;
-  color: #1A1418;
+  color: #40281C;
 
   &--ghost {
     color: $color-text-secondary;
@@ -704,8 +704,8 @@
   flex: 1;
   padding: 28rpx 12rpx;
   border-radius: $radius-lg;
-  background: rgba(184, 160, 216, 0.08);
-  border: 2rpx solid rgba(184, 160, 216, 0.15);
+  background: rgba(255, 154, 98, 0.08);
+  border: 2rpx solid rgba(255, 154, 98, 0.15);
   text-align: center;
 }
 
@@ -713,7 +713,7 @@
   display: block;
   font-size: 48rpx;
   font-weight: $font-weight-bold;
-  background: linear-gradient(135deg, #E8C8A0, #B8A0D8);
+  background: linear-gradient(135deg, #E8C8A0, #FF9A62);
   -webkit-background-clip: text;
   color: transparent;
 }
@@ -730,7 +730,7 @@
   margin-top: 28rpx;
   padding: 28rpx;
   border-radius: $radius-lg;
-  background: linear-gradient(135deg, rgba(232, 200, 160, 0.12), rgba(184, 160, 216, 0.12));
+  background: linear-gradient(135deg, rgba(232, 200, 160, 0.12), rgba(255, 154, 98, 0.12));
   border: 2rpx solid rgba(232, 200, 160, 0.25);
 }
 
@@ -775,14 +775,14 @@
   height: 76rpx;
   border-radius: $radius-round;
   @include flex-center;
-  background: rgba(184, 160, 216, 0.06);
-  border: 2rpx solid rgba(184, 160, 216, 0.15);
+  background: rgba(255, 154, 98, 0.06);
+  border: 2rpx solid rgba(255, 154, 98, 0.15);
   color: $color-text-secondary;
   font-size: $font-size-sm;
   @include press-feedback;
 
   &--active {
-    background: linear-gradient(135deg, rgba(184, 160, 216, 0.25), rgba(232, 200, 160, 0.25));
+    background: linear-gradient(135deg, rgba(255, 154, 98, 0.25), rgba(232, 200, 160, 0.25));
     border-color: rgba(232, 200, 160, 0.5);
     color: #E8C8A0;
     font-weight: $font-weight-bold;
@@ -874,7 +874,7 @@
   border-radius: 50%;
   @include flex-center;
   background: #E8C8A0;
-  color: #1A1418;
+  color: #40281C;
   font-size: 24rpx;
   font-weight: $font-weight-bold;
 }
@@ -921,12 +921,12 @@
   gap: 20rpx;
   padding: 24rpx;
   border-radius: $radius-lg;
-  background: rgba(184, 160, 216, 0.06);
-  border: 2rpx solid rgba(184, 160, 216, 0.15);
+  background: rgba(255, 154, 98, 0.06);
+  border: 2rpx solid rgba(255, 154, 98, 0.15);
   @include press-feedback;
 
   &--active {
-    background: linear-gradient(135deg, rgba(184, 160, 216, 0.18), rgba(232, 200, 160, 0.14));
+    background: linear-gradient(135deg, rgba(255, 154, 98, 0.18), rgba(232, 200, 160, 0.14));
     border-color: rgba(232, 200, 160, 0.45);
   }
 }
@@ -938,8 +938,8 @@
   margin-top: 4rpx;
   border-radius: 50%;
   @include flex-center;
-  border: 2rpx solid rgba(184, 160, 216, 0.4);
-  color: #1A1418;
+  border: 2rpx solid rgba(255, 154, 98, 0.4);
+  color: #40281C;
   font-size: 24rpx;
   font-weight: $font-weight-bold;
 
@@ -990,12 +990,12 @@
   position: relative;
   padding: 28rpx;
   border-radius: $radius-lg;
-  background: rgba(184, 160, 216, 0.06);
-  border: 2rpx solid rgba(184, 160, 216, 0.15);
+  background: rgba(255, 154, 98, 0.06);
+  border: 2rpx solid rgba(255, 154, 98, 0.15);
   @include press-feedback;
 
   &--active {
-    background: linear-gradient(135deg, rgba(184, 160, 216, 0.2), rgba(232, 200, 160, 0.16));
+    background: linear-gradient(135deg, rgba(255, 154, 98, 0.2), rgba(232, 200, 160, 0.16));
     border-color: #E8C8A0;
     box-shadow: 0 8rpx 32rpx rgba(232, 200, 160, 0.2);
   }
@@ -1052,7 +1052,7 @@
   padding: 4rpx 14rpx;
   border-radius: $radius-round;
   font-size: 20rpx;
-  background: linear-gradient(135deg, #E8C8A0, #B8A0D8);
-  color: #1A1418;
+  background: linear-gradient(135deg, #E8C8A0, #FF9A62);
+  color: #40281C;
   font-weight: $font-weight-bold;
 }
