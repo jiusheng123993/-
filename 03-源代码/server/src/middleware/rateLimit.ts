@@ -107,6 +107,19 @@ export const memoirLimiter = rateLimit({
   },
 });
 
+/** 提示词预览/改写限流：触发视觉描述 + DeepSeek 有成本，放宽到 5 次/分（2026-09-09 人机协同） */
+export const promptLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  keyGenerator,
+  skip: skipInTest,
+  message: {
+    success: false,
+    code: '100013',
+    message: '提示词预览过于频繁，请稍后再试',
+  },
+});
+
 /** 取名引擎：10次/分钟（2026-09 审查修复：此前定义后从未挂载） */
 export const namingLimiter = rateLimit({
   windowMs: 60 * 1000,

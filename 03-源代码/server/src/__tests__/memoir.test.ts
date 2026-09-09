@@ -52,7 +52,23 @@ vi.mock('../middleware/auth.js', () => ({
   },
 }));
 
+// prompt-preview 测试：隔离 LLM/视觉/记忆（2026-09-09 提示词人机协同），避免真实调用与成本
+vi.mock('../services/memoirScriptService.js', () => ({
+  generateMemoirScript: vi.fn(),
+}));
+vi.mock('../services/memoirPhotoAnalysis.js', () => ({
+  analyzeMemoirPhotos: vi.fn(),
+}));
+vi.mock('../services/memoryService.js', () => ({
+  buildMemoryContext: vi.fn(),
+  getMemoriesByTags: vi.fn(),
+  getMomentSummariesByIds: vi.fn(),
+}));
+
 import memoirRouter from '../routes/memoir.js';
+import * as memoirScriptService from '../services/memoirScriptService.js';
+import * as memoirPhotoAnalysis from '../services/memoirPhotoAnalysis.js';
+import * as memoryService from '../services/memoryService.js';
 
 function createApp() {
   const app = express();
@@ -780,5 +796,92 @@ describe('GET /api/pets/:petId/memoir/status - 剧本确认闸门字段透出（
     expect(res.status).toBe(200);
     expect(res.body.data.awaiting_confirmation).toBe(false);
     expect(res.body.data.script).toBeUndefined();
+  });
+});
+
+// ===== POST /api/pets/:petId/memoir/prompt-preview - 生成前提示词预览 =====
+describe('POST /api/pets/:petId/memoir/prompt-preview 提示词预览', () => {
+  const mockScript = {
+    title: 'Test Script',
+    theme: '陪伴',
+    emotion_curve: ['memory', 'relief'],
+    narration_voice: 'zh_female_vv_uranus_bigtts',
+    music_mood: 'warm',
+    segments: [
+      {
+        photo_index: 0,
+        shot_type: 'push_in',
+        camera: 'medium',
+        lighting: 'soft_afternoon',
+        transition: 'cut',
+        duration_sec: 5,
+        seedance_prompt: '一只毛茸茸的猫咪在阳光下慵懒地伸懒腰，柔和的午后光线，浅景深，电影感镜头。',
+        narration: '它总在午后晒着太阳，慢慢长大。',
+        subtitle: '午后的阳光',
+        music_mood: 'warm',
+        source: 'ai_video',
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    vi.mocked(memoirScriptService.generateMemoirScript).mockResolvedValue(mockScript as never);
+    vi.mocked(memoirPhotoAnalysis.analyzeMemoirPhotos).mockResolvedValue(['阳光下的猫咪']);
+    vi.mocked(memoryService.buildMemoryContext).mockResolvedValue({ memories: undefined } as never);
+  });
+
+  it('标准档 5 张照片返回 200 + 将用提示词（seedance_prompt）', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // canAccess OK
+      .mockResolvedValueOnce({                                        // petRepository.findById
+        rows: [{
+          id: 'pet-001', name: '可乐', species: 'cat', breed: '英短', gender: 'male',
+          birth_date: '2024-01-01', notes: null, is_deceased: false,
+        }],
+        rowCount: 1,
+      });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-preview')
+      .send({
+        memoir_type: 'memorial',
+        tier: 'standard',
+        source_photos: makePhotos(5),
+        source_text: '这段叙事',
+        music_style: 'warm',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.segments[0].seedance_prompt).toContain('猫咪');
+    expect(res.body.data.segments[0].narration).toContain('慢慢长大');
+  });
+
+  it('标准档照片 4 张（低于 5）返回 400', async () => {
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-preview')
+      .send({
+        memoir_type: 'memorial',
+        tier: 'standard',
+        source_photos: makePhotos(4),
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('越权宠物返回 404', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-404/memoir/prompt-preview')
+      .send({
+        memoir_type: 'memorial',
+        tier: 'standard',
+        source_photos: makePhotos(5),
+      });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
   });
 });

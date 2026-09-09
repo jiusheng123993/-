@@ -17,6 +17,10 @@ import { MemoirRepository, type MemoirRecordRow } from '../repositories/memoirRe
 import { refundMemoirOrder } from './memoirRefundService.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
+import { generateMemoirScript } from './memoirScriptService.js';
+import type { MemoirScript } from '../schemas/memoirScript.js';
+import { analyzeMemoirPhotos } from './memoirPhotoAnalysis.js';
+import { buildMemoryContext, getMemoriesByTags, getMomentSummariesByIds } from './memoryService.js';
 import {
   PRODUCT_LINE_CONFIG,
   mapTierToGenerationLine,
@@ -489,4 +493,84 @@ export async function previewMemoir(
   }
 
   return { preview_url: record.preview_url };
+}
+
+/**
+ * 「生成前」提示词预览（2026-09-09 提示词人机协同）：
+ * 选照片+画风氛围+BGM 后、真正生成之前，把「将用的提示词」取出来给用户看。
+ * 与 memoirProcessor 的分镜生成共用同一套 input 组装（petProfile+memo+照片描述），
+ * 保证「用户看到的提示词」与「生成时用的提示词」一致，兑现"确认后再生成、防扯皮"。
+ *
+ * 注意：
+ *   - 本接口只预览、不落库、不创建任务、不产生支付（防扯皮的第一环）
+ *   - 会触发照片视觉描述 + DeepSeek 分镜生成（有 LLM 成本），故路由层需限流
+ *   - 归属校验强制；勾选记忆优先于标签/完整上下文（与 processor 一致）
+ *
+ * @returns 分镜脚本（含每段 seedance_prompt / narration / shot_type / lighting 等）
+ */
+export async function generatePromptPreview(
+  userId: string,
+  petId: string,
+  data: CreateMemoirInput,
+): Promise<MemoirScript> {
+  // 1. 归属校验
+  const owns = await petRepository.canAccess(petId, userId);
+  if (!owns) {
+    throw new MemoirError(404, '宠物不存在');
+  }
+
+  // 2. 档位参数校验（照片数/时长；tier 缺省按 memoir_type 回退）
+  const tier = validateTierParams(data);
+
+  // 3. 产品线（light→daily 单段 / standard·full→memorial 多段）
+  const productLine = mapTierToGenerationLine(tier);
+
+  // 4. petProfile（与 processor 同构）
+  const pet = await petRepository.findById(petId);
+  const petProfile = pet
+    ? {
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed,
+        gender: pet.gender,
+        birth_date: pet.birth_date,
+        notes: pet.notes,
+        is_deceased: pet.is_deceased,
+      }
+    : { name: '宝贝', species: 'cat', breed: '宠物' };
+
+  // 5. 记忆摘要（G2 勾选优先；勾选模式跳过多余拉取——与 processor 口径一致）
+  let memorySummary: string | undefined;
+  try {
+    const selectedIds = Array.isArray(data.selected_moment_ids)
+      ? (data.selected_moment_ids as string[]).filter((id) => typeof id === 'string' && id.length > 0)
+      : [];
+    if (selectedIds.length > 0) {
+      memorySummary = (await getMomentSummariesByIds(userId, petId, selectedIds)) || undefined;
+    } else if (data.tags && data.tags.length > 0) {
+      memorySummary = await getMemoriesByTags({ userId, petId, tags: data.tags, limit: 20 });
+    } else {
+      const ctx = await buildMemoryContext(userId, petId, data.source_text || '为宠物生成回忆录分镜');
+      memorySummary = ctx.memories || undefined;
+    }
+  } catch {
+    // 记忆摘要失败不阻断预览
+  }
+
+  // 6. 照片视觉描述（与 processor 同源；单图失败服务内保守降级）
+  const photoDescriptions = await analyzeMemoirPhotos(data.source_photos);
+
+  // 7. 调分镜脚本生成（返回将用提示词）
+  return generateMemoirScript({
+    petProfile,
+    memorySummary,
+    photoCount: data.source_photos.length,
+    productLine,
+    targetDuration: resolveMemoirTier(data.tier, data.memoir_type) === tier
+      ? (data.duration ?? MEMOIR_TIER_CONFIG[tier].defaultDuration)
+      : MEMOIR_TIER_CONFIG[tier].defaultDuration,
+    sourceText: data.source_text,
+    musicStyle: typeof data.music_style === 'string' ? data.music_style : null,
+    photoDescriptions,
+  });
 }

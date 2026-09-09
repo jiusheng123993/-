@@ -7,7 +7,7 @@ import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema } from '../schemas/index.js';
-import { memoirLimiter } from '../middleware/rateLimit.js';
+import { memoirLimiter, promptLimiter } from '../middleware/rateLimit.js';
 import {
   createMemoir,
   getStatus,
@@ -16,6 +16,7 @@ import {
   previewMemoir,
   confirmMemoirScript,
   rejectMemoirScript,
+  generatePromptPreview,
   MemoirError,
   MemoirBusinessError,
 } from '../services/memoirService.js';
@@ -206,6 +207,29 @@ router.post('/:petId/memoir/preview', validate({ body: memoirPreviewSchema }), a
     handleServiceError(res, err);
   }
 });
+
+/**
+ * POST /api/pets/:petId/memoir/prompt-preview
+ * 「生成前」提示词预览（2026-09-09 提示词人机协同）：采集照片+风格+BGM 后、
+ * 真正生成之前，把「将用的提示词」取出来给用户看。不落库不创建任务不产生支付。
+ * 触发视觉描述 + DeepSeek 分镜生成（有 LLM 成本）→ 用 promptLimiter 限流。
+ * 入参与 createMemoir 一致（createMemoirSchema 复用），但仅做校验+组装+生成预览。
+ */
+router.post(
+  '/:petId/memoir/prompt-preview',
+  promptLimiter,
+  validate({ body: createMemoirSchema }),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.userId!;
+      const petId = req.params.petId as string;
+      const script = await generatePromptPreview(userId, petId, req.body);
+      res.json({ success: true, data: script });
+    } catch (err) {
+      handleServiceError(res, err);
+    }
+  },
+);
 
 /**
  * GET /api/pets/:petId/membership
