@@ -44,6 +44,12 @@ vi.mock('../repositories/petRepository.js', () => ({
 vi.mock('../services/videoGenerationService.js', () => ({
   generateMemoirVideo: mocks.generateVideo,
   mapMemoirTypeToProductLine: (t: string) => (t === 'memorial' ? 'memorial' : 'daily'),
+  // 2026-09-09 三档：处理器改按档位解析管线（narrative.tier 缺失回退 memoir_type，行为与旧版一致）
+  resolveMemoirTier: (tier: unknown, memoirType: string) =>
+    tier === 'light' || tier === 'standard' || tier === 'full'
+      ? tier
+      : memoirType === 'memorial' ? 'full' : 'light',
+  mapTierToGenerationLine: (tier: string) => (tier === 'light' ? 'daily' : 'memorial'),
 }));
 
 vi.mock('../services/memoirScriptService.js', () => ({
@@ -80,6 +86,13 @@ vi.mock('../services/autoFeedService.js', () => ({
 
 vi.mock('../config.js', () => ({
   config: { uploadDir: 'uploads-test', moderateApiKey: 'test-key' },
+  // 2026-09-09 三档：处理器 targetDuration 兜底引用 MEMOIR_TIER_CONFIG
+  MEMOIR_TIER_CONFIG: {
+    light: { minPhotos: 1, maxPhotos: 3, minDuration: 5, maxDuration: 30, defaultDuration: 20 },
+    standard: { minPhotos: 5, maxPhotos: 7, minDuration: 40, maxDuration: 50, defaultDuration: 45 },
+    full: { minPhotos: 8, maxPhotos: 15, minDuration: 60, maxDuration: 90, defaultDuration: 75 },
+  },
+  MEMOIR_TIER_LABELS: { light: '轻纪念', standard: '标准回忆录', full: '完整回忆录' },
 }));
 
 import { processTask } from './memoirProcessor.js';

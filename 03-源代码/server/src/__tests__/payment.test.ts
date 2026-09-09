@@ -49,6 +49,18 @@ vi.mock('../config.js', () => ({
     uploadDir: './uploads',
     publicBaseUrl: '',
   },
+  // 2026-09-09 三档定价体系常量（config 真实导出，测试锁同一份值）
+  MEMOIR_TIER_CONFIG: {
+    light: { minPhotos: 1, maxPhotos: 3, minDuration: 5, maxDuration: 30, defaultDuration: 20 },
+    standard: { minPhotos: 5, maxPhotos: 7, minDuration: 40, maxDuration: 50, defaultDuration: 45 },
+    full: { minPhotos: 8, maxPhotos: 15, minDuration: 60, maxDuration: 90, defaultDuration: 75 },
+  },
+  MEMOIR_TIER_LABELS: { light: '轻纪念', standard: '标准回忆录', full: '完整回忆录' },
+  MEMOIR_TIER_PRICES: {
+    light: { member: 1890, free: 2590 },
+    standard: { member: 4500, free: 5900 },
+    full: { member: 7900, free: 9900 },
+  },
 }));
 
 vi.mock('../middleware/auth.js', () => ({
@@ -175,16 +187,13 @@ beforeEach(() => {
 
 // ===== 1. POST /api/payment/memoir/order - 创建回忆录订单 =====
 describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
-  it('会员日常回忆录配额内：直接创建任务，返回 need_payment=false', async () => {
+  it('会员轻纪念档：创建支付订单（2026-09-09 免费配额已废除），返回会员价 18.9 元', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
       .mockResolvedValueOnce({ rows: [mockMembershipRow], rowCount: 1 })    // tier: member
-      .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })         // monthly quota: 0 used
-      // createMemoirFromPayment 内部：归属校验 + 并发校验 + insert
-      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK (二次)
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task (二次)
-      .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });    // insert
+      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid-001' }], rowCount: 1 }) // user
+      .mockResolvedValueOnce({ rows: [mockPendingMemoirOrder], rowCount: 1 }); // createMemoirOrder
 
     const res = await request(createApp())
       .post('/api/payment/memoir/order')
@@ -196,12 +205,14 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.need_payment).toBe(false);
-    expect(res.body.data.task.id).toBe('memoir-task-001');
-    expect(res.body.data.task.status).toBe('pending');
+    expect(res.body.data.need_payment).toBe(true);
+    expect(res.body.data.amount).toBe(1890);
+    expect(res.body.data.payment).toBeDefined();
+    expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
+    expect(res.body.data.payment.paySign).toBe('mock_signature');
   });
 
-  it('非会员日常回忆录：创建支付订单，返回 need_payment=true', async () => {
+  it('非会员轻纪念档：创建支付订单，返回非会员价 25.9 元', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
@@ -220,13 +231,47 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
     expect(res.body.data.need_payment).toBe(true);
-    expect(res.body.data.amount).toBe(990);
+    expect(res.body.data.amount).toBe(2590);
     expect(res.body.data.payment).toBeDefined();
     expect(res.body.data.payment.prepay_id).toContain('mock_prepay_');
     expect(res.body.data.payment.paySign).toBe('mock_signature');
   });
 
-  it('非会员纪念Vlog：返回 149 元订单', async () => {
+  it('非会员标准回忆录档（tier=standard）：下单成功且 plan=memoir_standard、落库档位 standard（审查 P0 回归锁）', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // tier: free
+      .mockResolvedValueOnce({ rows: [{ id: 'test-user-id', openid: 'test-openid-001' }], rowCount: 1 }) // user
+      .mockResolvedValueOnce({ rows: [mockPendingMemoirOrder], rowCount: 1 }); // createMemoirOrder
+
+    const res = await request(createApp())
+      .post('/api/payment/memoir/order')
+      .send({
+        pet_id: 'pet-001',
+        memoir_type: 'daily',
+        tier: 'standard',
+        source_photos: makePhotos(5),
+        selected_moment_ids: ['3f2b8a1e-1c2d-4e5f-8a9b-0c1d2e3f4a5b'],
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.need_payment).toBe(true);
+    expect(res.body.data.amount).toBe(5900);
+    // INSERT 参数（BaseRepository.insert 按 keys 顺序展开）：index 2=plan、7=product_metadata
+    const insertCall = mockPool.query.mock.calls.find((c: unknown[][]) =>
+      String(c[0]).includes('INSERT INTO payment_orders'),
+    );
+    expect(insertCall).toBeDefined();
+    const values = insertCall![1] as unknown[];
+    expect(values[2]).toBe('memoir_standard');            // plan 落库（迁移 035 CHECK 白名单内）
+    expect(values[4]).toBe('pending');
+    const meta = values[7] as Record<string, unknown>;
+    expect(meta.tier).toBe('standard');                   // 档位透传（回调按此建任务）
+    expect(meta.selected_moment_ids).toEqual(['3f2b8a1e-1c2d-4e5f-8a9b-0c1d2e3f4a5b']); // G2 勾选透传
+  });
+
+  it('非会员完整回忆录档：返回 99 元订单', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
@@ -244,10 +289,10 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.data.need_payment).toBe(true);
-    expect(res.body.data.amount).toBe(14900);
+    expect(res.body.data.amount).toBe(9900);
   });
 
-  it('会员纪念Vlog：返回 99 元订单', async () => {
+  it('会员完整回忆录档：返回会员价 79 元订单（原纪念Vlog 99 元档，2026-09-09 三档改价）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
@@ -265,7 +310,7 @@ describe('POST /api/payment/memoir/order - 创建回忆录订单', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.data.need_payment).toBe(true);
-    expect(res.body.data.amount).toBe(9900);
+    expect(res.body.data.amount).toBe(7900);
   });
 
   it('宠物不属于当前用户返回 404', async () => {
@@ -381,10 +426,14 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
       .mockResolvedValueOnce({ rows: [mockOrder], rowCount: 1 })
       // markPaidByCallback: UPDATE ... RETURNING id
       .mockResolvedValueOnce({ rows: [{ id: orderId }], rowCount: 1 })
+      // 金额-档位复核（审查 P2-5 新增）：resolveUserTier 查会员 → 空 = free
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       // createMemoirFromPayment 内部：
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
-      .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });   // insert
+      .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 })    // insert
+      // recordAuditLog 资金审计（2026-09-09 三档改造沿用）
+      .mockResolvedValueOnce({ rows: [], rowCount: 1 });
 
     const res = await request(createApp())
       .post('/api/payment/wechat/notify')
@@ -396,6 +445,19 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.code).toBe('SUCCESS');
+
+    // tier 兜底+透传断言（审查缺口12/15）：fixture metadata.tier='free' 是历史旧语义（会员身份），
+    // resolveMemoirTier 应兜底为 light（daily→light）并写进任务 narrative_structure。
+    // BaseRepository.insert 按 keys 顺序展开：narrative_structure 是第 7 个参数（index 6）。
+    const memoirInsert = mockPool.query.mock.calls.find((c: unknown[][]) =>
+      String(c[0]).includes('INSERT INTO pet_memoir_records'),
+    );
+    expect(memoirInsert).toBeDefined();
+    const columns = String(memoirInsert![0]).match(/INSERT INTO pet_memoir_records \(([^)]+)\)/)![1].split(', ');
+    const values = memoirInsert![1] as unknown[];
+    const narrative = JSON.parse(String(values[columns.indexOf('narrative_structure')])) as Record<string, unknown>;
+    expect(narrative.tier).toBe('light'); // 旧语义 'free' → 按 memoir_type=daily 回退 light
+    expect(narrative.duration).toBe(15);  // 历史订单显式 duration 保留
 
     // 验证 WebSocket 通知用户
     expect(mockSendToUser).toHaveBeenCalledWith(
@@ -543,6 +605,8 @@ describe('POST /api/payment/wechat/notify - 微信支付回调', () => {
       .mockResolvedValueOnce({ rows: [mockOrder], rowCount: 1 })
       // markPaidByCallback - 成功
       .mockResolvedValueOnce({ rows: [{ id: orderId }], rowCount: 1 })
+      // 金额-档位复核：resolveUserTier 查会员 → 空 = free（amount 990 ∈ 旧价白名单，放行进入业务）
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       // createMemoirFromPayment 内部：归属校验失败（模拟业务失败）
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       // refund 后的 markRefunded

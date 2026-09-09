@@ -11,7 +11,6 @@ import { generatePetImage, generatePetImageOptions, generateBackgroundSwap, clea
 import { translatePetNames } from '../services/petPrompt.js';
 import { uploadPetPhoto } from '../services/photoUploadService.js';
 import { createTask, getTask, getLatestTaskByPet } from '../services/taskQueue.js';
-import { generate2DAvatarPack } from '../services/image2DService.js';
 import { generate3DModel } from '../services/model3DService.js';
 import { v4 as uuidv4 } from 'uuid';
 import { PetRepository } from '../repositories/petRepository.js';
@@ -65,13 +64,6 @@ const MEMBER_3D_MONTHLY_LIMIT = 0;
 // 允许的风格白名单
 const VALID_STYLES = ['cartoon', 'realistic'] as const;
 type AvatarStyle = (typeof VALID_STYLES)[number];
-// 2D 形象包画风白名单：基础两档（legacy 兼容）+ 与前端 GEN_STYLES/服务端 AVATAR_STYLE_OPTIONS 对齐的 15 种画风 key；
-// 命中后由 image2DService 的 STYLE_TEXT_2D 映射为提示词风格短语，未命中仍兜底 cartoon
-const VALID_2D_STYLES = [
-  ...VALID_STYLES,
-  'q', 'japanese', 'american', 'watercolor', 'clay', 'ghibli', 'pixar', 'pixel',
-  'ink', 'oil', 'cyberpunk', 'nordic', 'lowpoly', 'lineart', 'dark',
-] as const;
 
 // Supabase 公共 URL 前缀（用于校验 referencePhotoUrl 归属）
 // 环境变量在进程生命周期内不变，模块加载时计算一次即可
@@ -594,87 +586,14 @@ router.post('/photo/upload', authMiddleware, photoUploadLimiter, upload.single('
   }
 });
 
-// 生成 2D 形象包
+// 生成 2D 形象包（已停用 2026-09-09：前端无入口、生产 0 使用的死模块；
+// 单次 96 张 Seedream 调用成本 ~34 元，为防未来误触烧钱，与 3D 同待遇直接 FEATURE_DISABLED）
 router.post('/generate-2d', authMiddleware, generateLimiter, async (req: Request, res: Response) => {
-  try {
-    const { petId, referencePhotoUrl, style } = req.body;
-    const userId = req.userId!;
-
-    if (!petId || typeof petId !== 'string') {
-      res.status(400).json({ success: false, message: 'petId 不能为空' });
-      return;
-    }
-
-    if (!referencePhotoUrl || typeof referencePhotoUrl !== 'string') {
-      res.status(400).json({ success: false, message: 'referencePhotoUrl 不能为空' });
-      return;
-    }
-
-    // URL 合法性校验（防 SSRF）
-    if (!isValidHttpUrl(referencePhotoUrl)) {
-      res.status(400).json({ success: false, message: '参考照片 URL 不合法' });
-      return;
-    }
-
-    // URL 归属校验（防止使用他人照片或内网 URL）
-    if (!isOwnedPhotoUrl(referencePhotoUrl, userId)) {
-      res.status(403).json({ success: false, message: '无权使用该参考照片' });
-      return;
-    }
-
-    // style 白名单校验（2D 扩展集：支持 15 种画风 key，未知值兜底 cartoon）
-    const safeStyle: AvatarStyle = (VALID_2D_STYLES as readonly string[]).includes(style) ? style : 'cartoon';
-
-    // 照片生成（参照自家宠物）为会员专享：服务端强制，不能只靠前端隐藏
-    const { isMember } = await getUserMembership(userId);
-    if (!isMember) {
-      res.status(403).json({
-        success: false,
-        message: '照片生成专属形象仅限会员使用，请先开通会员',
-        code: 'MEMBER_ONLY',
-      });
-      return;
-    }
-
-    // 会员每月限次（2D 形象包一次生成 96 张，成本较高）
-    const usedCount = await countMonthlyTasks(userId, '2d');
-    if (usedCount >= FREE_2D_MONTHLY_LIMIT) {
-      res.status(403).json({
-        success: false,
-        message: `本月 2D 形象包生成次数已用完（${FREE_2D_MONTHLY_LIMIT} 次/月），请下月再试`,
-        code: 'QUOTA_EXCEEDED',
-      });
-      return;
-    }
-
-    const pet = await petRepository.findByIdAndUser(petId, userId);
-
-    if (!pet) {
-      res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
-      return;
-    }
-
-    const task = await createTask(userId, petId, '2d', referencePhotoUrl);
-
-    generate2DAvatarPack({
-      taskId: task.id,
-      species: pet.species,
-      breed: pet.breed,
-      referencePhotoUrl,
-      style: safeStyle,
-    }).catch(err => console.error('[2D Generation] Error:', err));
-
-    res.json({
-      success: true,
-      data: {
-        taskId: task.id,
-        status: 'pending',
-      },
-    });
-  } catch (error) {
-    console.error('[Avatar generate-2d] Error:', error);
-    res.status(500).json({ success: false, message: '创建 2D 生成任务失败，请稍后重试' });
-  }
+  res.status(403).json({
+    success: false,
+    code: 'FEATURE_DISABLED',
+    message: '2D 形象包功能暂未开放',
+  });
 });
 
 // 查询任务进度

@@ -4,7 +4,7 @@
  * 按 TECH_DESIGN 3.1 节关键参数定义
  */
 import { z } from 'zod';
-import { config } from '../config.js';
+import { config, MEMOIR_TIER_CONFIG } from '../config.js';
 
 // ===== 通用 Schema =====
 
@@ -357,6 +357,8 @@ export const createMemoirOrderSchema = z
     memoir_type: z.enum(['daily', 'memorial', 'seasonal', 'milestone', 'custom'], {
       error: 'memoir_type 必须为 daily/memorial/seasonal/milestone/custom',
     }),
+    // 三档定价体系档位（可选，缺省按 memoir_type 历史规则回退；与 createMemoirSchema 同逻辑）
+    tier: z.enum(['light', 'standard', 'full'], { error: 'tier 必须为 light/standard/full' }).optional(),
     source_photos: z
       .array(memoirPhotoUrlSchema, { error: 'source_photos 不能为空' })
       .min(1, '至少需要1张照片'),
@@ -366,37 +368,27 @@ export const createMemoirOrderSchema = z
     style_preset: z.string().max(100).optional(),
     // F4：回忆标签（与 createMemoirSchema 一致，走支付流程也透传）
     tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
+    // G2 记忆勾选（透传进订单 product_metadata → 回调后建任务）
+    selected_moment_ids: z.array(z.string().uuid({ error: 'selected_moment_ids 必须为 UUID' })).max(10, '最多勾选 10 条回忆').optional(),
   })
   .superRefine((data, ctx) => {
-    // 照片数量按产品线差异化校验（与 createMemoirSchema 一致）
-    if (data.memoir_type === 'memorial') {
-      if (data.source_photos.length < 8 || data.source_photos.length > 15) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['source_photos'],
-          message: `纪念Vlog照片数量需8-15张，当前 ${data.source_photos.length} 张`,
-        });
-      }
-      if (data.duration !== undefined && (data.duration < 60 || data.duration > 90)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['duration'],
-          message: `纪念Vlog时长需60-90秒，当前 ${data.duration} 秒`,
-        });
-      }
-    } else {
-      if (data.source_photos.length < 1 || data.source_photos.length > 3) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['source_photos'],
-          message: `日常回忆录照片数量需1-3张，当前 ${data.source_photos.length} 张`,
-        });
-      }
-      if (data.duration !== undefined && (data.duration < 5 || data.duration > 30)) {
+    // 解析档位（与 createMemoirSchema 同逻辑：显式 tier 优先，缺省按类型回退）
+    const tier = data.tier ?? (data.memoir_type === 'memorial' ? 'full' : 'light');
+    // 档位边界直接从 MEMOIR_TIER_CONFIG 派生（审查 P2-8：消除手抄字面量漂移风险）
+    const tierCfg = MEMOIR_TIER_CONFIG[tier];
+    if (data.source_photos.length < tierCfg.minPhotos || data.source_photos.length > tierCfg.maxPhotos) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['source_photos'],
+        message: `source_photos 照片数量需 ${tierCfg.minPhotos}-${tierCfg.maxPhotos} 张，当前 ${data.source_photos.length} 张`,
+      });
+    }
+    if (data.duration !== undefined) {
+      if (data.duration < tierCfg.minDuration || data.duration > tierCfg.maxDuration) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['duration'],
-          message: `日常回忆录时长需5-30秒，当前 ${data.duration} 秒`,
+          message: `duration 时长需 ${tierCfg.minDuration}-${tierCfg.maxDuration} 秒，当前 ${data.duration} 秒`,
         });
       }
     }
@@ -449,18 +441,22 @@ export const timelineAiPolishSchema = z.object({
 
 // ===== 回忆录模块 =====
 
+/** 回忆录档位枚举（2026-09-09 三档定价体系：light 轻纪念 / standard 标准回忆录 / full 完整回忆录） */
+const MEMOIR_TIERS = ['light', 'standard', 'full'] as const;
+
 /**
  * 创建回忆录任务
- * 照片数量按 memoir_type 差异化校验：
- *   - memorial：8-15 张（纪念Vlog，60-90秒叙事视频）
- *   - 其他类型（daily/seasonal/milestone/custom）：1-3 张（日常回忆录，5-30秒短视频）
- * 时长按产品线校验：
- *   - memorial：60-90 秒
- *   - 其他：5-30 秒
+ * 档位 tier（可选）决定照片数与时长校验：
+ *   - light：1-3 张，5-30 秒（轻纪念）
+ *   - standard：5-7 张，40-50 秒（标准回忆录）
+ *   - full：8-15 张，60-90 秒（完整回忆录）
+ * tier 缺省时按 memoir_type 历史规则回退（memorial→full，其余→light），兼容旧客户端。
+ * 勾选记忆 selected_moment_ids（可选）：时光线回忆 ID 列表，仅勾选的进入旁白锚定。
  */
 export const createMemoirSchema = z
   .object({
     memoir_type: z.enum(['daily', 'memorial', 'seasonal', 'milestone', 'custom'], { error: 'memoir_type 必须为 daily/memorial/seasonal/milestone/custom' }),
+    tier: z.enum(MEMOIR_TIERS, { error: 'tier 必须为 light/standard/full' }).optional(),
     source_photos: z.array(memoirPhotoUrlSchema, { error: 'source_photos 不能为空' })
       .min(1, '至少需要1张照片'),
     source_text: z.string().max(2000).optional(),
@@ -469,40 +465,27 @@ export const createMemoirSchema = z
     style_preset: z.string().max(100).optional(),
     // F4：回忆标签（用户选，分镜按标签筛核心层记忆）
     tags: z.array(z.enum(MEMOIR_TAGS, { error: 'tags 必须是有效回忆标签' })).max(8).optional(),
+    // G2 记忆勾选：仅勾选的时光线回忆进入旁白锚定（用户控制权，后端逐条校验归属）
+    selected_moment_ids: z.array(z.string().uuid({ error: 'selected_moment_ids 必须为 UUID' })).max(10, '最多勾选 10 条回忆').optional(),
   })
   .superRefine((data, ctx) => {
-    // 照片数量按产品线差异化校验
-    if (data.memoir_type === 'memorial') {
-      if (data.source_photos.length < 8 || data.source_photos.length > 15) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['source_photos'],
-          message: `纪念Vlog照片数量需8-15张，当前 ${data.source_photos.length} 张`,
-        });
-      }
-      // 时长校验：memorial 60-90 秒
-      if (data.duration !== undefined && (data.duration < 60 || data.duration > 90)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['duration'],
-          message: `纪念Vlog时长需60-90秒，当前 ${data.duration} 秒`,
-        });
-      }
-    } else {
-      // daily/seasonal/milestone/custom：1-3 张
-      if (data.source_photos.length < 1 || data.source_photos.length > 3) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['source_photos'],
-          message: `日常回忆录照片数量需1-3张，当前 ${data.source_photos.length} 张`,
-        });
-      }
-      // 时长校验：daily 5-30 秒
-      if (data.duration !== undefined && (data.duration < 5 || data.duration > 30)) {
+    // 解析档位：显式 tier 优先，缺省按 memoir_type 历史规则回退（与 resolveMemoirTier 同逻辑）
+    const tier = data.tier ?? (data.memoir_type === 'memorial' ? 'full' : 'light');
+    // 档位边界直接从 MEMOIR_TIER_CONFIG 派生（审查 P2-8：消除手抄字面量漂移风险）
+    const tierCfg = MEMOIR_TIER_CONFIG[tier];
+    if (data.source_photos.length < tierCfg.minPhotos || data.source_photos.length > tierCfg.maxPhotos) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['source_photos'],
+        message: `source_photos 照片数量需 ${tierCfg.minPhotos}-${tierCfg.maxPhotos} 张，当前 ${data.source_photos.length} 张`,
+      });
+    }
+    if (data.duration !== undefined) {
+      if (data.duration < tierCfg.minDuration || data.duration > tierCfg.maxDuration) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['duration'],
-          message: `日常回忆录时长需5-30秒，当前 ${data.duration} 秒`,
+          message: `duration 时长需 ${tierCfg.minDuration}-${tierCfg.maxDuration} 秒，当前 ${data.duration} 秒`,
         });
       }
     }

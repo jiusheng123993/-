@@ -967,4 +967,59 @@ export async function getPetMomentsSummary(
   }
 }
 
+/**
+ * 按勾选 ID 列表读取时光线回忆摘要（G2 记忆勾选：用户从创建页勾选的回忆才进旁白）
+ *
+ * 安全约束：
+ *   - 强制 user_id + pet_id 双重过滤（防横向越权：用户不能勾选别人家的回忆 ID），
+ *     未命中归属的 ID 静默跳过，不报错
+ *   - 输出格式与 getPetMomentsSummary 一致（每条截断 120 字）
+ *
+ * @returns 摘要文本（无命中返回空串）
+ */
+export async function getMomentSummariesByIds(
+  userId: string,
+  petId: string,
+  momentIds: string[],
+): Promise<string> {
+  // 去重 + 上限保护（schema 层 max 10，此处防御性再截）
+  const ids = [...new Set(momentIds)].slice(0, 10);
+  if (ids.length === 0) return '';
+  try {
+    // pet_moments.id 是 TEXT 主键（迁移 007，值为 uuid 格式字符串）——
+    // 必须用 $3::text[] 直比（审查 P1-1）：`id = ANY($3::uuid[])` 会报
+    // operator does not exist: text = uuid，整条勾选链静默失效
+    const { rows } = await pool.query(
+      `SELECT id,
+              type,
+              CASE WHEN jsonb_typeof(content) = 'object' THEN content->>'description' END AS description,
+              to_char(
+                COALESCE(happened_at, (created_at AT TIME ZONE 'Asia/Shanghai')::date),
+                'YYYY-MM-DD'
+              ) AS day
+       FROM pet_moments
+       WHERE user_id = $1 AND pet_id = $2
+         AND id = ANY($3::text[])
+         AND jsonb_typeof(content) = 'object'
+         AND NULLIF(BTRIM(COALESCE(content->>'description', '')), '') IS NOT NULL`,
+      [userId, petId, ids],
+    );
+    if (rows.length === 0) return '';
+    // 按用户勾选顺序输出（IDs 顺序即用户意图顺序，不按时间重排）
+    const byId = new Map(rows.map((r) => [String(r.id), r]));
+    return ids
+      .map((id) => byId.get(id))
+      .filter((r): r is (typeof rows)[number] => Boolean(r))
+      .map((r) => {
+        const desc = String(r.description ?? '');
+        const clipped = desc.length > 120 ? `${desc.slice(0, 120)}…` : desc;
+        return `- [时光·${r.type}] ${clipped}（${r.day}）`;
+      })
+      .join('\n');
+  } catch (err) {
+    console.warn('[Memory] 按勾选读取时光线回忆失败:', (err as Error).message);
+    return '';
+  }
+}
+
 console.log('[MemoryService] memory-body 引擎已就绪');

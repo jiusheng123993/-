@@ -47,8 +47,8 @@ export interface CreateMembershipOrderParams {
 export interface CreateMemoirOrderParams {
   id: string;
   userId: string;
-  /** 回忆录订单的 plan：memoir_daily（日常回忆录9.9元）| memoir_memorial（纪念Vlog 99/149元） */
-  plan: 'memoir_daily' | 'memoir_memorial';
+  /** 回忆录订单的 plan（2026-09-09 三档）：memoir_daily（轻纪念）| memoir_standard（标准回忆录）| memoir_memorial（完整回忆录） */
+  plan: 'memoir_daily' | 'memoir_standard' | 'memoir_memorial';
   amount: number;
   /** 业务上下文：memoir_type、pet_id、source_photos 等 */
   productMetadata: {
@@ -59,8 +59,14 @@ export interface CreateMemoirOrderParams {
     music_style?: string;
     duration?: number;
     style_preset?: string;
-    /** 用户身份上下文，用于回调时重建 createMemoir 入参 */
-    tier: 'member' | 'free';
+    /** 回忆标签（F4 记忆驱动，透传给任务创建） */
+    tags?: string[];
+    /** 勾选记忆 ID（G2 记忆勾选，透传给任务创建） */
+    selected_moment_ids?: string[];
+    /** 档位（2026-09-09 三档定价体系）：回调时重建 createMemoir 入参 */
+    tier: 'light' | 'standard' | 'full';
+    /** 下单时的会员身份（审计用，非业务必需） */
+    user_tier?: 'member' | 'free';
   };
 }
 

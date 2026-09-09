@@ -21,6 +21,8 @@ import {
 } from '../services/memoirService.js';
 import { PetRepository } from '../repositories/petRepository.js';
 import { MembershipRepository } from '../repositories/membershipRepository.js';
+import { getMaterialCheck, getPhotoPool } from '../services/memoirMaterialService.js';
+import { MEMOIR_TIER_PRICES } from '../config.js';
 
 const petRepo = new PetRepository();
 const membershipRepo = new MembershipRepository();
@@ -51,6 +53,50 @@ function handleServiceError(res: Response, err: unknown): void {
   console.error('[Memoir Service Error]', err);
   res.status(500).json({ success: false, message: '服务器内部错误' });
 }
+
+/**
+ * GET /:petId/memoir/material-check - 素材盘点（创建页第一屏"素材检查器"）
+ * 返回库内可复用照片数、时光线回忆候选与档位建议（2026-09-09 素材体系设计 §六）
+ */
+router.get('/:petId/memoir/material-check', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const petId = req.params.petId as string;
+    // 归属校验（防越权）：刻意用 isOwner 而非 canAccess（审查 B P2 有意决策）——
+    // 素材盘点/照片池读的是 pet_profiles.photos 与 pet_moments（per-owner 数据模型，家庭成员写入未放开），
+    // 共管成员能读会与"成员可读"口径不一致造成误解；家庭成员放开属产品决策，待口径确认后统一改 canAccess
+    const owns = await petRepo.isOwner(petId, userId);
+    if (!owns) {
+      res.status(404).json({ success: false, message: '宠物不存在' });
+      return;
+    }
+    const result = await getMaterialCheck(userId, petId);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    handleServiceError(res, err);
+  }
+});
+
+/**
+ * GET /:petId/memoir/photo-pool - 库内照片池（创建页"选照片-库内勾选"步骤）
+ * 返回档案相册与时光线照片，统一为可直接勾选的 URL（前端提交时仍走 memoirPhotoUrlSchema 白名单校验）
+ */
+router.get('/:petId/memoir/photo-pool', async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const petId = req.params.petId as string;
+    // 同 material-check：isOwner 有意决策（per-owner 数据模型），见上方注释
+    const owns = await petRepo.isOwner(petId, userId);
+    if (!owns) {
+      res.status(404).json({ success: false, message: '宠物不存在' });
+      return;
+    }
+    const result = await getPhotoPool(userId, petId);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    handleServiceError(res, err);
+  }
+});
 
 /**
  * POST /:petId/memoir - 创建回忆录任务
@@ -187,8 +233,8 @@ router.get('/:petId/membership', async (req: Request, res: Response) => {
           plan: null,
           status: 'none',
           expiresAt: null,
-          memoirPrice: 14900,
-          memberPrice: 9900,
+          // 2026-09-09 三档价格表（原 memoirPrice/memberPrice 旧两档已废；前端此前无消费方，直接切换）
+          memoirPrices: MEMOIR_TIER_PRICES,
           isMember: false,
         },
       });
@@ -209,8 +255,8 @@ router.get('/:petId/membership', async (req: Request, res: Response) => {
         plan: membership.plan,
         status: isExpired ? 'expired' : membership.status,
         expiresAt: membership.expires_at,
-        memoirPrice: isMember ? 9900 : 14900,
-        memberPrice: 9900,
+        // 三档价格表：{ light: {member,free}, standard: {...}, full: {...} }（单位：分）
+        memoirPrices: MEMOIR_TIER_PRICES,
         isMember,
       },
     });

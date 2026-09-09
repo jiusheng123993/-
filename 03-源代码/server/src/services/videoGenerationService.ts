@@ -13,7 +13,7 @@
  *   - 审核失败自动重试（最多 2 次）
  *   - 最终失败需返回错误，调用方负责退款/退额度
  */
-import { config } from '../config.js';
+import { config, MEMOIR_TIER_CONFIG, MEMOIR_TIER_LABELS, type MemoirTier } from '../config.js';
 import { sanitizeError } from '../utils/sanitize.js';
 import {
   createVideoGenerationTask,
@@ -44,6 +44,8 @@ export interface VideoGenerationParams {
   taskId: string;
   /** 产品线类型 */
   productLine: VideoProductLine;
+  /** 回忆录档位（2026-09-09 三档）：传入后按档位边界校验照片/时长，缺省回退产品线校验（历史调用兼容） */
+  tier?: MemoirTier;
   /** 源照片 URL 数组（日常 1-3 张，纪念 8-15 张） */
   sourcePhotos: string[];
   /** 用户提供的文案（可选，用于字幕/叙事） */
@@ -92,6 +94,34 @@ export const PRODUCT_LINE_CONFIG = {
   },
 } as const;
 
+/** 回忆录档位类型由 config.ts 提供（单一事实源），本模块提供映射与校验函数 */
+export { MEMOIR_TIER_CONFIG as TIER_CONFIG, MEMOIR_TIER_LABELS as TIER_LABELS } from '../config.js';
+
+/**
+ * 按档位校验照片数量
+ * @returns 错误信息（null 表示通过）
+ */
+export function validateTierPhotoCount(tier: MemoirTier, count: number): string | null {
+  const cfg = MEMOIR_TIER_CONFIG[tier];
+  if (count < cfg.minPhotos || count > cfg.maxPhotos) {
+    return `${MEMOIR_TIER_LABELS[tier]}照片数量需 ${cfg.minPhotos}-${cfg.maxPhotos} 张，当前 ${count} 张`;
+  }
+  return null;
+}
+
+/**
+ * 按档位校验成片时长
+ * @returns 错误信息（null 表示通过）
+ */
+export function validateTierDuration(tier: MemoirTier, duration: number | null): string | null {
+  const cfg = MEMOIR_TIER_CONFIG[tier];
+  if (duration === null) return null;
+  if (duration < cfg.minDuration || duration > cfg.maxDuration) {
+    return `${MEMOIR_TIER_LABELS[tier]}时长需 ${cfg.minDuration}-${cfg.maxDuration} 秒，当前 ${duration} 秒`;
+  }
+  return null;
+}
+
 /** Seedance 单段视频最大时长（秒） */
 const SEEDANCE_MAX_SEGMENT_DURATION = 8;
 
@@ -122,6 +152,22 @@ const MUSIC_STYLE_HINTS: Record<string, string> = {
   gentle: '舒缓悠扬',
   bright: '明亮轻快',
 };
+
+/** 档位 → 生成管线映射：standard 与 full 均走多段合集（memorial 管线），仅 light 走单段静图动效（daily 管线） */
+export function mapTierToGenerationLine(tier: MemoirTier): VideoProductLine {
+  return tier === 'light' ? 'daily' : 'memorial';
+}
+
+/**
+ * 解析回忆录档位（兼容历史请求）
+ * @param tier 请求显式携带的档位（新契约，可选）
+ * @param memoirType 回忆录类型（历史契约）——tier 缺省时按类型回退：memorial→full，其余→light
+ * @returns 归一化后的档位
+ */
+export function resolveMemoirTier(tier: string | undefined | null, memoirType: string): MemoirTier {
+  if (tier === 'light' || tier === 'standard' || tier === 'full') return tier;
+  return memoirType === 'memorial' ? 'full' : 'light';
+}
 
 /**
  * 根据 memoir_type 映射到产品线
@@ -177,15 +223,16 @@ export function validateDuration(
 export async function generateMemoirVideo(
   params: VideoGenerationParams,
 ): Promise<VideoGenerationResult> {
-  const { taskId, productLine, sourcePhotos, sourceText, musicStyle, duration, stylePreset, script } = params;
+  const { taskId, productLine, tier, sourcePhotos, sourceText, musicStyle, duration, stylePreset, script } = params;
 
-  // 参数校验
-  const photoError = validatePhotoCount(productLine, sourcePhotos.length);
+  // 参数校验（2026-09-09 三档：tier 传入时按档位边界校验——standard 5-7 张/40-50 秒等；
+  // 缺省（历史调用方/旧路径）维持产品线校验，行为向后兼容）
+  const photoError = tier ? validateTierPhotoCount(tier, sourcePhotos.length) : validatePhotoCount(productLine, sourcePhotos.length);
   if (photoError) {
     throw new Error(`[VideoGen] ${photoError}`);
   }
 
-  const durationError = validateDuration(productLine, duration);
+  const durationError = tier ? validateTierDuration(tier, duration ?? null) : validateDuration(productLine, duration);
   if (durationError) {
     throw new Error(`[VideoGen] ${durationError}`);
   }

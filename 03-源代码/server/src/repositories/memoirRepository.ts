@@ -88,24 +88,6 @@ export class MemoirRepository extends BaseRepository<MemoirRecordRow> {
   }
 
   /**
-   * 统计用户当月已创建的日常回忆录数量（用于会员配额校验）
-   * 仅统计 daily/seasonal/milestone/custom 类型，memorial 不计入免费配额
-   * @param userId - 用户 ID
-   * @param yearMonth - 月份字符串，格式 YYYY-MM
-   */
-  async countMonthlyDailyMemoirsByUser(userId: string, yearMonth: string): Promise<number> {
-    const result = await this.rawQuery<QueryResultRow>(
-      `SELECT COUNT(*)::int as count FROM ${this.tableName}
-       WHERE user_id = $1
-         AND memoir_type != 'memorial'
-         AND to_char(created_at, 'YYYY-MM') = $2`,
-      [userId, yearMonth],
-    );
-    const count = result.rows[0]?.count;
-    return count === undefined || count === null ? 0 : Number(count);
-  }
-
-  /**
    * 查询所有待处理的回忆录任务（pending 且未在等待剧本确认）
    * 用于异步任务处理器轮询
    * 立项 v0.2 P0-2：awaiting_confirmation=true 的任务已生成剧本、暂停等用户确认，不领取

@@ -31,8 +31,9 @@ import {
   MEMOIR_ERROR_CODES,
 } from '../services/memoirService.js';
 import {
-  mapMemoirTypeToProductLine,
+  resolveMemoirTier,
 } from '../services/videoGenerationService.js';
+import { MEMOIR_TIER_PRICES, type MemoirTier } from '../config.js';
 import {
   createJsapiPayment,
   verifyAndDecodeNotify,
@@ -76,9 +77,11 @@ const MEMBERSHIP_PLAN_DURATION_DAYS: Record<'monthly' | 'quarterly' | 'yearly', 
   yearly: 365,
 };
 
-/** 回忆录订单 plan 映射 */
-function memoirTypeToOrderPlan(memoirType: string): 'memoir_daily' | 'memoir_memorial' {
-  return memoirType === 'memorial' ? 'memoir_memorial' : 'memoir_daily';
+/** 回忆录订单 plan 映射（2026-09-09 三档：按档位而非类型映射，审计与退款分类更准确） */
+function memoirTierToOrderPlan(tier: MemoirTier): 'memoir_daily' | 'memoir_standard' | 'memoir_memorial' {
+  if (tier === 'light') return 'memoir_daily';
+  if (tier === 'standard') return 'memoir_standard';
+  return 'memoir_memorial';
 }
 
 /**
@@ -95,42 +98,30 @@ async function resolveUserTier(userId: string): Promise<'member' | 'free'> {
 }
 
 /**
- * 计算回忆录付费金额（分）
- * - memorial：会员 9900（99元），非会员 14900（149元）
- * - daily（及其他非 memorial 类型）：会员配额内免费，超出 990（9.9元）；非会员 990（9.9元）
+ * 计算回忆录付费金额（分）—— 2026-09-09 三档定价体系
+ * - light 轻纪念：会员 1890（18.9元），非会员 2590（25.9元）
+ * - standard 标准回忆录：会员 4500（45元），非会员 5900（59元）
+ * - full 完整回忆录：会员 7900（79元），非会员 9900（99元）
  *
- * 注意：本函数返回的金额为 0 表示免费（会员配额内），调用方应跳过支付流程
+ * 注意（用户拍板的口径变更）：视频类一律付费，会员免费次数已废除——
+ * 模型换 Seedance 2.0 mini 720p 后成本 ~0.5 元/秒，免费送每位会员月亏 24-36 元。
+ * 本函数返回金额恒 >0，needPayment 恒 true。
  */
 async function calculateMemoirPrice(
   userId: string,
   memoirType: string,
-): Promise<{ price: number; tier: 'member' | 'free'; needPayment: boolean }> {
-  const tier = await resolveUserTier(userId);
-  const productLine = mapMemoirTypeToProductLine(memoirType);
-
-  // 纪念Vlog：会员/非会员均需付费
-  if (productLine === 'memorial') {
-    return {
-      price: tier === 'member' ? 9900 : 14900,
-      tier,
-      needPayment: true,
-    };
-  }
-
-  // 日常回忆录：会员每月免费 3 次
-  if (tier === 'member') {
-    const now = new Date();
-    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const usedCount = await memoirRepository.countMonthlyDailyMemoirsByUser(userId, yearMonth);
-    if (usedCount < 3) {
-      return { price: 0, tier, needPayment: false };
-    }
-    // 超出配额，需付费 9.9 元
-    return { price: 990, tier, needPayment: true };
-  }
-
-  // 非会员日常回忆录：需付费 9.9 元
-  return { price: 990, tier, needPayment: true };
+  tier?: string,
+): Promise<{ price: number; tier: MemoirTier; userTier: 'member' | 'free'; needPayment: boolean }> {
+  const userTier = await resolveUserTier(userId);
+  // 档位解析：显式 tier 优先，缺省按 memoir_type 历史规则回退（兼容旧客户端/旧订单）
+  const resolvedTier = resolveMemoirTier(tier, memoirType);
+  const prices = MEMOIR_TIER_PRICES[resolvedTier];
+  return {
+    price: userTier === 'member' ? prices.member : prices.free,
+    tier: resolvedTier,
+    userTier,
+    needPayment: true,
+  };
 }
 
 // ===== 1. 创建回忆录付费订单 =====
@@ -154,7 +145,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const userId = req.userId!;
-      const { pet_id, memoir_type, source_photos, source_text, music_style, duration, style_preset } = req.body;
+      const { pet_id, memoir_type, tier, source_photos, source_text, music_style, duration, style_preset, tags, selected_moment_ids } = req.body;
 
       // 1. 归属校验
       const owns = await petRepository.isOwner(pet_id, userId);
@@ -174,30 +165,10 @@ router.post(
         return;
       }
 
-      // 3. 计算价格
-      const { price, tier, needPayment } = await calculateMemoirPrice(userId, memoir_type);
+      // 3. 计算价格（三档定价：一律付费，会员享价差；needPayment 恒 true，免费直通分支已废除）
+      const { price, tier: resolvedTier, userTier } = await calculateMemoirPrice(userId, memoir_type, tier);
 
-      // 4. 会员配额内免费：直接创建任务，无需支付
-      if (!needPayment) {
-        const task = await createMemoirFromPayment('free_quota', userId, pet_id, {
-          memoir_type,
-          source_photos,
-          source_text,
-          music_style,
-          duration,
-          style_preset,
-        });
-        res.status(201).json({
-          success: true,
-          data: {
-            need_payment: false,
-            task,
-          },
-        });
-        return;
-      }
-
-      // 5. 查询用户 openid（JSAPI 支付必需）
+      // 4. 查询用户 openid（JSAPI 支付必需）
       const user = await userRepository.findById(userId);
       if (!user) {
         res.status(404).json({ success: false, message: '用户不存在' });
@@ -208,10 +179,11 @@ router.post(
         return;
       }
 
-      // 6. 创建支付订单
+      // 5. 创建支付订单
       const orderId = uuidv4();
-      const orderPlan = memoirTypeToOrderPlan(memoir_type);
-      const description = memoir_type === 'memorial' ? '纪念Vlog生成' : '日常回忆录生成';
+      const orderPlan = memoirTierToOrderPlan(resolvedTier);
+      const tierName = { light: '轻纪念', standard: '标准回忆录', full: '完整回忆录' }[resolvedTier];
+      const description = `${tierName}生成`;
 
       await paymentOrderRepository.createMemoirOrder({
         id: orderId,
@@ -226,7 +198,10 @@ router.post(
           music_style,
           duration,
           style_preset,
-          tier,
+          tags,
+          selected_moment_ids,
+          tier: resolvedTier,
+          user_tier: userTier,
         },
       });
 
@@ -450,6 +425,13 @@ async function handleMembershipPaymentSuccess(order: {
 }
 
 /**
+ * 迁移期旧价白名单（审查 P2-5）：三档改价前创建的在途订单按旧契约履约。
+ * - 990：旧日常回忆录 9.9 元（会员免费配额超限/非会员价）→ 回调建 light 任务
+ * （旧 memorial 9900/14900 不需白名单：实付 ≥ 新 full 价，走"多付履约"分支）
+ */
+const LEGACY_MEMOIR_PRICE_ALLOWANCE = new Set<number>([990]);
+
+/**
  * 处理回忆录支付成功
  */
 async function handleMemoirPaymentSuccess(order: {
@@ -470,17 +452,43 @@ async function handleMemoirPaymentSuccess(order: {
     music_style?: string;
     duration?: number;
     style_preset?: string;
-    tier: 'member' | 'free';
+    tags?: string[];
+    selected_moment_ids?: string[];
+    /** 档位（2026-09-09 三档）：兼容历史订单可能存的会员身份旧语义，回调时统一 resolveMemoirTier 兜底 */
+    tier?: 'light' | 'standard' | 'full' | 'member' | 'free';
   };
+
+  // 金额-档位一致性复核（审查 P2-5 防御纵深）：防"收 light 钱建 full 任务"。
+  // 口径（欠付拒发、多付履约）：
+  //   - 实付 = 应付（MEMOIR_TIER_PRICES[tier][userTier]）→ 正常建任务
+  //   - 实付 > 应付（迁移期旧 memorial 9900/14900 单 vs 新 full 价）→ 按旧契约履约，不差价不退款
+  //   - 实付 < 应付 且在旧价白名单（旧 daily 990 单）→ 按旧契约履约（建 light 任务）
+  //   - 实付 < 应付 且不在白名单 → 拒绝：抛错走 handlePaymentBusinessFailure 自动退款，不建任务
+  //   （防未来旁路写入 product_metadata 或回调金额被篡改的低价建高价值任务）
+  const checkTier = resolveMemoirTier(meta.tier, meta.memoir_type);
+  const userTierForCheck = await resolveUserTier(order.user_id);
+  const expectedAmount = MEMOIR_TIER_PRICES[checkTier][userTierForCheck];
+  if (
+    order.amount < expectedAmount &&
+    !LEGACY_MEMOIR_PRICE_ALLOWANCE.has(order.amount)
+  ) {
+    throw new Error(
+      `订单金额低于档位应付价: paid=${order.amount}, expected=${expectedAmount} (tier=${checkTier}, userTier=${userTierForCheck})`,
+    );
+  }
 
   // 调用 memoirService 创建任务（跳过付费校验，写 payment_id 关联）
   const task = await createMemoirFromPayment(order.id, order.user_id, meta.pet_id, {
     memoir_type: meta.memoir_type,
+    // 档位透传（resolveMemoirTier 会兜底非法值/历史旧语义值）
+    tier: meta.tier,
     source_photos: meta.source_photos,
     source_text: meta.source_text,
     music_style: meta.music_style,
     duration: meta.duration,
     style_preset: meta.style_preset,
+    tags: meta.tags,
+    selected_moment_ids: meta.selected_moment_ids,
   });
 
   // 资金审计（2026-09 审查 P1 修复：回忆录付费任务创建落审计）

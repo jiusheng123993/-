@@ -19,12 +19,14 @@ import { MemoirRepository, type MemoirRecordRow } from '../repositories/memoirRe
 import { PetRepository } from '../repositories/petRepository.js';
 import {
   generateMemoirVideo,
-  mapMemoirTypeToProductLine,
+  mapTierToGenerationLine,
+  resolveMemoirTier,
   type VideoGenerationResult,
 } from './videoGenerationService.js';
 import { generateMemoirScript, sanitizeMemoirScriptPrompts } from './memoirScriptService.js';
 import { analyzeMemoirPhotos } from './memoirPhotoAnalysis.js';
-import { buildMemoryContext, getMemoriesByTags, getPetMomentsSummary } from './memoryService.js';
+import { buildMemoryContext, getMemoriesByTags, getMomentSummariesByIds, getPetMomentsSummary } from './memoryService.js';
+import type { MemoirTier } from '../config.js';
 import { checkVideoQuality } from './qualityCheckService.js';
 import { cleanupNarration } from './ttsService.js';
 import { cleanupDoubaoSpeech } from './doubaoSpeechTts.js';
@@ -37,7 +39,7 @@ import { postMemoirTimelineMoment } from './autoFeedService.js';
 import { sanitizeError } from '../utils/sanitize.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { config } from '../config.js';
+import { config, MEMOIR_TIER_CONFIG } from '../config.js';
 import { refundMemoirOrder } from './memoirRefundService.js';
 
 /** 服务器工作目录（上传/生成产物根目录，质检抽帧用） */
@@ -161,11 +163,19 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       narrative.script && typeof narrative.script === 'object',
     );
 
-    // 3. 映射产品线
-    const productLine = mapMemoirTypeToProductLine(task.memoir_type);
+    // 3. 解析档位并映射生成管线（2026-09-09 三档体系）
+    // 档位是单一事实源：light→daily 单段管线，standard/full→memorial 多段管线。
+    // 历史任务 narrative_structure 无 tier → resolveMemoirTier 按 memoir_type 回退，行为与旧版一致。
+    // ⚠️ 此前这里按 memoir_type 选管线，导致 standard+daily（5 张照片）在执行链被 daily
+    //    管线的 1-3 张校验打回 → 用户付费走完确认流程后必然失败退款（审查 P0-1，已修复）。
+    const tier = resolveMemoirTier(
+      typeof narrative.tier === 'string' ? narrative.tier : undefined,
+      task.memoir_type,
+    );
+    const productLine = mapTierToGenerationLine(tier);
 
     // 4. 回忆录 2.0：确保分镜脚本存在（无则调用 M1 生成并持久化）
-    const script = await ensureMemoirScript(task, narrative, productLine);
+    const script = await ensureMemoirScript(task, narrative, productLine, tier);
 
     // 4.5 剧本确认闸门：新生成剧本的任务暂停待确认（Seedance 视频成本在确认后才发生）
     if (!hasScriptBefore && script) {
@@ -180,10 +190,11 @@ export async function processTask(task: MemoirRecordRow): Promise<boolean> {
       return false;
     }
 
-    // 5. 调用视频生成服务（分镜驱动新管线）
+    // 5. 调用视频生成服务（分镜驱动新管线；tier 传入后按档位边界校验照片/时长）
     const result = await generateMemoirVideo({
       taskId: task.id,
       productLine,
+      tier,
       sourcePhotos: task.source_photos,
       sourceText: task.source_text,
       musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
@@ -333,6 +344,7 @@ async function ensureMemoirScript(
   task: MemoirRecordRow,
   narrative: Record<string, unknown>,
   productLine: 'daily' | 'memorial',
+  tier: MemoirTier,
 ): Promise<MemoirScript | undefined> {
   const existing = narrative.script;
   // 宠物查询也必须遵循“分镜失败不阻断旧管线”的降级约定，数据库短暂异常时使用无名字兜底档案。
@@ -360,47 +372,58 @@ async function ensureMemoirScript(
       petProfile,
       photoCount: task.source_photos.length,
       productLine,
-      targetDuration: typeof narrative.duration === 'number' ? narrative.duration : productLine === 'memorial' ? 75 : 15,
+      // 缺 duration 时按档位默认时长兜底（2026-09-09 三档：standard=45，不再是 memorial 硬编码 75）
+      targetDuration: typeof narrative.duration === 'number' ? narrative.duration : MEMOIR_TIER_CONFIG[tier].defaultDuration,
     });
   }
 
   try {
 
     // 记忆摘要（F4：按回忆标签筛核心层记忆作素材；失败不影响分镜生成）
+    // G2 勾选记忆（2026-09-09）：用户勾选的时光线回忆 ID 优先——勾什么用什么，
+    // 勾选模式下不再自动拉取时光线（尊重用户控制权，也避免稀释 token）
     let memorySummary: string | undefined;
     try {
-      const tags = Array.isArray(narrative.tags) ? (narrative.tags as string[]) : undefined;
-      if (tags && tags.length > 0) {
-        // 用户选了标签 → 按标签取核心层记忆（记忆驱动）
-        memorySummary = await getMemoriesByTags({
-          userId: task.user_id,
-          petId: task.pet_id,
-          tags,
-          limit: 20,
-        });
+      const selectedMomentIds = Array.isArray(narrative.selected_moment_ids)
+        ? (narrative.selected_moment_ids as string[]).filter((id) => typeof id === 'string' && id.length > 0)
+        : [];
+      if (selectedMomentIds.length > 0) {
+        // 用户勾选了回忆 → 按勾选取（归属校验在查询内强制 user_id+pet_id）
+        memorySummary = await getMomentSummariesByIds(task.user_id, task.pet_id, selectedMomentIds) || undefined;
       } else {
-        // 未选标签 → 用完整记忆上下文
-        const ctx = await buildMemoryContext(
-          task.user_id,
-          task.pet_id,
-          task.source_text || '为宠物生成回忆录分镜',
-        );
-        memorySummary = ctx.memories || undefined;
+        const tags = Array.isArray(narrative.tags) ? (narrative.tags as string[]) : undefined;
+        if (tags && tags.length > 0) {
+          // 用户选了标签 → 按标签取核心层记忆（记忆驱动）
+          memorySummary = await getMemoriesByTags({
+            userId: task.user_id,
+            petId: task.pet_id,
+            tags,
+            limit: 20,
+          });
+        } else {
+          // 未选标签 → 用完整记忆上下文
+          const ctx = await buildMemoryContext(
+            task.user_id,
+            task.pet_id,
+            task.source_text || '为宠物生成回忆录分镜',
+          );
+          memorySummary = ctx.memories || undefined;
+        }
+        // 时光线回忆（第二素材源）：把「时光」页的回忆文本并入记忆摘要，二者皆无才判定"无记忆"，
+        // 触发分镜提示词的【无记忆约束】（禁止虚构具体事件），兑现"真实回忆优先、无素材才中性生成"的卖点。
+        // 勾选模式跳过此处（勾什么用什么，不自动补拉）
+        try {
+          const momentsSummary = await getPetMomentsSummary(task.user_id, task.pet_id, 15);
+          if (momentsSummary) {
+            const parts = [memorySummary?.trim(), momentsSummary].filter(Boolean);
+            memorySummary = parts.join('\n');
+          }
+        } catch {
+          // 时光线读取失败忽略
+        }
       }
     } catch {
       // 记忆摘要失败忽略
-    }
-
-    // 时光线回忆（第二素材源）：把「时光」页的回忆文本并入记忆摘要，二者皆无才判定"无记忆"，
-    // 触发分镜提示词的【无记忆约束】（禁止虚构具体事件），兑现"真实回忆优先、无素材才中性生成"的卖点。
-    try {
-      const momentsSummary = await getPetMomentsSummary(task.user_id, task.pet_id, 15);
-      if (momentsSummary) {
-        const parts = [memorySummary?.trim(), momentsSummary].filter(Boolean);
-        memorySummary = parts.join('\n');
-      }
-    } catch {
-      // 时光线读取失败忽略
     }
 
     // 分镜模型本身看不到照片，先用视觉服务逐张提取可见事实；单图失败会在服务内保守降级。
@@ -414,9 +437,7 @@ async function ensureMemoirScript(
       targetDuration:
         typeof narrative.duration === 'number'
           ? narrative.duration
-          : productLine === 'memorial'
-            ? 75
-            : 15,
+          : MEMOIR_TIER_CONFIG[tier].defaultDuration,
       sourceText: task.source_text,
       musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
       photoDescriptions,

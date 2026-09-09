@@ -31,6 +31,18 @@ vi.mock('../config.js', () => ({
     wechatPay: { mock: true }, // 审查⏳3：refundMemoirOrder 退款走 mock 分支，不发真实微信支付请求
     uploadDir: './uploads',
   },
+  // 2026-09-09 三档定价体系常量（config 真实导出，测试锁同一份值）
+  MEMOIR_TIER_CONFIG: {
+    light: { minPhotos: 1, maxPhotos: 3, minDuration: 5, maxDuration: 30, defaultDuration: 20 },
+    standard: { minPhotos: 5, maxPhotos: 7, minDuration: 40, maxDuration: 50, defaultDuration: 45 },
+    full: { minPhotos: 8, maxPhotos: 15, minDuration: 60, maxDuration: 90, defaultDuration: 75 },
+  },
+  MEMOIR_TIER_LABELS: { light: '轻纪念', standard: '标准回忆录', full: '完整回忆录' },
+  MEMOIR_TIER_PRICES: {
+    light: { member: 1890, free: 2590 },
+    standard: { member: 4500, free: 5900 },
+    full: { member: 7900, free: 9900 },
+  },
 }));
 
 vi.mock('../middleware/auth.js', () => ({
@@ -102,13 +114,11 @@ beforeEach(() => {
 
 // ===== POST /api/pets/:petId/memoir - 创建回忆录 =====
 describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
-  it('会员创建日常回忆录（配额内）返回 201，status=pending', async () => {
+  it('会员创建轻纪念档任务返回 402（会员价 18.9 元——2026-09-09 免费配额已废除）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
-      .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 })      // membership: active member
-      .mockResolvedValueOnce({ rows: [{ count: 0 }], rowCount: 1 })         // monthly quota: 0 used
-      .mockResolvedValueOnce({ rows: [mockMemoirRecord], rowCount: 1 });    // insert
+      .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 });     // membership: active member
 
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir')
@@ -117,11 +127,11 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
         source_photos: makePhotos(2),
       });
 
-    expect(res.status).toBe(201);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.id).toBe('memoir-001');
-    expect(res.body.data.status).toBe('pending');
-    expect(res.body.data.progress).toBe(0);
+    expect(res.status).toBe(402);
+    expect(res.body.success).toBe(false);
+    expect(res.body.code).toBe('PAYMENT_REQUIRED');
+    expect(res.body.price).toBe(1890);
+    expect(res.body.message).toContain('18.9');
   });
 
   it('缺少 memoir_type 返回 400', async () => {
@@ -133,14 +143,14 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('日常回忆录照片超过3张返回 400', async () => {
+  it('轻纪念档照片超过3张返回 400', async () => {
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir')
       .send({ memoir_type: 'daily', source_photos: makePhotos(4) });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toContain('日常回忆录照片数量');
+    expect(res.body.message).toContain('照片数量需 1-3 张');
   });
 
   it('日常回忆录照片为0张返回 400', async () => {
@@ -172,24 +182,50 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('纪念Vlog照片不足8张返回 400', async () => {
+  it('完整回忆录档照片不足8张返回 400', async () => {
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir')
       .send({ memoir_type: 'memorial', source_photos: makePhotos(7) });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toContain('纪念Vlog照片数量');
+    expect(res.body.message).toContain('照片数量需 8-15 张');
   });
 
-  it('纪念Vlog照片超过15张返回 400', async () => {
+  it('完整回忆录档照片超过15张返回 400', async () => {
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir')
       .send({ memoir_type: 'memorial', source_photos: makePhotos(16) });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toContain('纪念Vlog照片数量');
+    expect(res.body.message).toContain('照片数量需 8-15 张');
+  });
+
+  it('标准回忆录档照片4张返回 400（档位边界 5-7）', async () => {
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir')
+      .send({ memoir_type: 'daily', tier: 'standard', source_photos: makePhotos(4) });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toContain('照片数量需 5-7 张');
+  });
+
+  it('标准回忆录档照片5张返回 402（档位校验通过进入付费，会员价 45 元）', async () => {
+    mockPool.query
+      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
+      .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 });     // membership: active member
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir')
+      .send({ memoir_type: 'daily', tier: 'standard', source_photos: makePhotos(5) });
+
+    expect(res.status).toBe(402);
+    expect(res.body.code).toBe('PAYMENT_REQUIRED');
+    expect(res.body.price).toBe(4500);
+    expect(res.body.message).toContain('45');
   });
 
   it('宠物不属于当前用户返回 404', async () => {
@@ -219,7 +255,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.body.code).toBe('CONCURRENT_TASK');
   });
 
-  it('非会员创建日常回忆录返回 402（需付费）', async () => {
+  it('非会员创建轻纪念档返回 402（非会员价 25.9 元）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
@@ -232,11 +268,11 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.status).toBe(402);
     expect(res.body.success).toBe(false);
     expect(res.body.code).toBe('PAYMENT_REQUIRED');
-    expect(res.body.price).toBe(990);
-    expect(res.body.message).toContain('9.9');
+    expect(res.body.price).toBe(2590);
+    expect(res.body.message).toContain('25.9');
   });
 
-  it('会员创建纪念Vlog返回 402（需付费 99 元）', async () => {
+  it('会员创建完整回忆录档返回 402（会员价 79 元）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
@@ -249,11 +285,11 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.status).toBe(402);
     expect(res.body.success).toBe(false);
     expect(res.body.code).toBe('PAYMENT_REQUIRED');
-    expect(res.body.price).toBe(9900);
-    expect(res.body.message).toContain('99');
+    expect(res.body.price).toBe(7900);
+    expect(res.body.message).toContain('79');
   });
 
-  it('非会员创建纪念Vlog返回 402（需付费 149 元）', async () => {
+  it('非会员创建完整回忆录档返回 402（非会员价 99 元）', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })  // ownership OK
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })                    // no active task
@@ -266,29 +302,11 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.status).toBe(402);
     expect(res.body.success).toBe(false);
     expect(res.body.code).toBe('PAYMENT_REQUIRED');
-    expect(res.body.price).toBe(14900);
-    expect(res.body.message).toContain('149');
+    expect(res.body.price).toBe(9900);
+    expect(res.body.message).toContain('99');
   });
 
-  it('会员日常回忆录配额用完返回 402（需付费 9.9 元）', async () => {
-    mockPool.query
-      .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })   // ownership OK
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })                     // no active task
-      .mockResolvedValueOnce({ rows: [activeMemberRow], rowCount: 1 })      // membership: active member
-      .mockResolvedValueOnce({ rows: [{ count: 3 }], rowCount: 1 });        // monthly quota: 3 used (limit)
-
-    const res = await request(createApp())
-      .post('/api/pets/pet-001/memoir')
-      .send({ memoir_type: 'daily', source_photos: makePhotos(2) });
-
-    expect(res.status).toBe(402);
-    expect(res.body.success).toBe(false);
-    expect(res.body.code).toBe('PAYMENT_REQUIRED');
-    expect(res.body.price).toBe(990);
-    expect(res.body.message).toContain('配额已用完');
-  });
-
-  it('会员过期视为非会员，日常回忆录返回 402', async () => {
+  it('会员过期视为非会员，轻纪念档返回 402（非会员价）', async () => {
     const expiredMemberRow = {
       tier: 'member',
       status: 'active',
@@ -306,6 +324,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.status).toBe(402);
     expect(res.body.success).toBe(false);
     expect(res.body.code).toBe('PAYMENT_REQUIRED');
+    expect(res.body.price).toBe(2590);
   });
 
   it('数据库异常返回 500', async () => {
@@ -319,14 +338,14 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
     expect(res.body.success).toBe(false);
   });
 
-  it('时长超出日常回忆录范围（5-30秒）返回 400', async () => {
+  it('时长超出轻纪念档范围（5-30秒）返回 400', async () => {
     const res = await request(createApp())
       .post('/api/pets/pet-001/memoir')
       .send({ memoir_type: 'daily', source_photos: makePhotos(2), duration: 60 });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toContain('日常回忆录时长');
+    expect(res.body.message).toContain('时长需 5-30 秒');
   });
 
   it('时长超出纪念Vlog范围（60-90秒）返回 400', async () => {
@@ -336,7 +355,7 @@ describe('POST /api/pets/:petId/memoir - 创建回忆录', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toContain('纪念Vlog时长');
+    expect(res.body.message).toContain('时长需 60-90 秒');
   });
 });
 
@@ -544,12 +563,16 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.isMember).toBe(true);
-    expect(res.body.data.memoirPrice).toBe(9900);
-    expect(res.body.data.memberPrice).toBe(9900);
+    // 2026-09-09 三档价格表：{ light: {member,free}, standard: {...}, full: {...} }
+    expect(res.body.data.memoirPrices).toEqual({
+      light: { member: 1890, free: 2590 },
+      standard: { member: 4500, free: 5900 },
+      full: { member: 7900, free: 9900 },
+    });
     expect(res.body.data.tier).toBe('monthly');
   });
 
-  it('非会员用户返回非会员价格', async () => {
+  it('非会员用户返回三档价格表', async () => {
     mockPool.query
       .mockResolvedValueOnce({ rows: [{ ok: true }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [], rowCount: 0 });
@@ -560,7 +583,9 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.isMember).toBe(false);
-    expect(res.body.data.memoirPrice).toBe(14900);
+    expect(res.body.data.memoirPrices.light.free).toBe(2590);
+    expect(res.body.data.memoirPrices.standard.free).toBe(5900);
+    expect(res.body.data.memoirPrices.full.free).toBe(9900);
     expect(res.body.data.tier).toBe('free');
   });
 
@@ -590,7 +615,7 @@ describe('GET /api/pets/:petId/membership - 查询会员状态', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.isMember).toBe(false);
-    expect(res.body.data.memoirPrice).toBe(14900);
+    expect(res.body.data.memoirPrices.full.free).toBe(9900);
     expect(res.body.data.status).toBe('expired');
   });
 });
