@@ -47,9 +47,19 @@ export interface MemoirScriptInput {
   sourceText?: string | null;
   /** 用户选择的音乐风格（可空） */
   musicStyle?: string | null;
+  /** 用户选择的画风/氛围预设（可空；2026-09-09 画风选择，注入 GLOBAL STYLE） */
+  stylePreset?: string | null;
   /** 每张照片的可见事实摘要（与 source_photos 顺序一致；识别失败可为空） */
   photoDescriptions?: string[];
 }
+
+/** 画风预设 → GLOBAL STYLE 质感描述（2026-09-09；与前端画风选项对齐，注入分镜 prompt） */
+const STYLE_PRESET_HINTS: Record<string, string> = {
+  cinematic: '电影叙事质感：电影级运镜感、电影调色、浅景深、画面有层次与故事张力',
+  anime: '动画风：二次元温馨插画质感，柔和色板、干净线条、治愈系氛围（与"写实"相悖时以画风为准）',
+  realistic: '写实记录风：纪实照片级质感、自然光、真实色彩、无滤镜感，突出真实与陪伴',
+  warmheal: '温暖治愈风：柔和暖色调、逆光柔光、低对比、给人抚慰与治愈感',
+};
 
 /** 产品线配置（与 videoGenerationService.PRODUCT_LINE_CONFIG 对齐） */
 const PRODUCT_LINE_META: Record<
@@ -179,6 +189,7 @@ function buildUserContext(input: MemoirScriptInput): string {
     targetDuration,
     sourceText,
     musicStyle,
+    stylePreset,
     photoDescriptions,
   } = input;
   const meta = PRODUCT_LINE_META[productLine];
@@ -227,6 +238,7 @@ ${photoContext}
 
 【产品线】${meta.label}（${meta.durationText}），情感曲线：${meta.curve}
 目标时长：${targetDuration} 秒${musicStyle ? `，音乐风格偏好：${musicStyle}` : ''}
+${stylePreset && STYLE_PRESET_HINTS[stylePreset] ? `\n【画风要求】整体采用「${STYLE_PRESET_HINTS[stylePreset]}」：每镜 GLOBAL STYLE 的质感/调色/氛围以此画风为准（与"写实照片级"冲突时以此画风优先，但保持主体真实、不畸形）。` : ''}
 ${petProfile.is_deceased ? '\n【基调要求】这是对已故宠物的纪念：请用克制、温暖、释怀的基调（F7），不渲染痛苦、不假装它还活着，旁白强调"回忆与感激"，如"它还在我们的记忆里晒太阳"。' : ''}`;
 }
 

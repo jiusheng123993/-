@@ -472,6 +472,7 @@ async function ensureMemoirScript(
           : MEMOIR_TIER_CONFIG[tier].defaultDuration,
       sourceText: task.source_text,
       musicStyle: typeof narrative.music_style === 'string' ? narrative.music_style : null,
+      stylePreset: typeof narrative.style_preset === 'string' ? narrative.style_preset : null,
       photoDescriptions,
     });
 

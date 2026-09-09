@@ -573,6 +573,7 @@ export async function generatePromptPreview(
       : MEMOIR_TIER_CONFIG[tier].defaultDuration,
     sourceText: data.source_text,
     musicStyle: typeof data.music_style === 'string' ? data.music_style : null,
+    stylePreset: typeof data.style_preset === 'string' ? data.style_preset : null,
     photoDescriptions,
   });
 }
