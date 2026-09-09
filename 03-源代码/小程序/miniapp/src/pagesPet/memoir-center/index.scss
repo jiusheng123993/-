@@ -2,257 +2,186 @@
 @import '../../styles/_animations';
 
 // ============================================
-// 回忆录中心页（B3 提前）—— 轻奢紫金风格，与纪念Vlog同语言
+// 回忆录馆（2026-09-09 对齐高保真原型 creative-hub-prototype.html 屏3）
+// 米白暖色主题——与全 App 主视觉（#fffaf5 族）一致，非深色紫金
 // ============================================
 
-.mcenter {
+.mhall {
   min-height: 100vh;
-  background: linear-gradient(180deg, #120E1A 0%, #16102A 30%, #1C1430 70%, #221838 100%);
-  padding: 48rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 28rpx;
-  animation: pageEnter 0.4s ease-out;
+  background: #fffaf5;
+  padding: 14px 14px calc(40px + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-// ==================== 品牌头 ====================
-.mcenter-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14rpx;
-  padding: 40rpx 0 24rpx;
-}
-
-.mcenter-hero-badge {
-  padding: 6rpx 24rpx;
-  border: 2rpx solid rgba(216, 184, 160, 0.35);
-  border-radius: $radius-full;
-}
-
-.mcenter-hero-badge-text {
-  font-size: 20rpx;
-  letter-spacing: 6rpx;
-  color: #D8B8A0;
-}
-
-.mcenter-hero-title {
-  font-size: 52rpx;
-  font-weight: $font-weight-bold;
-  background: linear-gradient(135deg, #D8B8A0, #E8D0A8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 4rpx;
-}
-
-.mcenter-hero-sub {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  letter-spacing: 2rpx;
-}
-
-.mcenter-hero-pet {
-  margin-top: 12rpx;
-  @include flex-center;
-  gap: 12rpx;
-  padding: 10rpx 28rpx;
-  background: rgba(184, 160, 216, 0.08);
-  border-radius: $radius-full;
-}
-
-.mcenter-hero-pet-avatar {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  border: 2rpx solid rgba(232, 200, 160, 0.4);
-}
-
-.mcenter-hero-pet-emoji {
-  font-size: 32rpx;
-}
-
-.mcenter-hero-pet-name {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-}
-
-// ==================== 产品线入口卡 ====================
-.mcenter-line {
+// ==================== 紫渐变 hero（原型 .hero.film） ====================
+.mhall-hero {
+  border-radius: 20px;
+  padding: 18px 16px;
+  background: linear-gradient(135deg, #a78bfa, #7c6cf0);
+  color: #fff;
   position: relative;
   overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.mhall-hero-face {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  font-size: 44px;
+  opacity: 0.35;
+}
+
+.mhall-hero-title {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.mhall-hero-sub {
+  display: block;
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+// ==================== 素材盘点 banner（原型 .banner） ====================
+.mhall-banner {
+  background: linear-gradient(135deg, #ffd8a8, #ffc2d1);
+  border-radius: 16px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+}
+
+.mhall-banner-text {
+  font-size: 11px;
+  color: #7a4a2a;
+  line-height: 1.6;
+}
+
+// ==================== 区块标题（原型 .sectitle） ====================
+.mhall-sectitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5a4634;
+  margin: 14px 2px 8px;
+}
+
+// ==================== 三档 wide 卡（原型 .card.wide） ====================
+.mhall-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(170, 120, 70, 0.12);
   display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 24rpx;
-  padding: 36rpx 30rpx;
-  border-radius: $radius-xl;
-  background: rgba(184, 160, 216, 0.05);
-  border: 2rpx solid rgba(216, 184, 160, 0.18);
-  transition: all 0.25s ease;
-  @include press-feedback;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
 
   &:active {
     transform: scale(0.98);
-    background: rgba(184, 160, 216, 0.1);
+    background: #fff8f2;
+  }
+
+  // 素材不足档位弱化（仍可进入，流程内引导降档/补素材）
+  &--dim {
+    opacity: 0.55;
   }
 }
 
-// 卡角光晕（与时光线精选卡同手法）
-.mcenter-line-glow {
-  position: absolute;
-  top: -40rpx;
-  right: -40rpx;
-  width: 180rpx;
-  height: 180rpx;
-  border-radius: 50%;
-  filter: blur(50rpx);
-  opacity: 0.5;
-
-  &--warm { background: rgba(232, 200, 160, 0.35); }
-  &--violet { background: rgba(184, 160, 216, 0.4); }
-}
-
-.mcenter-line-icon {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: $radius-lg;
-  @include flex-center;
-  font-size: 48rpx;
+.mhall-card-em {
+  font-size: 30px;
   flex-shrink: 0;
-
-  &--warm {
-    background: linear-gradient(135deg, rgba(232, 200, 160, 0.25), rgba(216, 184, 160, 0.12));
-  }
-
-  &--violet {
-    background: linear-gradient(135deg, rgba(184, 160, 216, 0.28), rgba(150, 130, 200, 0.12));
-  }
+  width: 48px;
+  text-align: center;
 }
 
-.mcenter-line-body {
+.mhall-card-txt {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
 }
 
-.mcenter-line-titlerow {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-}
-
-.mcenter-line-title {
-  font-size: 34rpx;
-  font-weight: $font-weight-bold;
-  color: $color-text-primary;
-  letter-spacing: 2rpx;
-}
-
-.mcenter-line-tag {
-  padding: 2rpx 16rpx;
-  border-radius: $radius-full;
-  font-size: 20rpx;
-
-  &--warm {
-    background: rgba(232, 200, 160, 0.15);
-    color: #E8C8A0;
-  }
-
-  &--violet {
-    background: rgba(184, 160, 216, 0.18);
-    color: #C8B8E0;
-  }
-}
-
-.mcenter-line-desc {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  line-height: 1.5;
-}
-
-.mcenter-line-meta {
+.mhall-card-titlerow {
   display: flex;
   align-items: baseline;
-  gap: 14rpx;
-  margin-top: 6rpx;
+  gap: 8px;
+  margin-bottom: 3px;
 }
 
-.mcenter-line-price {
-  font-size: 36rpx;
-  font-weight: $font-weight-bold;
-  background: linear-gradient(135deg, #D8B8A0, #E8D0A8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.mhall-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3d2f24;
 }
 
-.mcenter-line-price-hint {
-  font-size: 20rpx;
-  color: $color-text-tertiary;
+.mhall-card-sub {
+  font-size: 10px;
+  color: #b08b5e;
 }
 
-.mcenter-line-arrow {
-  font-size: 40rpx;
-  color: rgba(216, 184, 160, 0.5);
-  flex-shrink: 0;
+.mhall-card-desc {
+  display: block;
+  font-size: 10.5px;
+  color: #a08b76;
+  line-height: 1.45;
 }
 
-// ==================== 流程说明 ====================
-.mcenter-steps {
+.mhall-card-pricerow {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-  padding: 30rpx 20rpx;
-  border-radius: $radius-lg;
-  background: rgba(184, 160, 216, 0.04);
-  border: 2rpx dashed rgba(216, 184, 160, 0.15);
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 7px;
 }
 
-.mcenter-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-  flex: 1;
+.mhall-card-price {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2582f;
+  background: #ffece2;
+  border-radius: 14px;
+  padding: 3px 9px;
 }
 
-.mcenter-step-num {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 50%;
-  @include flex-center;
-  background: rgba(216, 184, 160, 0.15);
-  color: #E8C8A0;
-  font-size: 22rpx;
-  font-weight: $font-weight-bold;
+.mhall-card-mprice {
+  font-size: 10px;
+  color: #b08b5e;
 }
 
-.mcenter-step-text {
-  font-size: 20rpx;
-  color: $color-text-secondary;
-  text-align: center;
+// ==================== 更多：两列 mini 卡（原型 .grid2 .card） ====================
+.mhall-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-.mcenter-step-line {
-  width: 40rpx;
-  height: 2rpx;
-  background: rgba(216, 184, 160, 0.25);
-  margin-bottom: 34rpx;
-  flex-shrink: 0;
+.mhall-mini {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(170, 120, 70, 0.12);
+
+  &:active {
+    background: #fff8f2;
+  }
 }
 
-// ==================== 底部说明 ====================
-.mcenter-foot {
-  padding: 8rpx 0 20rpx;
-  text-align: center;
+.mhall-mini-em {
+  font-size: 24px;
 }
 
-.mcenter-foot-text {
-  font-size: 20rpx;
-  color: rgba(184, 160, 216, 0.45);
-  letter-spacing: 1rpx;
+.mhall-mini-title {
+  display: block;
+  font-size: 14px;
+  color: #3d2f24;
+  font-weight: 600;
+  margin: 6px 0 3px;
+}
+
+.mhall-mini-desc {
+  display: block;
+  font-size: 10.5px;
+  color: #a08b76;
+  line-height: 1.45;
 }

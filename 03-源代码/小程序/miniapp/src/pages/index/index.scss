@@ -1913,13 +1913,13 @@
   margin: 20rpx 24rpx;
   padding: 30rpx 28rpx;
   border-radius: 28rpx;
-  background: linear-gradient(135deg, #221838, #2C2044);
-  border: 2rpx solid rgba(216, 184, 160, 0.25);
+  background: linear-gradient(150deg, #f0ecff, #ffe0f0);
+  border: 2rpx solid rgba(167, 139, 250, 0.2);
   transition: all 0.25s ease;
 
   &:active {
     transform: scale(0.98);
-    background: linear-gradient(135deg, #2A2044, #342852);
+    background: #f7effa;
   }
 }
 
@@ -1930,7 +1930,7 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background: rgba(232, 200, 160, 0.3);
+  background: rgba(124, 108, 240, 0.18);
   filter: blur(46rpx);
   opacity: 0.6;
 }
@@ -1964,7 +1964,7 @@
 .home-memoir-card__title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #F5EEE2;
+  color: #3d2f24;
   letter-spacing: 2rpx;
 }
 
@@ -1979,11 +1979,11 @@
 
 .home-memoir-card__desc {
   font-size: 24rpx;
-  color: rgba(245, 238, 226, 0.55);
+  color: #a08b76;
 }
 
 .home-memoir-card__arrow {
   font-size: 38rpx;
-  color: rgba(216, 184, 160, 0.5);
+  color: #b08968;
   flex-shrink: 0;
 }

@@ -114,6 +114,10 @@ type PhotoTab = 'local' | 'pool'
 export default function MemoirVlog() {
   const routerParams = Taro.getCurrentInstance().router?.params as Record<string, string> | undefined
   const petId = routerParams?.petId || ''
+  // 回忆录馆（memoir-center）档位卡直达：?tier=standard/full 预选档位（确认页 effect 会自动纠正不可用档）
+  const presetTier = routerParams?.tier === 'standard' || routerParams?.tier === 'full'
+    ? (routerParams.tier as MemoirTier)
+    : null
 
   // —— 步骤控制 ——
   const [step, setStep] = useState(0)
@@ -155,7 +159,8 @@ export default function MemoirVlog() {
 
   // —— 步骤5：确认支付（三档卡） ——
   const [pricing, setPricing] = useState<MemoirPricing | null>(null)
-  const [selectedTier, setSelectedTier] = useState<MemoirTier | null>(null)
+  // 外部预选档位（回忆录馆档位卡直达）：标准/完整走本页多段管线
+  const [selectedTier, setSelectedTier] = useState<MemoirTier | null>(presetTier)
   const [paying, setPaying] = useState(false)
 
   // —— 步骤6：生成与结果 ——

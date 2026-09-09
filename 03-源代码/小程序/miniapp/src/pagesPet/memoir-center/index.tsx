@@ -1,127 +1,194 @@
 import { useState, useEffect } from 'react'
-import Taro from '@tarojs/taro'
-import { View, Text, Image } from '@tarojs/components'
+import Taro, { useRouter } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
 import { usePetStore } from '../../stores/petStore'
+import { getMaterialCheck, getMemoirPricing } from '../../services/memoirService'
+import type { MaterialCheck } from '../../services/memoirService'
+import { pickTierPrice, formatYuan, isTierAvailable } from '../../utils/memoirTier'
 
 import './index.scss'
 
 /**
- * 回忆录中心页（2026-09-09 B3 提前）：
- * 用户拍板「回忆录要有单独的入口」——本页即回忆录板块首页，
- * 首页大卡直达此处，向内分发两条产品线：
- * - 日常回忆录（memoir-daily，light 轻纪念档，单段流水线）
- * - 纪念Vlog（memoir-vlog，三档可选，标准/完整走多段纪念管线）
- * 进入各子页前先解析当前宠物，无宠物引导添加
+ * 回忆录馆（2026-09-09 对齐高保真原型 creative-hub-prototype.html 屏3）：
+ * 「创作板块」IA 中的回忆录聚合页——米白暖色主题（与全 App 主视觉一致，非深色风）。
+ * 结构：紫渐变 hero → 素材盘点 banner（前置：告诉用户能做什么档、缺什么素材）
+ *       → 三档定价卡同屏（轻纪念/标准/完整，点击直达对应流程）→ 更多（年度回顾/我的回忆录）
+ * 档位卡路由规则：轻纪念 → memoir-daily（light 单段流水线）；
+ *                标准/完整 → memoir-vlog?tier=standard|full（多段纪念管线，确认页可改档）
  */
+const SUGGESTION_LABEL: Record<string, string> = {
+  light: '轻纪念',
+  standard: '标准回忆录',
+  full: '完整回忆录',
+}
+
 const MemoirCenter = () => {
+  const router = useRouter()
+  const petId = router.params.petId || ''
   const currentPet = usePetStore((s) => s.currentPet)
-  const [avatarFailed, setAvatarFailed] = useState(false)
+  const petName = currentPet?.name || '毛孩子'
 
+  const [material, setMaterial] = useState<MaterialCheck | null>(null)
+  const [pricing, setPricing] = useState<Awaited<ReturnType<typeof getMemoirPricing>> | null>(null)
+
+  // 挂载拉素材盘点（banner 前置：能做什么档/缺什么素材）与三档价格；失败静默降级静态文案
   useEffect(() => {
-    Taro.setNavigationBarTitle({ title: '星河回忆录' })
-  }, [])
+    if (!petId) return
+    let cancelled = false
+    getMaterialCheck(petId).then((m) => {
+      if (!cancelled) setMaterial(m)
+    }).catch(() => {})
+    getMemoirPricing(petId).then((p) => {
+      if (!cancelled) setPricing(p)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [petId])
 
-  /** 进入前校验宠物：回忆录必须绑定宠物（素材/时间线/档案都按宠物维度取） */
-  const guardAndGo = (url: string) => {
-    if (!currentPet) {
-      Taro.showToast({ title: '请先添加宠物', icon: 'none' })
-      setTimeout(() => {
-        Taro.navigateTo({ url: '/pagesPet/add/index' })
-      }, 600)
-      return
+  /** 三档价格：动态优先（B1 实时价），失败回退定稿静态价 */
+  const priceOf = (tier: 'light' | 'standard' | 'full') => {
+    if (pricing?.prices) {
+      return {
+        normal: `¥${formatYuan(pickTierPrice(pricing.prices, tier, false))}`,
+        member: `会员 ¥${formatYuan(pickTierPrice(pricing.prices, tier, true))}`,
+      }
     }
-    Taro.navigateTo({ url: `${url}?petId=${currentPet.id}` })
+    const fallback: Record<string, { normal: string; member: string }> = {
+      light: { normal: '¥25.9', member: '会员 ¥18.9' },
+      standard: { normal: '¥59', member: '会员 ¥45' },
+      full: { normal: '¥99', member: '会员 ¥79' },
+    }
+    return fallback[tier]
   }
 
-  /** 头像优先级与全站一致：真实照片 > AI 形象 > 物种 emoji */
-  const avatarUrl = currentPet?.avatarPhotoUrl || currentPet?.avatarCartoonUrl || ''
+  /** 档位卡点击：轻纪念→日常回忆录（light）；标准/完整→纪念Vlog 预选档（确认页可改） */
+  const goTier = (tier: 'light' | 'standard' | 'full') => {
+    if (!petId) {
+      if (!currentPet) {
+        Taro.showToast({ title: '请先添加宠物', icon: 'none' })
+        return
+      }
+      // 中心页被直接打开（无 petId）时回退用当前宠物
+      if (tier === 'light') {
+        Taro.navigateTo({ url: `/pagesPet/memoir-daily/index?petId=${currentPet.id}` })
+      } else {
+        Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index?petId=${currentPet.id}&tier=${tier}` })
+      }
+      return
+    }
+    if (tier === 'light') {
+      Taro.navigateTo({ url: `/pagesPet/memoir-daily/index?petId=${petId}` })
+    } else {
+      Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index?petId=${petId}&tier=${tier}` })
+    }
+  }
+
+  /** 档位不可用提示：素材不足时轻提示仍允许进入（流程内可补素材/降档） */
+  const tierDisabled = (tier: 'light' | 'standard' | 'full') => {
+    if (!material) return false
+    const photoCount = material.profile_photo_count + material.moment_photo_count
+    return !isTierAvailable(tier, photoCount)
+  }
+
+  const lightP = priceOf('light')
+  const standardP = priceOf('standard')
+  const fullP = priceOf('full')
 
   return (
-    <View className='mcenter'>
-      {/* ===== 品牌头 ===== */}
-      <View className='mcenter-hero'>
-        <View className='mcenter-hero-badge'>
-          <Text className='mcenter-hero-badge-text'>MEMOIR</Text>
-        </View>
-        <Text className='mcenter-hero-title'>星河回忆录</Text>
-        <Text className='mcenter-hero-sub'>把和毛孩子的时光，做成会动的回忆</Text>
-        {currentPet && (
-          <View className='mcenter-hero-pet'>
-            {avatarUrl && !avatarFailed ? (
-              <Image
-                className='mcenter-hero-pet-avatar'
-                src={avatarUrl}
-                mode='aspectFill'
-                lazyLoad
-                onError={() => setAvatarFailed(true)}
-              />
-            ) : (
-              <Text className='mcenter-hero-pet-emoji'>{currentPet.species === 'cat' ? '🐱' : '🐶'}</Text>
-            )}
-            <Text className='mcenter-hero-pet-name'>{currentPet.name}</Text>
-          </View>
-        )}
+    <View className='mhall'>
+      {/* ===== 紫渐变 hero（原型屏3） ===== */}
+      <View className='mhall-hero'>
+        <Text className='mhall-hero-face'>🎞️</Text>
+        <Text className='mhall-hero-title'>回忆录馆</Text>
+        <Text className='mhall-hero-sub'>把和{petName}的日子，讲成一部小电影</Text>
       </View>
 
-      {/* ===== 产品线入口 ===== */}
-      <View className='mcenter-line' onClick={() => guardAndGo('/pagesPet/memoir-daily/index')}>
-        <View className='mcenter-line-glow mcenter-line-glow--warm' />
-        <View className='mcenter-line-icon mcenter-line-icon--warm'>
-          <Text>🎬</Text>
+      {/* ===== 素材盘点 banner（前置：能做什么档/缺什么素材） ===== */}
+      {material && (
+        <View className='mhall-banner'>
+          <Text className='mhall-banner-text'>
+            📸 素材盘点：{petName}现有照片 {material.profile_photo_count + material.moment_photo_count} 张
+            {' · '}时光线回忆 {material.moment_count} 条
+            {material.suggested_tier ? ` → 建议先做「${SUGGESTION_LABEL[material.suggested_tier] || material.suggested_tier}」` : ''}
+          </Text>
         </View>
-        <View className='mcenter-line-body'>
-          <View className='mcenter-line-titlerow'>
-            <Text className='mcenter-line-title'>日常回忆录</Text>
-            <View className='mcenter-line-tag mcenter-line-tag--warm'><Text>轻纪念档</Text></View>
-          </View>
-          <Text className='mcenter-line-desc'>1-3 张照片 · 5-30 秒温暖短片 · AI 静图动效</Text>
-          <View className='mcenter-line-meta'>
-            <Text className='mcenter-line-price'>¥18.9 起</Text>
-            <Text className='mcenter-line-price-hint'>会员同价 · 单集即出</Text>
-          </View>
-        </View>
-        <Text className='mcenter-line-arrow'>›</Text>
-      </View>
+      )}
 
-      <View className='mcenter-line' onClick={() => guardAndGo('/pagesPet/memoir-vlog/index')}>
-        <View className='mcenter-line-glow mcenter-line-glow--violet' />
-        <View className='mcenter-line-icon mcenter-line-icon--violet'>
-          <Text>💎</Text>
-        </View>
-        <View className='mcenter-line-body'>
-          <View className='mcenter-line-titlerow'>
-            <Text className='mcenter-line-title'>纪念Vlog</Text>
-            <View className='mcenter-line-tag mcenter-line-tag--violet'><Text>三档可选</Text></View>
-          </View>
-          <Text className='mcenter-line-desc'>8-15 张照片 · 最长 90 秒 · AI 叙事 + 分镜确认</Text>
-          <View className='mcenter-line-meta'>
-            <Text className='mcenter-line-price'>¥45 起</Text>
-            <Text className='mcenter-line-price-hint'>会员更低至 ¥45 · 深刻催泪</Text>
-          </View>
-        </View>
-        <Text className='mcenter-line-arrow'>›</Text>
-      </View>
+      {/* ===== 选择档位（三档同屏，原型 wide 卡） ===== */}
+      <View className='mhall-sectitle'>选择档位</View>
 
-      {/* ===== 流程说明 ===== */}
-      <View className='mcenter-steps'>
-        <View className='mcenter-step'>
-          <Text className='mcenter-step-num'>1</Text>
-          <Text className='mcenter-step-text'>选照片 · 写一句话心情</Text>
-        </View>
-        <View className='mcenter-step-line' />
-        <View className='mcenter-step'>
-          <Text className='mcenter-step-num'>2</Text>
-          <Text className='mcenter-step-text'>AI 生成 · 确认分镜</Text>
-        </View>
-        <View className='mcenter-step-line' />
-        <View className='mcenter-step'>
-          <Text className='mcenter-step-num'>3</Text>
-          <Text className='mcenter-step-text'>出片收藏 · 分享家人</Text>
+      <View
+        className={`mhall-card${tierDisabled('light') ? ' mhall-card--dim' : ''}`}
+        onClick={() => goTier('light')}
+      >
+        <Text className='mhall-card-em'>🍃</Text>
+        <View className='mhall-card-txt'>
+          <View className='mhall-card-titlerow'>
+            <Text className='mhall-card-title'>轻纪念</Text>
+            <Text className='mhall-card-sub'>1-3 张照片</Text>
+          </View>
+          <Text className='mhall-card-desc'>一段真实影像+空镜+暖白收尾 · 约 20 秒{'\n'}本尊出镜率 100%</Text>
+          <View className='mhall-card-pricerow'>
+            <Text className='mhall-card-price'>{lightP.normal}</Text>
+            <Text className='mhall-card-mprice'>{lightP.member}</Text>
+          </View>
         </View>
       </View>
 
-      <View className='mcenter-foot'>
-        <Text className='mcenter-foot-text'>生成失败自动原路退款 · 视频仅家人可见</Text>
+      <View
+        className={`mhall-card${tierDisabled('standard') ? ' mhall-card--dim' : ''}`}
+        onClick={() => goTier('standard')}
+      >
+        <Text className='mhall-card-em'>📖</Text>
+        <View className='mhall-card-txt'>
+          <View className='mhall-card-titlerow'>
+            <Text className='mhall-card-title'>标准回忆录</Text>
+            <Text className='mhall-card-sub'>5-7 张照片</Text>
+          </View>
+          <Text className='mhall-card-desc'>六个章节 · 空镜衔接 · 约 45 秒</Text>
+          <View className='mhall-card-pricerow'>
+            <Text className='mhall-card-price'>{standardP.normal}</Text>
+            <Text className='mhall-card-mprice'>{standardP.member}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View
+        className={`mhall-card${tierDisabled('full') ? ' mhall-card--dim' : ''}`}
+        onClick={() => goTier('full')}
+      >
+        <Text className='mhall-card-em'>🎬</Text>
+        <View className='mhall-card-txt'>
+          <View className='mhall-card-titlerow'>
+            <Text className='mhall-card-title'>完整回忆录</Text>
+            <Text className='mhall-card-sub'>8-15 张 + 勾选记忆</Text>
+          </View>
+          <Text className='mhall-card-desc'>十幕剧结构 · 旁白讲真实故事 · 约 75 秒{'\n'}TTS 语音 + 字幕 + 转场 + BGM</Text>
+          <View className='mhall-card-pricerow'>
+            <Text className='mhall-card-price'>{fullP.normal}</Text>
+            <Text className='mhall-card-mprice'>{fullP.member}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ===== 更多 ===== */}
+      <View className='mhall-sectitle'>更多</View>
+      <View className='mhall-grid2'>
+        <View
+          className='mhall-mini'
+          onClick={() => Taro.showToast({ title: '年度回顾即将上线', icon: 'none' })}
+        >
+          <Text className='mhall-mini-em'>🎊</Text>
+          <Text className='mhall-mini-title'>年度回顾</Text>
+          <Text className='mhall-mini-desc'>这一年 TA 的档案大片</Text>
+        </View>
+        <View
+          className='mhall-mini'
+          onClick={() => Taro.showToast({ title: '生成记录即将上线', icon: 'none' })}
+        >
+          <Text className='mhall-mini-em'>🎬</Text>
+          <Text className='mhall-mini-title'>我的回忆录</Text>
+          <Text className='mhall-mini-desc'>生成记录 · 再次观看</Text>
+        </View>
       </View>
     </View>
   )
