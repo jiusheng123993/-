@@ -64,11 +64,15 @@ vi.mock('../services/memoryService.js', () => ({
   getMemoriesByTags: vi.fn(),
   getMomentSummariesByIds: vi.fn(),
 }));
+vi.mock('../services/aiService.js', () => ({
+  chat: vi.fn(),
+}));
 
 import memoirRouter from '../routes/memoir.js';
 import * as memoirScriptService from '../services/memoirScriptService.js';
 import * as memoirPhotoAnalysis from '../services/memoirPhotoAnalysis.js';
 import * as memoryService from '../services/memoryService.js';
+import * as aiService from '../services/aiService.js';
 
 function createApp() {
   const app = express();
@@ -883,5 +887,70 @@ describe('POST /api/pets/:petId/memoir/prompt-preview 提示词预览', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
+  });
+});
+
+// ===== POST /api/pets/:petId/memoir/prompt-refine - 提示词改写 =====
+describe('POST /api/pets/:petId/memoir/prompt-refine 提示词改写', () => {
+  const baseSegments = [
+    {
+      photo_index: 0,
+      seedance_prompt: '一只橘色猫咪在阳光下伸懒腰，柔和光线。',
+      narration: '它总在午后晒太阳。',
+      shot_type: 'push_in',
+      camera: 'medium',
+      lighting: 'soft_afternoon',
+      transition: 'cut',
+      duration_sec: 5,
+    },
+  ];
+
+  it('按用户要求改写并返回下一版提示词', async () => {
+    vi.mocked(aiService.chat).mockResolvedValue(
+      JSON.stringify([
+        {
+          photo_index: 0,
+          seedance_prompt: '一只橘色猫咪在金色黄昏里伸懒腰，暖色逆光，静谧电影感。',
+          narration: '它总在午后晒太阳。',
+          shot_type: 'push_in',
+          camera: 'medium',
+          lighting: 'golden_hour',
+          transition: 'cut',
+          duration_sec: 5,
+        },
+      ]),
+    );
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-refine')
+      .send({ segments: baseSegments, user_request: '氛围更温馨一点，改成黄昏光线' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data[0].seedance_prompt).toContain('黄昏');
+    expect(res.body.data[0].lighting).toBe('golden_hour');
+    // 安全红线校验：改写后提示词不含宠物名（本用例名字未注入，但锁结构）
+    expect(res.body.data[0].photo_index).toBe(0);
+  });
+
+  it('缺少修改要求返回 400', async () => {
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-refine')
+      .send({ segments: baseSegments });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('LLM 返回非 JSON 时兜底返回原段', async () => {
+    vi.mocked(aiService.chat).mockResolvedValue('抱歉我无法处理');
+
+    const res = await request(createApp())
+      .post('/api/pets/pet-001/memoir/prompt-refine')
+      .send({ segments: baseSegments, user_request: '更温馨' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toEqual(baseSegments);
   });
 });

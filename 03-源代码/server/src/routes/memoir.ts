@@ -6,7 +6,7 @@
 import { Router, type Request, type Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema } from '../schemas/index.js';
+import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema, memoirPromptRefineSchema } from '../schemas/index.js';
 import { memoirLimiter, promptLimiter } from '../middleware/rateLimit.js';
 import {
   createMemoir,
@@ -17,6 +17,7 @@ import {
   confirmMemoirScript,
   rejectMemoirScript,
   generatePromptPreview,
+  refineMemoirPrompt,
   MemoirError,
   MemoirBusinessError,
 } from '../services/memoirService.js';
@@ -225,6 +226,25 @@ router.post(
       const petId = req.params.petId as string;
       const script = await generatePromptPreview(userId, petId, req.body);
       res.json({ success: true, data: script });
+    } catch (err) {
+      handleServiceError(res, err);
+    }
+  },
+);
+
+/**
+ * POST /api/pets/:petId/memoir/prompt-refine
+ * 提示词改写（2026-09-09 人机协同第二环）：用户对当前提示词提修改要求 → LLM 出下一版。
+ * 无归属敏感操作（不落库/不创建任务）；LLM 有成本 → promptLimiter 限流。
+ */
+router.post(
+  '/:petId/memoir/prompt-refine',
+  promptLimiter,
+  validate({ body: memoirPromptRefineSchema }),
+  async (req: Request, res: Response) => {
+    try {
+      const refined = await refineMemoirPrompt(req.body.segments, req.body.user_request);
+      res.json({ success: true, data: refined });
     } catch (err) {
       handleServiceError(res, err);
     }

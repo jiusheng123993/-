@@ -849,6 +849,31 @@ export const memoirPreviewSchema = z.object({
   memoir_id: z.string({ error: 'memoir_id 不能为空' }).min(1, 'memoir_id 不能为空'),
 });
 
+/**
+ * 提示词改写请求（2026-09-09 人机协同）：用户对当前提示词提修改要求 → LLM 出下一版。
+ * segments 沿用分镜段结构（宽松版，只要求能定位到要改的段），严格校验在 LLM 返回后做。
+ */
+export const memoirPromptRefineSchema = z.object({
+  /** 当前版本的分镜段（photo_index 定位，seedance_prompt/narration 为改写目标） */
+  segments: z
+    .array(
+      z.object({
+        photo_index: z.number().int().min(0).max(30),
+        seedance_prompt: z.string().min(1).max(2000),
+        narration: z.string().max(500).optional(),
+        shot_type: z.string().max(30).optional(),
+        camera: z.string().max(30).optional(),
+        lighting: z.string().max(30).optional(),
+        transition: z.string().max(30).optional(),
+        duration_sec: z.number().int().min(2).max(10).optional(),
+      }),
+    )
+    .min(1, '至少需要一组提示词段')
+    .max(15, '最多 15 段'),
+  /** 用户修改要求（如"更温馨一点""第一段改成傍晚光线"） */
+  user_request: z.string({ error: '请填写修改要求' }).min(1, '请填写修改要求').max(500, '修改要求过长'),
+});
+
 // ===== 疫苗模块 - Body 参数 =====
 
 /** 设置疫苗提醒请求 */

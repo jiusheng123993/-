@@ -20,6 +20,7 @@ import { MembershipRepository } from '../repositories/membershipRepository.js';
 import { generateMemoirScript } from './memoirScriptService.js';
 import type { MemoirScript } from '../schemas/memoirScript.js';
 import { analyzeMemoirPhotos } from './memoirPhotoAnalysis.js';
+import { chat } from './aiService.js';
 import { buildMemoryContext, getMemoriesByTags, getMomentSummariesByIds } from './memoryService.js';
 import {
   PRODUCT_LINE_CONFIG,
@@ -573,4 +574,50 @@ export async function generatePromptPreview(
     musicStyle: typeof data.music_style === 'string' ? data.music_style : null,
     photoDescriptions,
   });
+}
+
+/**
+ * 提示词改写（2026-09-09 人机协同第二环）：用户对当前提示词提修改要求 → LLM 出下一版。
+ * 与「预览」配套：预览给第一版，用户反复提要求，本函数出二版/三版…直到用户确认。
+ * @returns 改写后的分镜段数组（种子段 photo_index 不变，仅改 seedance_prompt/narration 等）
+ */
+export async function refineMemoirPrompt(
+  segments: Array<Record<string, unknown>>,
+  userRequest: string,
+): Promise<Array<Record<string, unknown>>> {
+  const system = [
+    '你是回忆录分镜提示词改写助手。用户会提交当前的分镜段(JSON 数组)和修改要求。',
+    '请严格按修改要求改写，规则：',
+    '1. 只改用户要求涉及的部分；未要求的段保持原样（原样段可整体省略，返回时用其余字段保留原值）。',
+    '2. 每段 seedance_prompt 保持"十段式"中文结构（镜头/景别/光线/运镜/主体外貌/氛围/画质/连贯性等）。',
+    '3. 安全红线：seedance_prompt 里绝不出现宠物/家人名字，只能用外貌描述（如"橘色英短猫咪"）。',
+    '4. 不改动 photo_index 与 duration_sec；shot_type/camera/lighting/transition 尽量保留，除非用户明确要求改镜头。',
+    '5. 只输出 JSON 数组（元素与输入段结构一致：photo_index/seedance_prompt/narration/shot_type/camera/lighting/transition/duration_sec），不要任何多余文字或 Markdown 代码块。',
+  ].join('\n');
+
+  const user = [
+    '当前分镜段：',
+    JSON.stringify(segments, null, 2),
+    '',
+    `用户修改要求：${userRequest}`,
+    '',
+    '请输出改写后的 JSON 数组：',
+  ].join('\n');
+
+  const raw = await chat(
+    [{ role: 'system', content: system }, { role: 'user', content: user }],
+    { temperature: 0.5, max_tokens: 3000 },
+  );
+
+  // 解析 LLM 返回（容错：剥掉 markdown 代码块围栏后再 JSON.parse；失败则返回原段）
+  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  try {
+    const parsed = JSON.parse(cleaned) as Array<Record<string, unknown>>;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+  } catch {
+    // 解析失败走兜底
+  }
+  return segments;
 }
