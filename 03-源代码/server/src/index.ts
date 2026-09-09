@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 应用入口 - Express 服务器主文件
  * 配置中间件、路由注册、服务器启动和后台任务调度
  * v2: 增加 helmet 安全头、请求日志、限流、WebSocket、功能开关
@@ -44,6 +44,7 @@ import feedbackRoutes from './routes/feedback.js';
 import knowledgeRoutes from './routes/knowledge.js';
 import breedKnowledgeRoutes from './routes/breeds.js';
 import redeemRoutes from './routes/redeem.js';
+import adminStatsRoutes from './routes/adminStats.js';
 import analyticsRoutes from './routes/analytics.js';
 import inviteRoutes from './routes/invites.js';
 import { cleanStaleTasks } from './services/taskQueue.js';
@@ -146,6 +147,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api', knowledgeRoutes);
 app.use('/api', breedKnowledgeRoutes);
 app.use('/api', redeemRoutes);
+app.use('/api', adminStatsRoutes);
 app.use('/api', inviteRoutes);
 
 // ===== 全局错误处理 =====
