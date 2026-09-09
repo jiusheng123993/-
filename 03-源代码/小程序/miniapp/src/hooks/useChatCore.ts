@@ -389,9 +389,9 @@ export function useChatCore(params: UseChatCoreParams) {
     }
   }, [petInfo, chatHistory, addImageMsg, addAiMsg, streamAiReply, setIsTyping, setChatHistory])
 
-  /** Agent 模式的发送逻辑 */
-  const handleSend = async () => {
-    const text = inputValue.trim()
+  /** Agent 模式的发送逻辑（textOverride：外部注入的发送文本，如语音识别结果，优先于 inputValue） */
+  const handleSend = async (textOverride?: string) => {
+    const text = (textOverride ?? inputValue).trim()
     if (!text) return
     setInputValue('')
     setPlusMenuOpen(false)

@@ -94,14 +94,6 @@ vi.mock('@tarojs/taro', () => ({
     showToast: mockShowToast,
     switchTab: mockSwitchTab,
     setClipboardData: mockSetClipboardData,
-    // useVoiceInput 依赖录音管理器
-    getRecorderManager: vi.fn(() => ({
-      onStart: vi.fn(),
-      onStop: vi.fn(),
-      onError: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
-    })),
   },
 }))
 

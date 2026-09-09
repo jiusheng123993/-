@@ -130,5 +130,14 @@ export default defineAppConfig({
   // 开启"组件按需注入"：微信代码质量检查要求主包启用 lazyCodeLoading，
   // 否则上传时该项"未通过"。开启后页面组件按需加载，也能顺带减小首包体积。
   lazyCodeLoading: 'requiredComponents',
+  // 微信同声传译插件（2026-09 语音输入改版）：按住说话由插件在微信侧直接转文字，
+  // 不经过业务服务器、不需要云 ASR 密钥、不按量计费。
+  // 需在微信公众平台「设置 > 第三方设置 > 插件管理」添加同声传译插件（provider wx069ba97219f66d99）。
+  plugins: {
+    WechatSI: {
+      version: '0.3.5',
+      provider: 'wx069ba97219f66d99',
+    },
+  },
   __usePrivacyCheck__: true,
 })

@@ -346,7 +346,7 @@ describe('提示词人机协同三接口（2026-09-09 块①前端封装）', ()
 
   it('confirmPrompt 走 prompt-confirm 端点并携带 tier 与确认版脚本', async () => {
     mockApi.post.mockResolvedValueOnce({ confirmed: true })
-    const r = await confirmPrompt('pet-1', 'standard', { title: 'T', segments: [{ photo_index: 0, seedance_prompt: 's' }] })
+    const r = await confirmPrompt('pet-1', 'standard', { title: 'T', theme: '陪伴', segments: [{ photo_index: 0, seedance_prompt: 's' }] })
     expect(r.confirmed).toBe(true)
     expect(mockApi.post).toHaveBeenCalledWith(
       '/api/pets/pet-1/memoir/prompt-confirm',

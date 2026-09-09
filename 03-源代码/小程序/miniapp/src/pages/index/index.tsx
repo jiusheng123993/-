@@ -207,7 +207,7 @@ export default function Index() {
   // 语音转文字处理中标记
   const [isVoiceProcessing, setIsVoiceProcessing] = useState(false)
 
-  /** 同声传译识别完成后的处理：把识别到的文字作为消息发送（改版后不再上传后端 ASR） */
+  /** 同声传译识别完成后的处理：把识别到的文字直接作为消息发送（改版后不再上传后端 ASR） */
   const handleVoiceComplete = useCallback((text: string) => {
     if (!text || text === '无法识别语音内容') {
       Taro.showToast({ title: '未识别到语音内容，请重试', icon: 'none' })
@@ -215,14 +215,10 @@ export default function Index() {
     }
 
     // 打卡已改为弹窗卡片交互，语音不再承担打卡答题入口；转写结果直接作为消息发送
+    // （用 chat.handleSend(text) 直传识别文本，修复经 setInputValue+setTimeout 读取旧闭包 inputValue 的发送缺陷）
     setIsVoiceProcessing(true)
-    setInputValue(text)
-    // 使用 setTimeout 确保 setInputValue 已生效
-    setTimeout(() => {
-      chat.handleSend()
-      setIsVoiceProcessing(false)
-    }, 50)
-  }, [chat, setInputValue])
+    chat.handleSend(text).finally(() => setIsVoiceProcessing(false))
+  }, [chat])
 
   const voice = useVoiceInput({
     onRecognizeComplete: handleVoiceComplete,
@@ -1011,6 +1007,11 @@ export default function Index() {
           <View
             className={`wx-toggle-btn ${inputMode === 'voice' ? 'wx-toggle-btn--active' : ''}`}
             onClick={() => {
+              // 非微信/插件未就绪时不允许切到语音模式（P1-2：避免"点击无反应"）
+              if (inputMode === 'text' && !voice.isVoiceSupported) {
+                Taro.showToast({ title: '当前平台不支持语音输入', icon: 'none' })
+                return
+              }
               setInputMode(inputMode === 'text' ? 'voice' : 'text')
               setPlusPanelOpen(false)
             }}

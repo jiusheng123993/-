@@ -685,6 +685,8 @@ export async function* agentLoop(
   let intentResult: IntentResult | undefined;
   let iterations = 0;
   let finalContent = '';
+  // 工具调用 id 单调计数器：修复同毫秒多工具调用或跨毫秒两次 Date.now() 导致的 id 撞车/不匹配
+  let toolCallSeq = 0;
 
   /** 写成本日志（幂等；异步不阻塞；finally 兜底正常/超时/异常/客户端断开路径） */
   const writeLog = () => {
@@ -797,12 +799,14 @@ export async function* agentLoop(
           };
 
           // 将工具调用和结果加入消息历史
+          // 每个工具调用生成一次单调递增 id（修复同毫秒/跨毫秒 Date.now() 导致 id 撞车或不匹配）
+          const toolCallId = `call_${++toolCallSeq}_${toolCall.name}`;
           const assistantMsg: ChatMessage = {
             role: 'assistant',
             content: '',
             tool_calls: [
               {
-                id: `call_${Date.now()}_${toolCall.name}`,
+                id: toolCallId,
                 type: 'function',
                 function: {
                   name: toolCall.name,
@@ -819,7 +823,7 @@ export async function* agentLoop(
           messages.push({
             role: 'tool',
             content: JSON.stringify(result),
-            tool_call_id: `call_${Date.now()}_${toolCall.name}`,
+            tool_call_id: toolCallId,
           });
         }
         // 继续循环，让 LLM 处理工具结果
@@ -913,12 +917,51 @@ export async function* agentLoop(
 
 // ========== 安全守卫（输入检查） ==========
 
-export async function guardCheckInput(text: string): Promise<{
+/**
+ * 规则预筛（2026-09 成本优化）：命中「用户危机/虐待/遗弃/弃养」等信号才触发付费 LLM 守卫，
+ * 常见良性消息直接放行，省掉每条消息一次独立的安全 LLM 调用（agentRouter 已按此 gate）。
+ * 注意：只针对「用户本人 / 主动虐待 / 遗弃」类语言，不误判宠物生病/抑郁/离世等宠物健康内容。
+ */
+const RISK_PATTERNS = [
+  // —— 用户自伤 / 轻生 / 危机（第一人称或明确信号）——
+  /自杀|自残|自伤|轻生|寻死|割腕|服毒|跳楼|跳河|上吊|烧炭|吞药/,
+  /想死|想去死|去死|不想活|不想活了|活不下去|活着没意思|活着好累|撑不下去了?|撑不住了?/,
+  /结束(自己|我的|生命|这一切|所有一切)|伤害(自己|我自己)|自虐/,
+  /离开这个世界|不如死了算了|活该去死|死(了)?算了|不想见(任何人|所有人)|想(永远)?离开/,
+  // —— 虐待 / 伤害（含把字句；宾语可在动词前或后）——
+  /虐待|家暴|虐猫|虐狗|毒打|暴打|往死里打/i,
+  /打(它|ta|猫|狗|宠物|你)|揍(它|ta|猫|狗|你)/i,
+  /把(它|ta|你|宠物|猫|狗)?(打死|弄死|杀死|宰了|药死|饿死|虐死|虐待|往死里打|揍死|丢掉)/i,
+  /(打死|弄死|杀死|宰了|药死|饿死|虐死|揍死)(它|ta|宠物|猫|狗|你)/i,
+  // —— 遗弃 / 弃养 / 抛弃 / 送人（含把字句）——
+  /遗弃|弃养|抛弃|送人|不(想)?要(它|ta|宠物|猫|狗|这只|了)/i,
+  /不想养(了|它|ta|猫|狗)?|(把|将)(它|ta|你|宠物|猫|狗)?(扔了|丢了|丢弃|扔掉|遗弃|送人|送走)|(扔了|丢了|丢弃|扔掉|送走)(它|ta|宠物|猫|狗|你)/i,
+];
+
+export function preScreenRisk(text: string): boolean {
+  return RISK_PATTERNS.some((p) => p.test(text));
+}
+
+/** 守卫 fail-closed 时的提示（命中预筛即可能处于情绪/困境，倾向提供帮助而非冷文） */
+const SAFETY_FAILCLOSED_REASON = '你的消息可能需要支持。如需帮助请拨打24小时心理援助热线：400-161-9995。';
+
+/**
+ * 安全守卫（输入检查）：LLM 判定是否危机/无关。命中预筛规则时 fail-closed（守卫异常也拦截），
+ * 未命中预筛的良性消息由调用方跳过本函数（不产生成本）。
+ * @param text - 用户输入
+ * @param opts.failClosed - 命中预筛后传入 true：守卫服务异常/返回不可信时按「拦截」处理（安全优先）
+ */
+export async function guardCheckInput(text: string, opts?: { failClosed?: boolean }): Promise<{
   blocked: boolean;
   reason?: string;
 }> {
   const apiKey = getApiKey();
-  if (!apiKey) return { blocked: false };
+  if (!apiKey) {
+    // 未配置 key：预筛命中时仍按 fail-closed 拦截，避免「守卫缺失」放行风险信号
+    return opts?.failClosed
+      ? { blocked: true, reason: SAFETY_FAILCLOSED_REASON }
+      : { blocked: false };
+  }
 
   try {
     const response = await fetch(`${getBaseUrl()}/chat/completions`, {
@@ -942,24 +985,50 @@ export async function guardCheckInput(text: string): Promise<{
       signal: AbortSignal.timeout(5_000),
     });
 
-    if (!response.ok) return { blocked: false };
+    if (!response.ok) {
+      return opts?.failClosed
+        ? { blocked: true, reason: SAFETY_FAILCLOSED_REASON }
+        : { blocked: false };
+    }
 
     const data = await response.json() as {
       choices: Array<{ message: { content: string } }>;
     };
-    const parsed = JSON.parse(data.choices[0].message.content);
+    const raw = data.choices[0].message.content || '';
+    // 用 {} 提取包裹的 JSON（同 classifyIntent），防 LLM 返回 ```json 或夹带文字导致 JSON.parse 抛错
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return opts?.failClosed
+        ? { blocked: true, reason: SAFETY_FAILCLOSED_REASON }
+        : { blocked: false };
+    }
+    const parsed = JSON.parse(jsonMatch[0]);
+    // 结构校验：isCrisis 必须 boolean、score 必须有限 number，否则视为守卫结果不可信（fail-closed）
+    const validShape =
+      typeof parsed.isCrisis === 'boolean' &&
+      typeof parsed.score === 'number' &&
+      Number.isFinite(parsed.score);
 
-    if (parsed.isCrisis) {
+    if (parsed.isCrisis === true) {
       return {
         blocked: true,
         reason: '请拨打24小时心理援助热线：400-161-9995。你不需要一个人面对。',
       };
+    }
+    if (!validShape) {
+      // 不可信响应（缺字段/非数值）：fail-closed 拦截，否则放行
+      return opts?.failClosed
+        ? { blocked: true, reason: SAFETY_FAILCLOSED_REASON }
+        : { blocked: false };
     }
     if (parsed.score >= 8) {
       return { blocked: true, reason: '抱歉，我无法处理这条消息。请尝试与宠物相关的问题。' };
     }
     return { blocked: false };
   } catch {
-    return { blocked: false };
+    // 未命中预筛的良性消息 fail-open（不让守卫故障误伤正常用户）；命中预筛则 fail-closed
+    return opts?.failClosed
+      ? { blocked: true, reason: SAFETY_FAILCLOSED_REASON }
+      : { blocked: false };
   }
 }

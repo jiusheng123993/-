@@ -42,7 +42,7 @@ export interface AgentTokenEvent {
 
 export interface AgentDoneEvent {
   type: 'done'
-  data: { content: string; iterations: number }
+  data: { content: string; iterations?: number; blocked?: boolean }
 }
 
 export interface AgentErrorEvent {
@@ -195,6 +195,7 @@ export async function* agentChat(params: AgentChatParams): AsyncGenerator<AgentE
     })
 
     // 请求完成后，解析 buffer 中的所有 SSE 事件
+    let yieldedAny = false
     const events = buffer.split('\n\n')
     for (const block of events) {
       if (!block.trim()) continue
@@ -214,9 +215,28 @@ export async function* agentChat(params: AgentChatParams): AsyncGenerator<AgentE
       if (eventType && eventData) {
         try {
           const data = JSON.parse(eventData)
+          yieldedAny = true
           yield { type: eventType as AgentEvent['type'], data } as AgentEvent
         } catch {
           // 解析失败跳过
+        }
+      }
+    }
+
+    // 守卫 blocked 时服务端返回普通 JSON（非 SSE，无 event:/data: 行），前端按 SSE 切分会产出 0
+    // 事件，导致"危机/热线"这类 blocked 回复被吞。这里兜底：0 事件且 buffer 为 blocked JSON 时，
+    // 转成 done 事件上屏（保留 reply，含心理援助热线）。
+    if (!yieldedAny) {
+      const trimmed = buffer.trim()
+      if (trimmed.startsWith('{')) {
+        try {
+          const body = JSON.parse(trimmed) as { success?: boolean; data?: { reply?: string; blocked?: boolean } }
+          // 仅当确为「blocked」回复时才转 done 上屏（对齐服务端 blocked JSON 契约，避免误把普通 JSON 当回复）
+          if (body?.data?.blocked === true && typeof body.data.reply === 'string') {
+            yield { type: 'done', data: { content: body.data.reply, blocked: true } } as AgentEvent
+          }
+        } catch {
+          // 非 JSON，忽略，交给上层兜底
         }
       }
     }

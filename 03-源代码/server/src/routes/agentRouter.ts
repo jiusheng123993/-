@@ -7,7 +7,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { agentHistoryQuerySchema, agentChatSchema } from '../schemas/index.js';
 import { chatLimiter } from '../middleware/rateLimit.js';
-import { agentLoop, guardCheckInput, type AgentContext, type ChatMessage } from '../services/agentService.js';
+import { agentLoop, guardCheckInput, preScreenRisk, type AgentContext, type ChatMessage } from '../services/agentService.js';
 import { loadConversationHistory, saveConversation } from '../services/memoryService.js';
 import { PetRepository } from '../repositories/petRepository.js';
 
@@ -34,8 +34,9 @@ const petRepository = new PetRepository();
 router.post('/chat', authMiddleware, chatLimiter, validate({ body: agentChatSchema }), async (req: Request, res: Response) => {
   const { message, history, petId } = req.body;
 
-  // 安全守卫
-  const guardResult = await guardCheckInput(message);
+  // 安全守卫（2026-09 成本优化）：命中规则预筛才调付费 LLM 守卫；良性消息直接放行省成本
+  const needsGuard = preScreenRisk(message);
+  const guardResult = needsGuard ? await guardCheckInput(message, { failClosed: true }) : { blocked: false };
   if (guardResult.blocked) {
     res.json({
       success: true,

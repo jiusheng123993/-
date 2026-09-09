@@ -41,14 +41,6 @@ vi.mock('@tarojs/taro', () => ({
     navigateBack: vi.fn(),
     reLaunch: vi.fn(),
     switchTab: vi.fn(),
-    // 录音管理器（useVoiceInput 依赖）
-    getRecorderManager: vi.fn(() => ({
-      onStart: vi.fn(),
-      onStop: vi.fn(),
-      onError: vi.fn(),
-      start: vi.fn(),
-      stop: vi.fn(),
-    })),
     getStorageSync: vi.fn(() => null),
     setStorageSync: vi.fn(),
     removeStorageSync: vi.fn(),
