@@ -1223,3 +1223,58 @@
 .memoir-vlog__prompt-input-placeholder {
   color: $color-text-tertiary;
 }
+
+// ==================== 画风选择（2026-09-09） ====================
+.memoir-vlog__style-section {
+  margin-top: 32rpx;
+  padding-top: 28rpx;
+  border-top: 2rpx solid rgba(255, 154, 98, 0.15);
+}
+
+.memoir-vlog__style-title {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: 20rpx;
+}
+
+.memoir-vlog__style-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.memoir-vlog__style-chip {
+  padding: 20rpx 22rpx;
+  border-radius: $radius-lg;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2rpx solid rgba(255, 154, 98, 0.18);
+  transition: all 0.2s ease;
+  @include press-feedback;
+
+  &--active {
+    background: rgba(255, 154, 98, 0.12);
+    border-color: rgba(255, 154, 98, 0.55);
+  }
+}
+
+.memoir-vlog__style-chip-emoji {
+  font-size: 32rpx;
+}
+
+.memoir-vlog__style-chip-name {
+  display: block;
+  margin-top: 8rpx;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.memoir-vlog__style-chip-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  line-height: 1.5;
+}

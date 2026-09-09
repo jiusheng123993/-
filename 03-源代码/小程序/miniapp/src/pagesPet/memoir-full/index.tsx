@@ -116,6 +116,14 @@ const PHOTO_MIN = MEMOIR_TIER_BOUNDS.standard.minPhotos
 const MAX_MOMENTS = 10
 const NARRATIVE_MAX_LENGTH = 500
 
+/** 画风/氛围预设（2026-09-09 用户拍板 4 画风；key 与后端 STYLE_PRESET_HINTS 对齐，随记忆到提示词预览/生成） */
+const STYLE_OPTIONS: Array<{ key: string; emoji: string; name: string; desc: string }> = [
+  { key: 'cinematic', emoji: '🎬', name: '电影感', desc: '电影级运镜·调色·浅景深' },
+  { key: 'anime', emoji: '🎨', name: '动画风', desc: '二次元治愈·柔和色板' },
+  { key: 'realistic', emoji: '📷', name: '写实记录', desc: '纪实照片级·自然真实' },
+  { key: 'warmheal', emoji: '🌤️', name: '温暖治愈', desc: '暖调柔光·抚慰治愈' },
+]
+
 /** 选照片步骤的两个 tab */
 type PhotoTab = 'local' | 'pool'
 
@@ -166,6 +174,8 @@ export default function MemoirVlog() {
   const [selectedBGM, setSelectedBGM] = useState('piano')
   const [playingBGM, setPlayingBGM] = useState<string | null>(null)
   const bgmAudioRef = useRef<Taro.InnerAudioContext | null>(null)
+  // —— 步骤4：画风/氛围 ——
+  const [selectedStyle, setSelectedStyle] = useState('cinematic')
 
   // —— 步骤5：确认支付（三档卡） ——
   const [pricing, setPricing] = useState<MemoirPricing | null>(null)
@@ -547,7 +557,8 @@ export default function MemoirVlog() {
         source_photos: remotePhotos,
         source_text: narrative.trim() || undefined,
         music_style: mapBGMKeyToMusicStyle(selectedBGM),
-        // 与下单口径一致：用户勾选的标签/回忆/叙事都透传（审查 P1：否则预览与真实生成记忆素材不符）
+        // 画风（2026-09-09）：与下单一致，透传后端注入 GLOBAL STYLE
+        style_preset: selectedStyle,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
         selected_moment_ids: selectedMomentIds.length > 0 ? selectedMomentIds : undefined,
       })
@@ -560,7 +571,7 @@ export default function MemoirVlog() {
     } finally {
       setPreviewingPrompt(false)
     }
-  }, [petId, selectedTier, photos, narrative, selectedBGM, selectedMomentIds, selectedTags, previewingPrompt])
+  }, [petId, selectedTier, photos, narrative, selectedBGM, selectedStyle, selectedMomentIds, selectedTags, previewingPrompt])
 
   /** 生成下一版提示词：用户提修改要求 → LLM 改写。 */
   const handleRefinePrompt = useCallback(async () => {
@@ -710,6 +721,7 @@ export default function MemoirVlog() {
         }),
         sourceText: narrative.trim() || undefined,
         musicStyle: selectedBGM,
+        stylePreset: selectedStyle,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
         selectedMomentIds: selectedMomentIds.length > 0 ? selectedMomentIds : undefined,
       })
@@ -756,7 +768,7 @@ export default function MemoirVlog() {
       setPaying(false)
       Taro.showToast({ title: err instanceof Error ? err.message : '支付失败，请重试', icon: 'none' })
     }
-  }, [petId, selectedTier, photos, narrative, selectedTags, selectedBGM, selectedMomentIds, goToStep, startLoadingAnim, promptConfirmed])
+  }, [petId, selectedTier, photos, narrative, selectedTags, selectedBGM, selectedStyle, selectedMomentIds, goToStep, startLoadingAnim, promptConfirmed])
 
   // ==================== 轮询任务状态 ====================
 
@@ -1317,6 +1329,26 @@ export default function MemoirVlog() {
       <Text style={{ marginTop: '16rpx', fontSize: '20rpx', color: '#999' }}>
         音乐：Kevin MacLeod（incompetech.com）· CC BY 3.0
       </Text>
+
+      {/* 画风/氛围选择（2026-09-09 用户拍板 4 画风；影响分镜 GLOBAL STYLE 质感） */}
+      <View className='memoir-vlog__style-section'>
+        <Text className='memoir-vlog__style-title'>🎬 选择画风</Text>
+        <View className='memoir-vlog__style-list'>
+          {STYLE_OPTIONS.map((style) => (
+            <View
+              key={style.key}
+              className={`memoir-vlog__style-chip${
+                selectedStyle === style.key ? ' memoir-vlog__style-chip--active' : ''
+              }`}
+              onClick={() => setSelectedStyle(style.key)}
+            >
+              <Text className='memoir-vlog__style-chip-emoji'>{style.emoji}</Text>
+              <Text className='memoir-vlog__style-chip-name'>{style.name}</Text>
+              <Text className='memoir-vlog__style-chip-desc'>{style.desc}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
     </View>
   )
 
