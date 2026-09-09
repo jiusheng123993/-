@@ -125,6 +125,9 @@ const STYLE_OPTIONS: Array<{ key: string; emoji: string; name: string; desc: str
   { key: 'warmheal', emoji: '🌤️', name: '温暖治愈', desc: '暖调柔光·抚慰治愈' },
 ]
 
+/** 顶部参考样例视频（2026-09-09）：用户提供成品视频 URL 后填入即可在顶部播放；为空显示占位 */
+const SAMPLE_VIDEO_URL = ''
+
 /** 选照片步骤的两个 tab */
 type PhotoTab = 'local' | 'pool'
 
@@ -990,6 +993,29 @@ export default function MemoirVlog() {
     }
   }, [outputUrl])
 
+  // ==================== 渲染参考样例视频区（顶部，2026-09-09） ====================
+
+  const renderSampleVideo = () => (
+    <View
+      className='memoir-vlog__sample'
+      onClick={() => {
+        if (SAMPLE_VIDEO_URL) {
+          Taro.previewMedia({ sources: [{ url: SAMPLE_VIDEO_URL, type: 'video' }] }).catch(() => {})
+        } else {
+          Taro.showToast({ title: '示例视频制作中，敬请期待', icon: 'none' })
+        }
+      }}
+    >
+      <View className='memoir-vlog__sample-glow' />
+      <View className='memoir-vlog__sample-fallback'>
+        <Text className='memoir-vlog__sample-emoji'>🎞️</Text>
+        <Text className='memoir-vlog__sample-label'>参考样例 · AI 时光电影</Text>
+        <Text className='memoir-vlog__sample-hint'>点击观看示例成片</Text>
+      </View>
+      <View className='memoir-vlog__sample-play'><Text>▶</Text></View>
+    </View>
+  )
+
   // ==================== 渲染步骤指示器 ====================
 
   const renderStepIndicator = () => (
@@ -1726,6 +1752,7 @@ export default function MemoirVlog() {
 
   return (
     <View className='memoir-vlog'>
+      {renderSampleVideo()}
       {renderStepIndicator()}
 
       <ScrollView

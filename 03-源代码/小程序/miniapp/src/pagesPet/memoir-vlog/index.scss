@@ -1296,3 +1296,61 @@
   font-weight: $font-weight-semibold;
   @include press-feedback;
 }
+
+// ==================== 顶部参考样例视频区（2026-09-09） ====================
+.memoir-vlog__sample {
+  position: relative;
+  overflow: hidden;
+  margin: 16rpx 24rpx 0;
+  min-height: 180rpx;
+  border-radius: $radius-xl;
+  background: linear-gradient(135deg, #FF9A62, #D2703A);
+  @include flex-center;
+  gap: 16rpx;
+  padding: 24rpx;
+  @include press-feedback;
+}
+
+.memoir-vlog__sample-glow {
+  position: absolute;
+  top: -40rpx;
+  right: -40rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  filter: blur(40rpx);
+}
+
+.memoir-vlog__sample-fallback {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.memoir-vlog__sample-emoji {
+  font-size: 40rpx;
+}
+
+.memoir-vlog__sample-label {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: #fff;
+}
+
+.memoir-vlog__sample-hint {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.memoir-vlog__sample-play {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  @include flex-center;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 28rpx;
+}

@@ -112,8 +112,8 @@ const LOADING_STEPS = ['提交成功', '处理中', 'AI编排中', '生成视频
 
 // 本页为「标准回忆录」档流程：照片按 standard 边界（5-7）限制 + 挑选指引
 // （轻纪念=memoir-daily 页、完整=memoir-full 页；照片边界唯一事实源 MEMOIR_TIER_BOUNDS）
-const PHOTO_LIMIT = MEMOIR_TIER_BOUNDS.standard.maxPhotos
-const PHOTO_MIN = MEMOIR_TIER_BOUNDS.standard.minPhotos
+const PHOTO_LIMIT = MEMOIR_TIER_BOUNDS.full.maxPhotos
+const PHOTO_MIN = MEMOIR_TIER_BOUNDS.full.minPhotos
 const MAX_MOMENTS = 10
 const NARRATIVE_MAX_LENGTH = 500
 
@@ -125,6 +125,9 @@ const STYLE_OPTIONS: Array<{ key: string; emoji: string; name: string; desc: str
   { key: 'warmheal', emoji: '🌤️', name: '温暖治愈', desc: '暖调柔光·抚慰治愈' },
 ]
 
+/** 顶部参考样例视频（2026-09-09）：用户提供成品视频 URL 后填入即可在顶部播放；为空显示占位 */
+const SAMPLE_VIDEO_URL = ''
+
 /** 选照片步骤的两个 tab */
 type PhotoTab = 'local' | 'pool'
 
@@ -133,10 +136,8 @@ type PhotoTab = 'local' | 'pool'
 export default function MemoirVlog() {
   const routerParams = Taro.getCurrentInstance().router?.params as Record<string, string> | undefined
   const petId = routerParams?.petId || ''
-  // 回忆录馆（memoir-center）档位卡直达：?tier=standard/full 预选档位（确认页 effect 会自动纠正不可用档）
-  const presetTier = routerParams?.tier === 'standard' || routerParams?.tier === 'full'
-    ? (routerParams.tier as MemoirTier)
-    : null
+// 本页为「完整回忆录」档专属流程：固定 full 档（区别于标准档 memoir-vlog / 轻纪念 memoir-daily）
+  const presetTier: MemoirTier = 'full'
 
   // —— 步骤控制 ——
   const [step, setStep] = useState(0)
@@ -366,7 +367,7 @@ export default function MemoirVlog() {
   const handleAddPhoto = useCallback(() => {
     const remain = PHOTO_LIMIT - photos.length
     if (remain <= 0) {
-      Taro.showToast({ title: `标准档最多 ${PHOTO_LIMIT} 张照片`, icon: 'none' })
+      Taro.showToast({ title: `完整档最多 ${PHOTO_LIMIT} 张照片`, icon: 'none' })
       return
     }
 
@@ -990,6 +991,29 @@ export default function MemoirVlog() {
     }
   }, [outputUrl])
 
+  // ==================== 渲染参考样例视频区（顶部，2026-09-09） ====================
+
+  const renderSampleVideo = () => (
+    <View
+      className='memoir-vlog__sample'
+      onClick={() => {
+        if (SAMPLE_VIDEO_URL) {
+          Taro.previewMedia({ sources: [{ url: SAMPLE_VIDEO_URL, type: 'video' }] }).catch(() => {})
+        } else {
+          Taro.showToast({ title: '示例视频制作中，敬请期待', icon: 'none' })
+        }
+      }}
+    >
+      <View className='memoir-vlog__sample-glow' />
+      <View className='memoir-vlog__sample-fallback'>
+        <Text className='memoir-vlog__sample-emoji'>🎞️</Text>
+        <Text className='memoir-vlog__sample-label'>参考样例 · AI 时光电影</Text>
+        <Text className='memoir-vlog__sample-hint'>点击观看示例成片</Text>
+      </View>
+      <View className='memoir-vlog__sample-play'><Text>▶</Text></View>
+    </View>
+  )
+
   // ==================== 渲染步骤指示器 ====================
 
   const renderStepIndicator = () => (
@@ -1079,7 +1103,7 @@ export default function MemoirVlog() {
       <View className='memoir-vlog__step-enter'>
         <View className='memoir-vlog__photo-header'>
           <Text className='memoir-vlog__title'>
-            选择照片·<Text className='gold-accent'>标准档 {PHOTO_MIN}-{PHOTO_LIMIT} 张</Text>
+            选择照片·<Text className='gold-accent'>完整档 {PHOTO_MIN}-{PHOTO_LIMIT} 张</Text>
           </Text>
           <Text className='memoir-vlog__photo-count'>已选 {photos.length}/{PHOTO_LIMIT} 张</Text>
         </View>
@@ -1089,12 +1113,12 @@ export default function MemoirVlog() {
             : `照片数量需 ${PHOTO_MIN}-${PHOTO_LIMIT} 张，请补充后再继续`}
         </Text>
 
-        {/* 标准档精选指引：告诉用户挑什么样的照片最出片（审查 P1：照片限制不再共用，按档位区分） */}
+        {/* 完整档精选指引：8-15 张 + 勾选时光线回忆，哪些是最必要的（审查 P1：照片限制按档位区分） */}
         <View className='memoir-vlog__pick-guide'>
           <Text className='memoir-vlog__pick-guide-title'>📌 这样挑最出片</Text>
-          <Text className='memoir-vlog__pick-guide-item'>· 5-7 张**成长节点**：到家、生日、学会新技能的瞬间</Text>
-          <Text className='memoir-vlog__pick-guide-item'>· 混搭**生活日常**：吃饭、发呆、玩耍——越真实越动人</Text>
-          <Text className='memoir-vlog__pick-guide-item'>· 选**清晰正面**、光线好的；模糊背影尽量不选</Text>
+          <Text className='memoir-vlog__pick-guide-item'>· 8-15 张**成长全记录**：到家 → 每天日常 → 里程碑事件都要有</Text>
+          <Text className='memoir-vlog__pick-guide-item'>· 勾选**时光线回忆**：有故事的片段会进旁白，让人物更立体</Text>
+          <Text className='memoir-vlog__pick-guide-item'>· 选**多角度清晰照**：正面/侧颜/全身混搭，成片更丰富</Text>
         </View>
 
         {/* 双 tab：本地上传 / 库内勾选（设计 §五 步骤1） */}
@@ -1726,6 +1750,7 @@ export default function MemoirVlog() {
 
   return (
     <View className='memoir-vlog'>
+      {renderSampleVideo()}
       {renderStepIndicator()}
 
       <ScrollView
