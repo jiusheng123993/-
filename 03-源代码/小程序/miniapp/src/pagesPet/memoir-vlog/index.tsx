@@ -535,6 +535,10 @@ export default function MemoirVlog() {
       Taro.showToast({ title: `照片数不满足${TIER_META[selectedTier].name}要求`, icon: 'none' })
       return
     }
+    // 防连点：请求进行中拒绝再次触发（审查 P1：否则并发多次视觉+LLM 付费调用）
+    if (previewingPrompt) {
+      return
+    }
     setPreviewingPrompt(true)
     try {
       const script = await getPromptPreview(petId, {
@@ -543,7 +547,8 @@ export default function MemoirVlog() {
         source_photos: remotePhotos,
         source_text: narrative.trim() || undefined,
         music_style: mapBGMKeyToMusicStyle(selectedBGM),
-        // 画风画圈（块②重构时接入 selectedStyle）；当前沿用系统默认风格
+        // 与下单口径一致：用户勾选的标签/回忆/叙事都透传（审查 P1：否则预览与真实生成记忆素材不符）
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
         selected_moment_ids: selectedMomentIds.length > 0 ? selectedMomentIds : undefined,
       })
       setPromptScript(script)
@@ -555,7 +560,7 @@ export default function MemoirVlog() {
     } finally {
       setPreviewingPrompt(false)
     }
-  }, [petId, selectedTier, photos, narrative, selectedBGM, selectedMomentIds])
+  }, [petId, selectedTier, photos, narrative, selectedBGM, selectedMomentIds, selectedTags, previewingPrompt])
 
   /** 生成下一版提示词：用户提修改要求 → LLM 改写。 */
   const handleRefinePrompt = useCallback(async () => {
@@ -567,6 +572,10 @@ export default function MemoirVlog() {
       Taro.showToast({ title: '请先填写修改要求', icon: 'none' })
       return
     }
+    // 防连点（审查 P1）
+    if (previewingPrompt) {
+      return
+    }
     setPreviewingPrompt(true)
     try {
       const segments = await refinePrompt(petId, promptScript.segments as PromptSegment[], promptDraft.trim())
@@ -574,17 +583,22 @@ export default function MemoirVlog() {
       setPromptVersion(v => v + 1)
       setPromptConfirmed(false)
       setPromptDraft('')
-      Taro.showToast({ title: `已生成第 ${promptVersion + 2} 版提示词`, icon: 'none' })
+      // 版本号：setPromptVersion 用函数式，但 toast 用闭包值——新版本号 = promptVersion + 1（修复 off-by-one）
+      Taro.showToast({ title: `已生成第 ${promptVersion + 1} 版提示词`, icon: 'none' })
     } catch (err) {
       Taro.showToast({ title: err instanceof Error ? err.message : '改写失败', icon: 'none' })
     } finally {
       setPreviewingPrompt(false)
     }
-  }, [petId, promptScript, promptDraft, promptVersion])
+  }, [petId, promptScript, promptDraft, promptVersion, previewingPrompt])
 
   /** 确认最终版提示词：留存作证，才允许进入支付/生成。 */
   const handleConfirmPrompt = useCallback(async () => {
     if (!petId || !promptScript || !selectedTier) {
+      return
+    }
+    // 防连点（审查 P1）
+    if (previewingPrompt) {
       return
     }
     setPreviewingPrompt(true)
@@ -597,8 +611,36 @@ export default function MemoirVlog() {
     } finally {
       setPreviewingPrompt(false)
     }
-  }, [petId, promptScript, selectedTier])
+  }, [petId, promptScript, selectedTier, previewingPrompt])
 
+  // ==================== 提示词确认态时效性（审查 P0 修复：素材/档位变化或重置时清确认，防「确认了A又用B生成」资损） ====================
+
+  const resetPromptState = useCallback(() => {
+    setPromptScript(null)
+    setPromptVersion(0)
+    setPromptDraft('')
+    setPromptConfirmed(false)
+  }, [])
+
+  // 记录上次预览所依赖的素材指纹（照片数/档位/BGM/叙事/标签/勾选记忆 数），任一变化即认为确认版失效
+  const promptFingerprintRef = useRef('')
+  useEffect(() => {
+    const fingerprint = [
+      photos.length,
+      selectedTier ?? '',
+      selectedBGM,
+      narrative,
+      selectedTags.join(','),
+      selectedMomentIds.length,
+    ].join('|')
+    const prev = promptFingerprintRef.current
+    promptFingerprintRef.current = fingerprint
+    // 首次记录不触发；此后素材或档位变化 → 清空确认态（改照片/切档位/改BGM/叙事/标签后必须重新预览确认）
+    if (prev !== '' && prev !== fingerprint && promptConfirmed) {
+      resetPromptState()
+      Taro.showToast({ title: '素材或档位已变化，请重新确认提示词', icon: 'none' })
+    }
+  }, [photos.length, selectedTier, selectedBGM, narrative, selectedTags, selectedMomentIds.length, promptConfirmed, resetPromptState])
   // ==================== 支付链：下单 → 微信支付 → 等任务 → 轮询 ====================
 
   /** 支付并开始生成（确认页主按钮） */
@@ -829,10 +871,12 @@ export default function MemoirVlog() {
     setScriptConfirm(null)
     setTrackTaskId('')
     setExcludeTaskId('')
+    // 提示词确认态一并清空（审查 P0：否则「重新制作」免预览沿用旧确认版）
+    resetPromptState()
     setLoading(false)
     setPolling(false)
     goToStep(0)
-  }, [goToStep])
+  }, [goToStep, resetPromptState])
 
   const handleShare = useCallback(() => {
     Taro.showShareMenu({
