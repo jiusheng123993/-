@@ -4,6 +4,10 @@
  * 所有接口需登录认证，均做宠物归属校验防越权
  */
 import { Router, type Request, type Response } from 'express';
+import multer from 'multer';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { config } from '../config.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createMemoirSchema, memoirListQuerySchema, memoirPreviewSchema, memoirPromptRefineSchema, memoirPromptConfirmSchema } from '../schemas/index.js';
@@ -32,6 +36,12 @@ const membershipRepo = new MembershipRepository();
 const router = Router();
 
 router.use(authMiddleware);
+
+/** 用户导入 BGM 上传（2026-09-09）：音频内存存储，落盘 uploads/memoir-bgm/{userId}/，限 12MB */
+const bgmUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 12 * 1024 * 1024 },
+});
 
 /**
  * 统一处理 Service 抛出的业务错误
@@ -330,5 +340,55 @@ router.get('/:petId/membership', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message });
   }
 });
+
+/**
+ * POST /api/pets/:petId/memoir/bgm/upload
+ * 用户导入 BGM 音频（2026-09-09）：小程序 chooseMessageFile 选音频 → multipart 上传，
+ * 落盘 uploads/memoir-bgm/{userId}/，返回公网 URL（供订单/任务存 custom_bgm_url，合成优先使用）。
+ * 边界：仅 mp3/m4a/aac/wav；≤12MB；归属校验；文件名脱敏。
+ */
+router.post(
+  '/:petId/memoir/bgm/upload',
+  promptLimiter,
+  bgmUpload.single('audio'),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.userId!;
+      const petId = req.params.petId as string;
+
+      const owns = await petRepo.canAccess(petId, userId);
+      if (!owns) {
+        res.status(404).json({ success: false, message: '宠物不存在或无权访问' });
+        return;
+      }
+      if (!req.file) {
+        res.status(400).json({ success: false, message: '请选择音频文件' });
+        return;
+      }
+      const allowed = ['mp3', 'm4a', 'aac', 'wav'];
+      const ext = (req.file.originalname.split('.').pop() || '').toLowerCase();
+      const contentType = req.file.mimetype || '';
+      if (!allowed.includes(ext) && !/audio\//.test(contentType)) {
+        res.status(400).json({ success: false, message: '仅支持 mp3/m4a/aac/wav 音频' });
+        return;
+      }
+
+      const safeExt = allowed.includes(ext) ? ext : 'mp3';
+      const dir = path.join(config.uploadDir || './uploads', 'memoir-bgm', userId);
+      await mkdir(dir, { recursive: true });
+      const fileName = `bgm_${Date.now()}_${userId.slice(0, 8)}.${safeExt}`;
+      await writeFile(path.join(dir, fileName), req.file.buffer);
+
+      const baseUrl = config.publicBaseUrl || '';
+      res.json({
+        success: true,
+        data: { url: `${baseUrl}/uploads/memoir-bgm/${userId}/${fileName}` },
+      });
+    } catch (err) {
+      console.error('[Memoir] BGM upload error:', err);
+      res.status(500).json({ success: false, message: '音频上传失败，请重试' });
+    }
+  },
+);
 
 export default router;
