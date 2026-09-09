@@ -756,6 +756,20 @@ export default function Index() {
           <Text className='home-checkin-cta-arrow'>→</Text>
         </View>
 
+        {/* ===== 回忆录入口卡（2026-09-09 用户拍板：回忆录独立板块，首页大卡直达中心页） ===== */}
+        <View className='home-memoir-card' onClick={() => Taro.navigateTo({ url: '/pagesPet/memoir-center/index' })}>
+          <View className='home-memoir-card__glow' />
+          <View className='home-memoir-card__icon'><Text>🎬</Text></View>
+          <View className='home-memoir-card__body'>
+            <View className='home-memoir-card__titlerow'>
+              <Text className='home-memoir-card__title'>星河回忆录</Text>
+              <View className='home-memoir-card__tag'><Text>NEW</Text></View>
+            </View>
+            <Text className='home-memoir-card__desc'>把和毛孩子的时光，做成会动的回忆</Text>
+          </View>
+          <Text className='home-memoir-card__arrow'>›</Text>
+        </View>
+
         <View className='msg-row ai'>
           <View className='msg-avatar'>
             <AiAvatar imgClass='msg-avatar-img' emojiClass='msg-avatar-emoji' />

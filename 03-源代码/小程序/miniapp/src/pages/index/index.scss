@@ -1900,3 +1900,90 @@
     animation: fadeIn 0.2s ease both;
   }
 }
+
+// ============================================
+// 回忆录入口卡（2026-09-09：回忆录独立板块首页直达）
+// ============================================
+.home-memoir-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  margin: 20rpx 24rpx;
+  padding: 30rpx 28rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #221838, #2C2044);
+  border: 2rpx solid rgba(216, 184, 160, 0.25);
+  transition: all 0.25s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: linear-gradient(135deg, #2A2044, #342852);
+  }
+}
+
+.home-memoir-card__glow {
+  position: absolute;
+  top: -36rpx;
+  right: -36rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: rgba(232, 200, 160, 0.3);
+  filter: blur(46rpx);
+  opacity: 0.6;
+}
+
+.home-memoir-card__icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  background: linear-gradient(135deg, rgba(232, 200, 160, 0.25), rgba(216, 184, 160, 0.1));
+  flex-shrink: 0;
+}
+
+.home-memoir-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.home-memoir-card__titlerow {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.home-memoir-card__title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #F5EEE2;
+  letter-spacing: 2rpx;
+}
+
+.home-memoir-card__tag {
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(232, 130, 100, 0.2);
+  font-size: 18rpx;
+  color: #FF9B7A;
+  letter-spacing: 2rpx;
+}
+
+.home-memoir-card__desc {
+  font-size: 24rpx;
+  color: rgba(245, 238, 226, 0.55);
+}
+
+.home-memoir-card__arrow {
+  font-size: 38rpx;
+  color: rgba(216, 184, 160, 0.5);
+  flex-shrink: 0;
+}
