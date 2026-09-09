@@ -439,3 +439,73 @@ export async function confirmScript(petId: string, taskId: string): Promise<void
 export async function rejectScript(petId: string, taskId: string): Promise<void> {
   await api.post(`/api/pets/${petId}/memoir/${taskId}/reject`)
 }
+
+// ==================== 提示词人机协同（2026-09-09 块①） ====================
+
+/** 单段分镜提示词（与后端 MemoirSegmentScript 字段对齐） */
+export interface PromptSegment {
+  photo_index: number
+  seedance_prompt: string
+  narration?: string
+  shot_type?: string
+  camera?: string
+  lighting?: string
+  transition?: string
+  duration_sec?: number
+}
+
+/** 完整分镜脚本（提示词预览/确认用） */
+export interface MemoirPromptScript {
+  title: string
+  theme: string
+  emotion_curve?: string[]
+  music_mood?: string
+  segments: PromptSegment[]
+  [k: string]: unknown
+}
+
+/** 生成前提示词预览入参（与 createMemoirOrder 一致的素材/风格） */
+export interface PromptPreviewParams {
+  memoir_type: string
+  tier: string
+  source_photos: string[]
+  source_text?: string
+  music_style?: string
+  style_preset?: string
+  selected_moment_ids?: string[]
+  tags?: string[]
+}
+
+/**
+ * 生成前提示词预览：按 照片+画风+BGM 取「将用提示词」给用户看（防扯皮第一环）。
+ * 不落库/不创建任务/不产生支付；触发服务端视觉+LLM（有成本，服务端已限流）。
+ */
+export async function getPromptPreview(petId: string, params: PromptPreviewParams): Promise<MemoirPromptScript> {
+  return api.post<MemoirPromptScript>(`/api/pets/${petId}/memoir/prompt-preview`, params)
+}
+
+/**
+ * 提示词改写：用户对当前提示词提修改要求 → LLM 出下一版（预览给第一版，本方法出二版/三版…）。
+ */
+export async function refinePrompt(
+  petId: string,
+  segments: PromptSegment[],
+  userRequest: string,
+): Promise<PromptSegment[]> {
+  return api.post<PromptSegment[]>(`/api/pets/${petId}/memoir/prompt-refine`, {
+    segments,
+    user_request: userRequest,
+  })
+}
+
+/**
+ * 提示词确认：用户确认「这就是最终版提示词」→ 服务端按 (user,pet,tier) 留存作证，
+ * 生成管线将优先采用该确认版（不再重新生成）。
+ */
+export async function confirmPrompt(
+  petId: string,
+  tier: string,
+  script: MemoirPromptScript,
+): Promise<{ confirmed: boolean }> {
+  return api.post<{ confirmed: boolean }>(`/api/pets/${petId}/memoir/prompt-confirm`, { tier, script })
+}

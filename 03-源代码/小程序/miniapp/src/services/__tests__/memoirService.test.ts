@@ -16,6 +16,9 @@ import {
   snapshotLatestTaskId,
   confirmScript,
   rejectScript,
+  getPromptPreview,
+  refinePrompt,
+  confirmPrompt,
 } from '../memoirService'
 
 // vi.mock 工厂提升到 const 声明前执行 —— 必须用 vi.hoisted 共享 mock 实例（项目既有模式）
@@ -314,5 +317,40 @@ describe('getLatestStatus / snapshotLatestTaskId / confirmScript / rejectScript�
     expect(mockApi.post).toHaveBeenNthCalledWith(1, '/api/pets/pet-1/memoir/task-9/confirm')
     await rejectScript('pet-1', 'task-9')
     expect(mockApi.post).toHaveBeenNthCalledWith(2, '/api/pets/pet-1/memoir/task-9/reject')
+  })
+})
+
+describe('提示词人机协同三接口（2026-09-09 块①前端封装）', () => {
+  it('getPromptPreview 走 prompt-preview 端点并透传素材/风格', async () => {
+    mockApi.post.mockResolvedValueOnce({ title: 'T', segments: [{ photo_index: 0, seedance_prompt: '一只橘猫' }] })
+    const r = await getPromptPreview('pet-1', {
+      memoir_type: 'memorial', tier: 'standard',
+      source_photos: ['/uploads/a.jpg'], music_style: 'warm', style_preset: 'cinematic',
+    })
+    expect(r.segments[0].photo_index).toBe(0)
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/api/pets/pet-1/memoir/prompt-preview',
+      expect.objectContaining({ memoir_type: 'memorial', tier: 'standard', style_preset: 'cinematic' }),
+    )
+  })
+
+  it('refinePrompt 走 prompt-refine 端点并携带用户修改要求', async () => {
+    mockApi.post.mockResolvedValueOnce([{ photo_index: 0, seedance_prompt: '更温馨的黄昏猫' }])
+    const r = await refinePrompt('pet-1', [{ photo_index: 0, seedance_prompt: 'old' }], '氛围更温馨')
+    expect(r[0].seedance_prompt).toContain('温馨')
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/api/pets/pet-1/memoir/prompt-refine',
+      expect.objectContaining({ user_request: '氛围更温馨' }),
+    )
+  })
+
+  it('confirmPrompt 走 prompt-confirm 端点并携带 tier 与确认版脚本', async () => {
+    mockApi.post.mockResolvedValueOnce({ confirmed: true })
+    const r = await confirmPrompt('pet-1', 'standard', { title: 'T', segments: [{ photo_index: 0, seedance_prompt: 's' }] })
+    expect(r.confirmed).toBe(true)
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/api/pets/pet-1/memoir/prompt-confirm',
+      expect.objectContaining({ tier: 'standard' }),
+    )
   })
 })
