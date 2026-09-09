@@ -81,6 +81,7 @@ export default defineAppConfig({
         'memoir-center/index',
         'memoir-daily/index',
         'memoir-vlog/index',
+        'memoir-full/index',
         'studio/index',
         'family/feed/index',
         'share-card/index',

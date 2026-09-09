@@ -357,7 +357,7 @@ export default function MemoirDaily() {
     })
   }, [photos])
 
-  /** 跳转纪念Vlog（供 handleGenerate 超时引导、挂载检测、轮询闸门引导复用） */
+  /** 跳转回忆录页（供 handleGenerate 超时引导、挂载检测、轮询闸门引导复用） */
   const handleGoVlog = useCallback(() => {
     Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index${petId ? `?petId=${petId}` : ''}` })
   }, [petId])
@@ -443,12 +443,12 @@ export default function MemoirDaily() {
 
       if (!task) {
         // 超时兜底（审查 P1 修复）：本页轮询状态机依赖 taskId（无从得知新任务 id），
-        // 降级轮询在此页不可行——改为引导跳纪念Vlog页（其挂载恢复+降级轮询+结果屏已完整）；
+        // 降级轮询在此页不可行——改为引导跳回忆录页（其挂载恢复+降级轮询+结果屏已完整）；
         // 绝不引导重新下单（原单支付成功后服务端会建任务，重下单会被并发互斥退款）
         setLoading(false)
         Taro.showModal({
           title: '生成任务确认中',
-          content: '支付已受理，视频任务正在排队创建，请勿重复下单；请前往「纪念Vlog」查看进度',
+          content: '支付已受理，视频任务正在排队创建，请勿重复下单；请前往「回忆录」查看进度',
           confirmText: '去查看',
           cancelText: '留在本页',
           success: (m) => {
@@ -470,7 +470,7 @@ export default function MemoirDaily() {
   }, [petId, photos, selectedStyle, selectedBGM, story, selectedTags, handleGoVlog])
 
   // 挂载时检测进行中/待确认任务（审查 P1 孤儿闸门恢复）：本页只做引导，
-  // 完整接管（闸门卡/进度恢复/结果展示）统一在纪念Vlog页状态机
+  // 完整接管（闸门卡/进度恢复/结果展示）统一在回忆录页状态机
   useEffect(() => {
     if (!petId) return
     let cancelled = false
@@ -479,7 +479,7 @@ export default function MemoirDaily() {
       if (task.awaiting_confirmation || task.status === 'pending' || task.status === 'processing') {
         Taro.showModal({
           title: task.awaiting_confirmation ? '有分镜待确认' : '有生成任务进行中',
-          content: '你有一笔回忆录任务正在进行，请前往「纪念Vlog」查看进度或确认剧本',
+          content: '你有一笔回忆录任务正在进行，请前往「回忆录」查看进度或确认剧本',
           confirmText: '去查看',
           cancelText: '稍后',
           success: (m) => {
@@ -511,7 +511,7 @@ export default function MemoirDaily() {
 
     let timer: ReturnType<typeof setTimeout> | null = null
     let stopped = false
-    // 总时长上限 30 分钟（与纪念Vlog页一致，防任务卡死时遮罩永久挂起）
+    // 总时长上限 30 分钟（与回忆录页一致，防任务卡死时遮罩永久挂起）
     const startedAt = Date.now()
     const MAX_POLL_MS = 30 * 60 * 1000
 
@@ -532,12 +532,12 @@ export default function MemoirDaily() {
 
       if (task?.awaiting_confirmation) {
         // 剧本确认闸门（服务端对所有新任务生效，含 light——审查 P0：原版漏处理导致付款后无限轮询）：
-        // 本页为轻流程，确认/放弃入口在纪念Vlog页（全页面状态机统一接管）
+        // 本页为轻流程，确认/放弃入口在回忆录页（全页面状态机统一接管）
         setLoading(false)
         setPolling(false)
         Taro.showModal({
           title: '分镜已生成',
-          content: '你的回忆录分镜已就绪，请前往「纪念Vlog」确认剧本后开始生成视频',
+          content: '你的回忆录分镜已就绪，请前往「回忆录」确认剧本后开始生成视频',
           confirmText: '去确认',
           cancelText: '稍后',
           success: (m) => {
@@ -561,12 +561,12 @@ export default function MemoirDaily() {
           confirmText: '知道了',
         })
       } else if (Date.now() - startedAt > MAX_POLL_MS) {
-        // 轮询总时长超限（30 分钟）：停止遮罩挂起，引导去纪念Vlog页查看（其有完整接管状态机）
+        // 轮询总时长超限（30 分钟）：停止遮罩挂起，引导去回忆录页查看（其有完整接管状态机）
         setLoading(false)
         setPolling(false)
         Taro.showModal({
           title: '生成时间较长',
-          content: '视频仍在生成中，已为你保留任务；请前往「纪念Vlog」查看进度',
+          content: '视频仍在生成中，已为你保留任务；请前往「回忆录」查看进度',
           confirmText: '去查看',
           cancelText: '稍后',
           success: (m) => {
@@ -1062,11 +1062,14 @@ export default function MemoirDaily() {
           </View>
         </View>
 
-        <View className='memoir__product-card memoir__product-card--gold' onClick={handleGoVlog}>
+        <View
+          className='memoir__product-card memoir__product-card--gold'
+          onClick={() => Taro.navigateTo({ url: `/pagesPet/memoir-center/index${petId ? `?petId=${petId}` : ''}` })}
+        >
           <View className='memoir__product-head'>
             <View className='memoir__product-icon'>🎬</View>
             <View className='memoir__product-titles'>
-              <Text className='memoir__product-name'>纪念Vlog</Text>
+              <Text className='memoir__product-name'>标准 · 完整回忆录</Text>
               {/* full 档起价动态展示（B1 三档体系；旧硬编码 ¥99/149 已废除）；价格未就绪用中性文案不硬编码 */}
               <Text className='memoir__product-price'>
                 {fullPrice !== null ? `¥${formatYuan(fullPrice)} 起 · 三档可选` : '三档可选'}

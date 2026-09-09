@@ -60,7 +60,7 @@ const MemoirCenter = () => {
     return fallback[tier]
   }
 
-  /** 档位卡点击：轻纪念→日常回忆录（light）；标准/完整→纪念Vlog 预选档（确认页可改） */
+  /** 档位卡点击：轻纪念→日常回忆录（light 单段）；标准→标准回忆录页；完整→完整回忆录页（各自独立流程） */
   const goTier = (tier: 'light' | 'standard' | 'full') => {
     if (!petId) {
       if (!currentPet) {
@@ -68,18 +68,12 @@ const MemoirCenter = () => {
         return
       }
       // 中心页被直接打开（无 petId）时回退用当前宠物
-      if (tier === 'light') {
-        Taro.navigateTo({ url: `/pagesPet/memoir-daily/index?petId=${currentPet.id}` })
-      } else {
-        Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index?petId=${currentPet.id}&tier=${tier}` })
-      }
+      const base = tier === 'light' ? '/pagesPet/memoir-daily/index' : (tier === 'full' ? '/pagesPet/memoir-full/index' : '/pagesPet/memoir-vlog/index')
+      Taro.navigateTo({ url: `${base}?petId=${currentPet.id}${tier !== 'light' ? `&tier=${tier}` : ''}` })
       return
     }
-    if (tier === 'light') {
-      Taro.navigateTo({ url: `/pagesPet/memoir-daily/index?petId=${petId}` })
-    } else {
-      Taro.navigateTo({ url: `/pagesPet/memoir-vlog/index?petId=${petId}&tier=${tier}` })
-    }
+    const base = tier === 'light' ? '/pagesPet/memoir-daily/index' : (tier === 'full' ? '/pagesPet/memoir-full/index' : '/pagesPet/memoir-vlog/index')
+    Taro.navigateTo({ url: `${base}?petId=${petId}${tier !== 'light' ? `&tier=${tier}` : ''}` })
   }
 
   /** 档位不可用提示：素材不足时轻提示仍允许进入（流程内可补素材/降档） */
