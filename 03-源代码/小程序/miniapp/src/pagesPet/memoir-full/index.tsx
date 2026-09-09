@@ -24,6 +24,7 @@ import {
   getPhotoPool,
   getMemoirPricing,
   uploadLocalPhoto,
+  uploadMemoirBgm,
   createMemoirOrder,
   payWithWechat,
   waitForNewTask,
@@ -176,6 +177,10 @@ export default function MemoirVlog() {
   const bgmAudioRef = useRef<Taro.InnerAudioContext | null>(null)
   // —— 步骤4：画风/氛围 ——
   const [selectedStyle, setSelectedStyle] = useState('cinematic')
+  // —— 步骤4：用户导入 BGM（版权归用户） ——
+  const [customBgmUrl, setCustomBgmUrl] = useState('')
+  const [customBgmName, setCustomBgmName] = useState('')
+  const [uploadingBgm, setUploadingBgm] = useState(false)
 
   // —— 步骤5：确认支付（三档卡） ——
   const [pricing, setPricing] = useState<MemoirPricing | null>(null)
@@ -483,6 +488,44 @@ export default function MemoirVlog() {
     bgmAudioRef.current = audioCtx
   }, [playingBGM])
 
+  /**
+   * 导入我的音乐（2026-09-09 用户导入 BGM）：微信选音频文件 → 上传 → 得 URL，选中为自定义 BGM。
+   * 版权归用户：页面上已注明「请确认拥有该音频的授权」。
+   */
+  const handleImportBGM = useCallback(() => {
+    if (!petId) {
+      Taro.showToast({ title: '宠物信息缺失', icon: 'none' })
+      return
+    }
+    if (uploadingBgm) {
+      return
+    }
+    Taro.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['mp3', 'm4a', 'aac', 'wav'],
+    }).then(async (res) => {
+      const file = res.tempFiles?.[0]
+      if (!file || !file.path) {
+        return
+      }
+      setUploadingBgm(true)
+      try {
+        const url = await uploadMemoirBgm(petId, file.path)
+        setCustomBgmUrl(url)
+        setCustomBgmName((file.name || '我的音乐').replace(/\.(mp3|m4a|aac|wav)$/i, ''))
+        setSelectedBGM('custom')
+        Taro.showToast({ title: '已导入我的音乐', icon: 'success' })
+      } catch (err) {
+        Taro.showToast({ title: err instanceof Error ? err.message : '导入失败', icon: 'none' })
+      } finally {
+        setUploadingBgm(false)
+      }
+    }).catch(() => {
+      // 用户取消选择静默
+    })
+  }, [petId, uploadingBgm])
+
   // 组件卸载时清理音频与加载动画定时器（loading interval 泄漏会在退出页面后空转 setState）
   useEffect(() => {
     return () => {
@@ -556,7 +599,7 @@ export default function MemoirVlog() {
         tier: selectedTier,
         source_photos: remotePhotos,
         source_text: narrative.trim() || undefined,
-        music_style: mapBGMKeyToMusicStyle(selectedBGM),
+        music_style: selectedBGM === 'custom' ? 'warm' : mapBGMKeyToMusicStyle(selectedBGM),
         // 画风（2026-09-09）：与下单一致，透传后端注入 GLOBAL STYLE
         style_preset: selectedStyle,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
@@ -720,8 +763,9 @@ export default function MemoirVlog() {
           return p.remoteUrl
         }),
         sourceText: narrative.trim() || undefined,
-        musicStyle: selectedBGM,
+        musicStyle: selectedBGM === 'custom' ? undefined : selectedBGM,
         stylePreset: selectedStyle,
+        customBgmUrl: selectedBGM === 'custom' ? customBgmUrl : undefined,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
         selectedMomentIds: selectedMomentIds.length > 0 ? selectedMomentIds : undefined,
       })
@@ -768,7 +812,7 @@ export default function MemoirVlog() {
       setPaying(false)
       Taro.showToast({ title: err instanceof Error ? err.message : '支付失败，请重试', icon: 'none' })
     }
-  }, [petId, selectedTier, photos, narrative, selectedTags, selectedBGM, selectedStyle, selectedMomentIds, goToStep, startLoadingAnim, promptConfirmed])
+  }, [petId, selectedTier, photos, narrative, selectedTags, selectedBGM, selectedStyle, selectedMomentIds, goToStep, startLoadingAnim, promptConfirmed, customBgmUrl])
 
   // ==================== 轮询任务状态 ====================
 
@@ -1325,6 +1369,31 @@ export default function MemoirVlog() {
           </View>
         ))}
       </View>
+      {/* 用户导入 BGM（2026-09-09 版权归用户）：卡片选中即用自定义音频，生成合成优先使用 */}
+      <View
+        className={`memoir-vlog__bgm-card memoir-vlog__bgm-card--custom${
+          selectedBGM === 'custom' ? ' memoir-vlog__bgm-card--active' : ''
+        }`}
+        onClick={() => customBgmUrl && setSelectedBGM('custom')}
+      >
+        <View className='memoir-vlog__bgm-card-emoji'><Text>🎤</Text></View>
+        <View className='memoir-vlog__bgm-card-info'>
+          <Text className='memoir-vlog__bgm-card-name'>{customBgmUrl ? `我的音乐：${customBgmName}` : '导入我的音乐'}</Text>
+          <Text className='memoir-vlog__bgm-card-tag'>{customBgmUrl ? '已导入' : '用你喜欢/有意义的歌'}</Text>
+        </View>
+        <View className='memoir-vlog__bgm-btn' onClick={(e) => { e.stopPropagation(); handleImportBGM() }}>
+          <Text>{uploadingBgm ? '上传中...' : customBgmUrl ? '重新导入' : '🎵 导入'}</Text>
+        </View>
+        <View className={`memoir-vlog__bgm-card-check${selectedBGM === 'custom' ? ' memoir-vlog__bgm-card-check--checked' : ''}`}>
+          {selectedBGM === 'custom' && <Text>✓</Text>}
+        </View>
+      </View>
+      {customBgmUrl && (
+        <Text style={{ marginTop: '8rpx', fontSize: '20rpx', color: '#999' }}>
+          你导入的音频版权归你所有，请确认拥有其授权；生成将使用这段音乐。
+        </Text>
+      )}
+
       {/* B 级曲目（CC BY 3.0）需署名：来源说明常驻展示，满足授权要求 */}
       <Text style={{ marginTop: '16rpx', fontSize: '20rpx', color: '#999' }}>
         音乐：Kevin MacLeod（incompetech.com）· CC BY 3.0

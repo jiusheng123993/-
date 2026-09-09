@@ -81,6 +81,8 @@ export interface CreateMemoirOrderParams {
   stylePreset?: string
   tags?: string[]
   selectedMomentIds?: string[]
+  /** 用户导入的自定义 BGM 公网 URL（有则生成合成优先用，替代内置曲） */
+  customBgmUrl?: string
 }
 
 /** 下单响应（payment 为微信支付参数，直接透传给 requestPayment） */
@@ -251,6 +253,35 @@ export async function uploadLocalPhoto(filePath: string): Promise<string> {
         }
       },
       fail: () => reject(new Error('照片上传失败，请检查网络')),
+    })
+  })
+}
+
+/**
+ * 上传用户导入的 BGM 音频（2026-09-09）：微信选音频 → multipart 上传 → 返回公网 URL。
+ * 版权归用户（前端已放置"请确认拥有授权"提示），服务端仅存音频供生成合成使用。
+ */
+export async function uploadMemoirBgm(petId: string, filePath: string): Promise<string> {
+  const token = storage.getToken()
+  return new Promise((resolve, reject) => {
+    Taro.uploadFile({
+      url: `${CONFIG.API_BASE_URL}/api/pets/${petId}/memoir/bgm/upload`,
+      filePath,
+      name: 'audio',
+      header: token ? { Authorization: `Bearer ${token}` } : {},
+      success: (res) => {
+        try {
+          const body = JSON.parse(res.data) as { success?: boolean; data?: { url?: string }; message?: string }
+          if (body.success && body.data?.url) {
+            resolve(body.data.url)
+          } else {
+            reject(new Error(body.message || '音频上传失败'))
+          }
+        } catch {
+          reject(new Error('音频上传失败，请重试'))
+        }
+      },
+      fail: () => reject(new Error('音频上传失败，请检查网络')),
     })
   })
 }

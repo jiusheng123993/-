@@ -1278,3 +1278,21 @@
   color: $color-text-tertiary;
   line-height: 1.5;
 }
+
+// BGM 用户导入卡片（2026-09-09 版权归用户）+ 导入按钮
+.memoir-vlog__bgm-card--custom {
+  border-style: dashed;
+  border-color: rgba(255, 154, 98, 0.4);
+}
+
+.memoir-vlog__bgm-btn {
+  flex-shrink: 0;
+  padding: 12rpx 24rpx;
+  border-radius: $radius-round;
+  background: rgba(255, 154, 98, 0.12);
+  border: 2rpx solid rgba(255, 154, 98, 0.4);
+  color: #D2703A;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  @include press-feedback;
+}
