@@ -377,6 +377,29 @@ async function ensureMemoirScript(
     });
   }
 
+  // 用户确认版提示词优先采用（2026-09-09 人机协同收口）：用户在生成前确认的「最终版提示词」
+  // 已留存作证；本任务若与确认档位匹配，直接用它（仍经安全清洗）而非重新生成——
+  // 真正兑现「按用户确认过的版本生成」，防止「这不是我确认的那版」的扯皮。
+  if (!existing) {
+    try {
+      const confirmation = await memoirRepository.findPromptConfirmation(task.pet_id);
+      if (confirmation && confirmation.tier === tier) {
+        const confirmedScript = confirmation.script as MemoirScript;
+        if (confirmedScript && Array.isArray(confirmedScript.segments) && confirmedScript.segments.length > 0) {
+          return sanitizeMemoirScriptPrompts(confirmedScript, {
+            petProfile,
+            photoCount: task.source_photos.length,
+            productLine,
+            targetDuration: typeof narrative.duration === 'number' ? narrative.duration : MEMOIR_TIER_CONFIG[tier].defaultDuration,
+          });
+        }
+      }
+    } catch {
+      // 确认版读取失败不阻断（降级为重新生成）
+      console.warn(`[MemoirProcessor] Task ${task.id}: 读取用户确认版提示词失败，降级重新生成`);
+    }
+  }
+
   try {
 
     // 记忆摘要（F4：按回忆标签筛核心层记忆作素材；失败不影响分镜生成）
