@@ -157,11 +157,63 @@ function useMock(): boolean {
   return CONFIG.USE_MOCK
 }
 
+/** 启动期空栈轮询间隔（ms） */
+const FIRST_PAGE_POLL_MS = 100
+
+/**
+ * 空栈轮询次数上限：100ms × 80 = 8s，与 routeGuard.ts 分包占位窗
+ * SUBPACK_PENDING_HOLD_MS（8s，覆盖 pagesPet/pagesUser 分包首载下载）对齐
+ * （审查 P2 对齐）：冷启动深链可直达分包页、分包首载可达 8s，等待上限短于
+ * 该窗口会让超时兜底 reLaunch 仍可能撞上分包首载路由。用次数上限而非
+ * Date.now 时间差：墙钟受系统回拨/前跳影响会延长/提前终止等待（routeGuard
+ * 同类场景已有显式防护先例），轮询次数天然单调、零平台依赖。
+ */
+const FIRST_PAGE_MAX_POLLS = 80
+
+/** 就绪收尾缓冲（ms）：与 routeGuard.ts SETTLE_BUFFER_MS 同语义 */
+const FIRST_PAGE_SETTLE_MS = 300
+
+/**
+ * 等待首屏页面就绪（页面栈非空 + 路由收尾缓冲）
+ *
+ * 用途：启动期收到 401 时，首屏路由往往尚未完成（页面栈为空），此时立即
+ * reLaunch 会销毁路由中的首屏 webview，微信基础库随后收到该 webview 的
+ * routeDone 消息时找不到实例，报「Page route 错误(system error)：routeDone
+ * with a webviewId N is not found」（2026-09-09 修复「打开即 401 + 路由错误」）。
+ *
+ * 边界说明（2026-09-09 审查 P1-1）：「栈非空」是必要非充分条件——首屏 onLoad
+ * 前后栈即非空，而竞态窗口持续到首屏 routeDone（约 onReady）才关闭；此处无法
+ * 直接探测 onReady，故栈非空后追加 FIRST_PAGE_SETTLE_MS 固定收尾缓冲，覆盖
+ * 「栈已非空但路由消息尚未走完」的窗口。等待期间用户看到的是分包/首屏自身的
+ * 加载态，无额外等待感知。
+ */
+async function waitForFirstPage(): Promise<void> {
+  for (let poll = 0; poll < FIRST_PAGE_MAX_POLLS; poll++) {
+    if (Taro.getCurrentPages().length > 0) {
+      // 栈已非空：再等一个收尾缓冲，让首屏 routeDone 消息走完再放行跳转
+      await new Promise(resolve => setTimeout(resolve, FIRST_PAGE_SETTLE_MS))
+      return
+    }
+    await new Promise(resolve => setTimeout(resolve, FIRST_PAGE_POLL_MS))
+  }
+  // 超时放弃等待（栈始终为空 = 路由异常卡死）：由调用方兜底跳转，宁可此时
+  // 一次性竞态噪音，不可让用户滞留在已清空的登录态
+}
+
 /**
  * 401 统一处理（2026-09 审查 P1 修复）
  * 复用 authStore.logout：断开 WebSocket + 清空本地存储（含认证与业务数据）+ 重置登录态，
  * 然后跳转登录页。用动态 import 避免 api.ts ↔ authStore 的静态循环依赖；
  * handling401 防止并发请求同时收到 401 时重复登出/跳转。
+ *
+ * 启动期路由竞态防护（2026-09-09 补充）：页面栈为空（首屏路由未完成）时，
+ * 先等待首屏就绪再跳转，避免 reLaunch 与启动路由并发触发 webviewId not found；
+ * 等待超时仍兜底跳转（宁可一次竞态噪音，不可让用户滞留在已清空的登录态）。
+ *
+ * ⚠️ 依赖约束（审查双向注释固化）：本兜底跳转依赖 routeGuard「刻意不包装
+ * reLaunch」的决策——若未来 routeGuard 扩展包装 reLaunch，本跳转会被其冷却
+ * 锁静默吞掉（返回假成功 ok 形态），用户将滞留在已清空的登录态。见
+ * routeGuard.ts 顶部「安全性论证」；扩展 reLaunch 前必须先处理本调用点。
  */
 let handling401 = false
 async function handleUnauthorized(): Promise<void> {
@@ -170,11 +222,20 @@ async function handleUnauthorized(): Promise<void> {
   try {
     const { useAuthStore } = await import('../stores/authStore')
     await useAuthStore.getState().logout()
-    // 已在登录页则不重复跳转（登录页在 pagesUser 分包）
+    // 启动期（页面栈为空）：等首屏路由完成（含收尾缓冲）后再跳，规避 webviewId 竞态
+    if (Taro.getCurrentPages().length === 0) {
+      await waitForFirstPage()
+    }
+    // 已在登录页则不重复跳转（登录页在 pagesUser 分包；等待期间用户可能已手动到登录页，故复查）
     const pages = Taro.getCurrentPages()
     const current = pages[pages.length - 1]
     if (!current || !current.route?.includes('login')) {
-      Taro.reLaunch({ url: '/pagesUser/login/index' }).catch(() => {})
+      Taro.reLaunch({ url: '/pagesUser/login/index' }).catch((err) => {
+        // 兜底跳转失败留痕 + toast（审查 P2）：等待超时后跳转仍失败属极端路由态，
+        // 用户滞留在已清空会话的首屏，至少给出可感知提示
+        console.warn('[Api] 401 兜底跳转登录页失败:', err)
+        Taro.showToast({ title: '登录已过期，请重新进入', icon: 'none' }).catch(() => {})
+      })
     }
   } catch (err) {
     console.warn('[Api] 401 会话清理失败:', err)

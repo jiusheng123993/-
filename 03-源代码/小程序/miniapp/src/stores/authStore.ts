@@ -6,11 +6,12 @@
 import Taro from '@tarojs/taro'
 import create from 'zustand'
 import { api } from '../services/api'
-import { storage } from '../utils/storage'
+import { isTokenFormatValid } from '../utils/jwt'
 import { wsClient } from '../services/wsClient'
-import { getLoginCode, loginWithPhone, API_BASE_URL } from '../platform'
+import { getLoginCode, loginWithPhone, API_BASE_URL, isWeapp } from '../platform'
 import { processPendingReferral } from '../services/shareService'
 import {
+  storage,
   setStorageUserId,
   getStorage,
   setStorage,
@@ -42,6 +43,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   /**
    * 初始化认证状态，从本地存储恢复登录态
+   *
+   * 过期 token 启动即拦截（2026-09-09 修复「打开即 401」）：
+   * 服务端 JWT 有效期 7 天且无刷新端点，本地缓存的过期 token 若照旧恢复，
+   * 启动首个业务请求（GET /api/pets）必然 401，进而触发全局 401 处理在启动期
+   * reLaunch 登录页，与首屏路由竞态报「Page route 错误(webviewId not found)」。
+   * 因此恢复前先本地校验 exp（不发起任何业务请求）：
+   * - 微信端：静默重登（Taro.login 换新 token，用户无感，无需任何点击）；
+   * - 非微信端（H5/App 需手机号验证码，无法静默重登）：清理会话回落未登录，
+   *   由各页面登录守卫正常引导。
    */
   initialize: async () => {
     if (get().isInitialized) return
@@ -49,6 +59,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const token = storage.getToken()
       if (token) {
+        // 本地过期校验：JWT 三段结构 + exp 未过期才视为有效（isTokenFormatValid 内含）
+        if (!isTokenFormatValid(token)) {
+          if (isWeapp()) {
+            // 静默重登：复用 login()（Taro.login → 后端 code 换 token），
+            // 成功后 state 已含新 token/user 且 isAuthenticated=true
+            await get().login()
+            // login() 不负责 isInitialized（正常由用户点击登录路径消费），
+            // 启动路径在此补齐，保证 app.js 的启动收尾逻辑只执行一次
+            set({ isInitialized: true })
+            return
+          }
+          // 非微信端无法静默重登：过期即视为未登录，清理残留会话。
+          // 清理口径说明（审查 P2）：此处与 catch 一致用 storage.clear()（仅认证
+          // 三键）而非 logout 的 Taro.clearStorageSync 全清——H5/App 端业务缓存
+          // 带 userId 前缀隔离、无跨账号泄露，窄清理保住用户本地数据；残留由
+          // 下次登录同账号复用，风险受控（取舍记录见 utils/storage.ts clear 实现）
+          storage.clear()
+          set({ isInitialized: true, isLoading: false })
+          return
+        }
         const user = storage.getUser()
         if (user) {
           set({ user, token, isAuthenticated: true, isInitialized: true, isLoading: false })
@@ -62,7 +92,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         void processPendingReferral(freshUser.id)
         return
       }
-    } catch {
+    } catch (err) {
+      // 覆盖静默重登失败：过期 token 清理掉，回落未登录态（不阻塞启动）。
+      // 可观测性（2026-09-09 审查 P2）：线上「打开即回落未登录」需有迹可循；
+      // 只记 Error 对象，禁止输出 token/user 值。清理口径说明：此处仅清认证
+      // 三键（storage.clear），比 handleUnauthorized 的 logout 全清（Taro.clearStorageSync）
+      // 轻——静默重登失败场景微信端 Taro.login 必为当前账号、业务缓存带 userId
+      // 前缀隔离，无跨用户泄露；无需全清打断用户本地数据。
+      console.warn('[authStore] 启动静默重登失败，已回落未登录:', err)
       storage.clear()
     }
     set({ isInitialized: true, isLoading: false })
