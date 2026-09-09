@@ -1,6 +1,0 @@
-# 改动说明
-# 问题：P2食物安全数据库扩展完成
-# 原因：foodSafety.ts从9条扩展到50+条目(toxic19/dangerous22/caution11/safe14); 清理ToxicFoodFilter.ts冗余SUPPLEMENTAL_FOODS和ALIAS_SUPPLEMENTS; 扩展SPECIES_SAFETY_OVERRIDES覆盖9个新增物种差异; 修复nutmeg语法错误; 更新测试; tsc零错误 vitest447通过
-# 改动：
-#   1. P2食物安全数据库扩展完成
-# 影响：foodSafety.ts从9条扩展到50+条目(toxic19/dangerous22/caution11/safe14); 清理ToxicFoodFilter.ts冗余SUPPLEMENTAL_FOODS和ALIAS_SUPPLEMENTS; 扩展SPECIES_SAFETY_OVERRIDES覆盖9个新增物种差异; 修复nutmeg语法错误; 更新测试; tsc零错误 vitest447通过

@@ -1,6 +1,0 @@
-# 改动说明
-# 问题：旧代码清理完成
-# 原因：清理全部旧方向(情绪健康管理)代码，包括：删除90+旧文件(页面/引擎/Store/Service/Hook/组件/数据/工具/子包)，修复data/index.ts和services/index.ts导出错误，修复profile页面旧方向引用，重构FloatingNav/SettingsStore/useUserStats/app.tsx依赖解耦，TypeScript编译零错误通过
-# 改动：
-#   1. 旧代码清理完成
-# 影响：清理全部旧方向(情绪健康管理)代码，包括：删除90+旧文件(页面/引擎/Store/Service/Hook/组件/数据/工具/子包)，修复data/index.ts和services/index.ts导出错误，修复profile页面旧方向引用，重构FloatingNav/SettingsStore/useUserStats/app.tsx依赖解耦，TypeScript编译零错误通过

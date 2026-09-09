@@ -1,6 +1,0 @@
-# 改动说明
-# 问题：P0/P1/P2问题修复+测试补充+构建验证
-# 原因：修复P0:补齐页面config.ts、修复notificationService分包路径、清理quotaManager死代码。修复P1:重构settingsStore并接入settings页面、数据导出功能已实现。补充测试:settingsStore(18)、subscribeStore(26)、reportService(24)。构建验证通过。TypeScript 0错误，638测试通过。
-# 改动：
-#   1. P0/P1/P2问题修复+测试补充+构建验证
-# 影响：修复P0:补齐页面config.ts、修复notificationService分包路径、清理quotaManager死代码。修复P1:重构settingsStore并接入settings页面、数据导出功能已实现。补充测试:settingsStore(18)、subscribeStore(26)、reportService(24)。构建验证通过。TypeScript 0错误，638测试通过。

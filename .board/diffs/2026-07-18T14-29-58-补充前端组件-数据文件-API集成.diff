@@ -1,6 +1,0 @@
-# 改动说明
-# 问题：补充前端组件+数据文件+API集成
-# 原因：创建3个组件(FoodShareCard,AnomalyMarker,GriefCompanion)+2个数据文件(urgencyRules,emotionScenes)+修复api.ts+修复foodService/membershipService API集成+修复supabase配置+创建env.d.ts+集成组件到页面+TypeScript编译通过
-# 改动：
-#   1. 补充前端组件+数据文件+API集成
-# 影响：创建3个组件(FoodShareCard,AnomalyMarker,GriefCompanion)+2个数据文件(urgencyRules,emotionScenes)+修复api.ts+修复foodService/membershipService API集成+修复supabase配置+创建env.d.ts+集成组件到页面+TypeScript编译通过

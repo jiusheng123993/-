@@ -1,6 +1,0 @@
-# 改动说明
-# 问题：修复M1模块memory-body引擎问题
-# 原因：修复memoryDecay.ts shouldArchive永远为false、memoryEvolution.ts双重断言和SRP违反、memoryRetrieval.ts SRP违反和类型安全
-# 改动：
-#   1. 修复M1模块memory-body引擎问题
-# 影响：修复memoryDecay.ts shouldArchive永远为false、memoryEvolution.ts双重断言和SRP违反、memoryRetrieval.ts SRP违反和类型安全

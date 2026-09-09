@@ -1,6 +1,0 @@
-# 改动说明
-# 问题：TypeScript错误修复+测试修复+构建验证通过
-# 原因：修复settings页面Switch事件类型、补全membershipService缺失的subscribe和simulatePaymentSuccess函数、统一API路径前缀、修复测试断言路径。构建验证通过：总包928KB，主包远低于2MB限制。
-# 改动：
-#   1. TypeScript错误修复+测试修复+构建验证通过
-# 影响：修复settings页面Switch事件类型、补全membershipService缺失的subscribe和simulatePaymentSuccess函数、统一API路径前缀、修复测试断言路径。构建验证通过：总包928KB，主包远低于2MB限制。
