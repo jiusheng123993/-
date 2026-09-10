@@ -90,6 +90,9 @@ export function useVoiceInput(options: UseVoiceInputOptions) {
 
     // —— 槽位赋值（官方写法）——
     mgr.onStart = () => {
+      // 用户已松手（recordingRef 已复位）时忽略"迟到"的 onStart，
+      // 防止松手后 UI 又闪回录音态（识别插件启动有异步延迟）
+      if (!recordingRef.current) return
       elapsedSecondsRef.current = 0
       setRecordDuration(0)
       setIsRecording(true)
@@ -145,6 +148,9 @@ export function useVoiceInput(options: UseVoiceInputOptions) {
   const stopRecord = useCallback(() => {
     if (!managerRef.current || !recordingRef.current) return
     recordingRef.current = false
+    // 乐观立即退出录音态：不等插件 onStop（识别有网络延迟），
+    // 避免"松手后仍显示录音中"的卡顿观感；识别结果仍由 onStop 回调送达
+    setIsRecording(false)
     managerRef.current.stop()
   }, [])
 
