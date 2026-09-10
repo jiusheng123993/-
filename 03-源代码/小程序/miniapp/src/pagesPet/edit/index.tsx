@@ -53,6 +53,19 @@ const INITIAL_FORM: FormData = {
   avatarUrl: '',
 }
 
+/**
+ * 防御性解码 URL 参数：Taro 路由一般已 decode 过一次；
+ * 若参数仍含 %（未解码），补一次 decode（失败原样返回，防畸形编码抛错）
+ */
+const safeDecodeParam = (v?: string): string => {
+  if (!v || !v.includes('%')) return v || ''
+  try {
+    return decodeURIComponent(v)
+  } catch {
+    return v
+  }
+}
+
 export default function EditPet() {
   const themeClass = useThemeClass()
   const { pets, updatePet } = usePet()
@@ -74,7 +87,8 @@ export default function EditPet() {
 
   useEffect(() => {
     const instance = Taro.getCurrentInstance()
-    const id = instance.router?.params?.id
+    const params = instance.router?.params || {}
+    const id = params.id
     if (!id) {
       Taro.showToast({ title: '参数错误', icon: 'none' })
       setTimeout(() => {
@@ -83,13 +97,23 @@ export default function EditPet() {
       return
     }
     setPetId(id)
+
+    // 品种百科「我的宠物是这个品种」快捷入口：URL 预填品种（breedId/breedName/species）。
+    // 以 breedId 反查品种库取权威名称与物种；反查不到（如热更新移除）再退回 URL 直传值
+    const prefill = params.breedId ? getActiveBreeds().find(b => b.id === params.breedId) : undefined
+    const prefillSpeciesRaw = prefill?.species || params.species
+    const prefillSpecies = prefillSpeciesRaw === 'dog' || prefillSpeciesRaw === 'cat' ? prefillSpeciesRaw : ''
+    const prefillBreedId = prefill?.id || params.breedId || ''
+    const prefillBreedName = prefill?.name || safeDecodeParam(params.breedName)
+
     const pet = pets.find(p => p.id === id)
     if (pet) {
       setFormData({
         name: pet.name,
-        species: pet.species,
-        breedId: pet.breedId || '',
-        breedName: pet.breed || '',
+        // 用户明确说「我的宠物是这个品种」：URL 带品种预填时物种跟随品种，覆盖档案旧物种
+        species: prefillSpecies || pet.species,
+        breedId: prefillBreedId || pet.breedId || '',
+        breedName: prefillBreedName || pet.breed || '',
         gender: pet.gender === 'male' || pet.gender === 'female' ? pet.gender : '',
         birthDate: pet.birthDate,
         weight: pet.weight ? String(pet.weight) : '',
@@ -103,10 +127,9 @@ export default function EditPet() {
         // 展示优先真实照片，其次卡通/AI 形象（与全局展示优先级一致，避免纯卡通宠物显示占位符）
         avatarUrl: pet.avatarPhotoUrl || pet.avatarCartoonUrl || '',
       })
-      if (pet.breedId) {
-        const breed = getActiveBreeds().find(b => b.id === pet.breedId)
-        if (breed) setSelectedBreed(breed)
-      }
+      // 选中品种卡：优先 URL 预填品种，无预填时维持原行为（按档案旧品种回显）
+      const breed = getActiveBreeds().find(b => b.id === (prefillBreedId || pet.breedId || ''))
+      if (breed) setSelectedBreed(breed)
     }
   }, [pets])
 

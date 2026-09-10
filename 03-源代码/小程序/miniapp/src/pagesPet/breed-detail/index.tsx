@@ -10,6 +10,7 @@ import { getActiveBreeds, type BreedItem } from '../../data/petKnowledge/breeds'
 import { syncBreedKnowledge } from '../../services/breedService'
 import { MedicalDisclaimer } from '../../engines/petSafety/MedicalDisclaimer'
 import { useAnalytics, usePageView } from '../../hooks/useAnalytics'
+import { usePet } from '../../hooks/usePet'
 import { EVENT } from '../../constants/analyticsEvents'
 import './index.scss'
 
@@ -50,6 +51,8 @@ export default function BreedDetail() {
   const router = useRouter()
   const { trackEvent } = useAnalytics()
   usePageView('breed_detail')
+  // 宠物列表：供「我的宠物是这个品种」确定目标宠物（编辑页强制要求宠物 id，缺失会提示「参数错误」）
+  const { pets, isLoading: petsLoading } = usePet()
 
   // 直接从 store 读取主题，避免 useThemeClass 内 useEffect 冗余 setState 触发渲染层异常
   const [themeKey, setThemeKey] = useState<ThemeKey>(() => useThemeStore.getState().current)
@@ -76,13 +79,58 @@ export default function BreedDetail() {
     })
   }, [router.params.id])
 
+  /**
+   * 「我的宠物是这个品种」：把当前品种预填进自家宠物档案
+   * 坑点：编辑页强制要求宠物 id 参数（缺失即提示「参数错误」并退回），
+   * 因此跳转前必须先确定目标宠物——无档案引导添加 / 单档案直跳 / 多档案 ActionSheet 选择
+   */
   const handleSetMyPet = useCallback(() => {
     if (!breed) return
     trackEvent('set_my_pet_breed', { breedId: breed.id, breedName: breed.name })
-    Taro.navigateTo({
-      url: `/pagesPet/edit/index?breedId=${breed.id}&breedName=${encodeURIComponent(breed.name)}&species=${breed.species}`,
+
+    // 宠物列表还在加载：先等一下，避免把「未加载完」误判成「没有宠物」
+    if (petsLoading) {
+      Taro.showToast({ title: '加载中，请稍候', icon: 'none' })
+      return
+    }
+
+    // 没有宠物档案：引导先去添加页（添加页不支持品种预填，进页面后自选）
+    if (pets.length === 0) {
+      Taro.showModal({
+        title: '还没有宠物档案',
+        content: '先添加宠物档案，再来设置品种吧',
+        confirmText: '去添加',
+        cancelText: '暂不',
+        success: (res) => {
+          if (res.confirm) Taro.navigateTo({ url: '/pagesPet/add/index' })
+        },
+      })
+      return
+    }
+
+    // 跳编辑页：id=目标宠物，品种三件套（breedId/breedName/species）供编辑页预填覆盖旧品种
+    const goEdit = (petId: string) => {
+      Taro.navigateTo({
+        url: `/pagesPet/edit/index?id=${petId}&breedId=${breed.id}&breedName=${encodeURIComponent(breed.name)}&species=${breed.species}`,
+      })
+    }
+
+    // 只有一只宠物：无需选择，直接进编辑页
+    if (pets.length === 1) {
+      goEdit(pets[0].id)
+      return
+    }
+
+    // 多只宠物：ActionSheet 选一只（微信 ActionSheet 上限 6 项，超出截断；
+    // 极端多宠场景属边缘 case，用户可分批设置，不值得为此引入自建选择弹层）
+    Taro.showActionSheet({
+      itemList: pets.slice(0, 6).map((p) => p.name),
+      success: (res) => {
+        const target = pets[res.tapIndex]
+        if (target) goEdit(target.id)
+      },
     })
-  }, [breed, trackEvent])
+  }, [breed, pets, petsLoading, trackEvent])
 
   if (!breed) {
     return (
